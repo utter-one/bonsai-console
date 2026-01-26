@@ -37,381 +37,145 @@ function navigateTo(route: string) {
 </script>
 
 <template>
-  <div class="dashboard">
-    <div class="dashboard-header">
-      <h1>Dashboard</h1>
-      <p>Welcome to Nexus Admin - Your AI Platform Management Console</p>
+  <div class="max-w-[1400px] mx-auto">
+    <div class="mb-8">
+      <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900">Dashboard</h1>
+      <p class="m-0 text-base text-gray-600">Welcome to Nexus Admin - Your AI Platform Management Console</p>
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Loading dashboard...</p>
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 px-5">
+      <div class="w-10 h-10 border-4 border-gray-200 border-t-gradient-from rounded-full animate-spin mb-4"></div>
+      <p class="text-gray-700">Loading dashboard...</p>
     </div>
 
     <!-- Dashboard Content -->
     <div v-else class="dashboard-content">
       <!-- Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <Rocket class="stat-icon" :size="36" />
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.projects }}</div>
-            <div class="stat-label">Projects</div>
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 mb-10">
+        <div class="bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <Rocket class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="text-4xl font-bold text-gray-900 leading-none mb-1">{{ stats.projects }}</div>
+            <div class="text-sm text-gray-600">Projects</div>
           </div>
-          <button @click="navigateTo('design.projects')" class="stat-action">View →</button>
+          <button 
+            @click="navigateTo('design.projects')" 
+            class="px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100"
+          >
+            View →
+          </button>
         </div>
 
-        <div class="stat-card">
-          <Users class="stat-icon" :size="36" />
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.users }}</div>
-            <div class="stat-label">Users</div>
+        <div class="bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <Users class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="text-4xl font-bold text-gray-900 leading-none mb-1">{{ stats.users }}</div>
+            <div class="text-sm text-gray-600">Users</div>
           </div>
-          <button @click="navigateTo('monitor.users')" class="stat-action">View →</button>
+          <button 
+            @click="navigateTo('monitor.users')" 
+            class="px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100"
+          >
+            View →
+          </button>
         </div>
 
-        <div class="stat-card">
-          <MessageCircle class="stat-icon" :size="36" />
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.conversations }}</div>
-            <div class="stat-label">Conversations</div>
+        <div class="bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <MessageCircle class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="text-4xl font-bold text-gray-900 leading-none mb-1">{{ stats.conversations }}</div>
+            <div class="text-sm text-gray-600">Conversations</div>
           </div>
-          <button @click="navigateTo('monitor.conversations')" class="stat-action">View →</button>
+          <button 
+            @click="navigateTo('monitor.conversations')" 
+            class="px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100"
+          >
+            View →
+          </button>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="section">
-        <h2>Quick Actions</h2>
-        <div class="actions-grid">
-          <button @click="navigateTo('design.projects')" class="action-card">
-            <Palette class="action-icon" :size="32" />
-            <span class="action-title">Design</span>
-            <span class="action-desc">Create and configure AI projects</span>
+      <div class="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <h2 class="m-0 mb-5 text-xl font-semibold text-gray-900">Quick Actions</h2>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+          <button 
+            @click="navigateTo('design.projects')" 
+            class="flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(25,118,210,0.15)]"
+          >
+            <Palette class="text-primary-500" :size="32" />
+            <span class="text-base font-semibold text-gray-900">Design</span>
+            <span class="text-sm text-gray-600">Create and configure AI projects</span>
           </button>
 
-          <button @click="navigateTo('monitor.conversations')" class="action-card">
-            <Activity class="action-icon" :size="32" />
-            <span class="action-title">Monitor</span>
-            <span class="action-desc">Track conversations and issues</span>
+          <button 
+            @click="navigateTo('monitor.conversations')" 
+            class="flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(25,118,210,0.15)]"
+          >
+            <Activity class="text-primary-500" :size="32" />
+            <span class="text-base font-semibold text-gray-900">Monitor</span>
+            <span class="text-sm text-gray-600">Track conversations and issues</span>
           </button>
 
-          <button @click="navigateTo('analyze.conversations')" class="action-card">
-            <Search class="action-icon" :size="32" />
-            <span class="action-title">Analyze</span>
-            <span class="action-desc">Review performance metrics</span>
+          <button 
+            @click="navigateTo('analyze.conversations')" 
+            class="flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(25,118,210,0.15)]"
+          >
+            <Search class="text-primary-500" :size="32" />
+            <span class="text-base font-semibold text-gray-900">Analyze</span>
+            <span class="text-sm text-gray-600">Review performance metrics</span>
           </button>
 
-          <button @click="navigateTo('settings.admins')" class="action-card">
-            <Settings class="action-icon" :size="32" />
-            <span class="action-title">Settings</span>
-            <span class="action-desc">Manage system configuration</span>
+          <button 
+            @click="navigateTo('settings.admins')" 
+            class="flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(25,118,210,0.15)]"
+          >
+            <Settings class="text-primary-500" :size="32" />
+            <span class="text-base font-semibold text-gray-900">Settings</span>
+            <span class="text-sm text-gray-600">Manage system configuration</span>
           </button>
         </div>
       </div>
 
       <!-- Recent Projects -->
-      <div class="section">
-        <div class="section-header">
-          <h2>Recent Projects</h2>
-          <button @click="navigateTo('design.projects')" class="view-all-btn">View All →</button>
+      <div class="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="m-0 text-xl font-semibold text-gray-900">Recent Projects</h2>
+          <button 
+            @click="navigateTo('design.projects')" 
+            class="px-4 py-2 border-none bg-transparent text-primary-500 text-sm font-medium cursor-pointer transition-colors hover:text-primary-600"
+          >
+            View All →
+          </button>
         </div>
         
-        <div v-if="projectsStore.items.length === 0" class="empty-state">
-          <p>No projects yet. Create your first project to get started!</p>
-          <button @click="navigateTo('design.projects')" class="create-btn">Create Project</button>
+        <div v-if="projectsStore.items.length === 0" class="text-center py-10 px-5">
+          <p class="m-0 mb-4 text-gray-600">No projects yet. Create your first project to get started!</p>
+          <button 
+            @click="navigateTo('design.projects')" 
+            class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-primary-600"
+          >
+            Create Project
+          </button>
         </div>
 
-        <div v-else class="projects-list">
-          <div v-for="project in projectsStore.items.slice(0, 5)" :key="project.id" class="project-item">
-            <div class="project-info">
-              <h3>{{ project.name }}</h3>
-              <p v-if="project.description">{{ project.description }}</p>
+        <div v-else class="flex flex-col gap-3">
+          <div 
+            v-for="project in projectsStore.items.slice(0, 5)" 
+            :key="project.id" 
+            class="flex justify-between items-center p-4 border border-gray-200 rounded-lg transition-all hover:border-primary-500 hover:bg-gray-50"
+          >
+            <div>
+              <h3 class="m-0 mb-1 text-base font-semibold text-gray-900">{{ project.name }}</h3>
+              <p v-if="project.description" class="m-0 text-sm text-gray-600">{{ project.description }}</p>
             </div>
-            <span class="project-meta">v{{ project.version }}</span>
+            <span class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-primary-500">
+              v{{ project.version }}
+            </span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.dashboard-header {
-  margin-bottom: 32px;
-}
-
-.dashboard-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 32px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.dashboard-header p {
-  margin: 0;
-  font-size: 16px;
-  color: #666;
-}
-
-/* Loading */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-  color: #1976d2;
-  flex-shrink: 0;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.stat-action {
-  padding: 8px 16px;
-  border: none;
-  background: #e3f2fd;
-  color: #1976d2;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.stat-action:hover {
-  background: #bbdefb;
-}
-
-/* Sections */
-.section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.section h2 {
-  margin: 0 0 20px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.section-header h2 {
-  margin: 0;
-}
-
-.view-all-btn {
-  padding: 8px 16px;
-  border: none;
-  background: none;
-  color: #1976d2;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.view-all-btn:hover {
-  color: #1565c0;
-}
-
-/* Actions Grid */
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-.action-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-}
-
-.action-card:hover {
-  border-color: #1976d2;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
-}
-
-.action-icon {
-  color: #1976d2;
-}
-
-.action-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.action-desc {
-  font-size: 13px;
-  color: #666;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.empty-state p {
-  margin: 0 0 16px 0;
-  color: #666;
-}
-
-.create-btn {
-  padding: 10px 20px;
-  border: none;
-  background: #1976d2;
-  color: white;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.create-btn:hover {
-  background: #1565c0;
-}
-
-/* Projects List */
-.projects-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.project-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.project-item:hover {
-  border-color: #1976d2;
-  background: #fafafa;
-}
-
-.project-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.project-info p {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.project-meta {
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-@media (max-width: 768px) {
-  .dashboard-header h1 {
-    font-size: 24px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

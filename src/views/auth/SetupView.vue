@@ -66,29 +66,29 @@ async function handleSetup() {
 </script>
 
 <template>
-  <div class="setup-page">
-    <div class="setup-container">
-      <div v-if="isChecking" class="checking-card">
-        <div class="spinner"></div>
-        <p>Checking system status...</p>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gradient-from to-gradient-to p-5">
+    <div class="w-full max-w-[520px]">
+      <div v-if="isChecking" class="bg-white rounded-xl py-16 px-10 shadow-2xl text-center">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-gradient-from rounded-full animate-spin mx-auto mb-5"></div>
+        <p class="text-gray-700">Checking system status...</p>
       </div>
 
-      <div v-else class="setup-card">
-        <div class="setup-header">
-          <div class="header-icon">
+      <div v-else class="bg-white rounded-xl p-10 shadow-2xl">
+        <div class="text-center mb-8">
+          <div class="flex justify-center text-gradient-from mb-4">
             <Rocket :size="40" />
           </div>
-          <h1>Welcome to Nexus Admin</h1>
-          <p>Let's set up your initial administrator account</p>
+          <h1 class="m-0 mb-2 text-3xl font-bold text-gray-900">Welcome to Nexus Admin</h1>
+          <p class="m-0 text-sm text-gray-600">Let's set up your initial administrator account</p>
         </div>
 
-        <form @submit.prevent="handleSetup" class="setup-form">
-          <div v-if="errorMessage" class="error-alert">
+        <form @submit.prevent="handleSetup" class="flex flex-col gap-5">
+          <div v-if="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
             {{ errorMessage }}
           </div>
 
-          <div class="form-group">
-            <label for="displayName">Display Name</label>
+          <div class="flex flex-col gap-2">
+            <label for="displayName" class="text-sm font-medium text-gray-900">Display Name</label>
             <input
               id="displayName"
               v-model="setupForm.displayName"
@@ -96,11 +96,12 @@ async function handleSetup() {
               required
               placeholder="John Doe"
               :disabled="isLoading"
+              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div class="form-group">
-            <label for="id">Admin ID / Email</label>
+          <div class="flex flex-col gap-2">
+            <label for="id" class="text-sm font-medium text-gray-900">Admin ID / Email</label>
             <input
               id="id"
               v-model="setupForm.id"
@@ -108,11 +109,12 @@ async function handleSetup() {
               required
               placeholder="admin@example.com or admin-user"
               :disabled="isLoading"
+              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div class="form-group">
-            <label for="password">Password</label>
+          <div class="flex flex-col gap-2">
+            <label for="password" class="text-sm font-medium text-gray-900">Password</label>
             <input
               id="password"
               v-model="setupForm.password"
@@ -120,11 +122,12 @@ async function handleSetup() {
               required
               placeholder="Minimum 8 characters"
               :disabled="isLoading"
+              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
+          <div class="flex flex-col gap-2">
+            <label for="confirmPassword" class="text-sm font-medium text-gray-900">Confirm Password</label>
             <input
               id="confirmPassword"
               v-model="setupForm.confirmPassword"
@@ -132,10 +135,15 @@ async function handleSetup() {
               required
               placeholder="Re-enter password"
               :disabled="isLoading"
+              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
-          <button type="submit" class="setup-button" :disabled="isLoading">
+          <button 
+            type="submit" 
+            :disabled="isLoading"
+            class="px-4 py-3.5 border-none rounded-md bg-gradient-from text-white text-base font-semibold cursor-pointer transition-all mt-2 hover:bg-[#5568d3] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+          >
             {{ isLoading ? 'Creating Account...' : 'Complete Setup' }}
           </button>
         </form>
@@ -143,154 +151,3 @@ async function handleSetup() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.setup-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-}
-
-.setup-container {
-  width: 100%;
-  max-width: 520px;
-}
-
-.checking-card {
-  background: white;
-  border-radius: 12px;
-  padding: 60px 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  text-align: center;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.setup-card {
-  background: white;
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.setup-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.header-icon {
-  display: flex;
-  justify-content: center;
-  color: #667eea;
-  margin-bottom: 16px;
-}
-
-.setup-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.setup-header p {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.setup-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.error-alert {
-  padding: 12px;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 6px;
-  color: #c33;
-  font-size: 14px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-}
-
-.form-group input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.form-group input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.setup-button {
-  padding: 14px;
-  border: none;
-  border-radius: 6px;
-  background: #667eea;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
-}
-
-.setup-button:hover:not(:disabled) {
-  background: #5568d3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.setup-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-}
-
-@media (max-width: 580px) {
-  .setup-card {
-    padding: 30px 24px;
-  }
-
-  .setup-header h1 {
-    font-size: 24px;
-  }
-}
-</style>
