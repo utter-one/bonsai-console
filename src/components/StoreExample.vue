@@ -93,51 +93,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="nexus-admin-example">
+  <div class="max-w-6xl mx-auto p-5">
     <!-- Header -->
-    <header class="header">
-      <h1>Nexus Admin - Pinia Store Example</h1>
-      <div v-if="isLoggedIn" class="user-info">
+    <header class="flex justify-between items-center py-5 border-b-2 border-gray-200 mb-8">
+      <h1 class="m-0 text-gray-900">Nexus Admin - Pinia Store Example</h1>
+      <div v-if="isLoggedIn" class="flex items-center gap-4">
         <span>{{ authStore.currentAdmin?.displayName }}</span>
-        <button @click="handleLogout" class="btn btn-secondary">Logout</button>
+        <button @click="handleLogout" class="px-5 py-2.5 border-none rounded bg-gray-600 text-white text-sm cursor-pointer transition-all hover:bg-gray-700">Logout</button>
       </div>
     </header>
 
     <!-- Login Form -->
-    <div v-if="!isLoggedIn" class="login-container">
-      <div class="login-form">
-        <h2>Login</h2>
+    <div v-if="!isLoggedIn" class="flex justify-center items-center min-h-[400px]">
+      <div class="w-full max-w-md p-8 border border-gray-200 rounded-lg shadow-md">
+        <h2 class="mt-0 mb-5">Login</h2>
         
-        <div v-if="authStore.error" class="error-message">
+        <div v-if="authStore.error" class="p-4 mb-5 bg-red-100 text-red-800 border border-red-300 rounded">
           {{ authStore.error }}
         </div>
         
         <form @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label for="id">Username/ID</label>
+          <div class="mb-4">
+            <label for="id" class="block mb-1 font-medium text-gray-700">Username/ID</label>
             <input 
               id="id"
               v-model="loginForm.id" 
               type="text" 
               required 
               placeholder="admin@example.com"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded text-sm"
             />
           </div>
           
-          <div class="form-group">
-            <label for="password">Password</label>
+          <div class="mb-4">
+            <label for="password" class="block mb-1 font-medium text-gray-700">Password</label>
             <input 
               id="password"
               v-model="loginForm.password" 
               type="password" 
               required 
               placeholder="Password"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded text-sm"
             />
           </div>
           
           <button 
             type="submit" 
-            class="btn btn-primary" 
+            class="px-5 py-2.5 border-none rounded bg-blue-600 text-white text-sm cursor-pointer transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="authStore.isLoading"
           >
             {{ authStore.isLoading ? 'Logging in...' : 'Login' }}
@@ -149,21 +151,21 @@ onMounted(() => {
     <!-- Main Content -->
     <div v-else class="main-content">
       <!-- Tabs -->
-      <div class="tabs">
+      <div class="flex gap-2.5 mb-5 border-b-2 border-gray-200">
         <button 
-          :class="{ active: activeTab === 'projects' }"
+          :class="['px-5 py-2.5 border-none bg-transparent cursor-pointer text-base text-gray-600 border-b-[3px] border-transparent transition-all hover:text-gray-900', activeTab === 'projects' && 'text-blue-600 border-blue-600']"
           @click="activeTab = 'projects'"
         >
           Projects
         </button>
         <button 
-          :class="{ active: activeTab === 'users' }"
+          :class="['px-5 py-2.5 border-none bg-transparent cursor-pointer text-base text-gray-600 border-b-[3px] border-transparent transition-all hover:text-gray-900', activeTab === 'users' && 'text-blue-600 border-blue-600']"
           @click="activeTab = 'users'"
         >
           Users
         </button>
         <button 
-          :class="{ active: activeTab === 'knowledge' }"
+          :class="['px-5 py-2.5 border-none bg-transparent cursor-pointer text-base text-gray-600 border-b-[3px] border-transparent transition-all hover:text-gray-900', activeTab === 'knowledge' && 'text-blue-600 border-blue-600']"
           @click="activeTab = 'knowledge'"
         >
           Knowledge Base
@@ -172,26 +174,28 @@ onMounted(() => {
 
       <!-- Projects Tab -->
       <div v-if="activeTab === 'projects'" class="tab-content">
-        <h2>Projects</h2>
+        <h2 class="mt-0 mb-5">Projects</h2>
         
         <!-- Create Project Form -->
-        <div class="create-form">
-          <h3>Create New Project</h3>
-          <form @submit.prevent="createProject" class="inline-form">
+        <div class="p-5 bg-gray-100 rounded-lg mb-8">
+          <h3 class="mt-0 mb-4">Create New Project</h3>
+          <form @submit.prevent="createProject" class="flex gap-2.5">
             <input 
               v-model="projectForm.name" 
               type="text" 
               placeholder="Project name" 
               required
+              class="flex-1 px-2.5 py-2 border border-gray-300 rounded"
             />
             <input 
               v-model="projectForm.description" 
               type="text" 
               placeholder="Description"
+              class="flex-1 px-2.5 py-2 border border-gray-300 rounded"
             />
             <button 
               type="submit" 
-              class="btn btn-primary"
+              class="px-5 py-2.5 border-none rounded bg-blue-600 text-white text-sm cursor-pointer transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="projectsStore.isLoading"
             >
               Create
@@ -200,33 +204,33 @@ onMounted(() => {
         </div>
         
         <!-- Projects List -->
-        <div v-if="projectsStore.isLoading" class="loading">
+        <div v-if="projectsStore.isLoading" class="text-center py-10 text-gray-600">
           Loading projects...
         </div>
         
-        <div v-else-if="projectsStore.error" class="error-message">
+        <div v-else-if="projectsStore.error" class="p-4 bg-red-100 text-red-800 border border-red-300 rounded mb-5">
           {{ projectsStore.error }}
         </div>
         
-        <div v-else-if="projectsStore.items.length === 0" class="empty-state">
+        <div v-else-if="projectsStore.items.length === 0" class="text-center py-10 text-gray-600 bg-gray-100 rounded-lg">
           No projects yet. Create one above!
         </div>
         
-        <div v-else class="items-list">
+        <div v-else class="grid gap-4">
           <div 
             v-for="project in projectsStore.items" 
             :key="project.id" 
-            class="item-card"
+            class="p-5 border border-gray-200 rounded-lg bg-white"
           >
-            <div class="item-header">
-              <h4>{{ project.name }}</h4>
+            <div class="flex justify-between items-center mb-2.5">
+              <h4 class="m-0 text-gray-900">{{ project.name }}</h4>
             </div>
-            <p v-if="project.description">{{ project.description }}</p>
-            <div class="item-meta">
+            <p v-if="project.description" class="mb-2.5">{{ project.description }}</p>
+            <div class="mt-2.5 text-xs text-gray-600">
               <span>Created: {{ new Date(project.createdAt).toLocaleDateString() }}</span>
             </div>
-            <div class="item-actions">
-              <button @click="deleteProject(project.id)" class="btn btn-danger btn-sm">
+            <div class="mt-4 flex gap-2.5">
+              <button @click="deleteProject(project.id)" class="px-2.5 py-1.5 text-xs border-none rounded bg-red-600 text-white cursor-pointer transition-all hover:bg-red-700">
                 Delete
               </button>
             </div>
@@ -234,38 +238,38 @@ onMounted(() => {
         </div>
         
         <!-- Pagination Info -->
-        <div v-if="projectsStore.items.length > 0" class="pagination-info">
+        <div v-if="projectsStore.items.length > 0" class="mt-5 text-center text-gray-600 text-sm">
           Showing {{ projectsStore.items.length }} of {{ projectsStore.pagination.total }} projects
         </div>
       </div>
 
       <!-- Users Tab -->
       <div v-if="activeTab === 'users'" class="tab-content">
-        <h2>Users</h2>
+        <h2 class="mt-0 mb-5">Users</h2>
         
-        <div v-if="usersStore.isLoading" class="loading">
+        <div v-if="usersStore.isLoading" class="text-center py-10 text-gray-600">
           Loading users...
         </div>
         
-        <div v-else-if="usersStore.error" class="error-message">
+        <div v-else-if="usersStore.error" class="p-4 bg-red-100 text-red-800 border border-red-300 rounded mb-5">
           {{ usersStore.error }}
         </div>
         
-        <div v-else-if="usersStore.items.length === 0" class="empty-state">
+        <div v-else-if="usersStore.items.length === 0" class="text-center py-10 text-gray-600 bg-gray-100 rounded-lg">
           No users found.
         </div>
         
-        <div v-else class="items-list">
+        <div v-else class="grid gap-4">
           <div 
             v-for="user in usersStore.items" 
             :key="user.id" 
-            class="item-card"
+            class="p-5 border border-gray-200 rounded-lg bg-white"
           >
-            <div class="item-header">
-              <h4>{{ user.id }}</h4>
+            <div class="flex justify-between items-center mb-2.5">
+              <h4 class="m-0 text-gray-900">{{ user.id }}</h4>
             </div>
             <p>Profile: {{ JSON.stringify(user.profile) }}</p>
-            <div class="item-meta">
+            <div class="mt-2.5 text-xs text-gray-600">
               <span v-if="user.createdAt">Created: {{ new Date(user.createdAt).toLocaleDateString() }}</span>
             </div>
           </div>
@@ -274,32 +278,32 @@ onMounted(() => {
 
       <!-- Knowledge Base Tab -->
       <div v-if="activeTab === 'knowledge'" class="tab-content">
-        <h2>Knowledge Base</h2>
+        <h2 class="mt-0 mb-5">Knowledge Base</h2>
         
-        <div v-if="knowledgeStore.isLoading" class="loading">
+        <div v-if="knowledgeStore.isLoading" class="text-center py-10 text-gray-600">
           Loading knowledge sections...
         </div>
         
-        <div v-else-if="knowledgeStore.error" class="error-message">
+        <div v-else-if="knowledgeStore.error" class="p-4 bg-red-100 text-red-800 border border-red-300 rounded mb-5">
           {{ knowledgeStore.error }}
         </div>
         
-        <div v-else-if="knowledgeStore.sections.length === 0" class="empty-state">
+        <div v-else-if="knowledgeStore.sections.length === 0" class="text-center py-10 text-gray-600 bg-gray-100 rounded-lg">
           No knowledge sections found.
         </div>
         
-        <div v-else class="items-list">
+        <div v-else class="grid gap-4">
           <div 
             v-for="section in knowledgeStore.sections" 
             :key="section.id" 
-            class="item-card"
+            class="p-5 border border-gray-200 rounded-lg bg-white"
           >
-            <div class="item-header">
-              <h4>{{ section.name }}</h4>
-              <span class="badge">Order: {{ section.order }}</span>
+            <div class="flex justify-between items-center mb-2.5">
+              <h4 class="m-0 text-gray-900">{{ section.name }}</h4>
+              <span class="px-3 py-1 rounded-xl text-xs font-medium bg-blue-600 text-white">Order: {{ section.order }}</span>
             </div>
             <p v-if="section.description">{{ section.description }}</p>
-            <div class="item-meta">
+            <div class="mt-2.5 text-xs text-gray-600">
               <span>Created: {{ new Date(section.createdAt).toLocaleDateString() }}</span>
             </div>
           </div>
@@ -308,261 +312,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.nexus-admin-example {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0;
-  border-bottom: 2px solid #e0e0e0;
-  margin-bottom: 30px;
-}
-
-.header h1 {
-  margin: 0;
-  color: #333;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-}
-
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  padding: 30px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.login-form h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #555;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.tabs button {
-  padding: 10px 20px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #666;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s;
-}
-
-.tabs button:hover {
-  color: #333;
-}
-
-.tabs button.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
-}
-
-.tab-content h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.create-form {
-  padding: 20px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.create-form h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
-.inline-form {
-  display: flex;
-  gap: 10px;
-}
-
-.inline-form input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #5a6268;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
-
-.btn-sm {
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-.items-list {
-  display: grid;
-  gap: 15px;
-}
-
-.item-card {
-  padding: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: white;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.item-header h4 {
-  margin: 0;
-  color: #333;
-}
-
-.status {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  background: #dc3545;
-  color: white;
-}
-
-.status.active {
-  background: #28a745;
-}
-
-.badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  background: #007bff;
-  color: white;
-}
-
-.item-meta {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #666;
-}
-
-.item-actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-}
-
-.error-message {
-  padding: 15px;
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.pagination-info {
-  margin-top: 20px;
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-}
-</style>

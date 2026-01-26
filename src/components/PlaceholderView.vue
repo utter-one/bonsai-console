@@ -11,105 +11,26 @@ defineProps<{
 </script>
 
 <template>
-  <div class="placeholder-view">
-    <div class="placeholder-header">
-      <div class="header-content">
-        <component v-if="icon" :is="icon" class="view-icon" :size="40" />
+  <div class="max-w-[1400px] mx-auto">
+    <div class="mb-6">
+      <div class="flex items-start gap-4">
+        <component v-if="icon" :is="icon" class="text-primary-500 flex-shrink-0" :size="40" />
         <div>
-          <h1>{{ title }}</h1>
-          <p>{{ description }}</p>
+          <h1 class="m-0 mb-1 text-3xl font-bold text-gray-900">{{ title }}</h1>
+          <p class="m-0 text-gray-600">{{ description }}</p>
         </div>
       </div>
     </div>
     
-    <div class="placeholder-content">
-      <div class="coming-soon">
-        <Construction class="icon" :size="64" />
-        <h2>View Under Construction</h2>
-        <p>This {{ title }} view is being built and will be available soon.</p>
-        <p v-if="storeName" class="store-info">
-          Connected to: <code>{{ storeName }}</code>
+    <div class="bg-white border-2 border-dashed border-gray-200 rounded-xl py-16 px-5">
+      <div class="text-center max-w-[500px] mx-auto">
+        <Construction class="text-orange-500 mb-5 mx-auto" :size="64" />
+        <h2 class="m-0 mb-3 text-2xl text-gray-900">View Under Construction</h2>
+        <p class="m-0 mb-2 text-gray-600 leading-relaxed">This {{ title }} view is being built and will be available soon.</p>
+        <p v-if="storeName" class="mt-5 p-3 bg-gray-100 rounded-md text-sm">
+          Connected to: <code class="bg-gray-300 px-1.5 py-0.5 rounded font-mono">{{ storeName }}</code>
         </p>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.placeholder-view {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.placeholder-header {
-  margin-bottom: 24px;
-}
-
-.header-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.view-icon {
-  color: #1976d2;
-  flex-shrink: 0;
-}
-
-.placeholder-header h1 {
-  margin: 0 0 4px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.placeholder-header p {
-  margin: 0;
-  color: #666;
-}
-
-.placeholder-content {
-  background: white;
-  border: 2px dashed #e0e0e0;
-  border-radius: 12px;
-  padding: 60px 20px;
-}
-
-.coming-soon {
-  text-align: center;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.coming-soon .icon {
-  color: #ff9800;
-  margin-bottom: 20px;
-}
-
-.coming-soon h2 {
-  margin: 0 0 12px 0;
-  font-size: 24px;
-  color: #1a1a1a;
-}
-
-.coming-soon p {
-  margin: 0 0 8px 0;
-  color: #666;
-  line-height: 1.6;
-}
-
-.store-info {
-  margin-top: 20px;
-  padding: 12px;
-  background: #f5f5f5;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.store-info code {
-  background: #e0e0e0;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: monospace;
-}
-</style>
