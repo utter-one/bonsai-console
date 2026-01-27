@@ -71,11 +71,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/KnowledgeView.vue'),
           },
           {
-            path: 'projects/:projectId/providers',
-            name: 'design.providers',
-            component: () => import('@/views/design/ProvidersView.vue'),
-          },
-          {
             path: 'projects/:projectId/environments',
             name: 'design.environments',
             component: () => import('@/views/design/EnvironmentsView.vue'),
@@ -143,21 +138,21 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
-      // Settings Section
+      // Administration Section
       {
-        path: 'settings',
-        name: 'settings',
-        redirect: { name: 'settings.admins' },
+        path: 'administration',
+        name: 'administration',
+        redirect: { name: 'administration.admins' },
         children: [
           {
             path: 'admins',
-            name: 'settings.admins',
-            component: () => import('@/views/settings/AdminsView.vue'),
+            name: 'administration.admins',
+            component: () => import('@/views/administration/AdminsView.vue'),
           },
           {
-            path: 'profile',
-            name: 'settings.profile',
-            component: () => import('@/views/settings/ProfileView.vue'),
+            path: 'providers',
+            name: 'administration.providers',
+            component: () => import('@/views/administration/ProvidersView.vue'),
           },
         ],
       },

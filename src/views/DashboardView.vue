@@ -128,11 +128,11 @@ function navigateTo(route: string) {
           </button>
 
           <button 
-            @click="navigateTo('settings.admins')" 
+            @click="navigateTo('administration.admins')" 
             class="flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(25,118,210,0.15)]"
           >
             <Settings class="text-primary-500" :size="32" />
-            <span class="text-base font-semibold text-gray-900">Settings</span>
+            <span class="text-base font-semibold text-gray-900">Administration</span>
             <span class="text-sm text-gray-600">Manage system configuration</span>
           </button>
         </div>

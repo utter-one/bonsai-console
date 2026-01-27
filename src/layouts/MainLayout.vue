@@ -15,7 +15,7 @@ const currentSection = computed(() => {
   if (path.startsWith('/design')) return 'design'
   if (path.startsWith('/monitor')) return 'monitor'
   if (path.startsWith('/analyze')) return 'analyze'
-  if (path.startsWith('/settings')) return 'settings'
+  if (path.startsWith('/administration')) return 'administration'
   return 'dashboard'
 })
 
@@ -43,7 +43,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
   { id: 'design', label: 'Design', icon: Palette },
   { id: 'monitor', label: 'Monitor', icon: Activity },
   { id: 'analyze', label: 'Analyze', icon: Search },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'administration', label: 'Administration', icon: Settings },
 ]
 </script>
 
@@ -77,8 +77,8 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
 
         <!-- Right Side Actions -->
         <div class="flex items-center gap-4 ml-auto">
-          <!-- Project Selector (only show if not in settings) -->
-          <div v-if="currentSection !== 'settings' && currentSection !== 'dashboard'" class="relative sm:block hidden">
+          <!-- Project Selector (only show if not in administration) -->
+          <div v-if="currentSection !== 'administration' && currentSection !== 'dashboard'" class="relative sm:block hidden">
             <select 
               v-model="selectedProjectId" 
               class="px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm cursor-pointer min-w-[200px] focus:outline-none focus:border-primary-500"
@@ -117,12 +117,6 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
                 <div class="text-xs text-gray-600 mt-1 uppercase">{{ authStore.currentAdmin?.roles?.join(', ') }}</div>
               </div>
               <div class="h-px bg-gray-200 my-2"></div>
-              <button 
-                @click="router.push({ name: 'settings.profile' }); showUserMenu = false" 
-                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
-              >
-                Profile
-              </button>
               <button 
                 @click="handleLogout" 
                 class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
