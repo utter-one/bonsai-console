@@ -351,7 +351,7 @@
 
 /* Auth Pages */
 .auth-container {
-  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-gradient-from to-gradient-to p-5;
+  @apply min-h-screen flex items-center justify-center bg-gray-50 p-5;
 }
 
 .auth-card {
