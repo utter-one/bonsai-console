@@ -25,3 +25,6 @@
     @apply bg-gray-50 text-gray-900;
   }
 }
+
+/* Import utilities */
+@import "./utilities.css";

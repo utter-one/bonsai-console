@@ -66,29 +66,29 @@ async function handleSetup() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gradient-from to-gradient-to p-5">
+  <div class="auth-container">
     <div class="w-full max-w-[520px]">
-      <div v-if="isChecking" class="bg-white rounded-xl py-16 px-10 shadow-2xl text-center">
-        <div class="w-10 h-10 border-4 border-gray-200 border-t-gradient-from rounded-full animate-spin mx-auto mb-5"></div>
+      <div v-if="isChecking" class="auth-card text-center py-16">
+        <div class="spinner mx-auto mb-5"></div>
         <p class="text-gray-700">Checking system status...</p>
       </div>
 
-      <div v-else class="bg-white rounded-xl p-10 shadow-2xl">
-        <div class="text-center mb-8">
+      <div v-else class="auth-card">
+        <div class="auth-header">
           <div class="flex justify-center text-gradient-from mb-4">
             <Rocket :size="40" />
           </div>
-          <h1 class="m-0 mb-2 text-3xl font-bold text-gray-900">Welcome to Nexus Admin</h1>
-          <p class="m-0 text-sm text-gray-600">Let's set up your initial administrator account</p>
+          <h1 class="auth-title">Welcome to Nexus Admin</h1>
+          <p class="auth-subtitle">Let's set up your initial administrator account</p>
         </div>
 
-        <form @submit.prevent="handleSetup" class="flex flex-col gap-5">
-          <div v-if="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+        <form @submit.prevent="handleSetup" class="auth-form">
+          <div v-if="errorMessage" class="alert-error">
             {{ errorMessage }}
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="displayName" class="text-sm font-medium text-gray-900">Display Name</label>
+            <label for="displayName" class="form-label">Display Name</label>
             <input
               id="displayName"
               v-model="setupForm.displayName"
@@ -96,12 +96,12 @@ async function handleSetup() {
               required
               placeholder="John Doe"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="id" class="text-sm font-medium text-gray-900">Admin ID / Email</label>
+            <label for="id" class="form-label">Admin ID / Email</label>
             <input
               id="id"
               v-model="setupForm.id"
@@ -109,12 +109,12 @@ async function handleSetup() {
               required
               placeholder="admin@example.com or admin-user"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="password" class="text-sm font-medium text-gray-900">Password</label>
+            <label for="password" class="form-label">Password</label>
             <input
               id="password"
               v-model="setupForm.password"
@@ -122,12 +122,12 @@ async function handleSetup() {
               required
               placeholder="Minimum 8 characters"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="confirmPassword" class="text-sm font-medium text-gray-900">Confirm Password</label>
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
             <input
               id="confirmPassword"
               v-model="setupForm.confirmPassword"
@@ -135,15 +135,11 @@ async function handleSetup() {
               required
               placeholder="Re-enter password"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
-          <button 
-            type="submit" 
-            :disabled="isLoading"
-            class="px-4 py-3.5 border-none rounded-md bg-gradient-from text-white text-base font-semibold cursor-pointer transition-all mt-2 hover:bg-[#5568d3] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
-          >
+          <button type="submit" :disabled="isLoading" class="btn-auth mt-2">
             {{ isLoading ? 'Creating Account...' : 'Complete Setup' }}
           </button>
         </form>

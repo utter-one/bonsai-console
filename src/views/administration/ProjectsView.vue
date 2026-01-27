@@ -41,57 +41,57 @@ function selectProject(projectId: string) {
 
 <template>
   <AdministrationSectionLayout>
-    <div class="max-w-[1400px]">
-    <div class="flex justify-between items-start mb-6">
+    <div class="container-constrained">
+    <div class="page-header">
       <div>
-        <h1 class="m-0 mb-1 text-3xl font-bold text-gray-900">Projects</h1>
-        <p class="m-0 text-gray-600">Manage your AI application projects</p>
+        <h1 class="page-title">Projects</h1>
+        <p class="page-subtitle">Manage your AI application projects</p>
       </div>
-      <button @click="showCreateModal = true" class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
+      <button @click="showCreateModal = true" class="btn-primary">
         + New Project
       </button>
     </div>
 
-    <div v-if="projectsStore.isLoading" class="text-center py-16 px-5 text-gray-600">Loading projects...</div>
+    <div v-if="projectsStore.isLoading" class="loading-state">Loading projects...</div>
     
-    <div v-else-if="projectsStore.error" class="text-center py-16 px-5 text-red-600">{{ projectsStore.error }}</div>
+    <div v-else-if="projectsStore.error" class="error-state">{{ projectsStore.error }}</div>
     
-    <div v-else-if="projectsStore.items.length === 0" class="text-center py-16 px-5 text-gray-600">
+    <div v-else-if="projectsStore.items.length === 0" class="empty-state">
       <p>No projects yet. Create your first project!</p>
     </div>
     
-    <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
-      <div v-for="project in projectsStore.items" :key="project.id" class="bg-white border border-gray-200 rounded-lg p-5 transition-all hover:border-primary-500 hover:shadow-md">
-        <div class="flex justify-between items-start mb-3">
-          <h3 class="m-0 text-lg font-semibold text-gray-900">{{ project.name }}</h3>
+    <div v-else class="grid-cards">
+      <div v-for="project in projectsStore.items" :key="project.id" class="project-card">
+        <div class="project-card-header">
+          <h3 class="project-card-title">{{ project.name }}</h3>
         </div>
-        <p v-if="project.description" class="m-0 mb-3 text-sm text-gray-600">{{ project.description }}</p>
-        <div class="text-xs text-gray-400 mb-4">
+        <p v-if="project.description" class="project-card-description">{{ project.description }}</p>
+        <div class="project-card-meta">
           <span>Created {{ new Date(project.createdAt).toLocaleDateString() }}</span>
         </div>
         <div class="flex gap-2">
-          <button @click="selectProject(project.id)" class="px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500">Configure</button>
-          <button @click="deleteProject(project.id, project.name)" class="px-4 py-2 border-none bg-red-600 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-red-700">Delete</button>
+          <button @click="selectProject(project.id)" class="btn-secondary">Configure</button>
+          <button @click="deleteProject(project.id, project.name)" class="btn-danger">Delete</button>
         </div>
       </div>
     </div>
 
     <!-- Create Modal -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5" @click="showCreateModal = false">
-      <div class="bg-white rounded-lg p-6 max-w-lg w-full" @click.stop>
-        <h2 class="m-0 mb-5 text-xl font-semibold">Create New Project</h2>
+    <div v-if="showCreateModal" class="modal-overlay" @click="showCreateModal = false">
+      <div class="modal-content" @click.stop>
+        <h2 class="modal-header">Create New Project</h2>
         <form @submit.prevent="createProject">
-          <div class="mb-4">
-            <label class="block mb-1.5 font-medium text-gray-900">Project Name</label>
-            <input v-model="projectForm.name" type="text" required placeholder="My AI Project" class="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500" />
+          <div class="form-group">
+            <label class="form-label">Project Name</label>
+            <input v-model="projectForm.name" type="text" required placeholder="My AI Project" class="form-input" />
           </div>
-          <div class="mb-4">
-            <label class="block mb-1.5 font-medium text-gray-900">Description</label>
-            <textarea v-model="projectForm.description" rows="3" placeholder="Optional description" class="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500"></textarea>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea v-model="projectForm.description" rows="3" placeholder="Optional description" class="form-textarea"></textarea>
           </div>
-          <div class="flex gap-3 justify-end mt-5">
-            <button type="button" @click="showCreateModal = false" class="px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500">Cancel</button>
-            <button type="submit" class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">Create</button>
+          <div class="modal-footer">
+            <button type="button" @click="showCreateModal = false" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Create</button>
           </div>
         </form>
       </div>

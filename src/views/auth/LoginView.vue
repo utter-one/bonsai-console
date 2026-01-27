@@ -54,26 +54,26 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gradient-from to-gradient-to p-5">
+  <div class="auth-container">
     <div class="w-full max-w-md">
-      <div v-if="isCheckingSetup" class="bg-white rounded-xl p-16 shadow-2xl text-center">
-        <div class="w-10 h-10 border-4 border-gray-200 border-t-gradient-from rounded-full animate-spin mx-auto mb-5"></div>
+      <div v-if="isCheckingSetup" class="auth-card text-center py-16">
+        <div class="spinner mx-auto mb-5"></div>
         <p class="text-gray-700">Checking system status...</p>
       </div>
 
-      <div v-else class="bg-white rounded-xl p-10 shadow-2xl">
-        <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Nexus Admin</h1>
-          <p class="text-sm text-gray-600">Sign in to manage your AI platform</p>
+      <div v-else class="auth-card">
+        <div class="auth-header">
+          <h1 class="auth-title">Nexus Admin</h1>
+          <p class="auth-subtitle">Sign in to manage your AI platform</p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
-          <div v-if="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+        <form @submit.prevent="handleLogin" class="auth-form">
+          <div v-if="errorMessage" class="alert-error">
             {{ errorMessage }}
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="id" class="text-sm font-medium text-gray-900">Admin ID / Email</label>
+            <label for="id" class="form-label">Admin ID / Email</label>
             <input
               id="id"
               v-model="loginForm.id"
@@ -81,12 +81,12 @@ async function handleLogin() {
               required
               placeholder="admin@example.com or admin-user"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="password" class="text-sm font-medium text-gray-900">Password</label>
+            <label for="password" class="form-label">Password</label>
             <input
               id="password"
               v-model="loginForm.password"
@@ -94,15 +94,11 @@ async function handleLogin() {
               required
               placeholder="Enter your password"
               :disabled="isLoading"
-              class="px-3 py-3 border border-gray-300 rounded-md text-sm transition-colors focus:outline-none focus:border-gradient-from disabled:bg-gray-100 disabled:cursor-not-allowed"
+              class="form-input px-3 py-3"
             />
           </div>
 
-          <button 
-            type="submit" 
-            :disabled="isLoading"
-            class="px-4 py-3.5 border-none rounded-md bg-gradient-from text-white text-base font-semibold cursor-pointer transition-all hover:bg-[#5568d3] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
-          >
+          <button type="submit" :disabled="isLoading" class="btn-auth mt-2">
             {{ isLoading ? 'Signing in...' : 'Sign In' }}
           </button>
         </form>
