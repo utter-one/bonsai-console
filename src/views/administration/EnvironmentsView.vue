@@ -13,11 +13,3 @@ import { Globe } from 'lucide-vue-next'
     />
   </AdministrationSectionLayout>
 </template>
-    <PlaceholderView 
-      title="Environments" 
-      description="Configure deployment environments"
-      :icon="Globe"
-      storeName="useEnvironmentsStore"
-    />
-  </SectionLayout>
-</template>
