@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore, useUsersStore, useConversationsStore } from '@/stores'
-import { Rocket, Users, MessageCircle, Palette, Activity, Search, Settings } from 'lucide-vue-next'
+import { Rocket, Users, MessageCircle, Palette, Activity, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
