@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAdminsStore } from '@/stores'
 import { User, Search, X, Eye, EyeOff } from 'lucide-vue-next'
 import type { AdminResponse } from '@/types/api'
+import AdminEditModal from '@/components/modals/AdminEditModal.vue'
 
 const adminsStore = useAdminsStore()
 
@@ -35,8 +36,8 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const showNewPassword = ref(false)
 
-// Available roles (these could come from an API endpoint)
-const availableRoles = ref(['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'VIEWER'])
+// Available roles (from OpenAPI spec)
+const availableRoles = ref(['super_admin', 'content_manager', 'support', 'developer', 'viewer'])
 
 // Computed
 const filteredAdmins = computed(() => {
@@ -48,6 +49,8 @@ const filteredAdmins = computed(() => {
     admin.roles.some(role => role.toLowerCase().includes(query))
   )
 })
+
+const isSuperAdminSelected = computed(() => adminForm.value.roles.includes('super_admin'))
 
 // Lifecycle
 onMounted(async () => {
@@ -79,13 +82,6 @@ function openCreateModal() {
 
 function openEditModal(admin: AdminResponse) {
   editingAdmin.value = admin
-  adminForm.value = {
-    id: admin.id,
-    displayName: admin.displayName,
-    roles: [...admin.roles],
-    password: '',
-    metadata: admin.metadata || {}
-  }
   showEditModal.value = true
 }
 
@@ -130,15 +126,15 @@ async function createAdmin() {
   }
 }
 
-async function updateAdmin() {
+async function updateAdmin(data: { displayName: string; roles: string[]; metadata: any }) {
   if (!editingAdmin.value) return
 
   try {
     await adminsStore.update(editingAdmin.value.id, {
       version: editingAdmin.value.version,
-      displayName: adminForm.value.displayName,
-      roles: adminForm.value.roles,
-      metadata: adminForm.value.metadata
+      displayName: data.displayName,
+      roles: data.roles,
+      metadata: data.metadata
     })
     showEditModal.value = false
     editingAdmin.value = null
@@ -194,7 +190,17 @@ async function deleteAdmin(admin: AdminResponse) {
 
 function toggleRole(role: string) {
   const index = adminForm.value.roles.indexOf(role)
-  if (index > -1) {
+  
+  // If selecting super_admin, clear all other roles
+  if (role === 'super_admin' && index === -1) {
+    adminForm.value.roles = ['super_admin']
+  }
+  // If super_admin is already selected and trying to add another role, do nothing
+  else if (adminForm.value.roles.includes('super_admin') && role !== 'super_admin') {
+    return
+  }
+  // If selecting another role while super_admin is not selected
+  else if (index > -1) {
     adminForm.value.roles.splice(index, 1)
   } else {
     adminForm.value.roles.push(role)
@@ -208,6 +214,10 @@ function formatDate(date: string | null) {
 
 function clearSearch() {
   searchQuery.value = ''
+}
+
+function formatRoleName(role: string) {
+  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 </script>
 
@@ -293,7 +303,7 @@ function clearSearch() {
                     :key="role"
                     class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary-100 text-primary-800"
                   >
-                    {{ role }}
+                    {{ formatRoleName(role) }}
                   </span>
                 </div>
               </td>
@@ -410,14 +420,16 @@ function clearSearch() {
                 v-for="role in availableRoles"
                 :key="role"
                 class="inline-flex items-center cursor-pointer"
+                :class="{ 'opacity-50 cursor-not-allowed': isSuperAdminSelected && role !== 'super_admin' }"
               >
                 <input
                   type="checkbox"
                   :checked="adminForm.roles.includes(role)"
+                  :disabled="isSuperAdminSelected && role !== 'super_admin'"
                   @change="toggleRole(role)"
-                  class="mr-2 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  class="mr-2 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span class="text-sm text-gray-700">{{ role }}</span>
+                <span class="text-sm text-gray-700">{{ formatRoleName(role) }}</span>
               </label>
             </div>
             <p class="mt-1 text-xs text-gray-500">Select at least one role</p>
@@ -443,83 +455,13 @@ function clearSearch() {
     </div>
 
     <!-- Edit Modal -->
-    <div 
-      v-if="showEditModal" 
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
-      @click="showEditModal = false"
-    >
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.stop>
-        <h2 class="m-0 mb-5 text-xl font-semibold">Edit Administrator</h2>
-        
-        <form @submit.prevent="updateAdmin">
-          <div class="mb-4">
-            <label class="block mb-1.5 font-medium text-gray-900">Admin ID</label>
-            <input
-              :value="adminForm.id"
-              type="text"
-              disabled
-              class="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed font-mono"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label class="block mb-1.5 font-medium text-gray-900">
-              Display Name <span class="text-red-600">*</span>
-            </label>
-            <input
-              v-model="adminForm.displayName"
-              type="text"
-              required
-              class="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label class="block mb-1.5 font-medium text-gray-900">
-              Roles <span class="text-red-600">*</span>
-            </label>
-            <div class="flex flex-wrap gap-2 mt-2">
-              <label
-                v-for="role in availableRoles"
-                :key="role"
-                class="inline-flex items-center cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  :checked="adminForm.roles.includes(role)"
-                  @change="toggleRole(role)"
-                  class="mr-2 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span class="text-sm text-gray-700">{{ role }}</span>
-              </label>
-            </div>
-          </div>
-
-          <div v-if="editingAdmin" class="mb-4 p-3 bg-gray-50 rounded-md text-sm text-gray-600">
-            <div class="flex justify-between">
-              <span>Version: {{ editingAdmin.version }}</span>
-              <span>Created: {{ formatDate(editingAdmin.createdAt) }}</span>
-            </div>
-          </div>
-
-          <div class="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              @click="showEditModal = false"
-              class="px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <AdminEditModal
+      v-if="showEditModal"
+      :admin="editingAdmin"
+      :available-roles="availableRoles"
+      @close="showEditModal = false"
+      @update="updateAdmin"
+    />
 
     <!-- Password Modal -->
     <div 
