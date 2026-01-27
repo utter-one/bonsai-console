@@ -2,7 +2,9 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore } from '@/stores'
+import { formatRoleName } from '@/composables'
 import { Home, Palette, Activity, Settings, Menu } from 'lucide-vue-next'
+import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import type { Component } from 'vue'
 
 const router = useRouter()
@@ -21,6 +23,7 @@ const currentSection = computed(() => {
 const selectedProjectId = ref<string | null>(null)
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
+const showProfileModal = ref(false)
 
 // Load projects on mount
 onMounted(async () => {
@@ -69,6 +72,15 @@ function handleLogout() {
   authStore.logout()
   router.push({ name: 'login' })
 }
+
+function handleEditProfile() {
+  showProfileModal.value = true
+  showUserMenu.value = false
+}
+
+const formattedRoles = computed(() => {
+  return authStore.currentAdmin?.roles?.map(formatRoleName).join(', ') || ''
+})
 
 // Sections for navigation
 const sections: Array<{ id: string; label: string; icon: Component }> = [
@@ -146,9 +158,15 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             >
               <div class="p-3">
                 <div class="text-sm font-medium text-gray-900">{{ authStore.currentAdmin?.displayName }}</div>
-                <div class="text-xs text-gray-600 mt-1 uppercase">{{ authStore.currentAdmin?.roles?.join(', ') }}</div>
+                <div class="text-xs text-gray-600 mt-1">{{ formattedRoles }}</div>
               </div>
               <div class="h-px bg-gray-200 my-2"></div>
+              <button 
+                @click="handleEditProfile" 
+                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
+              >
+                Edit Profile
+              </button>
               <button 
                 @click="handleLogout" 
                 class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
@@ -194,5 +212,12 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
     <main class="flex-1 p-6 max-w-[1920px] w-full mx-auto">
       <RouterView />
     </main>
+
+    <!-- Profile Edit Modal -->
+    <ProfileEditModal 
+      v-if="showProfileModal"
+      @close="showProfileModal = false"
+      @saved="showProfileModal = false"
+    />
   </div>
 </template>

@@ -9,6 +9,8 @@ import type {
   SetupStatusResponse,
   InitialAdminSetupRequest,
   InitialAdminSetupResponse,
+  ProfileResponse,
+  UpdateProfileRequest,
 } from '@/types/api'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -26,21 +28,16 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiClient.post<LoginResponse>('/auth/login', credentials)
-      const { accessToken: token, refreshToken: refresh, adminId, displayName, roles } = response.data
+      const { accessToken: token, refreshToken: refresh } = response.data
 
       accessToken.value = token
       refreshToken.value = refresh
-      currentAdmin.value = {
-        id: adminId,
-        displayName,
-        roles,
-        version: 1,
-        createdAt: null,
-        updatedAt: null,
-      }
 
       localStorage.setItem('accessToken', token)
       localStorage.setItem('refreshToken', refresh)
+
+      // Fetch full profile after login
+      await fetchProfile()
 
       return response.data
     } catch (err: any) {
@@ -123,6 +120,61 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function fetchProfile() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await apiClient.get<ProfileResponse>('/profile')
+      currentAdmin.value = response.data
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to fetch profile'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function ensureProfile() {
+    // If we have a token but no profile data, fetch it
+    if (accessToken.value && !currentAdmin.value) {
+      try {
+        await fetchProfile()
+      } catch (err) {
+        // If profile fetch fails, clear auth state
+        logout()
+        throw err
+      }
+    }
+  }
+
+  async function updateProfile(data: UpdateProfileRequest) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await apiClient.post<ProfileResponse>('/profile', data)
+      
+      // Update current admin with new profile data
+      if (currentAdmin.value) {
+        currentAdmin.value = {
+          ...currentAdmin.value,
+          displayName: response.data.displayName,
+          version: response.data.version,
+          updatedAt: response.data.updatedAt,
+        }
+      }
+
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Profile update failed'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     accessToken,
     refreshToken,
@@ -135,5 +187,8 @@ export const useAuthStore = defineStore('auth', () => {
     refreshAccessToken,
     checkSetupStatus,
     createInitialAdmin,
+    fetchProfile,
+    ensureProfile,
+    updateProfile,
   }
 })

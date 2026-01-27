@@ -39,6 +39,23 @@ export interface RefreshTokenResponse {
   expiresIn: number
 }
 
+// Profile
+export interface ProfileResponse {
+  id: string
+  displayName: string
+  roles: string[]
+  metadata?: Record<string, any>
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+export interface UpdateProfileRequest {
+  displayName?: string
+  oldPassword?: string
+  newPassword?: string
+}
+
 // Setup
 export interface SetupStatusResponse {
   isSetup: boolean

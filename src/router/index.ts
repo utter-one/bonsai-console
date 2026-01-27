@@ -163,6 +163,15 @@ router.beforeEach(async (to, _from, next) => {
   } else if (!requiresAuth && authStore.isAuthenticated && to.name !== 'dashboard') {
     // If authenticated and trying to access login/setup, redirect to dashboard
     next({ name: 'dashboard' })
+  } else if (requiresAuth && authStore.isAuthenticated) {
+    // Ensure we have profile data when accessing protected routes
+    try {
+      await authStore.ensureProfile()
+      next()
+    } catch (error) {
+      // If profile fetch fails, redirect to login
+      next({ name: 'login', query: { redirect: to.fullPath } })
+    }
   } else {
     next()
   }
