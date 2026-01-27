@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePersonasStore } from '@/stores'
 import { Drama, Search, X } from 'lucide-vue-next'
@@ -13,8 +13,10 @@ const personasStore = usePersonasStore()
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Forms
 const personaForm = ref({
@@ -31,13 +33,23 @@ const editingPersona = ref<PersonaResponse | null>(null)
 const projectId = computed(() => route.params.projectId as string)
 
 const filteredPersonas = computed(() => {
-  if (!searchQuery.value) return personasStore.items
-  const query = searchQuery.value.toLowerCase()
+  if (!debouncedSearchQuery.value) return personasStore.items
+  const query = debouncedSearchQuery.value.toLowerCase()
   return personasStore.items.filter(persona => 
     persona.id.toLowerCase().includes(query) ||
     persona.name.toLowerCase().includes(query) ||
     persona.prompt.toLowerCase().includes(query)
   )
+})
+
+// Watch for search query changes with debounce
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 300)
 })
 
 // Lifecycle
