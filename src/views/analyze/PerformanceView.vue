@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import PlaceholderView from '@/components/PlaceholderView.vue'
-import { Zap } from 'lucide-vue-next'
+import SectionLayout from '@/layouts/SectionLayout.vue'
+import { BarChart, TrendingUp, Zap, FileText } from 'lucide-vue-next'
+
+const menuItems = [
+  { name: 'analyze.conversations', label: 'Conversations', icon: BarChart },
+  { name: 'analyze.issues', label: 'Issues', icon: TrendingUp },
+  { name: 'analyze.performance', label: 'Performance', icon: Zap },
+  { name: 'analyze.audit', label: 'Audit Reports', icon: FileText },
+]
 </script>
 <template>
-  <PlaceholderView 
-    title="Performance" 
-    description="Monitor system performance metrics"
-    :icon="Zap"
-  />
+  <SectionLayout title="Analyze" :menu-items="menuItems">
+    <PlaceholderView 
+      title="Performance" 
+      description="Monitor system performance metrics"
+      :icon="Zap"
+    />
+  </SectionLayout>
 </template>

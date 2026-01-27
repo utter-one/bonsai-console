@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAdminsStore } from '@/stores'
-import { User, Search, X, Eye, EyeOff } from 'lucide-vue-next'
+import { User, Search, X, Eye, EyeOff, Settings } from 'lucide-vue-next'
 import type { AdminResponse } from '@/types/api'
 import AdminEditModal from '@/components/modals/AdminEditModal.vue'
+import SectionLayout from '@/layouts/SectionLayout.vue'
+
+const menuItems = [
+  { name: 'administration.admins', label: 'Admins', icon: User },
+  { name: 'administration.providers', label: 'Providers', icon: Settings },
+]
 
 const adminsStore = useAdminsStore()
 
@@ -222,9 +228,10 @@ function formatRoleName(role: string) {
 </script>
 
 <template>
-  <div class="max-w-[1400px] mx-auto">
-    <!-- Header -->
-    <div class="flex justify-between items-start mb-6">
+  <SectionLayout title="Administration" :menu-items="menuItems">
+    <div class="max-w-[1400px]">
+      <!-- Header -->
+      <div class="flex justify-between items-start mb-6">
       <div>
         <h1 class="m-0 mb-1 text-3xl font-bold text-gray-900">Administrators</h1>
         <p class="m-0 text-gray-600">Manage admin users and permissions</p>
@@ -538,6 +545,7 @@ function formatRoleName(role: string) {
       </div>
     </div>
   </div>
+  </SectionLayout>
 </template>
 
 <style scoped>
