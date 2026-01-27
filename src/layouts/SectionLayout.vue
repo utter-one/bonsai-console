@@ -1,0 +1,60 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import type { Component } from 'vue'
+
+interface MenuItem {
+  name: string
+  label: string
+  icon?: Component
+}
+
+interface Props {
+  title: string
+  menuItems: MenuItem[]
+}
+
+const props = defineProps<Props>()
+const route = useRoute()
+const router = useRouter()
+
+const currentRouteName = computed(() => route.name as string)
+
+function navigateTo(routeName: string) {
+  router.push({ name: routeName })
+}
+</script>
+
+<template>
+  <div class="flex gap-6 h-full">
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 flex-shrink-0">
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24">
+        <div class="px-4 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 class="m-0 text-lg font-semibold text-gray-900">{{ title }}</h2>
+        </div>
+        <nav class="p-2">
+          <button
+            v-for="item in menuItems"
+            :key="item.name"
+            :class="[
+              'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+              currentRouteName === item.name
+                ? 'bg-primary-50 text-primary-600'
+                : 'text-gray-700 hover:bg-gray-100'
+            ]"
+            @click="navigateTo(item.name)"
+          >
+            <component v-if="item.icon" :is="item.icon" :size="18" class="flex-shrink-0" />
+            <span>{{ item.label }}</span>
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0">
+      <slot />
+    </main>
+  </div>
+</template>

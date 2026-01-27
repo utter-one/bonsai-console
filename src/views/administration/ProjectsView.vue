@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
+import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -39,7 +40,8 @@ function selectProject(projectId: string) {
 </script>
 
 <template>
-  <div class="max-w-[1400px] mx-auto">
+  <AdministrationSectionLayout>
+    <div class="max-w-[1400px]">
     <div class="flex justify-between items-start mb-6">
       <div>
         <h1 class="m-0 mb-1 text-3xl font-bold text-gray-900">Projects</h1>
@@ -95,4 +97,5 @@ function selectProject(projectId: string) {
       </div>
     </div>
   </div>
+  </AdministrationSectionLayout>
 </template>

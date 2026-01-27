@@ -28,13 +28,8 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'design',
         name: 'design',
-        redirect: { name: 'design.projects' },
+        component: () => import('@/views/design/DesignView.vue'),
         children: [
-          {
-            path: 'projects',
-            name: 'design.projects',
-            component: () => import('@/views/design/ProjectsView.vue'),
-          },
           {
             path: 'projects/:projectId/personas',
             name: 'design.personas',
@@ -69,16 +64,6 @@ const routes: RouteRecordRaw[] = [
             path: 'projects/:projectId/knowledge',
             name: 'design.knowledge',
             component: () => import('@/views/design/KnowledgeView.vue'),
-          },
-          {
-            path: 'projects/:projectId/providers',
-            name: 'design.providers',
-            component: () => import('@/views/design/ProvidersView.vue'),
-          },
-          {
-            path: 'projects/:projectId/environments',
-            name: 'design.environments',
-            component: () => import('@/views/design/EnvironmentsView.vue'),
           },
         ],
       },
@@ -115,49 +100,31 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
-      // Analyze Section
+      // Administration Section
       {
-        path: 'analyze',
-        name: 'analyze',
-        redirect: { name: 'analyze.conversations' },
+        path: 'administration',
+        name: 'administration',
+        redirect: { name: 'administration.projects' },
         children: [
           {
-            path: 'conversations',
-            name: 'analyze.conversations',
-            component: () => import('@/views/analyze/ConversationAnalyticsView.vue'),
+            path: 'projects',
+            name: 'administration.projects',
+            component: () => import('@/views/administration/ProjectsView.vue'),
           },
-          {
-            path: 'issues',
-            name: 'analyze.issues',
-            component: () => import('@/views/analyze/IssueAnalyticsView.vue'),
-          },
-          {
-            path: 'performance',
-            name: 'analyze.performance',
-            component: () => import('@/views/analyze/PerformanceView.vue'),
-          },
-          {
-            path: 'audit',
-            name: 'analyze.audit',
-            component: () => import('@/views/analyze/AuditReportsView.vue'),
-          },
-        ],
-      },
-      // Settings Section
-      {
-        path: 'settings',
-        name: 'settings',
-        redirect: { name: 'settings.admins' },
-        children: [
           {
             path: 'admins',
-            name: 'settings.admins',
-            component: () => import('@/views/settings/AdminsView.vue'),
+            name: 'administration.admins',
+            component: () => import('@/views/administration/AdminsView.vue'),
           },
           {
-            path: 'profile',
-            name: 'settings.profile',
-            component: () => import('@/views/settings/ProfileView.vue'),
+            path: 'providers',
+            name: 'administration.providers',
+            component: () => import('@/views/administration/ProvidersView.vue'),
+          },
+          {
+            path: 'environments',
+            name: 'administration.environments',
+            component: () => import('@/views/administration/EnvironmentsView.vue'),
           },
         ],
       },

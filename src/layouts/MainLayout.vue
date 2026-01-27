@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore } from '@/stores'
-import { Home, Palette, Activity, Search, Settings, Menu } from 'lucide-vue-next'
+import { Home, Palette, Activity, Settings, Menu } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
 const router = useRouter()
@@ -14,8 +14,7 @@ const currentSection = computed(() => {
   const path = route.path
   if (path.startsWith('/design')) return 'design'
   if (path.startsWith('/monitor')) return 'monitor'
-  if (path.startsWith('/analyze')) return 'analyze'
-  if (path.startsWith('/settings')) return 'settings'
+  if (path.startsWith('/administration')) return 'administration'
   return 'dashboard'
 })
 
@@ -23,9 +22,43 @@ const selectedProjectId = ref<string | null>(null)
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
 
+// Load projects on mount
+onMounted(async () => {
+  await projectsStore.fetchAll({ offset: 0, limit: 100 })
+  
+  // Set selectedProjectId from route if present
+  if (route.params.projectId) {
+    selectedProjectId.value = route.params.projectId as string
+  }
+})
+
+// Watch route changes to update selected project
+watch(() => route.params.projectId, (newProjectId) => {
+  if (newProjectId) {
+    selectedProjectId.value = newProjectId as string
+  }
+})
+
+// Watch project selector changes
+watch(selectedProjectId, (newProjectId) => {
+  if (newProjectId && currentSection.value === 'design') {
+    // Only auto-navigate if we're in the design section
+    if (route.name && String(route.name).startsWith('design.')) {
+      // If we're already in a design view, navigate to the same view with the new project
+      router.push({ name: route.name, params: { ...route.params, projectId: newProjectId } })
+    } else {
+      // Otherwise navigate to personas view of the selected project
+      router.push({ name: 'design.personas', params: { projectId: newProjectId } })
+    }
+  }
+})
+
 function navigateToSection(section: string) {
   if (section === 'dashboard') {
     router.push({ name: 'dashboard' })
+  } else if (section === 'design' && selectedProjectId.value) {
+    // Navigate to design with the selected project
+    router.push({ name: 'design.personas', params: { projectId: selectedProjectId.value } })
   } else {
     router.push({ name: section })
   }
@@ -42,8 +75,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'design', label: 'Design', icon: Palette },
   { id: 'monitor', label: 'Monitor', icon: Activity },
-  { id: 'analyze', label: 'Analyze', icon: Search },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'administration', label: 'Administration', icon: Settings },
 ]
 </script>
 
@@ -77,8 +109,8 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
 
         <!-- Right Side Actions -->
         <div class="flex items-center gap-4 ml-auto">
-          <!-- Project Selector (only show if not in settings) -->
-          <div v-if="currentSection !== 'settings' && currentSection !== 'dashboard'" class="relative sm:block hidden">
+          <!-- Project Selector (only show if not in administration) -->
+          <div v-if="currentSection !== 'administration' && currentSection !== 'dashboard'" class="relative sm:block hidden">
             <select 
               v-model="selectedProjectId" 
               class="px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm cursor-pointer min-w-[200px] focus:outline-none focus:border-primary-500"
@@ -117,12 +149,6 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
                 <div class="text-xs text-gray-600 mt-1 uppercase">{{ authStore.currentAdmin?.roles?.join(', ') }}</div>
               </div>
               <div class="h-px bg-gray-200 my-2"></div>
-              <button 
-                @click="router.push({ name: 'settings.profile' }); showUserMenu = false" 
-                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
-              >
-                Profile
-              </button>
               <button 
                 @click="handleLogout" 
                 class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
