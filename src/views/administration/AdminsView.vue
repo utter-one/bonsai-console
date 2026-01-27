@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAdminsStore } from '@/stores'
+import { formatRoleName } from '@/composables'
 import { User, Search, X, Eye, EyeOff } from 'lucide-vue-next'
 import type { AdminResponse } from '@/types/api'
 import AdminEditModal from '@/components/modals/AdminEditModal.vue'
@@ -215,10 +216,6 @@ function formatDate(date: string | null) {
 
 function clearSearch() {
   searchQuery.value = ''
-}
-
-function formatRoleName(role: string) {
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 </script>
 

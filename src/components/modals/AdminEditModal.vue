@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { formatRoleName } from '@/composables'
 import type { AdminResponse } from '@/types/api'
 
 const props = defineProps<{
@@ -123,10 +124,6 @@ const toggleRole = (role: string) => {
 const formatDate = (date: string | null) => {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-const formatRoleName = (role: string) => {
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
 const handleSubmit = () => {
