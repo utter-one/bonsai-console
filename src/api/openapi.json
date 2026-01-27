@@ -19,7 +19,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the admin user"
+            "description": "Unique identifier for the admin user (auto-generated if not provided)"
           },
           "displayName": {
             "type": "string",
@@ -55,7 +55,6 @@
           }
         },
         "required": [
-          "id",
           "displayName",
           "roles",
           "password"
@@ -332,7 +331,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the user"
+            "description": "Unique identifier for the user (auto-generated if not provided)"
           },
           "profile": {
             "type": "object",
@@ -343,7 +342,6 @@
           }
         },
         "required": [
-          "id",
           "profile"
         ]
       },
@@ -759,7 +757,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the persona"
+            "description": "Unique identifier for the persona (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -806,7 +804,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "prompt"
@@ -1287,7 +1284,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the knowledge section"
+            "description": "Unique identifier for the knowledge section (auto-generated if not provided)"
           },
           "name": {
             "type": "string",
@@ -1296,7 +1293,6 @@
           }
         },
         "required": [
-          "id",
           "name"
         ]
       },
@@ -1413,7 +1409,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the knowledge category"
+            "description": "Unique identifier for the knowledge category (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -1444,7 +1440,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "promptTrigger"
@@ -1764,7 +1759,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the knowledge item"
+            "description": "Unique identifier for the knowledge item (auto-generated if not provided)"
           },
           "categoryId": {
             "type": "string",
@@ -1788,7 +1783,6 @@
           }
         },
         "required": [
-          "id",
           "categoryId",
           "question",
           "answer"
@@ -2684,7 +2678,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the stage"
+            "description": "Unique identifier for the stage (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -3109,7 +3103,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "prompt",
           "personaId"
@@ -4502,7 +4495,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the classifier"
+            "description": "Unique identifier for the classifier (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -4538,7 +4531,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "prompt"
@@ -4769,7 +4761,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the context transformer"
+            "description": "Unique identifier for the context transformer (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -4812,7 +4804,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "prompt"
@@ -5068,7 +5059,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the tool"
+            "description": "Unique identifier for the tool (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -5114,7 +5105,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "prompt",
@@ -5377,7 +5367,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the global action"
+            "description": "Unique identifier for the global action (auto-generated if not provided)"
           },
           "projectId": {
             "type": "string",
@@ -5706,7 +5696,6 @@
           }
         },
         "required": [
-          "id",
           "projectId",
           "name",
           "promptTrigger"
@@ -6822,7 +6811,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the environment"
+            "description": "Unique identifier for the environment (auto-generated if not provided)"
           },
           "description": {
             "type": "string",
@@ -6846,7 +6835,6 @@
           }
         },
         "required": [
-          "id",
           "description",
           "url",
           "login",
@@ -7029,7 +7017,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the provider"
+            "description": "Unique identifier for the provider (auto-generated if not provided)"
           },
           "displayName": {
             "type": "string",
@@ -7074,7 +7062,6 @@
           }
         },
         "required": [
-          "id",
           "displayName",
           "providerType",
           "apiType",
@@ -7691,7 +7678,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the admin user"
+                    "description": "Unique identifier for the admin user (auto-generated if not provided)"
                   },
                   "displayName": {
                     "type": "string",
@@ -7727,7 +7714,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "displayName",
                   "roles",
                   "password"
@@ -10003,7 +9989,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the classifier"
+                    "description": "Unique identifier for the classifier (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -10039,7 +10025,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "prompt"
@@ -10781,7 +10766,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the context transformer"
+                    "description": "Unique identifier for the context transformer (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -10824,7 +10809,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "prompt"
@@ -12510,7 +12494,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the knowledge section"
+                    "description": "Unique identifier for the knowledge section (auto-generated if not provided)"
                   },
                   "name": {
                     "type": "string",
@@ -12519,7 +12503,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "name"
                 ]
               }
@@ -13031,7 +13014,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the knowledge category"
+                    "description": "Unique identifier for the knowledge category (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -13062,7 +13045,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "promptTrigger"
@@ -13958,7 +13940,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the knowledge item"
+                    "description": "Unique identifier for the knowledge item (auto-generated if not provided)"
                   },
                   "categoryId": {
                     "type": "string",
@@ -13982,7 +13964,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "categoryId",
                   "question",
                   "answer"
@@ -14711,7 +14692,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the persona"
+                    "description": "Unique identifier for the persona (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -14758,7 +14739,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "prompt"
@@ -15575,7 +15555,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the provider"
+                    "description": "Unique identifier for the provider (auto-generated if not provided)"
                   },
                   "displayName": {
                     "type": "string",
@@ -15620,7 +15600,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "displayName",
                   "providerType",
                   "apiType",
@@ -16431,7 +16410,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the environment"
+                    "description": "Unique identifier for the environment (auto-generated if not provided)"
                   },
                   "description": {
                     "type": "string",
@@ -16455,7 +16434,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "description",
                   "url",
                   "login",
@@ -17107,7 +17085,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the global action"
+                    "description": "Unique identifier for the global action (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -17436,7 +17414,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "promptTrigger"
@@ -20562,7 +20539,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the stage"
+                    "description": "Unique identifier for the stage (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -20987,7 +20964,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "prompt",
                   "personaId"
@@ -23675,7 +23651,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the tool"
+                    "description": "Unique identifier for the tool (auto-generated if not provided)"
                   },
                   "projectId": {
                     "type": "string",
@@ -23721,7 +23697,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "projectId",
                   "name",
                   "prompt",
@@ -24519,7 +24494,7 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the user"
+                    "description": "Unique identifier for the user (auto-generated if not provided)"
                   },
                   "profile": {
                     "type": "object",
@@ -24530,7 +24505,6 @@
                   }
                 },
                 "required": [
-                  "id",
                   "profile"
                 ]
               }

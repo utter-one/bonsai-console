@@ -90,7 +90,7 @@ export interface AdminResponse {
 }
 
 export interface CreateAdminRequest {
-  id: string
+  id?: string
   displayName: string
   roles: string[]
   password: string
@@ -191,7 +191,7 @@ export interface PersonaResponse {
 }
 
 export interface CreatePersonaRequest {
-  id: string
+  id?: string
   projectId: string
   name: string
   prompt: string

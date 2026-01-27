@@ -115,6 +115,7 @@ src/
 - Use section layouts via `<component :is="layout">`
 - Load data in `onMounted`
 - Search/filter computed properties
+- Delay search where user is typing (300ms debounce)
 - Handle create/edit/delete operations
 - Pagination via store
 

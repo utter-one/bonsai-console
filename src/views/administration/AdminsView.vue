@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useAdminsStore } from '@/stores'
 import { formatRoleName } from '@/composables'
 import { User, Search, X, Eye, EyeOff } from 'lucide-vue-next'
@@ -14,8 +14,10 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showPasswordModal = ref(false)
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Forms
 const adminForm = ref({
@@ -43,8 +45,8 @@ const availableRoles = ref(['super_admin', 'content_manager', 'support', 'develo
 
 // Computed
 const filteredAdmins = computed(() => {
-  if (!searchQuery.value) return adminsStore.items
-  const query = searchQuery.value.toLowerCase()
+  if (!debouncedSearchQuery.value) return adminsStore.items
+  const query = debouncedSearchQuery.value.toLowerCase()
   return adminsStore.items.filter(admin => 
     admin.id.toLowerCase().includes(query) ||
     admin.displayName.toLowerCase().includes(query) ||
@@ -53,6 +55,16 @@ const filteredAdmins = computed(() => {
 })
 
 const isSuperAdminSelected = computed(() => adminForm.value.roles.includes('super_admin'))
+
+// Watch for search query changes with debounce
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 300)
+})
 
 // Lifecycle
 onMounted(async () => {
