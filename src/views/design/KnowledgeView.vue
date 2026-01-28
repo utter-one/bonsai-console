@@ -35,7 +35,6 @@ const filteredCategories = computed(() => {
   if (!debouncedSearchQuery.value) return knowledgeStore.categories
   const query = debouncedSearchQuery.value.toLowerCase()
   return knowledgeStore.categories.filter(category => 
-    category.id.toLowerCase().includes(query) ||
     category.name.toLowerCase().includes(query) ||
     category.promptTrigger.toLowerCase().includes(query)
   )
@@ -113,7 +112,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, name, or prompt trigger..."
+          placeholder="Search by name or prompt trigger..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -146,7 +145,6 @@ function clearSearch() {
             <thead class="table-header">
               <tr>
                 <th class="table-header-cell w-8"></th>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Prompt Trigger</th>
                 <th class="table-header-cell">Knowledge Sections</th>
@@ -169,7 +167,6 @@ function clearSearch() {
                       <ChevronRight v-else class="w-4 h-4" />
                     </button>
                   </td>
-                  <td class="table-cell-mono">{{ category.id }}</td>
                   <td class="table-cell-medium">{{ category.name }}</td>
                   <td class="table-cell">
                     <span class="truncate max-w-md">{{ category.promptTrigger }}</span>
@@ -205,7 +202,7 @@ function clearSearch() {
                 </tr>
                 <!-- Expanded Items Row -->
                 <tr v-if="expandedCategories.has(category.id) && category.items?.length" class="bg-gray-50">
-                  <td colspan="9" class="px-4 py-3">
+                  <td colspan="8" class="px-4 py-3">
                     <div class="ml-8">
                       <h4 class="text-sm font-semibold text-gray-700 mb-2">Knowledge Items</h4>
                       <div class="space-y-2">
@@ -232,7 +229,7 @@ function clearSearch() {
                   </td>
                 </tr>
                 <tr v-else-if="expandedCategories.has(category.id)" class="bg-gray-50">
-                  <td colspan="9" class="px-4 py-3">
+                  <td colspan="8" class="px-4 py-3">
                     <div class="ml-8 text-sm text-gray-500 italic">
                       No items in this category
                     </div>

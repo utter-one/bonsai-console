@@ -29,7 +29,6 @@ const filteredClassifiers = computed(() => {
   if (!debouncedSearchQuery.value) return classifiersStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return classifiersStore.items.filter(classifier => 
-    classifier.id.toLowerCase().includes(query) ||
     classifier.name.toLowerCase().includes(query) ||
     classifier.description?.toLowerCase().includes(query) ||
     classifier.prompt.toLowerCase().includes(query)
@@ -102,7 +101,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, name, description, or prompt..."
+          placeholder="Search by name, description, or prompt..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -134,7 +133,6 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Description</th>
                 <th class="table-header-cell">Prompt Preview</th>
@@ -145,7 +143,6 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="classifier in filteredClassifiers" :key="classifier.id" class="table-row">
-                <td class="table-cell-mono">{{ classifier.id }}</td>
                 <td class="table-cell-medium">{{ classifier.name }}</td>
                 <td class="table-cell">
                   <span v-if="classifier.description" class="truncate max-w-xs">{{ classifier.description }}</span>

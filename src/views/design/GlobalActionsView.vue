@@ -29,7 +29,6 @@ const filteredGlobalActions = computed(() => {
   if (!debouncedSearchQuery.value) return globalActionsStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return globalActionsStore.items.filter(action => 
-    action.id.toLowerCase().includes(query) ||
     action.name.toLowerCase().includes(query) ||
     action.promptTrigger.toLowerCase().includes(query) ||
     action.condition?.toLowerCase().includes(query)
@@ -102,7 +101,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, name, trigger, or condition..."
+          placeholder="Search by name, trigger, or condition..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -134,7 +133,6 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Prompt Trigger</th>
                 <th class="table-header-cell">Condition</th>
@@ -146,7 +144,6 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
-                <td class="table-cell-mono">{{ action.id }}</td>
                 <td class="table-cell-medium">{{ action.name }}</td>
                 <td class="table-cell">
                   <span class="truncate max-w-xs">{{ action.promptTrigger }}</span>

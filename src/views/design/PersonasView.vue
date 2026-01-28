@@ -43,9 +43,7 @@ const filteredPersonas = computed(() => {
   if (!debouncedSearchQuery.value) return personasStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return personasStore.items.filter(persona => 
-    persona.id.toLowerCase().includes(query) ||
-    persona.name.toLowerCase().includes(query) ||
-    persona.prompt.toLowerCase().includes(query)
+    persona.name.toLowerCase().includes(query)
   )
 })
 
@@ -186,7 +184,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, name, or prompt..."
+          placeholder="Search by name..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -218,9 +216,7 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Name</th>
-                <th class="table-header-cell">Prompt Preview</th>
                 <th class="table-header-cell">Voice Provider</th>
                 <th class="table-header-cell">Updated</th>
                 <th class="table-header-cell-right">Actions</th>
@@ -228,11 +224,7 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="persona in filteredPersonas" :key="persona.id" class="table-row">
-                <td class="table-cell-mono">{{ persona.id }}</td>
                 <td class="table-cell-medium">{{ persona.name }}</td>
-                <td class="table-cell">
-                  <span class="truncate max-w-md">{{ persona.prompt }}</span>
-                </td>
                 <td class="table-cell-mono">
                   <span v-if="persona.voiceConfig?.voiceProviderId" class="badge-secondary">
                     {{ persona.voiceConfig.voiceProviderId }}

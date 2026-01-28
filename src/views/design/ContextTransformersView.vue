@@ -29,7 +29,6 @@ const filteredTransformers = computed(() => {
   if (!debouncedSearchQuery.value) return transformersStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return transformersStore.items.filter(transformer => 
-    transformer.id.toLowerCase().includes(query) ||
     transformer.name.toLowerCase().includes(query) ||
     transformer.description?.toLowerCase().includes(query) ||
     transformer.prompt.toLowerCase().includes(query)
@@ -102,7 +101,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, name, description, or prompt..."
+          placeholder="Search by name, description, or prompt..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -134,7 +133,6 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Description</th>
                 <th class="table-header-cell">Prompt Preview</th>
@@ -146,7 +144,6 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="transformer in filteredTransformers" :key="transformer.id" class="table-row">
-                <td class="table-cell-mono">{{ transformer.id }}</td>
                 <td class="table-cell-medium">{{ transformer.name }}</td>
                 <td class="table-cell">
                   <span v-if="transformer.description" class="truncate max-w-xs">{{ transformer.description }}</span>

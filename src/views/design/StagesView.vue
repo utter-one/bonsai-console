@@ -29,7 +29,6 @@ const filteredStages = computed(() => {
   if (!debouncedSearchQuery.value) return stagesStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return stagesStore.items.filter(stage => 
-    stage.id.toLowerCase().includes(query) ||
     stage.prompt.toLowerCase().includes(query) ||
     stage.personaId.toLowerCase().includes(query)
   )
@@ -101,7 +100,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by ID, persona, or prompt..."
+          placeholder="Search by persona or prompt..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -133,7 +132,6 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Persona</th>
                 <th class="table-header-cell">Enter Behavior</th>
                 <th class="table-header-cell">Prompt Preview</th>
@@ -144,7 +142,6 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="stage in filteredStages" :key="stage.id" class="table-row">
-                <td class="table-cell-mono">{{ stage.id }}</td>
                 <td class="table-cell-mono">{{ stage.personaId }}</td>
                 <td class="table-cell">
                   <span class="badge-secondary">{{ stage.enterBehavior }}</span>
