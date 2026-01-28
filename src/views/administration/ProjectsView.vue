@@ -3,29 +3,47 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
+import ProjectEditModal from '@/components/modals/ProjectEditModal.vue'
+import type { ProjectResponse } from '@/types/api'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
 
-const showCreateModal = ref(false)
-const projectForm = ref({
-  name: '',
-  description: '',
-})
+const showModal = ref(false)
+const editingProject = ref<ProjectResponse | null>(null)
 
 onMounted(async () => {
   await projectsStore.fetchAll({ offset: 0, limit: 20 })
 })
 
-async function createProject() {
-  if (!projectForm.value.name) return
-  
+function openCreateModal() {
+  editingProject.value = null
+  showModal.value = true
+}
+
+function openEditModal(project: ProjectResponse) {
+  editingProject.value = project
+  showModal.value = true
+}
+
+async function handleSave(data: { name: string; description?: string; version?: number }) {
   try {
-    await projectsStore.create(projectForm.value)
-    showCreateModal.value = false
-    projectForm.value = { name: '', description: '' }
+    if (editingProject.value) {
+      await projectsStore.update(editingProject.value.id, {
+        version: data.version!,
+        name: data.name,
+        description: data.description,
+      })
+    } else {
+      await projectsStore.create({ 
+        name: data.name,
+        description: data.description,
+      })
+    }
+    showModal.value = false
+    editingProject.value = null
   } catch (error) {
-    console.error('Failed to create project:', error)
+    console.error('Failed to save project:', error)
   }
 }
 
@@ -47,7 +65,7 @@ function selectProject(projectId: string) {
         <h1 class="page-title">Projects</h1>
         <p class="page-subtitle">Manage your AI application projects</p>
       </div>
-      <button @click="showCreateModal = true" class="btn-primary">
+      <button @click="openCreateModal" class="btn-primary">
         + New Project
       </button>
     </div>
@@ -67,35 +85,23 @@ function selectProject(projectId: string) {
         </div>
         <p v-if="project.description" class="project-card-description">{{ project.description }}</p>
         <div class="project-card-meta">
-          <span>Created {{ new Date(project.createdAt).toLocaleDateString() }}</span>
+          <span v-if="project.createdAt">Created {{ new Date(project.createdAt).toLocaleDateString() }}</span>
         </div>
         <div class="flex gap-2">
-          <button @click="selectProject(project.id)" class="btn-secondary">Configure</button>
+          <button @click="selectProject(project.id)" class="btn-secondary">Design</button>
+          <button @click="openEditModal(project)" class="btn-secondary">Edit</button>
           <button @click="deleteProject(project.id, project.name)" class="btn-danger">Delete</button>
         </div>
       </div>
     </div>
 
-    <!-- Create Modal -->
-    <div v-if="showCreateModal" class="modal-overlay" @click="showCreateModal = false">
-      <div class="modal-content" @click.stop>
-        <h2 class="modal-header">Create New Project</h2>
-        <form @submit.prevent="createProject">
-          <div class="form-group">
-            <label class="form-label">Project Name</label>
-            <input v-model="projectForm.name" type="text" required placeholder="My AI Project" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Description</label>
-            <textarea v-model="projectForm.description" rows="3" placeholder="Optional description" class="form-textarea"></textarea>
-          </div>
-          <div class="modal-footer">
-            <button type="button" @click="showCreateModal = false" class="btn-secondary">Cancel</button>
-            <button type="submit" class="btn-primary">Create</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <!-- Edit Modal -->
+    <ProjectEditModal
+      v-if="showModal"
+      :project="editingProject"
+      @close="showModal = false"
+      @save="handleSave"
+    />
   </div>
   </AdministrationSectionLayout>
 </template>

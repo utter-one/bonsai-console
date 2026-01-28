@@ -59,7 +59,7 @@ export interface UpdateProfileRequest {
 // Setup
 export interface SetupStatusResponse {
   isSetup: boolean
-  hasInitialAdmin: boolean
+  message: string
 }
 
 export interface InitialAdminSetupRequest {
@@ -70,9 +70,13 @@ export interface InitialAdminSetupRequest {
 }
 
 export interface InitialAdminSetupResponse {
-  adminId: string
-  displayName: string
-  roles: string[]
+  admin: {
+    id: string
+    displayName: string
+    roles: string[]
+    metadata?: Record<string, any>
+    createdAt: string | null
+  }
   accessToken: string
   refreshToken: string
   expiresIn: number
@@ -90,7 +94,7 @@ export interface AdminResponse {
 }
 
 export interface CreateAdminRequest {
-  id?: string
+  id: string
   displayName: string
   roles: string[]
   password: string
@@ -116,7 +120,7 @@ export interface UserResponse {
 }
 
 export interface CreateUserRequest {
-  id: string
+  id?: string
   profile: Record<string, any>
 }
 
@@ -130,18 +134,18 @@ export type UserListResponse = PaginatedResponse<UserResponse>
 export interface ProjectResponse {
   id: string
   name: string
-  description?: string
+  description: string | null
   asrConfig?: {
     asrProviderId: string
     settings?: any
-  }
+  } | null
   acceptVoice: boolean
   generateVoice: boolean
-  constants?: Record<string, any>
-  metadata?: Record<string, any>
+  constants: Record<string, any> | null
+  metadata: Record<string, any> | null
   version: number
-  createdAt: string
-  updatedAt: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateProjectRequest {
@@ -168,6 +172,7 @@ export interface UpdateProjectRequest {
   generateVoice?: boolean
   constants?: Record<string, any>
   metadata?: Record<string, any>
+  version: number
 }
 
 export type ProjectListResponse = PaginatedResponse<ProjectResponse>
@@ -178,13 +183,12 @@ export interface PersonaResponse {
   projectId: string
   name: string
   prompt: string
-  voiceProviderId?: string
   voiceConfig?: {
     voiceProviderId: string
     voiceId: string
     settings?: Record<string, any>
-  }
-  metadata?: Record<string, any> | null
+  } | null
+  metadata: Record<string, any> | null
   version: number
   createdAt: string | null
   updatedAt: string | null
@@ -204,7 +208,6 @@ export interface CreatePersonaRequest {
 }
 
 export interface UpdatePersonaRequest {
-  version: number
   name?: string
   prompt?: string
   voiceConfig?: {
@@ -213,6 +216,7 @@ export interface UpdatePersonaRequest {
     settings?: Record<string, any>
   }
   metadata?: Record<string, any>
+  version: number
 }
 
 export type PersonaListResponse = PaginatedResponse<PersonaResponse>
@@ -221,29 +225,57 @@ export type PersonaListResponse = PaginatedResponse<PersonaResponse>
 export interface StageResponse {
   id: string
   projectId: string
-  name: string
-  description?: string
-  order: number
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  prompt: string
+  llmProviderId: string | null
+  personaId: string
+  enterBehavior: 'generate_response' | 'await_user_input'
+  useKnowledge: boolean
+  knowledgeSections: string[]
+  useGlobalActions: boolean
+  globalActions: string[]
+  variables: Record<string, any>
+  actions: Record<string, any>
+  classifierIds: string[]
+  transformerIds: string[]
+  metadata: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateStageRequest {
+  id?: string
   projectId: string
-  name: string
-  description?: string
-  order: number
-  config?: Record<string, any>
+  prompt: string
+  llmProviderId?: string | null
+  personaId: string
+  enterBehavior?: 'generate_response' | 'await_user_input'
+  useKnowledge?: boolean
+  knowledgeSections?: string[]
+  useGlobalActions?: boolean
+  globalActions?: string[]
+  variables?: Record<string, any>
+  actions?: Record<string, any>
+  classifierIds?: string[]
+  transformerIds?: string[]
+  metadata?: Record<string, any>
 }
 
 export interface UpdateStageRequest {
-  name?: string
-  description?: string
-  order?: number
-  config?: Record<string, any>
-  isActive?: boolean
+  prompt?: string
+  llmProviderId?: string | null
+  personaId?: string
+  enterBehavior?: 'generate_response' | 'await_user_input'
+  useKnowledge?: boolean
+  knowledgeSections?: string[]
+  useGlobalActions?: boolean
+  globalActions?: string[]
+  variables?: Record<string, any>
+  actions?: Record<string, any>
+  classifierIds?: string[]
+  transformerIds?: string[]
+  metadata?: Record<string, any>
+  version: number
 }
 
 export type StageListResponse = PaginatedResponse<StageResponse>
@@ -253,28 +285,32 @@ export interface ClassifierResponse {
   id: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  description: string | null
+  prompt: string
+  llmProviderId: string | null
+  metadata: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateClassifierRequest {
+  id?: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
+  description?: string | null
+  prompt: string
+  llmProviderId?: string | null
+  metadata?: Record<string, any>
 }
 
 export interface UpdateClassifierRequest {
   name?: string
-  description?: string
-  type?: string
-  config?: Record<string, any>
-  isActive?: boolean
+  description?: string | null
+  prompt?: string
+  llmProviderId?: string | null
+  metadata?: Record<string, any>
+  version: number
 }
 
 export type ClassifierListResponse = PaginatedResponse<ClassifierResponse>
@@ -284,28 +320,35 @@ export interface ContextTransformerResponse {
   id: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  description: string | null
+  prompt: string
+  contextFields: string[] | null
+  llmProviderId: string | null
+  metadata: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateContextTransformerRequest {
+  id?: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
+  description?: string | null
+  prompt: string
+  contextFields?: string[]
+  llmProviderId?: string | null
+  metadata?: Record<string, any>
 }
 
 export interface UpdateContextTransformerRequest {
   name?: string
-  description?: string
-  type?: string
-  config?: Record<string, any>
-  isActive?: boolean
+  description?: string | null
+  prompt?: string
+  contextFields?: string[]
+  llmProviderId?: string | null
+  metadata?: Record<string, any>
+  version: number
 }
 
 export type ContextTransformerListResponse = PaginatedResponse<ContextTransformerResponse>
@@ -315,28 +358,38 @@ export interface ToolResponse {
   id: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  description: string | null
+  prompt: string
+  llmProviderId: string | null
+  inputType: string
+  outputType: string
+  metadata: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateToolRequest {
+  id?: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
+  description?: string | null
+  prompt: string
+  llmProviderId?: string | null
+  inputType: string
+  outputType: string
+  metadata?: Record<string, any>
 }
 
 export interface UpdateToolRequest {
   name?: string
-  description?: string
-  type?: string
-  config?: Record<string, any>
-  isActive?: boolean
+  description?: string | null
+  prompt?: string
+  llmProviderId?: string | null
+  inputType?: string
+  outputType?: string
+  metadata?: Record<string, any>
+  version: number
 }
 
 export type ToolListResponse = PaginatedResponse<ToolResponse>
@@ -344,27 +397,18 @@ export type ToolListResponse = PaginatedResponse<ToolResponse>
 // Knowledge Section
 export interface KnowledgeSectionResponse {
   id: string
-  projectId: string
   name: string
-  description?: string
-  order: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateKnowledgeSectionRequest {
-  projectId: string
+  id?: string
   name: string
-  description?: string
-  order: number
 }
 
 export interface UpdateKnowledgeSectionRequest {
-  name?: string
-  description?: string
-  order?: number
-  isActive?: boolean
+  name: string
 }
 
 export type KnowledgeSectionListResponse = PaginatedResponse<KnowledgeSectionResponse>
@@ -372,27 +416,32 @@ export type KnowledgeSectionListResponse = PaginatedResponse<KnowledgeSectionRes
 // Knowledge Category
 export interface KnowledgeCategoryResponse {
   id: string
-  sectionId: string
+  projectId: string
   name: string
-  description?: string
+  promptTrigger: string
+  knowledgeSections: string[]
   order: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  items?: KnowledgeItemResponse[]
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateKnowledgeCategoryRequest {
-  sectionId: string
+  id?: string
+  projectId: string
   name: string
-  description?: string
-  order: number
+  promptTrigger: string
+  knowledgeSections?: string[]
+  order?: number
 }
 
 export interface UpdateKnowledgeCategoryRequest {
   name?: string
-  description?: string
+  promptTrigger?: string
+  knowledgeSections?: string[]
   order?: number
-  isActive?: boolean
+  version: number
 }
 
 export type KnowledgeCategoryListResponse = PaginatedResponse<KnowledgeCategoryResponse>
@@ -401,58 +450,81 @@ export type KnowledgeCategoryListResponse = PaginatedResponse<KnowledgeCategoryR
 export interface KnowledgeItemResponse {
   id: string
   categoryId: string
-  title: string
-  content: string
-  metadata?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  question: string
+  answer: string
+  order: number
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateKnowledgeItemRequest {
+  id?: string
   categoryId: string
-  title: string
-  content: string
-  metadata?: Record<string, any>
+  question: string
+  answer: string
+  order?: number
 }
 
 export interface UpdateKnowledgeItemRequest {
-  title?: string
-  content?: string
-  metadata?: Record<string, any>
-  isActive?: boolean
+  categoryId?: string
+  question?: string
+  answer?: string
+  order?: number
+  version: number
 }
 
 export type KnowledgeItemListResponse = PaginatedResponse<KnowledgeItemResponse>
 
 // Issue
 export interface IssueResponse {
-  id: string
+  id: number
   projectId: string
-  title: string
-  description?: string
+  environment: string
+  buildVersion: string
+  beat: string | null
+  sessionId: string | null
+  eventIndex: number | null
+  userId: string | null
+  severity: string
+  category: string
+  bugDescription: string
+  expectedBehaviour: string
+  comments: string
   status: string
-  priority: string
-  metadata?: Record<string, any>
-  createdAt: string
-  updatedAt: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateIssueRequest {
   projectId: string
-  title: string
-  description?: string
+  environment: string
+  buildVersion: string
+  beat?: string
+  sessionId?: string
+  eventIndex?: number
+  userId?: string
+  severity: string
+  category: string
+  bugDescription: string
+  expectedBehaviour: string
+  comments?: string
   status: string
-  priority: string
-  metadata?: Record<string, any>
 }
 
 export interface UpdateIssueRequest {
-  title?: string
-  description?: string
+  environment?: string
+  buildVersion?: string
+  beat?: string
+  sessionId?: string
+  eventIndex?: number
+  userId?: string
+  severity?: string
+  category?: string
+  bugDescription?: string
+  expectedBehaviour?: string
+  comments?: string
   status?: string
-  priority?: string
-  metadata?: Record<string, any>
 }
 
 export type IssueListResponse = PaginatedResponse<IssueResponse>
@@ -462,28 +534,38 @@ export interface GlobalActionResponse {
   id: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  condition: string | null
+  promptTrigger: string
+  operations: any[]
+  template: string | null
+  examples: string[] | null
+  metadata: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateGlobalActionRequest {
+  id?: string
   projectId: string
   name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
+  condition?: string | null
+  promptTrigger: string
+  operations?: any[]
+  template?: string | null
+  examples?: string[]
+  metadata?: Record<string, any>
 }
 
 export interface UpdateGlobalActionRequest {
   name?: string
-  description?: string
-  type?: string
-  config?: Record<string, any>
-  isActive?: boolean
+  condition?: string | null
+  promptTrigger?: string
+  operations?: any[]
+  template?: string | null
+  examples?: string[]
+  metadata?: Record<string, any>
+  version: number
 }
 
 export type GlobalActionListResponse = PaginatedResponse<GlobalActionResponse>
@@ -491,27 +573,28 @@ export type GlobalActionListResponse = PaginatedResponse<GlobalActionResponse>
 // Environment
 export interface EnvironmentResponse {
   id: string
-  projectId: string
-  name: string
-  description?: string
-  variables?: Record<string, string>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  description: string
+  url: string
+  login: string
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateEnvironmentRequest {
-  projectId: string
-  name: string
-  description?: string
-  variables?: Record<string, string>
+  id?: string
+  description: string
+  url: string
+  login: string
+  password: string
 }
 
 export interface UpdateEnvironmentRequest {
-  name?: string
   description?: string
-  variables?: Record<string, string>
-  isActive?: boolean
+  url?: string
+  login?: string
+  password?: string
+  version: number
 }
 
 export type EnvironmentListResponse = PaginatedResponse<EnvironmentResponse>
@@ -519,30 +602,37 @@ export type EnvironmentListResponse = PaginatedResponse<EnvironmentResponse>
 // Provider
 export interface ProviderResponse {
   id: string
-  projectId: string
-  name: string
-  description?: string
-  type: string
-  config?: Record<string, any>
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  displayName: string
+  description: string | null
+  providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
+  apiType: string
+  config: Record<string, any>
+  createdBy: string | null
+  tags: string[] | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateProviderRequest {
-  projectId: string
-  name: string
+  id?: string
+  displayName: string
   description?: string
-  type: string
-  config?: Record<string, any>
+  providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
+  apiType: string
+  config: Record<string, any>
+  createdBy?: string
+  tags?: string[]
 }
 
 export interface UpdateProviderRequest {
-  name?: string
+  displayName?: string
   description?: string
-  type?: string
+  providerType?: 'asr' | 'tts' | 'llm' | 'embeddings'
+  apiType?: string
   config?: Record<string, any>
-  isActive?: boolean
+  tags?: string[]
+  version: number
 }
 
 export type ProviderListResponse = PaginatedResponse<ProviderResponse>
@@ -551,10 +641,18 @@ export type ProviderListResponse = PaginatedResponse<ProviderResponse>
 export interface ConversationResponse {
   id: string
   projectId: string
-  userId?: string
-  metadata?: Record<string, any>
-  createdAt: string
-  updatedAt: string
+  userId: string
+  clientId: string
+  stageId: string
+  state: {
+    variables: Record<string, Record<string, any>>
+    currentActions: string[]
+  } | null
+  status: string
+  statusReason: string | null
+  metadata: Record<string, any> | null
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export type ConversationListResponse = PaginatedResponse<ConversationResponse>
@@ -573,14 +671,15 @@ export type ConversationEventListResponse = PaginatedResponse<ConversationEventR
 // Audit Log
 export interface AuditLogResponse {
   id: string
-  entityType: string
-  entityId: string
+  userId: string | null
   action: string
-  adminId?: string
-  userId?: string
-  changes?: Record<string, any>
-  metadata?: Record<string, any>
-  createdAt: string
+  entityId: string
+  entityType: string
+  oldEntity: Record<string, any> | null
+  newEntity: Record<string, any> | null
+  version: number
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export type AuditLogListResponse = PaginatedResponse<AuditLogResponse>
