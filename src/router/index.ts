@@ -31,14 +31,14 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/design/DesignView.vue'),
         children: [
           {
-            path: 'projects/:projectId/personas',
-            name: 'design.personas',
-            component: () => import('@/views/design/PersonasView.vue'),
-          },
-          {
             path: 'projects/:projectId/stages',
             name: 'design.stages',
             component: () => import('@/views/design/StagesView.vue'),
+          },
+          {
+            path: 'projects/:projectId/personas',
+            name: 'design.personas',
+            component: () => import('@/views/design/PersonasView.vue'),
           },
           {
             path: 'projects/:projectId/classifiers',
