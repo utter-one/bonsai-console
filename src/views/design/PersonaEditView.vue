@@ -12,6 +12,7 @@ const personasStore = usePersonasStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const activeTab = ref<'basic' | 'prompt' | 'voice' | 'metadata'>('basic')
 const form = ref({
   id: '',
   name: '',
@@ -138,6 +139,41 @@ function formatDate(date: string | null) {
       </div>
     </div>
 
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <nav class="tabs-nav" aria-label="Tabs">
+        <button
+          @click="activeTab = 'basic'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
+          type="button"
+        >
+          Basic Information
+        </button>
+        <button
+          @click="activeTab = 'prompt'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
+          type="button"
+        >
+          Prompt Configuration
+        </button>
+        <button
+          @click="activeTab = 'voice'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
+          type="button"
+        >
+          Voice Configuration
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'metadata'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
+          type="button"
+        >
+          Metadata
+        </button>
+      </nav>
+    </div>
+
     <!-- Loading State -->
     <div v-if="isLoading && isEditMode" class="loading-state">
       Loading persona...
@@ -153,17 +189,15 @@ function formatDate(date: string | null) {
 
     <!-- Form -->
     <div v-else class="flex-1 overflow-y-auto bg-gray-50">
-      <div class="mx-auto pt-4">
-        <form @submit.prevent="handleSubmit" class="space-y-8">
+      <div class="mx-auto">
+        <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error">
+        <div v-if="error" class="alert-error mb-6">
           {{ error }}
         </div>
 
-        <!-- Basic Information -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h3>
-          
+        <!-- Basic Information Tab -->
+        <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
               Name <span class="required">*</span>
@@ -199,10 +233,8 @@ function formatDate(date: string | null) {
           </div>
         </div>
 
-        <!-- Prompt Configuration -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6">Prompt Configuration</h3>
-          
+        <!-- Prompt Configuration Tab -->
+        <div v-show="activeTab === 'prompt'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
               System Prompt <span class="required">*</span>
@@ -210,7 +242,7 @@ function formatDate(date: string | null) {
             <textarea
               v-model="form.prompt"
               required
-              rows="12"
+              rows="20"
               class="form-textarea"
               placeholder="You are a helpful assistant..."
               :disabled="isLoading"
@@ -221,10 +253,8 @@ function formatDate(date: string | null) {
           </div>
         </div>
 
-        <!-- Voice Configuration -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6">Voice Configuration</h3>
-          
+        <!-- Voice Configuration Tab -->
+        <div v-show="activeTab === 'voice'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
               Voice Provider ID <span class="text-gray-500">(optional)</span>
@@ -242,21 +272,20 @@ function formatDate(date: string | null) {
           </div>
         </div>
 
-        <!-- Metadata (if in edit mode) -->
-        <div v-if="isEditMode && currentPersona" class="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6">Metadata</h3>
-          <div class="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500 mb-1">Version</span>
-              <span class="text-sm font-medium text-gray-900">{{ currentPersona.version }}</span>
+        <!-- Metadata Tab -->
+        <div v-if="isEditMode && currentPersona" v-show="activeTab === 'metadata'" class="tab-content">
+          <div class="metadata-container">
+            <div class="metadata-item">
+              <span class="metadata-label">Version</span>
+              <span class="metadata-value">{{ currentPersona.version }}</span>
             </div>
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500 mb-1">Created</span>
-              <span class="text-sm font-medium text-gray-900">{{ formatDate(currentPersona.createdAt) }}</span>
+            <div class="metadata-item">
+              <span class="metadata-label">Created</span>
+              <span class="metadata-value">{{ formatDate(currentPersona.createdAt) }}</span>
             </div>
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500 mb-1">Updated</span>
-              <span class="text-sm font-medium text-gray-900">{{ formatDate(currentPersona.updatedAt) }}</span>
+            <div class="metadata-item">
+              <span class="metadata-label">Updated</span>
+              <span class="metadata-value">{{ formatDate(currentPersona.updatedAt) }}</span>
             </div>
           </div>
         </div>
