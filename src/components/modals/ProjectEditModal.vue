@@ -67,7 +67,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', data: { name: string; description: string; version?: number }): void
+  (e: 'save', data: { name: string; description?: string; version?: number }): void
 }>()
 
 const form = ref({
@@ -82,7 +82,7 @@ watch(
     if (newProject) {
       form.value = {
         name: newProject.name,
-        description: newProject.description || '',
+        description: newProject.description ?? '',
         version: newProject.version,
       }
     } else {
@@ -97,7 +97,8 @@ function handleSubmit() {
   emit('save', form.value)
 }
 
-function formatDate(dateString: string) {
+function formatDate(dateString: string | null) {
+  if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString()
 }
 </script>

@@ -26,7 +26,7 @@ function openEditModal(project: ProjectResponse) {
   showModal.value = true
 }
 
-async function handleSave(data: { name: string; description: string; version?: number }) {
+async function handleSave(data: { name: string; description?: string; version?: number }) {
   try {
     if (editingProject.value) {
       await projectsStore.update(editingProject.value.id, {
@@ -35,7 +35,10 @@ async function handleSave(data: { name: string; description: string; version?: n
         description: data.description,
       })
     } else {
-      await projectsStore.create({ name: data.name, description: data.description })
+      await projectsStore.create({ 
+        name: data.name,
+        description: data.description,
+      })
     }
     showModal.value = false
     editingProject.value = null
