@@ -41,6 +41,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/PersonasView.vue'),
           },
           {
+            path: 'projects/:projectId/personas/new',
+            name: 'design.personas.create',
+            component: () => import('@/views/design/PersonaEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/personas/:personaId',
+            name: 'design.personas.edit',
+            component: () => import('@/views/design/PersonaEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/classifiers',
             name: 'design.classifiers',
             component: () => import('@/views/design/ClassifiersView.vue'),
