@@ -224,7 +224,9 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="persona in filteredPersonas" :key="persona.id" class="table-row">
-                <td class="table-cell-medium">{{ persona.name }}</td>
+                <td class="table-cell-medium cursor-pointer hover:text-primary-500 hover:underline" @click="openEditModal(persona)">
+                  {{ persona.name }}
+                </td>
                 <td class="table-cell-mono">
                   <span v-if="persona.voiceConfig?.voiceProviderId" class="badge-secondary">
                     {{ persona.voiceConfig.voiceProviderId }}
