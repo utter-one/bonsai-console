@@ -226,7 +226,7 @@ function formatDate(date: string | null) {
 
     <!-- Form -->
     <div v-else class="flex-1 overflow-y-auto bg-gray-50">
-      <div class="max-w-5xl mx-auto p-8">
+      <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
         <div v-if="error" class="alert-error mb-6">
