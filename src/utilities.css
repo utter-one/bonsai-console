@@ -465,3 +465,42 @@
 .pagination-ellipsis {
   @apply px-2 text-gray-400;
 }
+
+/* Tabs */
+.tabs-container {
+  @apply border-b border-gray-200 bg-white px-8;
+}
+
+.tabs-nav {
+  @apply flex gap-8;
+}
+
+.tab-button {
+  @apply py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
+}
+
+.tab-button-active {
+  @apply border-primary-500 text-primary-600 hover:text-primary-600 hover:border-primary-500;
+}
+
+/* Metadata Display */
+.metadata-container {
+  @apply grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg;
+}
+
+.metadata-item {
+  @apply flex flex-col;
+}
+
+.metadata-label {
+  @apply text-sm text-gray-500 mb-1;
+}
+
+.metadata-value {
+  @apply text-sm font-medium text-gray-900;
+}
+
+/* Tab Content */
+.tab-content {
+  @apply bg-white border border-gray-200 p-6;
+}

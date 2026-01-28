@@ -41,6 +41,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/PersonasView.vue'),
           },
           {
+            path: 'projects/:projectId/personas/new',
+            name: 'design.personas.create',
+            component: () => import('@/views/design/PersonaEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/personas/:personaId',
+            name: 'design.personas.edit',
+            component: () => import('@/views/design/PersonaEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/classifiers',
             name: 'design.classifiers',
             component: () => import('@/views/design/ClassifiersView.vue'),
@@ -115,6 +125,16 @@ const routes: RouteRecordRaw[] = [
             path: 'admins',
             name: 'administration.admins',
             component: () => import('@/views/administration/AdminsView.vue'),
+          },
+          {
+            path: 'admins/new',
+            name: 'administration.admins.create',
+            component: () => import('@/views/administration/AdminEditView.vue'),
+          },
+          {
+            path: 'admins/:adminId',
+            name: 'administration.admins.edit',
+            component: () => import('@/views/administration/AdminEditView.vue'),
           },
           {
             path: 'providers',
