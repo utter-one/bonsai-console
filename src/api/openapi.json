@@ -55,6 +55,7 @@
           }
         },
         "required": [
+          "id",
           "displayName",
           "roles",
           "password"
@@ -892,11 +893,6 @@
             "type": "string",
             "description": "Prompt defining the persona's characteristics and behavior"
           },
-          "voiceProviderId": {
-            "type": "string",
-            "nullable": true,
-            "description": "ID of the voice provider used for TTS, if any"
-          },
           "voiceConfig": {
             "type": "object",
             "nullable": true,
@@ -949,7 +945,6 @@
           "projectId",
           "name",
           "prompt",
-          "voiceProviderId",
           "metadata",
           "version",
           "createdAt",
@@ -979,11 +974,6 @@
                 "prompt": {
                   "type": "string",
                   "description": "Prompt defining the persona's characteristics and behavior"
-                },
-                "voiceProviderId": {
-                  "type": "string",
-                  "nullable": true,
-                  "description": "ID of the voice provider used for TTS, if any"
                 },
                 "voiceConfig": {
                   "type": "object",
@@ -1037,7 +1027,6 @@
                 "projectId",
                 "name",
                 "prompt",
-                "voiceProviderId",
                 "metadata",
                 "version",
                 "createdAt",
@@ -7714,6 +7703,7 @@
                   }
                 },
                 "required": [
+                  "id",
                   "displayName",
                   "roles",
                   "password"
@@ -14771,11 +14761,6 @@
                       "type": "string",
                       "description": "Prompt defining the persona's characteristics and behavior"
                     },
-                    "voiceProviderId": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "ID of the voice provider used for TTS, if any"
-                    },
                     "voiceConfig": {
                       "type": "object",
                       "nullable": true,
@@ -14828,7 +14813,6 @@
                     "projectId",
                     "name",
                     "prompt",
-                    "voiceProviderId",
                     "metadata",
                     "version",
                     "createdAt",
@@ -15065,11 +15049,6 @@
                             "type": "string",
                             "description": "Prompt defining the persona's characteristics and behavior"
                           },
-                          "voiceProviderId": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "ID of the voice provider used for TTS, if any"
-                          },
                           "voiceConfig": {
                             "type": "object",
                             "nullable": true,
@@ -15122,7 +15101,6 @@
                           "projectId",
                           "name",
                           "prompt",
-                          "voiceProviderId",
                           "metadata",
                           "version",
                           "createdAt",
@@ -15208,11 +15186,6 @@
                       "type": "string",
                       "description": "Prompt defining the persona's characteristics and behavior"
                     },
-                    "voiceProviderId": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "ID of the voice provider used for TTS, if any"
-                    },
                     "voiceConfig": {
                       "type": "object",
                       "nullable": true,
@@ -15265,7 +15238,6 @@
                     "projectId",
                     "name",
                     "prompt",
-                    "voiceProviderId",
                     "metadata",
                     "version",
                     "createdAt",
@@ -15379,11 +15351,6 @@
                       "type": "string",
                       "description": "Prompt defining the persona's characteristics and behavior"
                     },
-                    "voiceProviderId": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "ID of the voice provider used for TTS, if any"
-                    },
                     "voiceConfig": {
                       "type": "object",
                       "nullable": true,
@@ -15436,7 +15403,6 @@
                     "projectId",
                     "name",
                     "prompt",
-                    "voiceProviderId",
                     "metadata",
                     "version",
                     "createdAt",
