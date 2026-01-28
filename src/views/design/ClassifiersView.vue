@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Target, Search, X, Plus } from 'lucide-vue-next'
@@ -8,6 +8,7 @@ import type { ClassifierResponse } from '@/types/api'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
+const router = useRouter()
 const classifiersStore = useClassifiersStore()
 
 // UI State
@@ -71,6 +72,17 @@ async function deleteClassifier(classifier: ClassifierResponse) {
   }
 }
 
+function createClassifier() {
+  router.push({ name: 'design.classifiers.create', params: { projectId: projectId.value } })
+}
+
+function editClassifier(classifier: ClassifierResponse) {
+  router.push({ 
+    name: 'design.classifiers.edit', 
+    params: { projectId: projectId.value, classifierId: classifier.id } 
+  })
+}
+
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
@@ -89,7 +101,7 @@ function clearSearch() {
           <h1 class="page-title">Classifiers</h1>
           <p class="page-subtitle">Configure classification rules for this project</p>
         </div>
-        <button class="btn-primary" disabled>
+        <button @click="createClassifier" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Classifier
         </button>
@@ -143,7 +155,10 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="classifier in filteredClassifiers" :key="classifier.id" class="table-row">
-                <td class="table-cell-medium">{{ classifier.name }}</td>
+                <td class="table-clickable-cell"
+                  @click="editClassifier(classifier)">
+                    {{ classifier.name }}
+                </td>
                 <td class="table-cell">
                   <span v-if="classifier.description" class="truncate max-w-xs">{{ classifier.description }}</span>
                   <span v-else class="text-gray-400">—</span>
@@ -160,7 +175,7 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(classifier.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button class="btn-secondary btn-sm" disabled>
+                    <button @click="editClassifier(classifier)" class="btn-secondary btn-sm">
                       Edit
                     </button>
                     <button @click="deleteClassifier(classifier)" class="btn-danger btn-sm">
