@@ -151,6 +151,10 @@
   @apply px-6 py-4 text-sm text-gray-900;
 }
 
+.table-clickable-cell {
+  @apply px-6 py-4 text-sm text-gray-900 cursor-pointer hover:text-primary-500 hover:underline;
+}
+
 .table-cell-mono {
   @apply px-6 py-4 text-sm text-gray-900 font-mono;
 }

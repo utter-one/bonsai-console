@@ -152,10 +152,10 @@ function clearSearch() {
           </thead>
           <tbody class="table-body">
             <tr v-for="admin in filteredAdmins" :key="admin.id" class="table-row">
-              <td class="table-cell-medium cursor-pointer hover:text-primary-500 hover:underline" @click="editAdmin(admin)">
+              <td class="table-clickable-cell" @click="editAdmin(admin)">
                 {{ admin.id }}
               </td>
-              <td class="table-cell-medium cursor-pointer hover:text-primary-500 hover:underline" @click="editAdmin(admin)">
+              <td class="table-clickable-cell" @click="editAdmin(admin)">
                 {{ admin.displayName }}
               </td>
               <td class="table-cell">

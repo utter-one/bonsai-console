@@ -56,6 +56,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/ClassifiersView.vue'),
           },
           {
+            path: 'projects/:projectId/classifiers/new',
+            name: 'design.classifiers.create',
+            component: () => import('@/views/design/ClassifierEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/classifiers/:classifierId',
+            name: 'design.classifiers.edit',
+            component: () => import('@/views/design/ClassifierEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/context-transformers',
             name: 'design.contextTransformers',
             component: () => import('@/views/design/ContextTransformersView.vue'),
