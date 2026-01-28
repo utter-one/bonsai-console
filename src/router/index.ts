@@ -127,6 +127,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/administration/AdminsView.vue'),
           },
           {
+            path: 'admins/new',
+            name: 'administration.admins.create',
+            component: () => import('@/views/administration/AdminEditView.vue'),
+          },
+          {
+            path: 'admins/:adminId',
+            name: 'administration.admins.edit',
+            component: () => import('@/views/administration/AdminEditView.vue'),
+          },
+          {
             path: 'providers',
             name: 'administration.providers',
             component: () => import('@/views/administration/ProvidersView.vue'),

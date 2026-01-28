@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/types/api'
+import DesignSectionLayout from '@/layouts/DesignSectionLayout.vue'
 
 const route = useRoute()
 const router = useRouter()

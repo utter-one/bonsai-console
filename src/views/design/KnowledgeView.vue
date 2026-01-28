@@ -22,7 +22,9 @@ const pagination = usePagination({
     items: computed(() => knowledgeStore.categories),
     isLoading: computed(() => knowledgeStore.isLoading),
     error: computed(() => knowledgeStore.error),
-    pagination: computed(() => ({ total: knowledgeStore.categories.length, offset: 0, limit: null }))
+    pagination: {
+      get total() { return knowledgeStore.categories.length }
+    }
   },
   pageSize: 20,
   onPageChange: loadCategories
@@ -68,7 +70,7 @@ async function deleteCategory(category: KnowledgeCategoryResponse) {
   if (!confirm(`Delete knowledge category "${category.name}" (${category.id})?\n\nThis will also delete all items in this category.\nThis action cannot be undone.`)) return
 
   try {
-    await knowledgeStore.deleteCategory(category.id, category.version)
+    await knowledgeStore.deleteCategory(category.id)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete knowledge category')
   }
