@@ -117,7 +117,7 @@ src/
 - Search/filter computed properties
 - Delay search where user is typing (300ms debounce)
 - Handle create/edit/delete operations
-- Pagination via store
+- Pagination via `usePagination` composable + `PaginationControls` component
 
 ### Icons
 Use `lucide-vue-next` for all icons:
@@ -163,7 +163,7 @@ Design section requires project context:
 
 ## Common Tasks
 
-**Add a new CRUD view:**
+**Add a new CRUD view with pagination:**
 ```typescript
 // 1. Store
 export const useThingsStore = defineStore('things', () => 
@@ -174,15 +174,37 @@ export const useThingsStore = defineStore('things', () =>
 )
 
 // 2. View structure
+import { usePagination } from '@/composables'
+import PaginationControls from '@/components/PaginationControls.vue'
+
 const thingsStore = useThingsStore()
 const searchQuery = ref('')
 const showModal = ref(false)
 
-onMounted(() => thingsStore.fetchAll())
+const pagination = usePagination({
+  store: thingsStore,
+  pageSize: 20,
+  onPageChange: loadThings
+})
+
+async function loadThings() {
+  await thingsStore.fetchAll(pagination.getParams())
+}
+
+onMounted(() => loadThings())
 
 const filtered = computed(() => 
   thingsStore.items.filter(item => item.name.includes(searchQuery.value))
 )
+```
+
+In template:
+```vue
+<PaginationControls
+  :pagination="pagination"
+  :displayed-count="filtered.length"
+  resource-name="things"
+/>
 ```
 
 **Update route params:**

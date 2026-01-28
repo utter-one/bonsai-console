@@ -7,10 +7,11 @@ import type {
 } from '@/types/api'
 
 export const useIssuesStore = defineStore('issues', () => {
-  const store = createResourceStore<IssueResponse, CreateIssueRequest, UpdateIssueRequest>({
+  // Note: IssueResponse has numeric id, but we extend to convert for resource store compatibility
+  const baseStore = createResourceStore<IssueResponse & { id: string }, CreateIssueRequest, UpdateIssueRequest>({
     endpoint: '/issues',
     resourceName: 'issue',
   })
 
-  return store
+  return baseStore
 })

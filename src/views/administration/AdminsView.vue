@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useAdminsStore } from '@/stores'
-import { formatRoleName } from '@/composables'
+import { formatRoleName, usePagination } from '@/composables'
 import { User, Search, X, Eye, EyeOff } from 'lucide-vue-next'
 import type { AdminResponse } from '@/types/api'
 import AdminEditModal from '@/components/modals/AdminEditModal.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
+import PaginationControls from '@/components/PaginationControls.vue'
 
 const adminsStore = useAdminsStore()
 
@@ -15,9 +16,14 @@ const showEditModal = ref(false)
 const showPasswordModal = ref(false)
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(20)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Pagination
+const pagination = usePagination({
+  store: adminsStore,
+  pageSize: 20,
+  onPageChange: loadAdmins
+})
 
 // Forms
 const adminForm = ref({
@@ -74,10 +80,7 @@ onMounted(async () => {
 // Methods
 async function loadAdmins() {
   try {
-    await adminsStore.fetchAll({
-      offset: (currentPage.value - 1) * pageSize.value,
-      limit: pageSize.value
-    })
+    await adminsStore.fetchAll(pagination.getParams())
   } catch (error) {
     console.error('Failed to load admins:', error)
   }
@@ -323,15 +326,12 @@ function clearSearch() {
         </table>
       </div>
 
-      <!-- Pagination Info -->
-      <div class="table-footer">
-        <div class="flex-between text-sm text-gray-600">
-          <span>
-            Showing {{ filteredAdmins.length }} of {{ adminsStore.pagination.total }} administrators
-          </span>
-          <span>Version tracking enabled (optimistic locking)</span>
-        </div>
-      </div>
+      <!-- Pagination Controls -->
+      <PaginationControls
+        :pagination="pagination"
+        :displayed-count="filteredAdmins.length"
+        resource-name="administrators"
+      />
     </div>
 
     <!-- Create Modal -->

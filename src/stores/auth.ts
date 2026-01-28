@@ -95,14 +95,14 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiClient.post<InitialAdminSetupResponse>('/setup/initial-admin', data)
-      const { adminId, displayName, roles, accessToken: token, refreshToken: refresh } = response.data
+      const { admin, accessToken: token, refreshToken: refresh } = response.data
 
       accessToken.value = token
       refreshToken.value = refresh
       currentAdmin.value = {
-        id: adminId,
-        displayName,
-        roles,
+        id: admin.id,
+        displayName: admin.displayName,
+        roles: admin.roles,
         version: 1,
         createdAt: null,
         updatedAt: null,
