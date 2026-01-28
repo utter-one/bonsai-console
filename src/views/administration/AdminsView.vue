@@ -142,7 +142,7 @@ function clearSearch() {
         <table class="table">
           <thead class="table-header">
             <tr>
-              <th class="table-header-cell">ID</th>
+              <th class="table-header-cell">Email</th>
               <th class="table-header-cell">Display Name</th>
               <th class="table-header-cell">Roles</th>
               <th class="table-header-cell">Created</th>
@@ -152,8 +152,12 @@ function clearSearch() {
           </thead>
           <tbody class="table-body">
             <tr v-for="admin in filteredAdmins" :key="admin.id" class="table-row">
-              <td class="table-cell-mono">{{ admin.id }}</td>
-              <td class="table-cell-medium">{{ admin.displayName }}</td>
+              <td class="table-cell-medium cursor-pointer hover:text-primary-500 hover:underline" @click="editAdmin(admin)">
+                {{ admin.id }}
+              </td>
+              <td class="table-cell-medium cursor-pointer hover:text-primary-500 hover:underline" @click="editAdmin(admin)">
+                {{ admin.displayName }}
+              </td>
               <td class="table-cell">
                 <div class="flex-gap">
                   <span v-for="role in admin.roles" :key="role" class="badge-primary">
