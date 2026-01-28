@@ -50,8 +50,8 @@ watch(selectedProjectId, (newProjectId) => {
       // If we're already in a design view, navigate to the same view with the new project
       router.push({ name: route.name, params: { ...route.params, projectId: newProjectId } })
     } else {
-      // Otherwise navigate to personas view of the selected project
-      router.push({ name: 'design.personas', params: { projectId: newProjectId } })
+      // Otherwise navigate to stages view of the selected project
+      router.push({ name: 'design.stages', params: { projectId: newProjectId } })
     }
   }
 })
@@ -61,7 +61,7 @@ function navigateToSection(section: string) {
     router.push({ name: 'dashboard' })
   } else if (section === 'design' && selectedProjectId.value) {
     // Navigate to design with the selected project
-    router.push({ name: 'design.personas', params: { projectId: selectedProjectId.value } })
+    router.push({ name: 'design.stages', params: { projectId: selectedProjectId.value } })
   } else {
     router.push({ name: section })
   }

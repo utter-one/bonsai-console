@@ -53,7 +53,7 @@ async function deleteProject(id: string, name: string) {
 }
 
 function selectProject(projectId: string) {
-  router.push({ name: 'design.personas', params: { projectId } })
+  router.push({ name: 'design.stages', params: { projectId } })
 }
 </script>
 

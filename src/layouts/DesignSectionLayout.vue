@@ -11,8 +11,8 @@ const projectId = computed(() => route.params.projectId as string | undefined)
 const hasProject = computed(() => !!projectId.value)
 
 const menuItems = [
-  { name: 'design.personas', label: 'Personas', icon: Drama },
   { name: 'design.stages', label: 'Stages', icon: RefreshCw },
+  { name: 'design.personas', label: 'Personas', icon: Drama },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Wrench },
   { name: 'design.tools', label: 'Tools', icon: Hammer },
