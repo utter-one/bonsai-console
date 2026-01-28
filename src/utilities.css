@@ -436,3 +436,28 @@
 .construction-text {
   @apply m-0 mb-2 text-gray-600 leading-relaxed;
 }
+
+/* Pagination */
+.pagination {
+  @apply flex items-center justify-center gap-2;
+}
+
+.pagination-btn {
+  @apply px-3 py-2 border border-gray-300 bg-white text-gray-700 rounded-md text-xs font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-700;
+}
+
+.pagination-btn-active {
+  @apply bg-primary-500 text-white border-primary-500 hover:bg-primary-600 hover:border-primary-600 hover:text-white;
+}
+
+.pagination-btn-disabled {
+  @apply opacity-50 cursor-not-allowed hover:border-gray-300 hover:text-gray-700;
+}
+
+.pagination-numbers {
+  @apply flex items-center gap-1;
+}
+
+.pagination-ellipsis {
+  @apply px-2 text-gray-400;
+}

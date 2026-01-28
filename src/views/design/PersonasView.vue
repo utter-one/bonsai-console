@@ -2,9 +2,11 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePersonasStore } from '@/stores'
+import { usePagination } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/types/api'
 import PersonaEditModal from '@/components/modals/PersonaEditModal.vue'
+import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
 const personasStore = usePersonasStore()
@@ -14,9 +16,14 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(20)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Pagination
+const pagination = usePagination({
+  store: personasStore,
+  pageSize: 20,
+  onPageChange: loadPersonas
+})
 
 // Forms
 const personaForm = ref({
@@ -60,11 +67,9 @@ onMounted(async () => {
 // Methods
 async function loadPersonas() {
   try {
-    await personasStore.fetchAll({
-      offset: (currentPage.value - 1) * pageSize.value,
-      limit: pageSize.value,
-      filters: { projectId: projectId.value }
-    })
+    await personasStore.fetchAll(
+      pagination.getParams({ filters: { projectId: projectId.value } })
+    )
   } catch (error) {
     console.error('Failed to load personas:', error)
   }
@@ -229,8 +234,8 @@ function clearSearch() {
                   <span class="truncate max-w-md">{{ persona.prompt }}</span>
                 </td>
                 <td class="table-cell-mono">
-                  <span v-if="persona.voiceProviderId" class="badge-secondary">
-                    {{ persona.voiceProviderId }}
+                  <span v-if="persona.voiceConfig?.voiceProviderId" class="badge-secondary">
+                    {{ persona.voiceConfig.voiceProviderId }}
                   </span>
                   <span v-else class="text-gray-400">—</span>
                 </td>
@@ -250,15 +255,12 @@ function clearSearch() {
           </table>
         </div>
 
-        <!-- Pagination Info -->
-        <div class="table-footer">
-          <div class="flex-between text-sm text-gray-600">
-            <span>
-              Showing {{ filteredPersonas.length }} of {{ personasStore.pagination.total }} personas
-            </span>
-            <span>Version tracking enabled (optimistic locking)</span>
-          </div>
-        </div>
+      <!-- Pagination Controls -->
+      <PaginationControls
+        :pagination="pagination"
+        :displayed-count="filteredPersonas.length"
+        resource-name="personas"
+      />
       </div>
 
       <!-- Create Modal -->

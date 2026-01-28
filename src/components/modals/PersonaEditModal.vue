@@ -86,7 +86,7 @@ watch(() => props.persona, (persona) => {
     form.value = {
       name: persona.name,
       prompt: persona.prompt,
-      voiceProviderId: persona.voiceProviderId || '',
+      voiceProviderId: persona.voiceConfig?.voiceProviderId || '',
       metadata: persona.metadata || {}
     }
   }

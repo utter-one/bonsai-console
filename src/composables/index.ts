@@ -78,48 +78,69 @@ export function useAuth() {
 }
 
 /**
- * Composable for pagination
+ * Composable for pagination with resource stores
+ * 
+ * @example
+ * const pagination = usePagination({
+ *   store: adminsStore,
+ *   pageSize: 20,
+ *   onPageChange: loadData
+ * })
+ * 
+ * // In loadData:
+ * await store.fetchAll(pagination.getParams())
  */
-export function usePagination(initialPage = 1, initialLimit = 10) {
-  const page = ref(initialPage)
-  const limit = ref(initialLimit)
-  const total = ref(0)
-  const totalPages = computed(() => Math.ceil(total.value / limit.value))
+export function usePagination<T extends { pagination: { total: number } }>(options: {
+  store: T
+  pageSize?: number
+  onPageChange?: () => Promise<void> | void
+} = {} as any) {
+  const { store, pageSize: initialPageSize = 20, onPageChange } = options
 
-  const hasNextPage = computed(() => page.value < totalPages.value)
-  const hasPrevPage = computed(() => page.value > 1)
+  const currentPage = ref(1)
+  const pageSize = ref(initialPageSize)
 
-  function nextPage() {
-    if (hasNextPage.value) {
-      page.value++
+  const offset = computed(() => (currentPage.value - 1) * pageSize.value)
+  const total = computed(() => store?.pagination?.total ?? 0)
+  const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+  const hasNextPage = computed(() => currentPage.value < totalPages.value)
+  const hasPrevPage = computed(() => currentPage.value > 1)
+
+  async function nextPage() {
+    if (!hasNextPage.value) return
+    currentPage.value++
+    if (onPageChange) await onPageChange()
+  }
+
+  async function prevPage() {
+    if (!hasPrevPage.value) return
+    currentPage.value--
+    if (onPageChange) await onPageChange()
+  }
+
+  async function goToPage(page: number) {
+    if (page < 1 || page > totalPages.value) return
+    currentPage.value = page
+    if (onPageChange) await onPageChange()
+  }
+
+  async function reset() {
+    currentPage.value = 1
+    if (onPageChange) await onPageChange()
+  }
+
+  function getParams(additionalParams = {}) {
+    return {
+      offset: offset.value,
+      limit: pageSize.value,
+      ...additionalParams
     }
-  }
-
-  function prevPage() {
-    if (hasPrevPage.value) {
-      page.value--
-    }
-  }
-
-  function goToPage(pageNumber: number) {
-    if (pageNumber >= 1 && pageNumber <= totalPages.value) {
-      page.value = pageNumber
-    }
-  }
-
-  function setTotal(newTotal: number) {
-    total.value = newTotal
-  }
-
-  function reset() {
-    page.value = initialPage
-    limit.value = initialLimit
-    total.value = 0
   }
 
   return {
-    page,
-    limit,
+    currentPage,
+    pageSize,
+    offset,
     total,
     totalPages,
     hasNextPage,
@@ -127,8 +148,8 @@ export function usePagination(initialPage = 1, initialLimit = 10) {
     nextPage,
     prevPage,
     goToPage,
-    setTotal,
     reset,
+    getParams
   }
 }
 
