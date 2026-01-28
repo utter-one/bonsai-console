@@ -1,12 +1,198 @@
 <script setup lang="ts">
-import PlaceholderView from '@/components/PlaceholderView.vue'
-import { Zap } from 'lucide-vue-next'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useGlobalActionsStore } from '@/stores'
+import { usePagination } from '@/composables'
+import { Zap, Search, X, Plus } from 'lucide-vue-next'
+import type { GlobalActionResponse } from '@/types/api'
+import PaginationControls from '@/components/PaginationControls.vue'
+
+const route = useRoute()
+const globalActionsStore = useGlobalActionsStore()
+
+// UI State
+const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Pagination
+const pagination = usePagination({
+  store: globalActionsStore,
+  pageSize: 20,
+  onPageChange: loadGlobalActions
+})
+
+// Computed
+const projectId = computed(() => route.params.projectId as string)
+
+const filteredGlobalActions = computed(() => {
+  if (!debouncedSearchQuery.value) return globalActionsStore.items
+  const query = debouncedSearchQuery.value.toLowerCase()
+  return globalActionsStore.items.filter(action => 
+    action.id.toLowerCase().includes(query) ||
+    action.name.toLowerCase().includes(query) ||
+    action.promptTrigger.toLowerCase().includes(query) ||
+    action.condition?.toLowerCase().includes(query)
+  )
+})
+
+// Watch for search query changes with debounce
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 300)
+})
+
+// Lifecycle
+onMounted(async () => {
+  await loadGlobalActions()
+})
+
+// Methods
+async function loadGlobalActions() {
+  try {
+    await globalActionsStore.fetchAll(
+      pagination.getParams({ filters: { projectId: projectId.value } })
+    )
+  } catch (error) {
+    console.error('Failed to load global actions:', error)
+  }
+}
+
+async function deleteGlobalAction(action: GlobalActionResponse) {
+  if (!confirm(`Delete global action "${action.name}" (${action.id})?\n\nThis action cannot be undone.`)) return
+
+  try {
+    await globalActionsStore.remove(action.id, action.version)
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to delete global action')
+  }
+}
+
+function formatDate(date: string | null) {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleString()
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+}
 </script>
+
 <template>
-  <PlaceholderView 
-    title="Global Actions" 
-    description="Define system-wide actions"
-    :icon="Zap"
-    storeName="useGlobalActionsStore"
-  />
+  <div class="container-constrained">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Global Actions</h1>
+          <p class="page-subtitle">Define system-wide actions for this project</p>
+        </div>
+        <button class="btn-primary" disabled>
+          <Plus class="inline-block mr-2 w-4 h-4" />
+          New Global Action
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <Search class="input-icon-left" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by ID, name, trigger, or condition..."
+          class="search-input"
+        />
+        <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="globalActionsStore.isLoading" class="loading-state">
+        Loading global actions...
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="globalActionsStore.error" class="error-state">
+        {{ globalActionsStore.error }}
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="filteredGlobalActions.length === 0" class="empty-state">
+        <Zap class="empty-state-icon" />
+        <p class="empty-state-title">No global actions found</p>
+        <p v-if="searchQuery">Try adjusting your search criteria</p>
+        <p v-else>Create your first global action to get started</p>
+      </div>
+
+      <!-- Table -->
+      <div v-else class="table-container">
+        <div class="table-wrapper">
+          <table class="table">
+            <thead class="table-header">
+              <tr>
+                <th class="table-header-cell">ID</th>
+                <th class="table-header-cell">Name</th>
+                <th class="table-header-cell">Prompt Trigger</th>
+                <th class="table-header-cell">Condition</th>
+                <th class="table-header-cell">Operations</th>
+                <th class="table-header-cell">Examples</th>
+                <th class="table-header-cell">Updated</th>
+                <th class="table-header-cell-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="table-body">
+              <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
+                <td class="table-cell-mono">{{ action.id }}</td>
+                <td class="table-cell-medium">{{ action.name }}</td>
+                <td class="table-cell">
+                  <span class="truncate max-w-xs">{{ action.promptTrigger }}</span>
+                </td>
+                <td class="table-cell">
+                  <span v-if="action.condition" class="truncate max-w-xs text-gray-600">{{ action.condition }}</span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <span v-if="action.operations?.length" class="badge-info">
+                    {{ action.operations.length }} operation(s)
+                  </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <span v-if="action.examples?.length" class="badge-secondary">
+                    {{ action.examples.length }} example(s)
+                  </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell-muted">{{ formatDate(action.updatedAt) }}</td>
+                <td class="table-cell-right">
+                  <div class="flex-end">
+                    <button class="btn-secondary btn-sm" disabled>
+                      Edit
+                    </button>
+                    <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      <!-- Pagination Controls -->
+      <PaginationControls
+        :pagination="pagination"
+        :displayed-count="filteredGlobalActions.length"
+        resource-name="global actions"
+      />
+      </div>
+  </div>
 </template>
+
+<style scoped>
+/* Additional custom styles if needed */
+</style>
