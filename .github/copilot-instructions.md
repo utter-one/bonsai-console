@@ -100,10 +100,48 @@ src/
 - `.table-container` - Table wrapper
 - `.flex-gap` - Flex with gap
 
+**Metadata:**
+- `.metadata-container` - Metadata grid container
+- `.metadata-item` - Individual metadata field
+- `.metadata-label` - Metadata field label
+- `.metadata-value` - Metadata field value
+
 **Status badges:**
 - `.badge-active`, `.badge-inactive`, `.badge-error`, etc.
 
 ## Component Patterns
+
+### MetadataTab Component
+Unified component for displaying read-only metadata in edit views:
+- Used in all edit views (Admin, Provider, Persona, Classifier, etc.)
+- Displays resource metadata (ID, version, timestamps, etc.)
+- Props: `fields` array with `{ label, value, format? }` structure
+- Format options: `'date'` (auto-formats timestamps), `'mono'` (monospace font), `'default'`
+- Automatically handles null/undefined values (displays "N/A")
+
+**Example:**
+```typescript
+import MetadataTab from '@/components/MetadataTab.vue'
+
+const metadataFields = computed(() => {
+  if (!currentResource.value) return []
+  return [
+    { label: 'Resource ID', value: currentResource.value.id, format: 'mono' as const },
+    { label: 'Version', value: currentResource.value.version },
+    { label: 'Created', value: currentResource.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentResource.value.updatedAt, format: 'date' as const },
+  ]
+})
+```
+
+In template:
+```vue
+<MetadataTab
+  v-if="isEditMode && currentResource"
+  v-show="activeTab === 'metadata'"
+  :fields="metadataFields"
+/>
+```
 
 ### Modal Components
 - Emit `close` and `save` events
