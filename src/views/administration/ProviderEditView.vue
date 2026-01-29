@@ -14,15 +14,19 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'config' | 'metadata'>('basic')
-const configJson = ref('')
 const form = ref({
   id: '',
   displayName: '',
   description: '',
   providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings',
   apiType: '',
-  config: {} as Record<string, any>,
-  tags: [] as string[],
+  config: {
+    apiKey: '',
+    organizationId: '',
+    baseUrl: '',
+    region: '',
+    subscriptionKey: ''
+  },
   createdBy: ''
 })
 
@@ -37,6 +41,51 @@ const providerTypes = [
   { value: 'tts', label: 'TTS (Text-to-Speech)' },
   { value: 'embeddings', label: 'Embeddings' }
 ]
+
+// API type options based on provider type
+const apiTypeOptions = computed(() => {
+  switch (form.value.providerType) {
+    case 'llm':
+    case 'embeddings':
+      return [
+        { value: 'openai', label: 'OpenAI' },
+        { value: 'anthropic', label: 'Anthropic' },
+        { value: 'google', label: 'Google' },
+        { value: 'custom', label: 'Custom' }
+      ]
+    case 'tts':
+      return [
+        { value: 'elevenlabs', label: 'ElevenLabs' },
+        { value: 'openai', label: 'OpenAI' },
+        { value: 'custom', label: 'Custom' }
+      ]
+    case 'asr':
+      return [
+        { value: 'azure', label: 'Azure Speech' },
+        { value: 'openai', label: 'OpenAI Whisper' },
+        { value: 'custom', label: 'Custom' }
+      ]
+    default:
+      return []
+  }
+})
+
+// Check which config fields to show based on API type
+const showOpenAIFields = computed(() => 
+  form.value.apiType === 'openai'
+)
+const showAnthropicFields = computed(() => 
+  form.value.apiType === 'anthropic'
+)
+const showGoogleFields = computed(() => 
+  form.value.apiType === 'google'
+)
+const showElevenLabsFields = computed(() => 
+  form.value.apiType === 'elevenlabs'
+)
+const showAzureASRFields = computed(() => 
+  form.value.apiType === 'azure' && form.value.providerType === 'asr'
+)
 
 // Lifecycle
 onMounted(async () => {
@@ -55,17 +104,22 @@ async function loadProvider() {
   try {
     currentProvider.value = await providersStore.fetchById(providerId.value)
     if (currentProvider.value) {
+      const config = currentProvider.value.config as any
       form.value = {
         id: currentProvider.value.id,
         displayName: currentProvider.value.displayName,
         description: currentProvider.value.description || '',
         providerType: currentProvider.value.providerType,
         apiType: currentProvider.value.apiType,
-        config: currentProvider.value.config || {},
-        tags: currentProvider.value.tags || [],
+        config: {
+          apiKey: config.apiKey || '',
+          organizationId: config.organizationId || '',
+          baseUrl: config.baseUrl || '',
+          region: config.region || '',
+          subscriptionKey: config.subscriptionKey || ''
+        },
         createdBy: currentProvider.value.createdBy || ''
       }
-      configJson.value = JSON.stringify(currentProvider.value.config, null, 2)
     }
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load provider'
@@ -77,12 +131,55 @@ async function loadProvider() {
 async function handleSubmit() {
   error.value = null
   
-  // Validate config JSON
-  try {
-    form.value.config = JSON.parse(configJson.value)
-  } catch (err) {
-    error.value = 'Invalid JSON in configuration field'
+  // Build config object based on API type
+  let config: any = {}
+  
+  if (showOpenAIFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+    if (form.value.config.organizationId) {
+      config.organizationId = form.value.config.organizationId
+    }
+    if (form.value.config.baseUrl) {
+      config.baseUrl = form.value.config.baseUrl
+    }
+  } else if (showAnthropicFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+    if (form.value.config.baseUrl) {
+      config.baseUrl = form.value.config.baseUrl
+    }
+  } else if (showGoogleFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+  } else if (showElevenLabsFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+  } else if (showAzureASRFields.value) {
+    config = {
+      region: form.value.config.region,
+      subscriptionKey: form.value.config.subscriptionKey
+    }
+  } else {
+    error.value = 'Please select a valid API type'
     return
+  }
+
+  // Validate required fields
+  if (showAzureASRFields.value) {
+    if (!config.region || !config.subscriptionKey) {
+      error.value = 'Region and Subscription Key are required for Azure Speech'
+      return
+    }
+  } else {
+    if (!config.apiKey) {
+      error.value = 'API Key is required'
+      return
+    }
   }
 
   isLoading.value = true
@@ -96,8 +193,7 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
-        config: form.value.config,
-        tags: form.value.tags.length > 0 ? form.value.tags : undefined
+        config: config
       })
     } else {
       // Create new provider
@@ -105,7 +201,7 @@ async function handleSubmit() {
         displayName: form.value.displayName,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
-        config: form.value.config
+        config: config
       }
 
       // Only include id if it's provided
@@ -121,11 +217,6 @@ async function handleSubmit() {
       // Only include createdBy if it's not empty
       if (form.value.createdBy) {
         createData.createdBy = form.value.createdBy
-      }
-
-      // Only include tags if there are any
-      if (form.value.tags.length > 0) {
-        createData.tags = form.value.tags
       }
 
       await providersStore.create(createData)
@@ -147,17 +238,6 @@ function goBack() {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-function addTag() {
-  const tag = prompt('Enter tag name:')
-  if (tag && tag.trim() && !form.value.tags.includes(tag.trim())) {
-    form.value.tags.push(tag.trim())
-  }
-}
-
-function removeTag(index: number) {
-  form.value.tags.splice(index, 1)
 }
 </script>
 
@@ -257,25 +337,6 @@ function removeTag(index: number) {
 
           <div class="form-group">
             <label class="form-label">
-              ID <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.id"
-              type="text"
-              placeholder="openai-gpt4"
-              class="form-input-mono"
-              :disabled="isEditMode || isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The provider ID cannot be changed after creation' 
-                : 'Leave empty to auto-generate. Use lowercase letters, numbers, and hyphens only.' 
-              }}
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
               Description <span class="text-gray-500">(optional)</span>
             </label>
             <textarea
@@ -289,7 +350,10 @@ function removeTag(index: number) {
               Optional description to help identify the purpose of this provider
             </p>
           </div>
+        </div>
 
+        <!-- Configuration Tab -->
+        <div v-show="activeTab === 'config'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
               Provider Type <span class="required">*</span>
@@ -316,77 +380,200 @@ function removeTag(index: number) {
             <label class="form-label">
               API Type <span class="required">*</span>
             </label>
-            <input
+            <select
               v-model="form.apiType"
-              type="text"
               required
-              placeholder="openai"
-              class="form-input-mono"
+              class="form-select"
               :disabled="isLoading"
-            />
+            >
+              <option value="" disabled>Select API type...</option>
+              <option v-for="type in apiTypeOptions" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
             <p class="form-help-text">
-              The API implementation type (e.g., "openai", "anthropic", "azure", "custom")
+              The API implementation type for this provider
             </p>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">
-              Tags <span class="text-gray-500">(optional)</span>
-            </label>
-            <div class="flex flex-wrap gap-2 mb-2">
-              <span v-for="(tag, index) in form.tags" :key="index" class="badge-secondary flex items-center gap-1">
-                {{ tag }}
-                <button type="button" @click="removeTag(index)" class="text-gray-600 hover:text-gray-900">
-                  ×
-                </button>
-              </span>
-              <button type="button" @click="addTag" class="btn-secondary btn-sm">
-                + Add Tag
-              </button>
+          <div v-if="!form.apiType" class="alert-info mb-6">
+            Please select a Provider Type and API Type above to configure provider settings.
+          </div>
+
+          <!-- OpenAI Configuration -->
+          <template v-if="showOpenAIFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">OpenAI Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="sk-..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your OpenAI API key
+              </p>
             </div>
-            <p class="form-help-text">
-              Optional tags for organizing and filtering providers
-            </p>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">
-              Created By <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.createdBy"
-              type="text"
-              placeholder="admin-id"
-              class="form-input-mono"
-              :disabled="isEditMode || isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The creator cannot be changed after creation' 
-                : 'Optional admin ID who created this provider' 
-              }}
-            </p>
-          </div>
-        </div>
+            <div class="form-group">
+              <label class="form-label">
+                Organization ID <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.organizationId"
+                type="text"
+                placeholder="org-..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Optional organization ID for OpenAI
+              </p>
+            </div>
 
-        <!-- Configuration Tab -->
-        <div v-show="activeTab === 'config'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Provider Configuration <span class="required">*</span>
-            </label>
-            <textarea
-              v-model="configJson"
-              required
-              rows="25"
-              class="form-textarea font-mono text-sm"
-              placeholder='{\n  "apiKey": "sk-...",\n  "model": "gpt-4",\n  "temperature": 0.7\n}'
-              :disabled="isLoading"
-            ></textarea>
-            <p class="form-help-text">
-              JSON configuration object for this provider. Include API keys, endpoints, model parameters, and any provider-specific settings.
-            </p>
-          </div>
+            <div class="form-group">
+              <label class="form-label">
+                Base URL <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.baseUrl"
+                type="url"
+                placeholder="https://api.openai.com/v1"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Optional base URL for OpenAI-compatible APIs
+              </p>
+            </div>
+          </template>
+
+          <!-- Anthropic Configuration -->
+          <template v-if="showAnthropicFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Anthropic Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="sk-ant-..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Anthropic API key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Base URL <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.baseUrl"
+                type="url"
+                placeholder="https://api.anthropic.com"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Optional base URL for custom endpoints
+              </p>
+            </div>
+          </template>
+
+          <!-- Google Configuration -->
+          <template v-if="showGoogleFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Google Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="AIza..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Google API key
+              </p>
+            </div>
+          </template>
+
+          <!-- ElevenLabs Configuration -->
+          <template v-if="showElevenLabsFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">ElevenLabs Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your ElevenLabs API key
+              </p>
+            </div>
+          </template>
+
+          <!-- Azure ASR Configuration -->
+          <template v-if="showAzureASRFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Azure Speech Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Region <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.region"
+                type="text"
+                required
+                placeholder="eastus"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Azure region for the Speech service (e.g., eastus, westeurope)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Subscription Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.subscriptionKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Azure Speech service subscription key
+              </p>
+            </div>
+          </template>
         </div>
 
         <!-- Metadata Tab -->
@@ -395,14 +582,6 @@ function removeTag(index: number) {
             <div class="metadata-item">
               <span class="metadata-label">Provider ID</span>
               <span class="metadata-value">{{ currentProvider.id }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Provider Type</span>
-              <span class="metadata-value">{{ currentProvider.providerType }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">API Type</span>
-              <span class="metadata-value">{{ currentProvider.apiType }}</span>
             </div>
             <div class="metadata-item">
               <span class="metadata-label">Created By</span>

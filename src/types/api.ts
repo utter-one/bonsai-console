@@ -599,6 +599,33 @@ export interface UpdateEnvironmentRequest {
 
 export type EnvironmentListResponse = PaginatedResponse<EnvironmentResponse>
 
+// Provider Configs
+export interface OpenAIConfig {
+  apiKey: string
+  organizationId?: string
+  baseUrl?: string
+}
+
+export interface AnthropicConfig {
+  apiKey: string
+  baseUrl?: string
+}
+
+export interface GoogleConfig {
+  apiKey: string
+}
+
+export interface ElevenLabsConfig {
+  apiKey: string
+}
+
+export interface AzureASRConfig {
+  region: string
+  subscriptionKey: string
+}
+
+export type ProviderConfig = OpenAIConfig | AnthropicConfig | GoogleConfig | ElevenLabsConfig | AzureASRConfig
+
 // Provider
 export interface ProviderResponse {
   id: string
@@ -606,7 +633,7 @@ export interface ProviderResponse {
   description: string | null
   providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType: string
-  config: Record<string, any>
+  config: ProviderConfig
   createdBy: string | null
   tags: string[] | null
   version: number
@@ -620,7 +647,7 @@ export interface CreateProviderRequest {
   description?: string
   providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType: string
-  config: Record<string, any>
+  config: ProviderConfig
   createdBy?: string
   tags?: string[]
 }
@@ -630,7 +657,7 @@ export interface UpdateProviderRequest {
   description?: string
   providerType?: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType?: string
-  config?: Record<string, any>
+  config?: ProviderConfig
   tags?: string[]
   version: number
 }

@@ -9807,10 +9807,107 @@
             "description": "Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs)"
           },
           "config": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
-            },
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Anthropic API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for custom endpoints"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Google API key"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with ElevenLabs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "description": "TTS provider configuration"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "region": {
+                    "type": "string",
+                    "description": "The Azure region to use for the speech recognition service"
+                  },
+                  "subscriptionKey": {
+                    "type": "string",
+                    "description": "The subscription key to use for the speech recognition service"
+                  }
+                },
+                "required": [
+                  "region",
+                  "subscriptionKey"
+                ],
+                "description": "ASR provider configuration"
+              }
+            ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
           },
           "createdBy": {
@@ -9865,10 +9962,107 @@
             "description": "Updated specific provider implementation"
           },
           "config": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
-            },
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Anthropic API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for custom endpoints"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Google API key"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with ElevenLabs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "description": "TTS provider configuration"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "region": {
+                    "type": "string",
+                    "description": "The Azure region to use for the speech recognition service"
+                  },
+                  "subscriptionKey": {
+                    "type": "string",
+                    "description": "The subscription key to use for the speech recognition service"
+                  }
+                },
+                "required": [
+                  "region",
+                  "subscriptionKey"
+                ],
+                "description": "ASR provider configuration"
+              }
+            ],
             "description": "Updated provider-specific configuration"
           },
           "tags": {
@@ -9928,10 +10122,107 @@
             "description": "Specific provider implementation"
           },
           "config": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
-            },
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OpenAI API key"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "description": "Optional organization ID"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for OpenAI-compatible APIs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Anthropic API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL for custom endpoints"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Google API key"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with ElevenLabs"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "description": "TTS provider configuration"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "region": {
+                    "type": "string",
+                    "description": "The Azure region to use for the speech recognition service"
+                  },
+                  "subscriptionKey": {
+                    "type": "string",
+                    "description": "The subscription key to use for the speech recognition service"
+                  }
+                },
+                "required": [
+                  "region",
+                  "subscriptionKey"
+                ],
+                "description": "ASR provider configuration"
+              }
+            ],
             "description": "Provider-specific configuration object"
           },
           "createdBy": {
@@ -10014,10 +10305,107 @@
                   "description": "Specific provider implementation"
                 },
                 "config": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "nullable": true
-                  },
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "OpenAI API key"
+                        },
+                        "organizationId": {
+                          "type": "string",
+                          "description": "Optional organization ID"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL for OpenAI-compatible APIs"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "OpenAI API key"
+                        },
+                        "organizationId": {
+                          "type": "string",
+                          "description": "Optional organization ID"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL for OpenAI-compatible APIs"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "Anthropic API key"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL for custom endpoints"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "Google API key"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "API key for authenticating with ElevenLabs"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
+                      "description": "TTS provider configuration"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "region": {
+                          "type": "string",
+                          "description": "The Azure region to use for the speech recognition service"
+                        },
+                        "subscriptionKey": {
+                          "type": "string",
+                          "description": "The subscription key to use for the speech recognition service"
+                        }
+                      },
+                      "required": [
+                        "region",
+                        "subscriptionKey"
+                      ],
+                      "description": "ASR provider configuration"
+                    }
+                  ],
                   "description": "Provider-specific configuration object"
                 },
                 "createdBy": {
@@ -20405,10 +20793,107 @@
                     "description": "Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs)"
                   },
                   "config": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    },
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "OpenAI API key"
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "description": "Optional organization ID"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for OpenAI-compatible APIs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "OpenAI API key"
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "description": "Optional organization ID"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for OpenAI-compatible APIs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Anthropic API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for custom endpoints"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Google API key"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key for authenticating with ElevenLabs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "description": "TTS provider configuration"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "region": {
+                            "type": "string",
+                            "description": "The Azure region to use for the speech recognition service"
+                          },
+                          "subscriptionKey": {
+                            "type": "string",
+                            "description": "The subscription key to use for the speech recognition service"
+                          }
+                        },
+                        "required": [
+                          "region",
+                          "subscriptionKey"
+                        ],
+                        "description": "ASR provider configuration"
+                      }
+                    ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
                   },
                   "createdBy": {
@@ -20469,10 +20954,107 @@
                       "description": "Specific provider implementation"
                     },
                     "config": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Anthropic API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for custom endpoints"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Google API key"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with ElevenLabs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "description": "TTS provider configuration"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "region": {
+                              "type": "string",
+                              "description": "The Azure region to use for the speech recognition service"
+                            },
+                            "subscriptionKey": {
+                              "type": "string",
+                              "description": "The subscription key to use for the speech recognition service"
+                            }
+                          },
+                          "required": [
+                            "region",
+                            "subscriptionKey"
+                          ],
+                          "description": "ASR provider configuration"
+                        }
+                      ],
                       "description": "Provider-specific configuration object"
                     },
                     "createdBy": {
@@ -20761,10 +21343,107 @@
                             "description": "Specific provider implementation"
                           },
                           "config": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "OpenAI API key"
+                                  },
+                                  "organizationId": {
+                                    "type": "string",
+                                    "description": "Optional organization ID"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL for OpenAI-compatible APIs"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "OpenAI API key"
+                                  },
+                                  "organizationId": {
+                                    "type": "string",
+                                    "description": "Optional organization ID"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL for OpenAI-compatible APIs"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "Anthropic API key"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL for custom endpoints"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "Google API key"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "API key for authenticating with ElevenLabs"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "description": "TTS provider configuration"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "region": {
+                                    "type": "string",
+                                    "description": "The Azure region to use for the speech recognition service"
+                                  },
+                                  "subscriptionKey": {
+                                    "type": "string",
+                                    "description": "The subscription key to use for the speech recognition service"
+                                  }
+                                },
+                                "required": [
+                                  "region",
+                                  "subscriptionKey"
+                                ],
+                                "description": "ASR provider configuration"
+                              }
+                            ],
                             "description": "Provider-specific configuration object"
                           },
                           "createdBy": {
@@ -20902,10 +21581,107 @@
                       "description": "Specific provider implementation"
                     },
                     "config": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Anthropic API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for custom endpoints"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Google API key"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with ElevenLabs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "description": "TTS provider configuration"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "region": {
+                              "type": "string",
+                              "description": "The Azure region to use for the speech recognition service"
+                            },
+                            "subscriptionKey": {
+                              "type": "string",
+                              "description": "The subscription key to use for the speech recognition service"
+                            }
+                          },
+                          "required": [
+                            "region",
+                            "subscriptionKey"
+                          ],
+                          "description": "ASR provider configuration"
+                        }
+                      ],
                       "description": "Provider-specific configuration object"
                     },
                     "createdBy": {
@@ -21014,10 +21790,107 @@
                     "description": "Updated specific provider implementation"
                   },
                   "config": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    },
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "OpenAI API key"
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "description": "Optional organization ID"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for OpenAI-compatible APIs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "OpenAI API key"
+                          },
+                          "organizationId": {
+                            "type": "string",
+                            "description": "Optional organization ID"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for OpenAI-compatible APIs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Anthropic API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL for custom endpoints"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Google API key"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key for authenticating with ElevenLabs"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "description": "TTS provider configuration"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "region": {
+                            "type": "string",
+                            "description": "The Azure region to use for the speech recognition service"
+                          },
+                          "subscriptionKey": {
+                            "type": "string",
+                            "description": "The subscription key to use for the speech recognition service"
+                          }
+                        },
+                        "required": [
+                          "region",
+                          "subscriptionKey"
+                        ],
+                        "description": "ASR provider configuration"
+                      }
+                    ],
                     "description": "Updated provider-specific configuration"
                   },
                   "tags": {
@@ -21071,10 +21944,107 @@
                       "description": "Specific provider implementation"
                     },
                     "config": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OpenAI API key"
+                            },
+                            "organizationId": {
+                              "type": "string",
+                              "description": "Optional organization ID"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for OpenAI-compatible APIs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Anthropic API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL for custom endpoints"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Google API key"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with ElevenLabs"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "description": "TTS provider configuration"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "region": {
+                              "type": "string",
+                              "description": "The Azure region to use for the speech recognition service"
+                            },
+                            "subscriptionKey": {
+                              "type": "string",
+                              "description": "The subscription key to use for the speech recognition service"
+                            }
+                          },
+                          "required": [
+                            "region",
+                            "subscriptionKey"
+                          ],
+                          "description": "ASR provider configuration"
+                        }
+                      ],
                       "description": "Provider-specific configuration object"
                     },
                     "createdBy": {
