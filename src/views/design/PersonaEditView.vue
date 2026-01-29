@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
 import type { PersonaResponse, NoSpeechMarker, VoiceConfig } from '@/types/api'
+import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -207,10 +208,16 @@ function goBack() {
   router.push({ name: 'design.personas', params: { projectId: projectId.value } })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
+const metadataFields = computed(() => {
+  if (!currentPersona.value) return []
+  return [
+    { label: 'Persona ID', value: currentPersona.value.id, format: 'mono' as const },
+    { label: 'Project ID', value: currentPersona.value.projectId, format: 'mono' as const },
+    { label: 'Version', value: currentPersona.value.version },
+    { label: 'Created', value: currentPersona.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentPersona.value.updatedAt, format: 'date' as const },
+  ]
+})
 
 function addNoSpeechMarker() {
   form.value.voiceConfig.noSpeechMarkers.push({ start: '', end: '' })
@@ -320,25 +327,6 @@ function removeNoSpeechMarker(index: number) {
               :disabled="isLoading"
             />
             <p class="form-help-text">A descriptive name for this persona</p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              ID <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.id"
-              type="text"
-              placeholder="custom-persona-id"
-              class="form-input-mono"
-              :disabled="isEditMode || isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The persona ID cannot be changed after creation' 
-                : 'Leave empty to auto-generate. Use lowercase letters, numbers, and hyphens only.' 
-              }}
-            </p>
           </div>
         </div>
 
@@ -686,22 +674,11 @@ function removeNoSpeechMarker(index: number) {
         </div>
 
         <!-- Metadata Tab -->
-        <div v-if="isEditMode && currentPersona" v-show="activeTab === 'metadata'" class="tab-content">
-          <div class="metadata-container">
-            <div class="metadata-item">
-              <span class="metadata-label">Version</span>
-              <span class="metadata-value">{{ currentPersona.version }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Created</span>
-              <span class="metadata-value">{{ formatDate(currentPersona.createdAt) }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Updated</span>
-              <span class="metadata-value">{{ formatDate(currentPersona.updatedAt) }}</span>
-            </div>
-          </div>
-        </div>
+        <MetadataTab
+          v-if="isEditMode && currentPersona"
+          v-show="activeTab === 'metadata'"
+          :fields="metadataFields"
+        />
         </form>
       </div>
     </div>

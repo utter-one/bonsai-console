@@ -5,6 +5,7 @@ import { useProvidersStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/types/api'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
+import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -235,10 +236,16 @@ function goBack() {
   router.push({ name: 'administration.providers' })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
+const metadataFields = computed(() => {
+  if (!currentProvider.value) return []
+  return [
+    { label: 'Provider ID', value: currentProvider.value.id, format: 'mono' as const },
+    { label: 'Created By', value: currentProvider.value.createdBy },
+    { label: 'Version', value: currentProvider.value.version },
+    { label: 'Created', value: currentProvider.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentProvider.value.updatedAt, format: 'date' as const },
+  ]
+})
 </script>
 
 <template>
@@ -577,30 +584,11 @@ function formatDate(date: string | null) {
         </div>
 
         <!-- Metadata Tab -->
-        <div v-if="isEditMode && currentProvider" v-show="activeTab === 'metadata'" class="tab-content">
-          <div class="metadata-container">
-            <div class="metadata-item">
-              <span class="metadata-label">Provider ID</span>
-              <span class="metadata-value">{{ currentProvider.id }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Created By</span>
-              <span class="metadata-value">{{ currentProvider.createdBy || 'N/A' }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Version</span>
-              <span class="metadata-value">{{ currentProvider.version }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Created</span>
-              <span class="metadata-value">{{ formatDate(currentProvider.createdAt) }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Updated</span>
-              <span class="metadata-value">{{ formatDate(currentProvider.updatedAt) }}</span>
-            </div>
-          </div>
-        </div>
+        <MetadataTab
+          v-if="isEditMode && currentProvider"
+          v-show="activeTab === 'metadata'"
+          :fields="metadataFields"
+        />
         </form>
       </div>
     </div>

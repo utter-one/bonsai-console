@@ -6,6 +6,7 @@ import { formatRoleName } from '@/composables'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { AdminResponse } from '@/types/api'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
+import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -150,10 +151,16 @@ function toggleRole(role: string) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
+const metadataFields = computed(() => {
+  if (!currentAdmin.value) return []
+  return [
+    { label: 'Admin ID', value: currentAdmin.value.id, format: 'mono' as const },
+    { label: 'Version', value: currentAdmin.value.version },
+    { label: 'Created', value: currentAdmin.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentAdmin.value.updatedAt, format: 'date' as const },
+    { label: 'Current Roles', value: currentAdmin.value.roles.map(formatRoleName).join(', ') },
+  ]
+})
 </script>
 
 <template>
@@ -330,30 +337,11 @@ function formatDate(date: string | null) {
         </div>
 
         <!-- Metadata Tab -->
-        <div v-if="isEditMode && currentAdmin" v-show="activeTab === 'metadata'" class="tab-content">
-          <div class="metadata-container">
-            <div class="metadata-item">
-              <span class="metadata-label">Admin ID</span>
-              <span class="metadata-value font-mono">{{ currentAdmin.id }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Version</span>
-              <span class="metadata-value">{{ currentAdmin.version }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Created</span>
-              <span class="metadata-value">{{ formatDate(currentAdmin.createdAt) }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Updated</span>
-              <span class="metadata-value">{{ formatDate(currentAdmin.updatedAt) }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Current Roles</span>
-              <span class="metadata-value">{{ currentAdmin.roles.map(formatRoleName).join(', ') }}</span>
-            </div>
-          </div>
-        </div>
+        <MetadataTab
+          v-if="isEditMode && currentAdmin"
+          v-show="activeTab === 'metadata'"
+          :fields="metadataFields"
+        />
         </form>
       </div>
     </div>

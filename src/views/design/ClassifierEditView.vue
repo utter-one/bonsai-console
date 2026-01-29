@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { ClassifierResponse } from '@/types/api'
+import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -116,10 +117,16 @@ function goBack() {
   router.push({ name: 'design.classifiers', params: { projectId: projectId.value } })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
+const metadataFields = computed(() => {
+  if (!currentClassifier.value) return []
+  return [
+    { label: 'Classifier ID', value: currentClassifier.value.id, format: 'mono' as const },
+    { label: 'Project ID', value: currentClassifier.value.projectId, format: 'mono' as const },
+    { label: 'Version', value: currentClassifier.value.version },
+    { label: 'Created', value: currentClassifier.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentClassifier.value.updatedAt, format: 'date' as const },
+  ]
+})
 </script>
 
 <template>
@@ -298,30 +305,11 @@ function formatDate(date: string | null) {
         </div>
 
         <!-- Metadata Tab -->
-        <div v-if="isEditMode && currentClassifier" v-show="activeTab === 'metadata'" class="tab-content">
-          <div class="metadata-container">
-            <div class="metadata-item">
-              <span class="metadata-label">Classifier ID</span>
-              <span class="metadata-value">{{ currentClassifier.id }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Project ID</span>
-              <span class="metadata-value">{{ currentClassifier.projectId }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Version</span>
-              <span class="metadata-value">{{ currentClassifier.version }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Created</span>
-              <span class="metadata-value">{{ formatDate(currentClassifier.createdAt) }}</span>
-            </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Updated</span>
-              <span class="metadata-value">{{ formatDate(currentClassifier.updatedAt) }}</span>
-            </div>
-          </div>
-        </div>
+        <MetadataTab
+          v-if="isEditMode && currentClassifier"
+          v-show="activeTab === 'metadata'"
+          :fields="metadataFields"
+        />
         </form>
       </div>
     </div>
