@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore } from '@/stores'
+import { usePersonasStore, useProvidersStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
 import type { PersonaResponse, NoSpeechMarker, VoiceConfig } from '@/types/api'
 
 const route = useRoute()
 const router = useRouter()
 const personasStore = usePersonasStore()
+const providersStore = useProvidersStore()
 
 // State
 const isLoading = ref(false)
@@ -41,8 +42,15 @@ const personaId = computed(() => route.params.personaId as string | undefined)
 const isEditMode = computed(() => !!personaId.value)
 const currentPersona = ref<PersonaResponse | null>(null)
 
+const ttsProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'tts')
+)
+
 // Lifecycle
 onMounted(async () => {
+  // Load providers for dropdown
+  await providersStore.fetchAll()
+  
   if (isEditMode.value) {
     await loadPersona()
   }
@@ -323,17 +331,20 @@ function removeNoSpeechMarker(index: number) {
           <!-- TTS Provider -->
           <div class="form-group">
             <label class="form-label">
-              TTS Provider ID <span class="text-gray-500">(optional)</span>
+              TTS Provider <span class="text-gray-500">(optional)</span>
             </label>
-            <input
+            <select
               v-model="form.ttsProviderId"
-              type="text"
-              class="form-input-mono"
-              placeholder="e.g., eleven-labs"
+              class="form-select"
               :disabled="isLoading"
-            />
+            >
+              <option value="">None</option>
+              <option v-for="provider in ttsProviders" :key="provider.id" :value="provider.id">
+                {{ provider.displayName }}
+              </option>
+            </select>
             <p class="form-help-text">
-              TTS provider identifier (e.g., "eleven-labs")
+              Select a text-to-speech provider for this persona
             </p>
           </div>
 
