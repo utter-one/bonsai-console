@@ -10743,6 +10743,832 @@
           "limit"
         ]
       },
+      "ProviderCatalog": {
+        "type": "object",
+        "properties": {
+          "asr": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable language name"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Languages supported by this provider"
+                },
+                "supportsCustomVocabulary": {
+                  "type": "boolean",
+                  "description": "Whether custom vocabulary/phrases are supported"
+                },
+                "supportsStreaming": {
+                  "type": "boolean",
+                  "description": "Whether streaming transcription is supported"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "languages",
+                "supportsCustomVocabulary",
+                "supportsStreaming"
+              ]
+            },
+            "description": "ASR providers"
+          },
+          "tts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Model identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable display name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the model's capabilities and use cases"
+                      },
+                      "recommended": {
+                        "type": "boolean",
+                        "description": "Whether this is a recommended or default model"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Models available for this provider"
+                },
+                "voices": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Voice identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of voice characteristics"
+                      },
+                      "gender": {
+                        "type": "string",
+                        "enum": [
+                          "male",
+                          "female",
+                          "neutral"
+                        ],
+                        "description": "Gender of the voice (if applicable)"
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Languages supported by this voice"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Voices available (can be provider-specific or model-specific)"
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable language name"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Languages supported"
+                },
+                "supportsFullStreaming": {
+                  "type": "boolean",
+                  "description": "Whether full streaming (chunk-by-chunk) is supported"
+                },
+                "supportsVoiceSettings": {
+                  "type": "boolean",
+                  "description": "Whether voice customization settings are supported"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "models",
+                "voices",
+                "languages",
+                "supportsFullStreaming",
+                "supportsVoiceSettings"
+              ]
+            },
+            "description": "TTS providers"
+          },
+          "llm": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Model identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable display name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the model's capabilities and use cases"
+                      },
+                      "recommended": {
+                        "type": "boolean",
+                        "description": "Whether this is a recommended or default model"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Models available for this provider"
+                },
+                "supportsToolCalling": {
+                  "type": "boolean",
+                  "description": "Whether tool calling (function calling) is supported"
+                },
+                "supportsJsonOutput": {
+                  "type": "boolean",
+                  "description": "Whether structured JSON output is supported"
+                },
+                "supportsStreaming": {
+                  "type": "boolean",
+                  "description": "Whether streaming responses are supported"
+                },
+                "supportsVision": {
+                  "type": "boolean",
+                  "description": "Whether vision/image input is supported"
+                },
+                "contextWindows": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "description": "Context window size (in tokens) for each model"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "models",
+                "supportsToolCalling",
+                "supportsJsonOutput",
+                "supportsStreaming",
+                "supportsVision"
+              ]
+            },
+            "description": "LLM providers"
+          }
+        },
+        "required": [
+          "asr",
+          "tts",
+          "llm"
+        ]
+      },
+      "AsrProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable language name"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Languages supported by this provider"
+                },
+                "supportsCustomVocabulary": {
+                  "type": "boolean",
+                  "description": "Whether custom vocabulary/phrases are supported"
+                },
+                "supportsStreaming": {
+                  "type": "boolean",
+                  "description": "Whether streaming transcription is supported"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "languages",
+                "supportsCustomVocabulary",
+                "supportsStreaming"
+              ]
+            },
+            "description": "List of ASR providers"
+          }
+        },
+        "required": [
+          "providers"
+        ]
+      },
+      "TtsProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Model identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable display name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the model's capabilities and use cases"
+                      },
+                      "recommended": {
+                        "type": "boolean",
+                        "description": "Whether this is a recommended or default model"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Models available for this provider"
+                },
+                "voices": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Voice identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of voice characteristics"
+                      },
+                      "gender": {
+                        "type": "string",
+                        "enum": [
+                          "male",
+                          "female",
+                          "neutral"
+                        ],
+                        "description": "Gender of the voice (if applicable)"
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Languages supported by this voice"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Voices available (can be provider-specific or model-specific)"
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable language name"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Languages supported"
+                },
+                "supportsFullStreaming": {
+                  "type": "boolean",
+                  "description": "Whether full streaming (chunk-by-chunk) is supported"
+                },
+                "supportsVoiceSettings": {
+                  "type": "boolean",
+                  "description": "Whether voice customization settings are supported"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "models",
+                "voices",
+                "languages",
+                "supportsFullStreaming",
+                "supportsVoiceSettings"
+              ]
+            },
+            "description": "List of TTS providers"
+          }
+        },
+        "required": [
+          "providers"
+        ]
+      },
+      "LlmProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Model identifier"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "description": "Human-readable display name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the model's capabilities and use cases"
+                      },
+                      "recommended": {
+                        "type": "boolean",
+                        "description": "Whether this is a recommended or default model"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName"
+                    ]
+                  },
+                  "description": "Models available for this provider"
+                },
+                "supportsToolCalling": {
+                  "type": "boolean",
+                  "description": "Whether tool calling (function calling) is supported"
+                },
+                "supportsJsonOutput": {
+                  "type": "boolean",
+                  "description": "Whether structured JSON output is supported"
+                },
+                "supportsStreaming": {
+                  "type": "boolean",
+                  "description": "Whether streaming responses are supported"
+                },
+                "supportsVision": {
+                  "type": "boolean",
+                  "description": "Whether vision/image input is supported"
+                },
+                "contextWindows": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "description": "Context window size (in tokens) for each model"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName",
+                "models",
+                "supportsToolCalling",
+                "supportsJsonOutput",
+                "supportsStreaming",
+                "supportsVision"
+              ]
+            },
+            "description": "List of LLM providers"
+          }
+        },
+        "required": [
+          "providers"
+        ]
+      },
+      "AsrProviderInfo": {
+        "type": "object",
+        "properties": {
+          "apiType": {
+            "type": "string",
+            "description": "Provider API type"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable provider name"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable language name"
+                }
+              },
+              "required": [
+                "code",
+                "displayName"
+              ]
+            },
+            "description": "Languages supported by this provider"
+          },
+          "supportsCustomVocabulary": {
+            "type": "boolean",
+            "description": "Whether custom vocabulary/phrases are supported"
+          },
+          "supportsStreaming": {
+            "type": "boolean",
+            "description": "Whether streaming transcription is supported"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional information"
+          }
+        },
+        "required": [
+          "apiType",
+          "displayName",
+          "languages",
+          "supportsCustomVocabulary",
+          "supportsStreaming"
+        ]
+      },
+      "TtsProviderInfo": {
+        "type": "object",
+        "properties": {
+          "apiType": {
+            "type": "string",
+            "description": "Provider API type"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable provider name"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Model identifier"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable display name"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of the model's capabilities and use cases"
+                },
+                "recommended": {
+                  "type": "boolean",
+                  "description": "Whether this is a recommended or default model"
+                }
+              },
+              "required": [
+                "id",
+                "displayName"
+              ]
+            },
+            "description": "Models available for this provider"
+          },
+          "voices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Voice identifier"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable name"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of voice characteristics"
+                },
+                "gender": {
+                  "type": "string",
+                  "enum": [
+                    "male",
+                    "female",
+                    "neutral"
+                  ],
+                  "description": "Gender of the voice (if applicable)"
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Languages supported by this voice"
+                }
+              },
+              "required": [
+                "id",
+                "displayName"
+              ]
+            },
+            "description": "Voices available (can be provider-specific or model-specific)"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable language name"
+                }
+              },
+              "required": [
+                "code",
+                "displayName"
+              ]
+            },
+            "description": "Languages supported"
+          },
+          "supportsFullStreaming": {
+            "type": "boolean",
+            "description": "Whether full streaming (chunk-by-chunk) is supported"
+          },
+          "supportsVoiceSettings": {
+            "type": "boolean",
+            "description": "Whether voice customization settings are supported"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional information"
+          }
+        },
+        "required": [
+          "apiType",
+          "displayName",
+          "models",
+          "voices",
+          "languages",
+          "supportsFullStreaming",
+          "supportsVoiceSettings"
+        ]
+      },
+      "LlmProviderInfo": {
+        "type": "object",
+        "properties": {
+          "apiType": {
+            "type": "string",
+            "description": "Provider API type"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable provider name"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Model identifier"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable display name"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of the model's capabilities and use cases"
+                },
+                "recommended": {
+                  "type": "boolean",
+                  "description": "Whether this is a recommended or default model"
+                }
+              },
+              "required": [
+                "id",
+                "displayName"
+              ]
+            },
+            "description": "Models available for this provider"
+          },
+          "supportsToolCalling": {
+            "type": "boolean",
+            "description": "Whether tool calling (function calling) is supported"
+          },
+          "supportsJsonOutput": {
+            "type": "boolean",
+            "description": "Whether structured JSON output is supported"
+          },
+          "supportsStreaming": {
+            "type": "boolean",
+            "description": "Whether streaming responses are supported"
+          },
+          "supportsVision": {
+            "type": "boolean",
+            "description": "Whether vision/image input is supported"
+          },
+          "contextWindows": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Context window size (in tokens) for each model"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional information"
+          }
+        },
+        "required": [
+          "apiType",
+          "displayName",
+          "models",
+          "supportsToolCalling",
+          "supportsJsonOutput",
+          "supportsStreaming",
+          "supportsVision"
+        ]
+      },
       "AuditLogResponse": {
         "type": "object",
         "properties": {
@@ -22843,6 +23669,956 @@
         "responses": {
           "200": {
             "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Provider not found"
+          }
+        }
+      }
+    },
+    "/api/provider-catalog": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get complete provider catalog",
+        "description": "Returns information about all available ASR, TTS, and LLM providers including their models, capabilities, and supported features",
+        "responses": {
+          "200": {
+            "description": "Complete provider catalog with all provider types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asr": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "languages": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable language name"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Languages supported by this provider"
+                          },
+                          "supportsCustomVocabulary": {
+                            "type": "boolean",
+                            "description": "Whether custom vocabulary/phrases are supported"
+                          },
+                          "supportsStreaming": {
+                            "type": "boolean",
+                            "description": "Whether streaming transcription is supported"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "languages",
+                          "supportsCustomVocabulary",
+                          "supportsStreaming"
+                        ]
+                      },
+                      "description": "ASR providers"
+                    },
+                    "tts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Model identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable display name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of the model's capabilities and use cases"
+                                },
+                                "recommended": {
+                                  "type": "boolean",
+                                  "description": "Whether this is a recommended or default model"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Models available for this provider"
+                          },
+                          "voices": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Voice identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of voice characteristics"
+                                },
+                                "gender": {
+                                  "type": "string",
+                                  "enum": [
+                                    "male",
+                                    "female",
+                                    "neutral"
+                                  ],
+                                  "description": "Gender of the voice (if applicable)"
+                                },
+                                "languages": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "Languages supported by this voice"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Voices available (can be provider-specific or model-specific)"
+                          },
+                          "languages": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable language name"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Languages supported"
+                          },
+                          "supportsFullStreaming": {
+                            "type": "boolean",
+                            "description": "Whether full streaming (chunk-by-chunk) is supported"
+                          },
+                          "supportsVoiceSettings": {
+                            "type": "boolean",
+                            "description": "Whether voice customization settings are supported"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "models",
+                          "voices",
+                          "languages",
+                          "supportsFullStreaming",
+                          "supportsVoiceSettings"
+                        ]
+                      },
+                      "description": "TTS providers"
+                    },
+                    "llm": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Model identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable display name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of the model's capabilities and use cases"
+                                },
+                                "recommended": {
+                                  "type": "boolean",
+                                  "description": "Whether this is a recommended or default model"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Models available for this provider"
+                          },
+                          "supportsToolCalling": {
+                            "type": "boolean",
+                            "description": "Whether tool calling (function calling) is supported"
+                          },
+                          "supportsJsonOutput": {
+                            "type": "boolean",
+                            "description": "Whether structured JSON output is supported"
+                          },
+                          "supportsStreaming": {
+                            "type": "boolean",
+                            "description": "Whether streaming responses are supported"
+                          },
+                          "supportsVision": {
+                            "type": "boolean",
+                            "description": "Whether vision/image input is supported"
+                          },
+                          "contextWindows": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            },
+                            "description": "Context window size (in tokens) for each model"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "models",
+                          "supportsToolCalling",
+                          "supportsJsonOutput",
+                          "supportsStreaming",
+                          "supportsVision"
+                        ]
+                      },
+                      "description": "LLM providers"
+                    }
+                  },
+                  "required": [
+                    "asr",
+                    "tts",
+                    "llm"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provider-catalog/asr": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get ASR providers",
+        "description": "Returns information about all available ASR (Automatic Speech Recognition) providers including supported languages and capabilities",
+        "responses": {
+          "200": {
+            "description": "List of ASR providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "languages": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable language name"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Languages supported by this provider"
+                          },
+                          "supportsCustomVocabulary": {
+                            "type": "boolean",
+                            "description": "Whether custom vocabulary/phrases are supported"
+                          },
+                          "supportsStreaming": {
+                            "type": "boolean",
+                            "description": "Whether streaming transcription is supported"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "languages",
+                          "supportsCustomVocabulary",
+                          "supportsStreaming"
+                        ]
+                      },
+                      "description": "List of ASR providers"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provider-catalog/tts": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get TTS providers",
+        "description": "Returns information about all available TTS (Text-to-Speech) providers including models, voices, and supported languages",
+        "responses": {
+          "200": {
+            "description": "List of TTS providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Model identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable display name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of the model's capabilities and use cases"
+                                },
+                                "recommended": {
+                                  "type": "boolean",
+                                  "description": "Whether this is a recommended or default model"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Models available for this provider"
+                          },
+                          "voices": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Voice identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of voice characteristics"
+                                },
+                                "gender": {
+                                  "type": "string",
+                                  "enum": [
+                                    "male",
+                                    "female",
+                                    "neutral"
+                                  ],
+                                  "description": "Gender of the voice (if applicable)"
+                                },
+                                "languages": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "Languages supported by this voice"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Voices available (can be provider-specific or model-specific)"
+                          },
+                          "languages": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable language name"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Languages supported"
+                          },
+                          "supportsFullStreaming": {
+                            "type": "boolean",
+                            "description": "Whether full streaming (chunk-by-chunk) is supported"
+                          },
+                          "supportsVoiceSettings": {
+                            "type": "boolean",
+                            "description": "Whether voice customization settings are supported"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "models",
+                          "voices",
+                          "languages",
+                          "supportsFullStreaming",
+                          "supportsVoiceSettings"
+                        ]
+                      },
+                      "description": "List of TTS providers"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provider-catalog/llm": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get LLM providers",
+        "description": "Returns information about all available LLM (Large Language Model) providers including models, capabilities like tool calling, JSON output, and context windows",
+        "responses": {
+          "200": {
+            "description": "List of LLM providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Model identifier"
+                                },
+                                "displayName": {
+                                  "type": "string",
+                                  "description": "Human-readable display name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of the model's capabilities and use cases"
+                                },
+                                "recommended": {
+                                  "type": "boolean",
+                                  "description": "Whether this is a recommended or default model"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ]
+                            },
+                            "description": "Models available for this provider"
+                          },
+                          "supportsToolCalling": {
+                            "type": "boolean",
+                            "description": "Whether tool calling (function calling) is supported"
+                          },
+                          "supportsJsonOutput": {
+                            "type": "boolean",
+                            "description": "Whether structured JSON output is supported"
+                          },
+                          "supportsStreaming": {
+                            "type": "boolean",
+                            "description": "Whether streaming responses are supported"
+                          },
+                          "supportsVision": {
+                            "type": "boolean",
+                            "description": "Whether vision/image input is supported"
+                          },
+                          "contextWindows": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            },
+                            "description": "Context window size (in tokens) for each model"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName",
+                          "models",
+                          "supportsToolCalling",
+                          "supportsJsonOutput",
+                          "supportsStreaming",
+                          "supportsVision"
+                        ]
+                      },
+                      "description": "List of LLM providers"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provider-catalog/{type}/{apiType}": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get specific provider information",
+        "description": "Returns detailed information about a specific provider by type and API type",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asr",
+                "tts",
+                "llm"
+              ],
+              "description": "Provider type (asr, tts, or llm)"
+            },
+            "required": true,
+            "description": "Provider type (asr, tts, or llm)",
+            "name": "type",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic)"
+            },
+            "required": true,
+            "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic)",
+            "name": "apiType",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Specific provider information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiType": {
+                          "type": "string",
+                          "description": "Provider API type"
+                        },
+                        "displayName": {
+                          "type": "string",
+                          "description": "Human-readable provider name"
+                        },
+                        "languages": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                                "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                              },
+                              "displayName": {
+                                "type": "string",
+                                "description": "Human-readable language name"
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "displayName"
+                            ]
+                          },
+                          "description": "Languages supported by this provider"
+                        },
+                        "supportsCustomVocabulary": {
+                          "type": "boolean",
+                          "description": "Whether custom vocabulary/phrases are supported"
+                        },
+                        "supportsStreaming": {
+                          "type": "boolean",
+                          "description": "Whether streaming transcription is supported"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Additional information"
+                        }
+                      },
+                      "required": [
+                        "apiType",
+                        "displayName",
+                        "languages",
+                        "supportsCustomVocabulary",
+                        "supportsStreaming"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiType": {
+                          "type": "string",
+                          "description": "Provider API type"
+                        },
+                        "displayName": {
+                          "type": "string",
+                          "description": "Human-readable provider name"
+                        },
+                        "models": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Model identifier"
+                              },
+                              "displayName": {
+                                "type": "string",
+                                "description": "Human-readable display name"
+                              },
+                              "description": {
+                                "type": "string",
+                                "description": "Description of the model's capabilities and use cases"
+                              },
+                              "recommended": {
+                                "type": "boolean",
+                                "description": "Whether this is a recommended or default model"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "displayName"
+                            ]
+                          },
+                          "description": "Models available for this provider"
+                        },
+                        "voices": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Voice identifier"
+                              },
+                              "displayName": {
+                                "type": "string",
+                                "description": "Human-readable name"
+                              },
+                              "description": {
+                                "type": "string",
+                                "description": "Description of voice characteristics"
+                              },
+                              "gender": {
+                                "type": "string",
+                                "enum": [
+                                  "male",
+                                  "female",
+                                  "neutral"
+                                ],
+                                "description": "Gender of the voice (if applicable)"
+                              },
+                              "languages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Languages supported by this voice"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "displayName"
+                            ]
+                          },
+                          "description": "Voices available (can be provider-specific or model-specific)"
+                        },
+                        "languages": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                                "description": "ISO language code (e.g., 'en-US', 'es-ES')"
+                              },
+                              "displayName": {
+                                "type": "string",
+                                "description": "Human-readable language name"
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "displayName"
+                            ]
+                          },
+                          "description": "Languages supported"
+                        },
+                        "supportsFullStreaming": {
+                          "type": "boolean",
+                          "description": "Whether full streaming (chunk-by-chunk) is supported"
+                        },
+                        "supportsVoiceSettings": {
+                          "type": "boolean",
+                          "description": "Whether voice customization settings are supported"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Additional information"
+                        }
+                      },
+                      "required": [
+                        "apiType",
+                        "displayName",
+                        "models",
+                        "voices",
+                        "languages",
+                        "supportsFullStreaming",
+                        "supportsVoiceSettings"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiType": {
+                          "type": "string",
+                          "description": "Provider API type"
+                        },
+                        "displayName": {
+                          "type": "string",
+                          "description": "Human-readable provider name"
+                        },
+                        "models": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Model identifier"
+                              },
+                              "displayName": {
+                                "type": "string",
+                                "description": "Human-readable display name"
+                              },
+                              "description": {
+                                "type": "string",
+                                "description": "Description of the model's capabilities and use cases"
+                              },
+                              "recommended": {
+                                "type": "boolean",
+                                "description": "Whether this is a recommended or default model"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "displayName"
+                            ]
+                          },
+                          "description": "Models available for this provider"
+                        },
+                        "supportsToolCalling": {
+                          "type": "boolean",
+                          "description": "Whether tool calling (function calling) is supported"
+                        },
+                        "supportsJsonOutput": {
+                          "type": "boolean",
+                          "description": "Whether structured JSON output is supported"
+                        },
+                        "supportsStreaming": {
+                          "type": "boolean",
+                          "description": "Whether streaming responses are supported"
+                        },
+                        "supportsVision": {
+                          "type": "boolean",
+                          "description": "Whether vision/image input is supported"
+                        },
+                        "contextWindows": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          },
+                          "description": "Context window size (in tokens) for each model"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Additional information"
+                        }
+                      },
+                      "required": [
+                        "apiType",
+                        "displayName",
+                        "models",
+                        "supportsToolCalling",
+                        "supportsJsonOutput",
+                        "supportsStreaming",
+                        "supportsVision"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "404": {
             "description": "Provider not found"

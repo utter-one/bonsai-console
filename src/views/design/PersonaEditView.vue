@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore, useProvidersStore } from '@/stores'
+import { usePersonasStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
 import type { PersonaResponse, NoSpeechMarker, VoiceConfig } from '@/types/api'
 
@@ -9,6 +9,7 @@ const route = useRoute()
 const router = useRouter()
 const personasStore = usePersonasStore()
 const providersStore = useProvidersStore()
+const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
@@ -46,10 +47,45 @@ const ttsProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'tts')
 )
 
+const selectedProvider = computed(() => 
+  providersStore.items.find(p => p.id === form.value.ttsProviderId)
+)
+
+const selectedProviderCatalogInfo = computed(() => {
+  if (!selectedProvider.value) return null
+  const info = providerCatalogStore.getProviderByApiType('tts', selectedProvider.value.apiType)
+  // Type guard to ensure we're dealing with TTS provider info
+  if (info && 'models' in info && 'voices' in info) {
+    return info
+  }
+  return null
+})
+
+const availableModels = computed(() => 
+  selectedProviderCatalogInfo.value?.models || []
+)
+
+const availableVoices = computed(() => 
+  selectedProviderCatalogInfo.value?.voices || []
+)
+
+// Watch for provider changes to fetch catalog data
+watch(() => form.value.ttsProviderId, async (newProviderId) => {
+  if (newProviderId && selectedProvider.value) {
+    // Fetch TTS provider catalog if not already loaded
+    if (!providerCatalogStore.catalog) {
+      await providerCatalogStore.fetchTtsProviders()
+    }
+  }
+})
+
 // Lifecycle
 onMounted(async () => {
   // Load providers for dropdown
   await providersStore.fetchAll()
+  
+  // Load complete provider catalog
+  await providerCatalogStore.fetchCatalog()
   
   if (isEditMode.value) {
     await loadPersona()
@@ -349,41 +385,75 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- Model -->
-          <div class="form-group">
+          <div v-if="form.ttsProviderId" class="form-group">
             <label class="form-label">
-              Model <span class="text-gray-500">(optional)</span>
+              Model <span class="required">*</span>
             </label>
+            <select
+              v-if="availableModels.length > 0"
+              v-model="form.voiceConfig.model"
+              class="form-select"
+              :disabled="isLoading"
+              required
+            >
+              <option value="">Select a model</option>
+              <option v-for="model in availableModels" :key="model.id" :value="model.id">
+                {{ model.displayName }}{{ model.recommended ? ' (recommended)' : '' }}
+              </option>
+            </select>
             <input
+              v-else
               v-model="form.voiceConfig.model"
               type="text"
               class="form-input-mono"
               placeholder="e.g., eleven_flash_v2_5, eleven_multilingual_v2"
               :disabled="isLoading"
+              required
             />
             <p class="form-help-text">
-              Model ID to use for speech synthesis
+              {{ availableModels.length > 0 
+                ? 'Select a model for speech synthesis'
+                : 'Model ID to use for speech synthesis' 
+              }}
             </p>
           </div>
 
           <!-- Voice ID -->
-          <div class="form-group">
+          <div v-if="form.ttsProviderId" class="form-group">
             <label class="form-label">
-              Voice ID <span class="text-gray-500">(optional)</span>
+              Voice ID <span class="required">*</span>
             </label>
+            <select
+              v-if="availableVoices.length > 0"
+              v-model="form.voiceConfig.voiceId"
+              class="form-select"
+              :disabled="isLoading"
+              required
+            >
+              <option value="">Select a voice</option>
+              <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+                {{ voice.displayName }}{{ voice.gender ? ` (${voice.gender})` : '' }}
+              </option>
+            </select>
             <input
+              v-else
               v-model="form.voiceConfig.voiceId"
               type="text"
               class="form-input-mono"
               placeholder="voice-identifier"
               :disabled="isLoading"
+              required
             />
             <p class="form-help-text">
-              Text-to-speech voice identifier
+              {{ availableVoices.length > 0 
+                ? 'Select a voice for speech synthesis'
+                : 'Text-to-speech voice identifier' 
+              }}
             </p>
           </div>
 
           <!-- Voice Settings Section -->
-          <div class="mt-8 pt-6 border-t border-gray-200">
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Settings</h3>
 
             <!-- Stability -->
@@ -464,7 +534,7 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- Boolean Settings Section -->
-          <div class="mt-8 pt-6 border-t border-gray-200">
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Settings</h3>
 
             <!-- Use Speaker Boost -->
@@ -499,7 +569,7 @@ function removeNoSpeechMarker(index: number) {
                 </span>
               </label>
               <p class="form-help-text mt-1">
-                Replace exclamation marks with periods
+                Replace exclamation marks with periods (can reduce overly excited speech)
               </p>
             </div>
 
@@ -517,7 +587,7 @@ function removeNoSpeechMarker(index: number) {
                 </span>
               </label>
               <p class="form-help-text mt-1">
-                Use global preview endpoint for geographic proximity optimization
+                Use global preview endpoint for geographic proximity optimization (can reduce latency)
               </p>
             </div>
 
@@ -535,7 +605,7 @@ function removeNoSpeechMarker(index: number) {
                 </span>
               </label>
               <p class="form-help-text mt-1">
-                Enable sentence splitter for text processing (defaults to true)
+                Send only full sentences to TTS (can introduce small latency)
               </p>
             </div>
 
@@ -558,7 +628,7 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- No Speech Markers Section -->
-          <div class="mt-8 pt-6 border-t border-gray-200">
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-gray-900">No Speech Markers</h3>
               <button

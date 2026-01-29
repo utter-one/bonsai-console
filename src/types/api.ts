@@ -721,3 +721,62 @@ export interface AuditLogResponse {
 }
 
 export type AuditLogListResponse = PaginatedResponse<AuditLogResponse>
+
+// Provider Catalog
+export interface ProviderCatalogLanguage {
+  code: string
+  displayName: string
+}
+
+export interface ProviderCatalogModel {
+  id: string
+  displayName: string
+  description?: string
+  recommended?: boolean
+}
+
+export interface ProviderCatalogVoice {
+  id: string
+  displayName: string
+  description?: string
+  gender?: 'male' | 'female' | 'neutral'
+  languages?: string[]
+}
+
+export interface AsrProviderInfo {
+  apiType: string
+  displayName: string
+  languages: ProviderCatalogLanguage[]
+  supportsCustomVocabulary: boolean
+  supportsStreaming: boolean
+  description?: string
+}
+
+export interface TtsProviderInfo {
+  apiType: string
+  displayName: string
+  models: ProviderCatalogModel[]
+  voices: ProviderCatalogVoice[]
+  languages: ProviderCatalogLanguage[]
+  supportsFullStreaming: boolean
+  supportsVoiceSettings: boolean
+  description?: string
+}
+
+export interface LlmProviderInfo {
+  apiType: string
+  displayName: string
+  models: ProviderCatalogModel[]
+  supportsToolCalling: boolean
+  supportsJsonOutput: boolean
+  supportsStreaming: boolean
+  supportsVision: boolean
+  contextWindows?: Record<string, number>
+  description?: string
+}
+
+export interface ProviderCatalogResponse {
+  asr: AsrProviderInfo[]
+  tts: TtsProviderInfo[]
+  llm: LlmProviderInfo[]
+}
