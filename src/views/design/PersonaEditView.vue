@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore } from '@/stores'
-import { ArrowLeft, Save } from 'lucide-vue-next'
-import type { PersonaResponse } from '@/types/api'
-import DesignSectionLayout from '@/layouts/DesignSectionLayout.vue'
+import { usePersonasStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
+import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
+import type { PersonaResponse, NoSpeechMarker, VoiceConfig } from '@/types/api'
 
 const route = useRoute()
 const router = useRouter()
 const personasStore = usePersonasStore()
+const providersStore = useProvidersStore()
+const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
@@ -18,7 +19,21 @@ const form = ref({
   id: '',
   name: '',
   prompt: '',
-  voiceProviderId: '',
+  ttsProviderId: '',
+  voiceConfig: {
+    model: '',
+    voiceId: '',
+    noSpeechMarkers: [] as NoSpeechMarker[],
+    removeExclamationMarks: false,
+    stability: 0.5,
+    similarityBoost: 0.75,
+    style: 0,
+    useSpeakerBoost: true,
+    speed: 1.0,
+    useGlobalPreview: false,
+    inactivityTimeout: 180,
+    useSentenceSplitter: true
+  },
   metadata: {}
 })
 
@@ -28,8 +43,50 @@ const personaId = computed(() => route.params.personaId as string | undefined)
 const isEditMode = computed(() => !!personaId.value)
 const currentPersona = ref<PersonaResponse | null>(null)
 
+const ttsProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'tts')
+)
+
+const selectedProvider = computed(() => 
+  providersStore.items.find(p => p.id === form.value.ttsProviderId)
+)
+
+const selectedProviderCatalogInfo = computed(() => {
+  if (!selectedProvider.value) return null
+  const info = providerCatalogStore.getProviderByApiType('tts', selectedProvider.value.apiType)
+  // Type guard to ensure we're dealing with TTS provider info
+  if (info && 'models' in info && 'voices' in info) {
+    return info
+  }
+  return null
+})
+
+const availableModels = computed(() => 
+  selectedProviderCatalogInfo.value?.models || []
+)
+
+const availableVoices = computed(() => 
+  selectedProviderCatalogInfo.value?.voices || []
+)
+
+// Watch for provider changes to fetch catalog data
+watch(() => form.value.ttsProviderId, async (newProviderId) => {
+  if (newProviderId && selectedProvider.value) {
+    // Fetch TTS provider catalog if not already loaded
+    if (!providerCatalogStore.catalog) {
+      await providerCatalogStore.fetchTtsProviders()
+    }
+  }
+})
+
 // Lifecycle
 onMounted(async () => {
+  // Load providers for dropdown
+  await providersStore.fetchAll()
+  
+  // Load complete provider catalog
+  await providerCatalogStore.fetchCatalog()
+  
   if (isEditMode.value) {
     await loadPersona()
   }
@@ -49,7 +106,21 @@ async function loadPersona() {
         id: currentPersona.value.id,
         name: currentPersona.value.name,
         prompt: currentPersona.value.prompt,
-        voiceProviderId: currentPersona.value.voiceConfig?.voiceProviderId || '',
+        ttsProviderId: currentPersona.value.ttsProviderId || '',
+        voiceConfig: {
+          model: currentPersona.value.voiceConfig?.model || '',
+          voiceId: currentPersona.value.voiceConfig?.voiceId || '',
+          noSpeechMarkers: currentPersona.value.voiceConfig?.noSpeechMarkers || [],
+          removeExclamationMarks: currentPersona.value.voiceConfig?.removeExclamationMarks || false,
+          stability: currentPersona.value.voiceConfig?.stability ?? 0.5,
+          similarityBoost: currentPersona.value.voiceConfig?.similarityBoost ?? 0.75,
+          style: currentPersona.value.voiceConfig?.style ?? 0,
+          useSpeakerBoost: currentPersona.value.voiceConfig?.useSpeakerBoost ?? true,
+          speed: currentPersona.value.voiceConfig?.speed ?? 1.0,
+          useGlobalPreview: currentPersona.value.voiceConfig?.useGlobalPreview || false,
+          inactivityTimeout: currentPersona.value.voiceConfig?.inactivityTimeout ?? 180,
+          useSentenceSplitter: currentPersona.value.voiceConfig?.useSentenceSplitter ?? true
+        },
         metadata: currentPersona.value.metadata || {}
       }
     }
@@ -65,12 +136,35 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
+    // Build voice config only if some fields are filled
+    const hasVoiceConfig = form.value.ttsProviderId || 
+                          form.value.voiceConfig.model || 
+                          form.value.voiceConfig.voiceId ||
+                          form.value.voiceConfig.noSpeechMarkers.length > 0
+
+    const voiceConfig: VoiceConfig | undefined = hasVoiceConfig ? {
+      ...(form.value.voiceConfig.model && { model: form.value.voiceConfig.model }),
+      ...(form.value.voiceConfig.voiceId && { voiceId: form.value.voiceConfig.voiceId }),
+      ...(form.value.voiceConfig.noSpeechMarkers.length > 0 && { noSpeechMarkers: form.value.voiceConfig.noSpeechMarkers }),
+      removeExclamationMarks: form.value.voiceConfig.removeExclamationMarks,
+      stability: form.value.voiceConfig.stability,
+      similarityBoost: form.value.voiceConfig.similarityBoost,
+      style: form.value.voiceConfig.style,
+      useSpeakerBoost: form.value.voiceConfig.useSpeakerBoost,
+      speed: form.value.voiceConfig.speed,
+      useGlobalPreview: form.value.voiceConfig.useGlobalPreview,
+      inactivityTimeout: form.value.voiceConfig.inactivityTimeout,
+      useSentenceSplitter: form.value.voiceConfig.useSentenceSplitter
+    } : undefined
+
     if (isEditMode.value && currentPersona.value) {
       // Update existing persona
       await personasStore.update(currentPersona.value.id, {
         version: currentPersona.value.version,
         name: form.value.name,
         prompt: form.value.prompt,
+        ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
+        ...(voiceConfig && { voiceConfig }),
         metadata: form.value.metadata
       })
     } else {
@@ -87,9 +181,14 @@ async function handleSubmit() {
         createData.id = form.value.id
       }
 
-      // Only include voiceProviderId if it's not empty
-      if (form.value.voiceProviderId) {
-        createData.voiceProviderId = form.value.voiceProviderId
+      // Only include ttsProviderId if it's not empty
+      if (form.value.ttsProviderId) {
+        createData.ttsProviderId = form.value.ttsProviderId
+      }
+
+      // Only include voiceConfig if it has data
+      if (voiceConfig) {
+        createData.voiceConfig = voiceConfig
       }
 
       await personasStore.create(createData)
@@ -112,6 +211,15 @@ function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
 }
+
+function addNoSpeechMarker() {
+  form.value.voiceConfig.noSpeechMarkers.push({ start: '', end: '' })
+}
+
+function removeNoSpeechMarker(index: number) {
+  form.value.voiceConfig.noSpeechMarkers.splice(index, 1)
+}
+
 </script>
 
 <template>
@@ -256,20 +364,324 @@ function formatDate(date: string | null) {
 
         <!-- Voice Configuration Tab -->
         <div v-show="activeTab === 'voice'" class="tab-content">
+          <!-- TTS Provider -->
           <div class="form-group">
             <label class="form-label">
-              Voice Provider ID <span class="text-gray-500">(optional)</span>
+              TTS Provider <span class="text-gray-500">(optional)</span>
             </label>
+            <select
+              v-model="form.ttsProviderId"
+              class="form-select"
+              :disabled="isLoading"
+            >
+              <option value="">None</option>
+              <option v-for="provider in ttsProviders" :key="provider.id" :value="provider.id">
+                {{ provider.displayName }}
+              </option>
+            </select>
+            <p class="form-help-text">
+              Select a text-to-speech provider for this persona
+            </p>
+          </div>
+
+          <!-- Model -->
+          <div v-if="form.ttsProviderId" class="form-group">
+            <label class="form-label">
+              Model <span class="required">*</span>
+            </label>
+            <select
+              v-if="availableModels.length > 0"
+              v-model="form.voiceConfig.model"
+              class="form-select"
+              :disabled="isLoading"
+              required
+            >
+              <option value="">Select a model</option>
+              <option v-for="model in availableModels" :key="model.id" :value="model.id">
+                {{ model.displayName }}{{ model.recommended ? ' (recommended)' : '' }}
+              </option>
+            </select>
             <input
-              v-model="form.voiceProviderId"
+              v-else
+              v-model="form.voiceConfig.model"
               type="text"
               class="form-input-mono"
-              placeholder="voice-provider-id"
+              placeholder="e.g., eleven_flash_v2_5, eleven_multilingual_v2"
               :disabled="isLoading"
+              required
             />
             <p class="form-help-text">
-              Optional voice provider identifier for text-to-speech functionality
+              {{ availableModels.length > 0 
+                ? 'Select a model for speech synthesis'
+                : 'Model ID to use for speech synthesis' 
+              }}
             </p>
+          </div>
+
+          <!-- Voice ID -->
+          <div v-if="form.ttsProviderId" class="form-group">
+            <label class="form-label">
+              Voice ID <span class="required">*</span>
+            </label>
+            <select
+              v-if="availableVoices.length > 0"
+              v-model="form.voiceConfig.voiceId"
+              class="form-select"
+              :disabled="isLoading"
+              required
+            >
+              <option value="">Select a voice</option>
+              <option v-for="voice in availableVoices" :key="voice.id" :value="voice.id">
+                {{ voice.displayName }}{{ voice.gender ? ` (${voice.gender})` : '' }}
+              </option>
+            </select>
+            <input
+              v-else
+              v-model="form.voiceConfig.voiceId"
+              type="text"
+              class="form-input-mono"
+              placeholder="voice-identifier"
+              :disabled="isLoading"
+              required
+            />
+            <p class="form-help-text">
+              {{ availableVoices.length > 0 
+                ? 'Select a voice for speech synthesis'
+                : 'Text-to-speech voice identifier' 
+              }}
+            </p>
+          </div>
+
+          <!-- Voice Settings Section -->
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Settings</h3>
+
+            <!-- Stability -->
+            <div class="form-group">
+              <label class="form-label">
+                Stability: {{ form.voiceConfig.stability?.toFixed(2) }}
+              </label>
+              <input
+                v-model.number="form.voiceConfig.stability"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Voice stability (0.0-1.0), defaults to 0.5
+              </p>
+            </div>
+
+            <!-- Similarity Boost -->
+            <div class="form-group">
+              <label class="form-label">
+                Similarity Boost: {{ form.voiceConfig.similarityBoost?.toFixed(2) }}
+              </label>
+              <input
+                v-model.number="form.voiceConfig.similarityBoost"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Similarity boost (0.0-1.0), defaults to 0.75
+              </p>
+            </div>
+
+            <!-- Style -->
+            <div class="form-group">
+              <label class="form-label">
+                Style: {{ form.voiceConfig.style?.toFixed(2) }}
+              </label>
+              <input
+                v-model.number="form.voiceConfig.style"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Style setting for V2+ models (0.0-1.0), defaults to 0
+              </p>
+            </div>
+
+            <!-- Speed -->
+            <div class="form-group">
+              <label class="form-label">
+                Speed: {{ form.voiceConfig.speed?.toFixed(2) }}
+              </label>
+              <input
+                v-model.number="form.voiceConfig.speed"
+                type="range"
+                min="0.7"
+                max="1.2"
+                step="0.01"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Speech speed (0.7-1.2), defaults to 1.0
+              </p>
+            </div>
+          </div>
+
+          <!-- Boolean Settings Section -->
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Settings</h3>
+
+            <!-- Use Speaker Boost -->
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.voiceConfig.useSpeakerBoost"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Enable Speaker Boost
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Enable speaker boost for V2+ models (defaults to true)
+              </p>
+            </div>
+
+            <!-- Remove Exclamation Marks -->
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.voiceConfig.removeExclamationMarks"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Remove Exclamation Marks
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Replace exclamation marks with periods (can reduce overly excited speech)
+              </p>
+            </div>
+
+            <!-- Use Global Preview -->
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.voiceConfig.useGlobalPreview"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Use Global Preview
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Use global preview endpoint for geographic proximity optimization (can reduce latency)
+              </p>
+            </div>
+
+            <!-- Use Sentence Splitter -->
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.voiceConfig.useSentenceSplitter"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Use Sentence Splitter
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Send only full sentences to TTS (can introduce small latency)
+              </p>
+            </div>
+
+            <!-- Inactivity Timeout -->
+            <div class="form-group">
+              <label class="form-label">
+                Inactivity Timeout (seconds)
+              </label>
+              <input
+                v-model.number="form.voiceConfig.inactivityTimeout"
+                type="number"
+                min="1"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                WebSocket inactivity timeout in seconds (defaults to 180)
+              </p>
+            </div>
+          </div>
+
+          <!-- No Speech Markers Section -->
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">No Speech Markers</h3>
+              <button
+                @click="addNoSpeechMarker"
+                type="button"
+                class="btn-secondary text-sm"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Marker
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+              Define start and end markers to identify text sections that should not be spoken
+            </p>
+
+            <div v-if="form.voiceConfig.noSpeechMarkers.length === 0" class="text-center py-6 text-gray-500 text-sm">
+              No speech markers defined
+            </div>
+
+            <div
+              v-for="(marker, index) in form.voiceConfig.noSpeechMarkers"
+              :key="index"
+              class="flex gap-3 mb-3 items-start"
+            >
+              <div class="flex-1">
+                <input
+                  v-model="marker.start"
+                  type="text"
+                  placeholder="Start marker"
+                  class="form-input"
+                  :disabled="isLoading"
+                />
+              </div>
+              <div class="flex-1">
+                <input
+                  v-model="marker.end"
+                  type="text"
+                  placeholder="End marker"
+                  class="form-input"
+                  :disabled="isLoading"
+                />
+              </div>
+              <button
+                @click="removeNoSpeechMarker(index)"
+                type="button"
+                class="btn-icon text-red-600 hover:bg-red-50 mt-1"
+                title="Remove marker"
+                :disabled="isLoading"
+              >
+                <X class="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
