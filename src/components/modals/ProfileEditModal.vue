@@ -6,10 +6,10 @@
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">
-            Display Name <span class="required">*</span>
+            Name <span class="required">*</span>
           </label>
           <input
-            v-model="form.displayName"
+            v-model="form.name"
             type="text"
             required
             class="form-input"
@@ -97,7 +97,7 @@ onMounted(async () => {
     await authStore.fetchProfile()
     // Pre-populate form with current display name
     if (authStore.currentAdmin) {
-      form.value.displayName = authStore.currentAdmin.displayName
+      form.value.name = authStore.currentAdmin.name
     }
   } catch (err) {
     // Error is handled in the store
@@ -105,7 +105,7 @@ onMounted(async () => {
 })
 
 const form = ref({
-  displayName: '',
+  name: '',
   oldPassword: '',
   newPassword: '',
   confirmPassword: '',
@@ -137,7 +137,7 @@ const handleSubmit = async () => {
   }
 
   // Check if anything has changed
-  const hasDisplayNameChange = form.value.displayName !== authStore.currentAdmin?.displayName
+  const hasDisplayNameChange = form.value.name !== authStore.currentAdmin?.name
   const hasPasswordChange = form.value.oldPassword && form.value.newPassword
 
   if (!hasDisplayNameChange && !hasPasswordChange) {
@@ -146,10 +146,10 @@ const handleSubmit = async () => {
   }
 
   try {
-    const updateData: { displayName?: string; oldPassword?: string; newPassword?: string } = {}
+    const updateData: { name?: string; oldPassword?: string; newPassword?: string } = {}
     
     if (hasDisplayNameChange) {
-      updateData.displayName = form.value.displayName
+      updateData.name = form.value.name
     }
     
     if (hasPasswordChange) {

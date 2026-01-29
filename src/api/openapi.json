@@ -21,7 +21,7 @@
             "minLength": 1,
             "description": "Unique identifier for the admin user (auto-generated if not provided)"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Display name for the admin user"
@@ -56,7 +56,7 @@
         },
         "required": [
           "id",
-          "displayName",
+          "name",
           "roles",
           "password"
         ]
@@ -70,7 +70,7 @@
             "exclusiveMinimum": true,
             "description": "Current version number for optimistic locking (prevents concurrent updates)"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Updated display name for the admin user"
@@ -128,7 +128,7 @@
             "type": "string",
             "description": "Unique identifier for the admin user"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "description": "Display name of the admin user"
           },
@@ -165,7 +165,7 @@
         },
         "required": [
           "id",
-          "displayName",
+          "name",
           "roles",
           "version",
           "createdAt",
@@ -184,7 +184,7 @@
                   "type": "string",
                   "description": "Unique identifier for the admin user"
                 },
-                "displayName": {
+                "name": {
                   "type": "string",
                   "description": "Display name of the admin user"
                 },
@@ -221,7 +221,7 @@
               },
               "required": [
                 "id",
-                "displayName",
+                "name",
                 "roles",
                 "version",
                 "createdAt",
@@ -258,7 +258,7 @@
       "UpdateProfileRequest": {
         "type": "object",
         "properties": {
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Updated display name for the admin user"
@@ -282,7 +282,7 @@
             "type": "string",
             "description": "Unique identifier for the admin user"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "description": "Display name of the admin user"
           },
@@ -319,7 +319,7 @@
         },
         "required": [
           "id",
-          "displayName",
+          "name",
           "roles",
           "version",
           "createdAt",
@@ -777,6 +777,10 @@
             "minLength": 1,
             "description": "Display name of the persona"
           },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the persona purpose"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
@@ -889,6 +893,10 @@
             "type": "string",
             "minLength": 1,
             "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Updated detailed description of the persona"
           },
           "prompt": {
             "type": "string",
@@ -1026,6 +1034,11 @@
             "type": "string",
             "description": "Display name of the persona"
           },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the persona purpose"
+          },
           "prompt": {
             "type": "string",
             "description": "Prompt defining the persona's characteristics and behavior"
@@ -1147,6 +1160,7 @@
           "id",
           "projectId",
           "name",
+          "description",
           "prompt",
           "ttsProviderId",
           "metadata",
@@ -1174,6 +1188,11 @@
                 "name": {
                   "type": "string",
                   "description": "Display name of the persona"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Detailed description of the persona purpose"
                 },
                 "prompt": {
                   "type": "string",
@@ -1296,6 +1315,7 @@
                 "id",
                 "projectId",
                 "name",
+                "description",
                 "prompt",
                 "ttsProviderId",
                 "metadata",
@@ -1432,7 +1452,7 @@
             "minLength": 1,
             "description": "Unique identifier for the admin user (typically an email address)"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Display name for the admin user"
@@ -1452,7 +1472,7 @@
         },
         "required": [
           "id",
-          "displayName",
+          "name",
           "password"
         ]
       },
@@ -1483,7 +1503,7 @@
                 "type": "string",
                 "description": "Unique identifier for the admin user"
               },
-              "displayName": {
+              "name": {
                 "type": "string",
                 "description": "Display name of the admin user"
               },
@@ -1510,7 +1530,7 @@
             },
             "required": [
               "id",
-              "displayName",
+              "name",
               "roles",
               "createdAt"
             ],
@@ -2945,6 +2965,15 @@
             "minLength": 1,
             "description": "ID of the project this stage belongs to"
           },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the stage"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the stage purpose"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
@@ -3537,6 +3566,7 @@
         },
         "required": [
           "projectId",
+          "name",
           "prompt",
           "personaId"
         ]
@@ -3544,6 +3574,15 @@
       "UpdateStageRequest": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name for the stage"
+          },
+          "description": {
+            "type": "string",
+            "description": "Updated detailed description of the stage"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
@@ -4160,6 +4199,15 @@
             "type": "string",
             "description": "ID of the project this stage belongs to"
           },
+          "name": {
+            "type": "string",
+            "description": "Display name for the stage"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the stage purpose"
+          },
           "prompt": {
             "type": "string",
             "description": "System prompt defining the stage behavior"
@@ -4761,6 +4809,8 @@
         "required": [
           "id",
           "projectId",
+          "name",
+          "description",
           "prompt",
           "llmProviderId",
           "personaId",
@@ -4794,6 +4844,15 @@
                 "projectId": {
                   "type": "string",
                   "description": "ID of the project this stage belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Display name for the stage"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Detailed description of the stage purpose"
                 },
                 "prompt": {
                   "type": "string",
@@ -5396,6 +5455,8 @@
               "required": [
                 "id",
                 "projectId",
+                "name",
+                "description",
                 "prompt",
                 "llmProviderId",
                 "personaId",
@@ -10047,7 +10108,7 @@
             "minLength": 1,
             "description": "Unique identifier for the provider (auto-generated if not provided)"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Human-readable name for the provider"
@@ -10187,7 +10248,7 @@
           }
         },
         "required": [
-          "displayName",
+          "name",
           "providerType",
           "apiType",
           "config"
@@ -10202,7 +10263,7 @@
             "exclusiveMinimum": true,
             "description": "Current version number for optimistic locking (prevents concurrent updates)"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "description": "Updated human-readable name for the provider"
@@ -10362,7 +10423,7 @@
             "type": "string",
             "description": "Unique identifier for the provider"
           },
-          "displayName": {
+          "name": {
             "type": "string",
             "description": "Human-readable name of the provider"
           },
@@ -10521,7 +10582,7 @@
         },
         "required": [
           "id",
-          "displayName",
+          "name",
           "description",
           "providerType",
           "apiType",
@@ -10545,7 +10606,7 @@
                   "type": "string",
                   "description": "Unique identifier for the provider"
                 },
-                "displayName": {
+                "name": {
                   "type": "string",
                   "description": "Human-readable name of the provider"
                 },
@@ -10704,7 +10765,7 @@
               },
               "required": [
                 "id",
-                "displayName",
+                "name",
                 "description",
                 "providerType",
                 "apiType",
@@ -11922,7 +11983,7 @@
                     "minLength": 1,
                     "description": "Unique identifier for the admin user (auto-generated if not provided)"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Display name for the admin user"
@@ -11957,7 +12018,7 @@
                 },
                 "required": [
                   "id",
-                  "displayName",
+                  "name",
                   "roles",
                   "password"
                 ]
@@ -11977,7 +12038,7 @@
                       "type": "string",
                       "description": "Unique identifier for the admin user"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Display name of the admin user"
                     },
@@ -12014,7 +12075,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "roles",
                     "version",
                     "createdAt",
@@ -12239,7 +12300,7 @@
                             "type": "string",
                             "description": "Unique identifier for the admin user"
                           },
-                          "displayName": {
+                          "name": {
                             "type": "string",
                             "description": "Display name of the admin user"
                           },
@@ -12276,7 +12337,7 @@
                         },
                         "required": [
                           "id",
-                          "displayName",
+                          "name",
                           "roles",
                           "version",
                           "createdAt",
@@ -12351,7 +12412,7 @@
                       "type": "string",
                       "description": "Unique identifier for the admin user"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Display name of the admin user"
                     },
@@ -12388,7 +12449,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "roles",
                     "version",
                     "createdAt",
@@ -12434,7 +12495,7 @@
                     "exclusiveMinimum": true,
                     "description": "Current version number for optimistic locking (prevents concurrent updates)"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Updated display name for the admin user"
@@ -12486,7 +12547,7 @@
                       "type": "string",
                       "description": "Unique identifier for the admin user"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Display name of the admin user"
                     },
@@ -12523,7 +12584,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "roles",
                     "version",
                     "createdAt",
@@ -12648,7 +12709,7 @@
                       "type": "string",
                       "description": "Unique identifier for the admin user"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Display name of the admin user"
                     },
@@ -12685,7 +12746,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "roles",
                     "version",
                     "createdAt",
@@ -12712,7 +12773,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Updated display name for the admin user"
@@ -12744,7 +12805,7 @@
                       "type": "string",
                       "description": "Unique identifier for the admin user"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Display name of the admin user"
                     },
@@ -12781,7 +12842,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "roles",
                     "version",
                     "createdAt",
@@ -13000,7 +13061,7 @@
                     "minLength": 1,
                     "description": "Unique identifier for the admin user (typically an email address)"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Display name for the admin user"
@@ -13020,7 +13081,7 @@
                 },
                 "required": [
                   "id",
-                  "displayName",
+                  "name",
                   "password"
                 ]
               }
@@ -13042,7 +13103,7 @@
                           "type": "string",
                           "description": "Unique identifier for the admin user"
                         },
-                        "displayName": {
+                        "name": {
                           "type": "string",
                           "description": "Display name of the admin user"
                         },
@@ -13069,7 +13130,7 @@
                       },
                       "required": [
                         "id",
-                        "displayName",
+                        "name",
                         "roles",
                         "createdAt"
                       ],
@@ -21030,6 +21091,10 @@
                     "minLength": 1,
                     "description": "Display name of the persona"
                   },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed description of the persona purpose"
+                  },
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
@@ -21158,6 +21223,11 @@
                       "type": "string",
                       "description": "Display name of the persona"
                     },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the persona purpose"
+                    },
                     "prompt": {
                       "type": "string",
                       "description": "Prompt defining the persona's characteristics and behavior"
@@ -21279,6 +21349,7 @@
                     "id",
                     "projectId",
                     "name",
+                    "description",
                     "prompt",
                     "ttsProviderId",
                     "metadata",
@@ -21513,6 +21584,11 @@
                             "type": "string",
                             "description": "Display name of the persona"
                           },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Detailed description of the persona purpose"
+                          },
                           "prompt": {
                             "type": "string",
                             "description": "Prompt defining the persona's characteristics and behavior"
@@ -21634,6 +21710,7 @@
                           "id",
                           "projectId",
                           "name",
+                          "description",
                           "prompt",
                           "ttsProviderId",
                           "metadata",
@@ -21716,6 +21793,11 @@
                     "name": {
                       "type": "string",
                       "description": "Display name of the persona"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the persona purpose"
                     },
                     "prompt": {
                       "type": "string",
@@ -21838,6 +21920,7 @@
                     "id",
                     "projectId",
                     "name",
+                    "description",
                     "prompt",
                     "ttsProviderId",
                     "metadata",
@@ -21882,6 +21965,10 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Updated display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Updated detailed description of the persona"
                   },
                   "prompt": {
                     "type": "string",
@@ -22014,6 +22101,11 @@
                       "type": "string",
                       "description": "Display name of the persona"
                     },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the persona purpose"
+                    },
                     "prompt": {
                       "type": "string",
                       "description": "Prompt defining the persona's characteristics and behavior"
@@ -22135,6 +22227,7 @@
                     "id",
                     "projectId",
                     "name",
+                    "description",
                     "prompt",
                     "ttsProviderId",
                     "metadata",
@@ -22257,7 +22350,7 @@
                     "minLength": 1,
                     "description": "Unique identifier for the provider (auto-generated if not provided)"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Human-readable name for the provider"
@@ -22397,7 +22490,7 @@
                   }
                 },
                 "required": [
-                  "displayName",
+                  "name",
                   "providerType",
                   "apiType",
                   "config"
@@ -22418,7 +22511,7 @@
                       "type": "string",
                       "description": "Unique identifier for the provider"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Human-readable name of the provider"
                     },
@@ -22577,7 +22670,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "description",
                     "providerType",
                     "apiType",
@@ -22807,7 +22900,7 @@
                             "type": "string",
                             "description": "Unique identifier for the provider"
                           },
-                          "displayName": {
+                          "name": {
                             "type": "string",
                             "description": "Human-readable name of the provider"
                           },
@@ -22966,7 +23059,7 @@
                         },
                         "required": [
                           "id",
-                          "displayName",
+                          "name",
                           "description",
                           "providerType",
                           "apiType",
@@ -23045,7 +23138,7 @@
                       "type": "string",
                       "description": "Unique identifier for the provider"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Human-readable name of the provider"
                     },
@@ -23204,7 +23297,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "description",
                     "providerType",
                     "apiType",
@@ -23254,7 +23347,7 @@
                     "exclusiveMinimum": true,
                     "description": "Current version number for optimistic locking (prevents concurrent updates)"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "description": "Updated human-readable name for the provider"
@@ -23408,7 +23501,7 @@
                       "type": "string",
                       "description": "Unique identifier for the provider"
                     },
-                    "displayName": {
+                    "name": {
                       "type": "string",
                       "description": "Human-readable name of the provider"
                     },
@@ -23567,7 +23660,7 @@
                   },
                   "required": [
                     "id",
-                    "displayName",
+                    "name",
                     "description",
                     "providerType",
                     "apiType",
@@ -28778,6 +28871,15 @@
                     "minLength": 1,
                     "description": "ID of the project this stage belongs to"
                   },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name for the stage"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed description of the stage purpose"
+                  },
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
@@ -29370,6 +29472,7 @@
                 },
                 "required": [
                   "projectId",
+                  "name",
                   "prompt",
                   "personaId"
                 ]
@@ -29392,6 +29495,15 @@
                     "projectId": {
                       "type": "string",
                       "description": "ID of the project this stage belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name for the stage"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the stage purpose"
                     },
                     "prompt": {
                       "type": "string",
@@ -29994,6 +30106,8 @@
                   "required": [
                     "id",
                     "projectId",
+                    "name",
+                    "description",
                     "prompt",
                     "llmProviderId",
                     "personaId",
@@ -30233,6 +30347,15 @@
                           "projectId": {
                             "type": "string",
                             "description": "ID of the project this stage belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name for the stage"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Detailed description of the stage purpose"
                           },
                           "prompt": {
                             "type": "string",
@@ -30835,6 +30958,8 @@
                         "required": [
                           "id",
                           "projectId",
+                          "name",
+                          "description",
                           "prompt",
                           "llmProviderId",
                           "personaId",
@@ -30924,6 +31049,15 @@
                     "projectId": {
                       "type": "string",
                       "description": "ID of the project this stage belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name for the stage"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the stage purpose"
                     },
                     "prompt": {
                       "type": "string",
@@ -31526,6 +31660,8 @@
                   "required": [
                     "id",
                     "projectId",
+                    "name",
+                    "description",
                     "prompt",
                     "llmProviderId",
                     "personaId",
@@ -31577,6 +31713,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name for the stage"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Updated detailed description of the stage"
+                  },
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
@@ -32188,6 +32333,15 @@
                       "type": "string",
                       "description": "ID of the project this stage belongs to"
                     },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name for the stage"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the stage purpose"
+                    },
                     "prompt": {
                       "type": "string",
                       "description": "System prompt defining the stage behavior"
@@ -32789,6 +32943,8 @@
                   "required": [
                     "id",
                     "projectId",
+                    "name",
+                    "description",
                     "prompt",
                     "llmProviderId",
                     "personaId",

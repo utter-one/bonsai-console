@@ -26,7 +26,7 @@ export interface LoginResponse {
   refreshToken: string
   expiresIn: number
   adminId: string
-  displayName: string
+  name: string
   roles: string[]
 }
 
@@ -42,7 +42,7 @@ export interface RefreshTokenResponse {
 // Profile
 export interface ProfileResponse {
   id: string
-  displayName: string
+  name: string
   roles: string[]
   metadata?: Record<string, any>
   version: number
@@ -51,7 +51,7 @@ export interface ProfileResponse {
 }
 
 export interface UpdateProfileRequest {
-  displayName?: string
+  name?: string
   oldPassword?: string
   newPassword?: string
 }
@@ -64,7 +64,7 @@ export interface SetupStatusResponse {
 
 export interface InitialAdminSetupRequest {
   id: string
-  displayName: string
+  name: string
   password: string
   metadata?: Record<string, any>
 }
@@ -72,7 +72,7 @@ export interface InitialAdminSetupRequest {
 export interface InitialAdminSetupResponse {
   admin: {
     id: string
-    displayName: string
+    name: string
     roles: string[]
     metadata?: Record<string, any>
     createdAt: string | null
@@ -85,7 +85,7 @@ export interface InitialAdminSetupResponse {
 // Admin
 export interface AdminResponse {
   id: string
-  displayName: string
+  name: string
   roles: string[]
   metadata?: Record<string, any>
   version: number
@@ -95,7 +95,7 @@ export interface AdminResponse {
 
 export interface CreateAdminRequest {
   id: string
-  displayName: string
+  name: string
   roles: string[]
   password: string
   metadata?: Record<string, any>
@@ -103,7 +103,7 @@ export interface CreateAdminRequest {
 
 export interface UpdateAdminRequest {
   version: number
-  displayName?: string
+  name?: string
   roles?: string[]
   password?: string
   metadata?: Record<string, any>
@@ -202,6 +202,7 @@ export interface PersonaResponse {
   id: string
   projectId: string
   name: string
+  description: string | null
   prompt: string
   ttsProviderId?: string | null
   voiceConfig?: VoiceConfig | null
@@ -215,6 +216,7 @@ export interface CreatePersonaRequest {
   id?: string
   projectId: string
   name: string
+  description?: string
   prompt: string
   ttsProviderId?: string
   voiceConfig?: VoiceConfig
@@ -223,6 +225,7 @@ export interface CreatePersonaRequest {
 
 export interface UpdatePersonaRequest {
   name?: string
+  description?: string
   prompt?: string
   ttsProviderId?: string
   voiceConfig?: VoiceConfig
@@ -236,6 +239,8 @@ export type PersonaListResponse = PaginatedResponse<PersonaResponse>
 export interface StageResponse {
   id: string
   projectId: string
+  name: string
+  description: string | null
   prompt: string
   llmProviderId: string | null
   personaId: string
@@ -257,6 +262,8 @@ export interface StageResponse {
 export interface CreateStageRequest {
   id?: string
   projectId: string
+  name: string
+  description?: string
   prompt: string
   llmProviderId?: string | null
   personaId: string
@@ -273,6 +280,8 @@ export interface CreateStageRequest {
 }
 
 export interface UpdateStageRequest {
+  name?: string
+  description?: string
   prompt?: string
   llmProviderId?: string | null
   personaId?: string
@@ -640,7 +649,7 @@ export type ProviderConfig = OpenAIConfig | AnthropicConfig | GoogleConfig | Ele
 // Provider
 export interface ProviderResponse {
   id: string
-  displayName: string
+  name: string
   description: string | null
   providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType: string
@@ -654,7 +663,7 @@ export interface ProviderResponse {
 
 export interface CreateProviderRequest {
   id?: string
-  displayName: string
+  name: string
   description?: string
   providerType: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType: string
@@ -664,7 +673,7 @@ export interface CreateProviderRequest {
 }
 
 export interface UpdateProviderRequest {
-  displayName?: string
+  name?: string
   description?: string
   providerType?: 'asr' | 'tts' | 'llm' | 'embeddings'
   apiType?: string

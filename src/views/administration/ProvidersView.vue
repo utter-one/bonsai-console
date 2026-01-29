@@ -29,7 +29,7 @@ const filteredProviders = computed(() => {
   const query = debouncedSearchQuery.value.toLowerCase()
   return providersStore.items.filter(provider => 
     provider.id.toLowerCase().includes(query) ||
-    provider.displayName.toLowerCase().includes(query) ||
+    provider.name.toLowerCase().includes(query) ||
     provider.description?.toLowerCase().includes(query) ||
     provider.apiType.toLowerCase().includes(query) ||
     provider.providerType.toLowerCase().includes(query)
@@ -61,7 +61,7 @@ async function loadProviders() {
 }
 
 async function deleteProvider(provider: ProviderResponse) {
-  if (!confirm(`Delete provider "${provider.displayName}" (${provider.id})?\n\nThis action cannot be undone.`)) return
+  if (!confirm(`Delete provider "${provider.name}" (${provider.id})?\n\nThis action cannot be undone.`)) return
 
   try {
     await providersStore.remove(provider.id, provider.version)
@@ -154,7 +154,7 @@ function getProviderTypeBadgeClass(type: string) {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">Display Name</th>
+                <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">ID</th>
                 <th class="table-header-cell">Type</th>
                 <th class="table-header-cell">API Type</th>
@@ -167,7 +167,7 @@ function getProviderTypeBadgeClass(type: string) {
               <tr v-for="provider in filteredProviders" :key="provider.id" class="table-row">
                 <td class="table-clickable-cell"
                   @click="editProvider(provider)">
-                    {{ provider.displayName }}
+                    {{ provider.name }}
                 </td>
                 <td class="table-cell-mono">{{ provider.id }}</td>
                 <td class="table-cell">

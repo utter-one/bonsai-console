@@ -30,6 +30,7 @@ const filteredStages = computed(() => {
   if (!debouncedSearchQuery.value) return stagesStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
   return stagesStore.items.filter(stage => 
+    stage.name.toLowerCase().includes(query) ||
     stage.prompt.toLowerCase().includes(query) ||
     stage.id.toLowerCase().includes(query)
   )
@@ -79,7 +80,7 @@ function editStage(stage: StageResponse) {
 }
 
 async function deleteStage(stage: StageResponse) {
-  if (!confirm(`Delete stage "${stage.id}"?\n\nThis action cannot be undone.`)) return
+  if (!confirm(`Delete stage "${stage.name}" (${stage.id})?\n\nThis action cannot be undone.`)) return
 
   try {
     await stagesStore.remove(stage.id, stage.version)
@@ -162,7 +163,7 @@ function clearSearch() {
               <tr v-for="stage in filteredStages" :key="stage.id" class="table-row">
                 <td class="table-clickable-cell"
                   @click="editStage(stage)">
-                  {{ stage.id }}
+                  {{ stage.name }}
                 </td>
                 <td class="table-cell">
                   <span class="badge-secondary">{{ stage.enterBehavior }}</span>

@@ -18,7 +18,7 @@ const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'roles' | 'metadata'>('basic')
 const form = ref({
   id: '',
-  displayName: '',
+  name: '',
   roles: [] as string[],
   password: '',
   metadata: {}
@@ -52,7 +52,7 @@ async function loadAdmin() {
     if (currentAdmin.value) {
       form.value = {
         id: currentAdmin.value.id,
-        displayName: currentAdmin.value.displayName,
+        name: currentAdmin.value.name,
         roles: [...currentAdmin.value.roles],
         password: '',
         metadata: currentAdmin.value.metadata || {}
@@ -74,7 +74,7 @@ async function handleSubmit() {
       // Update existing admin
       const updateData: any = {
         version: currentAdmin.value.version,
-        displayName: form.value.displayName,
+        name: form.value.name,
         roles: form.value.roles,
         metadata: form.value.metadata
       }
@@ -112,7 +112,7 @@ async function handleSubmit() {
 
       await adminsStore.create({
         id: form.value.id,
-        displayName: form.value.displayName,
+        name: form.value.name,
         roles: form.value.roles,
         password: form.value.password,
         metadata: form.value.metadata
@@ -264,10 +264,10 @@ const metadataFields = computed(() => {
 
           <div class="form-group">
             <label class="form-label">
-              Display Name <span class="required">*</span>
+              Name <span class="required">*</span>
             </label>
             <input
-              v-model="form.displayName"
+              v-model="form.name"
               type="text"
               required
               placeholder="John Doe"

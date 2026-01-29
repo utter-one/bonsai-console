@@ -20,6 +20,8 @@ const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'metadata'>('basic')
 const form = ref({
   id: '',
+  name: '',
+  description: '',
   personaId: '',
   prompt: '',
   llmProviderId: '',
@@ -84,6 +86,8 @@ async function loadStage() {
     if (currentStage.value) {
       form.value = {
         id: currentStage.value.id,
+        name: currentStage.value.name,
+        description: currentStage.value.description || '',
         personaId: currentStage.value.personaId,
         prompt: currentStage.value.prompt,
         llmProviderId: currentStage.value.llmProviderId || '',
@@ -115,9 +119,11 @@ async function handleSubmit() {
       // Update existing stage
       await stagesStore.update(currentStage.value.id, {
         version: currentStage.value.version,
+        name: form.value.name,
+        description: form.value.description || undefined,
         personaId: form.value.personaId,
         prompt: form.value.prompt,
-        ...(form.value.llmProviderId && { llmProviderId: form.value.llmProviderId }),
+        llmProviderId: form.value.llmProviderId,
         enterBehavior: form.value.enterBehavior,
         useKnowledge: form.value.useKnowledge,
         knowledgeSections: form.value.knowledgeSections,
@@ -133,8 +139,10 @@ async function handleSubmit() {
       // Create new stage
       const createData: any = {
         projectId: projectId.value,
+        name: form.value.name,
         personaId: form.value.personaId,
         prompt: form.value.prompt,
+        llmProviderId: form.value.llmProviderId,
         enterBehavior: form.value.enterBehavior,
         useKnowledge: form.value.useKnowledge,
         knowledgeSections: form.value.knowledgeSections,
@@ -152,9 +160,9 @@ async function handleSubmit() {
         createData.id = form.value.id
       }
 
-      // Only include llmProviderId if it's not empty
-      if (form.value.llmProviderId) {
-        createData.llmProviderId = form.value.llmProviderId
+      // Only include description if it's not empty
+      if (form.value.description) {
+        createData.description = form.value.description
       }
 
       await stagesStore.create(createData)
@@ -273,17 +281,34 @@ const metadataFields = computed(() => {
           <div v-show="activeTab === 'basic'" class="tab-content">
             <div class="form-group">
               <label class="form-label">
-                Stage ID <span class="text-gray-500">(optional)</span>
+                Name <span class="required">*</span>
               </label>
               <input
-                v-model="form.id"
+                v-model="form.name"
                 type="text"
-                placeholder="my-stage-id"
-                class="form-input-mono"
-                :disabled="isEditMode || isLoading"
+                required
+                placeholder="Greeting Stage"
+                class="form-input"
+                :disabled="isLoading"
               />
               <p class="form-help-text">
-                Custom identifier for this stage. Leave empty to auto-generate.
+                Human-readable name for this stage
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Description <span class="text-gray-500">(optional)</span>
+              </label>
+              <textarea
+                v-model="form.description"
+                rows="3"
+                class="form-textarea"
+                placeholder="Brief description of this stage's purpose..."
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                Optional description of what this stage does
               </p>
             </div>
 
@@ -309,26 +334,7 @@ const metadataFields = computed(() => {
 
             <div class="form-group">
               <label class="form-label">
-                LLM Provider <span class="text-gray-500">(optional)</span>
-              </label>
-              <select
-                v-model="form.llmProviderId"
-                class="form-select"
-                :disabled="isLoading"
-              >
-                <option value="">None (use default)</option>
-                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                  {{ provider.displayName }}
-                </option>
-              </select>
-              <p class="form-help-text">
-                Override the default LLM provider for this stage
-              </p>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                Enter Behavior <span class="required">*</span>
+                Default Enter Behavior <span class="required">*</span>
               </label>
               <select
                 v-model="form.enterBehavior"
@@ -347,6 +353,26 @@ const metadataFields = computed(() => {
 
           <!-- Prompt Configuration Tab -->
           <div v-show="activeTab === 'prompt'" class="tab-content">
+            <div class="form-group">
+              <label class="form-label">
+                LLM Provider <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.llmProviderId"
+                required
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="">Select an LLM provider</option>
+                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }}
+                </option>
+              </select>
+              <p class="form-help-text">
+                The LLM provider to use for this stage
+              </p>
+            </div>
+
             <div class="form-group">
               <label class="form-label">
                 Stage Prompt <span class="required">*</span>

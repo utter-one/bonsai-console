@@ -16,10 +16,10 @@
 
         <div class="form-group">
           <label class="form-label">
-            Display Name <span class="required">*</span>
+            Name <span class="required">*</span>
           </label>
           <input
-            v-model="form.displayName"
+            v-model="form.name"
             type="text"
             required
             class="form-input"
@@ -80,11 +80,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  update: [data: { displayName: string; roles: string[]; metadata: any }]
+  update: [data: { name: string; roles: string[]; metadata: any }]
 }>()
 
 const form = ref({
-  displayName: '',
+  name: '',
   roles: [] as string[],
   metadata: {}
 })
@@ -93,7 +93,7 @@ const form = ref({
 watch(() => props.admin, (admin) => {
   if (admin) {
     form.value = {
-      displayName: admin.displayName,
+      name: admin.name,
       roles: [...admin.roles],
       metadata: admin.metadata || {}
     }
