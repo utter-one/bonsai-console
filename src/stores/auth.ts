@@ -101,7 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
       refreshToken.value = refresh
       currentAdmin.value = {
         id: admin.id,
-        displayName: admin.displayName,
+        name: admin.name,
         roles: admin.roles,
         version: 1,
         createdAt: null,
@@ -160,7 +160,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (currentAdmin.value) {
         currentAdmin.value = {
           ...currentAdmin.value,
-          displayName: response.data.displayName,
+          name: response.data.name,
           version: response.data.version,
           updatedAt: response.data.updatedAt,
         }

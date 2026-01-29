@@ -29,7 +29,7 @@ const filteredAdmins = computed(() => {
   const query = debouncedSearchQuery.value.toLowerCase()
   return adminsStore.items.filter(admin => 
     admin.id.toLowerCase().includes(query) ||
-    admin.displayName.toLowerCase().includes(query) ||
+    admin.name.toLowerCase().includes(query) ||
     admin.roles.some(role => role.toLowerCase().includes(query))
   )
 })
@@ -70,7 +70,7 @@ function editAdmin(admin: AdminResponse) {
 }
 
 async function deleteAdmin(admin: AdminResponse) {
-  if (!confirm(`Delete admin "${admin.displayName}" (${admin.id})?\n\nThis action cannot be undone.`)) return
+  if (!confirm(`Delete admin "${admin.name}" (${admin.id})?\n\nThis action cannot be undone.`)) return
 
   try {
     await adminsStore.remove(admin.id, admin.version)
@@ -143,7 +143,7 @@ function clearSearch() {
           <thead class="table-header">
             <tr>
               <th class="table-header-cell">Email</th>
-              <th class="table-header-cell">Display Name</th>
+              <th class="table-header-cell">Name</th>
               <th class="table-header-cell">Roles</th>
               <th class="table-header-cell">Created</th>
               <th class="table-header-cell">Updated</th>
@@ -156,7 +156,7 @@ function clearSearch() {
                 {{ admin.id }}
               </td>
               <td class="table-clickable-cell" @click="editAdmin(admin)">
-                {{ admin.displayName }}
+                {{ admin.name }}
               </td>
               <td class="table-cell">
                 <div class="flex-gap">

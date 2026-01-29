@@ -17,7 +17,7 @@ const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'config' | 'metadata'>('basic')
 const form = ref({
   id: '',
-  displayName: '',
+  name: '',
   description: '',
   providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings',
   apiType: '',
@@ -108,7 +108,7 @@ async function loadProvider() {
       const config = currentProvider.value.config as any
       form.value = {
         id: currentProvider.value.id,
-        displayName: currentProvider.value.displayName,
+        name: currentProvider.value.name,
         description: currentProvider.value.description || '',
         providerType: currentProvider.value.providerType,
         apiType: currentProvider.value.apiType,
@@ -190,7 +190,7 @@ async function handleSubmit() {
       // Update existing provider
       await providersStore.update(currentProvider.value.id, {
         version: currentProvider.value.version,
-        displayName: form.value.displayName,
+        name: form.value.name,
         description: form.value.description || undefined,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
@@ -199,7 +199,7 @@ async function handleSubmit() {
     } else {
       // Create new provider
       const createData: any = {
-        displayName: form.value.displayName,
+        name: form.value.name,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
         config: config
@@ -329,10 +329,10 @@ const metadataFields = computed(() => {
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
-              Display Name <span class="required">*</span>
+              Name <span class="required">*</span>
             </label>
             <input
-              v-model="form.displayName"
+              v-model="form.name"
               type="text"
               required
               placeholder="OpenAI GPT-4"

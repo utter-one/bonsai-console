@@ -1,0 +1,509 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
+import { ArrowLeft, Save } from 'lucide-vue-next'
+import type { StageResponse } from '@/types/api'
+import MetadataTab from '@/components/MetadataTab.vue'
+
+const route = useRoute()
+const router = useRouter()
+const stagesStore = useStagesStore()
+const personasStore = usePersonasStore()
+const providersStore = useProvidersStore()
+const classifiersStore = useClassifiersStore()
+const transformersStore = useContextTransformersStore()
+
+// State
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'metadata'>('basic')
+const form = ref({
+  id: '',
+  name: '',
+  description: '',
+  personaId: '',
+  prompt: '',
+  llmProviderId: '',
+  enterBehavior: 'generate_response' as 'generate_response' | 'await_user_input',
+  useKnowledge: false,
+  knowledgeSections: [] as string[],
+  useGlobalActions: false,
+  globalActions: [] as string[],
+  variables: {},
+  actions: {},
+  classifierIds: [] as string[],
+  transformerIds: [] as string[],
+  metadata: {}
+})
+
+// Computed
+const projectId = computed(() => route.params.projectId as string)
+const stageId = computed(() => route.params.stageId as string | undefined)
+const isEditMode = computed(() => !!stageId.value)
+const currentStage = ref<StageResponse | null>(null)
+
+const llmProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'llm')
+)
+
+const projectPersonas = computed(() =>
+  personasStore.items.filter(p => p.projectId === projectId.value)
+)
+
+const projectClassifiers = computed(() =>
+  classifiersStore.items.filter(c => c.projectId === projectId.value)
+)
+
+const projectTransformers = computed(() =>
+  transformersStore.items.filter(t => t.projectId === projectId.value)
+)
+
+// Lifecycle
+onMounted(async () => {
+  // Load related data
+  await Promise.all([
+    providersStore.fetchAll(),
+    personasStore.fetchAll({ filters: { projectId: projectId.value } }),
+    classifiersStore.fetchAll({ filters: { projectId: projectId.value } }),
+    transformersStore.fetchAll({ filters: { projectId: projectId.value } })
+  ])
+  
+  if (isEditMode.value) {
+    await loadStage()
+  }
+})
+
+// Methods
+async function loadStage() {
+  if (!stageId.value) return
+  
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    currentStage.value = await stagesStore.fetchById(stageId.value)
+    if (currentStage.value) {
+      form.value = {
+        id: currentStage.value.id,
+        name: currentStage.value.name,
+        description: currentStage.value.description || '',
+        personaId: currentStage.value.personaId,
+        prompt: currentStage.value.prompt,
+        llmProviderId: currentStage.value.llmProviderId || '',
+        enterBehavior: currentStage.value.enterBehavior,
+        useKnowledge: currentStage.value.useKnowledge,
+        knowledgeSections: currentStage.value.knowledgeSections || [],
+        useGlobalActions: currentStage.value.useGlobalActions,
+        globalActions: currentStage.value.globalActions || [],
+        variables: currentStage.value.variables || {},
+        actions: currentStage.value.actions || {},
+        classifierIds: currentStage.value.classifierIds || [],
+        transformerIds: currentStage.value.transformerIds || [],
+        metadata: currentStage.value.metadata || {}
+      }
+    }
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Failed to load stage'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function handleSubmit() {
+  error.value = null
+  isLoading.value = true
+
+  try {
+    if (isEditMode.value && currentStage.value) {
+      // Update existing stage
+      await stagesStore.update(currentStage.value.id, {
+        version: currentStage.value.version,
+        name: form.value.name,
+        description: form.value.description || undefined,
+        personaId: form.value.personaId,
+        prompt: form.value.prompt,
+        llmProviderId: form.value.llmProviderId,
+        enterBehavior: form.value.enterBehavior,
+        useKnowledge: form.value.useKnowledge,
+        knowledgeSections: form.value.knowledgeSections,
+        useGlobalActions: form.value.useGlobalActions,
+        globalActions: form.value.globalActions,
+        variables: form.value.variables,
+        actions: form.value.actions,
+        classifierIds: form.value.classifierIds,
+        transformerIds: form.value.transformerIds,
+        metadata: form.value.metadata
+      })
+    } else {
+      // Create new stage
+      const createData: any = {
+        projectId: projectId.value,
+        name: form.value.name,
+        personaId: form.value.personaId,
+        prompt: form.value.prompt,
+        llmProviderId: form.value.llmProviderId,
+        enterBehavior: form.value.enterBehavior,
+        useKnowledge: form.value.useKnowledge,
+        knowledgeSections: form.value.knowledgeSections,
+        useGlobalActions: form.value.useGlobalActions,
+        globalActions: form.value.globalActions,
+        variables: form.value.variables,
+        actions: form.value.actions,
+        classifierIds: form.value.classifierIds,
+        transformerIds: form.value.transformerIds,
+        metadata: form.value.metadata
+      }
+
+      // Only include id if it's provided
+      if (form.value.id) {
+        createData.id = form.value.id
+      }
+
+      // Only include description if it's not empty
+      if (form.value.description) {
+        createData.description = form.value.description
+      }
+
+      await stagesStore.create(createData)
+    }
+
+    // Navigate back to stages list
+    router.push({ name: 'design.stages', params: { projectId: projectId.value } })
+  } catch (err: any) {
+    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} stage`
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function goBack() {
+  router.push({ name: 'design.stages', params: { projectId: projectId.value } })
+}
+
+const metadataFields = computed(() => {
+  if (!currentStage.value) return []
+  return [
+    { label: 'Stage ID', value: currentStage.value.id, format: 'mono' as const },
+    { label: 'Project ID', value: currentStage.value.projectId, format: 'mono' as const },
+    { label: 'Persona ID', value: currentStage.value.personaId, format: 'mono' as const },
+    { label: 'Version', value: currentStage.value.version },
+    { label: 'Created', value: currentStage.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentStage.value.updatedAt, format: 'date' as const },
+  ]
+})
+</script>
+
+<template>
+  <div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+      <div class="flex items-center gap-4 flex-1">
+        <button @click="goBack" class="btn-icon" title="Back to stages">
+          <ArrowLeft class="w-5 h-5" />
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
+          <p class="text-sm text-gray-600">
+            {{ isEditMode ? 'Update the stage configuration' : 'Define a new conversation stage for this project' }}
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
+          Cancel
+        </button>
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
+          <Save class="inline-block mr-2 w-4 h-4" />
+          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Stage') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <nav class="tabs-nav" aria-label="Tabs">
+        <button
+          @click="activeTab = 'basic'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
+          type="button"
+        >
+          Basic Information
+        </button>
+        <button
+          @click="activeTab = 'prompt'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
+          type="button"
+        >
+          Prompt Configuration
+        </button>
+        <button
+          @click="activeTab = 'features'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'features' }]"
+          type="button"
+        >
+          Features & Integrations
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'metadata'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
+          type="button"
+        >
+          Metadata
+        </button>
+      </nav>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="isLoading && isEditMode" class="loading-state">
+      Loading stage...
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error && isEditMode" class="error-state">
+      {{ error }}
+      <button @click="goBack" class="btn-secondary mt-4">
+        Back to Stages
+      </button>
+    </div>
+
+    <!-- Form -->
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+      <div class="mx-auto">
+        <form @submit.prevent="handleSubmit">
+          <!-- Error Message -->
+          <div v-if="error" class="alert-error mb-6">
+            {{ error }}
+          </div>
+
+          <!-- Basic Information Tab -->
+          <div v-show="activeTab === 'basic'" class="tab-content">
+            <div class="form-group">
+              <label class="form-label">
+                Name <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.name"
+                type="text"
+                required
+                placeholder="Greeting Stage"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Human-readable name for this stage
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Description <span class="text-gray-500">(optional)</span>
+              </label>
+              <textarea
+                v-model="form.description"
+                rows="3"
+                class="form-textarea"
+                placeholder="Brief description of this stage's purpose..."
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                Optional description of what this stage does
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Persona <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.personaId"
+                required
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="">Select a persona</option>
+                <option v-for="persona in projectPersonas" :key="persona.id" :value="persona.id">
+                  {{ persona.name }}
+                </option>
+              </select>
+              <p class="form-help-text">
+                The AI persona to use for this stage
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Default Enter Behavior <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.enterBehavior"
+                required
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="generate_response">Generate Response</option>
+                <option value="await_user_input">Await User Input</option>
+              </select>
+              <p class="form-help-text">
+                What should happen when entering this stage
+              </p>
+            </div>
+          </div>
+
+          <!-- Prompt Configuration Tab -->
+          <div v-show="activeTab === 'prompt'" class="tab-content">
+            <div class="form-group">
+              <label class="form-label">
+                LLM Provider <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.llmProviderId"
+                required
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="">Select an LLM provider</option>
+                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }}
+                </option>
+              </select>
+              <p class="form-help-text">
+                The LLM provider to use for this stage
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Stage Prompt <span class="required">*</span>
+              </label>
+              <textarea
+                v-model="form.prompt"
+                required
+                rows="20"
+                class="form-textarea"
+                placeholder="You are now in the [stage name] stage..."
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                The system prompt or instructions specific to this stage
+              </p>
+            </div>
+          </div>
+
+          <!-- Features & Integrations Tab -->
+          <div v-show="activeTab === 'features'" class="tab-content">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Knowledge Integration</h3>
+            
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.useKnowledge"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Enable Knowledge Base
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Allow this stage to access the knowledge base
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.useGlobalActions"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                  Enable Global Actions
+                </span>
+              </label>
+              <p class="form-help-text mt-1">
+                Allow this stage to execute global actions
+              </p>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Classifiers</h3>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  Attached Classifiers <span class="text-gray-500">(optional)</span>
+                </label>
+                <div class="space-y-2">
+                  <label
+                    v-for="classifier in projectClassifiers"
+                    :key="classifier.id"
+                    class="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded"
+                  >
+                    <input
+                      v-model="form.classifierIds"
+                      :value="classifier.id"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm text-gray-700">
+                      {{ classifier.name }}
+                    </span>
+                  </label>
+                  <p v-if="projectClassifiers.length === 0" class="text-sm text-gray-500 italic">
+                    No classifiers available for this project
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Context Transformers</h3>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  Attached Transformers <span class="text-gray-500">(optional)</span>
+                </label>
+                <div class="space-y-2">
+                  <label
+                    v-for="transformer in projectTransformers"
+                    :key="transformer.id"
+                    class="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded"
+                  >
+                    <input
+                      v-model="form.transformerIds"
+                      :value="transformer.id"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm text-gray-700">
+                      {{ transformer.name }}
+                    </span>
+                  </label>
+                  <p v-if="projectTransformers.length === 0" class="text-sm text-gray-500 italic">
+                    No transformers available for this project
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata Tab -->
+          <MetadataTab
+            v-if="isEditMode && currentStage"
+            v-show="activeTab === 'metadata'"
+            :fields="metadataFields"
+          />
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* No custom styles needed - using utility classes */
+</style>

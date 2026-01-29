@@ -9,7 +9,7 @@ const authStore = useAuthStore()
 
 const setupForm = ref({
   id: '',
-  displayName: '',
+  name: '',
   password: '',
   confirmPassword: '',
 })
@@ -52,7 +52,7 @@ async function handleSetup() {
   try {
     await authStore.createInitialAdmin({
       id: setupForm.value.id,
-      displayName: setupForm.value.displayName,
+      name: setupForm.value.name,
       password: setupForm.value.password,
     })
 
@@ -88,10 +88,10 @@ async function handleSetup() {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="displayName" class="form-label">Display Name</label>
+            <label for="name" class="form-label">Name</label>
             <input
-              id="displayName"
-              v-model="setupForm.displayName"
+              id="name"
+              v-model="setupForm.name"
               type="text"
               required
               placeholder="John Doe"

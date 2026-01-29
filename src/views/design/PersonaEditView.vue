@@ -19,6 +19,7 @@ const activeTab = ref<'basic' | 'prompt' | 'voice' | 'metadata'>('basic')
 const form = ref({
   id: '',
   name: '',
+  description: '',
   prompt: '',
   ttsProviderId: '',
   voiceConfig: {
@@ -106,6 +107,7 @@ async function loadPersona() {
       form.value = {
         id: currentPersona.value.id,
         name: currentPersona.value.name,
+        description: currentPersona.value.description || '',
         prompt: currentPersona.value.prompt,
         ttsProviderId: currentPersona.value.ttsProviderId || '',
         voiceConfig: {
@@ -163,6 +165,7 @@ async function handleSubmit() {
       await personasStore.update(currentPersona.value.id, {
         version: currentPersona.value.version,
         name: form.value.name,
+        description: form.value.description || undefined,
         prompt: form.value.prompt,
         ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
         ...(voiceConfig && { voiceConfig }),
@@ -180,6 +183,11 @@ async function handleSubmit() {
       // Only include id if it's provided
       if (form.value.id) {
         createData.id = form.value.id
+      }
+
+      // Only include description if it's not empty
+      if (form.value.description) {
+        createData.description = form.value.description
       }
 
       // Only include ttsProviderId if it's not empty
@@ -328,6 +336,22 @@ function removeNoSpeechMarker(index: number) {
             />
             <p class="form-help-text">A descriptive name for this persona</p>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Description <span class="text-gray-500">(optional)</span>
+            </label>
+            <textarea
+              v-model="form.description"
+              rows="3"
+              class="form-textarea"
+              placeholder="Brief description of this persona's purpose..."
+              :disabled="isLoading"
+            ></textarea>
+            <p class="form-help-text">
+              Optional description of what this persona is used for
+            </p>
+          </div>
         </div>
 
         <!-- Prompt Configuration Tab -->
@@ -364,7 +388,7 @@ function removeNoSpeechMarker(index: number) {
             >
               <option value="">None</option>
               <option v-for="provider in ttsProviders" :key="provider.id" :value="provider.id">
-                {{ provider.displayName }}
+                {{ provider.name }}
               </option>
             </select>
             <p class="form-help-text">

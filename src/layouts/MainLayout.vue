@@ -145,10 +145,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               @click="showUserMenu = !showUserMenu"
             >
               <span class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
-                {{ authStore.currentAdmin?.displayName?.[0]?.toUpperCase() }}
+                {{ authStore.currentAdmin?.name?.[0]?.toUpperCase() }}
               </span>
               <span class="text-sm font-medium text-gray-900 sm:inline hidden">
-                {{ authStore.currentAdmin?.displayName }}
+                {{ authStore.currentAdmin?.name }}
               </span>
             </button>
             
@@ -157,7 +157,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               class="absolute top-[calc(100%+0.5rem)] right-0 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] z-[1000]"
             >
               <div class="p-3">
-                <div class="text-sm font-medium text-gray-900">{{ authStore.currentAdmin?.displayName }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ authStore.currentAdmin?.name }}</div>
                 <div class="text-xs text-gray-600 mt-1">{{ formattedRoles }}</div>
               </div>
               <div class="h-px bg-gray-200 my-2"></div>
