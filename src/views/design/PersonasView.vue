@@ -158,8 +158,8 @@ function clearSearch() {
                 {{ persona.name }}
               </td>
               <td class="table-cell-mono">
-                <span v-if="persona.voiceConfig?.voiceProviderId" class="badge-secondary">
-                  {{ persona.voiceConfig.voiceProviderId }}
+                <span v-if="persona.ttsProviderId" class="badge-secondary">
+                  {{ persona.ttsProviderId }}
                 </span>
                 <span v-else class="text-gray-400">—</span>
               </td>

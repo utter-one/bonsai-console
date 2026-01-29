@@ -178,16 +178,33 @@ export interface UpdateProjectRequest {
 export type ProjectListResponse = PaginatedResponse<ProjectResponse>
 
 // Persona
+export interface NoSpeechMarker {
+  start: string
+  end: string
+}
+
+export interface VoiceConfig {
+  model?: string
+  voiceId?: string
+  noSpeechMarkers?: NoSpeechMarker[]
+  removeExclamationMarks?: boolean
+  stability?: number | null
+  similarityBoost?: number | null
+  style?: number | null
+  useSpeakerBoost?: boolean | null
+  speed?: number | null
+  useGlobalPreview?: boolean
+  inactivityTimeout?: number
+  useSentenceSplitter?: boolean
+}
+
 export interface PersonaResponse {
   id: string
   projectId: string
   name: string
   prompt: string
-  voiceConfig?: {
-    voiceProviderId: string
-    voiceId: string
-    settings?: Record<string, any>
-  } | null
+  ttsProviderId?: string | null
+  voiceConfig?: VoiceConfig | null
   metadata: Record<string, any> | null
   version: number
   createdAt: string | null
@@ -199,22 +216,16 @@ export interface CreatePersonaRequest {
   projectId: string
   name: string
   prompt: string
-  voiceConfig?: {
-    voiceProviderId: string
-    voiceId: string
-    settings?: Record<string, any>
-  }
+  ttsProviderId?: string
+  voiceConfig?: VoiceConfig
   metadata?: Record<string, any>
 }
 
 export interface UpdatePersonaRequest {
   name?: string
   prompt?: string
-  voiceConfig?: {
-    voiceProviderId: string
-    voiceId: string
-    settings?: Record<string, any>
-  }
+  ttsProviderId?: string
+  voiceConfig?: VoiceConfig
   metadata?: Record<string, any>
   version: number
 }
