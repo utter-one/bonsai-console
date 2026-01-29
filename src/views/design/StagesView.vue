@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, Search, X, Plus } from 'lucide-vue-next'
+import { RefreshCw, Search, X } from 'lucide-vue-next'
 import type { StageResponse } from '@/types/api'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
+const router = useRouter()
 const stagesStore = useStagesStore()
 
 // UI State
@@ -30,7 +31,7 @@ const filteredStages = computed(() => {
   const query = debouncedSearchQuery.value.toLowerCase()
   return stagesStore.items.filter(stage => 
     stage.prompt.toLowerCase().includes(query) ||
-    stage.personaId.toLowerCase().includes(query)
+    stage.id.toLowerCase().includes(query)
   )
 })
 
@@ -58,6 +59,23 @@ async function loadStages() {
   } catch (error) {
     console.error('Failed to load stages:', error)
   }
+}
+
+function createStage() {
+  router.push({
+    name: 'design.stages.create',
+    params: { projectId: projectId.value }
+  })
+}
+
+function editStage(stage: StageResponse) {
+  router.push({
+    name: 'design.stages.edit',
+    params: {
+      projectId: projectId.value,
+      stageId: stage.id
+    }
+  })
 }
 
 async function deleteStage(stage: StageResponse) {
@@ -88,8 +106,8 @@ function clearSearch() {
           <h1 class="page-title">Stages</h1>
           <p class="page-subtitle">Define conversation stages for this project</p>
         </div>
-        <button class="btn-primary" disabled>
-          <Plus class="inline-block mr-2 w-4 h-4" />
+        <button @click="createStage" class="btn-primary">
+          <RefreshCw class="inline-block mr-2 w-4 h-4" />
           New Stage
         </button>
       </div>
@@ -100,7 +118,7 @@ function clearSearch() {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by persona or prompt..."
+          placeholder="Search by stage or prompt..."
           class="search-input"
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
@@ -132,7 +150,7 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">Persona</th>
+                <th class="table-header-cell">Stage Name</th>
                 <th class="table-header-cell">Enter Behavior</th>
                 <th class="table-header-cell">Prompt Preview</th>
                 <th class="table-header-cell">Features</th>
@@ -142,7 +160,10 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="stage in filteredStages" :key="stage.id" class="table-row">
-                <td class="table-cell-mono">{{ stage.personaId }}</td>
+                <td class="table-clickable-cell"
+                  @click="editStage(stage)">
+                  {{ stage.id }}
+                </td>
                 <td class="table-cell">
                   <span class="badge-secondary">{{ stage.enterBehavior }}</span>
                 </td>
@@ -164,7 +185,7 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(stage.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button class="btn-secondary btn-sm" disabled>
+                    <button @click="editStage(stage)" class="btn-secondary btn-sm">
                       Edit
                     </button>
                     <button @click="deleteStage(stage)" class="btn-danger btn-sm">

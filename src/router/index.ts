@@ -36,6 +36,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/StagesView.vue'),
           },
           {
+            path: 'projects/:projectId/stages/new',
+            name: 'design.stages.create',
+            component: () => import('@/views/design/StageEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/stages/:stageId',
+            name: 'design.stages.edit',
+            component: () => import('@/views/design/StageEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/personas',
             name: 'design.personas',
             component: () => import('@/views/design/PersonasView.vue'),
