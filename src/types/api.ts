@@ -341,6 +341,7 @@ export interface ClassifierResponse {
   description: string | null
   prompt: string
   llmProviderId: string | null
+  llmSettings: LLMSettings | null
   metadata: Record<string, any> | null
   version: number
   createdAt: string | null
@@ -354,6 +355,7 @@ export interface CreateClassifierRequest {
   description?: string | null
   prompt: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   metadata?: Record<string, any>
 }
 
@@ -362,6 +364,7 @@ export interface UpdateClassifierRequest {
   description?: string | null
   prompt?: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   metadata?: Record<string, any>
   version: number
 }

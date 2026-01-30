@@ -1,25 +1,29 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useClassifiersStore } from '@/stores'
-import { ArrowLeft, Save } from 'lucide-vue-next'
-import type { ClassifierResponse } from '@/types/api'
+import { useClassifiersStore, useProvidersStore } from '@/stores'
+import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
+import type { ClassifierResponse, LLMSettings } from '@/types/api'
 import MetadataTab from '@/components/MetadataTab.vue'
+import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const classifiersStore = useClassifiersStore()
+const providersStore = useProvidersStore()
 
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'advanced' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'metadata'>('basic')
+const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
   name: '',
   description: '',
   prompt: '',
   llmProviderId: '',
+  llmSettings: null as LLMSettings | null,
   metadata: {}
 })
 
@@ -29,8 +33,14 @@ const classifierId = computed(() => route.params.classifierId as string | undefi
 const isEditMode = computed(() => !!classifierId.value)
 const currentClassifier = ref<ClassifierResponse | null>(null)
 
+const llmProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'llm')
+)
+
 // Lifecycle
 onMounted(async () => {
+  await providersStore.fetchAll()
+  
   if (isEditMode.value) {
     await loadClassifier()
   }
@@ -52,6 +62,7 @@ async function loadClassifier() {
         description: currentClassifier.value.description || '',
         prompt: currentClassifier.value.prompt,
         llmProviderId: currentClassifier.value.llmProviderId || '',
+        llmSettings: currentClassifier.value.llmSettings || null,
         metadata: currentClassifier.value.metadata || {}
       }
     }
@@ -75,6 +86,7 @@ async function handleSubmit() {
         description: form.value.description || null,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId || null,
+        llmSettings: form.value.llmSettings || undefined,
         metadata: form.value.metadata
       })
     } else {
@@ -99,6 +111,11 @@ async function handleSubmit() {
       // Only include llmProviderId if it's not empty
       if (form.value.llmProviderId) {
         createData.llmProviderId = form.value.llmProviderId
+      }
+
+      // Only include llmSettings if it's not empty
+      if (form.value.llmSettings) {
+        createData.llmSettings = form.value.llmSettings
       }
 
       await classifiersStore.create(createData)
@@ -127,6 +144,11 @@ const metadataFields = computed(() => {
     { label: 'Updated', value: currentClassifier.value.updatedAt, format: 'date' as const },
   ]
 })
+
+function handleLLMSettingsSave(settings: Record<string, any>) {
+  form.value.llmSettings = settings as LLMSettings
+  showLLMSettingsModal.value = false
+}
 </script>
 
 <template>
@@ -171,13 +193,6 @@ const metadataFields = computed(() => {
           type="button"
         >
           Prompt Configuration
-        </button>
-        <button
-          @click="activeTab = 'advanced'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'advanced' }]"
-          type="button"
-        >
-          Advanced Settings
         </button>
         <button
           v-if="isEditMode"
@@ -231,25 +246,6 @@ const metadataFields = computed(() => {
 
           <div class="form-group">
             <label class="form-label">
-              ID <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.id"
-              type="text"
-              placeholder="custom-classifier-id"
-              class="form-input-mono"
-              :disabled="isEditMode || isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The classifier ID cannot be changed after creation' 
-                : 'Leave empty to auto-generate. Use lowercase letters, numbers, and hyphens only.' 
-              }}
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
               Description <span class="text-gray-500">(optional)</span>
             </label>
             <textarea
@@ -269,6 +265,36 @@ const metadataFields = computed(() => {
         <div v-show="activeTab === 'prompt'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
+              LLM Provider <span class="text-gray-500">(optional)</span>
+            </label>
+            <div class="flex gap-2">
+              <select
+                v-model="form.llmProviderId"
+                class="form-select-auto min-w-64"
+                :disabled="isLoading"
+              >
+                <option value="">Default provider</option>
+                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }}
+                </option>
+              </select>
+              <button
+                type="button"
+                @click="showLLMSettingsModal = true"
+                class="btn-secondary whitespace-nowrap"
+                :disabled="isLoading"
+              >
+                <Settings class="inline-block mr-1 w-4 h-4" />
+                Settings...
+              </button>
+            </div>
+            <p class="form-help-text">
+              Optional LLM provider for this classifier. Leave empty to use the default provider.
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
               Classification Prompt <span class="required">*</span>
             </label>
             <textarea
@@ -285,25 +311,6 @@ const metadataFields = computed(() => {
           </div>
         </div>
 
-        <!-- Advanced Settings Tab -->
-        <div v-show="activeTab === 'advanced'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              LLM Provider ID <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.llmProviderId"
-              type="text"
-              class="form-input-mono"
-              placeholder="llm-provider-id"
-              :disabled="isLoading"
-            />
-            <p class="form-help-text">
-              Optional LLM provider identifier for this classifier. Leave empty to use the default provider.
-            </p>
-          </div>
-        </div>
-
         <!-- Metadata Tab -->
         <MetadataTab
           v-if="isEditMode && currentClassifier"
@@ -313,6 +320,16 @@ const metadataFields = computed(() => {
         </form>
       </div>
     </div>
+
+    <!-- LLM Settings Modal -->
+    <LLMSettingsModal
+      v-if="showLLMSettingsModal"
+      :settings="form.llmSettings"
+      :selected-provider-id="form.llmProviderId"
+      :providers="llmProviders"
+      @close="showLLMSettingsModal = false"
+      @save="handleLLMSettingsSave"
+    />
   </div>
 </template>
 
