@@ -2,9 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Save } from 'lucide-vue-next'
-import type { StageResponse } from '@/types/api'
+import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
+import type { StageResponse, LLMSettings } from '@/types/api'
 import MetadataTab from '@/components/MetadataTab.vue'
+import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +19,7 @@ const transformersStore = useContextTransformersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'metadata'>('basic')
+const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
   name: '',
@@ -25,6 +27,7 @@ const form = ref({
   personaId: '',
   prompt: '',
   llmProviderId: '',
+  llmSettings: null as LLMSettings | null,
   enterBehavior: 'generate_response' as 'generate_response' | 'await_user_input',
   useKnowledge: false,
   knowledgeSections: [] as string[],
@@ -91,6 +94,7 @@ async function loadStage() {
         personaId: currentStage.value.personaId,
         prompt: currentStage.value.prompt,
         llmProviderId: currentStage.value.llmProviderId || '',
+        llmSettings: currentStage.value.llmSettings || null,
         enterBehavior: currentStage.value.enterBehavior,
         useKnowledge: currentStage.value.useKnowledge,
         knowledgeSections: currentStage.value.knowledgeSections || [],
@@ -124,6 +128,7 @@ async function handleSubmit() {
         personaId: form.value.personaId,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
+        llmSettings: form.value.llmSettings || undefined,
         enterBehavior: form.value.enterBehavior,
         useKnowledge: form.value.useKnowledge,
         knowledgeSections: form.value.knowledgeSections,
@@ -143,6 +148,7 @@ async function handleSubmit() {
         personaId: form.value.personaId,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
+        llmSettings: form.value.llmSettings,
         enterBehavior: form.value.enterBehavior,
         useKnowledge: form.value.useKnowledge,
         knowledgeSections: form.value.knowledgeSections,
@@ -192,6 +198,11 @@ const metadataFields = computed(() => {
     { label: 'Updated', value: currentStage.value.updatedAt, format: 'date' as const },
   ]
 })
+
+function handleLLMSettingsSave(settings: Record<string, any>) {
+  form.value.llmSettings = settings as LLMSettings
+  showLLMSettingsModal.value = false
+}
 </script>
 
 <template>
@@ -319,7 +330,7 @@ const metadataFields = computed(() => {
               <select
                 v-model="form.personaId"
                 required
-                class="form-select"
+                class="form-select-auto"
                 :disabled="isLoading"
               >
                 <option value="">Select a persona</option>
@@ -339,7 +350,7 @@ const metadataFields = computed(() => {
               <select
                 v-model="form.enterBehavior"
                 required
-                class="form-select"
+                class="form-select-auto"
                 :disabled="isLoading"
               >
                 <option value="generate_response">Generate Response</option>
@@ -357,17 +368,28 @@ const metadataFields = computed(() => {
               <label class="form-label">
                 LLM Provider <span class="required">*</span>
               </label>
-              <select
-                v-model="form.llmProviderId"
-                required
-                class="form-select"
-                :disabled="isLoading"
-              >
-                <option value="">Select an LLM provider</option>
-                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                  {{ provider.name }}
-                </option>
-              </select>
+              <div class="flex gap-2">
+                <select
+                  v-model="form.llmProviderId"
+                  required
+                  class="form-select-auto min-w-64"
+                  :disabled="isLoading"
+                >
+                  <option value="">Select an LLM provider</option>
+                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                    {{ provider.name }}
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  @click="showLLMSettingsModal = true"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading"
+                >
+                  <Settings class="inline-block mr-1 w-4 h-4" />
+                  Settings...
+                </button>
+              </div>
               <p class="form-help-text">
                 The LLM provider to use for this stage
               </p>
@@ -501,6 +523,16 @@ const metadataFields = computed(() => {
         </form>
       </div>
     </div>
+
+    <!-- LLM Settings Modal -->
+    <LLMSettingsModal
+      v-if="showLLMSettingsModal"
+      :settings="form.llmSettings"
+      :selected-provider-id="form.llmProviderId"
+      :providers="llmProviders"
+      @close="showLLMSettingsModal = false"
+      @save="handleLLMSettingsSave"
+    />
   </div>
 </template>
 
