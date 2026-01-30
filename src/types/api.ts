@@ -291,7 +291,10 @@ export interface StageActionOperation {
 export interface StageAction {
   name: string
   condition?: string | null
-  promptTrigger: string
+  triggerOnUserInput: boolean
+  triggerOnClientCommand: boolean
+  classificationTrigger?: string | null
+  overrideClassifierId?: string | null
   operations: StageActionOperation[]
   template?: string | null
   examples?: string[] | null

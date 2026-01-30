@@ -40,18 +40,64 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">
-            Prompt Trigger <span class="required">*</span>
-          </label>
-          <textarea
-            v-model="form.promptTrigger"
-            required
-            rows="3"
-            class="form-textarea"
-            placeholder="When the user explicitly requests to speak with a human agent..."
-          ></textarea>
+          <label class="form-label">Trigger Options <span class="required">*</span></label>
+          <div class="space-y-2">
+            <label class="flex items-center cursor-pointer">
+              <input
+                v-model="form.triggerOnUserInput"
+                type="checkbox"
+                class="form-checkbox"
+              />
+              <span class="ml-2 text-sm font-medium text-gray-700">
+                Trigger on User Input
+              </span>
+            </label>
+            <label class="flex items-center cursor-pointer">
+              <input
+                v-model="form.triggerOnClientCommand"
+                type="checkbox"
+                class="form-checkbox"
+              />
+              <span class="ml-2 text-sm font-medium text-gray-700">
+                Trigger on Client Command
+              </span>
+            </label>
+          </div>
           <p class="form-help-text">
-            Description of when this action should be triggered by the LLM
+            Select when this action can be triggered
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Classification Trigger <span class="text-gray-500">(optional)</span>
+          </label>
+          <input
+            v-model="form.classificationTrigger"
+            type="text"
+            placeholder="transfer_request"
+            class="form-input"
+          />
+          <p class="form-help-text">
+            Classification label that triggers this action
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Override Classifier ID <span class="text-gray-500">(optional)</span>
+          </label>
+          <select
+            v-model="form.overrideClassifierId"
+            class="form-select-auto"
+          >
+            <option value="">No override (use stage classifiers)</option>
+            <option v-for="classifier in projectClassifiers" :key="classifier.id" :value="classifier.id">
+              {{ classifier.name }}
+            </option>
+          </select>
+          <p class="form-help-text">
+            Override the stage classifier for this action
           </p>
         </div>
 
@@ -121,13 +167,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useClassifiersStore } from '@/stores'
 import type { StageAction } from '@/types/api'
+
+const route = useRoute()
+const classifiersStore = useClassifiersStore()
 
 const props = defineProps<{
   action: StageAction | null
   editingKey: string | null
 }>()
+
+const projectClassifiers = computed(() => {
+  const projectId = route.params.projectId as string
+  return classifiersStore.items.filter(c => c.projectId === projectId)
+})
 
 const emit = defineEmits<{
   close: []
@@ -138,7 +194,10 @@ const form = ref({
   key: '',
   name: '',
   condition: '',
-  promptTrigger: '',
+  triggerOnUserInput: true,
+  triggerOnClientCommand: false,
+  classificationTrigger: '',
+  overrideClassifierId: '',
   template: '',
   examples: ''
 })
@@ -150,7 +209,10 @@ watch(() => props.action, (action) => {
       key: props.editingKey,
       name: action.name,
       condition: action.condition || '',
-      promptTrigger: action.promptTrigger,
+      triggerOnUserInput: action.triggerOnUserInput,
+      triggerOnClientCommand: action.triggerOnClientCommand,
+      classificationTrigger: action.classificationTrigger || '',
+      overrideClassifierId: action.overrideClassifierId || '',
       template: action.template || '',
       examples: action.examples?.join('\n') || ''
     }
@@ -160,7 +222,10 @@ watch(() => props.action, (action) => {
       key: '',
       name: '',
       condition: '',
-      promptTrigger: '',
+      triggerOnUserInput: true,
+      triggerOnClientCommand: false,
+      classificationTrigger: '',
+      overrideClassifierId: '',
       template: '',
       examples: ''
     }
@@ -168,14 +233,17 @@ watch(() => props.action, (action) => {
 }, { immediate: true })
 
 function handleSubmit() {
-  if (!form.value.key || !form.value.name || !form.value.promptTrigger) {
+  if (!form.value.key || !form.value.name) {
     return
   }
 
   const action: StageAction = {
     name: form.value.name,
     condition: form.value.condition || null,
-    promptTrigger: form.value.promptTrigger,
+    triggerOnUserInput: form.value.triggerOnUserInput,
+    triggerOnClientCommand: form.value.triggerOnClientCommand,
+    classificationTrigger: form.value.classificationTrigger || null,
+    overrideClassifierId: form.value.overrideClassifierId || null,
     operations: props.action?.operations || [],
     template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,

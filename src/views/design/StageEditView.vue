@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Trash2, Edit } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
 import type { StageResponse, LLMSettings, StageAction } from '@/types/api'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -583,7 +583,7 @@ const actionsList = computed(() => {
               </button>
             </div>
 
-            <!-- Actions List -->
+            <!-- Empty State -->
             <div v-if="actionsList.length === 0" class="text-center py-12">
               <p class="text-gray-500 mb-4">No actions defined yet</p>
               <button
@@ -597,50 +597,66 @@ const actionsList = computed(() => {
               </button>
             </div>
 
-            <div v-else class="space-y-4">
-              <div
-                v-for="action in actionsList"
-                :key="action.key"
-                class="card p-3"
-              >
-                <div class="flex items-start justify-between">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
-                      <h4 class="text-lg font-semibold text-gray-900">{{ action.name }}</h4>
-                      <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ action.key }}</code>
-                    </div>
-                    
-                    <p class="text-sm text-gray-700 mb-3">
-                      <strong>Trigger:</strong> {{ action.promptTrigger }}
-                    </p>
-
-                    <div v-if="action.condition" class="mb-2">
-                      <span class="text-xs text-gray-600">Condition:</span>
-                      <code class="text-xs bg-gray-100 px-2 py-1 rounded ml-2">{{ action.condition }}</code>
-                    </div>
-                  </div>
-
-                  <div class="flex gap-2 ml-4">
-                    <button
-                      type="button"
-                      @click="editAction(action.key)"
-                      class="btn-icon"
-                      title="Edit action"
-                      :disabled="isLoading"
-                    >
-                      <Edit class="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      @click="deleteAction(action.key)"
-                      class="btn-icon text-red-600 hover:bg-red-50"
-                      title="Delete action"
-                      :disabled="isLoading"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+            <!-- Actions Table -->
+            <div v-else class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Key</th>
+                      <th class="table-header-cell">Name</th>
+                      <th class="table-header-cell">Triggers</th>
+                      <th class="table-header-cell">Classification</th>
+                      <th class="table-header-cell">Operations</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="action in actionsList" :key="action.key" class="table-row">
+                      <td class="table-cell">
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">{{ action.key }}</code>
+                      </td>
+                      <td class="table-clickable-cell" @click="editAction(action.key)">
+                        {{ action.name }}
+                      </td>
+                      <td class="table-cell">
+                        <div class="flex flex-col gap-1">
+                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs">User Input</span>
+                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs">Client Command</span>
+                        </div>
+                      </td>
+                      <td class="table-cell">
+                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                          {{ action.classificationTrigger }}
+                        </code>
+                        <span v-else class="text-gray-400 text-sm">—</span>
+                      </td>
+                      <td class="table-cell-muted">
+                        {{ action.operations?.length || 0 }}
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex-end">
+                          <button
+                            type="button"
+                            @click="editAction(action.key)"
+                            class="btn-secondary btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            @click="deleteAction(action.key)"
+                            class="btn-danger btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

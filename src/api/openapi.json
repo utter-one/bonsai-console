@@ -3219,10 +3219,23 @@
                   "nullable": true,
                   "description": "Optional condition expression for action activation"
                 },
-                "promptTrigger": {
+                "triggerOnUserInput": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on user input"
+                },
+                "triggerOnClientCommand": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on client commands"
+                },
+                "classificationTrigger": {
                   "type": "string",
-                  "minLength": 1,
-                  "description": "Description of when this action should be triggered"
+                  "nullable": true,
+                  "description": "Optional classification label that triggers this action"
+                },
+                "overrideClassifierId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Optional classifier ID to override the stage classifier for this action"
                 },
                 "operations": {
                   "type": "array",
@@ -3534,7 +3547,8 @@
               },
               "required": [
                 "name",
-                "promptTrigger",
+                "triggerOnUserInput",
+                "triggerOnClientCommand",
                 "operations"
               ]
             },
@@ -3823,10 +3837,23 @@
                   "nullable": true,
                   "description": "Optional condition expression for action activation"
                 },
-                "promptTrigger": {
+                "triggerOnUserInput": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on user input"
+                },
+                "triggerOnClientCommand": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on client commands"
+                },
+                "classificationTrigger": {
                   "type": "string",
-                  "minLength": 1,
-                  "description": "Description of when this action should be triggered"
+                  "nullable": true,
+                  "description": "Optional classification label that triggers this action"
+                },
+                "overrideClassifierId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Optional classifier ID to override the stage classifier for this action"
                 },
                 "operations": {
                   "type": "array",
@@ -4138,7 +4165,8 @@
               },
               "required": [
                 "name",
-                "promptTrigger",
+                "triggerOnUserInput",
+                "triggerOnClientCommand",
                 "operations"
               ]
             },
@@ -4446,10 +4474,23 @@
                   "nullable": true,
                   "description": "Optional condition expression for action activation"
                 },
-                "promptTrigger": {
+                "triggerOnUserInput": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on user input"
+                },
+                "triggerOnClientCommand": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on client commands"
+                },
+                "classificationTrigger": {
                   "type": "string",
-                  "minLength": 1,
-                  "description": "Description of when this action should be triggered"
+                  "nullable": true,
+                  "description": "Optional classification label that triggers this action"
+                },
+                "overrideClassifierId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Optional classifier ID to override the stage classifier for this action"
                 },
                 "operations": {
                   "type": "array",
@@ -4761,7 +4802,8 @@
               },
               "required": [
                 "name",
-                "promptTrigger",
+                "triggerOnUserInput",
+                "triggerOnClientCommand",
                 "operations"
               ]
             },
@@ -5092,10 +5134,23 @@
                         "nullable": true,
                         "description": "Optional condition expression for action activation"
                       },
-                      "promptTrigger": {
+                      "triggerOnUserInput": {
+                        "type": "boolean",
+                        "description": "Whether this action should be triggered on user input"
+                      },
+                      "triggerOnClientCommand": {
+                        "type": "boolean",
+                        "description": "Whether this action should be triggered on client commands"
+                      },
+                      "classificationTrigger": {
                         "type": "string",
-                        "minLength": 1,
-                        "description": "Description of when this action should be triggered"
+                        "nullable": true,
+                        "description": "Optional classification label that triggers this action"
+                      },
+                      "overrideClassifierId": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Optional classifier ID to override the stage classifier for this action"
                       },
                       "operations": {
                         "type": "array",
@@ -5407,7 +5462,8 @@
                     },
                     "required": [
                       "name",
-                      "promptTrigger",
+                      "triggerOnUserInput",
+                      "triggerOnClientCommand",
                       "operations"
                     ]
                   },
@@ -8473,10 +8529,25 @@
             "nullable": true,
             "description": "Optional condition expression for action activation"
           },
-          "promptTrigger": {
+          "triggerOnUserInput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this action should be triggered on user input"
+          },
+          "triggerOnClientCommand": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this action should be triggered on client commands"
+          },
+          "classificationTrigger": {
             "type": "string",
-            "minLength": 1,
-            "description": "Description of when this action should be triggered"
+            "nullable": true,
+            "description": "Optional classification label that triggers this action"
+          },
+          "overrideClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional classifier ID to override the default classifier for this action"
           },
           "operations": {
             "type": "array",
@@ -8786,8 +8857,7 @@
         },
         "required": [
           "projectId",
-          "name",
-          "promptTrigger"
+          "name"
         ]
       },
       "UpdateGlobalActionRequest": {
@@ -8803,10 +8873,23 @@
             "nullable": true,
             "description": "Updated condition expression"
           },
-          "promptTrigger": {
+          "triggerOnUserInput": {
+            "type": "boolean",
+            "description": "Updated trigger on user input flag"
+          },
+          "triggerOnClientCommand": {
+            "type": "boolean",
+            "description": "Updated trigger on client command flag"
+          },
+          "classificationTrigger": {
             "type": "string",
-            "minLength": 1,
-            "description": "Updated prompt trigger description"
+            "nullable": true,
+            "description": "Updated classification trigger label"
+          },
+          "overrideClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated override classifier ID"
           },
           "operations": {
             "type": "array",
@@ -9156,9 +9239,23 @@
             "nullable": true,
             "description": "Condition expression for action activation"
           },
-          "promptTrigger": {
+          "triggerOnUserInput": {
+            "type": "boolean",
+            "description": "Whether this action should be triggered on user input"
+          },
+          "triggerOnClientCommand": {
+            "type": "boolean",
+            "description": "Whether this action should be triggered on client commands"
+          },
+          "classificationTrigger": {
             "type": "string",
-            "description": "Description of when this action should be triggered"
+            "nullable": true,
+            "description": "Optional classification label that triggers this action"
+          },
+          "overrideClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional classifier ID to override the default classifier"
           },
           "operations": {
             "type": "array",
@@ -9489,7 +9586,10 @@
           "projectId",
           "name",
           "condition",
-          "promptTrigger",
+          "triggerOnUserInput",
+          "triggerOnClientCommand",
+          "classificationTrigger",
+          "overrideClassifierId",
           "operations",
           "template",
           "examples",
@@ -9524,9 +9624,23 @@
                   "nullable": true,
                   "description": "Condition expression for action activation"
                 },
-                "promptTrigger": {
+                "triggerOnUserInput": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on user input"
+                },
+                "triggerOnClientCommand": {
+                  "type": "boolean",
+                  "description": "Whether this action should be triggered on client commands"
+                },
+                "classificationTrigger": {
                   "type": "string",
-                  "description": "Description of when this action should be triggered"
+                  "nullable": true,
+                  "description": "Optional classification label that triggers this action"
+                },
+                "overrideClassifierId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Optional classifier ID to override the default classifier"
                 },
                 "operations": {
                   "type": "array",
@@ -9857,7 +9971,10 @@
                 "projectId",
                 "name",
                 "condition",
-                "promptTrigger",
+                "triggerOnUserInput",
+                "triggerOnClientCommand",
+                "classificationTrigger",
+                "overrideClassifierId",
                 "operations",
                 "template",
                 "examples",
@@ -25427,10 +25544,25 @@
                     "nullable": true,
                     "description": "Optional condition expression for action activation"
                   },
-                  "promptTrigger": {
+                  "triggerOnUserInput": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether this action should be triggered on user input"
+                  },
+                  "triggerOnClientCommand": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this action should be triggered on client commands"
+                  },
+                  "classificationTrigger": {
                     "type": "string",
-                    "minLength": 1,
-                    "description": "Description of when this action should be triggered"
+                    "nullable": true,
+                    "description": "Optional classification label that triggers this action"
+                  },
+                  "overrideClassifierId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional classifier ID to override the default classifier for this action"
                   },
                   "operations": {
                     "type": "array",
@@ -25740,8 +25872,7 @@
                 },
                 "required": [
                   "projectId",
-                  "name",
-                  "promptTrigger"
+                  "name"
                 ]
               }
             }
@@ -25772,9 +25903,23 @@
                       "nullable": true,
                       "description": "Condition expression for action activation"
                     },
-                    "promptTrigger": {
+                    "triggerOnUserInput": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on user input"
+                    },
+                    "triggerOnClientCommand": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on client commands"
+                    },
+                    "classificationTrigger": {
                       "type": "string",
-                      "description": "Description of when this action should be triggered"
+                      "nullable": true,
+                      "description": "Optional classification label that triggers this action"
+                    },
+                    "overrideClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional classifier ID to override the default classifier"
                     },
                     "operations": {
                       "type": "array",
@@ -26105,7 +26250,10 @@
                     "projectId",
                     "name",
                     "condition",
-                    "promptTrigger",
+                    "triggerOnUserInput",
+                    "triggerOnClientCommand",
+                    "classificationTrigger",
+                    "overrideClassifierId",
                     "operations",
                     "template",
                     "examples",
@@ -26346,9 +26494,23 @@
                             "nullable": true,
                             "description": "Condition expression for action activation"
                           },
-                          "promptTrigger": {
+                          "triggerOnUserInput": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on user input"
+                          },
+                          "triggerOnClientCommand": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on client commands"
+                          },
+                          "classificationTrigger": {
                             "type": "string",
-                            "description": "Description of when this action should be triggered"
+                            "nullable": true,
+                            "description": "Optional classification label that triggers this action"
+                          },
+                          "overrideClassifierId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional classifier ID to override the default classifier"
                           },
                           "operations": {
                             "type": "array",
@@ -26679,7 +26841,10 @@
                           "projectId",
                           "name",
                           "condition",
-                          "promptTrigger",
+                          "triggerOnUserInput",
+                          "triggerOnClientCommand",
+                          "classificationTrigger",
+                          "overrideClassifierId",
                           "operations",
                           "template",
                           "examples",
@@ -26769,9 +26934,23 @@
                       "nullable": true,
                       "description": "Condition expression for action activation"
                     },
-                    "promptTrigger": {
+                    "triggerOnUserInput": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on user input"
+                    },
+                    "triggerOnClientCommand": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on client commands"
+                    },
+                    "classificationTrigger": {
                       "type": "string",
-                      "description": "Description of when this action should be triggered"
+                      "nullable": true,
+                      "description": "Optional classification label that triggers this action"
+                    },
+                    "overrideClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional classifier ID to override the default classifier"
                     },
                     "operations": {
                       "type": "array",
@@ -27102,7 +27281,10 @@
                     "projectId",
                     "name",
                     "condition",
-                    "promptTrigger",
+                    "triggerOnUserInput",
+                    "triggerOnClientCommand",
+                    "classificationTrigger",
+                    "overrideClassifierId",
                     "operations",
                     "template",
                     "examples",
@@ -27154,10 +27336,23 @@
                     "nullable": true,
                     "description": "Updated condition expression"
                   },
-                  "promptTrigger": {
+                  "triggerOnUserInput": {
+                    "type": "boolean",
+                    "description": "Updated trigger on user input flag"
+                  },
+                  "triggerOnClientCommand": {
+                    "type": "boolean",
+                    "description": "Updated trigger on client command flag"
+                  },
+                  "classificationTrigger": {
                     "type": "string",
-                    "minLength": 1,
-                    "description": "Updated prompt trigger description"
+                    "nullable": true,
+                    "description": "Updated classification trigger label"
+                  },
+                  "overrideClassifierId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated override classifier ID"
                   },
                   "operations": {
                     "type": "array",
@@ -27502,9 +27697,23 @@
                       "nullable": true,
                       "description": "Condition expression for action activation"
                     },
-                    "promptTrigger": {
+                    "triggerOnUserInput": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on user input"
+                    },
+                    "triggerOnClientCommand": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on client commands"
+                    },
+                    "classificationTrigger": {
                       "type": "string",
-                      "description": "Description of when this action should be triggered"
+                      "nullable": true,
+                      "description": "Optional classification label that triggers this action"
+                    },
+                    "overrideClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional classifier ID to override the default classifier"
                     },
                     "operations": {
                       "type": "array",
@@ -27835,7 +28044,10 @@
                     "projectId",
                     "name",
                     "condition",
-                    "promptTrigger",
+                    "triggerOnUserInput",
+                    "triggerOnClientCommand",
+                    "classificationTrigger",
+                    "overrideClassifierId",
                     "operations",
                     "template",
                     "examples",
@@ -29125,10 +29337,23 @@
                           "nullable": true,
                           "description": "Optional condition expression for action activation"
                         },
-                        "promptTrigger": {
+                        "triggerOnUserInput": {
+                          "type": "boolean",
+                          "description": "Whether this action should be triggered on user input"
+                        },
+                        "triggerOnClientCommand": {
+                          "type": "boolean",
+                          "description": "Whether this action should be triggered on client commands"
+                        },
+                        "classificationTrigger": {
                           "type": "string",
-                          "minLength": 1,
-                          "description": "Description of when this action should be triggered"
+                          "nullable": true,
+                          "description": "Optional classification label that triggers this action"
+                        },
+                        "overrideClassifierId": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Optional classifier ID to override the stage classifier for this action"
                         },
                         "operations": {
                           "type": "array",
@@ -29440,7 +29665,8 @@
                       },
                       "required": [
                         "name",
-                        "promptTrigger",
+                        "triggerOnUserInput",
+                        "triggerOnClientCommand",
                         "operations"
                       ]
                     },
@@ -29743,10 +29969,23 @@
                             "nullable": true,
                             "description": "Optional condition expression for action activation"
                           },
-                          "promptTrigger": {
+                          "triggerOnUserInput": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on user input"
+                          },
+                          "triggerOnClientCommand": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on client commands"
+                          },
+                          "classificationTrigger": {
                             "type": "string",
-                            "minLength": 1,
-                            "description": "Description of when this action should be triggered"
+                            "nullable": true,
+                            "description": "Optional classification label that triggers this action"
+                          },
+                          "overrideClassifierId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional classifier ID to override the stage classifier for this action"
                           },
                           "operations": {
                             "type": "array",
@@ -30058,7 +30297,8 @@
                         },
                         "required": [
                           "name",
-                          "promptTrigger",
+                          "triggerOnUserInput",
+                          "triggerOnClientCommand",
                           "operations"
                         ]
                       },
@@ -30595,10 +30835,23 @@
                                   "nullable": true,
                                   "description": "Optional condition expression for action activation"
                                 },
-                                "promptTrigger": {
+                                "triggerOnUserInput": {
+                                  "type": "boolean",
+                                  "description": "Whether this action should be triggered on user input"
+                                },
+                                "triggerOnClientCommand": {
+                                  "type": "boolean",
+                                  "description": "Whether this action should be triggered on client commands"
+                                },
+                                "classificationTrigger": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "description": "Description of when this action should be triggered"
+                                  "nullable": true,
+                                  "description": "Optional classification label that triggers this action"
+                                },
+                                "overrideClassifierId": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "description": "Optional classifier ID to override the stage classifier for this action"
                                 },
                                 "operations": {
                                   "type": "array",
@@ -30910,7 +31163,8 @@
                               },
                               "required": [
                                 "name",
-                                "promptTrigger",
+                                "triggerOnUserInput",
+                                "triggerOnClientCommand",
                                 "operations"
                               ]
                             },
@@ -31297,10 +31551,23 @@
                             "nullable": true,
                             "description": "Optional condition expression for action activation"
                           },
-                          "promptTrigger": {
+                          "triggerOnUserInput": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on user input"
+                          },
+                          "triggerOnClientCommand": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on client commands"
+                          },
+                          "classificationTrigger": {
                             "type": "string",
-                            "minLength": 1,
-                            "description": "Description of when this action should be triggered"
+                            "nullable": true,
+                            "description": "Optional classification label that triggers this action"
+                          },
+                          "overrideClassifierId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional classifier ID to override the stage classifier for this action"
                           },
                           "operations": {
                             "type": "array",
@@ -31612,7 +31879,8 @@
                         },
                         "required": [
                           "name",
-                          "promptTrigger",
+                          "triggerOnUserInput",
+                          "triggerOnClientCommand",
                           "operations"
                         ]
                       },
@@ -31962,10 +32230,23 @@
                           "nullable": true,
                           "description": "Optional condition expression for action activation"
                         },
-                        "promptTrigger": {
+                        "triggerOnUserInput": {
+                          "type": "boolean",
+                          "description": "Whether this action should be triggered on user input"
+                        },
+                        "triggerOnClientCommand": {
+                          "type": "boolean",
+                          "description": "Whether this action should be triggered on client commands"
+                        },
+                        "classificationTrigger": {
                           "type": "string",
-                          "minLength": 1,
-                          "description": "Description of when this action should be triggered"
+                          "nullable": true,
+                          "description": "Optional classification label that triggers this action"
+                        },
+                        "overrideClassifierId": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Optional classifier ID to override the stage classifier for this action"
                         },
                         "operations": {
                           "type": "array",
@@ -32277,7 +32558,8 @@
                       },
                       "required": [
                         "name",
-                        "promptTrigger",
+                        "triggerOnUserInput",
+                        "triggerOnClientCommand",
                         "operations"
                       ]
                     },
@@ -32580,10 +32862,23 @@
                             "nullable": true,
                             "description": "Optional condition expression for action activation"
                           },
-                          "promptTrigger": {
+                          "triggerOnUserInput": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on user input"
+                          },
+                          "triggerOnClientCommand": {
+                            "type": "boolean",
+                            "description": "Whether this action should be triggered on client commands"
+                          },
+                          "classificationTrigger": {
                             "type": "string",
-                            "minLength": 1,
-                            "description": "Description of when this action should be triggered"
+                            "nullable": true,
+                            "description": "Optional classification label that triggers this action"
+                          },
+                          "overrideClassifierId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional classifier ID to override the stage classifier for this action"
                           },
                           "operations": {
                             "type": "array",
@@ -32895,7 +33190,8 @@
                         },
                         "required": [
                           "name",
-                          "promptTrigger",
+                          "triggerOnUserInput",
+                          "triggerOnClientCommand",
                           "operations"
                         ]
                       },
