@@ -586,15 +586,6 @@ const actionsList = computed(() => {
             <!-- Empty State -->
             <div v-if="actionsList.length === 0" class="text-center py-12">
               <p class="text-gray-500 mb-4">No actions defined yet</p>
-              <button
-                type="button"
-                @click="addAction"
-                class="btn-primary"
-                :disabled="isLoading"
-              >
-                <Plus class="inline-block mr-1 w-4 h-4" />
-                Add Your First Action
-              </button>
             </div>
 
             <!-- Actions Table -->
