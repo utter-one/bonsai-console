@@ -193,7 +193,7 @@ router.beforeEach(async (to, _from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth !== false)
 
   // Always check setup status first (except when already on setup page)
-  if (to.name !== 'setup') {
+  if (to.name !== 'setup' && !authStore.isAuthenticated) {
     try {
       const status = await authStore.checkSetupStatus()
       if (!status.isSetup) {

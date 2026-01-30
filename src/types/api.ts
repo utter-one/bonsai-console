@@ -235,6 +235,36 @@ export interface UpdatePersonaRequest {
 
 export type PersonaListResponse = PaginatedResponse<PersonaResponse>
 
+// LLM Settings
+export interface OpenAILLMSettings {
+  model: string
+  defaultMaxTokens?: number
+  defaultTemperature?: number
+  defaultTopP?: number
+  timeout?: number
+}
+
+export interface AnthropicLLMSettings {
+  model: string
+  defaultMaxTokens?: number
+  defaultTemperature?: number
+  defaultTopP?: number
+  timeout?: number
+  anthropicVersion?: string
+}
+
+export interface GeminiLLMSettings {
+  model: string
+  defaultMaxTokens?: number
+  defaultTemperature?: number
+  defaultTopP?: number
+  defaultTopK?: number
+  timeout?: number
+  safetySettings?: any[]
+}
+
+export type LLMSettings = OpenAILLMSettings | AnthropicLLMSettings | GeminiLLMSettings
+
 // Stage
 export interface StageResponse {
   id: string
@@ -243,6 +273,7 @@ export interface StageResponse {
   description: string | null
   prompt: string
   llmProviderId: string | null
+  llmSettings: LLMSettings | null
   personaId: string
   enterBehavior: 'generate_response' | 'await_user_input'
   useKnowledge: boolean
@@ -266,6 +297,7 @@ export interface CreateStageRequest {
   description?: string
   prompt: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   personaId: string
   enterBehavior?: 'generate_response' | 'await_user_input'
   useKnowledge?: boolean
@@ -284,6 +316,7 @@ export interface UpdateStageRequest {
   description?: string
   prompt?: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   personaId?: string
   enterBehavior?: 'generate_response' | 'await_user_input'
   useKnowledge?: boolean
@@ -308,6 +341,7 @@ export interface ClassifierResponse {
   description: string | null
   prompt: string
   llmProviderId: string | null
+  llmSettings: LLMSettings | null
   metadata: Record<string, any> | null
   version: number
   createdAt: string | null
@@ -321,6 +355,7 @@ export interface CreateClassifierRequest {
   description?: string | null
   prompt: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   metadata?: Record<string, any>
 }
 
@@ -329,6 +364,7 @@ export interface UpdateClassifierRequest {
   description?: string | null
   prompt?: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings
   metadata?: Record<string, any>
   version: number
 }
