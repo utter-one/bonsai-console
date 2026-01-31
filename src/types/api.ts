@@ -288,6 +288,13 @@ export interface StageActionEffect {
   resultKey?: string
 }
 
+export interface ActionParameter {
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | 'boolean[]'
+  description: string
+  required: boolean
+}
+
 export interface StageAction {
   name: string
   condition?: string | null
@@ -295,6 +302,7 @@ export interface StageAction {
   triggerOnClientCommand: boolean
   classificationTrigger?: string | null
   overrideClassifierId?: string | null
+  parameters?: ActionParameter[]
   effects: StageActionEffect[]
   template?: string | null
   examples?: string[] | null

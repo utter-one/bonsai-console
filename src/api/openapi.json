@@ -3237,6 +3237,47 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Name of the parameter (used as key when passing to effects)"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "number",
+                          "boolean",
+                          "string[]",
+                          "number[]",
+                          "boolean[]"
+                        ],
+                        "description": "Expected type of the parameter value"
+                      },
+                      "description": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Description of what the parameter represents (helps with extraction)"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether this parameter must be present in the user input"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type",
+                      "description",
+                      "required"
+                    ]
+                  },
+                  "description": "Optional array of parameters to extract from user input"
+                },
                 "effects": {
                   "type": "array",
                   "items": {
@@ -3549,6 +3590,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
+                "parameters",
                 "effects"
               ]
             },
@@ -3855,6 +3897,47 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Name of the parameter (used as key when passing to effects)"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "number",
+                          "boolean",
+                          "string[]",
+                          "number[]",
+                          "boolean[]"
+                        ],
+                        "description": "Expected type of the parameter value"
+                      },
+                      "description": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Description of what the parameter represents (helps with extraction)"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether this parameter must be present in the user input"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type",
+                      "description",
+                      "required"
+                    ]
+                  },
+                  "description": "Optional array of parameters to extract from user input"
+                },
                 "effects": {
                   "type": "array",
                   "items": {
@@ -4167,6 +4250,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
+                "parameters",
                 "effects"
               ]
             },
@@ -4492,6 +4576,47 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Name of the parameter (used as key when passing to effects)"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "number",
+                          "boolean",
+                          "string[]",
+                          "number[]",
+                          "boolean[]"
+                        ],
+                        "description": "Expected type of the parameter value"
+                      },
+                      "description": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Description of what the parameter represents (helps with extraction)"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether this parameter must be present in the user input"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type",
+                      "description",
+                      "required"
+                    ]
+                  },
+                  "description": "Optional array of parameters to extract from user input"
+                },
                 "effects": {
                   "type": "array",
                   "items": {
@@ -4804,6 +4929,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
+                "parameters",
                 "effects"
               ]
             },
@@ -5152,6 +5278,47 @@
                         "nullable": true,
                         "description": "Optional classifier ID to override the stage classifier for this action"
                       },
+                      "parameters": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "Name of the parameter (used as key when passing to effects)"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "string",
+                                "number",
+                                "boolean",
+                                "string[]",
+                                "number[]",
+                                "boolean[]"
+                              ],
+                              "description": "Expected type of the parameter value"
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "Description of what the parameter represents (helps with extraction)"
+                            },
+                            "required": {
+                              "type": "boolean",
+                              "description": "Whether this parameter must be present in the user input"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "type",
+                            "description",
+                            "required"
+                          ]
+                        },
+                        "description": "Optional array of parameters to extract from user input"
+                      },
                       "effects": {
                         "type": "array",
                         "items": {
@@ -5464,6 +5631,7 @@
                       "name",
                       "triggerOnUserInput",
                       "triggerOnClientCommand",
+                      "parameters",
                       "effects"
                     ]
                   },
@@ -29355,6 +29523,47 @@
                           "nullable": true,
                           "description": "Optional classifier ID to override the stage classifier for this action"
                         },
+                        "parameters": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Name of the parameter (used as key when passing to effects)"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "string",
+                                  "number",
+                                  "boolean",
+                                  "string[]",
+                                  "number[]",
+                                  "boolean[]"
+                                ],
+                                "description": "Expected type of the parameter value"
+                              },
+                              "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Description of what the parameter represents (helps with extraction)"
+                              },
+                              "required": {
+                                "type": "boolean",
+                                "description": "Whether this parameter must be present in the user input"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "type",
+                              "description",
+                              "required"
+                            ]
+                          },
+                          "description": "Optional array of parameters to extract from user input"
+                        },
                         "effects": {
                           "type": "array",
                           "items": {
@@ -29667,6 +29876,7 @@
                         "name",
                         "triggerOnUserInput",
                         "triggerOnClientCommand",
+                        "parameters",
                         "effects"
                       ]
                     },
@@ -29987,6 +30197,47 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
+                          "parameters": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Name of the parameter (used as key when passing to effects)"
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "string",
+                                    "number",
+                                    "boolean",
+                                    "string[]",
+                                    "number[]",
+                                    "boolean[]"
+                                  ],
+                                  "description": "Expected type of the parameter value"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Description of what the parameter represents (helps with extraction)"
+                                },
+                                "required": {
+                                  "type": "boolean",
+                                  "description": "Whether this parameter must be present in the user input"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "type",
+                                "description",
+                                "required"
+                              ]
+                            },
+                            "description": "Optional array of parameters to extract from user input"
+                          },
                           "effects": {
                             "type": "array",
                             "items": {
@@ -30299,6 +30550,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
+                          "parameters",
                           "effects"
                         ]
                       },
@@ -30853,6 +31105,47 @@
                                   "nullable": true,
                                   "description": "Optional classifier ID to override the stage classifier for this action"
                                 },
+                                "parameters": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "description": "Name of the parameter (used as key when passing to effects)"
+                                      },
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "string",
+                                          "number",
+                                          "boolean",
+                                          "string[]",
+                                          "number[]",
+                                          "boolean[]"
+                                        ],
+                                        "description": "Expected type of the parameter value"
+                                      },
+                                      "description": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "description": "Description of what the parameter represents (helps with extraction)"
+                                      },
+                                      "required": {
+                                        "type": "boolean",
+                                        "description": "Whether this parameter must be present in the user input"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "type",
+                                      "description",
+                                      "required"
+                                    ]
+                                  },
+                                  "description": "Optional array of parameters to extract from user input"
+                                },
                                 "effects": {
                                   "type": "array",
                                   "items": {
@@ -31165,6 +31458,7 @@
                                 "name",
                                 "triggerOnUserInput",
                                 "triggerOnClientCommand",
+                                "parameters",
                                 "effects"
                               ]
                             },
@@ -31569,6 +31863,47 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
+                          "parameters": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Name of the parameter (used as key when passing to effects)"
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "string",
+                                    "number",
+                                    "boolean",
+                                    "string[]",
+                                    "number[]",
+                                    "boolean[]"
+                                  ],
+                                  "description": "Expected type of the parameter value"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Description of what the parameter represents (helps with extraction)"
+                                },
+                                "required": {
+                                  "type": "boolean",
+                                  "description": "Whether this parameter must be present in the user input"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "type",
+                                "description",
+                                "required"
+                              ]
+                            },
+                            "description": "Optional array of parameters to extract from user input"
+                          },
                           "effects": {
                             "type": "array",
                             "items": {
@@ -31881,6 +32216,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
+                          "parameters",
                           "effects"
                         ]
                       },
@@ -32248,6 +32584,47 @@
                           "nullable": true,
                           "description": "Optional classifier ID to override the stage classifier for this action"
                         },
+                        "parameters": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Name of the parameter (used as key when passing to effects)"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "string",
+                                  "number",
+                                  "boolean",
+                                  "string[]",
+                                  "number[]",
+                                  "boolean[]"
+                                ],
+                                "description": "Expected type of the parameter value"
+                              },
+                              "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Description of what the parameter represents (helps with extraction)"
+                              },
+                              "required": {
+                                "type": "boolean",
+                                "description": "Whether this parameter must be present in the user input"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "type",
+                              "description",
+                              "required"
+                            ]
+                          },
+                          "description": "Optional array of parameters to extract from user input"
+                        },
                         "effects": {
                           "type": "array",
                           "items": {
@@ -32560,6 +32937,7 @@
                         "name",
                         "triggerOnUserInput",
                         "triggerOnClientCommand",
+                        "parameters",
                         "effects"
                       ]
                     },
@@ -32880,6 +33258,47 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
+                          "parameters": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Name of the parameter (used as key when passing to effects)"
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "string",
+                                    "number",
+                                    "boolean",
+                                    "string[]",
+                                    "number[]",
+                                    "boolean[]"
+                                  ],
+                                  "description": "Expected type of the parameter value"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "Description of what the parameter represents (helps with extraction)"
+                                },
+                                "required": {
+                                  "type": "boolean",
+                                  "description": "Whether this parameter must be present in the user input"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "type",
+                                "description",
+                                "required"
+                              ]
+                            },
+                            "description": "Optional array of parameters to extract from user input"
+                          },
                           "effects": {
                             "type": "array",
                             "items": {
@@ -33192,6 +33611,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
+                          "parameters",
                           "effects"
                         ]
                       },

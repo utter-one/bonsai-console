@@ -1,6 +1,6 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content max-w-6xl" @click.stop>
+    <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
       <h2 class="modal-header">
         {{ editingKey ? 'Edit Action' : 'New Action' }}
       </h2>
@@ -31,6 +31,18 @@
             ]"
           >
             Trigger
+          </button>
+          <button
+            type="button"
+            @click="activeTab = 'parameters'"
+            :class="[
+              activeTab === 'parameters'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+            ]"
+          >
+            Parameters
           </button>
           <button
             type="button"
@@ -138,7 +150,8 @@
         </nav>
       </div>
       
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="handleSubmit" class="flex flex-col" style="height: calc(100% - 140px);">
+        <div class="overflow-y-auto flex-1 px-1">
         <!-- Basic Tab -->
         <div v-show="activeTab === 'basic'" class="space-y-6">
           <div class="form-group">
@@ -171,21 +184,6 @@
             />
             <p class="form-help-text">
               Human-readable name for this action
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              Message Template <span class="text-gray-500">(optional)</span>
-            </label>
-            <textarea
-              v-model="form.template"
-              rows="2"
-              class="form-textarea"
-              placeholder="Let me connect you with an agent..."
-            ></textarea>
-            <p class="form-help-text">
-              Optional message template to send when action is triggered
             </p>
           </div>
 
@@ -282,6 +280,97 @@
             <p class="form-help-text">
               Optional JavaScript condition expression for action activation
             </p>
+          </div>
+        </div>
+
+        <!-- Parameters Tab -->
+        <div v-show="activeTab === 'parameters'" class="space-y-6">
+          <div class="form-group">
+            <label class="form-label">Action Parameters</label>
+            <p class="form-help-text mb-3">
+              Define parameters that will be extracted from user input when this action is triggered.
+            </p>
+            <div class="space-y-4">
+              <div
+                v-for="(param, index) in parameters"
+                :key="index"
+                class="p-4 border border-gray-200 rounded-lg space-y-3"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-700">Parameter {{ index + 1 }}</span>
+                  <button
+                    type="button"
+                    @click="removeParameter(index)"
+                    class="text-red-600 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="form-label text-sm">Parameter Name <span class="required">*</span></label>
+                    <input
+                      v-model="param.name"
+                      type="text"
+                      required
+                      placeholder="destination_stage"
+                      class="form-input font-mono text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="form-label text-sm">Type <span class="required">*</span></label>
+                    <select v-model="param.type" class="form-select-auto text-sm" required>
+                      <option value="string">string</option>
+                      <option value="number">number</option>
+                      <option value="boolean">boolean</option>
+                      <option value="string[]">string[]</option>
+                      <option value="number[]">number[]</option>
+                      <option value="boolean[]">boolean[]</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="form-label text-sm">Description <span class="required">*</span></label>
+                  <input
+                    v-model="param.description"
+                    type="text"
+                    required
+                    placeholder="The stage to transfer to"
+                    class="form-input text-sm"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Describe what this parameter represents to help with extraction
+                  </p>
+                </div>
+
+                <div>
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="param.required"
+                      type="checkbox"
+                      class="form-checkbox"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700">
+                      Required parameter
+                    </span>
+                  </label>
+                  <p class="text-xs text-gray-500 ml-6">
+                    Whether this parameter must be extracted from user input
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                @click="addParameter"
+                class="btn-secondary w-full"
+              >
+                + Add Parameter
+              </button>
+            </div>
           </div>
         </div>
 
@@ -742,8 +831,9 @@
             </p>
           </div>
         </div>
+        </div>
 
-        <div class="modal-footer">
+        <div class="modal-footer border-t border-gray-200 mt-auto pt-4">
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
@@ -780,7 +870,7 @@ const emit = defineEmits<{
   save: [data: { key: string; action: StageAction }]
 }>()
 
-type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
+type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
 
 const activeTab = ref<TabType>('basic')
 
@@ -851,6 +941,26 @@ const operations = ref({
   }
 })
 
+const parameters = ref<Array<{
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | 'boolean[]'
+  description: string
+  required: boolean
+}>>([])
+
+function addParameter() {
+  parameters.value.push({
+    name: '',
+    type: 'string',
+    description: '',
+    required: false
+  })
+}
+
+function removeParameter(index: number) {
+  parameters.value.splice(index, 1)
+}
+
 function addVariableModification() {
   operations.value.modifyVariables.modifications.push({
     variableName: '',
@@ -889,6 +999,9 @@ watch(() => props.action, (action) => {
       template: action.template || '',
       examples: action.examples?.join('\n') || ''
     }
+
+    // Load parameters from action
+    parameters.value = action.parameters ? [...action.parameters] : []
 
     // Load effects from action
     const effects = action.effects || []
@@ -966,6 +1079,9 @@ watch(() => props.action, (action) => {
       template: '',
       examples: ''
     }
+
+    // Reset parameters
+    parameters.value = []
 
     // Reset all effects
     operations.value.endConversation = { enabled: false, reason: '' }
@@ -1091,6 +1207,7 @@ function handleSubmit() {
     triggerOnClientCommand: form.value.triggerOnClientCommand,
     classificationTrigger: form.value.classificationTrigger || null,
     overrideClassifierId: form.value.overrideClassifierId || null,
+    parameters: parameters.value.length > 0 ? parameters.value : undefined,
     effects: effectsArray,
     template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,
@@ -1104,5 +1221,12 @@ function handleSubmit() {
 <style scoped>
 .max-w-6xl {
   max-width: 72rem;
+}
+
+.fixed-height-modal {
+  height: 90vh;
+  max-height: 1200px;
+  display: flex;
+  flex-direction: column;
 }
 </style>
