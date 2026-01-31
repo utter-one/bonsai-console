@@ -3237,7 +3237,7 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
-                "operations": {
+                "effects": {
                   "type": "array",
                   "items": {
                     "oneOf": [
@@ -3249,7 +3249,7 @@
                             "enum": [
                               "end_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -3268,7 +3268,7 @@
                             "enum": [
                               "abort_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -3287,7 +3287,7 @@
                             "enum": [
                               "go_to_stage"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "stageId": {
                             "type": "string",
@@ -3308,7 +3308,7 @@
                             "enum": [
                               "run_script"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "code": {
                             "type": "string",
@@ -3329,7 +3329,7 @@
                             "enum": [
                               "modify_user_input"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "template": {
                             "type": "string",
@@ -3350,7 +3350,7 @@
                             "enum": [
                               "modify_variables"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -3399,7 +3399,7 @@
                             "enum": [
                               "modify_user_profile"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -3448,7 +3448,7 @@
                             "enum": [
                               "call_tool"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "toolId": {
                             "type": "string",
@@ -3477,7 +3477,7 @@
                             "enum": [
                               "call_webhook"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "url": {
                             "type": "string",
@@ -3521,7 +3521,7 @@
                       }
                     ]
                   },
-                  "description": "Array of operations to execute when action is triggered"
+                  "description": "Array of effects to execute when action is triggered"
                 },
                 "template": {
                   "type": "string",
@@ -3549,7 +3549,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
-                "operations"
+                "effects"
               ]
             },
             "description": "Action definitions for this stage"
@@ -3855,7 +3855,7 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
-                "operations": {
+                "effects": {
                   "type": "array",
                   "items": {
                     "oneOf": [
@@ -3867,7 +3867,7 @@
                             "enum": [
                               "end_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -3886,7 +3886,7 @@
                             "enum": [
                               "abort_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -3905,7 +3905,7 @@
                             "enum": [
                               "go_to_stage"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "stageId": {
                             "type": "string",
@@ -3926,7 +3926,7 @@
                             "enum": [
                               "run_script"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "code": {
                             "type": "string",
@@ -3947,7 +3947,7 @@
                             "enum": [
                               "modify_user_input"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "template": {
                             "type": "string",
@@ -3968,7 +3968,7 @@
                             "enum": [
                               "modify_variables"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -4017,7 +4017,7 @@
                             "enum": [
                               "modify_user_profile"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -4066,7 +4066,7 @@
                             "enum": [
                               "call_tool"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "toolId": {
                             "type": "string",
@@ -4095,7 +4095,7 @@
                             "enum": [
                               "call_webhook"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "url": {
                             "type": "string",
@@ -4139,7 +4139,7 @@
                       }
                     ]
                   },
-                  "description": "Array of operations to execute when action is triggered"
+                  "description": "Array of effects to execute when action is triggered"
                 },
                 "template": {
                   "type": "string",
@@ -4167,7 +4167,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
-                "operations"
+                "effects"
               ]
             },
             "description": "Updated action definitions"
@@ -4492,7 +4492,7 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the stage classifier for this action"
                 },
-                "operations": {
+                "effects": {
                   "type": "array",
                   "items": {
                     "oneOf": [
@@ -4504,7 +4504,7 @@
                             "enum": [
                               "end_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -4523,7 +4523,7 @@
                             "enum": [
                               "abort_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -4542,7 +4542,7 @@
                             "enum": [
                               "go_to_stage"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "stageId": {
                             "type": "string",
@@ -4563,7 +4563,7 @@
                             "enum": [
                               "run_script"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "code": {
                             "type": "string",
@@ -4584,7 +4584,7 @@
                             "enum": [
                               "modify_user_input"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "template": {
                             "type": "string",
@@ -4605,7 +4605,7 @@
                             "enum": [
                               "modify_variables"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -4654,7 +4654,7 @@
                             "enum": [
                               "modify_user_profile"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -4703,7 +4703,7 @@
                             "enum": [
                               "call_tool"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "toolId": {
                             "type": "string",
@@ -4732,7 +4732,7 @@
                             "enum": [
                               "call_webhook"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "url": {
                             "type": "string",
@@ -4776,7 +4776,7 @@
                       }
                     ]
                   },
-                  "description": "Array of operations to execute when action is triggered"
+                  "description": "Array of effects to execute when action is triggered"
                 },
                 "template": {
                   "type": "string",
@@ -4804,7 +4804,7 @@
                 "name",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
-                "operations"
+                "effects"
               ]
             },
             "description": "Action definitions"
@@ -5152,7 +5152,7 @@
                         "nullable": true,
                         "description": "Optional classifier ID to override the stage classifier for this action"
                       },
-                      "operations": {
+                      "effects": {
                         "type": "array",
                         "items": {
                           "oneOf": [
@@ -5164,7 +5164,7 @@
                                   "enum": [
                                     "end_conversation"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "reason": {
                                   "type": "string",
@@ -5183,7 +5183,7 @@
                                   "enum": [
                                     "abort_conversation"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "reason": {
                                   "type": "string",
@@ -5202,7 +5202,7 @@
                                   "enum": [
                                     "go_to_stage"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "stageId": {
                                   "type": "string",
@@ -5223,7 +5223,7 @@
                                   "enum": [
                                     "run_script"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "code": {
                                   "type": "string",
@@ -5244,7 +5244,7 @@
                                   "enum": [
                                     "modify_user_input"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "template": {
                                   "type": "string",
@@ -5265,7 +5265,7 @@
                                   "enum": [
                                     "modify_variables"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "modifications": {
                                   "type": "array",
@@ -5314,7 +5314,7 @@
                                   "enum": [
                                     "modify_user_profile"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "modifications": {
                                   "type": "array",
@@ -5363,7 +5363,7 @@
                                   "enum": [
                                     "call_tool"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "toolId": {
                                   "type": "string",
@@ -5392,7 +5392,7 @@
                                   "enum": [
                                     "call_webhook"
                                   ],
-                                  "description": "Operation type"
+                                  "description": "Effect type"
                                 },
                                 "url": {
                                   "type": "string",
@@ -5436,7 +5436,7 @@
                             }
                           ]
                         },
-                        "description": "Array of operations to execute when action is triggered"
+                        "description": "Array of effects to execute when action is triggered"
                       },
                       "template": {
                         "type": "string",
@@ -5464,7 +5464,7 @@
                       "name",
                       "triggerOnUserInput",
                       "triggerOnClientCommand",
-                      "operations"
+                      "effects"
                     ]
                   },
                   "description": "Action definitions"
@@ -8549,7 +8549,7 @@
             "nullable": true,
             "description": "Optional classifier ID to override the default classifier for this action"
           },
-          "operations": {
+          "effects": {
             "type": "array",
             "items": {
               "oneOf": [
@@ -8561,7 +8561,7 @@
                       "enum": [
                         "end_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -8580,7 +8580,7 @@
                       "enum": [
                         "abort_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -8599,7 +8599,7 @@
                       "enum": [
                         "go_to_stage"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "stageId": {
                       "type": "string",
@@ -8620,7 +8620,7 @@
                       "enum": [
                         "run_script"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "code": {
                       "type": "string",
@@ -8641,7 +8641,7 @@
                       "enum": [
                         "modify_user_input"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "template": {
                       "type": "string",
@@ -8662,7 +8662,7 @@
                       "enum": [
                         "modify_variables"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -8711,7 +8711,7 @@
                       "enum": [
                         "modify_user_profile"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -8760,7 +8760,7 @@
                       "enum": [
                         "call_tool"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "toolId": {
                       "type": "string",
@@ -8789,7 +8789,7 @@
                       "enum": [
                         "call_webhook"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "url": {
                       "type": "string",
@@ -8833,7 +8833,7 @@
                 }
               ]
             },
-            "description": "Array of operations to execute when action is triggered"
+            "description": "Array of effects to execute when action is triggered"
           },
           "template": {
             "type": "string",
@@ -8891,7 +8891,7 @@
             "nullable": true,
             "description": "Updated override classifier ID"
           },
-          "operations": {
+          "effects": {
             "type": "array",
             "items": {
               "oneOf": [
@@ -8903,7 +8903,7 @@
                       "enum": [
                         "end_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -8922,7 +8922,7 @@
                       "enum": [
                         "abort_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -8941,7 +8941,7 @@
                       "enum": [
                         "go_to_stage"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "stageId": {
                       "type": "string",
@@ -8962,7 +8962,7 @@
                       "enum": [
                         "run_script"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "code": {
                       "type": "string",
@@ -8983,7 +8983,7 @@
                       "enum": [
                         "modify_user_input"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "template": {
                       "type": "string",
@@ -9004,7 +9004,7 @@
                       "enum": [
                         "modify_variables"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -9053,7 +9053,7 @@
                       "enum": [
                         "modify_user_profile"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -9102,7 +9102,7 @@
                       "enum": [
                         "call_tool"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "toolId": {
                       "type": "string",
@@ -9131,7 +9131,7 @@
                       "enum": [
                         "call_webhook"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "url": {
                       "type": "string",
@@ -9175,7 +9175,7 @@
                 }
               ]
             },
-            "description": "Updated operations array"
+            "description": "Updated effects array"
           },
           "template": {
             "type": "string",
@@ -9257,7 +9257,7 @@
             "nullable": true,
             "description": "Optional classifier ID to override the default classifier"
           },
-          "operations": {
+          "effects": {
             "type": "array",
             "items": {
               "oneOf": [
@@ -9269,7 +9269,7 @@
                       "enum": [
                         "end_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -9288,7 +9288,7 @@
                       "enum": [
                         "abort_conversation"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "reason": {
                       "type": "string",
@@ -9307,7 +9307,7 @@
                       "enum": [
                         "go_to_stage"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "stageId": {
                       "type": "string",
@@ -9328,7 +9328,7 @@
                       "enum": [
                         "run_script"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "code": {
                       "type": "string",
@@ -9349,7 +9349,7 @@
                       "enum": [
                         "modify_user_input"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "template": {
                       "type": "string",
@@ -9370,7 +9370,7 @@
                       "enum": [
                         "modify_variables"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -9419,7 +9419,7 @@
                       "enum": [
                         "modify_user_profile"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "modifications": {
                       "type": "array",
@@ -9468,7 +9468,7 @@
                       "enum": [
                         "call_tool"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "toolId": {
                       "type": "string",
@@ -9497,7 +9497,7 @@
                       "enum": [
                         "call_webhook"
                       ],
-                      "description": "Operation type"
+                      "description": "Effect type"
                     },
                     "url": {
                       "type": "string",
@@ -9541,7 +9541,7 @@
                 }
               ]
             },
-            "description": "Array of operations to execute"
+            "description": "Array of effects to execute"
           },
           "template": {
             "type": "string",
@@ -9590,7 +9590,7 @@
           "triggerOnClientCommand",
           "classificationTrigger",
           "overrideClassifierId",
-          "operations",
+          "effects",
           "template",
           "examples",
           "metadata",
@@ -9642,7 +9642,7 @@
                   "nullable": true,
                   "description": "Optional classifier ID to override the default classifier"
                 },
-                "operations": {
+                "effects": {
                   "type": "array",
                   "items": {
                     "oneOf": [
@@ -9654,7 +9654,7 @@
                             "enum": [
                               "end_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -9673,7 +9673,7 @@
                             "enum": [
                               "abort_conversation"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "reason": {
                             "type": "string",
@@ -9692,7 +9692,7 @@
                             "enum": [
                               "go_to_stage"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "stageId": {
                             "type": "string",
@@ -9713,7 +9713,7 @@
                             "enum": [
                               "run_script"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "code": {
                             "type": "string",
@@ -9734,7 +9734,7 @@
                             "enum": [
                               "modify_user_input"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "template": {
                             "type": "string",
@@ -9755,7 +9755,7 @@
                             "enum": [
                               "modify_variables"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -9804,7 +9804,7 @@
                             "enum": [
                               "modify_user_profile"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "modifications": {
                             "type": "array",
@@ -9853,7 +9853,7 @@
                             "enum": [
                               "call_tool"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "toolId": {
                             "type": "string",
@@ -9882,7 +9882,7 @@
                             "enum": [
                               "call_webhook"
                             ],
-                            "description": "Operation type"
+                            "description": "Effect type"
                           },
                           "url": {
                             "type": "string",
@@ -9926,7 +9926,7 @@
                       }
                     ]
                   },
-                  "description": "Array of operations to execute"
+                  "description": "Array of effects to execute"
                 },
                 "template": {
                   "type": "string",
@@ -9975,7 +9975,7 @@
                 "triggerOnClientCommand",
                 "classificationTrigger",
                 "overrideClassifierId",
-                "operations",
+                "effects",
                 "template",
                 "examples",
                 "metadata",
@@ -25564,7 +25564,7 @@
                     "nullable": true,
                     "description": "Optional classifier ID to override the default classifier for this action"
                   },
-                  "operations": {
+                  "effects": {
                     "type": "array",
                     "items": {
                       "oneOf": [
@@ -25576,7 +25576,7 @@
                               "enum": [
                                 "end_conversation"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "reason": {
                               "type": "string",
@@ -25595,7 +25595,7 @@
                               "enum": [
                                 "abort_conversation"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "reason": {
                               "type": "string",
@@ -25614,7 +25614,7 @@
                               "enum": [
                                 "go_to_stage"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "stageId": {
                               "type": "string",
@@ -25635,7 +25635,7 @@
                               "enum": [
                                 "run_script"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "code": {
                               "type": "string",
@@ -25656,7 +25656,7 @@
                               "enum": [
                                 "modify_user_input"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "template": {
                               "type": "string",
@@ -25677,7 +25677,7 @@
                               "enum": [
                                 "modify_variables"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "modifications": {
                               "type": "array",
@@ -25726,7 +25726,7 @@
                               "enum": [
                                 "modify_user_profile"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "modifications": {
                               "type": "array",
@@ -25775,7 +25775,7 @@
                               "enum": [
                                 "call_tool"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "toolId": {
                               "type": "string",
@@ -25804,7 +25804,7 @@
                               "enum": [
                                 "call_webhook"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "url": {
                               "type": "string",
@@ -25848,7 +25848,7 @@
                         }
                       ]
                     },
-                    "description": "Array of operations to execute when action is triggered"
+                    "description": "Array of effects to execute when action is triggered"
                   },
                   "template": {
                     "type": "string",
@@ -25921,7 +25921,7 @@
                       "nullable": true,
                       "description": "Optional classifier ID to override the default classifier"
                     },
-                    "operations": {
+                    "effects": {
                       "type": "array",
                       "items": {
                         "oneOf": [
@@ -25933,7 +25933,7 @@
                                 "enum": [
                                   "end_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -25952,7 +25952,7 @@
                                 "enum": [
                                   "abort_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -25971,7 +25971,7 @@
                                 "enum": [
                                   "go_to_stage"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "stageId": {
                                 "type": "string",
@@ -25992,7 +25992,7 @@
                                 "enum": [
                                   "run_script"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "code": {
                                 "type": "string",
@@ -26013,7 +26013,7 @@
                                 "enum": [
                                   "modify_user_input"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "template": {
                                 "type": "string",
@@ -26034,7 +26034,7 @@
                                 "enum": [
                                   "modify_variables"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -26083,7 +26083,7 @@
                                 "enum": [
                                   "modify_user_profile"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -26132,7 +26132,7 @@
                                 "enum": [
                                   "call_tool"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "toolId": {
                                 "type": "string",
@@ -26161,7 +26161,7 @@
                                 "enum": [
                                   "call_webhook"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "url": {
                                 "type": "string",
@@ -26205,7 +26205,7 @@
                           }
                         ]
                       },
-                      "description": "Array of operations to execute"
+                      "description": "Array of effects to execute"
                     },
                     "template": {
                       "type": "string",
@@ -26254,7 +26254,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
-                    "operations",
+                    "effects",
                     "template",
                     "examples",
                     "metadata",
@@ -26512,7 +26512,7 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the default classifier"
                           },
-                          "operations": {
+                          "effects": {
                             "type": "array",
                             "items": {
                               "oneOf": [
@@ -26524,7 +26524,7 @@
                                       "enum": [
                                         "end_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -26543,7 +26543,7 @@
                                       "enum": [
                                         "abort_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -26562,7 +26562,7 @@
                                       "enum": [
                                         "go_to_stage"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "stageId": {
                                       "type": "string",
@@ -26583,7 +26583,7 @@
                                       "enum": [
                                         "run_script"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "code": {
                                       "type": "string",
@@ -26604,7 +26604,7 @@
                                       "enum": [
                                         "modify_user_input"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "template": {
                                       "type": "string",
@@ -26625,7 +26625,7 @@
                                       "enum": [
                                         "modify_variables"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -26674,7 +26674,7 @@
                                       "enum": [
                                         "modify_user_profile"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -26723,7 +26723,7 @@
                                       "enum": [
                                         "call_tool"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "toolId": {
                                       "type": "string",
@@ -26752,7 +26752,7 @@
                                       "enum": [
                                         "call_webhook"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "url": {
                                       "type": "string",
@@ -26796,7 +26796,7 @@
                                 }
                               ]
                             },
-                            "description": "Array of operations to execute"
+                            "description": "Array of effects to execute"
                           },
                           "template": {
                             "type": "string",
@@ -26845,7 +26845,7 @@
                           "triggerOnClientCommand",
                           "classificationTrigger",
                           "overrideClassifierId",
-                          "operations",
+                          "effects",
                           "template",
                           "examples",
                           "metadata",
@@ -26952,7 +26952,7 @@
                       "nullable": true,
                       "description": "Optional classifier ID to override the default classifier"
                     },
-                    "operations": {
+                    "effects": {
                       "type": "array",
                       "items": {
                         "oneOf": [
@@ -26964,7 +26964,7 @@
                                 "enum": [
                                   "end_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -26983,7 +26983,7 @@
                                 "enum": [
                                   "abort_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -27002,7 +27002,7 @@
                                 "enum": [
                                   "go_to_stage"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "stageId": {
                                 "type": "string",
@@ -27023,7 +27023,7 @@
                                 "enum": [
                                   "run_script"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "code": {
                                 "type": "string",
@@ -27044,7 +27044,7 @@
                                 "enum": [
                                   "modify_user_input"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "template": {
                                 "type": "string",
@@ -27065,7 +27065,7 @@
                                 "enum": [
                                   "modify_variables"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -27114,7 +27114,7 @@
                                 "enum": [
                                   "modify_user_profile"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -27163,7 +27163,7 @@
                                 "enum": [
                                   "call_tool"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "toolId": {
                                 "type": "string",
@@ -27192,7 +27192,7 @@
                                 "enum": [
                                   "call_webhook"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "url": {
                                 "type": "string",
@@ -27236,7 +27236,7 @@
                           }
                         ]
                       },
-                      "description": "Array of operations to execute"
+                      "description": "Array of effects to execute"
                     },
                     "template": {
                       "type": "string",
@@ -27285,7 +27285,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
-                    "operations",
+                    "effects",
                     "template",
                     "examples",
                     "metadata",
@@ -27354,7 +27354,7 @@
                     "nullable": true,
                     "description": "Updated override classifier ID"
                   },
-                  "operations": {
+                  "effects": {
                     "type": "array",
                     "items": {
                       "oneOf": [
@@ -27366,7 +27366,7 @@
                               "enum": [
                                 "end_conversation"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "reason": {
                               "type": "string",
@@ -27385,7 +27385,7 @@
                               "enum": [
                                 "abort_conversation"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "reason": {
                               "type": "string",
@@ -27404,7 +27404,7 @@
                               "enum": [
                                 "go_to_stage"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "stageId": {
                               "type": "string",
@@ -27425,7 +27425,7 @@
                               "enum": [
                                 "run_script"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "code": {
                               "type": "string",
@@ -27446,7 +27446,7 @@
                               "enum": [
                                 "modify_user_input"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "template": {
                               "type": "string",
@@ -27467,7 +27467,7 @@
                               "enum": [
                                 "modify_variables"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "modifications": {
                               "type": "array",
@@ -27516,7 +27516,7 @@
                               "enum": [
                                 "modify_user_profile"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "modifications": {
                               "type": "array",
@@ -27565,7 +27565,7 @@
                               "enum": [
                                 "call_tool"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "toolId": {
                               "type": "string",
@@ -27594,7 +27594,7 @@
                               "enum": [
                                 "call_webhook"
                               ],
-                              "description": "Operation type"
+                              "description": "Effect type"
                             },
                             "url": {
                               "type": "string",
@@ -27638,7 +27638,7 @@
                         }
                       ]
                     },
-                    "description": "Updated operations array"
+                    "description": "Updated effects array"
                   },
                   "template": {
                     "type": "string",
@@ -27715,7 +27715,7 @@
                       "nullable": true,
                       "description": "Optional classifier ID to override the default classifier"
                     },
-                    "operations": {
+                    "effects": {
                       "type": "array",
                       "items": {
                         "oneOf": [
@@ -27727,7 +27727,7 @@
                                 "enum": [
                                   "end_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -27746,7 +27746,7 @@
                                 "enum": [
                                   "abort_conversation"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "reason": {
                                 "type": "string",
@@ -27765,7 +27765,7 @@
                                 "enum": [
                                   "go_to_stage"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "stageId": {
                                 "type": "string",
@@ -27786,7 +27786,7 @@
                                 "enum": [
                                   "run_script"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "code": {
                                 "type": "string",
@@ -27807,7 +27807,7 @@
                                 "enum": [
                                   "modify_user_input"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "template": {
                                 "type": "string",
@@ -27828,7 +27828,7 @@
                                 "enum": [
                                   "modify_variables"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -27877,7 +27877,7 @@
                                 "enum": [
                                   "modify_user_profile"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "modifications": {
                                 "type": "array",
@@ -27926,7 +27926,7 @@
                                 "enum": [
                                   "call_tool"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "toolId": {
                                 "type": "string",
@@ -27955,7 +27955,7 @@
                                 "enum": [
                                   "call_webhook"
                                 ],
-                                "description": "Operation type"
+                                "description": "Effect type"
                               },
                               "url": {
                                 "type": "string",
@@ -27999,7 +27999,7 @@
                           }
                         ]
                       },
-                      "description": "Array of operations to execute"
+                      "description": "Array of effects to execute"
                     },
                     "template": {
                       "type": "string",
@@ -28048,7 +28048,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
-                    "operations",
+                    "effects",
                     "template",
                     "examples",
                     "metadata",
@@ -29355,7 +29355,7 @@
                           "nullable": true,
                           "description": "Optional classifier ID to override the stage classifier for this action"
                         },
-                        "operations": {
+                        "effects": {
                           "type": "array",
                           "items": {
                             "oneOf": [
@@ -29367,7 +29367,7 @@
                                     "enum": [
                                       "end_conversation"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "reason": {
                                     "type": "string",
@@ -29386,7 +29386,7 @@
                                     "enum": [
                                       "abort_conversation"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "reason": {
                                     "type": "string",
@@ -29405,7 +29405,7 @@
                                     "enum": [
                                       "go_to_stage"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "stageId": {
                                     "type": "string",
@@ -29426,7 +29426,7 @@
                                     "enum": [
                                       "run_script"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "code": {
                                     "type": "string",
@@ -29447,7 +29447,7 @@
                                     "enum": [
                                       "modify_user_input"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "template": {
                                     "type": "string",
@@ -29468,7 +29468,7 @@
                                     "enum": [
                                       "modify_variables"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "modifications": {
                                     "type": "array",
@@ -29517,7 +29517,7 @@
                                     "enum": [
                                       "modify_user_profile"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "modifications": {
                                     "type": "array",
@@ -29566,7 +29566,7 @@
                                     "enum": [
                                       "call_tool"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "toolId": {
                                     "type": "string",
@@ -29595,7 +29595,7 @@
                                     "enum": [
                                       "call_webhook"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "url": {
                                     "type": "string",
@@ -29639,7 +29639,7 @@
                               }
                             ]
                           },
-                          "description": "Array of operations to execute when action is triggered"
+                          "description": "Array of effects to execute when action is triggered"
                         },
                         "template": {
                           "type": "string",
@@ -29667,7 +29667,7 @@
                         "name",
                         "triggerOnUserInput",
                         "triggerOnClientCommand",
-                        "operations"
+                        "effects"
                       ]
                     },
                     "description": "Action definitions for this stage"
@@ -29987,7 +29987,7 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
-                          "operations": {
+                          "effects": {
                             "type": "array",
                             "items": {
                               "oneOf": [
@@ -29999,7 +29999,7 @@
                                       "enum": [
                                         "end_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -30018,7 +30018,7 @@
                                       "enum": [
                                         "abort_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -30037,7 +30037,7 @@
                                       "enum": [
                                         "go_to_stage"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "stageId": {
                                       "type": "string",
@@ -30058,7 +30058,7 @@
                                       "enum": [
                                         "run_script"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "code": {
                                       "type": "string",
@@ -30079,7 +30079,7 @@
                                       "enum": [
                                         "modify_user_input"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "template": {
                                       "type": "string",
@@ -30100,7 +30100,7 @@
                                       "enum": [
                                         "modify_variables"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -30149,7 +30149,7 @@
                                       "enum": [
                                         "modify_user_profile"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -30198,7 +30198,7 @@
                                       "enum": [
                                         "call_tool"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "toolId": {
                                       "type": "string",
@@ -30227,7 +30227,7 @@
                                       "enum": [
                                         "call_webhook"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "url": {
                                       "type": "string",
@@ -30271,7 +30271,7 @@
                                 }
                               ]
                             },
-                            "description": "Array of operations to execute when action is triggered"
+                            "description": "Array of effects to execute when action is triggered"
                           },
                           "template": {
                             "type": "string",
@@ -30299,7 +30299,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
-                          "operations"
+                          "effects"
                         ]
                       },
                       "description": "Action definitions"
@@ -30853,7 +30853,7 @@
                                   "nullable": true,
                                   "description": "Optional classifier ID to override the stage classifier for this action"
                                 },
-                                "operations": {
+                                "effects": {
                                   "type": "array",
                                   "items": {
                                     "oneOf": [
@@ -30865,7 +30865,7 @@
                                             "enum": [
                                               "end_conversation"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "reason": {
                                             "type": "string",
@@ -30884,7 +30884,7 @@
                                             "enum": [
                                               "abort_conversation"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "reason": {
                                             "type": "string",
@@ -30903,7 +30903,7 @@
                                             "enum": [
                                               "go_to_stage"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "stageId": {
                                             "type": "string",
@@ -30924,7 +30924,7 @@
                                             "enum": [
                                               "run_script"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "code": {
                                             "type": "string",
@@ -30945,7 +30945,7 @@
                                             "enum": [
                                               "modify_user_input"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "template": {
                                             "type": "string",
@@ -30966,7 +30966,7 @@
                                             "enum": [
                                               "modify_variables"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "modifications": {
                                             "type": "array",
@@ -31015,7 +31015,7 @@
                                             "enum": [
                                               "modify_user_profile"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "modifications": {
                                             "type": "array",
@@ -31064,7 +31064,7 @@
                                             "enum": [
                                               "call_tool"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "toolId": {
                                             "type": "string",
@@ -31093,7 +31093,7 @@
                                             "enum": [
                                               "call_webhook"
                                             ],
-                                            "description": "Operation type"
+                                            "description": "Effect type"
                                           },
                                           "url": {
                                             "type": "string",
@@ -31137,7 +31137,7 @@
                                       }
                                     ]
                                   },
-                                  "description": "Array of operations to execute when action is triggered"
+                                  "description": "Array of effects to execute when action is triggered"
                                 },
                                 "template": {
                                   "type": "string",
@@ -31165,7 +31165,7 @@
                                 "name",
                                 "triggerOnUserInput",
                                 "triggerOnClientCommand",
-                                "operations"
+                                "effects"
                               ]
                             },
                             "description": "Action definitions"
@@ -31569,7 +31569,7 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
-                          "operations": {
+                          "effects": {
                             "type": "array",
                             "items": {
                               "oneOf": [
@@ -31581,7 +31581,7 @@
                                       "enum": [
                                         "end_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -31600,7 +31600,7 @@
                                       "enum": [
                                         "abort_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -31619,7 +31619,7 @@
                                       "enum": [
                                         "go_to_stage"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "stageId": {
                                       "type": "string",
@@ -31640,7 +31640,7 @@
                                       "enum": [
                                         "run_script"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "code": {
                                       "type": "string",
@@ -31661,7 +31661,7 @@
                                       "enum": [
                                         "modify_user_input"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "template": {
                                       "type": "string",
@@ -31682,7 +31682,7 @@
                                       "enum": [
                                         "modify_variables"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -31731,7 +31731,7 @@
                                       "enum": [
                                         "modify_user_profile"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -31780,7 +31780,7 @@
                                       "enum": [
                                         "call_tool"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "toolId": {
                                       "type": "string",
@@ -31809,7 +31809,7 @@
                                       "enum": [
                                         "call_webhook"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "url": {
                                       "type": "string",
@@ -31853,7 +31853,7 @@
                                 }
                               ]
                             },
-                            "description": "Array of operations to execute when action is triggered"
+                            "description": "Array of effects to execute when action is triggered"
                           },
                           "template": {
                             "type": "string",
@@ -31881,7 +31881,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
-                          "operations"
+                          "effects"
                         ]
                       },
                       "description": "Action definitions"
@@ -32248,7 +32248,7 @@
                           "nullable": true,
                           "description": "Optional classifier ID to override the stage classifier for this action"
                         },
-                        "operations": {
+                        "effects": {
                           "type": "array",
                           "items": {
                             "oneOf": [
@@ -32260,7 +32260,7 @@
                                     "enum": [
                                       "end_conversation"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "reason": {
                                     "type": "string",
@@ -32279,7 +32279,7 @@
                                     "enum": [
                                       "abort_conversation"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "reason": {
                                     "type": "string",
@@ -32298,7 +32298,7 @@
                                     "enum": [
                                       "go_to_stage"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "stageId": {
                                     "type": "string",
@@ -32319,7 +32319,7 @@
                                     "enum": [
                                       "run_script"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "code": {
                                     "type": "string",
@@ -32340,7 +32340,7 @@
                                     "enum": [
                                       "modify_user_input"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "template": {
                                     "type": "string",
@@ -32361,7 +32361,7 @@
                                     "enum": [
                                       "modify_variables"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "modifications": {
                                     "type": "array",
@@ -32410,7 +32410,7 @@
                                     "enum": [
                                       "modify_user_profile"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "modifications": {
                                     "type": "array",
@@ -32459,7 +32459,7 @@
                                     "enum": [
                                       "call_tool"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "toolId": {
                                     "type": "string",
@@ -32488,7 +32488,7 @@
                                     "enum": [
                                       "call_webhook"
                                     ],
-                                    "description": "Operation type"
+                                    "description": "Effect type"
                                   },
                                   "url": {
                                     "type": "string",
@@ -32532,7 +32532,7 @@
                               }
                             ]
                           },
-                          "description": "Array of operations to execute when action is triggered"
+                          "description": "Array of effects to execute when action is triggered"
                         },
                         "template": {
                           "type": "string",
@@ -32560,7 +32560,7 @@
                         "name",
                         "triggerOnUserInput",
                         "triggerOnClientCommand",
-                        "operations"
+                        "effects"
                       ]
                     },
                     "description": "Updated action definitions"
@@ -32880,7 +32880,7 @@
                             "nullable": true,
                             "description": "Optional classifier ID to override the stage classifier for this action"
                           },
-                          "operations": {
+                          "effects": {
                             "type": "array",
                             "items": {
                               "oneOf": [
@@ -32892,7 +32892,7 @@
                                       "enum": [
                                         "end_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -32911,7 +32911,7 @@
                                       "enum": [
                                         "abort_conversation"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "reason": {
                                       "type": "string",
@@ -32930,7 +32930,7 @@
                                       "enum": [
                                         "go_to_stage"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "stageId": {
                                       "type": "string",
@@ -32951,7 +32951,7 @@
                                       "enum": [
                                         "run_script"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "code": {
                                       "type": "string",
@@ -32972,7 +32972,7 @@
                                       "enum": [
                                         "modify_user_input"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "template": {
                                       "type": "string",
@@ -32993,7 +32993,7 @@
                                       "enum": [
                                         "modify_variables"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -33042,7 +33042,7 @@
                                       "enum": [
                                         "modify_user_profile"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "modifications": {
                                       "type": "array",
@@ -33091,7 +33091,7 @@
                                       "enum": [
                                         "call_tool"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "toolId": {
                                       "type": "string",
@@ -33120,7 +33120,7 @@
                                       "enum": [
                                         "call_webhook"
                                       ],
-                                      "description": "Operation type"
+                                      "description": "Effect type"
                                     },
                                     "url": {
                                       "type": "string",
@@ -33164,7 +33164,7 @@
                                 }
                               ]
                             },
-                            "description": "Array of operations to execute when action is triggered"
+                            "description": "Array of effects to execute when action is triggered"
                           },
                           "template": {
                             "type": "string",
@@ -33192,7 +33192,7 @@
                           "name",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
-                          "operations"
+                          "effects"
                         ]
                       },
                       "description": "Action definitions"

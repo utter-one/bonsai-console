@@ -267,7 +267,7 @@ export type LLMSettings = OpenAILLMSettings | AnthropicLLMSettings | GeminiLLMSe
 
 // Stage
 // Stage Actions
-export interface StageActionOperation {
+export interface StageActionEffect {
   type: 'end_conversation' | 'abort_conversation' | 'go_to_stage' | 'run_script' | 'modify_user_input' | 'modify_variables' | 'modify_user_profile' | 'call_tool' | 'call_webhook'
   reason?: string
   stageId?: string
@@ -295,7 +295,7 @@ export interface StageAction {
   triggerOnClientCommand: boolean
   classificationTrigger?: string | null
   overrideClassifierId?: string | null
-  operations: StageActionOperation[]
+  effects: StageActionEffect[]
   template?: string | null
   examples?: string[] | null
   metadata?: Record<string, any> | null
@@ -627,7 +627,7 @@ export interface GlobalActionResponse {
   name: string
   condition: string | null
   promptTrigger: string
-  operations: any[]
+  effects: any[]
   template: string | null
   examples: string[] | null
   metadata: Record<string, any> | null
@@ -642,7 +642,7 @@ export interface CreateGlobalActionRequest {
   name: string
   condition?: string | null
   promptTrigger: string
-  operations?: any[]
+  effects?: any[]
   template?: string | null
   examples?: string[]
   metadata?: Record<string, any>
@@ -652,7 +652,7 @@ export interface UpdateGlobalActionRequest {
   name?: string
   condition?: string | null
   promptTrigger?: string
-  operations?: any[]
+  effects?: any[]
   template?: string | null
   examples?: string[]
   metadata?: Record<string, any>

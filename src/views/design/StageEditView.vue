@@ -598,7 +598,7 @@ const actionsList = computed(() => {
                       <th class="table-header-cell">Name</th>
                       <th class="table-header-cell">Triggers</th>
                       <th class="table-header-cell">Classification</th>
-                      <th class="table-header-cell">Operations</th>
+                      <th class="table-header-cell">Effects</th>
                       <th class="table-header-cell-right">Actions</th>
                     </tr>
                   </thead>
@@ -623,7 +623,7 @@ const actionsList = computed(() => {
                         <span v-else class="text-gray-400 text-sm">—</span>
                       </td>
                       <td class="table-cell-muted">
-                        {{ action.operations?.length || 0 }}
+                        {{ action.effects?.length || 0 }}
                       </td>
                       <td class="table-cell-right">
                         <div class="flex-end">

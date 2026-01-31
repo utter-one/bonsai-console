@@ -34,15 +34,15 @@
           </button>
           <button
             type="button"
-            @click="activeTab = 'operations'"
+            @click="activeTab = 'effects'"
             :class="[
-              activeTab === 'operations'
+              activeTab === 'effects'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
             ]"
           >
-            Operations
+            Effects
           </button>
           <button
             v-if="operations.goToStage.enabled"
@@ -285,12 +285,12 @@
           </div>
         </div>
 
-        <!-- Operations Tab -->
-        <div v-show="activeTab === 'operations'" class="space-y-6">
+        <!-- Effects Tab -->
+        <div v-show="activeTab === 'effects'" class="space-y-6">
           <div class="form-group">
-            <label class="form-label">Select Operations</label>
+            <label class="form-label">Select Effects</label>
             <p class="form-help-text mb-3">
-              Choose which operations this action should perform. Complex operations will add dedicated tabs for configuration.
+              Choose which effects this action should perform. Complex effects will add dedicated tabs for configuration.
             </p>
             <div class="space-y-3">
               <label class="flex items-start cursor-pointer">
@@ -760,7 +760,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClassifiersStore } from '@/stores'
-import type { StageAction, StageActionOperation } from '@/types/api'
+import type { StageAction, StageActionEffect } from '@/types/api'
 
 const route = useRoute()
 const classifiersStore = useClassifiersStore()
@@ -780,7 +780,7 @@ const emit = defineEmits<{
   save: [data: { key: string; action: StageAction }]
 }>()
 
-type TabType = 'basic' | 'trigger' | 'operations' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
+type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
 
 const activeTab = ref<TabType>('basic')
 
@@ -890,10 +890,10 @@ watch(() => props.action, (action) => {
       examples: action.examples?.join('\n') || ''
     }
 
-    // Load operations from action
-    const ops = action.operations || []
+    // Load effects from action
+    const effects = action.effects || []
     
-    // Reset all operations
+    // Reset all effects
     operations.value.endConversation.enabled = false
     operations.value.abortConversation.enabled = false
     operations.value.goToStage.enabled = false
@@ -904,52 +904,52 @@ watch(() => props.action, (action) => {
     operations.value.callTool.enabled = false
     operations.value.callWebhook.enabled = false
 
-    // Load existing operations
-    ops.forEach(op => {
-      switch (op.type) {
+    // Load existing effects
+    effects.forEach(effect => {
+      switch (effect.type) {
         case 'end_conversation':
           operations.value.endConversation.enabled = true
-          operations.value.endConversation.reason = op.reason || ''
+          operations.value.endConversation.reason = effect.reason || ''
           break
         case 'abort_conversation':
           operations.value.abortConversation.enabled = true
-          operations.value.abortConversation.reason = op.reason || ''
+          operations.value.abortConversation.reason = effect.reason || ''
           break
         case 'go_to_stage':
           operations.value.goToStage.enabled = true
-          operations.value.goToStage.stageId = op.stageId || ''
-          operations.value.goToStage.reason = op.reason || ''
+          operations.value.goToStage.stageId = effect.stageId || ''
+          operations.value.goToStage.reason = effect.reason || ''
           break
         case 'run_script':
           operations.value.runScript.enabled = true
-          operations.value.runScript.code = op.code || ''
-          operations.value.runScript.resultKey = op.resultKey || ''
+          operations.value.runScript.code = effect.code || ''
+          operations.value.runScript.resultKey = effect.resultKey || ''
           break
         case 'modify_user_input':
           operations.value.modifyUserInput.enabled = true
-          operations.value.modifyUserInput.template = op.template || ''
+          operations.value.modifyUserInput.template = effect.template || ''
           break
         case 'modify_variables':
           operations.value.modifyVariables.enabled = true
-          operations.value.modifyVariables.modifications = op.modifications || []
+          operations.value.modifyVariables.modifications = effect.modifications || []
           break
         case 'modify_user_profile':
           operations.value.modifyUserProfile.enabled = true
-          operations.value.modifyUserProfile.modifications = op.modifications || []
+          operations.value.modifyUserProfile.modifications = effect.modifications || []
           break
         case 'call_tool':
           operations.value.callTool.enabled = true
-          operations.value.callTool.toolId = op.toolId || ''
-          operations.value.callTool.parameters = op.parameters ? JSON.stringify(op.parameters, null, 2) : ''
-          operations.value.callTool.resultKey = op.resultKey || ''
+          operations.value.callTool.toolId = effect.toolId || ''
+          operations.value.callTool.parameters = effect.parameters ? JSON.stringify(effect.parameters, null, 2) : ''
+          operations.value.callTool.resultKey = effect.resultKey || ''
           break
         case 'call_webhook':
           operations.value.callWebhook.enabled = true
-          operations.value.callWebhook.url = op.url || ''
-          operations.value.callWebhook.method = op.method || 'POST'
-          operations.value.callWebhook.headers = op.headers ? JSON.stringify(op.headers, null, 2) : ''
-          operations.value.callWebhook.body = op.body ? JSON.stringify(op.body, null, 2) : ''
-          operations.value.callWebhook.resultKey = op.resultKey || ''
+          operations.value.callWebhook.url = effect.url || ''
+          operations.value.callWebhook.method = effect.method || 'POST'
+          operations.value.callWebhook.headers = effect.headers ? JSON.stringify(effect.headers, null, 2) : ''
+          operations.value.callWebhook.body = effect.body ? JSON.stringify(effect.body, null, 2) : ''
+          operations.value.callWebhook.resultKey = effect.resultKey || ''
           break
       }
     })
@@ -967,7 +967,7 @@ watch(() => props.action, (action) => {
       examples: ''
     }
 
-    // Reset all operations
+    // Reset all effects
     operations.value.endConversation = { enabled: false, reason: '' }
     operations.value.abortConversation = { enabled: false, reason: '' }
     operations.value.goToStage = { enabled: false, stageId: '', reason: '' }
@@ -985,25 +985,25 @@ function handleSubmit() {
     return
   }
 
-  // Build operations array from enabled operations
-  const operationsArray: StageActionOperation[] = []
+  // Build effects array from enabled effects
+  const effectsArray: StageActionEffect[] = []
 
   if (operations.value.endConversation.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'end_conversation',
       reason: operations.value.endConversation.reason || undefined
     })
   }
 
   if (operations.value.abortConversation.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'abort_conversation',
       reason: operations.value.abortConversation.reason || undefined
     })
   }
 
   if (operations.value.goToStage.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'go_to_stage',
       stageId: operations.value.goToStage.stageId,
       reason: operations.value.goToStage.reason || undefined
@@ -1011,7 +1011,7 @@ function handleSubmit() {
   }
 
   if (operations.value.runScript.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'run_script',
       code: operations.value.runScript.code,
       resultKey: operations.value.runScript.resultKey || undefined
@@ -1019,21 +1019,21 @@ function handleSubmit() {
   }
 
   if (operations.value.modifyUserInput.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'modify_user_input',
       template: operations.value.modifyUserInput.template
     })
   }
 
   if (operations.value.modifyVariables.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'modify_variables',
       modifications: operations.value.modifyVariables.modifications
     })
   }
 
   if (operations.value.modifyUserProfile.enabled) {
-    operationsArray.push({
+    effectsArray.push({
       type: 'modify_user_profile',
       modifications: operations.value.modifyUserProfile.modifications
     })
@@ -1048,7 +1048,7 @@ function handleSubmit() {
       return
     }
 
-    operationsArray.push({
+    effectsArray.push({
       type: 'call_tool',
       toolId: operations.value.callTool.toolId,
       parameters: params,
@@ -1074,7 +1074,7 @@ function handleSubmit() {
       return
     }
 
-    operationsArray.push({
+    effectsArray.push({
       type: 'call_webhook',
       url: operations.value.callWebhook.url,
       method: operations.value.callWebhook.method,
@@ -1091,7 +1091,7 @@ function handleSubmit() {
     triggerOnClientCommand: form.value.triggerOnClientCommand,
     classificationTrigger: form.value.classificationTrigger || null,
     overrideClassifierId: form.value.overrideClassifierId || null,
-    operations: operationsArray,
+    effects: effectsArray,
     template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,
     metadata: props.action?.metadata || null
