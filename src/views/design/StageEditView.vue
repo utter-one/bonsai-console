@@ -2,10 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
-import type { StageResponse, LLMSettings } from '@/types/api'
+import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
+import type { StageResponse, LLMSettings, StageAction } from '@/types/api'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import StageActionModal from '@/components/modals/StageActionModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,8 +19,11 @@ const transformersStore = useContextTransformersStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'actions' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
+const showActionModal = ref(false)
+const editingActionKey = ref<string | null>(null)
+const editingAction = ref<StageAction | null>(null)
 const form = ref({
   id: '',
   name: '',
@@ -34,7 +38,7 @@ const form = ref({
   useGlobalActions: false,
   globalActions: [] as string[],
   variables: {},
-  actions: {},
+  actions: {} as Record<string, StageAction>,
   classifierIds: [] as string[],
   transformerIds: [] as string[],
   metadata: {}
@@ -203,6 +207,44 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LLMSettings
   showLLMSettingsModal.value = false
 }
+
+// Action management functions
+function addAction() {
+  editingActionKey.value = null
+  editingAction.value = null
+  showActionModal.value = true
+}
+
+function editAction(key: string) {
+  const action = form.value.actions[key]
+  if (!action) return
+  
+  editingActionKey.value = key
+  editingAction.value = action
+  showActionModal.value = true
+}
+
+function deleteAction(key: string) {
+  if (confirm(`Are you sure you want to delete action "${key}"?`)) {
+    const newActions = { ...form.value.actions }
+    delete newActions[key]
+    form.value.actions = newActions
+  }
+}
+
+function handleActionSave(data: { key: string; action: StageAction }) {
+  const newActions = { ...form.value.actions }
+  newActions[data.key] = data.action
+  form.value.actions = newActions
+  showActionModal.value = false
+}
+
+const actionsList = computed(() => {
+  return Object.entries(form.value.actions).map(([key, action]) => ({
+    key,
+    ...action
+  }))
+})
 </script>
 
 <template>
@@ -254,6 +296,13 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
           type="button"
         >
           Features & Integrations
+        </button>
+        <button
+          @click="activeTab = 'actions'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'actions' }]"
+          type="button"
+        >
+          Actions
         </button>
         <button
           v-if="isEditMode"
@@ -514,6 +563,95 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
             </div>
           </div>
 
+          <!-- Actions Tab -->
+          <div v-show="activeTab === 'actions'" class="tab-content">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Stage Actions</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  Define custom actions that can be triggered during conversations
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="addAction"
+                class="btn-primary"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Action
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="actionsList.length === 0" class="text-center py-12">
+              <p class="text-gray-500 mb-4">No actions defined yet</p>
+            </div>
+
+            <!-- Actions Table -->
+            <div v-else class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Key</th>
+                      <th class="table-header-cell">Name</th>
+                      <th class="table-header-cell">Triggers</th>
+                      <th class="table-header-cell">Classification</th>
+                      <th class="table-header-cell">Effects</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="action in actionsList" :key="action.key" class="table-row">
+                      <td class="table-cell">
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">{{ action.key }}</code>
+                      </td>
+                      <td class="table-clickable-cell" @click="editAction(action.key)">
+                        {{ action.name }}
+                      </td>
+                      <td class="table-cell">
+                        <div class="flex flex-col gap-1">
+                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs">User Input</span>
+                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs">Client Command</span>
+                        </div>
+                      </td>
+                      <td class="table-cell">
+                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                          {{ action.classificationTrigger }}
+                        </code>
+                        <span v-else class="text-gray-400 text-sm">—</span>
+                      </td>
+                      <td class="table-cell-muted">
+                        {{ action.effects?.length || 0 }}
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex-end">
+                          <button
+                            type="button"
+                            @click="editAction(action.key)"
+                            class="btn-secondary btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            @click="deleteAction(action.key)"
+                            class="btn-danger btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- Metadata Tab -->
           <MetadataTab
             v-if="isEditMode && currentStage"
@@ -532,6 +670,15 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
       :providers="llmProviders"
       @close="showLLMSettingsModal = false"
       @save="handleLLMSettingsSave"
+    />
+
+    <!-- Stage Action Modal -->
+    <StageActionModal
+      v-if="showActionModal"
+      :action="editingAction"
+      :editing-key="editingActionKey"
+      @close="showActionModal = false"
+      @save="handleActionSave"
     />
   </div>
 </template>

@@ -266,6 +266,49 @@ export interface GeminiLLMSettings {
 export type LLMSettings = OpenAILLMSettings | AnthropicLLMSettings | GeminiLLMSettings
 
 // Stage
+// Stage Actions
+export interface StageActionEffect {
+  type: 'end_conversation' | 'abort_conversation' | 'go_to_stage' | 'run_script' | 'modify_user_input' | 'modify_variables' | 'modify_user_profile' | 'call_tool' | 'call_webhook'
+  reason?: string
+  stageId?: string
+  code?: string
+  template?: string
+  modifications?: Array<{
+    variableName?: string
+    fieldName?: string
+    operation: 'set' | 'reset' | 'add' | 'remove'
+    value?: any
+  }>
+  toolId?: string
+  parameters?: Record<string, any>
+  url?: string
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  headers?: Record<string, string>
+  body?: any
+  resultKey?: string
+}
+
+export interface ActionParameter {
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | 'boolean[]'
+  description: string
+  required: boolean
+}
+
+export interface StageAction {
+  name: string
+  condition?: string | null
+  triggerOnUserInput: boolean
+  triggerOnClientCommand: boolean
+  classificationTrigger?: string | null
+  overrideClassifierId?: string | null
+  parameters?: ActionParameter[]
+  effects: StageActionEffect[]
+  template?: string | null
+  examples?: string[] | null
+  metadata?: Record<string, any> | null
+}
+
 export interface StageResponse {
   id: string
   projectId: string
@@ -281,7 +324,7 @@ export interface StageResponse {
   useGlobalActions: boolean
   globalActions: string[]
   variables: Record<string, any>
-  actions: Record<string, any>
+  actions: Record<string, StageAction>
   classifierIds: string[]
   transformerIds: string[]
   metadata: Record<string, any> | null
@@ -305,7 +348,7 @@ export interface CreateStageRequest {
   useGlobalActions?: boolean
   globalActions?: string[]
   variables?: Record<string, any>
-  actions?: Record<string, any>
+  actions?: Record<string, StageAction>
   classifierIds?: string[]
   transformerIds?: string[]
   metadata?: Record<string, any>
@@ -324,7 +367,7 @@ export interface UpdateStageRequest {
   useGlobalActions?: boolean
   globalActions?: string[]
   variables?: Record<string, any>
-  actions?: Record<string, any>
+  actions?: Record<string, StageAction>
   classifierIds?: string[]
   transformerIds?: string[]
   metadata?: Record<string, any>
@@ -592,7 +635,7 @@ export interface GlobalActionResponse {
   name: string
   condition: string | null
   promptTrigger: string
-  operations: any[]
+  effects: any[]
   template: string | null
   examples: string[] | null
   metadata: Record<string, any> | null
@@ -607,7 +650,7 @@ export interface CreateGlobalActionRequest {
   name: string
   condition?: string | null
   promptTrigger: string
-  operations?: any[]
+  effects?: any[]
   template?: string | null
   examples?: string[]
   metadata?: Record<string, any>
@@ -617,7 +660,7 @@ export interface UpdateGlobalActionRequest {
   name?: string
   condition?: string | null
   promptTrigger?: string
-  operations?: any[]
+  effects?: any[]
   template?: string | null
   examples?: string[]
   metadata?: Record<string, any>

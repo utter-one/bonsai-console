@@ -136,7 +136,7 @@ function clearSearch() {
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Prompt Trigger</th>
                 <th class="table-header-cell">Condition</th>
-                <th class="table-header-cell">Operations</th>
+                <th class="table-header-cell">Effects</th>
                 <th class="table-header-cell">Examples</th>
                 <th class="table-header-cell">Updated</th>
                 <th class="table-header-cell-right">Actions</th>
@@ -153,8 +153,8 @@ function clearSearch() {
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell">
-                  <span v-if="action.operations?.length" class="badge-info">
-                    {{ action.operations.length }} operation(s)
+                  <span v-if="action.effects?.length" class="badge-info">
+                    {{ action.effects.length }} effect(s)
                   </span>
                   <span v-else class="text-gray-400">—</span>
                 </td>

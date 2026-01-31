@@ -6,7 +6,6 @@ import { usePagination } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/types/api'
 import PaginationControls from '@/components/PaginationControls.vue'
-import DesignSectionLayout from '@/layouts/DesignSectionLayout.vue'
 
 const route = useRoute()
 const router = useRouter()
