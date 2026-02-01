@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Hammer, Search, X, Plus } from 'lucide-vue-next'
@@ -8,6 +8,7 @@ import type { ToolResponse } from '@/types/api'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
+const router = useRouter()
 const toolsStore = useToolsStore()
 
 // UI State
@@ -79,6 +80,14 @@ function formatDate(date: string | null) {
 function clearSearch() {
   searchQuery.value = ''
 }
+
+function createTool() {
+  router.push({ name: 'design.tools.create', params: { projectId: projectId.value } })
+}
+
+function editTool(tool: ToolResponse) {
+  router.push({ name: 'design.tools.edit', params: { projectId: projectId.value, toolId: tool.id } })
+}
 </script>
 
 <template>
@@ -89,7 +98,7 @@ function clearSearch() {
           <h1 class="page-title">Tools</h1>
           <p class="page-subtitle">Configure available tools for this project</p>
         </div>
-        <button class="btn-primary" disabled>
+        <button @click="createTool" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Tool
         </button>
@@ -144,7 +153,7 @@ function clearSearch() {
             </thead>
             <tbody class="table-body">
               <tr v-for="tool in filteredTools" :key="tool.id" class="table-row">
-                <td class="table-cell-medium">{{ tool.name }}</td>
+                <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}</td>
                 <td class="table-cell">
                   <span v-if="tool.description" class="truncate max-w-xs">{{ tool.description }}</span>
                   <span v-else class="text-gray-400">—</span>
@@ -167,7 +176,7 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(tool.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button class="btn-secondary btn-sm" disabled>
+                    <button @click="editTool(tool)" class="btn-secondary btn-sm">
                       Edit
                     </button>
                     <button @click="deleteTool(tool)" class="btn-danger btn-sm">
