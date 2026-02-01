@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore } from '@/stores'
-import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse, LLMSettings } from '@/types/api'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -285,16 +285,52 @@ const metadataFields = computed(() => {
               <label class="form-label">
                 Input Type <span class="required">*</span>
               </label>
-              <input
-                v-model="form.inputType"
-                type="text"
-                required
-                placeholder="string"
-                class="form-input"
-                :disabled="isLoading"
-              />
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  @click="form.inputType = 'text'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.inputType === 'text'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <FileText class="w-5 h-5" />
+                  Text
+                </button>
+                <button
+                  type="button"
+                  @click="form.inputType = 'image'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.inputType === 'image'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <ImageIcon class="w-5 h-5" />
+                  Image
+                </button>
+                <button
+                  type="button"
+                  @click="form.inputType = 'multi-modal'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.inputType === 'multi-modal'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <Layers class="w-5 h-5" />
+                  Multi-modal
+                </button>
+              </div>
               <p class="form-help-text">
-                The expected data type for tool input (e.g., string, json, object)
+                The expected data type for tool input
               </p>
             </div>
 
@@ -302,16 +338,52 @@ const metadataFields = computed(() => {
               <label class="form-label">
                 Output Type <span class="required">*</span>
               </label>
-              <input
-                v-model="form.outputType"
-                type="text"
-                required
-                placeholder="string"
-                class="form-input"
-                :disabled="isLoading"
-              />
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  @click="form.outputType = 'text'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.outputType === 'text'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <FileText class="w-5 h-5" />
+                  Text
+                </button>
+                <button
+                  type="button"
+                  @click="form.outputType = 'image'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.outputType === 'image'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <ImageIcon class="w-5 h-5" />
+                  Image
+                </button>
+                <button
+                  type="button"
+                  @click="form.outputType = 'multi-modal'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.outputType === 'multi-modal'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <Layers class="w-5 h-5" />
+                  Multi-modal
+                </button>
+              </div>
               <p class="form-help-text">
-                The expected data type for tool output (e.g., string, json, object)
+                The expected data type for tool output
               </p>
             </div>
           </div>

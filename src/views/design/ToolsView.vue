@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { Hammer, Search, X, Plus } from 'lucide-vue-next'
+import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse } from '@/types/api'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -88,6 +88,24 @@ function createTool() {
 function editTool(tool: ToolResponse) {
   router.push({ name: 'design.tools.edit', params: { projectId: projectId.value, toolId: tool.id } })
 }
+
+function getTypeIcon(type: string) {
+  switch (type) {
+    case 'text': return FileText
+    case 'image': return ImageIcon
+    case 'multi-modal': return Layers
+    default: return FileText
+  }
+}
+
+function getTypeLabel(type: string) {
+  switch (type) {
+    case 'text': return 'Text'
+    case 'image': return 'Image'
+    case 'multi-modal': return 'Multi-modal'
+    default: return type
+  }
+}
 </script>
 
 <template>
@@ -162,9 +180,12 @@ function editTool(tool: ToolResponse) {
                   <span class="truncate max-w-md">{{ tool.prompt }}</span>
                 </td>
                 <td class="table-cell">
-                  <div class="flex flex-col gap-1">
-                    <span class="badge-info text-xs">In: {{ tool.inputType }}</span>
-                    <span class="badge-success text-xs">Out: {{ tool.outputType }}</span>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                      <component :is="getTypeIcon(tool.inputType)" class="w-4 h-4" />
+                      <span>⇒</span>
+                      <component :is="getTypeIcon(tool.outputType)" class="w-4 h-4" />
+                    </div>
                   </div>
                 </td>
                 <td class="table-cell-mono">

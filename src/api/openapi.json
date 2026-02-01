@@ -7882,13 +7882,21 @@
           },
           "inputType": {
             "type": "string",
-            "minLength": 1,
-            "description": "Expected input format (\"text\", \"json\", \"image\")"
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
+            "description": "Expected input format for the tool"
           },
           "outputType": {
             "type": "string",
-            "minLength": 1,
-            "description": "Expected output format (\"text\", \"json\", \"image\")"
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
+            "description": "Expected output format from the tool"
           },
           "metadata": {
             "type": "object",
@@ -8104,12 +8112,20 @@
           },
           "inputType": {
             "type": "string",
-            "minLength": 1,
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
             "description": "Updated input format"
           },
           "outputType": {
             "type": "string",
-            "minLength": 1,
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
             "description": "Updated output format"
           },
           "metadata": {
@@ -8346,10 +8362,20 @@
           },
           "inputType": {
             "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
             "description": "Expected input format"
           },
           "outputType": {
             "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
             "description": "Expected output format"
           },
           "metadata": {
@@ -8601,10 +8627,20 @@
                 },
                 "inputType": {
                   "type": "string",
+                  "enum": [
+                    "text",
+                    "image",
+                    "multi-modal"
+                  ],
                   "description": "Expected input format"
                 },
                 "outputType": {
                   "type": "string",
+                  "enum": [
+                    "text",
+                    "image",
+                    "multi-modal"
+                  ],
                   "description": "Expected output format"
                 },
                 "metadata": {
@@ -33995,13 +34031,21 @@
                   },
                   "inputType": {
                     "type": "string",
-                    "minLength": 1,
-                    "description": "Expected input format (\"text\", \"json\", \"image\")"
+                    "enum": [
+                      "text",
+                      "image",
+                      "multi-modal"
+                    ],
+                    "description": "Expected input format for the tool"
                   },
                   "outputType": {
                     "type": "string",
-                    "minLength": 1,
-                    "description": "Expected output format (\"text\", \"json\", \"image\")"
+                    "enum": [
+                      "text",
+                      "image",
+                      "multi-modal"
+                    ],
+                    "description": "Expected output format from the tool"
                   },
                   "metadata": {
                     "type": "object",
@@ -34231,10 +34275,20 @@
                     },
                     "inputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected input format"
                     },
                     "outputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected output format"
                     },
                     "metadata": {
@@ -34692,10 +34746,20 @@
                           },
                           "inputType": {
                             "type": "string",
+                            "enum": [
+                              "text",
+                              "image",
+                              "multi-modal"
+                            ],
                             "description": "Expected input format"
                           },
                           "outputType": {
                             "type": "string",
+                            "enum": [
+                              "text",
+                              "image",
+                              "multi-modal"
+                            ],
                             "description": "Expected output format"
                           },
                           "metadata": {
@@ -35003,10 +35067,20 @@
                     },
                     "inputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected input format"
                     },
                     "outputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected output format"
                     },
                     "metadata": {
@@ -35277,12 +35351,20 @@
                   },
                   "inputType": {
                     "type": "string",
-                    "minLength": 1,
+                    "enum": [
+                      "text",
+                      "image",
+                      "multi-modal"
+                    ],
                     "description": "Updated input format"
                   },
                   "outputType": {
                     "type": "string",
-                    "minLength": 1,
+                    "enum": [
+                      "text",
+                      "image",
+                      "multi-modal"
+                    ],
                     "description": "Updated output format"
                   },
                   "metadata": {
@@ -35514,10 +35596,20 @@
                     },
                     "inputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected input format"
                     },
                     "outputType": {
                       "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
                       "description": "Expected output format"
                     },
                     "metadata": {
