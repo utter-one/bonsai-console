@@ -86,6 +86,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/ToolsView.vue'),
           },
           {
+            path: 'projects/:projectId/tools/new',
+            name: 'design.tools.create',
+            component: () => import('@/views/design/ToolEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/tools/:toolId',
+            name: 'design.tools.edit',
+            component: () => import('@/views/design/ToolEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/global-actions',
             name: 'design.globalActions',
             component: () => import('@/views/design/GlobalActionsView.vue'),

@@ -460,6 +460,7 @@ export interface ToolResponse {
   description: string | null
   prompt: string
   llmProviderId: string | null
+  llmSettings: LLMSettings | null
   inputType: string
   outputType: string
   metadata: Record<string, any> | null
@@ -475,6 +476,7 @@ export interface CreateToolRequest {
   description?: string | null
   prompt: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings | null
   inputType: string
   outputType: string
   metadata?: Record<string, any>
@@ -485,6 +487,7 @@ export interface UpdateToolRequest {
   description?: string | null
   prompt?: string
   llmProviderId?: string | null
+  llmSettings?: LLMSettings | null
   inputType?: string
   outputType?: string
   metadata?: Record<string, any>
