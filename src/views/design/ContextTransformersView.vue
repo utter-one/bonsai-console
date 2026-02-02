@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useContextTransformersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Wrench, Search, X, Plus } from 'lucide-vue-next'
@@ -8,6 +8,7 @@ import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
+const router = useRouter()
 const transformersStore = useContextTransformersStore()
 
 // UI State
@@ -87,6 +88,17 @@ function formatDate(date: string | null) {
 function clearSearch() {
   searchQuery.value = ''
 }
+
+function createTransformer() {
+  router.push({ name: 'design.contextTransformers.create', params: { projectId: projectId.value } })
+}
+
+function editTransformer(transformer: ContextTransformerResponse) {
+  router.push({ 
+    name: 'design.contextTransformers.edit', 
+    params: { projectId: projectId.value, transformerId: transformer.id } 
+  })
+}
 </script>
 
 <template>
@@ -97,7 +109,7 @@ function clearSearch() {
           <h1 class="page-title">Context Transformers</h1>
           <p class="page-subtitle">Manage context transformation logic for this project</p>
         </div>
-        <button class="btn-primary" disabled>
+        <button @click="createTransformer" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Transformer
         </button>
@@ -177,7 +189,7 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(transformer.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button class="btn-secondary btn-sm" disabled>
+                    <button @click="editTransformer(transformer)" class="btn-secondary btn-sm">
                       Edit
                     </button>
                     <button @click="deleteTransformer(transformer)" class="btn-danger btn-sm">
