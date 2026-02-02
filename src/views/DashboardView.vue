@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore, useUsersStore, useConversationsStore, useStagesStore, usePersonasStore, useProvidersStore } from '@/stores'
-import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, RefreshCw, Drama, CloudCog, Cloud } from 'lucide-vue-next'
+import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, RefreshCw, Drama, CloudCog } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
