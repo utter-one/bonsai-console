@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useGlobalActionsStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Zap, Search, X, Plus } from 'lucide-vue-next'
-import type { GlobalActionResponse } from '@/types/api'
+import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
@@ -30,7 +30,7 @@ const filteredGlobalActions = computed(() => {
   const query = debouncedSearchQuery.value.toLowerCase()
   return globalActionsStore.items.filter(action => 
     action.name.toLowerCase().includes(query) ||
-    action.promptTrigger.toLowerCase().includes(query) ||
+    action.classificationTrigger?.toLowerCase().includes(query) ||
     action.condition?.toLowerCase().includes(query)
   )
 })
@@ -146,7 +146,7 @@ function clearSearch() {
               <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
                 <td class="table-cell-medium">{{ action.name }}</td>
                 <td class="table-cell">
-                  <span class="truncate max-w-xs">{{ action.promptTrigger }}</span>
+                  <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
                 </td>
                 <td class="table-cell">
                   <span v-if="action.condition" class="truncate max-w-xs text-gray-600">{{ action.condition }}</span>

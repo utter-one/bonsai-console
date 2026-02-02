@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
-import type { PersonaResponse } from '@/types/api'
+import type { PersonaResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()

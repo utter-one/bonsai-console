@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
-import type { StageResponse, LLMSettings, StageAction } from '@/types/api'
+import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
@@ -31,7 +31,7 @@ const form = ref({
   personaId: '',
   prompt: '',
   llmProviderId: '',
-  llmSettings: null as LLMSettings | null,
+  llmSettings: null as LlmSettings | null,
   enterBehavior: 'generate_response' as 'generate_response' | 'await_user_input',
   useKnowledge: false,
   knowledgeSections: [] as string[],
@@ -204,7 +204,7 @@ const metadataFields = computed(() => {
 })
 
 function handleLLMSettingsSave(settings: Record<string, any>) {
-  form.value.llmSettings = settings as LLMSettings
+  form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
 }
 

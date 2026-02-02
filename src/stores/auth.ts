@@ -3,15 +3,10 @@ import { ref, computed } from 'vue'
 import apiClient from '@/api/client'
 import type {
   LoginRequest,
-  LoginResponse,
-  RefreshTokenResponse,
   AdminResponse,
-  SetupStatusResponse,
   InitialAdminSetupRequest,
-  InitialAdminSetupResponse,
-  ProfileResponse,
   UpdateProfileRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
@@ -27,8 +22,8 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', credentials)
-      const { accessToken: token, refreshToken: refresh } = response.data
+      const response = await apiClient.authLoginCreate(credentials)
+      const { accessToken: token, refreshToken: refresh } = response
 
       accessToken.value = token
       refreshToken.value = refresh
@@ -39,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Fetch full profile after login
       await fetchProfile()
 
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Login failed'
       throw err
@@ -54,15 +49,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
+      const response = await apiClient.authRefreshCreate({
         refreshToken: refreshToken.value,
       })
-      const { accessToken: token } = response.data
+      const { accessToken: token } = response
 
       accessToken.value = token
       localStorage.setItem('accessToken', token)
 
-      return response.data
+      return response
     } catch (err) {
       logout()
       throw err
@@ -80,9 +75,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function checkSetupStatus() {
     try {
-      const response = await apiClient.get<SetupStatusResponse>('/setup/status')
-      console.log('Setup status response:', response.data)
-      return response.data
+      const response = await apiClient.setupStatusList()
+      console.log('Setup status response:', response)
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to check setup status'
       throw err
@@ -94,8 +89,8 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<InitialAdminSetupResponse>('/setup/initial-admin', data)
-      const { admin, accessToken: token, refreshToken: refresh } = response.data
+      const response = await apiClient.setupInitialAdminCreate(data)
+      const { admin, accessToken: token, refreshToken: refresh } = response
 
       accessToken.value = token
       refreshToken.value = refresh
@@ -111,7 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('accessToken', token)
       localStorage.setItem('refreshToken', refresh)
 
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to create initial admin'
       throw err
@@ -125,9 +120,9 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<ProfileResponse>('/profile')
-      currentAdmin.value = response.data
-      return response.data
+      const response = await apiClient.profileList()
+      currentAdmin.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch profile'
       throw err
@@ -154,19 +149,19 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<ProfileResponse>('/profile', data)
+      const response = await apiClient.profileCreate(data)
       
       // Update current admin with new profile data
       if (currentAdmin.value) {
         currentAdmin.value = {
           ...currentAdmin.value,
-          name: response.data.name,
-          version: response.data.version,
-          updatedAt: response.data.updatedAt,
+          name: response.name,
+          version: response.version,
+          updatedAt: response.updatedAt,
         }
       }
 
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Profile update failed'
       throw err

@@ -1,16 +1,18 @@
 import { ref } from 'vue'
 import apiClient from '@/api/client'
-import type { PaginationParams, PaginatedResponse } from '@/types/api'
+import type { ListParams } from '@/api/types'
 
 export interface ResourceStoreOptions {
   endpoint: string
   resourceName: string
+  // Resource name in camelCase for the generated API methods (e.g., 'admins', 'projects')
+  apiResourceName: string
 }
 
 export function createResourceStore<T extends { id: string }, CreateRequest, UpdateRequest>(
   options: ResourceStoreOptions
 ) {
-  const { endpoint, resourceName } = options
+  const { resourceName, apiResourceName } = options
 
   const items = ref<T[]>([])
   const currentItem = ref<T | null>(null)
@@ -22,19 +24,30 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     limit: null as number | null,
   })
 
-  async function fetchAll(params?: PaginationParams) {
+  // Helper to get the API methods dynamically
+  const apiMethods = {
+    list: (apiClient as any)[`${apiResourceName}List`],
+    detail: (apiClient as any)[`${apiResourceName}Detail`],
+    create: (apiClient as any)[`${apiResourceName}Create`],
+    update: (apiClient as any)[`${apiResourceName}Update`],
+    delete: (apiClient as any)[`${apiResourceName}Delete`],
+    auditLogs: (apiClient as any)[`${apiResourceName}AuditLogsList`],
+  }
+
+  async function fetchAll(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<T>>(endpoint, { params })
-      items.value = response.data.items
+      const response = await apiMethods.list({ ...params })
+      const data = response as { items: T[]; total: number; offset: number; limit: number | null }
+      items.value = data.items
       pagination.value = {
-        total: response.data.total,
-        offset: response.data.offset,
-        limit: response.data.limit,
+        total: data.total,
+        offset: data.offset,
+        limit: data.limit,
       }
-      return response.data
+      return data
     } catch (err: any) {
       error.value = err.response?.data?.message || `Failed to fetch ${resourceName}s`
       throw err
@@ -48,9 +61,9 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     error.value = null
 
     try {
-      const response = await apiClient.get<T>(`${endpoint}/${id}`)
-      currentItem.value = response.data
-      return response.data
+      const response = await apiMethods.detail(id)
+      currentItem.value = response as T
+      return response as T
     } catch (err: any) {
       error.value = err.response?.data?.message || `Failed to fetch ${resourceName}`
       throw err
@@ -64,9 +77,10 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     error.value = null
 
     try {
-      const response = await apiClient.post<T>(endpoint, data)
-      items.value = [response.data, ...items.value] as any
-      return response.data
+      const response = await apiMethods.create(data)
+      const result = response as T
+      items.value = ([result, ...items.value] as any)
+      return result
     } catch (err: any) {
       error.value = err.response?.data?.message || `Failed to create ${resourceName}`
       throw err
@@ -80,17 +94,18 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     error.value = null
 
     try {
-      const response = await apiClient.put<T>(`${endpoint}/${id}`, data)
+      const response = await apiMethods.update(id, data)
+      const result = response as T
       const index = items.value.findIndex((item: any) => item.id === id)
       if (index !== -1) {
         items.value = items.value.map((item: any) => 
-          item.id === id ? response.data : item
+          item.id === id ? result : item
         )
       }
       if (currentItem.value && (currentItem.value as any).id === id) {
-        currentItem.value = response.data
+        currentItem.value = result
       }
-      return response.data
+      return result
     } catch (err: any) {
       error.value = err.response?.data?.message || `Failed to update ${resourceName}`
       throw err
@@ -104,11 +119,11 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     error.value = null
 
     try {
-      // For resources that require optimistic locking, send version in body
+      // For resources that require optimistic locking, pass version in the delete request
       if (version !== undefined) {
-        await apiClient.delete(`${endpoint}/${id}`, { data: { version } })
+        await apiMethods.delete(id, { data: { version } })
       } else {
-        await apiClient.delete(`${endpoint}/${id}`)
+        await apiMethods.delete(id)
       }
       items.value = items.value.filter((item: any) => item.id !== id)
       if (currentItem.value && (currentItem.value as any).id === id) {
@@ -122,10 +137,10 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     }
   }
 
-  async function fetchAuditLogs(id: string, params?: PaginationParams) {
+  async function fetchAuditLogs(id: string, params?: ListParams) {
     try {
-      const response = await apiClient.get(`${endpoint}/${id}/audit-logs`, { params })
-      return response.data
+      const response = await apiMethods.auditLogs(id, { ...params })
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || `Failed to fetch audit logs`
       throw err

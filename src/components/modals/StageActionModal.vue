@@ -850,7 +850,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClassifiersStore } from '@/stores'
-import type { StageAction, StageActionEffect } from '@/types/api'
+import type { StageAction, Effect } from '@/api/types'
 
 const route = useRoute()
 const classifiersStore = useClassifiersStore()
@@ -1030,13 +1030,15 @@ watch(() => props.action, (action) => {
           break
         case 'go_to_stage':
           operations.value.goToStage.enabled = true
-          operations.value.goToStage.stageId = effect.stageId || ''
-          operations.value.goToStage.reason = effect.reason || ''
+          if ('stageId' in effect) {
+            operations.value.goToStage.stageId = effect.stageId || ''
+          }
           break
         case 'run_script':
           operations.value.runScript.enabled = true
-          operations.value.runScript.code = effect.code || ''
-          operations.value.runScript.resultKey = effect.resultKey || ''
+          if ('code' in effect) {
+            operations.value.runScript.code = effect.code || ''
+          }
           break
         case 'modify_user_input':
           operations.value.modifyUserInput.enabled = true
@@ -1052,9 +1054,12 @@ watch(() => props.action, (action) => {
           break
         case 'call_tool':
           operations.value.callTool.enabled = true
-          operations.value.callTool.toolId = effect.toolId || ''
-          operations.value.callTool.parameters = effect.parameters ? JSON.stringify(effect.parameters, null, 2) : ''
-          operations.value.callTool.resultKey = effect.resultKey || ''
+          if ('toolId' in effect) {
+            operations.value.callTool.toolId = effect.toolId || ''
+          }
+          if ('parameters' in effect) {
+            operations.value.callTool.parameters = effect.parameters ? JSON.stringify(effect.parameters, null, 2) : ''
+          }
           break
         case 'call_webhook':
           operations.value.callWebhook.enabled = true
@@ -1102,7 +1107,7 @@ function handleSubmit() {
   }
 
   // Build effects array from enabled effects
-  const effectsArray: StageActionEffect[] = []
+  const effectsArray: Effect[] = []
 
   if (operations.value.endConversation.enabled) {
     effectsArray.push({
@@ -1121,16 +1126,14 @@ function handleSubmit() {
   if (operations.value.goToStage.enabled) {
     effectsArray.push({
       type: 'go_to_stage',
-      stageId: operations.value.goToStage.stageId,
-      reason: operations.value.goToStage.reason || undefined
+      stageId: operations.value.goToStage.stageId
     })
   }
 
   if (operations.value.runScript.enabled) {
     effectsArray.push({
       type: 'run_script',
-      code: operations.value.runScript.code,
-      resultKey: operations.value.runScript.resultKey || undefined
+      code: operations.value.runScript.code
     })
   }
 
@@ -1142,23 +1145,37 @@ function handleSubmit() {
   }
 
   if (operations.value.modifyVariables.enabled) {
+    const mods = operations.value.modifyVariables.modifications
+      .filter(m => m.variableName)
+      .map(m => ({
+        variableName: m.variableName!,
+        operation: m.operation,
+        value: m.value
+      }))
     effectsArray.push({
       type: 'modify_variables',
-      modifications: operations.value.modifyVariables.modifications
+      modifications: mods
     })
   }
 
   if (operations.value.modifyUserProfile.enabled) {
+    const mods = operations.value.modifyUserProfile.modifications
+      .filter(m => m.fieldName)
+      .map(m => ({
+        fieldName: m.fieldName!,
+        operation: m.operation,
+        value: m.value
+      }))
     effectsArray.push({
       type: 'modify_user_profile',
-      modifications: operations.value.modifyUserProfile.modifications
+      modifications: mods
     })
   }
 
   if (operations.value.callTool.enabled) {
-    let params: Record<string, any> | undefined
+    let params: Record<string, any>
     try {
-      params = operations.value.callTool.parameters ? JSON.parse(operations.value.callTool.parameters) : undefined
+      params = operations.value.callTool.parameters ? JSON.parse(operations.value.callTool.parameters) : {}
     } catch (e) {
       alert('Invalid JSON in tool parameters')
       return
@@ -1167,8 +1184,7 @@ function handleSubmit() {
     effectsArray.push({
       type: 'call_tool',
       toolId: operations.value.callTool.toolId,
-      parameters: params,
-      resultKey: operations.value.callTool.resultKey || undefined
+      parameters: params
     })
   }
 
@@ -1196,7 +1212,7 @@ function handleSubmit() {
       method: operations.value.callWebhook.method,
       headers,
       body,
-      resultKey: operations.value.callWebhook.resultKey || undefined
+      resultKey: operations.value.callWebhook.resultKey
     })
   }
 
@@ -1207,11 +1223,11 @@ function handleSubmit() {
     triggerOnClientCommand: form.value.triggerOnClientCommand,
     classificationTrigger: form.value.classificationTrigger || null,
     overrideClassifierId: form.value.overrideClassifierId || null,
-    parameters: parameters.value.length > 0 ? parameters.value : undefined,
+    parameters: parameters.value.length > 0 ? parameters.value : [],
     effects: effectsArray,
     template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,
-    metadata: props.action?.metadata || null
+    metadata: props.action?.metadata || undefined
   }
 
   emit('save', { key: form.value.key, action })

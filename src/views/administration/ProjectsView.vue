@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import ProjectEditModal from '@/components/modals/ProjectEditModal.vue'
-import type { ProjectResponse } from '@/types/api'
+import type { ProjectResponse } from '@/api/types'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()

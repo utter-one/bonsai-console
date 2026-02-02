@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
-import type { ToolResponse } from '@/types/api'
+import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
@@ -95,15 +95,6 @@ function getTypeIcon(type: string) {
     case 'image': return ImageIcon
     case 'multi-modal': return Layers
     default: return FileText
-  }
-}
-
-function getTypeLabel(type: string) {
-  switch (type) {
-    case 'text': return 'Text'
-    case 'image': return 'Image'
-    case 'multi-modal': return 'Multi-modal'
-    default: return type
   }
 }
 </script>

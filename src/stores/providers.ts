@@ -4,12 +4,13 @@ import type {
   ProviderResponse,
   CreateProviderRequest,
   UpdateProviderRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useProvidersStore = defineStore('providers', () => {
   const store = createResourceStore<ProviderResponse, CreateProviderRequest, UpdateProviderRequest>({
     endpoint: '/providers',
     resourceName: 'provider',
+    apiResourceName: 'providers',
   })
 
   return store

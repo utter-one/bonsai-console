@@ -5,7 +5,7 @@ import { useProvidersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Bot, Search, X, Plus } from 'lucide-vue-next'
-import type { ProviderResponse } from '@/types/api'
+import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()

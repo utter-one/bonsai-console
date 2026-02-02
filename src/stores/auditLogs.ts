@@ -3,9 +3,8 @@ import { ref } from 'vue'
 import apiClient from '@/api/client'
 import type {
   AuditLogResponse,
-  PaginationParams,
-  PaginatedResponse,
-} from '@/types/api'
+  ListParams,
+} from '@/api/types'
 
 export const useAuditLogsStore = defineStore('auditLogs', () => {
   const logs = ref<AuditLogResponse[]>([])
@@ -17,22 +16,19 @@ export const useAuditLogsStore = defineStore('auditLogs', () => {
     limit: null as number | null,
   })
 
-  async function fetchAll(params?: PaginationParams) {
+  async function fetchAll(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<AuditLogResponse>>(
-        '/audit-logs',
-        { params }
-      )
-      logs.value = response.data.items
+      const response = await apiClient.auditLogsList(params)
+      logs.value = response.items
       pagination.value = {
-        total: response.data.total,
-        offset: response.data.offset,
-        limit: response.data.limit,
+        total: response.total,
+        offset: response.offset,
+        limit: response.limit,
       }
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch audit logs'
       throw err

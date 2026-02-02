@@ -4,12 +4,13 @@ import type {
   PersonaResponse,
   CreatePersonaRequest,
   UpdatePersonaRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const usePersonasStore = defineStore('personas', () => {
   const store = createResourceStore<PersonaResponse, CreatePersonaRequest, UpdatePersonaRequest>({
     endpoint: '/personas',
     resourceName: 'persona',
+    apiResourceName: 'personas',
   })
 
   return store

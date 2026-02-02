@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useContextTransformersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Wrench, Search, X, Plus } from 'lucide-vue-next'
-import type { ContextTransformerResponse } from '@/types/api'
+import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()

@@ -4,7 +4,7 @@ import type {
   ContextTransformerResponse,
   CreateContextTransformerRequest,
   UpdateContextTransformerRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useContextTransformersStore = defineStore('contextTransformers', () => {
   const store = createResourceStore<
@@ -14,6 +14,7 @@ export const useContextTransformersStore = defineStore('contextTransformers', ()
   >({
     endpoint: '/context-transformers',
     resourceName: 'context transformer',
+    apiResourceName: 'contextTransformers',
   })
 
   return store

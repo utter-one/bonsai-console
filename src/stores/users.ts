@@ -4,12 +4,13 @@ import type {
   UserResponse,
   CreateUserRequest,
   UpdateUserRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useUsersStore = defineStore('users', () => {
   const store = createResourceStore<UserResponse, CreateUserRequest, UpdateUserRequest>({
     endpoint: '/users',
     resourceName: 'user',
+    apiResourceName: 'users',
   })
 
   return store
