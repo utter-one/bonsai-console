@@ -97,15 +97,6 @@ function getTypeIcon(type: string) {
     default: return FileText
   }
 }
-
-function getTypeLabel(type: string) {
-  switch (type) {
-    case 'text': return 'Text'
-    case 'image': return 'Image'
-    case 'multi-modal': return 'Multi-modal'
-    default: return type
-  }
-}
 </script>
 
 <template>
