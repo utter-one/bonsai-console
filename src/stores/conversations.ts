@@ -4,10 +4,9 @@ import apiClient from '@/api/client'
 import type {
   ConversationResponse,
   ConversationEventResponse,
-  PaginationParams,
-  PaginatedResponse,
+  ListParams,
   AuditLogResponse,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useConversationsStore = defineStore('conversations', () => {
   const conversations = ref<ConversationResponse[]>([])
@@ -24,22 +23,19 @@ export const useConversationsStore = defineStore('conversations', () => {
     limit: null as number | null,
   })
 
-  async function fetchAll(params?: PaginationParams) {
+  async function fetchAll(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<ConversationResponse>>(
-        '/conversations',
-        { params }
-      )
-      conversations.value = response.data.items
+      const response = await apiClient.conversationsList(params)
+      conversations.value = response.items
       pagination.value = {
-        total: response.data.total,
-        offset: response.data.offset,
-        limit: response.data.limit,
+        total: response.total,
+        offset: response.offset,
+        limit: response.limit,
       }
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch conversations'
       throw err
@@ -53,9 +49,9 @@ export const useConversationsStore = defineStore('conversations', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<ConversationResponse>(`/conversations/${id}`)
-      currentConversation.value = response.data
-      return response.data
+      const response = await apiClient.conversationsDetail(id)
+      currentConversation.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch conversation'
       throw err
@@ -69,7 +65,7 @@ export const useConversationsStore = defineStore('conversations', () => {
     error.value = null
 
     try {
-      await apiClient.delete(`/conversations/${id}`)
+      await apiClient.conversationsDelete(id)
       conversations.value = conversations.value.filter((c) => c.id !== id)
       if (currentConversation.value?.id === id) {
         currentConversation.value = null
@@ -82,17 +78,14 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchEvents(conversationId: string, params?: PaginationParams) {
+  async function fetchEvents(conversationId: string, params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<ConversationEventResponse>>(
-        `/conversations/${conversationId}/events`,
-        { params }
-      )
-      events.value = response.data.items
-      return response.data
+      const response = await apiClient.conversationsEventsList(conversationId, params) as any
+      events.value = response.items
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch conversation events'
       throw err
@@ -106,11 +99,9 @@ export const useConversationsStore = defineStore('conversations', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<ConversationEventResponse>(
-        `/conversations/${conversationId}/events/${eventId}`
-      )
-      currentEvent.value = response.data
-      return response.data
+      const response = await apiClient.conversationsEventsDetail(conversationId, eventId) as any
+      currentEvent.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch conversation event'
       throw err
@@ -119,17 +110,15 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchAuditLogs(conversationId: string, params?: PaginationParams) {
+  async function fetchAuditLogs(conversationId: string, _params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<AuditLogResponse>>(
-        `/conversations/${conversationId}/audit-logs`,
-        { params }
-      )
-      auditLogs.value = response.data.items
-      return response.data
+      // Note: The generated API doesn't properly support pagination params for audit logs yet
+      const response = await apiClient.conversationsAuditLogsList(conversationId) as any
+      auditLogs.value = response.items || []
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch audit logs'
       throw err

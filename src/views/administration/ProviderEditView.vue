@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
-import type { ProviderResponse } from '@/types/api'
+import type { ProviderResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 

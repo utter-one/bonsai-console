@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore, useProvidersStore } from '@/stores'
 import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
-import type { ClassifierResponse, LLMSettings } from '@/types/api'
+import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
@@ -23,7 +23,7 @@ const form = ref({
   description: '',
   prompt: '',
   llmProviderId: '',
-  llmSettings: null as LLMSettings | null,
+  llmSettings: null as LlmSettings | null,
   metadata: {}
 })
 
@@ -146,7 +146,7 @@ const metadataFields = computed(() => {
 })
 
 function handleLLMSettingsSave(settings: Record<string, any>) {
-  form.value.llmSettings = settings as LLMSettings
+  form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
 }
 </script>

@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { formatRoleName } from '@/composables'
-import type { AdminResponse } from '@/types/api'
+import type { AdminResponse } from '@/api/types'
 
 const props = defineProps<{
   admin: AdminResponse | null

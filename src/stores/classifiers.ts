@@ -4,12 +4,13 @@ import type {
   ClassifierResponse,
   CreateClassifierRequest,
   UpdateClassifierRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useClassifiersStore = defineStore('classifiers', () => {
   const store = createResourceStore<ClassifierResponse, CreateClassifierRequest, UpdateClassifierRequest>({
     endpoint: '/classifiers',
     resourceName: 'classifier',
+    apiResourceName: 'classifiers',
   })
 
   return store

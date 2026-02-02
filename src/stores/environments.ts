@@ -4,12 +4,13 @@ import type {
   EnvironmentResponse,
   CreateEnvironmentRequest,
   UpdateEnvironmentRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useEnvironmentsStore = defineStore('environments', () => {
   const store = createResourceStore<EnvironmentResponse, CreateEnvironmentRequest, UpdateEnvironmentRequest>({
     endpoint: '/environments',
     resourceName: 'environment',
+    apiResourceName: 'environments',
   })
 
   return store

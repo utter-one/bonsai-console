@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { RefreshCw, Search, X } from 'lucide-vue-next'
-import type { StageResponse } from '@/types/api'
+import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()

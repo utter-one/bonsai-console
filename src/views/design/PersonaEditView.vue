@@ -3,7 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
-import type { PersonaResponse, NoSpeechMarker, VoiceConfig } from '@/types/api'
+import type { PersonaResponse, VoiceConfig } from '@/api/types'
+
+type NoSpeechMarker = NonNullable<VoiceConfig['noSpeechMarkers']>[number]
 import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()

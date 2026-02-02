@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
 import { formatRoleName, usePagination } from '@/composables'
 import { User, Search, X } from 'lucide-vue-next'
-import type { AdminResponse } from '@/types/api'
+import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 

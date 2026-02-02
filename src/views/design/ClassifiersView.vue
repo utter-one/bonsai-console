@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Target, Search, X, Plus } from 'lucide-vue-next'
-import type { ClassifierResponse } from '@/types/api'
+import type { ClassifierResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()

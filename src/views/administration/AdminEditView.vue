@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
 import { formatRoleName } from '@/composables'
 import { ArrowLeft, Save } from 'lucide-vue-next'
-import type { AdminResponse } from '@/types/api'
+import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 
@@ -113,7 +113,7 @@ async function handleSubmit() {
       await adminsStore.create({
         id: form.value.id,
         name: form.value.name,
-        roles: form.value.roles,
+        roles: form.value.roles as ("super_admin" | "content_manager" | "support" | "developer" | "viewer")[],
         password: form.value.password,
         metadata: form.value.metadata
       })

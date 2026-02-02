@@ -4,12 +4,13 @@ import type {
   GlobalActionResponse,
   CreateGlobalActionRequest,
   UpdateGlobalActionRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useGlobalActionsStore = defineStore('globalActions', () => {
   const store = createResourceStore<GlobalActionResponse, CreateGlobalActionRequest, UpdateGlobalActionRequest>({
     endpoint: '/global-actions',
     resourceName: 'global action',
+    apiResourceName: 'globalActions',
   })
 
   return store

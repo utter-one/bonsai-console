@@ -162,11 +162,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
-import type { ProviderResponse, LLMSettings } from '@/types/api'
+import type { ProviderResponse, LlmSettings } from '@/api/types'
 import { useProviderCatalogStore } from '@/stores'
 
 const props = defineProps<{
-  settings: LLMSettings | null
+  settings: LlmSettings | null
   selectedProviderId: string | null
   providers: ProviderResponse[]
 }>()

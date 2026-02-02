@@ -2,14 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiClient from '@/api/client'
 import type {
-  ProviderCatalogResponse,
-  AsrProviderInfo,
-  TtsProviderInfo,
-  LlmProviderInfo,
-} from '@/types/api'
+  ProviderCatalog,
+} from '@/api/types'
 
 export const useProviderCatalogStore = defineStore('providerCatalog', () => {
-  const catalog = ref<ProviderCatalogResponse | null>(null)
+  const catalog = ref<ProviderCatalog | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -18,9 +15,9 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<ProviderCatalogResponse>('/provider-catalog')
-      catalog.value = response.data
-      return response.data
+      const response = await apiClient.providerCatalogList()
+      catalog.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch provider catalog'
       throw err
@@ -34,11 +31,11 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<{ providers: AsrProviderInfo[] }>('/provider-catalog/asr')
+      const response = await apiClient.providerCatalogAsrList()
       if (catalog.value) {
-        catalog.value.asr = response.data.providers
+        catalog.value.asr = response.providers
       }
-      return response.data.providers
+      return response.providers
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch ASR providers'
       throw err
@@ -52,13 +49,13 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<{ providers: TtsProviderInfo[] }>('/provider-catalog/tts')
+      const response = await apiClient.providerCatalogTtsList()
       if (!catalog.value) {
-        catalog.value = { asr: [], tts: response.data.providers, llm: [] }
+        catalog.value = { asr: [], tts: response.providers, llm: [] }
       } else {
-        catalog.value.tts = response.data.providers
+        catalog.value.tts = response.providers
       }
-      return response.data.providers
+      return response.providers
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch TTS providers'
       throw err
@@ -72,11 +69,11 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<{ providers: LlmProviderInfo[] }>('/provider-catalog/llm')
+      const response = await apiClient.providerCatalogLlmList()
       if (catalog.value) {
-        catalog.value.llm = response.data.providers
+        catalog.value.llm = response.providers
       }
-      return response.data.providers
+      return response.providers
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch LLM providers'
       throw err
@@ -90,10 +87,8 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<AsrProviderInfo | TtsProviderInfo | LlmProviderInfo>(
-        `/provider-catalog/${type}/${apiType}`
-      )
-      return response.data
+      const response = await apiClient.providerCatalogDetail(type, apiType)
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch provider details'
       throw err

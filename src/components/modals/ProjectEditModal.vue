@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { ProjectResponse } from '@/types/api'
+import type { ProjectResponse } from '@/api/types'
 
 const props = defineProps<{
   project: ProjectResponse | null

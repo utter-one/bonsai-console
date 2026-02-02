@@ -4,12 +4,13 @@ import type {
   AdminResponse,
   CreateAdminRequest,
   UpdateAdminRequest,
-} from '@/types/api'
+} from '@/api/types'
 
 export const useAdminsStore = defineStore('admins', () => {
   const store = createResourceStore<AdminResponse, CreateAdminRequest, UpdateAdminRequest>({
     endpoint: '/admins',
     resourceName: 'admin',
+    apiResourceName: 'admins',
   })
 
   return store

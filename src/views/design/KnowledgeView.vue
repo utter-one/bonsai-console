@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useKnowledgeStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { BookOpen, Search, X, Plus, ChevronDown, ChevronRight } from 'lucide-vue-next'
-import type { KnowledgeCategoryResponse } from '@/types/api'
+import type { KnowledgeCategoryResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()

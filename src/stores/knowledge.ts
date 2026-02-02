@@ -11,9 +11,8 @@ import type {
   KnowledgeItemResponse,
   CreateKnowledgeItemRequest,
   UpdateKnowledgeItemRequest,
-  PaginationParams,
-  PaginatedResponse,
-} from '@/types/api'
+  ListParams,
+} from '@/api/types'
 
 export const useKnowledgeStore = defineStore('knowledge', () => {
   // Sections
@@ -32,17 +31,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const error = ref<string | null>(null)
 
   // Section Methods
-  async function fetchSections(params?: PaginationParams) {
+  async function fetchSections(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<KnowledgeSectionResponse>>(
-        '/knowledge/sections',
-        { params }
-      )
-      sections.value = response.data.items
-      return response.data
+      const response = await apiClient.knowledgeSectionsList(params)
+      sections.value = response.items
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge sections'
       throw err
@@ -56,9 +52,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<KnowledgeSectionResponse>(`/knowledge/sections/${id}`)
-      currentSection.value = response.data
-      return response.data
+      const response = await apiClient.knowledgeSectionsDetail(id)
+      currentSection.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge section'
       throw err
@@ -72,9 +68,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<KnowledgeSectionResponse>('/knowledge/sections', data)
-      sections.value.unshift(response.data)
-      return response.data
+      const response = await apiClient.knowledgeSectionsCreate(data)
+      sections.value.unshift(response)
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to create knowledge section'
       throw err
@@ -88,12 +84,12 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.put<KnowledgeSectionResponse>(`/knowledge/sections/${id}`, data)
+      const response = await apiClient.knowledgeSectionsUpdate(id, data)
       const index = sections.value.findIndex((s) => s.id === id)
       if (index !== -1) {
-        sections.value[index] = response.data
+        sections.value[index] = response
       }
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to update knowledge section'
       throw err
@@ -107,7 +103,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      await apiClient.delete(`/knowledge/sections/${id}`)
+      await apiClient.knowledgeSectionsDelete(id)
       sections.value = sections.value.filter((s) => s.id !== id)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete knowledge section'
@@ -118,17 +114,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   // Category Methods
-  async function fetchCategories(params?: PaginationParams) {
+  async function fetchCategories(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<KnowledgeCategoryResponse>>(
-        '/knowledge/categories',
-        { params }
-      )
-      categories.value = response.data.items
-      return response.data
+      const response = await apiClient.knowledgeCategoriesList(params)
+      categories.value = response.items
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge categories'
       throw err
@@ -142,9 +135,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<KnowledgeCategoryResponse>(`/knowledge/categories/${id}`)
-      currentCategory.value = response.data
-      return response.data
+      const response = await apiClient.knowledgeCategoriesDetail(id)
+      currentCategory.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge category'
       throw err
@@ -158,9 +151,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<KnowledgeCategoryResponse>('/knowledge/categories', data)
-      categories.value.unshift(response.data)
-      return response.data
+      const response = await apiClient.knowledgeCategoriesCreate(data)
+      categories.value.unshift(response)
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to create knowledge category'
       throw err
@@ -174,12 +167,12 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.put<KnowledgeCategoryResponse>(`/knowledge/categories/${id}`, data)
+      const response = await apiClient.knowledgeCategoriesUpdate(id, data)
       const index = categories.value.findIndex((c) => c.id === id)
       if (index !== -1) {
-        categories.value[index] = response.data
+        categories.value[index] = response
       }
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to update knowledge category'
       throw err
@@ -188,12 +181,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function deleteCategory(id: string) {
+  async function deleteCategory(id: string, version?: number) {
     isLoading.value = true
     error.value = null
 
     try {
-      await apiClient.delete(`/knowledge/categories/${id}`)
+      const category = categories.value.find((c) => c.id === id)
+      const ver = version ?? category?.version ?? 1
+      await apiClient.knowledgeCategoriesDelete(id, { version: ver })
       categories.value = categories.value.filter((c) => c.id !== id)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete knowledge category'
@@ -204,17 +199,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   // Item Methods
-  async function fetchItems(params?: PaginationParams) {
+  async function fetchItems(params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<KnowledgeItemResponse>>(
-        '/knowledge/items',
-        { params }
-      )
-      items.value = response.data.items
-      return response.data
+      const response = await apiClient.knowledgeItemsList(params)
+      items.value = response.items
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge items'
       throw err
@@ -228,9 +220,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get<KnowledgeItemResponse>(`/knowledge/items/${id}`)
-      currentItem.value = response.data
-      return response.data
+      const response = await apiClient.knowledgeItemsDetail(id)
+      currentItem.value = response
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge item'
       throw err
@@ -239,17 +231,15 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function fetchItemsByCategory(categoryId: string, params?: PaginationParams) {
+  async function fetchItemsByCategory(categoryId: string, _params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.get<PaginatedResponse<KnowledgeItemResponse>>(
-        `/knowledge/categories/${categoryId}/items`,
-        { params }
-      )
-      items.value = response.data.items
-      return response.data
+      // Note: The generated API returns array directly for this endpoint
+      const response = await apiClient.knowledgeCategoriesItemsList(categoryId) as any
+      items.value = Array.isArray(response) ? response : response.items || []
+      return Array.isArray(response) ? { items: response, total: response.length, offset: 0, limit: null } : response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch knowledge items by category'
       throw err
@@ -263,9 +253,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.post<KnowledgeItemResponse>('/knowledge/items', data)
-      items.value.unshift(response.data)
-      return response.data
+      const response = await apiClient.knowledgeItemsCreate(data)
+      items.value.unshift(response)
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to create knowledge item'
       throw err
@@ -279,12 +269,12 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
 
     try {
-      const response = await apiClient.put<KnowledgeItemResponse>(`/knowledge/items/${id}`, data)
+      const response = await apiClient.knowledgeItemsUpdate(id, data)
       const index = items.value.findIndex((i) => i.id === id)
       if (index !== -1) {
-        items.value[index] = response.data
+        items.value[index] = response
       }
-      return response.data
+      return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to update knowledge item'
       throw err
@@ -293,12 +283,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function deleteItem(id: string) {
+  async function deleteItem(id: string, version?: number) {
     isLoading.value = true
     error.value = null
 
     try {
-      await apiClient.delete(`/knowledge/items/${id}`)
+      const item = items.value.find((i) => i.id === id)
+      const ver = version ?? item?.version ?? 1
+      await apiClient.knowledgeItemsDelete(id, { version: ver })
       items.value = items.value.filter((i) => i.id !== id)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete knowledge item'

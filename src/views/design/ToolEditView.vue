@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore } from '@/stores'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
-import type { ToolResponse, LLMSettings } from '@/types/api'
+import type { ToolResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
@@ -23,7 +23,7 @@ const form = ref({
   description: '',
   prompt: '',
   llmProviderId: '',
-  llmSettings: null as LLMSettings | null,
+  llmSettings: null as LlmSettings | null,
   inputType: '',
   outputType: '',
   metadata: {}
@@ -92,8 +92,8 @@ async function handleSubmit() {
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
         llmSettings: form.value.llmSettings || undefined,
-        inputType: form.value.inputType,
-        outputType: form.value.outputType,
+        inputType: form.value.inputType as "text" | "image" | "multi-modal" | undefined,
+        outputType: form.value.outputType as "text" | "image" | "multi-modal" | undefined,
         metadata: form.value.metadata
       })
     } else {
@@ -136,7 +136,7 @@ function goBack() {
 }
 
 function handleLLMSettingsSave(settings: Record<string, any>) {
-  form.value.llmSettings = settings as LLMSettings
+  form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
 }
 
