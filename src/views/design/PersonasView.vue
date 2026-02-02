@@ -153,7 +153,6 @@ function clearSearch() {
           <thead class="table-header">
             <tr>
               <th class="table-header-cell">Name</th>
-              <th class="table-header-cell">Voice Provider</th>
               <th class="table-header-cell">Updated</th>
               <th class="table-header-cell-right">Actions</th>
             </tr>
@@ -163,12 +162,6 @@ function clearSearch() {
               <td class="table-clickable-cell"
                 @click="editPersona(persona)">
                 {{ persona.name }}
-              </td>
-              <td class="table-cell-mono">
-                <span v-if="persona.ttsProviderId" class="badge-secondary">
-                  {{ persona.ttsProviderId }}
-                </span>
-                <span v-else class="text-gray-400">—</span>
               </td>
               <td class="table-cell-muted">{{ formatDate(persona.updatedAt) }}</td>
               <td class="table-cell-right">

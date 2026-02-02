@@ -155,8 +155,6 @@ function clearSearch() {
               <tr>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Description</th>
-                <th class="table-header-cell">Prompt Preview</th>
-                <th class="table-header-cell">LLM Provider</th>
                 <th class="table-header-cell">Updated</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
@@ -168,17 +166,8 @@ function clearSearch() {
                     {{ classifier.name }}
                 </td>
                 <td class="table-cell">
-                  <span v-if="classifier.description" class="truncate max-w-xs">{{ classifier.description }}</span>
+                  <span v-if="classifier.description" class="truncate">{{ classifier.description.length > 30 ? classifier.description.substring(0, 30) + '...' : classifier.description }}</span>
                   <span v-else class="text-gray-400">—</span>
-                </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-md">{{ classifier.prompt }}</span>
-                </td>
-                <td class="table-cell-mono">
-                  <span v-if="classifier.llmProviderId" class="badge-secondary">
-                    {{ classifier.llmProviderId }}
-                  </span>
-                  <span v-else class="text-gray-400">Default</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(classifier.updatedAt) }}</td>
                 <td class="table-cell-right">

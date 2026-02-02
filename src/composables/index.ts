@@ -5,8 +5,8 @@ import { useAuthStore } from '@/stores'
  * Format role name to human-readable format
  * e.g., 'super_admin' -> 'Super Admin'
  */
-export function formatRoleName(role: string): string {
-  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+export function formatEnum(enumId: string): string {
+  return enumId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
 /**

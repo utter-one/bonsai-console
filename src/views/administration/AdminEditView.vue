@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
-import { formatRoleName } from '@/composables'
+import { formatEnum } from '@/composables'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -158,7 +158,7 @@ const metadataFields = computed(() => {
     { label: 'Version', value: currentAdmin.value.version },
     { label: 'Created', value: currentAdmin.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: currentAdmin.value.updatedAt, format: 'date' as const },
-    { label: 'Current Roles', value: currentAdmin.value.roles.map(formatRoleName).join(', ') },
+    { label: 'Current Roles', value: currentAdmin.value.roles.map(formatEnum).join(', ') },
   ]
 })
 </script>
@@ -319,7 +319,7 @@ const metadataFields = computed(() => {
                   class="form-checkbox"
                 />
                 <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900">{{ formatRoleName(role) }}</span>
+                  <span class="text-sm font-medium text-gray-900">{{ formatEnum(role) }}</span>
                   <span class="text-xs text-gray-500">
                     {{ role === 'super_admin' ? 'Full system access (overrides all other roles)' : 
                        role === 'content_manager' ? 'Manage content and projects' :

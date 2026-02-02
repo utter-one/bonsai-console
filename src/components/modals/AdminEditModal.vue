@@ -43,7 +43,7 @@
                 @change="toggleRole(role)"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700">{{ formatRoleName(role) }}</span>
+              <span class="text-sm text-gray-700">{{ formatEnum(role) }}</span>
             </label>
           </div>
         </div>
@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { formatRoleName } from '@/composables'
+import { formatEnum } from '@/composables'
 import type { AdminResponse } from '@/api/types'
 
 const props = defineProps<{

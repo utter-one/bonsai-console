@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { formatEnum, usePagination } from '@/composables'
 import { RefreshCw, Search, X } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -161,7 +161,6 @@ function clearSearch() {
               <tr>
                 <th class="table-header-cell">Stage Name</th>
                 <th class="table-header-cell">Enter Behavior</th>
-                <th class="table-header-cell">Prompt Preview</th>
                 <th class="table-header-cell">Features</th>
                 <th class="table-header-cell">Updated</th>
                 <th class="table-header-cell-right">Actions</th>
@@ -174,10 +173,7 @@ function clearSearch() {
                   {{ stage.name }}
                 </td>
                 <td class="table-cell">
-                  <span class="badge-secondary">{{ stage.enterBehavior }}</span>
-                </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-md">{{ stage.prompt }}</span>
+                  <span class="badge-secondary">{{ formatEnum(stage.enterBehavior) }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex gap-1 flex-wrap">
