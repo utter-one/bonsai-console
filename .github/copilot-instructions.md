@@ -171,6 +171,7 @@ import { User, Search, X } from 'lucide-vue-next'
 3. Add routes to `router/index.ts`
 4. Create view in `views/{section}/{Entity}View.vue`
 5. Create edit modal in `components/modals/{Entity}EditModal.vue` if needed
+6. Watch projectId changes in list views to reload data
 
 ### Authentication
 - Tokens stored in `localStorage`: `accessToken`, `refreshToken`

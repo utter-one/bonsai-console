@@ -52,6 +52,15 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for projectId changes
+watch(projectId, () => {
+  searchQuery.value = ''
+  debouncedSearchQuery.value = ''
+  expandedCategories.value.clear()
+  pagination.reset()
+  loadCategories()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadCategories()

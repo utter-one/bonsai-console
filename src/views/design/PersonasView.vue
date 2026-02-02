@@ -44,6 +44,14 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for projectId changes
+watch(projectId, () => {
+  searchQuery.value = ''
+  debouncedSearchQuery.value = ''
+  pagination.reset()
+  loadPersonas()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadPersonas()
