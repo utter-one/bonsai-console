@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, RefreshCw, Target, Wrench, Hammer, Zap, BookOpen, FolderKanban } from 'lucide-vue-next'
+import { Drama, RefreshCw, Target, Wrench, Hammer, Zap, BookOpen, BriefcaseBusiness } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,7 +32,7 @@ function goToProjects() {
   
   <div v-else class="flex items-center justify-center min-h-[60vh]">
     <div class="text-center max-w-md">
-      <FolderKanban class="mx-auto mb-4 text-gray-400" :size="64" />
+      <BriefcaseBusiness class="mx-auto mb-4 text-gray-400" :size="64" />
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
       <p class="text-gray-600 mb-6">
         Please select a project from the dropdown in the top navigation bar to access Design features.

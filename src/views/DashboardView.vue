@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore, useUsersStore, useConversationsStore } from '@/stores'
-import { Rocket, Users, MessageCircle, Palette, Activity, Settings } from 'lucide-vue-next'
+import { BriefcaseBusiness, Users, MessageCircle, Activity, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -54,7 +54,7 @@ function navigateTo(route: string) {
       <!-- Stats Cards -->
       <div class="grid-stats mb-10">
         <div class="stat-card">
-          <Rocket class="text-primary-500 flex-shrink-0" :size="36" />
+          <BriefcaseBusiness class="text-primary-500 flex-shrink-0" :size="36" />
           <div class="flex-1">
             <div class="stat-value">{{ stats.projects }}</div>
             <div class="stat-label">Projects</div>
@@ -92,7 +92,7 @@ function navigateTo(route: string) {
         <h2 class="section-title mb-5">Quick Actions</h2>
         <div class="grid-cards-sm">
           <button @click="navigateTo('administration.projects')" class="action-card">
-            <Palette class="text-primary-500" :size="32" />
+            <BriefcaseBusiness class="text-primary-500" :size="32" />
             <span class="action-card-title">Projects</span>
             <span class="action-card-description">Create and configure AI projects</span>
           </button>

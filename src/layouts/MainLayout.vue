@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore } from '@/stores'
 import { formatEnum } from '@/composables'
-import { Home, Palette, Activity, Settings, Menu } from 'lucide-vue-next'
+import { Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import type { Component } from 'vue'
 
@@ -85,7 +85,7 @@ const formattedRoles = computed(() => {
 // Sections for navigation
 const sections: Array<{ id: string; label: string; icon: Component }> = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'design', label: 'Design', icon: Palette },
+  { id: 'design', label: 'Design', icon: DraftingCompass },
   { id: 'monitor', label: 'Monitor', icon: Activity },
   { id: 'administration', label: 'Administration', icon: Settings },
 ]
