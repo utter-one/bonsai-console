@@ -6,6 +6,10 @@ const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
 })
 
+// Track token refresh to prevent concurrent refresh requests
+let isRefreshing = false
+let refreshPromise: Promise<string> | null = null
+
 // Request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -26,12 +30,34 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    // Check if this is a 401 error and not already a retry
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
+      const refreshToken = localStorage.getItem('refreshToken')
+      
+      // If no refresh token, clear state and reject
+      if (!refreshToken) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        // Redirect to login page
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        return Promise.reject(error)
+      }
+
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        if (refreshToken) {
+        // If a refresh is already in progress, wait for it
+        if (isRefreshing && refreshPromise) {
+          const newAccessToken = await refreshPromise
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          return axiosInstance(originalRequest)
+        }
+
+        // Start a new refresh
+        isRefreshing = true
+        refreshPromise = (async () => {
           const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
           const response = await axios.post(`${baseURL}/api/auth/refresh`, {
             refreshToken,
@@ -39,14 +65,30 @@ axiosInstance.interceptors.response.use(
 
           const { accessToken } = response.data
           localStorage.setItem('accessToken', accessToken)
+          return accessToken
+        })()
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`
-          return axiosInstance(originalRequest)
-        }
+        const newAccessToken = await refreshPromise
+        
+        // Reset refresh state
+        isRefreshing = false
+        refreshPromise = null
+
+        // Retry the original request with the new token
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+        return axiosInstance(originalRequest)
       } catch (refreshError) {
         // Token refresh failed, clear storage and redirect to login
+        isRefreshing = false
+        refreshPromise = null
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
+        
+        // Redirect to login page
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        
         return Promise.reject(refreshError)
       }
     }

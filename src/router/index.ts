@@ -111,6 +111,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/GlobalActionsView.vue'),
           },
           {
+            path: 'projects/:projectId/global-actions/new',
+            name: 'design.globalActions.create',
+            component: () => import('@/views/design/GlobalActionEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/global-actions/:globalActionId',
+            name: 'design.globalActions.edit',
+            component: () => import('@/views/design/GlobalActionEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/knowledge',
             name: 'design.knowledge',
             component: () => import('@/views/design/KnowledgeView.vue'),

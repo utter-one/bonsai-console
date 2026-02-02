@@ -164,7 +164,7 @@
                 }
               ]
             },
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
           }
         },
         "description": "List query parameters for filtering, sorting, pagination, and search"
@@ -8017,10 +8017,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -9210,10 +9210,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -9787,10 +9787,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -10225,10 +10225,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -11084,10 +11084,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -11934,10 +11934,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -12222,10 +12222,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -12649,10 +12649,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -13222,10 +13222,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -14024,10 +14024,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -14841,10 +14841,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -16039,10 +16039,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -18122,10 +18122,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -18837,10 +18837,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -19743,10 +19743,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -20724,10 +20724,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -21889,10 +21889,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }
@@ -22714,10 +22714,10 @@
                   }
                 ]
               },
-              "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects"
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
             },
             "required": false,
-            "description": "Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects",
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
             "in": "query"
           }

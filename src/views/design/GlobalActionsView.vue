@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Zap, Search, X, Plus } from 'lucide-vue-next'
@@ -8,6 +8,7 @@ import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const route = useRoute()
+const router = useRouter()
 const globalActionsStore = useGlobalActionsStore()
 
 // UI State
@@ -87,6 +88,20 @@ function formatDate(date: string | null) {
 function clearSearch() {
   searchQuery.value = ''
 }
+
+function createGlobalAction() {
+  router.push({ 
+    name: 'design.globalActions.create', 
+    params: { projectId: projectId.value } 
+  })
+}
+
+function editGlobalAction(action: GlobalActionResponse) {
+  router.push({ 
+    name: 'design.globalActions.edit', 
+    params: { projectId: projectId.value, globalActionId: action.id } 
+  })
+}
 </script>
 
 <template>
@@ -97,7 +112,7 @@ function clearSearch() {
           <h1 class="page-title">Global Actions</h1>
           <p class="page-subtitle">Define system-wide actions for this project</p>
         </div>
-        <button class="btn-primary" disabled>
+        <button @click="createGlobalAction" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Global Action
         </button>
@@ -175,7 +190,7 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(action.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button class="btn-secondary btn-sm" disabled>
+                    <button @click="editGlobalAction(action)" class="btn-secondary btn-sm">
                       Edit
                     </button>
                     <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm">
