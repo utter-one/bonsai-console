@@ -161,9 +161,7 @@ function getTypeIcon(type: string) {
               <tr>
                 <th class="table-header-cell">Name</th>
                 <th class="table-header-cell">Description</th>
-                <th class="table-header-cell">Prompt Preview</th>
                 <th class="table-header-cell">Input/Output Types</th>
-                <th class="table-header-cell">LLM Provider</th>
                 <th class="table-header-cell">Updated</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
@@ -172,11 +170,8 @@ function getTypeIcon(type: string) {
               <tr v-for="tool in filteredTools" :key="tool.id" class="table-row">
                 <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}</td>
                 <td class="table-cell">
-                  <span v-if="tool.description" class="truncate max-w-xs">{{ tool.description }}</span>
+                  <span v-if="tool.description" class="truncate">{{ tool.description.length > 30 ? tool.description.substring(0, 30) + '...' : tool.description }}</span>
                   <span v-else class="text-gray-400">—</span>
-                </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-md">{{ tool.prompt }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex flex-col gap-2">
@@ -186,12 +181,6 @@ function getTypeIcon(type: string) {
                       <component :is="getTypeIcon(tool.outputType)" class="w-4 h-4" />
                     </div>
                   </div>
-                </td>
-                <td class="table-cell-mono">
-                  <span v-if="tool.llmProviderId" class="badge-secondary">
-                    {{ tool.llmProviderId }}
-                  </span>
-                  <span v-else class="text-gray-400">Default</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(tool.updatedAt) }}</td>
                 <td class="table-cell-right">

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore } from '@/stores'
-import { formatRoleName } from '@/composables'
+import { formatEnum } from '@/composables'
 import { Home, Palette, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import type { Component } from 'vue'
@@ -79,7 +79,7 @@ function handleEditProfile() {
 }
 
 const formattedRoles = computed(() => {
-  return authStore.currentAdmin?.roles?.map(formatRoleName).join(', ') || ''
+  return authStore.currentAdmin?.roles?.map(formatEnum).join(', ') || ''
 })
 
 // Sections for navigation

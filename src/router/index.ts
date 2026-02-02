@@ -81,6 +81,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/ContextTransformersView.vue'),
           },
           {
+            path: 'projects/:projectId/context-transformers/new',
+            name: 'design.contextTransformers.create',
+            component: () => import('@/views/design/ContextTransformerEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/context-transformers/:transformerId',
+            name: 'design.contextTransformers.edit',
+            component: () => import('@/views/design/ContextTransformerEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/tools',
             name: 'design.tools',
             component: () => import('@/views/design/ToolsView.vue'),

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
-import { formatRoleName, usePagination } from '@/composables'
+import { formatEnum, usePagination } from '@/composables'
 import { User, Search, X } from 'lucide-vue-next'
 import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -161,7 +161,7 @@ function clearSearch() {
               <td class="table-cell">
                 <div class="flex-gap">
                   <span v-for="role in admin.roles" :key="role" class="badge-primary">
-                    {{ formatRoleName(role) }}
+                    {{ formatEnum(role) }}
                   </span>
                 </div>
               </td>
