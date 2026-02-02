@@ -27,15 +27,19 @@ const timeFilterOptions = [
 ] as const
 
 // Status filter state
-const statusFilter = ref<'all' | 'ongoing' | 'completed' | 'abandoned' | 'error'>('all')
+const statusFilter = ref<'all' | 'initialized' | 'awaiting_user_input' | 'receiving_user_voice' | 'processing_user_input' | 'generating_response' | 'finished' | 'aborted' | 'failed'>('all')
 const showStatusDropdown = ref(false)
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
-  { value: 'ongoing', label: 'Ongoing' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'abandoned', label: 'Abandoned' },
-  { value: 'error', label: 'Error' },
+  { value: 'initialized', label: 'Initialized' },
+  { value: 'awaiting_user_input', label: 'Awaiting User Input' },
+  { value: 'receiving_user_voice', label: 'Receiving Voice' },
+  { value: 'processing_user_input', label: 'Processing Input' },
+  { value: 'generating_response', label: 'Generating Response' },
+  { value: 'finished', label: 'Finished' },
+  { value: 'aborted', label: 'Aborted' },
+  { value: 'failed', label: 'Failed' },
 ] as const
 
 // Pagination
@@ -135,7 +139,7 @@ async function loadConversations() {
     
     if (statusFilter.value !== 'all') {
       filters.status = {
-        op: 'like',
+        op: 'eq',
         value: statusFilter.value
       }
     }
@@ -170,19 +174,22 @@ async function deleteConversation(conversation: ConversationResponse) {
 }
 
 function getStatusBadgeClass(status: string): string {
-  const normalizedStatus = status.toLowerCase()
-  
-  if (normalizedStatus.includes('ongoing') || normalizedStatus.includes('active')) {
-    return 'badge-active'
-  } else if (normalizedStatus.includes('completed') || normalizedStatus.includes('success')) {
-    return 'badge-success'
-  } else if (normalizedStatus.includes('abandoned') || normalizedStatus.includes('timeout')) {
-    return 'badge-warning'
-  } else if (normalizedStatus.includes('error') || normalizedStatus.includes('failed')) {
-    return 'badge-error'
+  switch (status) {
+    case 'awaiting_user_input':
+    case 'receiving_user_voice':
+    case 'processing_user_input':
+    case 'generating_response':
+      return 'badge-active'
+    case 'finished':
+      return 'badge-success'
+    case 'aborted':
+      return 'badge-warning'
+    case 'failed':
+      return 'badge-error'
+    case 'initialized':
+    default:
+      return 'badge-secondary'
   }
-  
-  return 'badge-secondary'
 }
 
 function formatStatusLabel(status: string): string {
