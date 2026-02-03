@@ -149,6 +149,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/monitor/UsersView.vue'),
           },
           {
+            path: 'users/:userId',
+            name: 'monitor.userDetail',
+            component: () => import('@/views/monitor/UserDetailView.vue'),
+          },
+          {
             path: 'issues',
             name: 'monitor.issues',
             component: () => import('@/views/monitor/IssuesView.vue'),
@@ -157,6 +162,11 @@ const routes: RouteRecordRaw[] = [
             path: 'audit-logs',
             name: 'monitor.auditLogs',
             component: () => import('@/views/monitor/AuditLogsView.vue'),
+          },
+          {
+            path: 'audit-logs/:auditLogId',
+            name: 'monitor.auditLogDetail',
+            component: () => import('@/views/monitor/AuditLogDetailView.vue'),
           },
         ],
       },

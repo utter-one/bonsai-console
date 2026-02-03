@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore, useProjectsStore } from '@/stores'
+import { useAuthStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum } from '@/composables'
 import { Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
@@ -11,6 +11,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 const currentSection = computed(() => {
   const path = route.path
@@ -20,10 +21,15 @@ const currentSection = computed(() => {
   return 'dashboard'
 })
 
-const selectedProjectId = ref<string | null>(null)
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
 const showProfileModal = ref(false)
+
+// Local ref for the select element binding
+const selectedProjectId = computed({
+  get: () => projectSelectionStore.selectedProjectId,
+  set: (value) => projectSelectionStore.setSelectedProjectId(value)
+})
 
 // Load projects on mount
 onMounted(async () => {
@@ -31,19 +37,19 @@ onMounted(async () => {
   
   // Set selectedProjectId from route if present
   if (route.params.projectId) {
-    selectedProjectId.value = route.params.projectId as string
+    projectSelectionStore.setSelectedProjectId(route.params.projectId as string)
   }
 })
 
 // Watch route changes to update selected project
 watch(() => route.params.projectId, (newProjectId) => {
   if (newProjectId) {
-    selectedProjectId.value = newProjectId as string
+    projectSelectionStore.setSelectedProjectId(newProjectId as string)
   }
 })
 
 // Watch project selector changes
-watch(selectedProjectId, (newProjectId) => {
+watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
   if (newProjectId && currentSection.value === 'design') {
     // Only auto-navigate if we're in the design section
     if (route.name && String(route.name).startsWith('design.')) {
