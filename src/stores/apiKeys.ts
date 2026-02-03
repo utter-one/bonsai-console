@@ -6,5 +6,6 @@ export const useApiKeysStore = defineStore('apiKeys', () => {
   return createResourceStore<ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest>({
     endpoint: '/api-keys',
     resourceName: 'API key',
+    apiResourceName: 'apiKeys',
   })
 })
