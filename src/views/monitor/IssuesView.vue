@@ -3,7 +3,6 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Bug, Search, X } from 'lucide-vue-next'
-import type { IssueResponse } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 

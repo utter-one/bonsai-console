@@ -178,7 +178,14 @@
       @select="handleJumpToStage"
     />
     
-    <!-- TODO: Add Call Action Modal -->
+    <CallActionModal
+      v-if="showCallActionDialog"
+      :global-actions="globalActions"
+      :current-stage="currentStage"
+      @close="showCallActionDialog = false"
+      @call="handleCallAction"
+    />
+    
     <!-- TODO: Add Audio Settings Modal -->
   </div>
 </template>
@@ -186,14 +193,16 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useProjectSelectionStore } from '@/stores'
+import { useProjectSelectionStore, useGlobalActionsStore } from '@/stores'
 import { Play, Square, Send, Mic, Settings, Zap, SkipForward, RefreshCw } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
+import CallActionModal from '@/components/modals/CallActionModal.vue'
 import type { StageResponse } from '@/api/types'
 
 const router = useRouter()
 const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
+const globalActionsStore = useGlobalActionsStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
@@ -212,9 +221,22 @@ watch(() => route.params.projectId, (newProjectId) => {
   }
 })
 
+// Load global actions when project changes
+watch(projectId, async (newProjectId) => {
+  if (newProjectId) {
+    await globalActionsStore.fetchAll({ filters: { projectId: newProjectId } })
+  }
+}, { immediate: true })
+
 function goToProjects() {
   router.push({ name: 'administration.projects' })
 }
+
+// Computed
+const globalActions = computed(() => {
+  if (!projectId.value) return []
+  return globalActionsStore.items.filter(action => action.projectId === projectId.value)
+})
 
 // State
 const messageInput = ref('')
@@ -256,5 +278,11 @@ function sendMessage() {
   // TODO: Implement message sending logic
   console.log('Sending message:', messageInput.value)
   messageInput.value = ''
+}
+
+function handleCallAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
+  // TODO: Implement actual call action logic
+  console.log('Calling action:', data)
+  showCallActionDialog.value = false
 }
 </script>
