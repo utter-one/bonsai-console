@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUsersStore } from '@/stores'
+import { useUsersStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
@@ -10,6 +10,7 @@ import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
 const usersStore = useUsersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -52,6 +53,12 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for project selection changes
+watch(() => projectSelectionStore.selectedProjectId, () => {
+  pagination.reset()
+  loadUsers()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadUsers()
@@ -60,7 +67,17 @@ onMounted(async () => {
 // Methods
 async function loadUsers() {
   try {
-    await usersStore.fetchAll(pagination.getParams())
+    const filters: any = {}
+    
+    // Add project filter if a project is selected
+    if (projectSelectionStore.selectedProjectId) {
+      filters.projectId = {
+        op: 'eq',
+        value: projectSelectionStore.selectedProjectId
+      }
+    }
+    
+    await usersStore.fetchAll(pagination.getParams({ filters }))
   } catch (error) {
     console.error('Failed to load users:', error)
   }

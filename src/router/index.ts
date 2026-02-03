@@ -163,6 +163,11 @@ const routes: RouteRecordRaw[] = [
             name: 'monitor.auditLogs',
             component: () => import('@/views/monitor/AuditLogsView.vue'),
           },
+          {
+            path: 'audit-logs/:auditLogId',
+            name: 'monitor.auditLogDetail',
+            component: () => import('@/views/monitor/AuditLogDetailView.vue'),
+          },
         ],
       },
       // Administration Section

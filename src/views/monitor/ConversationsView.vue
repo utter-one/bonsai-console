@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { RefreshCw, Calendar, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
@@ -10,6 +10,7 @@ import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // Time filter state
 const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-24h')
@@ -70,6 +71,12 @@ watch(timeFilter, () => {
 
 // Watch for status filter changes
 watch(statusFilter, () => {
+  pagination.reset()
+  loadConversations()
+})
+
+// Watch for project selection changes
+watch(() => projectSelectionStore.selectedProjectId, () => {
   pagination.reset()
   loadConversations()
 })
@@ -141,6 +148,14 @@ async function loadConversations() {
       filters.status = {
         op: 'eq',
         value: statusFilter.value
+      }
+    }
+    
+    // Add project filter if a project is selected
+    if (projectSelectionStore.selectedProjectId) {
+      filters.projectId = {
+        op: 'eq',
+        value: projectSelectionStore.selectedProjectId
       }
     }
     
