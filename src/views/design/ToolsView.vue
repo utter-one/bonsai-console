@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useToolsStore } from '@/stores'
+import { useRouter } from 'vue-router'
+import { useToolsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
-const route = useRoute()
 const router = useRouter()
 const toolsStore = useToolsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -24,7 +24,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const filteredTools = computed(() => {
   if (!debouncedSearchQuery.value) return toolsStore.items

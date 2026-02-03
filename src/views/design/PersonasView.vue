@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore } from '@/stores'
+import { useRouter } from 'vue-router'
+import { usePersonasStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
-const route = useRoute()
 const router = useRouter()
 const personasStore = usePersonasStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -24,7 +24,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const filteredPersonas = computed(() => {
   if (!debouncedSearchQuery.value) return personasStore.items
