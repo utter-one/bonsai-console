@@ -161,24 +161,56 @@
         </div>
       </div>
 
-    <!-- Modals (placeholders for now) -->
+    <!-- Modals -->
+    <StageSelectionModal
+      v-if="showStartConversationModal"
+      :project-id="projectId"
+      title="Start Conversation"
+      @close="showStartConversationModal = false"
+      @select="handleStartConversation"
+    />
+    
+    <StageSelectionModal
+      v-if="showJumpToStageDialog"
+      :project-id="projectId"
+      title="Jump to Stage"
+      @close="showJumpToStageDialog = false"
+      @select="handleJumpToStage"
+    />
+    
     <!-- TODO: Add Call Action Modal -->
-    <!-- TODO: Add Jump to Stage Modal -->
     <!-- TODO: Add Audio Settings Modal -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore } from '@/stores'
 import { Play, Square, Send, Mic, Settings, Zap, SkipForward, RefreshCw } from 'lucide-vue-next'
+import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
+import type { StageResponse } from '@/api/types'
 
 const router = useRouter()
+const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
 
-// Project selection
-const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
+// Project selection - use route params as source of truth
+const projectId = computed(() => route.params.projectId as string || '')
+const hasProject = computed(() => !!projectId.value)
+
+// Sync route projectId with store on mount and route changes
+onMounted(() => {
+  if (projectId.value) {
+    projectSelectionStore.setSelectedProjectId(projectId.value)
+  }
+})
+
+watch(() => route.params.projectId, (newProjectId) => {
+  if (newProjectId) {
+    projectSelectionStore.setSelectedProjectId(newProjectId as string)
+  }
+})
 
 function goToProjects() {
   router.push({ name: 'administration.projects' })
@@ -188,14 +220,28 @@ function goToProjects() {
 const messageInput = ref('')
 const isConversationActive = ref(false)
 const conversationId = ref<string | null>(null)
+const currentStage = ref<StageResponse | null>(null)
+const showStartConversationModal = ref(false)
 const showCallActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 
 // Methods
 function startConversation() {
+  showStartConversationModal.value = true
+}
+
+function handleStartConversation(stage: StageResponse) {
   isConversationActive.value = true
   conversationId.value = 'conv-' + Date.now() // Placeholder
-  // TODO: Implement actual conversation start logic
+  currentStage.value = stage
+  // TODO: Implement actual conversation start logic with selected stage
+  console.log('Starting conversation with stage:', stage.name)
+}
+
+function handleJumpToStage(stage: StageResponse) {
+  currentStage.value = stage
+  // TODO: Implement actual jump to stage logic
+  console.log('Jumping to stage:', stage.name)
 }
 
 function endConversation() {

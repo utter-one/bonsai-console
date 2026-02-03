@@ -86,6 +86,9 @@ watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
       // Otherwise navigate to stages view of the selected project
       router.push({ name: 'design.stages', params: { projectId: newProjectId } })
     }
+  } else if (newProjectId && currentSection.value === 'playground') {
+    // Navigate to playground with the new project
+    router.push({ name: 'playground', params: { projectId: newProjectId } })
   }
 })
 
@@ -95,6 +98,9 @@ function navigateToSection(section: string) {
   } else if (section === 'design' && selectedProjectId.value) {
     // Navigate to design with the selected project
     router.push({ name: 'design.stages', params: { projectId: selectedProjectId.value } })
+  } else if (section === 'playground' && selectedProjectId.value) {
+    // Navigate to playground with the selected project
+    router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
   } else {
     router.push({ name: section })
   }
