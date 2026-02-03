@@ -77,7 +77,7 @@ export interface ListParams {
   orderBy?: string | string[];
   /** Field(s) to group results by (optional) */
   groupBy?: string | string[];
-  /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+  /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
   filters?: Record<
     string,
     | string
@@ -3628,4 +3628,95 @@ export interface AuditLogListResponse {
    * @exclusiveMin true
    */
   limit: number | null;
+}
+
+export interface CreateApiKeyRequest {
+  /**
+   * The ID of the project this API key belongs to
+   * @minLength 1
+   */
+  projectId: string;
+  /**
+   * A descriptive name for the API key
+   * @minLength 1
+   * @maxLength 255
+   */
+  name: string;
+  /** Additional metadata for the API key */
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateApiKeyRequest {
+  /**
+   * The updated name for the API key
+   * @minLength 1
+   * @maxLength 255
+   */
+  name?: string;
+  /** Whether the API key is active and can be used for authentication */
+  isActive?: boolean;
+  /** Updated metadata for the API key */
+  metadata?: Record<string, any>;
+  /** The current version number for optimistic locking */
+  version: number;
+}
+
+export interface DeleteApiKeyRequest {
+  /** The current version number for optimistic locking */
+  version: number;
+}
+
+export interface ApiKeyResponse {
+  /** Unique identifier for the API key */
+  id: string;
+  /** The ID of the project this API key belongs to */
+  projectId: string;
+  /** Descriptive name for the API key */
+  name: string;
+  /** The secret API key string (only included when creating a new key) */
+  key?: string;
+  /** First few characters of the key for identification */
+  keyPreview?: string;
+  /** ISO timestamp of when the key was last used */
+  lastUsedAt: string | null;
+  /** Whether the API key is active */
+  isActive: boolean;
+  /** Additional metadata */
+  metadata?: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /** ISO timestamp of creation */
+  createdAt: string;
+  /** ISO timestamp of last update */
+  updatedAt: string;
+}
+
+export interface ApiKeyListResponse {
+  /** Array of API keys */
+  items: {
+    /** Unique identifier for the API key */
+    id: string;
+    /** The ID of the project this API key belongs to */
+    projectId: string;
+    /** Descriptive name for the API key */
+    name: string;
+    /** The secret API key string (only included when creating a new key) */
+    key?: string;
+    /** First few characters of the key for identification */
+    keyPreview?: string;
+    /** ISO timestamp of when the key was last used */
+    lastUsedAt: string | null;
+    /** Whether the API key is active */
+    isActive: boolean;
+    /** Additional metadata */
+    metadata?: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /** ISO timestamp of creation */
+    createdAt: string;
+    /** ISO timestamp of last update */
+    updatedAt: string;
+  }[];
+  /** Total number of API keys matching the query */
+  total: number;
 }

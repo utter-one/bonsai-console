@@ -7748,6 +7748,217 @@
           "offset",
           "limit"
         ]
+      },
+      "CreateApiKeyRequest": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The ID of the project this API key belongs to"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "A descriptive name for the API key"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for the API key"
+          }
+        },
+        "required": [
+          "projectId",
+          "name"
+        ]
+      },
+      "UpdateApiKeyRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "The updated name for the API key"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the API key is active and can be used for authentication"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated metadata for the API key"
+          },
+          "version": {
+            "type": "number",
+            "description": "The current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteApiKeyRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "description": "The current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "ApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the API key"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "The ID of the project this API key belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Descriptive name for the API key"
+          },
+          "key": {
+            "type": "string",
+            "description": "The secret API key string (only included when creating a new key)"
+          },
+          "keyPreview": {
+            "type": "string",
+            "description": "First few characters of the key for identification"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp of when the key was last used"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the API key is active"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata"
+          },
+          "version": {
+            "type": "number",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "lastUsedAt",
+          "isActive",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ApiKeyListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the API key"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "The ID of the project this API key belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Descriptive name for the API key"
+                },
+                "key": {
+                  "type": "string",
+                  "description": "The secret API key string (only included when creating a new key)"
+                },
+                "keyPreview": {
+                  "type": "string",
+                  "description": "First few characters of the key for identification"
+                },
+                "lastUsedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ISO timestamp of when the key was last used"
+                },
+                "isActive": {
+                  "type": "boolean",
+                  "description": "Whether the API key is active"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional metadata"
+                },
+                "version": {
+                  "type": "number",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "description": "ISO timestamp of creation"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "description": "ISO timestamp of last update"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "name",
+                "lastUsedAt",
+                "isActive",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of API keys"
+          },
+          "total": {
+            "type": "number",
+            "description": "Total number of API keys matching the query"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
       }
     },
     "parameters": {},
@@ -23011,6 +23222,628 @@
           },
           "404": {
             "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/api-keys": {
+      "post": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Create a new API key",
+        "description": "Creates a new API key for WebSocket authentication. The secret key is only returned in the response to this creation request.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The ID of the project this API key belongs to"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "A descriptive name for the API key"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional metadata for the API key"
+                  }
+                },
+                "required": [
+                  "projectId",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created successfully. The secret key is included in this response only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the API key"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "The ID of the project this API key belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Descriptive name for the API key"
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "The secret API key string (only included when creating a new key)"
+                    },
+                    "keyPreview": {
+                      "type": "string",
+                      "description": "First few characters of the key for identification"
+                    },
+                    "lastUsedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO timestamp of when the key was last used"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the API key is active"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "number",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of creation"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of last update"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "lastUsedAt",
+                    "isActive",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "List API keys",
+        "description": "Retrieves a list of API keys with optional filtering, sorting, and pagination. Filter by projectId to get keys for a specific project.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "description": "Maximum number of items to return (optional, null for no limit)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (optional, null for no limit)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API keys retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the API key"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "The ID of the project this API key belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Descriptive name for the API key"
+                          },
+                          "key": {
+                            "type": "string",
+                            "description": "The secret API key string (only included when creating a new key)"
+                          },
+                          "keyPreview": {
+                            "type": "string",
+                            "description": "First few characters of the key for identification"
+                          },
+                          "lastUsedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ISO timestamp of when the key was last used"
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "description": "Whether the API key is active"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "number",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of creation"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of last update"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "lastUsedAt",
+                          "isActive",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of API keys"
+                    },
+                    "total": {
+                      "type": "number",
+                      "description": "Total number of API keys matching the query"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Get API key by ID",
+        "description": "Retrieves a single API key by its unique identifier. The full secret key is never returned, only a preview.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The unique identifier of the API key"
+            },
+            "required": true,
+            "description": "The unique identifier of the API key",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the API key"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "The ID of the project this API key belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Descriptive name for the API key"
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "The secret API key string (only included when creating a new key)"
+                    },
+                    "keyPreview": {
+                      "type": "string",
+                      "description": "First few characters of the key for identification"
+                    },
+                    "lastUsedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO timestamp of when the key was last used"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the API key is active"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "number",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of creation"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of last update"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "lastUsedAt",
+                    "isActive",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Update API key",
+        "description": "Updates an existing API key with optimistic locking support. Can update name, active status, and metadata.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The unique identifier of the API key"
+            },
+            "required": true,
+            "description": "The unique identifier of the API key",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The updated name for the API key"
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "description": "Whether the API key is active and can be used for authentication"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated metadata for the API key"
+                  },
+                  "version": {
+                    "type": "number",
+                    "description": "The current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the API key"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "The ID of the project this API key belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Descriptive name for the API key"
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "The secret API key string (only included when creating a new key)"
+                    },
+                    "keyPreview": {
+                      "type": "string",
+                      "description": "First few characters of the key for identification"
+                    },
+                    "lastUsedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO timestamp of when the key was last used"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the API key is active"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "number",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of creation"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "description": "ISO timestamp of last update"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "lastUsedAt",
+                    "isActive",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key not found"
+          },
+          "409": {
+            "description": "Version conflict - API key was modified by another request"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Delete API key",
+        "description": "Permanently deletes an API key. This action cannot be undone and will immediately invalidate the key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The unique identifier of the API key"
+            },
+            "required": true,
+            "description": "The unique identifier of the API key",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "number",
+                    "description": "The current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "API key deleted successfully"
+          },
+          "404": {
+            "description": "API key not found"
+          },
+          "409": {
+            "description": "Version conflict - API key was modified by another request"
           }
         }
       }
