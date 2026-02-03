@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores'
 
 export * from './useActionForm'
+export * from './useWebSocketClient'
 
 /**
  * Format role name to human-readable format
