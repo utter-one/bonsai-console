@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
+import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
 import type { PersonaResponse, VoiceConfig } from '@/api/types'
 
@@ -13,6 +13,7 @@ const router = useRouter()
 const personasStore = usePersonasStore()
 const providersStore = useProvidersStore()
 const providerCatalogStore = useProviderCatalogStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -42,7 +43,7 @@ const form = ref({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const personaId = computed(() => route.params.personaId as string | undefined)
 const isEditMode = computed(() => !!personaId.value)
 const currentPersona = ref<PersonaResponse | null>(null)

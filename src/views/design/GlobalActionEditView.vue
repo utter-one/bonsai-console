@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGlobalActionsStore, useClassifiersStore } from '@/stores'
+import { useGlobalActionsStore, useClassifiersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const globalActionsStore = useGlobalActionsStore()
 const classifiersStore = useClassifiersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -37,7 +38,7 @@ const form = ref({
 const operations = ref<ActionOperations>(createDefaultOperations())
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const globalActionId = computed(() => route.params.globalActionId as string | undefined)
 const isEditMode = computed(() => !!globalActionId.value)
 const currentGlobalAction = ref<GlobalActionResponse | null>(null)

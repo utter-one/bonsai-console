@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useToolsStore, useProvidersStore } from '@/stores'
+import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const toolsStore = useToolsStore()
 const providersStore = useProvidersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -30,7 +31,7 @@ const form = ref({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const toolId = computed(() => route.params.toolId as string | undefined)
 const isEditMode = computed(() => !!toolId.value)
 const currentTool = ref<ToolResponse | null>(null)

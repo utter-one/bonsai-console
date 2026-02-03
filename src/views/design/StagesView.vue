@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore } from '@/stores'
+import { useRouter } from 'vue-router'
+import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum, usePagination } from '@/composables'
 import { RefreshCw, Search, X } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
-const route = useRoute()
 const router = useRouter()
 const stagesStore = useStagesStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -24,7 +24,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const filteredStages = computed(() => {
   if (!debouncedSearchQuery.value) return stagesStore.items

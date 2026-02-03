@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useKnowledgeStore } from '@/stores'
+import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { BookOpen, Search, X, Plus, ChevronDown, ChevronRight } from 'lucide-vue-next'
 import type { KnowledgeCategoryResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
-const route = useRoute()
 const knowledgeStore = useKnowledgeStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -31,7 +30,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const filteredCategories = computed(() => {
   if (!debouncedSearchQuery.value) return knowledgeStore.categories

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useContextTransformersStore, useProvidersStore } from '@/stores'
+import { useContextTransformersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
 import type { ContextTransformerResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const transformersStore = useContextTransformersStore()
 const providersStore = useProvidersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -29,7 +30,7 @@ const form = ref({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const transformerId = computed(() => route.params.transformerId as string | undefined)
 const isEditMode = computed(() => !!transformerId.value)
 const currentTransformer = ref<ContextTransformerResponse | null>(null)

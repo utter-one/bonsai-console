@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useClassifiersStore, useProvidersStore } from '@/stores'
+import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const classifiersStore = useClassifiersStore()
 const providersStore = useProvidersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -28,7 +29,7 @@ const form = ref({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const classifierId = computed(() => route.params.classifierId as string | undefined)
 const isEditMode = computed(() => !!classifierId.value)
 const currentClassifier = ref<ClassifierResponse | null>(null)

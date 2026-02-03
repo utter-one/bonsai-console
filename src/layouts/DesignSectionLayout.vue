@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { useProjectSelectionStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
 import { Drama, RefreshCw, Target, Wrench, Hammer, Zap, BookOpen, BriefcaseBusiness } from 'lucide-vue-next'
 
-const route = useRoute()
 const router = useRouter()
+const projectSelectionStore = useProjectSelectionStore()
 
-const projectId = computed(() => route.params.projectId as string | undefined)
-const hasProject = computed(() => !!projectId.value)
+const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
 
 const menuItems = [
   { name: 'design.stages', label: 'Stages', icon: RefreshCw },

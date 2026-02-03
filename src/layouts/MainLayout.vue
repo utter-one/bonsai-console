@@ -21,6 +21,32 @@ const currentSection = computed(() => {
   return 'dashboard'
 })
 
+// Check if we're in an edit or detail view where project selection should be disabled
+const isInEditOrDetailView = computed(() => {
+  const routeName = route.name as string
+  if (!routeName) return false
+  
+  // Check for edit/create/detail routes by looking at route params
+  const hasResourceId = 
+    !!route.params.personaId ||
+    !!route.params.stageId ||
+    !!route.params.classifierId ||
+    !!route.params.globalActionId ||
+    !!route.params.toolId ||
+    !!route.params.transformerId ||
+    !!route.params.conversationId ||
+    !!route.params.userId ||
+    !!route.params.auditLogId
+  
+  // Also check if route name contains 'edit', 'create', or 'detail'
+  const isEditCreateOrDetail = 
+    routeName.includes('.edit') || 
+    routeName.includes('.create') || 
+    routeName.includes('Detail')
+  
+  return hasResourceId || isEditCreateOrDetail
+})
+
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
 const showProfileModal = ref(false)
@@ -131,7 +157,14 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
           <div v-if="currentSection !== 'administration' && currentSection !== 'dashboard'" class="relative sm:block hidden">
             <select 
               v-model="selectedProjectId" 
-              class="px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm cursor-pointer min-w-[200px] focus:outline-none focus:border-primary-500"
+              :disabled="isInEditOrDetailView"
+              :class="[
+                'px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] focus:outline-none',
+                isInEditOrDetailView 
+                  ? 'cursor-not-allowed opacity-60 bg-gray-50' 
+                  : 'cursor-pointer focus:border-primary-500'
+              ]"
+              :title="isInEditOrDetailView ? 'Cannot change project while editing or viewing details' : ''"
             >
               <option :value="null">Select Project...</option>
               <option

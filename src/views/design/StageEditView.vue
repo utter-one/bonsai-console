@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
+import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -15,6 +15,7 @@ const personasStore = usePersonasStore()
 const providersStore = useProvidersStore()
 const classifiersStore = useClassifiersStore()
 const transformersStore = useContextTransformersStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
@@ -45,7 +46,7 @@ const form = ref({
 })
 
 // Computed
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const stageId = computed(() => route.params.stageId as string | undefined)
 const isEditMode = computed(() => !!stageId.value)
 const currentStage = ref<StageResponse | null>(null)

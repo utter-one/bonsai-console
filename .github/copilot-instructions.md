@@ -171,7 +171,7 @@ import { User, Search, X } from 'lucide-vue-next'
 3. Add routes to `router/index.ts`
 4. Create view in `views/{section}/{Entity}View.vue`
 5. Create edit modal in `components/modals/{Entity}EditModal.vue` if needed
-6. Watch projectId changes in list views to reload data
+6. **For Design views:** Use `useProjectSelectionStore` and watch `projectId` computed to reload data
 
 ### Authentication
 - Tokens stored in `localStorage`: `accessToken`, `refreshToken`
@@ -185,10 +185,19 @@ import { User, Search, X } from 'lucide-vue-next'
 - API errors include `message` field
 
 ### Project-Specific Features
-Design section requires project context:
-- Project selector in `MainLayout` syncs with route
-- All design routes have `:projectId` param
-- Load projects on mount from `useProjectsStore`
+**Project Selection Store:**
+- `useProjectSelectionStore` manages currently selected project across app
+- Used in both Design and Monitor sections for filtering data by project
+- MainLayout syncs store with route params and project selector dropdown
+- **Design views:** All list and edit views use `projectSelectionStore.selectedProjectId` instead of `route.params.projectId`
+- **Monitor views:** Use `projectSelectionStore.selectedProjectId` for optional project filtering
+- Pattern: `const projectId = computed(() => projectSelectionStore.selectedProjectId || '')`
+
+**Design Section:**
+- All Design routes have `:projectId` param in URL for bookmarking/sharing
+- DesignSectionLayout shows "No Project Selected" message if store is empty
+- MainLayout syncs project selector with route and auto-navigates on selection
+- Views watch `projectId` computed (derived from store) to reload data
 
 ## Code Style
 
