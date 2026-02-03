@@ -127,6 +127,12 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
+      // Playground Section
+      {
+        path: 'playground',
+        name: 'playground',
+        component: () => import('@/views/PlaygroundView.vue'),
+      },
       // Monitor Section
       {
         path: 'monitor',

@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum } from '@/composables'
-import { Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
+import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import type { Component } from 'vue'
 
@@ -18,6 +18,7 @@ const currentSection = computed(() => {
   if (path.startsWith('/design')) return 'design'
   if (path.startsWith('/monitor')) return 'monitor'
   if (path.startsWith('/administration')) return 'administration'
+  if (path.startsWith('/playground')) return 'playground'
   return 'dashboard'
 })
 
@@ -118,6 +119,7 @@ const formattedRoles = computed(() => {
 const sections: Array<{ id: string; label: string; icon: Component }> = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'design', label: 'Design', icon: DraftingCompass },
+  { id: 'playground', label: 'Playground', icon: FlaskConical },
   { id: 'monitor', label: 'Monitor', icon: Activity },
   { id: 'administration', label: 'Administration', icon: Settings },
 ]
