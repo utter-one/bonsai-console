@@ -1787,17 +1787,12 @@ export interface ConversationResponse {
   clientId: string;
   /** Current stage identifier for the conversation */
   stageId: string;
-  /** Current state of the conversation */
-  state: {
-    /** Variables stored in the conversation state */
-    variables: Record<string, Record<string, any>>;
-    /** Array of currently active action identifiers */
-    currentActions: string[];
-  } | null;
-  /** Current status of the conversation (e.g., ongoing, completed, abandoned) */
+  /** Variables stored per stage in the conversation */
+  stageVars: Record<string, Record<string, any>>;
+  /** Current status of the conversation (e.g., initialized, active, completed, failed) */
   status: string;
-  /** Optional reason for the current status */
-  statusReason: string | null;
+  /** Optional details about the current status */
+  statusDetails: string | null;
   /** Additional metadata associated with the conversation */
   metadata: Record<string, any>;
   /**
@@ -1825,17 +1820,12 @@ export interface ConversationListResponse {
     clientId: string;
     /** Current stage identifier for the conversation */
     stageId: string;
-    /** Current state of the conversation */
-    state: {
-      /** Variables stored in the conversation state */
-      variables: Record<string, Record<string, any>>;
-      /** Array of currently active action identifiers */
-      currentActions: string[];
-    } | null;
-    /** Current status of the conversation (e.g., ongoing, completed, abandoned) */
+    /** Variables stored per stage in the conversation */
+    stageVars: Record<string, Record<string, any>>;
+    /** Current status of the conversation (e.g., initialized, active, completed, failed) */
     status: string;
-    /** Optional reason for the current status */
-    statusReason: string | null;
+    /** Optional details about the current status */
+    statusDetails: string | null;
     /** Additional metadata associated with the conversation */
     metadata: Record<string, any>;
     /**

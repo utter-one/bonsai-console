@@ -20,8 +20,48 @@
   <div v-else class="h-screen flex flex-col bg-gray-50">
       <!-- Header -->
       <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <h1 class="text-2xl font-bold text-gray-900">Playground</h1>
-        <p class="text-sm text-gray-600 mt-1">Test and debug conversation flows in real-time</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Playground</h1>
+            <p class="text-sm text-gray-600 mt-1">Test and debug conversation flows in real-time</p>
+          </div>
+          
+          <!-- API Key Selection -->
+          <div class="flex items-center gap-3">
+            <label class="text-sm font-medium text-gray-700">API Key:</label>
+            <select
+              v-model="selectedApiKeyId"
+              class="form-select min-w-[200px]"
+              :disabled="wsIsConnected || apiKeysLoading"
+            >
+              <option :value="null">Select API Key...</option>
+              <option
+                v-for="key in activeApiKeys"
+                :key="key.id"
+                :value="key.id"
+              >
+                {{ key.name }}
+              </option>
+            </select>
+            <button
+              v-if="!wsIsConnected"
+              @click="connectWebSocket"
+              :disabled="!selectedApiKeyId || wsIsConnected"
+              class="btn-primary flex items-center gap-2"
+            >
+              <Plug :size="16" />
+              Connect
+            </button>
+            <button
+              v-else
+              @click="disconnectWebSocket"
+              class="btn-danger flex items-center gap-2"
+            >
+              <X :size="16" />
+              Disconnect
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Main Content Area -->
@@ -31,12 +71,56 @@
           <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
             <h2 class="text-sm font-semibold text-gray-700">Conversation History</h2>
           </div>
-          <div class="flex-1 overflow-y-auto p-4">
-            <!-- Placeholder for conversation events -->
-            <div class="flex items-center justify-center h-full text-gray-400">
+          <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
+            <!-- No conversation state -->
+            <div v-if="conversationEvents.length === 0" class="flex items-center justify-center h-full text-gray-400">
               <div class="text-center">
                 <p class="text-lg font-medium">No active conversation</p>
                 <p class="text-sm mt-1">Start a conversation to see events appear here</p>
+              </div>
+            </div>
+
+            <!-- Conversation events -->
+            <div v-else class="space-y-3">
+              <div
+                v-for="(event, index) in conversationEvents"
+                :key="index"
+                class="p-3 rounded-lg border"
+                :class="{
+                  'bg-blue-50 border-blue-200': event.type === 'user',
+                  'bg-green-50 border-green-200': event.type === 'ai',
+                  'bg-gray-50 border-gray-200': event.type === 'system',
+                  'bg-red-50 border-red-200': event.type === 'error'
+                }"
+              >
+                <div class="flex items-start gap-3">
+                  <div
+                    class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                    :class="{
+                      'bg-blue-500 text-white': event.type === 'user',
+                      'bg-green-500 text-white': event.type === 'ai',
+                      'bg-gray-500 text-white': event.type === 'system',
+                      'bg-red-500 text-white': event.type === 'error'
+                    }"
+                  >
+                    <User v-if="event.type === 'user'" :size="16" />
+                    <Bot v-else-if="event.type === 'ai'" :size="16" />
+                    <AlertCircle v-else-if="event.type === 'error'" :size="16" />
+                    <Info v-else :size="16" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-semibold text-sm capitalize">{{ event.type }}</span>
+                      <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                    </div>
+                    <div class="text-sm">
+                      <p v-if="event.message" class="whitespace-pre-wrap">{{ event.message }}</p>
+                      <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono">
+                        {{ event.details }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -58,15 +142,6 @@
               />
             </div>
 
-            <!-- Voice Input Button -->
-            <button
-              class="btn-secondary h-10 w-10 flex items-center justify-center"
-              :disabled="!isConversationActive"
-              title="Push to talk (voice input)"
-            >
-              <Mic :size="20" />
-            </button>
-
             <!-- Send Button -->
             <button
               class="btn-primary h-10 px-6"
@@ -74,14 +149,6 @@
               @click="sendMessage"
             >
               <Send :size="20" />
-            </button>
-
-            <!-- Audio Settings -->
-            <button
-              class="btn-secondary h-10 w-10 flex items-center justify-center"
-              title="Audio settings"
-            >
-              <Settings :size="20" />
             </button>
           </div>
         </div>
@@ -118,10 +185,10 @@
             <button
               class="btn-secondary flex items-center gap-2"
               :disabled="!isConversationActive"
-              @click="showCallActionDialog = true"
+              @click="showRunActionDialog = true"
             >
               <Zap :size="18" />
-              Call Action
+              Run Action
             </button>
 
             <button
@@ -148,13 +215,20 @@
               <div class="flex items-center gap-2">
                 <div
                   class="w-2 h-2 rounded-full"
-                  :class="isConversationActive ? 'bg-green-500' : 'bg-gray-400'"
+                  :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400'"
                 ></div>
-                <span>{{ isConversationActive ? 'Active' : 'Inactive' }}</span>
+                <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full"
+                  :class="isConversationActive ? 'bg-blue-500' : 'bg-gray-400'"
+                ></div>
+                <span>{{ isConversationActive ? 'Conversation Active' : 'No Conversation' }}</span>
               </div>
               <div v-if="conversationId">
-                <span class="text-gray-500">ID:</span>
-                <span class="font-mono ml-1">{{ conversationId }}</span>
+                <span class="text-gray-500">Conv ID:</span>
+                <span class="font-mono ml-1 text-xs">{{ conversationId }}</span>
               </div>
             </div>
           </div>
@@ -178,12 +252,12 @@
       @select="handleJumpToStage"
     />
     
-    <CallActionModal
-      v-if="showCallActionDialog"
+    <RunActionModal
+      v-if="showRunActionDialog"
       :global-actions="globalActions"
       :current-stage="currentStage"
-      @close="showCallActionDialog = false"
-      @call="handleCallAction"
+      @close="showRunActionDialog = false"
+      @run="handleRunAction"
     />
     
     <!-- TODO: Add Audio Settings Modal -->
@@ -191,18 +265,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useProjectSelectionStore, useGlobalActionsStore } from '@/stores'
-import { Play, Square, Send, Mic, Settings, Zap, SkipForward, RefreshCw } from 'lucide-vue-next'
+import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
+import { useWebSocketClient } from '@/composables/useWebSocketClient'
+import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
-import CallActionModal from '@/components/modals/CallActionModal.vue'
+import RunActionModal from '@/components/modals/RunActionModal.vue'
 import type { StageResponse } from '@/api/types'
+import type { SendAiVoiceChunkMessage, StartAiVoiceOutputMessage, EndAiVoiceOutputMessage } from '@/api/websocket/contracts/aiResponse'
 
 const router = useRouter()
 const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
 const globalActionsStore = useGlobalActionsStore()
+const apiKeysStore = useApiKeysStore()
+const authStore = useAuthStore()
+const usersStore = useUsersStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
@@ -221,10 +300,13 @@ watch(() => route.params.projectId, (newProjectId) => {
   }
 })
 
-// Load global actions when project changes
+// Load global actions and API keys when project changes
 watch(projectId, async (newProjectId) => {
   if (newProjectId) {
-    await globalActionsStore.fetchAll({ filters: { projectId: newProjectId } })
+    await Promise.all([
+      globalActionsStore.fetchAll({ filters: { projectId: newProjectId } }),
+      apiKeysStore.fetchAll({ filters: { projectId: newProjectId } })
+    ])
   }
 }, { immediate: true })
 
@@ -238,51 +320,369 @@ const globalActions = computed(() => {
   return globalActionsStore.items.filter(action => action.projectId === projectId.value)
 })
 
+const activeApiKeys = computed(() => {
+  if (!projectId.value) return []
+  return apiKeysStore.items.filter(key => key.projectId === projectId.value && key.isActive)
+})
+
+const apiKeysLoading = computed(() => apiKeysStore.isLoading)
+
+// WebSocket and conversation state
+const selectedApiKeyId = ref<string | null>(null)
+const selectedApiKey = computed(() => {
+  if (!selectedApiKeyId.value) return null
+  return apiKeysStore.items.find(k => k.id === selectedApiKeyId.value)
+})
+
+// Conversation event log
+interface ConversationEvent {
+  type: 'user' | 'ai' | 'system' | 'error'
+  message: string
+  timestamp: Date
+  details?: string
+}
+
+const conversationEvents = ref<ConversationEvent[]>([])
+const historyContainer = ref<HTMLElement | null>(null)
+
+function addEvent(event: ConversationEvent) {
+  conversationEvents.value.push(event)
+  // Auto-scroll to bottom
+  nextTick(() => {
+    if (historyContainer.value) {
+      historyContainer.value.scrollTop = historyContainer.value.scrollHeight
+    }
+  })
+}
+
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+// WebSocket client setup
+let wsClient: ReturnType<typeof useWebSocketClient> | null = null
+const wsIsConnected = ref(false)
+const wsSessionId = ref<string | null>(null)
+
+async function connectWebSocket() {
+  if (!selectedApiKey.value?.key) {
+    addEvent({
+      type: 'error',
+      message: 'Please select an API key first',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  try {
+    addEvent({
+      type: 'system',
+      message: 'Connecting to WebSocket server...',
+      timestamp: new Date()
+    })
+
+    wsClient = useWebSocketClient(selectedApiKey.value.key, {
+      onConnect: () => {
+        wsIsConnected.value = true
+        wsSessionId.value = wsClient?.sessionId.value || null
+        addEvent({
+          type: 'system',
+          message: 'Connected to WebSocket',
+          timestamp: new Date(),
+          details: `Session ID: ${wsSessionId.value}`
+        })
+      },
+      onDisconnect: () => {
+        wsIsConnected.value = false
+        wsSessionId.value = null
+        addEvent({
+          type: 'system',
+          message: 'Disconnected from WebSocket',
+          timestamp: new Date()
+        })
+      },
+      onError: (error) => {
+        addEvent({
+          type: 'error',
+          message: error.error,
+          timestamp: new Date()
+        })
+      },
+      onAiVoiceStart: (msg: StartAiVoiceOutputMessage) => {
+        addEvent({
+          type: 'system',
+          message: 'AI voice output started',
+          timestamp: new Date(),
+          details: `Voice Output ID: ${msg.voiceOutputId}`
+        })
+      },
+      onAiVoiceChunk: (msg: SendAiVoiceChunkMessage) => {
+        // For now, just log chunk reception (audio playback would be implemented separately)
+        if (msg.isFinal) {
+          addEvent({
+            type: 'ai',
+            message: '[Voice response completed]',
+            timestamp: new Date(),
+            details: `Received ${msg.ordinal + 1} audio chunks`
+          })
+        }
+      },
+      onAiVoiceEnd: (msg: EndAiVoiceOutputMessage) => {
+        addEvent({
+          type: 'system',
+          message: 'AI voice output ended',
+          timestamp: new Date(),
+          details: `Voice Output ID: ${msg.voiceOutputId}`
+        })
+      }
+    })
+
+    await wsClient.connect()
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to connect: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
+
+function disconnectWebSocket() {
+  if (wsClient) {
+    wsClient.disconnect()
+    wsClient = null
+  }
+  wsIsConnected.value = false
+  wsSessionId.value = null
+}
+
 // State
 const messageInput = ref('')
-const isConversationActive = ref(false)
-const conversationId = ref<string | null>(null)
+const isConversationActive = computed(() => wsClient?.isInConversation.value || false)
+const conversationId = computed(() => wsClient?.conversationId.value || null)
 const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
-const showCallActionDialog = ref(false)
+const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 
 // Methods
 function startConversation() {
+  if (!wsIsConnected.value) {
+    addEvent({
+      type: 'error',
+      message: 'Please connect to WebSocket first',
+      timestamp: new Date()
+    })
+    return
+  }
   showStartConversationModal.value = true
 }
 
-function handleStartConversation(stage: StageResponse) {
-  isConversationActive.value = true
-  conversationId.value = 'conv-' + Date.now() // Placeholder
-  currentStage.value = stage
-  // TODO: Implement actual conversation start logic with selected stage
-  console.log('Starting conversation with stage:', stage.name)
+/**
+ * Ensure a user exists for the current admin
+ * If not, create one with the admin's ID and basic profile
+ */
+async function ensureUserExists(): Promise<string> {
+  const adminId = authStore.currentAdmin?.id
+  if (!adminId) {
+    throw new Error('No authenticated admin found')
+  }
+
+  try {
+    // Try to fetch the user by admin ID
+    const user = await usersStore.fetchById(adminId)
+    if (user) {
+      return adminId
+    }
+  } catch (error) {
+    // User doesn't exist (404), so we'll create it
+  }
+
+  // Create user with admin ID
+  try {
+    addEvent({
+      type: 'system',
+      message: `Creating user profile for admin: ${authStore.currentAdmin?.name}`,
+      timestamp: new Date()
+    })
+
+    await usersStore.create({
+      id: adminId,
+      profile: {
+        name: authStore.currentAdmin?.name || 'Admin User',
+        type: 'admin',
+        createdVia: 'playground'
+      }
+    })
+
+    addEvent({
+      type: 'system',
+      message: 'User profile created successfully',
+      timestamp: new Date()
+    })
+
+    return adminId
+  } catch (error) {
+    throw new Error(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`)
+  }
 }
 
-function handleJumpToStage(stage: StageResponse) {
-  currentStage.value = stage
-  // TODO: Implement actual jump to stage logic
-  console.log('Jumping to stage:', stage.name)
+async function handleStartConversation(stage: StageResponse) {
+  if (!wsClient) return
+
+  try {
+    addEvent({
+      type: 'system',
+      message: `Starting conversation with stage: ${stage.name}`,
+      timestamp: new Date()
+    })
+
+    // Ensure user exists before starting conversation
+    const userId = await ensureUserExists()
+
+    const convId = await wsClient.startConversation({
+      userId: userId,
+      stageId: stage.id,
+      personaId: stage.personaId
+    })
+
+    currentStage.value = stage
+    
+    addEvent({
+      type: 'system',
+      message: 'Conversation started successfully',
+      timestamp: new Date(),
+      details: `Conversation ID: ${convId}, User ID: ${userId}`
+    })
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to start conversation: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
 }
 
-function endConversation() {
-  isConversationActive.value = false
-  conversationId.value = null
-  // TODO: Implement actual conversation end logic
+async function handleJumpToStage(stage: StageResponse) {
+  if (!wsClient || !wsClient.client.value) {
+    addEvent({
+      type: 'error',
+      message: 'No active WebSocket connection',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  try {
+    addEvent({
+      type: 'system',
+      message: `Jumping to stage: ${stage.name}`,
+      timestamp: new Date()
+    })
+
+    await wsClient.client.value.goToStage(stage.id)
+    currentStage.value = stage
+    
+    addEvent({
+      type: 'system',
+      message: `Successfully moved to stage: ${stage.name}`,
+      timestamp: new Date()
+    })
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to jump to stage: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
 }
 
-function sendMessage() {
-  if (!messageInput.value.trim() || !isConversationActive.value) return
+async function endConversation() {
+  if (!wsClient) return
+
+  try {
+    addEvent({
+      type: 'system',
+      message: 'Ending conversation...',
+      timestamp: new Date()
+    })
+
+    await wsClient.endConversation()
+    currentStage.value = null
+    
+    addEvent({
+      type: 'system',
+      message: 'Conversation ended successfully',
+      timestamp: new Date()
+    })
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to end conversation: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
+
+async function sendMessage() {
+  if (!messageInput.value.trim() || !wsClient) return
   
-  // TODO: Implement message sending logic
-  console.log('Sending message:', messageInput.value)
-  messageInput.value = ''
+  const message = messageInput.value.trim()
+  
+  try {
+    addEvent({
+      type: 'user',
+      message: message,
+      timestamp: new Date()
+    })
+
+    await wsClient.sendTextInput(message)
+    messageInput.value = ''
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
 }
 
-function handleCallAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
-  // TODO: Implement actual call action logic
-  console.log('Calling action:', data)
-  showCallActionDialog.value = false
+async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
+  if (!wsClient || !wsClient.client.value) {
+    addEvent({
+      type: 'error',
+      message: 'No active WebSocket connection',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  try {
+    addEvent({
+      type: 'system',
+      message: `Running action: ${data.actionKey}`,
+      timestamp: new Date(),
+      details: `Parameters: ${JSON.stringify(data.parameters)}`
+    })
+
+    // Convert parameters object to array format expected by the API
+    const paramsArray = Object.values(data.parameters)
+    const result = await wsClient.client.value.runAction(data.actionKey, paramsArray)
+    
+    addEvent({
+      type: 'system',
+      message: `Action completed: ${data.actionKey}`,
+      timestamp: new Date(),
+      details: `Result: ${JSON.stringify(result)}`
+    })
+    
+    showRunActionDialog.value = false
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to run action: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
 }
 </script>

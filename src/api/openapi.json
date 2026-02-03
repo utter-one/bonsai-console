@@ -3359,42 +3359,25 @@
             "type": "string",
             "description": "Current stage identifier for the conversation"
           },
-          "state": {
+          "stageVars": {
             "type": "object",
             "nullable": true,
-            "properties": {
-              "variables": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "nullable": true
-                  }
-                },
-                "description": "Variables stored in the conversation state"
-              },
-              "currentActions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "Array of currently active action identifiers"
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
               }
             },
-            "required": [
-              "variables",
-              "currentActions"
-            ],
-            "description": "Current state of the conversation"
+            "description": "Variables stored per stage in the conversation"
           },
           "status": {
             "type": "string",
-            "description": "Current status of the conversation (e.g., ongoing, completed, abandoned)"
+            "description": "Current status of the conversation (e.g., initialized, active, completed, failed)"
           },
-          "statusReason": {
+          "statusDetails": {
             "type": "string",
             "nullable": true,
-            "description": "Optional reason for the current status"
+            "description": "Optional details about the current status"
           },
           "metadata": {
             "type": "object",
@@ -3423,9 +3406,9 @@
           "userId",
           "clientId",
           "stageId",
-          "state",
+          "stageVars",
           "status",
-          "statusReason",
+          "statusDetails",
           "metadata",
           "createdAt",
           "updatedAt"
@@ -3459,42 +3442,25 @@
                   "type": "string",
                   "description": "Current stage identifier for the conversation"
                 },
-                "state": {
+                "stageVars": {
                   "type": "object",
                   "nullable": true,
-                  "properties": {
-                    "variables": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "nullable": true
-                        }
-                      },
-                      "description": "Variables stored in the conversation state"
-                    },
-                    "currentActions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Array of currently active action identifiers"
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
                     }
                   },
-                  "required": [
-                    "variables",
-                    "currentActions"
-                  ],
-                  "description": "Current state of the conversation"
+                  "description": "Variables stored per stage in the conversation"
                 },
                 "status": {
                   "type": "string",
-                  "description": "Current status of the conversation (e.g., ongoing, completed, abandoned)"
+                  "description": "Current status of the conversation (e.g., initialized, active, completed, failed)"
                 },
-                "statusReason": {
+                "statusDetails": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Optional reason for the current status"
+                  "description": "Optional details about the current status"
                 },
                 "metadata": {
                   "type": "object",
@@ -3523,9 +3489,9 @@
                 "userId",
                 "clientId",
                 "stageId",
-                "state",
+                "stageVars",
                 "status",
-                "statusReason",
+                "statusDetails",
                 "metadata",
                 "createdAt",
                 "updatedAt"
@@ -11908,42 +11874,25 @@
                       "type": "string",
                       "description": "Current stage identifier for the conversation"
                     },
-                    "state": {
+                    "stageVars": {
                       "type": "object",
                       "nullable": true,
-                      "properties": {
-                        "variables": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            }
-                          },
-                          "description": "Variables stored in the conversation state"
-                        },
-                        "currentActions": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Array of currently active action identifiers"
+                      "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "nullable": true
                         }
                       },
-                      "required": [
-                        "variables",
-                        "currentActions"
-                      ],
-                      "description": "Current state of the conversation"
+                      "description": "Variables stored per stage in the conversation"
                     },
                     "status": {
                       "type": "string",
-                      "description": "Current status of the conversation (e.g., ongoing, completed, abandoned)"
+                      "description": "Current status of the conversation (e.g., initialized, active, completed, failed)"
                     },
-                    "statusReason": {
+                    "statusDetails": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Optional reason for the current status"
+                      "description": "Optional details about the current status"
                     },
                     "metadata": {
                       "type": "object",
@@ -11972,9 +11921,9 @@
                     "userId",
                     "clientId",
                     "stageId",
-                    "state",
+                    "stageVars",
                     "status",
-                    "statusReason",
+                    "statusDetails",
                     "metadata",
                     "createdAt",
                     "updatedAt"
@@ -12186,42 +12135,25 @@
                             "type": "string",
                             "description": "Current stage identifier for the conversation"
                           },
-                          "state": {
+                          "stageVars": {
                             "type": "object",
                             "nullable": true,
-                            "properties": {
-                              "variables": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "nullable": true
-                                  }
-                                },
-                                "description": "Variables stored in the conversation state"
-                              },
-                              "currentActions": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                },
-                                "description": "Array of currently active action identifiers"
+                            "additionalProperties": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
                               }
                             },
-                            "required": [
-                              "variables",
-                              "currentActions"
-                            ],
-                            "description": "Current state of the conversation"
+                            "description": "Variables stored per stage in the conversation"
                           },
                           "status": {
                             "type": "string",
-                            "description": "Current status of the conversation (e.g., ongoing, completed, abandoned)"
+                            "description": "Current status of the conversation (e.g., initialized, active, completed, failed)"
                           },
-                          "statusReason": {
+                          "statusDetails": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Optional reason for the current status"
+                            "description": "Optional details about the current status"
                           },
                           "metadata": {
                             "type": "object",
@@ -12250,9 +12182,9 @@
                           "userId",
                           "clientId",
                           "stageId",
-                          "state",
+                          "stageVars",
                           "status",
-                          "statusReason",
+                          "statusDetails",
                           "metadata",
                           "createdAt",
                           "updatedAt"

@@ -339,7 +339,7 @@ async function refreshData() {
                   <span 
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help"
                     :class="getStatusBadgeClass(conversation.status)"
-                    :title="conversation.statusReason || 'No status reason provided'"
+                    :title="conversation.statusDetails || 'No status details provided'"
                   >
                     {{ formatStatusLabel(conversation.status) }}
                   </span>

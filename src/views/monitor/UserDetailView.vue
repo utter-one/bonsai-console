@@ -266,8 +266,8 @@ const profileEntries = computed(() => {
                           <span class="ml-1 text-gray-900">{{ formatDate(conversation.updatedAt) }}</span>
                         </div>
                       </div>
-                      <div v-if="conversation.statusReason" class="mt-2 text-sm text-gray-600">
-                        <span class="font-medium">Reason:</span> {{ conversation.statusReason }}
+                      <div v-if="conversation.statusDetails" class="mt-2 text-sm text-gray-600">
+                        <span class="font-medium">Details:</span> {{ conversation.statusDetails }}
                       </div>
                     </div>
                     <button 
