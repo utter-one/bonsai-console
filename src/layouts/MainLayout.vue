@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum } from '@/composables'
-import { Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
+import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import type { Component } from 'vue'
 
@@ -18,6 +18,7 @@ const currentSection = computed(() => {
   if (path.startsWith('/design')) return 'design'
   if (path.startsWith('/monitor')) return 'monitor'
   if (path.startsWith('/administration')) return 'administration'
+  if (path.startsWith('/playground')) return 'playground'
   return 'dashboard'
 })
 
@@ -85,6 +86,9 @@ watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
       // Otherwise navigate to stages view of the selected project
       router.push({ name: 'design.stages', params: { projectId: newProjectId } })
     }
+  } else if (newProjectId && currentSection.value === 'playground') {
+    // Navigate to playground with the new project
+    router.push({ name: 'playground', params: { projectId: newProjectId } })
   }
 })
 
@@ -94,6 +98,9 @@ function navigateToSection(section: string) {
   } else if (section === 'design' && selectedProjectId.value) {
     // Navigate to design with the selected project
     router.push({ name: 'design.stages', params: { projectId: selectedProjectId.value } })
+  } else if (section === 'playground' && selectedProjectId.value) {
+    // Navigate to playground with the selected project
+    router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
   } else {
     router.push({ name: section })
   }
@@ -118,6 +125,7 @@ const formattedRoles = computed(() => {
 const sections: Array<{ id: string; label: string; icon: Component }> = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'design', label: 'Design', icon: DraftingCompass },
+  { id: 'playground', label: 'Playground', icon: FlaskConical },
   { id: 'monitor', label: 'Monitor', icon: Activity },
   { id: 'administration', label: 'Administration', icon: Settings },
 ]
