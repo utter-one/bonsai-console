@@ -130,7 +130,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -767,7 +767,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -1011,7 +1011,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -1202,7 +1202,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -1587,7 +1587,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -1878,17 +1878,12 @@ export class Api<
         clientId: string;
         /** Current stage identifier for the conversation */
         stageId: string;
-        /** Current state of the conversation */
-        state: {
-          /** Variables stored in the conversation state */
-          variables: Record<string, Record<string, any>>;
-          /** Array of currently active action identifiers */
-          currentActions: string[];
-        } | null;
-        /** Current status of the conversation (e.g., ongoing, completed, abandoned) */
+        /** Variables stored per stage in the conversation */
+        stageVars: Record<string, Record<string, any>>;
+        /** Current status of the conversation (e.g., initialized, active, completed, failed) */
         status: string;
-        /** Optional reason for the current status */
-        statusReason: string | null;
+        /** Optional details about the current status */
+        statusDetails: string | null;
         /** Additional metadata associated with the conversation */
         metadata: Record<string, any>;
         /**
@@ -1955,7 +1950,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -1983,17 +1978,12 @@ export class Api<
           clientId: string;
           /** Current stage identifier for the conversation */
           stageId: string;
-          /** Current state of the conversation */
-          state: {
-            /** Variables stored in the conversation state */
-            variables: Record<string, Record<string, any>>;
-            /** Array of currently active action identifiers */
-            currentActions: string[];
-          } | null;
-          /** Current status of the conversation (e.g., ongoing, completed, abandoned) */
+          /** Variables stored per stage in the conversation */
+          stageVars: Record<string, Record<string, any>>;
+          /** Current status of the conversation (e.g., initialized, active, completed, failed) */
           status: string;
-          /** Optional reason for the current status */
-          statusReason: string | null;
+          /** Optional details about the current status */
+          statusDetails: string | null;
           /** Additional metadata associated with the conversation */
           metadata: Record<string, any>;
           /**
@@ -2063,7 +2053,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -2259,7 +2249,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -2548,7 +2538,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -2942,7 +2932,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -3357,7 +3347,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -3896,7 +3886,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -4739,7 +4729,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -5093,7 +5083,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -5514,7 +5504,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -5983,7 +5973,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -6455,7 +6445,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -6809,7 +6799,7 @@ export class Api<
       orderBy?: string | string[];
       /** Field(s) to group results by (optional) */
       groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Values can be direct values, arrays (for IN), or operation objects */
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
       filters?: Record<
         string,
         | string
@@ -6977,6 +6967,280 @@ export class Api<
       path: `/api/users/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a new API key for WebSocket authentication. The secret key is only returned in the response to this creation request.
+   *
+   * @tags API Keys
+   * @name ApiKeysCreate
+   * @summary Create a new API key
+   * @request POST:/api/api-keys
+   * @secure
+   */
+  apiKeysCreate = (
+    data: {
+      /**
+       * The ID of the project this API key belongs to
+       * @minLength 1
+       */
+      projectId: string;
+      /**
+       * A descriptive name for the API key
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      /** Additional metadata for the API key */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the API key */
+        id: string;
+        /** The ID of the project this API key belongs to */
+        projectId: string;
+        /** Descriptive name for the API key */
+        name: string;
+        /** The secret API key string (only included when creating a new key) */
+        key?: string;
+        /** First few characters of the key for identification */
+        keyPreview?: string;
+        /** ISO timestamp of when the key was last used */
+        lastUsedAt: string | null;
+        /** Whether the API key is active */
+        isActive: boolean;
+        /** Additional metadata */
+        metadata?: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /** ISO timestamp of creation */
+        createdAt: string;
+        /** ISO timestamp of last update */
+        updatedAt: string;
+      },
+      void
+    >({
+      path: `/api/api-keys`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a list of API keys with optional filtering, sorting, and pagination. Filter by projectId to get keys for a specific project.
+   *
+   * @tags API Keys
+   * @name ApiKeysList
+   * @summary List API keys
+   * @request GET:/api/api-keys
+   * @secure
+   */
+  apiKeysList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return (optional, null for no limit)
+       * @min 0
+       * @exclusiveMin true
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of API keys */
+        items: {
+          /** Unique identifier for the API key */
+          id: string;
+          /** The ID of the project this API key belongs to */
+          projectId: string;
+          /** Descriptive name for the API key */
+          name: string;
+          /** The secret API key string (only included when creating a new key) */
+          key?: string;
+          /** First few characters of the key for identification */
+          keyPreview?: string;
+          /** ISO timestamp of when the key was last used */
+          lastUsedAt: string | null;
+          /** Whether the API key is active */
+          isActive: boolean;
+          /** Additional metadata */
+          metadata?: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /** ISO timestamp of creation */
+          createdAt: string;
+          /** ISO timestamp of last update */
+          updatedAt: string;
+        }[];
+        /** Total number of API keys matching the query */
+        total: number;
+      },
+      any
+    >({
+      path: `/api/api-keys`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single API key by its unique identifier. The full secret key is never returned, only a preview.
+   *
+   * @tags API Keys
+   * @name ApiKeysDetail
+   * @summary Get API key by ID
+   * @request GET:/api/api-keys/{id}
+   * @secure
+   */
+  apiKeysDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique identifier for the API key */
+        id: string;
+        /** The ID of the project this API key belongs to */
+        projectId: string;
+        /** Descriptive name for the API key */
+        name: string;
+        /** The secret API key string (only included when creating a new key) */
+        key?: string;
+        /** First few characters of the key for identification */
+        keyPreview?: string;
+        /** ISO timestamp of when the key was last used */
+        lastUsedAt: string | null;
+        /** Whether the API key is active */
+        isActive: boolean;
+        /** Additional metadata */
+        metadata?: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /** ISO timestamp of creation */
+        createdAt: string;
+        /** ISO timestamp of last update */
+        updatedAt: string;
+      },
+      void
+    >({
+      path: `/api/api-keys/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing API key with optimistic locking support. Can update name, active status, and metadata.
+   *
+   * @tags API Keys
+   * @name ApiKeysUpdate
+   * @summary Update API key
+   * @request PUT:/api/api-keys/{id}
+   * @secure
+   */
+  apiKeysUpdate = (
+    id: string,
+    data: {
+      /**
+       * The updated name for the API key
+       * @minLength 1
+       * @maxLength 255
+       */
+      name?: string;
+      /** Whether the API key is active and can be used for authentication */
+      isActive?: boolean;
+      /** Updated metadata for the API key */
+      metadata?: Record<string, any>;
+      /** The current version number for optimistic locking */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the API key */
+        id: string;
+        /** The ID of the project this API key belongs to */
+        projectId: string;
+        /** Descriptive name for the API key */
+        name: string;
+        /** The secret API key string (only included when creating a new key) */
+        key?: string;
+        /** First few characters of the key for identification */
+        keyPreview?: string;
+        /** ISO timestamp of when the key was last used */
+        lastUsedAt: string | null;
+        /** Whether the API key is active */
+        isActive: boolean;
+        /** Additional metadata */
+        metadata?: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /** ISO timestamp of creation */
+        createdAt: string;
+        /** ISO timestamp of last update */
+        updatedAt: string;
+      },
+      void
+    >({
+      path: `/api/api-keys/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Permanently deletes an API key. This action cannot be undone and will immediately invalidate the key.
+   *
+   * @tags API Keys
+   * @name ApiKeysDelete
+   * @summary Delete API key
+   * @request DELETE:/api/api-keys/{id}
+   * @secure
+   */
+  apiKeysDelete = (
+    id: string,
+    data: {
+      /** The current version number for optimistic locking */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/api-keys/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       ...params,
     });
 }

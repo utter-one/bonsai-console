@@ -113,10 +113,6 @@ function getProfileDisplay(profile: Record<string, any>): string {
   return fieldCount > 0 ? `${fieldCount} field${fieldCount !== 1 ? 's' : ''}` : 'No profile data'
 }
 
-function getProfilePreview(profile: Record<string, any>): string[] {
-  const keys = Object.keys(profile)
-  return keys.slice(0, 3)
-}
 </script>
 
 <template>
@@ -177,21 +173,11 @@ function getProfilePreview(profile: Record<string, any>): string[] {
             </thead>
             <tbody class="table-body">
               <tr v-for="user in filteredUsers" :key="user.id" class="table-row">
-                <td class="table-clickable-cell font-mono text-sm" @click="viewUser(user)">
+                <td class="table-clickable-cell" @click="viewUser(user)">
                   {{ user.id }}
                 </td>
-                <td class="table-clickable-cell" @click="viewUser(user)">
-                  <div>
-                    <div class="font-medium text-gray-900">{{ getProfileDisplay(user.profile) }}</div>
-                    <div v-if="getProfilePreview(user.profile).length > 0" class="text-xs text-gray-500 mt-1">
-                      <span v-for="(key, index) in getProfilePreview(user.profile)" :key="key">
-                        {{ key }}{{ index < getProfilePreview(user.profile).length - 1 ? ', ' : '' }}
-                      </span>
-                      <span v-if="Object.keys(user.profile).length > 3">
-                        , +{{ Object.keys(user.profile).length - 3 }} more
-                      </span>
-                    </div>
-                  </div>
+                <td class="table-clickable-cell" @click="viewUser(user)">                  
+                    {{ getProfileDisplay(user.profile) }}
                 </td>
                 <td class="table-cell-muted">{{ formatDate(user.createdAt) }}</td>
                 <td class="table-cell-muted">{{ formatDate(user.updatedAt) }}</td>
