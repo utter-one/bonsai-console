@@ -5,6 +5,7 @@ import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStor
 import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
 
@@ -449,14 +450,13 @@ const actionsList = computed(() => {
               <label class="form-label">
                 Stage Prompt <span class="required">*</span>
               </label>
-              <textarea
+              <PromptEditor
                 v-model="form.prompt"
-                required
-                rows="20"
-                class="form-textarea"
-                placeholder="You are now in the [stage name] stage..."
                 :disabled="isLoading"
-              ></textarea>
+                placeholder="You are now in the [stage name] stage..."
+                aria-label="Stage prompt"
+                min-height="28rem"
+              />
               <p class="form-help-text">
                 The system prompt or instructions specific to this stage
               </p>

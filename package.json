@@ -11,6 +11,12 @@
   },
   "dependencies": {
     "axios": "^1.13.2",
+    "@codemirror/autocomplete": "^6.19.0",
+    "@codemirror/lang-liquid": "^6.3.0",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.0",
+    "codemirror": "^6.0.1",
     "lucide-vue-next": "^0.563.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.24",
