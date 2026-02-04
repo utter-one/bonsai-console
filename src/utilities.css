@@ -2,15 +2,15 @@
 
 /* Buttons */
 .btn-primary {
-  @apply px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-primary-600;
+  @apply px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500;
+  @apply px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-900;
 }
 
 .btn-danger {
-  @apply px-4 py-2 border-none bg-red-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-red-700;
+  @apply px-4 py-2 border-none bg-red-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600;
 }
 
 .btn-sm {
@@ -423,12 +423,12 @@
 
 /* Link Button (transparent with colored text) */
 .btn-link {
-  @apply px-4 py-2 border-none bg-transparent text-primary-500 text-sm font-medium cursor-pointer transition-colors hover:text-primary-600;
+  @apply px-4 py-2 border-none bg-transparent text-primary-500 text-sm font-medium cursor-pointer transition-colors hover:text-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-primary-500;
 }
 
 /* Icon Button (for stat cards) */
 .btn-icon {
-  @apply px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100;
+  @apply px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-50;
 }
 
 /* Textarea */
