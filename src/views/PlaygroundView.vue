@@ -46,19 +46,20 @@
             <button
               v-if="!wsIsConnected"
               @click="connectWebSocket"
-              :disabled="!selectedApiKeyId || wsIsConnected"
+              :disabled="!canConnectWebSocket"
               class="btn-primary flex items-center gap-2"
             >
               <Plug :size="16" />
-              Connect
+              {{ isWsConnecting ? 'Connecting...' : 'Connect' }}
             </button>
             <button
               v-else
               @click="disconnectWebSocket"
+              :disabled="!canDisconnectWebSocket"
               class="btn-danger flex items-center gap-2"
             >
               <X :size="16" />
-              Disconnect
+              {{ isWsDisconnecting ? 'Disconnecting...' : 'Disconnect' }}
             </button>
           </div>
         </div>
@@ -66,6 +67,89 @@
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-h-0 p-6 gap-4 overflow-hidden">
+        <!-- Control Panel -->
+        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div class="px-4 py-3 border-b border-gray-200">
+            <h2 class="text-sm font-semibold text-gray-700">Controls</h2>
+          </div>
+          <div class="p-4 flex flex-wrap gap-3">
+            <!-- Conversation Controls -->
+            <div class="flex gap-2">
+              <button
+                v-if="!isConversationActive"
+                class="btn-primary flex items-center gap-2"
+                @click="startConversation"
+                :disabled="!canStartConversation"
+              >
+                <Play :size="18" />
+                {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+              </button>
+              <button
+                v-else
+                class="btn-danger flex items-center gap-2"
+                @click="endConversation"
+                :disabled="!canEndConversation"
+              >
+                <Square :size="18" />
+                {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
+              </button>
+            </div>
+
+            <div class="h-8 border-l border-gray-300"></div>
+
+            <!-- Advanced Controls -->
+            <button
+              class="btn-secondary flex items-center gap-2"
+              :disabled="!canRunAction"
+              @click="showRunActionDialog = true"
+            >
+              <Zap :size="18" />
+              Run Action
+            </button>
+
+            <button
+              class="btn-secondary flex items-center gap-2"
+              :disabled="!canJumpToStage"
+              @click="showJumpToStageDialog = true"
+            >
+              <SkipForward :size="18" />
+              Jump to Stage
+            </button>
+
+            <button
+              class="btn-secondary flex items-center gap-2"
+              :disabled="!isConversationActive || isConversationStarting || isConversationEnding"
+            >
+              <RefreshCw :size="18" />
+              Reset Context
+            </button>
+
+            <div class="h-8 border-l border-gray-300"></div>
+
+            <!-- Info -->
+            <div class="flex items-center gap-4 text-sm text-gray-600 ml-auto">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full"
+                  :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400'"
+                ></div>
+                <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full"
+                  :class="isConversationActive ? 'bg-blue-500' : 'bg-gray-400'"
+                ></div>
+                <span>{{ isConversationActive ? 'Conversation Active' : 'No Conversation' }}</span>
+              </div>
+              <div v-if="conversationId">
+                <span class="text-gray-500">Conv ID:</span>
+                <span class="font-mono ml-1 text-xs">{{ conversationId }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- History Panel (Main Area) -->
         <div class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
@@ -137,7 +221,7 @@
                 class="form-textarea"
                 rows="2"
                 placeholder="Type your message here..."
-                :disabled="!isConversationActive"
+                :disabled="!canSendMessage"
                 @keydown.enter.ctrl="sendMessage"
               />
             </div>
@@ -145,92 +229,11 @@
             <!-- Send Button -->
             <button
               class="btn-primary h-10 px-6"
-              :disabled="!isConversationActive || !messageInput.trim()"
+              :disabled="!canSendMessage || !messageInput.trim()"
               @click="sendMessage"
             >
               <Send :size="20" />
             </button>
-          </div>
-        </div>
-
-        <!-- Control Panel -->
-        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h2 class="text-sm font-semibold text-gray-700">Controls</h2>
-          </div>
-          <div class="p-4 flex flex-wrap gap-3">
-            <!-- Conversation Controls -->
-            <div class="flex gap-2">
-              <button
-                v-if="!isConversationActive"
-                class="btn-primary flex items-center gap-2"
-                @click="startConversation"
-              >
-                <Play :size="18" />
-                Start Conversation
-              </button>
-              <button
-                v-else
-                class="btn-danger flex items-center gap-2"
-                @click="endConversation"
-              >
-                <Square :size="18" />
-                End Conversation
-              </button>
-            </div>
-
-            <div class="h-8 border-l border-gray-300"></div>
-
-            <!-- Advanced Controls -->
-            <button
-              class="btn-secondary flex items-center gap-2"
-              :disabled="!isConversationActive"
-              @click="showRunActionDialog = true"
-            >
-              <Zap :size="18" />
-              Run Action
-            </button>
-
-            <button
-              class="btn-secondary flex items-center gap-2"
-              :disabled="!isConversationActive"
-              @click="showJumpToStageDialog = true"
-            >
-              <SkipForward :size="18" />
-              Jump to Stage
-            </button>
-
-            <button
-              class="btn-secondary flex items-center gap-2"
-              :disabled="!isConversationActive"
-            >
-              <RefreshCw :size="18" />
-              Reset Context
-            </button>
-
-            <div class="h-8 border-l border-gray-300"></div>
-
-            <!-- Info -->
-            <div class="flex items-center gap-4 text-sm text-gray-600 ml-auto">
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-2 h-2 rounded-full"
-                  :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400'"
-                ></div>
-                <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-2 h-2 rounded-full"
-                  :class="isConversationActive ? 'bg-blue-500' : 'bg-gray-400'"
-                ></div>
-                <span>{{ isConversationActive ? 'Conversation Active' : 'No Conversation' }}</span>
-              </div>
-              <div v-if="conversationId">
-                <span class="text-gray-500">Conv ID:</span>
-                <span class="font-mono ml-1 text-xs">{{ conversationId }}</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -265,7 +268,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
@@ -371,41 +374,72 @@ function formatTime(date: Date): string {
 }
 
 // WebSocket client setup
-let wsClient: ReturnType<typeof useWebSocketClient> | null = null
-const wsIsConnected = ref(false)
-const wsSessionId = ref<string | null>(null)
+const wsClient = shallowRef<ReturnType<typeof useWebSocketClient> | null>(null)
+const isWsConnecting = ref(false)
+const isWsDisconnecting = ref(false)
+const isConversationStarting = ref(false)
+const isConversationEnding = ref(false)
+const isSendingMessage = ref(false)
+const isRunningAction = ref(false)
+const isJumpingStage = ref(false)
+
+const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
+const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
+const isConversationActive = computed(() => wsClient.value?.isInConversation.value || false)
+const conversationId = computed(() => wsClient.value?.conversationId.value || null)
+
+const canConnectWebSocket = computed(() => {
+  return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value
+})
+
+const canDisconnectWebSocket = computed(() => {
+  return wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value && !isConversationActive.value
+})
+
+const canStartConversation = computed(() => {
+  return wsIsConnected.value && !isConversationActive.value && !isWsConnecting.value && !isWsDisconnecting.value && !isConversationStarting.value && !isConversationEnding.value
+})
+
+const canEndConversation = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value
+})
+
+const canRunAction = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isRunningAction.value
+})
+
+const canJumpToStage = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isJumpingStage.value
+})
+
+const canSendMessage = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
+})
 
 async function connectWebSocket() {
-  if (!selectedApiKey.value?.key) {
-    addEvent({
-      type: 'error',
-      message: 'Please select an API key first',
-      timestamp: new Date()
-    })
-    return
-  }
+  if (!canConnectWebSocket.value) return
+
+  const apiKey = selectedApiKey.value?.key
+  if (!apiKey) return
 
   try {
+    isWsConnecting.value = true
+
     addEvent({
       type: 'system',
       message: 'Connecting to WebSocket server...',
       timestamp: new Date()
     })
 
-    wsClient = useWebSocketClient(selectedApiKey.value.key, {
+    const client = useWebSocketClient(apiKey, {
       onConnect: () => {
-        wsIsConnected.value = true
-        wsSessionId.value = wsClient?.sessionId.value || null
         addEvent({
           type: 'system',
           message: 'Connected to WebSocket',
-          timestamp: new Date(),
-          details: `Session ID: ${wsSessionId.value}`
+          timestamp: new Date()
         })
       },
       onDisconnect: () => {
-        wsIsConnected.value = false
-        wsSessionId.value = null
         addEvent({
           type: 'system',
           message: 'Disconnected from WebSocket',
@@ -428,17 +462,27 @@ async function connectWebSocket() {
         })
       },
       onAiVoiceChunk: (msg: SendAiVoiceChunkMessage) => {
-        // For now, just log chunk reception (audio playback would be implemented separately)
         if (msg.isFinal) {
           addEvent({
-            type: 'ai',
-            message: '[Voice response completed]',
+            type: 'system',
+            message: 'AI voice output completed',
             timestamp: new Date(),
             details: `Received ${msg.ordinal + 1} audio chunks`
           })
         }
       },
       onAiVoiceEnd: (msg: EndAiVoiceOutputMessage) => {
+        const fullText = msg.fullText?.trim()
+        if (fullText) {
+          addEvent({
+            type: 'ai',
+            message: fullText,
+            timestamp: new Date(),
+            details: `Voice Output ID: ${msg.voiceOutputId}`
+          })
+          return
+        }
+
         addEvent({
           type: 'system',
           message: 'AI voice output ended',
@@ -448,29 +492,53 @@ async function connectWebSocket() {
       }
     })
 
-    await wsClient.connect()
+    wsClient.value = client
+    await client.connect()
+
+    if (wsSessionId.value) {
+      addEvent({
+        type: 'system',
+        message: 'WebSocket session established',
+        timestamp: new Date(),
+        details: `Session ID: ${wsSessionId.value}`
+      })
+    }
   } catch (error) {
     addEvent({
       type: 'error',
       message: `Failed to connect: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+    wsClient.value?.disconnect()
+    wsClient.value = null
+  } finally {
+    isWsConnecting.value = false
   }
 }
 
-function disconnectWebSocket() {
-  if (wsClient) {
-    wsClient.disconnect()
-    wsClient = null
+async function disconnectWebSocket() {
+  if (!wsClient.value) return
+  if (isConversationActive.value) {
+    addEvent({
+      type: 'error',
+      message: 'End the conversation before disconnecting',
+      timestamp: new Date()
+    })
+    return
   }
-  wsIsConnected.value = false
-  wsSessionId.value = null
+  if (isWsDisconnecting.value) return
+
+  try {
+    isWsDisconnecting.value = true
+    wsClient.value.disconnect()
+    wsClient.value = null
+  } finally {
+    isWsDisconnecting.value = false
+  }
 }
 
 // State
 const messageInput = ref('')
-const isConversationActive = computed(() => wsClient?.isInConversation.value || false)
-const conversationId = computed(() => wsClient?.conversationId.value || null)
 const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
@@ -484,6 +552,9 @@ function startConversation() {
       message: 'Please connect to WebSocket first',
       timestamp: new Date()
     })
+    return
+  }
+  if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value) {
     return
   }
   showStartConversationModal.value = true
@@ -539,9 +610,11 @@ async function ensureUserExists(): Promise<string> {
 }
 
 async function handleStartConversation(stage: StageResponse) {
-  if (!wsClient) return
+  if (!wsClient.value) return
+  if (isConversationStarting.value || isConversationEnding.value) return
 
   try {
+    isConversationStarting.value = true
     addEvent({
       type: 'system',
       message: `Starting conversation with stage: ${stage.name}`,
@@ -551,7 +624,7 @@ async function handleStartConversation(stage: StageResponse) {
     // Ensure user exists before starting conversation
     const userId = await ensureUserExists()
 
-    const convId = await wsClient.startConversation({
+    const convId = await wsClient.value.startConversation({
       userId: userId,
       stageId: stage.id,
       personaId: stage.personaId
@@ -571,11 +644,13 @@ async function handleStartConversation(stage: StageResponse) {
       message: `Failed to start conversation: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+  } finally {
+    isConversationStarting.value = false
   }
 }
 
 async function handleJumpToStage(stage: StageResponse) {
-  if (!wsClient || !wsClient.client.value) {
+  if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
       type: 'error',
       message: 'No active WebSocket connection',
@@ -583,15 +658,17 @@ async function handleJumpToStage(stage: StageResponse) {
     })
     return
   }
+  if (isJumpingStage.value || isConversationStarting.value || isConversationEnding.value) return
 
   try {
+    isJumpingStage.value = true
     addEvent({
       type: 'system',
       message: `Jumping to stage: ${stage.name}`,
       timestamp: new Date()
     })
 
-    await wsClient.client.value.goToStage(stage.id)
+    await wsClient.value.client.value.goToStage(stage.id)
     currentStage.value = stage
     
     addEvent({
@@ -605,20 +682,24 @@ async function handleJumpToStage(stage: StageResponse) {
       message: `Failed to jump to stage: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+  } finally {
+    isJumpingStage.value = false
   }
 }
 
 async function endConversation() {
-  if (!wsClient) return
+  if (!wsClient.value) return
+  if (isConversationEnding.value || isConversationStarting.value) return
 
   try {
+    isConversationEnding.value = true
     addEvent({
       type: 'system',
       message: 'Ending conversation...',
       timestamp: new Date()
     })
 
-    await wsClient.endConversation()
+    await wsClient.value.endConversation()
     currentStage.value = null
     
     addEvent({
@@ -632,22 +713,26 @@ async function endConversation() {
       message: `Failed to end conversation: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+  } finally {
+    isConversationEnding.value = false
   }
 }
 
 async function sendMessage() {
-  if (!messageInput.value.trim() || !wsClient) return
+  if (!messageInput.value.trim() || !wsClient.value) return
+  if (!canSendMessage.value) return
   
   const message = messageInput.value.trim()
   
   try {
+    isSendingMessage.value = true
     addEvent({
       type: 'user',
       message: message,
       timestamp: new Date()
     })
 
-    await wsClient.sendTextInput(message)
+    await wsClient.value.sendTextInput(message)
     messageInput.value = ''
   } catch (error) {
     addEvent({
@@ -655,11 +740,13 @@ async function sendMessage() {
       message: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+  } finally {
+    isSendingMessage.value = false
   }
 }
 
 async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
-  if (!wsClient || !wsClient.client.value) {
+  if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
       type: 'error',
       message: 'No active WebSocket connection',
@@ -667,8 +754,10 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
     })
     return
   }
+  if (!canRunAction.value) return
 
   try {
+    isRunningAction.value = true
     addEvent({
       type: 'system',
       message: `Running action: ${data.actionKey}`,
@@ -678,7 +767,7 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
 
     // Convert parameters object to array format expected by the API
     const paramsArray = Object.values(data.parameters)
-    const result = await wsClient.client.value.runAction(data.actionKey, paramsArray)
+    const result = await wsClient.value.client.value.runAction(data.actionKey, paramsArray)
     
     addEvent({
       type: 'system',
@@ -694,6 +783,8 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
       message: `Failed to run action: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
+  } finally {
+    isRunningAction.value = false
   }
 }
 </script>
