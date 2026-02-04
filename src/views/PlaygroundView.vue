@@ -1,6 +1,6 @@
 <template>
   <!-- No Project Selected State -->
-  <div v-if="!hasProject" class="flex-1 min-h-0 flex items-center justify-center bg-gray-50">
+  <div v-if="!hasProject" class="flex items-center justify-center bg-gray-50 h-[calc(100vh-7rem)] overflow-hidden">
     <div class="text-center max-w-md">
       <Play class="mx-auto mb-4 text-gray-400" :size="64" />
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Main Playground UI -->
-  <div v-else class="flex-1 min-h-0 flex flex-col bg-gray-50 overflow-hidden">
+  <div v-else class="flex flex-col bg-gray-50 overflow-hidden h-[calc(100vh-7rem)]">
       <!-- Header -->
       <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div class="flex items-center justify-between">
@@ -351,13 +351,18 @@ interface ConversationEvent {
 const conversationEvents = ref<ConversationEvent[]>([])
 const historyContainer = ref<HTMLElement | null>(null)
 
+function scrollHistoryToBottom() {
+  const el = historyContainer.value
+  if (!el) return
+  el.scrollTop = el.scrollHeight
+}
+
 function addEvent(event: ConversationEvent) {
   conversationEvents.value.push(event)
   // Auto-scroll to bottom
   nextTick(() => {
-    if (historyContainer.value) {
-      historyContainer.value.scrollTop = historyContainer.value.scrollHeight
-    }
+    scrollHistoryToBottom()
+    requestAnimationFrame(() => scrollHistoryToBottom())
   })
 }
 
