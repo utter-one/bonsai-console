@@ -5,6 +5,7 @@ import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/st
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
@@ -426,14 +427,13 @@ const metadataFields = computed(() => {
               <label class="form-label">
                 Tool Prompt <span class="required">*</span>
               </label>
-              <textarea
+              <PromptEditor
                 v-model="form.prompt"
-                required
-                rows="20"
-                class="form-textarea"
-                placeholder="You are a tool that analyzes data and provides insights..."
                 :disabled="isLoading"
-              ></textarea>
+                placeholder="You are a tool that analyzes data and provides insights..."
+                aria-label="Tool prompt"
+                min-height="28rem"
+              />
               <p class="form-help-text">
                 The system prompt or instructions for this tool's operation
               </p>

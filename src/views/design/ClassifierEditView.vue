@@ -5,6 +5,7 @@ import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from
 import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
@@ -298,14 +299,13 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
             <label class="form-label">
               Classification Prompt <span class="required">*</span>
             </label>
-            <textarea
+            <PromptEditor
               v-model="form.prompt"
-              required
-              rows="20"
-              class="form-textarea"
-              placeholder="Classify the user's intent based on their message..."
               :disabled="isLoading"
-            ></textarea>
+              placeholder="Classify the user's intent based on their message..."
+              aria-label="Classifier prompt"
+              min-height="28rem"
+            />
             <p class="form-help-text">
               The prompt that defines how the classifier should categorize user inputs. Include instructions on what intents to identify and how to classify them.
             </p>

@@ -5,6 +5,7 @@ import { useContextTransformersStore, useProvidersStore, useProjectSelectionStor
 import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
 import type { ContextTransformerResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
@@ -385,14 +386,13 @@ function removeContextField(index: number) {
               <label class="form-label">
                 Transformation Prompt <span class="required">*</span>
               </label>
-              <textarea
+              <PromptEditor
                 v-model="form.prompt"
-                required
-                rows="20"
-                class="form-textarea"
-                placeholder="You are a context transformer that enriches user data..."
                 :disabled="isLoading"
-              ></textarea>
+                placeholder="You are a context transformer that enriches user data..."
+                aria-label="Context transformer prompt"
+                min-height="28rem"
+              />
               <p class="form-help-text">
                 The system prompt or instructions that define how the context should be transformed
               </p>

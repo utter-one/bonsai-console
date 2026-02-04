@@ -7,6 +7,7 @@ import type { PersonaResponse, VoiceConfig } from '@/api/types'
 
 type NoSpeechMarker = NonNullable<VoiceConfig['noSpeechMarkers']>[number]
 import MetadataTab from '@/components/MetadataTab.vue'
+import PromptEditor from '@/components/PromptEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -363,14 +364,13 @@ function removeNoSpeechMarker(index: number) {
             <label class="form-label">
               System Prompt <span class="required">*</span>
             </label>
-            <textarea
+            <PromptEditor
               v-model="form.prompt"
-              required
-              rows="20"
-              class="form-textarea"
-              placeholder="You are a helpful assistant..."
               :disabled="isLoading"
-            ></textarea>
+              placeholder="You are a helpful assistant..."
+              aria-label="Persona system prompt"
+              min-height="28rem"
+            />
             <p class="form-help-text">
               The system prompt that defines this persona's behavior, personality, and capabilities
             </p>
