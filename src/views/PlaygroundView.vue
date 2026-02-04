@@ -66,7 +66,7 @@
       </div>
 
       <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col min-h-0 p-6 gap-4 overflow-hidden">
+      <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
         <!-- Control Panel -->
         <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
           <div class="px-4 py-3 border-b border-gray-200">
