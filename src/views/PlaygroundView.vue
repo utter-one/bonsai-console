@@ -1,6 +1,6 @@
 <template>
   <!-- No Project Selected State -->
-  <div v-if="!hasProject" class="flex items-center justify-center h-screen bg-gray-50">
+  <div v-if="!hasProject" class="flex-1 min-h-0 flex items-center justify-center bg-gray-50">
     <div class="text-center max-w-md">
       <Play class="mx-auto mb-4 text-gray-400" :size="64" />
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">No Project Selected</h2>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Main Playground UI -->
-  <div v-else class="h-screen flex flex-col bg-gray-50">
+  <div v-else class="flex-1 min-h-0 flex flex-col bg-gray-50 overflow-hidden">
       <!-- Header -->
       <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div class="flex items-center justify-between">
@@ -28,7 +28,7 @@
           
           <!-- API Key Selection -->
           <div class="flex items-center gap-3">
-            <label class="text-sm font-medium text-gray-700">API Key:</label>
+            <label class="text-sm font-medium text-gray-700">API&nbsp;Key:</label>
             <select
               v-model="selectedApiKeyId"
               class="form-select min-w-[200px]"
@@ -67,7 +67,7 @@
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-h-0 p-6 gap-4 overflow-hidden">
         <!-- History Panel (Main Area) -->
-        <div class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
             <h2 class="text-sm font-semibold text-gray-700">Conversation History</h2>
           </div>
@@ -127,7 +127,7 @@
         </div>
 
         <!-- Input Panel -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
           <div class="flex gap-3 items-end">
             <!-- Text Input -->
             <div class="flex-1">
@@ -154,7 +154,7 @@
         </div>
 
         <!-- Control Panel -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
           <div class="px-4 py-3 border-b border-gray-200">
             <h2 class="text-sm font-semibold text-gray-700">Controls</h2>
           </div>
@@ -305,8 +305,14 @@ watch(projectId, async (newProjectId) => {
   if (newProjectId) {
     await Promise.all([
       globalActionsStore.fetchAll({ filters: { projectId: newProjectId } }),
-      apiKeysStore.fetchAll({ filters: { projectId: newProjectId } })
+      apiKeysStore.fetchAll({ filters: { projectId: newProjectId, isActive: true } })
     ])
+    
+    // Auto-select first active API key
+    const firstActiveKey = activeApiKeys.value[0]
+    if (firstActiveKey && !selectedApiKeyId.value) {
+      selectedApiKeyId.value = firstActiveKey.id
+    }
   }
 }, { immediate: true })
 

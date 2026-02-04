@@ -256,8 +256,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
     </div>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-6 max-w-[1920px] w-full mx-auto">
-      <RouterView />
+    <main class="flex-1 min-h-0 p-6 max-w-[1920px] w-full mx-auto flex flex-col">
+      <div class="flex-1 min-h-0 flex flex-col">
+        <RouterView />
+      </div>
     </main>
 
     <!-- Profile Edit Modal -->
