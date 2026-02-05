@@ -236,7 +236,7 @@
               <label class="form-label">Voice</label>
               <div class="flex gap-2 items-center">
                 <button
-                  v-if="recording.recordingState.value !== 'recording'"
+                  v-if="recording?.recordingState !== 'recording'"
                   class="btn-secondary h-10 px-4 flex items-center gap-2"
                   :disabled="!canRecordVoice"
                   @click="startVoiceRecording"
@@ -257,19 +257,19 @@
                 
                 <!-- Audio Level Indicator -->
                 <div 
-                  v-if="recording.recordingState.value === 'recording'"
+                  v-if="recording?.recordingState === 'recording'"
                   class="flex items-center gap-1"
                   title="Audio level"
                 >
                   <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       class="h-full bg-blue-500 transition-all duration-100"
-                      :style="{ width: `${recording.audioLevel.value * 100}%` }"
+                      :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"
                     ></div>
                   </div>
                 </div>
               </div>
-              <p v-if="recording.errorMessage.value" class="text-xs text-red-600">{{ recording.errorMessage.value }}</p>
+              <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
             </div>
 
             <div class="h-8 border-l border-gray-300 self-end mb-1"></div>
@@ -282,7 +282,7 @@
                 class="form-textarea"
                 rows="2"
                 placeholder="Type your message here..."
-                :disabled="!canSendMessage || recording.recordingState.value === 'recording'"
+                :disabled="!canSendMessage || recording?.recordingState === 'recording'"
                 @keydown.enter.ctrl="sendMessage"
               />
             </div>
@@ -290,7 +290,7 @@
             <!-- Send Button -->
             <button
               class="btn-primary h-10 px-6"
-              :disabled="!canSendMessage || !messageInput.trim() || recording.recordingState.value === 'recording'"
+              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
               @click="sendMessage"
             >
               <Send :size="20" />
@@ -492,39 +492,69 @@ const canSendMessage = computed(() => {
 })
 
 const canRecordVoice = computed(() => {
-  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.recordingState.value === 'idle'
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
 })
 
-// Audio recording setup
-const recording = useAudioRecording({
-  sampleRate: 16000, // PCM 16kHz default
-  chunkDurationMs: 2000, // 2 seconds per chunk
-  onChunk: async (base64Audio: string) => {
-    if (!wsClient.value) return
-    
-    try {
-      // Stream audio chunk to backend
-      await wsClient.value.sendVoiceChunk(base64Audio)
-    } catch (error) {
-      console.error('Failed to send voice chunk:', error)
+// Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
+function parseSampleRate(audioFormat?: string): number {
+  if (!audioFormat) return 16000 // Default
+  const match = audioFormat.match(/(\d+)$/)
+  if (match && match[1]) {
+    return parseInt(match[1], 10)
+  }
+  return 16000
+}
+
+// Audio recording setup - reactive based on ASR settings
+const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+
+// Initialize/update recording when project settings change
+watch(() => wsClient.value?.projectSettings.value, (settings) => {
+  if (!settings) {
+    recording.value = null
+    return
+  }
+
+  const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
+  
+  addEvent({
+    type: 'system',
+    message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
+    timestamp: new Date(),
+    details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
+  })
+  
+  // Create new recording instance with correct sample rate
+  recording.value = useAudioRecording({
+    sampleRate,
+    chunkDurationMs: 2000, // 2 seconds per chunk
+    onChunk: async (base64Audio: string) => {
+      if (!wsClient.value) return
+      
+      try {
+        // Stream audio chunk to backend
+        await wsClient.value.sendVoiceChunk(base64Audio)
+      } catch (error) {
+        console.error('Failed to send voice chunk:', error)
+        addEvent({
+          type: 'error',
+          message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+          timestamp: new Date()
+        })
+      }
+    },
+    onError: (error: Error) => {
       addEvent({
         type: 'error',
-        message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Recording error: ${error.message}`,
         timestamp: new Date()
       })
     }
-  },
-  onError: (error: Error) => {
-    addEvent({
-      type: 'error',
-      message: `Recording error: ${error.message}`,
-      timestamp: new Date()
-    })
-  }
-})
+  })
+}, { immediate: true })
 
 async function startVoiceRecording() {
-  if (!canRecordVoice.value || !wsClient.value) return
+  if (!canRecordVoice.value || !wsClient.value || !recording.value) return
   
   try {
     addEvent({
@@ -543,7 +573,7 @@ async function startVoiceRecording() {
     })
     
     // Start recording from microphone
-    await recording.startRecording()
+    await recording.value.startRecording()
   } catch (error) {
     addEvent({
       type: 'error',
@@ -554,11 +584,11 @@ async function startVoiceRecording() {
 }
 
 async function stopVoiceRecording() {
-  if (!wsClient.value) return
+  if (!wsClient.value || !recording.value) return
   
   try {
     // Stop recording (will process remaining chunks)
-    recording.stopRecording()
+    recording.value.stopRecording()
     
     addEvent({
       type: 'system',

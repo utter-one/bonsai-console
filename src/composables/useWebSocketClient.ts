@@ -34,6 +34,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
   const error = ref<Error | null>(null)
   const sessionId = ref<string | null>(null)
   const conversationId = ref<string | null>(null)
+  const projectSettings = ref<any>(null)
 
   /**
    * Connect to the WebSocket server and authenticate
@@ -65,6 +66,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
 
       await client.value.connect()
       sessionId.value = client.value.getSessionId()
+      projectSettings.value = client.value.getProjectSettings()
       isConnected.value = true
     } catch (err) {
       error.value = err instanceof Error ? err : new Error(String(err))
@@ -210,6 +212,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
     isInConversation.value = false
     sessionId.value = null
     conversationId.value = null
+    projectSettings.value = null
   }
 
   // Auto cleanup on unmount
@@ -224,6 +227,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
     error,
     sessionId,
     conversationId,
+    projectSettings,
     connect,
     disconnect,
     startConversation,
