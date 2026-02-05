@@ -14,6 +14,13 @@
             Basic Info
           </button>
           <button
+            @click="activeTab = 'voice'"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
+            type="button"
+          >
+            Voice Settings
+          </button>
+          <button
             @click="activeTab = 'apiKeys'"
             :class="['tab-button', { 'tab-button-active': activeTab === 'apiKeys' }]"
             type="button"
@@ -65,9 +72,32 @@
           ></textarea>
         </div>
 
-        <!-- ASR Configuration Section -->
-        <div class="mt-8 pt-6 border-t border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Input Configuration</h3>
+        <div v-if="project" class="card-info">
+          <div class="flex-between">
+            <span>Version: {{ project.version }}</span>
+            <span>Created: {{ formatDate(project.createdAt) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" @click="handleClose" class="btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary">
+            {{ project ? 'Save Changes' : 'Create' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Voice Settings Tab -->
+      <form v-show="activeTab === 'voice'" @submit.prevent="handleSubmit">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Input Configuration</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              Configure Automatic Speech Recognition (ASR) for voice input in conversations.
+            </p>
+          </div>
           
           <div class="form-group">
             <label class="form-label">
@@ -83,12 +113,12 @@
               </option>
             </select>
             <p class="form-help-text">
-              Automatic Speech Recognition provider for voice input
+              Select the Automatic Speech Recognition provider for voice input
             </p>
           </div>
 
           <!-- ASR Settings (shown when provider is selected) -->
-          <div v-if="form.asrConfig.asrProviderId" class="space-y-4 pl-4 border-l-2 border-gray-200">
+          <div v-if="form.asrConfig.asrProviderId" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r">
             <div class="form-group">
               <label class="form-label">
                 Language <span class="text-gray-500">(optional)</span>
@@ -100,7 +130,7 @@
                 class="form-input"
               />
               <p class="form-help-text">
-                Language code for speech recognition (e.g., "en-US")
+                Language code for speech recognition (e.g., "en-US", "es-ES", "fr-FR")
               </p>
             </div>
 
@@ -147,7 +177,7 @@
                 <div
                   v-for="(phrase, index) in form.asrConfig.settings.dictionaryPhrases"
                   :key="index"
-                  class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded"
+                  class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200"
                 >
                   <span class="flex-1 text-sm">{{ phrase }}</span>
                   <button
@@ -178,15 +208,8 @@
               </span>
             </label>
             <p class="form-help-text mt-1">
-              Allow conversations to accept voice input (requires ASR provider configured)
+              Allow conversations to accept voice input (requires ASR provider configured above)
             </p>
-          </div>
-        </div>
-
-        <div v-if="project" class="card-info">
-          <div class="flex-between">
-            <span>Version: {{ project.version }}</span>
-            <span>Created: {{ formatDate(project.createdAt) }}</span>
           </div>
         </div>
 
@@ -195,7 +218,7 @@
             Cancel
           </button>
           <button type="submit" class="btn-primary">
-            {{ project ? 'Save Changes' : 'Create' }}
+            Save Changes
           </button>
         </div>
       </form>
@@ -343,7 +366,7 @@ const form = ref({
   version: undefined as number | undefined,
 })
 
-const activeTab = ref<'basic' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'apiKeys' | 'metadata'>('basic')
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
