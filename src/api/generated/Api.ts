@@ -2076,9 +2076,87 @@ export class Api<
           /** Identifier of the conversation this event belongs to */
           conversationId: string;
           /** Type of the conversation event */
-          eventType: string;
+          eventType:
+            | "message"
+            | "classification"
+            | "action"
+            | "command"
+            | "conversation_start"
+            | "conversation_resume"
+            | "conversation_end"
+            | "conversation_aborted"
+            | "conversation_failed"
+            | "jump_to_stage";
           /** Event data payload */
-          eventData: Record<string, any>;
+          eventData:
+            | {
+                role: "user" | "assistant";
+                text: string;
+                originalText: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                classifierId: string;
+                input: string;
+                actions: {
+                  classifierId: string;
+                  classifierName: string;
+                  actions: {
+                    name: string;
+                    parameters: Record<string, any>;
+                  }[];
+                }[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                actionName: string;
+                stageId: string;
+                effects: Effect[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                command: string;
+                parameters?: Record<string, any>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                stageId: string;
+                initialVariables?: Record<string, any>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                previousStatus:
+                  | "initialized"
+                  | "awaiting_user_input"
+                  | "receiving_user_voice"
+                  | "processing_user_input"
+                  | "generating_response"
+                  | "finished"
+                  | "aborted"
+                  | "failed";
+                stageId: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                reason?: string;
+                stageId: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                reason: string;
+                stageId: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                error: string;
+                stageId?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                fromStageId: string;
+                toStageId: string;
+                metadata?: Record<string, any>;
+              };
           /**
            * Timestamp when the event occurred
            * @format date
@@ -2134,9 +2212,87 @@ export class Api<
         /** Identifier of the conversation this event belongs to */
         conversationId: string;
         /** Type of the conversation event */
-        eventType: string;
+        eventType:
+          | "message"
+          | "classification"
+          | "action"
+          | "command"
+          | "conversation_start"
+          | "conversation_resume"
+          | "conversation_end"
+          | "conversation_aborted"
+          | "conversation_failed"
+          | "jump_to_stage";
         /** Event data payload */
-        eventData: Record<string, any>;
+        eventData:
+          | {
+              role: "user" | "assistant";
+              text: string;
+              originalText: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              classifierId: string;
+              input: string;
+              actions: {
+                classifierId: string;
+                classifierName: string;
+                actions: {
+                  name: string;
+                  parameters: Record<string, any>;
+                }[];
+              }[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              actionName: string;
+              stageId: string;
+              effects: Effect[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              command: string;
+              parameters?: Record<string, any>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              stageId: string;
+              initialVariables?: Record<string, any>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              previousStatus:
+                | "initialized"
+                | "awaiting_user_input"
+                | "receiving_user_voice"
+                | "processing_user_input"
+                | "generating_response"
+                | "finished"
+                | "aborted"
+                | "failed";
+              stageId: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              reason?: string;
+              stageId: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              reason: string;
+              stageId: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              error: string;
+              stageId?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              fromStageId: string;
+              toStageId: string;
+              metadata?: Record<string, any>;
+            };
         /**
          * Timestamp when the event occurred
          * @format date

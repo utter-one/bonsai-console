@@ -99,43 +99,96 @@ function formatEventType(eventType: string): string {
     .join(' ')
 }
 
-function isMessageEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a message event
+function isMessageEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'message'
+  eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
+} {
   return event.eventType === 'message'
 }
 
-function isClassificationEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a classification event
+function isClassificationEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'classification'
+  eventData: {
+    classifierId: string
+    input: string
+    actions: {
+      classifierId: string
+      classifierName: string
+      actions: { name: string; parameters: Record<string, any> }[]
+    }[]
+    metadata?: Record<string, any>
+  }
+} {
   return event.eventType === 'classification'
 }
 
-function isActionEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is an action event
+function isActionEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'action'
+  eventData: { actionName: string; stageId: string; effects: any[]; metadata?: Record<string, any> }
+} {
   return event.eventType === 'action'
 }
 
-function isCommandEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a command event
+function isCommandEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'command'
+  eventData: { command: string; parameters?: Record<string, any>; metadata?: Record<string, any> }
+} {
   return event.eventType === 'command'
 }
 
-function isConversationStartEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a conversation start event
+function isConversationStartEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'conversation_start'
+  eventData: { stageId: string; initialVariables?: Record<string, any>; metadata?: Record<string, any> }
+} {
   return event.eventType === 'conversation_start'
 }
 
-function isConversationResumeEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a conversation resume event
+function isConversationResumeEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'conversation_resume'
+  eventData: {
+    previousStatus: string
+    stageId: string
+    metadata?: Record<string, any>
+  }
+} {
   return event.eventType === 'conversation_resume'
 }
 
-function isConversationEndEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a conversation end event
+function isConversationEndEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'conversation_end'
+  eventData: { reason?: string; stageId: string; metadata?: Record<string, any> }
+} {
   return event.eventType === 'conversation_end'
 }
 
-function isConversationAbortedEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a conversation aborted event
+function isConversationAbortedEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'conversation_aborted'
+  eventData: { reason: string; stageId: string; metadata?: Record<string, any> }
+} {
   return event.eventType === 'conversation_aborted'
 }
 
-function isConversationFailedEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a conversation failed event
+function isConversationFailedEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'conversation_failed'
+  eventData: { error: string; stageId?: string; metadata?: Record<string, any> }
+} {
   return event.eventType === 'conversation_failed'
 }
 
-function isJumpToStageEvent(event: ConversationEventResponse): boolean {
+// Type guard to check if event data is a jump to stage event
+function isJumpToStageEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'jump_to_stage'
+  eventData: { fromStageId: string; toStageId: string; metadata?: Record<string, any> }
+} {
   return event.eventType === 'jump_to_stage'
 }
 
@@ -233,6 +286,19 @@ const metadataFields = computed(() => {
                         <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ event.eventData.originalText }}
                         </div>
                       </div>
+                      <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0"
+                        class="mt-2 pt-2 border-t border-gray-300">
+                        <details class="group">
+                          <summary
+                            class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                            Message Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                          </summary>
+                          <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <pre
+                              class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                          </div>
+                        </details>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -256,9 +322,45 @@ const metadataFields = computed(() => {
                           <div class="text-sm text-gray-900">{{ event.eventData.input }}</div>
                         </div>
                         <div v-if="event.eventData.actions && event.eventData.actions.length > 0">
-                          <span class="text-xs font-medium text-gray-600">Actions:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.actions.length }} action(s) matched
+                          <span class="text-xs font-medium text-gray-600">Matched Actions:</span>
+                          <div class="mt-1 space-y-2">
+                            <div v-for="(actionGroup, idx) in event.eventData.actions" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-2">
+                              <div class="text-xs font-medium text-gray-700 mb-1">
+                                {{ actionGroup.classifierName }} ({{ actionGroup.classifierId }})
+                              </div>
+                              <div class="space-y-1">
+                                <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
+                                  class="pl-3 border-l-2 border-yellow-300">
+                                  <div class="text-sm font-medium text-gray-900">{{ action.name }}</div>
+                                  <div v-if="action.parameters && Object.keys(action.parameters).length > 0">
+                                    <details class="group">
+                                      <summary
+                                        class="cursor-pointer text-xs text-gray-600 hover:text-gray-900 select-none">
+                                        Parameters ({{ Object.keys(action.parameters).length }})
+                                      </summary>
+                                      <div class="mt-1 bg-gray-50 rounded p-2 font-mono text-xs overflow-x-auto">
+                                        <pre
+                                          class="whitespace-pre-wrap break-words">{{ JSON.stringify(action.parameters, null, 2) }}</pre>
+                                      </div>
+                                    </details>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
@@ -284,8 +386,30 @@ const metadataFields = computed(() => {
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
-                          <span class="text-xs font-medium text-gray-600">Effects:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.effects.length }} effect(s)</div>
+                          <span class="text-xs font-medium text-gray-600">Effects ({{ event.eventData.effects.length }}):</span>
+                          <div class="mt-1 space-y-1">
+                            <details v-for="(effect, idx) in event.eventData.effects" :key="idx" class="group">
+                              <summary
+                                class="cursor-pointer text-sm text-gray-900 hover:text-gray-700 select-none bg-white bg-opacity-60 rounded px-2 py-1">
+                                {{ effect.type || 'Effect' }} {{ idx + 1 }}
+                              </summary>
+                              <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                                <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(effect, null, 2) }}</pre>
+                              </div>
+                            </details>
+                          </div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
@@ -315,6 +439,18 @@ const metadataFields = computed(() => {
                             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
                           </details>
                         </div>
@@ -350,6 +486,18 @@ const metadataFields = computed(() => {
                             </div>
                           </details>
                         </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -372,6 +520,18 @@ const metadataFields = computed(() => {
                         <div>
                           <span class="text-xs font-medium text-gray-600">Stage ID:</span>
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
@@ -396,6 +556,18 @@ const metadataFields = computed(() => {
                           <span class="text-xs font-medium text-gray-600">Stage ID:</span>
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
                         </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -418,6 +590,18 @@ const metadataFields = computed(() => {
                         <div>
                           <span class="text-xs font-medium text-gray-600">Stage ID:</span>
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
@@ -443,6 +627,18 @@ const metadataFields = computed(() => {
                           <span class="text-xs font-medium text-gray-600">Stage ID:</span>
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
                         </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -465,6 +661,18 @@ const metadataFields = computed(() => {
                         <div>
                           <span class="text-xs font-medium text-gray-600">To:</span>
                           <div class="text-sm font-mono text-gray-900">{{ event.eventData.toStageId }}</div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
