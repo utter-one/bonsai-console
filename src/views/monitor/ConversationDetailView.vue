@@ -325,25 +325,24 @@ const metadataFields = computed(() => {
                           <span class="text-xs font-medium text-gray-600">Matched Actions:</span>
                           <div class="mt-1 space-y-2">
                             <div v-for="(actionGroup, idx) in event.eventData.actions" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-2">
-                              <div class="text-xs font-medium text-gray-700 mb-1">
-                                {{ actionGroup.classifierName }} ({{ actionGroup.classifierId }})
+                              class="bg-white bg-opacity-60 rounded p-2.5">
+                              <div class="text-xs font-medium text-gray-700 mb-1.5">
+                                {{ actionGroup.classifierName }}
                               </div>
-                              <div class="space-y-1">
+                              <div class="text-[10px] text-gray-500 font-mono mb-2">{{ actionGroup.classifierId }}</div>
+                              <div class="space-y-2.5">
                                 <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
-                                  class="pl-3 border-l-2 border-yellow-300">
-                                  <div class="text-sm font-medium text-gray-900">{{ action.name }}</div>
-                                  <div v-if="action.parameters && Object.keys(action.parameters).length > 0">
-                                    <details class="group">
-                                      <summary
-                                        class="cursor-pointer text-xs text-gray-600 hover:text-gray-900 select-none">
-                                        Parameters ({{ Object.keys(action.parameters).length }})
-                                      </summary>
-                                      <div class="mt-1 bg-gray-50 rounded p-2 font-mono text-xs overflow-x-auto">
-                                        <pre
-                                          class="whitespace-pre-wrap break-words">{{ JSON.stringify(action.parameters, null, 2) }}</pre>
-                                      </div>
-                                    </details>
+                                  class="pl-2.5 border-l-2 border-yellow-300">
+                                  <div class="text-sm font-semibold text-gray-900 mb-1.5">{{ action.name }}</div>
+                                  <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
+                                    class="space-y-1">
+                                    <div v-for="(value, key) in action.parameters" :key="key"
+                                      class="flex items-start gap-2 text-xs">
+                                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0">{{ key }}:</span>
+                                      <span class="text-gray-900 break-words">{{ 
+                                        typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                                      }}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -387,16 +386,22 @@ const metadataFields = computed(() => {
                         </div>
                         <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
                           <span class="text-xs font-medium text-gray-600">Effects ({{ event.eventData.effects.length }}):</span>
-                          <div class="mt-1 space-y-1">
-                            <details v-for="(effect, idx) in event.eventData.effects" :key="idx" class="group">
-                              <summary
-                                class="cursor-pointer text-sm text-gray-900 hover:text-gray-700 select-none bg-white bg-opacity-60 rounded px-2 py-1">
+                          <div class="mt-1 space-y-2">
+                            <div v-for="(effect, idx) in event.eventData.effects" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-2.5">
+                              <div class="text-sm font-semibold text-purple-900 mb-2">
                                 {{ effect.type || 'Effect' }} {{ idx + 1 }}
-                              </summary>
-                              <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
-                                <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(effect, null, 2) }}</pre>
                               </div>
-                            </details>
+                              <div class="space-y-1">
+                                <div v-for="(value, key) in effect" :key="key"
+                                  class="flex items-start gap-2 text-xs">
+                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0">{{ key }}:</span>
+                                  <span class="text-gray-900 break-words font-mono">{{ 
+                                    typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                                  }}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
