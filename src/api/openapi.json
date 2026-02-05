@@ -3537,13 +3537,301 @@
           },
           "eventType": {
             "type": "string",
+            "enum": [
+              "message",
+              "classification",
+              "action",
+              "command",
+              "conversation_start",
+              "conversation_resume",
+              "conversation_end",
+              "conversation_aborted",
+              "conversation_failed",
+              "jump_to_stage"
+            ],
             "description": "Type of the conversation event"
           },
           "eventData": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
-            },
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "assistant"
+                    ]
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "originalText": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "role",
+                  "text",
+                  "originalText"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "classifierId": {
+                    "type": "string"
+                  },
+                  "input": {
+                    "type": "string"
+                  },
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "classifierId": {
+                          "type": "string"
+                        },
+                        "classifierName": {
+                          "type": "string"
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "parameters": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "nullable": true
+                                }
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "parameters"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "classifierId",
+                        "classifierName",
+                        "actions"
+                      ]
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "classifierId",
+                  "input",
+                  "actions"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "actionName": {
+                    "type": "string"
+                  },
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "effects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Effect"
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "actionName",
+                  "stageId",
+                  "effects"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "initialVariables": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "stageId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "previousStatus": {
+                    "type": "string",
+                    "enum": [
+                      "initialized",
+                      "awaiting_user_input",
+                      "receiving_user_voice",
+                      "processing_user_input",
+                      "generating_response",
+                      "finished",
+                      "aborted",
+                      "failed"
+                    ]
+                  },
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "previousStatus",
+                  "stageId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  },
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "stageId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  },
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "reason",
+                  "stageId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string"
+                  },
+                  "stageId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "error"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "fromStageId": {
+                    "type": "string"
+                  },
+                  "toStageId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "fromStageId",
+                  "toStageId"
+                ]
+              }
+            ],
             "description": "Event data payload"
           },
           "timestamp": {
@@ -3588,13 +3876,301 @@
                 },
                 "eventType": {
                   "type": "string",
+                  "enum": [
+                    "message",
+                    "classification",
+                    "action",
+                    "command",
+                    "conversation_start",
+                    "conversation_resume",
+                    "conversation_end",
+                    "conversation_aborted",
+                    "conversation_failed",
+                    "jump_to_stage"
+                  ],
                   "description": "Type of the conversation event"
                 },
                 "eventData": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "nullable": true
-                  },
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "assistant"
+                          ]
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "originalText": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "text",
+                        "originalText"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "classifierId": {
+                          "type": "string"
+                        },
+                        "input": {
+                          "type": "string"
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "classifierId": {
+                                "type": "string"
+                              },
+                              "classifierName": {
+                                "type": "string"
+                              },
+                              "actions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "parameters": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "nullable": true
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "parameters"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "classifierId",
+                              "classifierName",
+                              "actions"
+                            ]
+                          }
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "classifierId",
+                        "input",
+                        "actions"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "actionName": {
+                          "type": "string"
+                        },
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "effects": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Effect"
+                          }
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "actionName",
+                        "stageId",
+                        "effects"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "command": {
+                          "type": "string"
+                        },
+                        "parameters": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "command"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "initialVariables": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "stageId"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "previousStatus": {
+                          "type": "string",
+                          "enum": [
+                            "initialized",
+                            "awaiting_user_input",
+                            "receiving_user_voice",
+                            "processing_user_input",
+                            "generating_response",
+                            "finished",
+                            "aborted",
+                            "failed"
+                          ]
+                        },
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "previousStatus",
+                        "stageId"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "reason": {
+                          "type": "string"
+                        },
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "stageId"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "reason": {
+                          "type": "string"
+                        },
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "reason",
+                        "stageId"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "stageId": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "error"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "fromStageId": {
+                          "type": "string"
+                        },
+                        "toStageId": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "fromStageId",
+                        "toStageId"
+                      ]
+                    }
+                  ],
                   "description": "Event data payload"
                 },
                 "timestamp": {
@@ -12396,13 +12972,301 @@
                           },
                           "eventType": {
                             "type": "string",
+                            "enum": [
+                              "message",
+                              "classification",
+                              "action",
+                              "command",
+                              "conversation_start",
+                              "conversation_resume",
+                              "conversation_end",
+                              "conversation_aborted",
+                              "conversation_failed",
+                              "jump_to_stage"
+                            ],
                             "description": "Type of the conversation event"
                           },
                           "eventData": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
-                            },
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "role": {
+                                    "type": "string",
+                                    "enum": [
+                                      "user",
+                                      "assistant"
+                                    ]
+                                  },
+                                  "text": {
+                                    "type": "string"
+                                  },
+                                  "originalText": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "role",
+                                  "text",
+                                  "originalText"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "classifierId": {
+                                    "type": "string"
+                                  },
+                                  "input": {
+                                    "type": "string"
+                                  },
+                                  "actions": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "classifierId": {
+                                          "type": "string"
+                                        },
+                                        "classifierName": {
+                                          "type": "string"
+                                        },
+                                        "actions": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "name": {
+                                                "type": "string"
+                                              },
+                                              "parameters": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                  "nullable": true
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "name",
+                                              "parameters"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "classifierId",
+                                        "classifierName",
+                                        "actions"
+                                      ]
+                                    }
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "classifierId",
+                                  "input",
+                                  "actions"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "actionName": {
+                                    "type": "string"
+                                  },
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "effects": {
+                                    "type": "array",
+                                    "items": {
+                                      "$ref": "#/components/schemas/Effect"
+                                    }
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "actionName",
+                                  "stageId",
+                                  "effects"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "command": {
+                                    "type": "string"
+                                  },
+                                  "parameters": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "command"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "initialVariables": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "stageId"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "previousStatus": {
+                                    "type": "string",
+                                    "enum": [
+                                      "initialized",
+                                      "awaiting_user_input",
+                                      "receiving_user_voice",
+                                      "processing_user_input",
+                                      "generating_response",
+                                      "finished",
+                                      "aborted",
+                                      "failed"
+                                    ]
+                                  },
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "previousStatus",
+                                  "stageId"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "stageId"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "reason",
+                                  "stageId"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "error": {
+                                    "type": "string"
+                                  },
+                                  "stageId": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "error"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "fromStageId": {
+                                    "type": "string"
+                                  },
+                                  "toStageId": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "fromStageId",
+                                  "toStageId"
+                                ]
+                              }
+                            ],
                             "description": "Event data payload"
                           },
                           "timestamp": {
@@ -12515,13 +13379,301 @@
                     },
                     "eventType": {
                       "type": "string",
+                      "enum": [
+                        "message",
+                        "classification",
+                        "action",
+                        "command",
+                        "conversation_start",
+                        "conversation_resume",
+                        "conversation_end",
+                        "conversation_aborted",
+                        "conversation_failed",
+                        "jump_to_stage"
+                      ],
                       "description": "Type of the conversation event"
                     },
                     "eventData": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
-                      },
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "user",
+                                "assistant"
+                              ]
+                            },
+                            "text": {
+                              "type": "string"
+                            },
+                            "originalText": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "role",
+                            "text",
+                            "originalText"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "classifierId": {
+                              "type": "string"
+                            },
+                            "input": {
+                              "type": "string"
+                            },
+                            "actions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "classifierId": {
+                                    "type": "string"
+                                  },
+                                  "classifierName": {
+                                    "type": "string"
+                                  },
+                                  "actions": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "parameters": {
+                                          "type": "object",
+                                          "additionalProperties": {
+                                            "nullable": true
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "parameters"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "classifierId",
+                                  "classifierName",
+                                  "actions"
+                                ]
+                              }
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "classifierId",
+                            "input",
+                            "actions"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "actionName": {
+                              "type": "string"
+                            },
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "effects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Effect"
+                              }
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "actionName",
+                            "stageId",
+                            "effects"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "command": {
+                              "type": "string"
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "command"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "initialVariables": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "stageId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "previousStatus": {
+                              "type": "string",
+                              "enum": [
+                                "initialized",
+                                "awaiting_user_input",
+                                "receiving_user_voice",
+                                "processing_user_input",
+                                "generating_response",
+                                "finished",
+                                "aborted",
+                                "failed"
+                              ]
+                            },
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "previousStatus",
+                            "stageId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "reason": {
+                              "type": "string"
+                            },
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "stageId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "reason": {
+                              "type": "string"
+                            },
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "reason",
+                            "stageId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "error": {
+                              "type": "string"
+                            },
+                            "stageId": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "error"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "fromStageId": {
+                              "type": "string"
+                            },
+                            "toStageId": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "fromStageId",
+                            "toStageId"
+                          ]
+                        }
+                      ],
                       "description": "Event data payload"
                     },
                     "timestamp": {
