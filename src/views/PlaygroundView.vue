@@ -198,10 +198,28 @@
                       <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                     </div>
                     <div class="text-sm">
-                      <p v-if="event.message" class="whitespace-pre-wrap">{{ event.message }}</p>
-                      <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono">
-                        {{ event.details }}
-                      </div>
+                      <!-- Voice message with audio player -->
+                      <template v-if="event.voiceOutputId">
+                        <AudioPlayer
+                          v-if="getVoiceOutput(event.voiceOutputId)"
+                          :state="getVoiceOutput(event.voiceOutputId)!.player.state"
+                          :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
+                          :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
+                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || undefined"
+                          @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
+                          @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
+                          @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
+                          @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }"
+                        />
+                      </template>
+                      
+                      <!-- Regular text message -->
+                      <template v-else>
+                        <p v-if="event.message" class="whitespace-pre-wrap">{{ event.message }}</p>
+                        <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono">
+                          {{ event.details }}
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -272,9 +290,11 @@ import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
+import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
+import AudioPlayer from '@/components/AudioPlayer.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunkMessage, StartAiVoiceOutputMessage, EndAiVoiceOutputMessage } from '@/api/websocket/contracts/aiResponse'
 
@@ -349,10 +369,21 @@ interface ConversationEvent {
   message: string
   timestamp: Date
   details?: string
+  voiceOutputId?: string // Link to voice output for audio playback
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
 const historyContainer = ref<HTMLElement | null>(null)
+
+// Voice output tracking
+const activeVoiceOutputs = ref<Map<string, { player: ReturnType<typeof useAudioPlayback>; transcript: string | null }>>(new Map())
+
+/**
+ * Get voice output by ID
+ */
+function getVoiceOutput(voiceOutputId: string) {
+  return activeVoiceOutputs.value.get(voiceOutputId)
+}
 
 function scrollHistoryToBottom() {
   const el = historyContainer.value
@@ -454,41 +485,42 @@ async function connectWebSocket() {
         })
       },
       onAiVoiceStart: (msg: StartAiVoiceOutputMessage) => {
+        // Initialize audio player for this voice output
+        const player = useAudioPlayback()
+        
+        activeVoiceOutputs.value.set(msg.voiceOutputId, {
+          player: player as any,
+          transcript: null
+        })
+        
         addEvent({
-          type: 'system',
-          message: 'AI voice output started',
+          type: 'ai',
+          message: 'Voice message',
           timestamp: new Date(),
-          details: `Voice Output ID: ${msg.voiceOutputId}`
+          voiceOutputId: msg.voiceOutputId
         })
       },
-      onAiVoiceChunk: (msg: SendAiVoiceChunkMessage) => {
-        if (msg.isFinal) {
-          addEvent({
-            type: 'system',
-            message: 'AI voice output completed',
-            timestamp: new Date(),
-            details: `Received ${msg.ordinal + 1} audio chunks`
-          })
-        }
-      },
-      onAiVoiceEnd: (msg: EndAiVoiceOutputMessage) => {
-        const fullText = msg.fullText?.trim()
-        if (fullText) {
-          addEvent({
-            type: 'ai',
-            message: fullText,
-            timestamp: new Date(),
-            details: `Voice Output ID: ${msg.voiceOutputId}`
-          })
+      onAiVoiceChunk: async (msg: SendAiVoiceChunkMessage) => {
+        const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
+        if (!voiceOutput) {
+          console.warn('Received audio chunk for unknown voice output:', msg.voiceOutputId)
           return
         }
-
-        addEvent({
-          type: 'system',
-          message: 'AI voice output ended',
-          timestamp: new Date(),
-          details: `Voice Output ID: ${msg.voiceOutputId}`
+        
+        // Add chunk to audio player queue
+        await voiceOutput.player.addChunk({
+          audioData: msg.audioData,
+          audioFormat: msg.audioFormat,
+          ordinal: msg.ordinal,
+          isFinal: msg.isFinal
         })
+      },
+      onAiVoiceEnd: (msg: EndAiVoiceOutputMessage) => {
+        const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
+        if (voiceOutput) {
+          // Store transcript for display in AudioPlayer
+          voiceOutput.transcript = msg.fullText?.trim() || null
+        }
       }
     })
 
