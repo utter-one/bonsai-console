@@ -673,7 +673,14 @@ export class Api<
         /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
         asrProviderId?: string;
         /** ASR-specific settings including model, language preferences, etc. */
-        settings?: any;
+        settings?: {
+          /** The language code for speech recognition (e.g., "en-US") */
+          language?: string;
+          /** The phrases to add to the speech recognition dictionary */
+          dictionaryPhrases?: string[];
+          /** Audio input format for speech recognition (e.g., "pcm_16000") */
+          audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+        };
       };
       /**
        * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -705,7 +712,14 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: any;
+          settings?: {
+            /** The language code for speech recognition (e.g., "en-US") */
+            language?: string;
+            /** The phrases to add to the speech recognition dictionary */
+            dictionaryPhrases?: string[];
+            /** Audio input format for speech recognition (e.g., "pcm_16000") */
+            audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+          };
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -796,7 +810,14 @@ export class Api<
             /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
             asrProviderId?: string;
             /** ASR-specific settings including model, language preferences, etc. */
-            settings?: any;
+            settings?: {
+              /** The language code for speech recognition (e.g., "en-US") */
+              language?: string;
+              /** The phrases to add to the speech recognition dictionary */
+              dictionaryPhrases?: string[];
+              /** Audio input format for speech recognition (e.g., "pcm_16000") */
+              audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+            };
           } | null;
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
@@ -854,7 +875,14 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: any;
+          settings?: {
+            /** The language code for speech recognition (e.g., "en-US") */
+            language?: string;
+            /** The phrases to add to the speech recognition dictionary */
+            dictionaryPhrases?: string[];
+            /** Audio input format for speech recognition (e.g., "pcm_16000") */
+            audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+          };
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -933,7 +961,14 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: any;
+          settings?: {
+            /** The language code for speech recognition (e.g., "en-US") */
+            language?: string;
+            /** The phrases to add to the speech recognition dictionary */
+            dictionaryPhrases?: string[];
+            /** Audio input format for speech recognition (e.g., "pcm_16000") */
+            audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+          };
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -3409,6 +3444,8 @@ export class Api<
           model?: string;
           /** Text-to-speech voice identifier */
           voiceId?: string;
+          /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
+          audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           /** Markers to identify sections of text that should not be spoken */
           noSpeechMarkers?: {
             start: string;
@@ -3539,6 +3576,8 @@ export class Api<
             model?: string;
             /** Text-to-speech voice identifier */
             voiceId?: string;
+            /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
+            audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
             /** Markers to identify sections of text that should not be spoken */
             noSpeechMarkers?: {
               start: string;
@@ -3650,6 +3689,8 @@ export class Api<
           model?: string;
           /** Text-to-speech voice identifier */
           voiceId?: string;
+          /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
+          audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           /** Markers to identify sections of text that should not be spoken */
           noSpeechMarkers?: {
             start: string;
@@ -3771,6 +3812,8 @@ export class Api<
           model?: string;
           /** Text-to-speech voice identifier */
           voiceId?: string;
+          /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
+          audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           /** Markers to identify sections of text that should not be spoken */
           noSpeechMarkers?: {
             start: string;
@@ -4423,6 +4466,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio input formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether custom vocabulary/phrases are supported */
           supportsCustomVocabulary: boolean;
           /** Whether streaming transcription is supported */
@@ -4467,6 +4512,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio output formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether full streaming (chunk-by-chunk) is supported */
           supportsFullStreaming: boolean;
           /** Whether voice customization settings are supported */
@@ -4538,6 +4585,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio input formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether custom vocabulary/phrases are supported */
           supportsCustomVocabulary: boolean;
           /** Whether streaming transcription is supported */
@@ -4603,6 +4652,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio output formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether full streaming (chunk-by-chunk) is supported */
           supportsFullStreaming: boolean;
           /** Whether voice customization settings are supported */
@@ -4697,6 +4748,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio input formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether custom vocabulary/phrases are supported */
           supportsCustomVocabulary: boolean;
           /** Whether streaming transcription is supported */
@@ -4740,6 +4793,8 @@ export class Api<
             /** Human-readable language name */
             displayName: string;
           }[];
+          /** Audio output formats supported by this provider */
+          supportedAudioFormats: string[];
           /** Whether full streaming (chunk-by-chunk) is supported */
           supportsFullStreaming: boolean;
           /** Whether voice customization settings are supported */

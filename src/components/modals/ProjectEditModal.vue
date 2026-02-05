@@ -65,6 +65,124 @@
           ></textarea>
         </div>
 
+        <!-- ASR Configuration Section -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Input Configuration</h3>
+          
+          <div class="form-group">
+            <label class="form-label">
+              ASR Provider <span class="text-gray-500">(optional)</span>
+            </label>
+            <select
+              v-model="form.asrConfig.asrProviderId"
+              class="form-select"
+            >
+              <option value="">None</option>
+              <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
+                {{ provider.name }}
+              </option>
+            </select>
+            <p class="form-help-text">
+              Automatic Speech Recognition provider for voice input
+            </p>
+          </div>
+
+          <!-- ASR Settings (shown when provider is selected) -->
+          <div v-if="form.asrConfig.asrProviderId" class="space-y-4 pl-4 border-l-2 border-gray-200">
+            <div class="form-group">
+              <label class="form-label">
+                Language <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.asrConfig.settings.language"
+                type="text"
+                placeholder="e.g., en-US, es-ES, fr-FR"
+                class="form-input"
+              />
+              <p class="form-help-text">
+                Language code for speech recognition (e.g., "en-US")
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Audio Format <span class="text-gray-500">(optional)</span>
+              </label>
+              <select
+                v-model="form.asrConfig.settings.audioFormat"
+                class="form-select"
+              >
+                <option value="">Default</option>
+                <option value="pcm_16000">PCM 16kHz</option>
+                <option value="pcm_22050">PCM 22.05kHz</option>
+                <option value="pcm_44100">PCM 44.1kHz</option>
+              </select>
+              <p class="form-help-text">
+                Audio input format for speech recognition
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Dictionary Phrases <span class="text-gray-500">(optional)</span>
+              </label>
+              <div class="flex gap-2 mb-2">
+                <input
+                  v-model="newPhrase"
+                  type="text"
+                  placeholder="Add a phrase"
+                  class="form-input"
+                  @keyup.enter="addDictionaryPhrase"
+                />
+                <button
+                  type="button"
+                  @click="addDictionaryPhrase"
+                  class="btn-secondary whitespace-nowrap"
+                >
+                  <Plus class="inline-block w-4 h-4 mr-1" />
+                  Add
+                </button>
+              </div>
+              <div v-if="form.asrConfig.settings.dictionaryPhrases.length > 0" class="space-y-1">
+                <div
+                  v-for="(phrase, index) in form.asrConfig.settings.dictionaryPhrases"
+                  :key="index"
+                  class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded"
+                >
+                  <span class="flex-1 text-sm">{{ phrase }}</span>
+                  <button
+                    type="button"
+                    @click="removeDictionaryPhrase(index)"
+                    class="btn-icon text-red-600 hover:bg-red-50"
+                    title="Remove phrase"
+                  >
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <p class="form-help-text">
+                Custom phrases to improve recognition accuracy for domain-specific terms
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="flex items-center cursor-pointer">
+              <input
+                v-model="form.acceptVoice"
+                type="checkbox"
+                class="form-checkbox"
+              />
+              <span class="ml-2 text-sm font-medium text-gray-700">
+                Enable Voice Input
+              </span>
+            </label>
+            <p class="form-help-text mt-1">
+              Allow conversations to accept voice input (requires ASR provider configured)
+            </p>
+          </div>
+        </div>
+
         <div v-if="project" class="card-info">
           <div class="flex-between">
             <span>Version: {{ project.version }}</span>
@@ -192,9 +310,9 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
-import { Plus, Trash2 } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse } from '@/api/types'
-import { useApiKeysStore } from '@/stores'
+import { Plus, Trash2, X } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
+import { useApiKeysStore, useProvidersStore } from '@/stores'
 import MetadataTab from '@/components/MetadataTab.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 
@@ -204,14 +322,24 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', data: { name: string; description?: string; version?: number }): void
+  (e: 'save', data: { name: string; description?: string; asrConfig?: AsrConfig; acceptVoice?: boolean; version?: number }): void
 }>()
 
 const apiKeysStore = useApiKeysStore()
+const providersStore = useProvidersStore()
 
 const form = ref({
   name: '',
   description: '',
+  asrConfig: {
+    asrProviderId: '',
+    settings: {
+      language: '',
+      dictionaryPhrases: [] as string[],
+      audioFormat: '' as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100'
+    }
+  },
+  acceptVoice: false,
   version: undefined as number | undefined,
 })
 
@@ -221,6 +349,10 @@ const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
 
+const asrProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'asr')
+)
+
 watch(
   () => props.project,
   (newProject) => {
@@ -228,13 +360,35 @@ watch(
       form.value = {
         name: newProject.name,
         description: newProject.description ?? '',
+        asrConfig: {
+          asrProviderId: newProject.asrConfig?.asrProviderId || '',
+          settings: {
+            language: newProject.asrConfig?.settings?.language || '',
+            dictionaryPhrases: newProject.asrConfig?.settings?.dictionaryPhrases || [],
+            audioFormat: (newProject.asrConfig?.settings?.audioFormat || '') as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100'
+          }
+        },
+        acceptVoice: newProject.acceptVoice ?? false,
         version: newProject.version,
       }
       
       // Load API keys when project is set
       loadApiKeys()
     } else {
-      form.value = { name: '', description: '', version: undefined }
+      form.value = {
+        name: '',
+        description: '',
+        asrConfig: {
+          asrProviderId: '',
+          settings: {
+            language: '',
+            dictionaryPhrases: [],
+            audioFormat: ''
+          }
+        },
+        acceptVoice: false,
+        version: undefined
+      }
       activeTab.value = 'basic'
     }
   },
@@ -249,6 +403,9 @@ watch(activeTab, (newTab) => {
 })
 
 onMounted(() => {
+  // Load providers for ASR dropdown
+  providersStore.fetchAll()
+  
   if (props.project) {
     loadApiKeys()
   }
@@ -290,7 +447,24 @@ const metadataFields = computed(() => {
 
 function handleSubmit() {
   if (!form.value.name) return
-  emit('save', form.value)
+  
+  // Build ASR config only if provider is selected
+  const asrConfig: AsrConfig | undefined = form.value.asrConfig.asrProviderId ? {
+    asrProviderId: form.value.asrConfig.asrProviderId,
+    settings: {
+      ...(form.value.asrConfig.settings.language && { language: form.value.asrConfig.settings.language }),
+      ...(form.value.asrConfig.settings.dictionaryPhrases.length > 0 && { dictionaryPhrases: form.value.asrConfig.settings.dictionaryPhrases }),
+      ...(form.value.asrConfig.settings.audioFormat && { audioFormat: form.value.asrConfig.settings.audioFormat })
+    }
+  } : undefined
+  
+  emit('save', {
+    name: form.value.name,
+    description: form.value.description || undefined,
+    asrConfig,
+    acceptVoice: form.value.acceptVoice,
+    version: form.value.version
+  })
 }
 
 function handleClose() {
@@ -376,6 +550,20 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
 function formatDate(dateString: string | null) {
   if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString()
+}
+
+// Dictionary phrases management
+const newPhrase = ref('')
+
+function addDictionaryPhrase() {
+  if (newPhrase.value.trim()) {
+    form.value.asrConfig.settings.dictionaryPhrases.push(newPhrase.value.trim())
+    newPhrase.value = ''
+  }
+}
+
+function removeDictionaryPhrase(index: number) {
+  form.value.asrConfig.settings.dictionaryPhrases.splice(index, 1)
 }
 </script>
 

@@ -29,6 +29,7 @@ const form = ref({
   voiceConfig: {
     model: '',
     voiceId: '',
+    audioFormat: '' as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100',
     noSpeechMarkers: [] as NoSpeechMarker[],
     removeExclamationMarks: false,
     stability: 0.5,
@@ -117,6 +118,7 @@ async function loadPersona() {
         voiceConfig: {
           model: currentPersona.value.voiceConfig?.model || '',
           voiceId: currentPersona.value.voiceConfig?.voiceId || '',
+          audioFormat: (currentPersona.value.voiceConfig?.audioFormat || '') as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100',
           noSpeechMarkers: currentPersona.value.voiceConfig?.noSpeechMarkers || [],
           removeExclamationMarks: currentPersona.value.voiceConfig?.removeExclamationMarks || false,
           stability: currentPersona.value.voiceConfig?.stability ?? 0.5,
@@ -152,6 +154,7 @@ async function handleSubmit() {
     const voiceConfig: VoiceConfig | undefined = hasVoiceConfig ? {
       ...(form.value.voiceConfig.model && { model: form.value.voiceConfig.model }),
       ...(form.value.voiceConfig.voiceId && { voiceId: form.value.voiceConfig.voiceId }),
+      ...(form.value.voiceConfig.audioFormat && { audioFormat: form.value.voiceConfig.audioFormat }),
       ...(form.value.voiceConfig.noSpeechMarkers.length > 0 && { noSpeechMarkers: form.value.voiceConfig.noSpeechMarkers }),
       removeExclamationMarks: form.value.voiceConfig.removeExclamationMarks,
       stability: form.value.voiceConfig.stability,
@@ -464,6 +467,26 @@ function removeNoSpeechMarker(index: number) {
                 ? 'Select a voice for speech synthesis'
                 : 'Text-to-speech voice identifier' 
               }}
+            </p>
+          </div>
+
+          <!-- Audio Format -->
+          <div v-if="form.ttsProviderId" class="form-group">
+            <label class="form-label">
+              Audio Format <span class="text-gray-500">(optional)</span>
+            </label>
+            <select
+              v-model="form.voiceConfig.audioFormat"
+              class="form-select"
+              :disabled="isLoading"
+            >
+              <option value="">Default</option>
+              <option value="pcm_16000">PCM 16kHz</option>
+              <option value="pcm_22050">PCM 22.05kHz</option>
+              <option value="pcm_44100">PCM 44.1kHz</option>
+            </select>
+            <p class="form-help-text">
+              Preferred audio output format for synthesized speech
             </p>
           </div>
 

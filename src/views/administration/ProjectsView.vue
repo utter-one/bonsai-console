@@ -26,18 +26,22 @@ function openEditModal(project: ProjectResponse) {
   showModal.value = true
 }
 
-async function handleSave(data: { name: string; description?: string; version?: number }) {
+async function handleSave(data: { name: string; description?: string; asrConfig?: any; acceptVoice?: boolean; version?: number }) {
   try {
     if (editingProject.value) {
       await projectsStore.update(editingProject.value.id, {
         version: data.version!,
         name: data.name,
         description: data.description,
+        asrConfig: data.asrConfig,
+        acceptVoice: data.acceptVoice,
       })
     } else {
       await projectsStore.create({ 
         name: data.name,
         description: data.description,
+        asrConfig: data.asrConfig,
+        acceptVoice: data.acceptVoice,
       })
     }
     showModal.value = false
