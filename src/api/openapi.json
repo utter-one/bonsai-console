@@ -365,6 +365,15 @@
             "type": "string",
             "description": "Text-to-speech voice identifier"
           },
+          "audioFormat": {
+            "type": "string",
+            "enum": [
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_44100"
+            ],
+            "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
+          },
           "noSpeechMarkers": {
             "type": "array",
             "items": {
@@ -444,7 +453,29 @@
             "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
           },
           "settings": {
-            "nullable": true,
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string",
+                "description": "The language code for speech recognition (e.g., \"en-US\")"
+              },
+              "dictionaryPhrases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The phrases to add to the speech recognition dictionary"
+              },
+              "audioFormat": {
+                "type": "string",
+                "enum": [
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_44100"
+                ],
+                "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+              }
+            },
             "description": "ASR-specific settings including model, language preferences, etc."
           }
         },
@@ -1357,7 +1388,29 @@
                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
               "settings": {
-                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                  },
+                  "dictionaryPhrases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "The phrases to add to the speech recognition dictionary"
+                  },
+                  "audioFormat": {
+                    "type": "string",
+                    "enum": [
+                      "pcm_16000",
+                      "pcm_22050",
+                      "pcm_44100"
+                    ],
+                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                  }
+                },
                 "description": "ASR-specific settings including model, language preferences, etc."
               }
             },
@@ -1471,7 +1524,29 @@
                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
               "settings": {
-                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                  },
+                  "dictionaryPhrases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "The phrases to add to the speech recognition dictionary"
+                  },
+                  "audioFormat": {
+                    "type": "string",
+                    "enum": [
+                      "pcm_16000",
+                      "pcm_22050",
+                      "pcm_44100"
+                    ],
+                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                  }
+                },
                 "description": "ASR-specific settings including model, language preferences, etc."
               }
             },
@@ -1561,7 +1636,29 @@
                       "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                     },
                     "settings": {
-                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "language": {
+                          "type": "string",
+                          "description": "The language code for speech recognition (e.g., \"en-US\")"
+                        },
+                        "dictionaryPhrases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "The phrases to add to the speech recognition dictionary"
+                        },
+                        "audioFormat": {
+                          "type": "string",
+                          "enum": [
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_44100"
+                          ],
+                          "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                        }
+                      },
                       "description": "ASR-specific settings including model, language preferences, etc."
                     }
                   },
@@ -1790,6 +1887,15 @@
                 "type": "string",
                 "description": "Text-to-speech voice identifier"
               },
+              "audioFormat": {
+                "type": "string",
+                "enum": [
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_44100"
+                ],
+                "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
+              },
               "noSpeechMarkers": {
                 "type": "array",
                 "items": {
@@ -1944,6 +2050,15 @@
                     "voiceId": {
                       "type": "string",
                       "description": "Text-to-speech voice identifier"
+                    },
+                    "audioFormat": {
+                      "type": "string",
+                      "enum": [
+                        "pcm_16000",
+                        "pcm_22050",
+                        "pcm_44100"
+                      ],
+                      "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
                     },
                     "noSpeechMarkers": {
                       "type": "array",
@@ -7330,6 +7445,13 @@
                   },
                   "description": "Languages supported by this provider"
                 },
+                "supportedAudioFormats": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Audio input formats supported by this provider"
+                },
                 "supportsCustomVocabulary": {
                   "type": "boolean",
                   "description": "Whether custom vocabulary/phrases are supported"
@@ -7347,6 +7469,7 @@
                 "apiType",
                 "displayName",
                 "languages",
+                "supportedAudioFormats",
                 "supportsCustomVocabulary",
                 "supportsStreaming"
               ]
@@ -7457,6 +7580,13 @@
                   },
                   "description": "Languages supported"
                 },
+                "supportedAudioFormats": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Audio output formats supported by this provider"
+                },
                 "supportsFullStreaming": {
                   "type": "boolean",
                   "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -7476,6 +7606,7 @@
                 "models",
                 "voices",
                 "languages",
+                "supportedAudioFormats",
                 "supportsFullStreaming",
                 "supportsVoiceSettings"
               ]
@@ -7608,6 +7739,13 @@
                   },
                   "description": "Languages supported by this provider"
                 },
+                "supportedAudioFormats": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Audio input formats supported by this provider"
+                },
                 "supportsCustomVocabulary": {
                   "type": "boolean",
                   "description": "Whether custom vocabulary/phrases are supported"
@@ -7625,6 +7763,7 @@
                 "apiType",
                 "displayName",
                 "languages",
+                "supportedAudioFormats",
                 "supportsCustomVocabulary",
                 "supportsStreaming"
               ]
@@ -7743,6 +7882,13 @@
                   },
                   "description": "Languages supported"
                 },
+                "supportedAudioFormats": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Audio output formats supported by this provider"
+                },
                 "supportsFullStreaming": {
                   "type": "boolean",
                   "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -7762,6 +7908,7 @@
                 "models",
                 "voices",
                 "languages",
+                "supportedAudioFormats",
                 "supportsFullStreaming",
                 "supportsVoiceSettings"
               ]
@@ -7895,6 +8042,13 @@
             },
             "description": "Languages supported by this provider"
           },
+          "supportedAudioFormats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Audio input formats supported by this provider"
+          },
           "supportsCustomVocabulary": {
             "type": "boolean",
             "description": "Whether custom vocabulary/phrases are supported"
@@ -7912,6 +8066,7 @@
           "apiType",
           "displayName",
           "languages",
+          "supportedAudioFormats",
           "supportsCustomVocabulary",
           "supportsStreaming"
         ]
@@ -8018,6 +8173,13 @@
             },
             "description": "Languages supported"
           },
+          "supportedAudioFormats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Audio output formats supported by this provider"
+          },
           "supportsFullStreaming": {
             "type": "boolean",
             "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -8037,6 +8199,7 @@
           "models",
           "voices",
           "languages",
+          "supportedAudioFormats",
           "supportsFullStreaming",
           "supportsVoiceSettings"
         ]
@@ -9696,7 +9859,29 @@
                         "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                       },
                       "settings": {
-                        "nullable": true,
+                        "type": "object",
+                        "properties": {
+                          "language": {
+                            "type": "string",
+                            "description": "The language code for speech recognition (e.g., \"en-US\")"
+                          },
+                          "dictionaryPhrases": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "The phrases to add to the speech recognition dictionary"
+                          },
+                          "audioFormat": {
+                            "type": "string",
+                            "enum": [
+                              "pcm_16000",
+                              "pcm_22050",
+                              "pcm_44100"
+                            ],
+                            "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                          }
+                        },
                         "description": "ASR-specific settings including model, language preferences, etc."
                       }
                     },
@@ -9764,7 +9949,29 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "language": {
+                              "type": "string",
+                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                            },
+                            "dictionaryPhrases": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The phrases to add to the speech recognition dictionary"
+                            },
+                            "audioFormat": {
+                              "type": "string",
+                              "enum": [
+                                "pcm_16000",
+                                "pcm_22050",
+                                "pcm_44100"
+                              ],
+                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            }
+                          },
                           "description": "ASR-specific settings including model, language preferences, etc."
                         }
                       },
@@ -10006,7 +10213,29 @@
                                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                               },
                               "settings": {
-                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "language": {
+                                    "type": "string",
+                                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                                  },
+                                  "dictionaryPhrases": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "The phrases to add to the speech recognition dictionary"
+                                  },
+                                  "audioFormat": {
+                                    "type": "string",
+                                    "enum": [
+                                      "pcm_16000",
+                                      "pcm_22050",
+                                      "pcm_44100"
+                                    ],
+                                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                                  }
+                                },
                                 "description": "ASR-specific settings including model, language preferences, etc."
                               }
                             },
@@ -10133,7 +10362,29 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "language": {
+                              "type": "string",
+                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                            },
+                            "dictionaryPhrases": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The phrases to add to the speech recognition dictionary"
+                            },
+                            "audioFormat": {
+                              "type": "string",
+                              "enum": [
+                                "pcm_16000",
+                                "pcm_22050",
+                                "pcm_44100"
+                              ],
+                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            }
+                          },
                           "description": "ASR-specific settings including model, language preferences, etc."
                         }
                       },
@@ -10309,7 +10560,29 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "language": {
+                              "type": "string",
+                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                            },
+                            "dictionaryPhrases": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The phrases to add to the speech recognition dictionary"
+                            },
+                            "audioFormat": {
+                              "type": "string",
+                              "enum": [
+                                "pcm_16000",
+                                "pcm_22050",
+                                "pcm_44100"
+                              ],
+                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            }
+                          },
                           "description": "ASR-specific settings including model, language preferences, etc."
                         }
                       },
@@ -15888,6 +16161,15 @@
                           "type": "string",
                           "description": "Text-to-speech voice identifier"
                         },
+                        "audioFormat": {
+                          "type": "string",
+                          "enum": [
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_44100"
+                          ],
+                          "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
+                        },
                         "noSpeechMarkers": {
                           "type": "array",
                           "items": {
@@ -16195,6 +16477,15 @@
                                 "type": "string",
                                 "description": "Text-to-speech voice identifier"
                               },
+                              "audioFormat": {
+                                "type": "string",
+                                "enum": [
+                                  "pcm_16000",
+                                  "pcm_22050",
+                                  "pcm_44100"
+                                ],
+                                "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
+                              },
                               "noSpeechMarkers": {
                                 "type": "array",
                                 "items": {
@@ -16404,6 +16695,15 @@
                         "voiceId": {
                           "type": "string",
                           "description": "Text-to-speech voice identifier"
+                        },
+                        "audioFormat": {
+                          "type": "string",
+                          "enum": [
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_44100"
+                          ],
+                          "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
                         },
                         "noSpeechMarkers": {
                           "type": "array",
@@ -16639,6 +16939,15 @@
                         "voiceId": {
                           "type": "string",
                           "description": "Text-to-speech voice identifier"
+                        },
+                        "audioFormat": {
+                          "type": "string",
+                          "enum": [
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_44100"
+                          ],
+                          "description": "Preferred audio output format for synthesized speech (e.g., \"pcm_16000\")"
                         },
                         "noSpeechMarkers": {
                           "type": "array",
@@ -18277,6 +18586,13 @@
                             },
                             "description": "Languages supported by this provider"
                           },
+                          "supportedAudioFormats": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Audio input formats supported by this provider"
+                          },
                           "supportsCustomVocabulary": {
                             "type": "boolean",
                             "description": "Whether custom vocabulary/phrases are supported"
@@ -18294,6 +18610,7 @@
                           "apiType",
                           "displayName",
                           "languages",
+                          "supportedAudioFormats",
                           "supportsCustomVocabulary",
                           "supportsStreaming"
                         ]
@@ -18404,6 +18721,13 @@
                             },
                             "description": "Languages supported"
                           },
+                          "supportedAudioFormats": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Audio output formats supported by this provider"
+                          },
                           "supportsFullStreaming": {
                             "type": "boolean",
                             "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -18423,6 +18747,7 @@
                           "models",
                           "voices",
                           "languages",
+                          "supportedAudioFormats",
                           "supportsFullStreaming",
                           "supportsVoiceSettings"
                         ]
@@ -18573,6 +18898,13 @@
                             },
                             "description": "Languages supported by this provider"
                           },
+                          "supportedAudioFormats": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Audio input formats supported by this provider"
+                          },
                           "supportsCustomVocabulary": {
                             "type": "boolean",
                             "description": "Whether custom vocabulary/phrases are supported"
@@ -18590,6 +18922,7 @@
                           "apiType",
                           "displayName",
                           "languages",
+                          "supportedAudioFormats",
                           "supportsCustomVocabulary",
                           "supportsStreaming"
                         ]
@@ -18726,6 +19059,13 @@
                             },
                             "description": "Languages supported"
                           },
+                          "supportedAudioFormats": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Audio output formats supported by this provider"
+                          },
                           "supportsFullStreaming": {
                             "type": "boolean",
                             "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -18745,6 +19085,7 @@
                           "models",
                           "voices",
                           "languages",
+                          "supportedAudioFormats",
                           "supportsFullStreaming",
                           "supportsVoiceSettings"
                         ]
@@ -18943,6 +19284,13 @@
                           },
                           "description": "Languages supported by this provider"
                         },
+                        "supportedAudioFormats": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Audio input formats supported by this provider"
+                        },
                         "supportsCustomVocabulary": {
                           "type": "boolean",
                           "description": "Whether custom vocabulary/phrases are supported"
@@ -18960,6 +19308,7 @@
                         "apiType",
                         "displayName",
                         "languages",
+                        "supportedAudioFormats",
                         "supportsCustomVocabulary",
                         "supportsStreaming"
                       ]
@@ -19066,6 +19415,13 @@
                           },
                           "description": "Languages supported"
                         },
+                        "supportedAudioFormats": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Audio output formats supported by this provider"
+                        },
                         "supportsFullStreaming": {
                           "type": "boolean",
                           "description": "Whether full streaming (chunk-by-chunk) is supported"
@@ -19085,6 +19441,7 @@
                         "models",
                         "voices",
                         "languages",
+                        "supportedAudioFormats",
                         "supportsFullStreaming",
                         "supportsVoiceSettings"
                       ]
