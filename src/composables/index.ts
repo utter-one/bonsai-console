@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores'
 
 export * from './useActionForm'
 export * from './useWebSocketClient'
+export * from './useAudioPlayback'
 
 /**
  * Format role name to human-readable format
