@@ -231,6 +231,49 @@
         <!-- Input Panel -->
         <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
           <div class="flex gap-3 items-end">
+            <!-- Voice Recording -->
+            <div class="flex flex-col gap-2">
+              <label class="form-label">Voice</label>
+              <div class="flex gap-2 items-center">
+                <button
+                  v-if="recording.recordingState.value !== 'recording'"
+                  class="btn-secondary h-10 px-4 flex items-center gap-2"
+                  :disabled="!canRecordVoice"
+                  @click="startVoiceRecording"
+                  title="Start voice recording"
+                >
+                  <Mic :size="20" />
+                  Record
+                </button>
+                <button
+                  v-else
+                  class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
+                  @click="stopVoiceRecording"
+                  title="Stop voice recording"
+                >
+                  <Square :size="20" />
+                  Stop
+                </button>
+                
+                <!-- Audio Level Indicator -->
+                <div 
+                  v-if="recording.recordingState.value === 'recording'"
+                  class="flex items-center gap-1"
+                  title="Audio level"
+                >
+                  <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full bg-blue-500 transition-all duration-100"
+                      :style="{ width: `${recording.audioLevel.value * 100}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <p v-if="recording.errorMessage.value" class="text-xs text-red-600">{{ recording.errorMessage.value }}</p>
+            </div>
+
+            <div class="h-8 border-l border-gray-300 self-end mb-1"></div>
+
             <!-- Text Input -->
             <div class="flex-1">
               <label class="form-label">Message</label>
@@ -239,7 +282,7 @@
                 class="form-textarea"
                 rows="2"
                 placeholder="Type your message here..."
-                :disabled="!canSendMessage"
+                :disabled="!canSendMessage || recording.recordingState.value === 'recording'"
                 @keydown.enter.ctrl="sendMessage"
               />
             </div>
@@ -247,7 +290,7 @@
             <!-- Send Button -->
             <button
               class="btn-primary h-10 px-6"
-              :disabled="!canSendMessage || !messageInput.trim()"
+              :disabled="!canSendMessage || !messageInput.trim() || recording.recordingState.value === 'recording'"
               @click="sendMessage"
             >
               <Send :size="20" />
@@ -291,7 +334,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
-import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info } from 'lucide-vue-next'
+import { useAudioRecording } from '@/composables/useAudioRecording'
+import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info, Mic } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
@@ -446,6 +490,98 @@ const canJumpToStage = computed(() => {
 const canSendMessage = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
 })
+
+const canRecordVoice = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.recordingState.value === 'idle'
+})
+
+// Audio recording setup
+const recording = useAudioRecording({
+  sampleRate: 16000, // PCM 16kHz default
+  chunkDurationMs: 2000, // 2 seconds per chunk
+  onChunk: async (base64Audio: string) => {
+    if (!wsClient.value) return
+    
+    try {
+      // Stream audio chunk to backend
+      await wsClient.value.sendVoiceChunk(base64Audio)
+    } catch (error) {
+      console.error('Failed to send voice chunk:', error)
+      addEvent({
+        type: 'error',
+        message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+        timestamp: new Date()
+      })
+    }
+  },
+  onError: (error: Error) => {
+    addEvent({
+      type: 'error',
+      message: `Recording error: ${error.message}`,
+      timestamp: new Date()
+    })
+  }
+})
+
+async function startVoiceRecording() {
+  if (!canRecordVoice.value || !wsClient.value) return
+  
+  try {
+    addEvent({
+      type: 'system',
+      message: 'Starting voice input...',
+      timestamp: new Date()
+    })
+    
+    // Start voice input phase on backend
+    await wsClient.value.startVoiceInput()
+    
+    addEvent({
+      type: 'user',
+      message: '🎤 Recording voice...',
+      timestamp: new Date()
+    })
+    
+    // Start recording from microphone
+    await recording.startRecording()
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to start recording: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
+
+async function stopVoiceRecording() {
+  if (!wsClient.value) return
+  
+  try {
+    // Stop recording (will process remaining chunks)
+    recording.stopRecording()
+    
+    addEvent({
+      type: 'system',
+      message: 'Processing voice input...',
+      timestamp: new Date()
+    })
+    
+    // End voice input phase on backend
+    await wsClient.value.endVoiceInput()
+    
+    addEvent({
+      type: 'system',
+      message: 'Voice input sent successfully',
+      timestamp: new Date()
+    })
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to end voice input: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
 
 async function connectWebSocket() {
   if (!canConnectWebSocket.value) return

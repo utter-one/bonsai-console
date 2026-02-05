@@ -148,6 +148,57 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
   }
 
   /**
+   * Start voice input phase
+   */
+  async function startVoiceInput() {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.startVoiceInput()
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
+   * Send voice audio chunk
+   */
+  async function sendVoiceChunk(base64Audio: string) {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.sendVoiceChunk(base64Audio)
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
+   * End voice input phase
+   */
+  async function endVoiceInput() {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.endVoiceInput()
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
    * Disconnect from the WebSocket server
    */
   function disconnect() {
@@ -179,5 +230,8 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
     resumeConversation,
     endConversation,
     sendTextInput,
+    startVoiceInput,
+    sendVoiceChunk,
+    endVoiceInput,
   }
 }
