@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { baseInputMessageSchema, baseOutputMessageSchema } from './common';
-import { asrConfigSchema } from '../../http/contracts/project';
+import { asrConfigSchema } from './audio';
 
 /** Authentication request from client to server. */
 export const authRequestSchema = baseInputMessageSchema.extend({

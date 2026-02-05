@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { sessionOutputMessageSchema } from './common';
-import { audioFormatValues } from '../../types/audio';
+import { audioFormatValues } from './audio';
 
 /** Message indicating the start of AI voice output. */
 export const startAiVoiceOutputMessageSchema = sessionOutputMessageSchema.extend({
