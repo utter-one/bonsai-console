@@ -1,6 +1,7 @@
 import type {
   AuthRequest,
   AuthResponse,
+  ProjectSettings,
 } from './contracts/auth'
 import type {
   StartConversationRequest,
@@ -143,6 +144,7 @@ export class NexusWebSocketClient {
   private ws: WebSocket | null = null
   private sessionId: string | null = null
   private conversationId: string | null = null
+  private projectSettings: ProjectSettings | null = null
   private requestHandlers = new Map<string, {
     resolve: (response: any) => void
     reject: (error: Error) => void
@@ -220,7 +222,9 @@ export class NexusWebSocketClient {
     } as AuthRequest, (response) => {
       if (response.success && response.sessionId) {
         this.sessionId = response.sessionId
+        this.projectSettings = response.projectSettings || null
         this.log('Authenticated, session ID:', this.sessionId)
+        this.log('Project settings:', this.projectSettings)
       } else {
         throw new Error(response.error || 'Authentication failed')
       }
@@ -542,6 +546,14 @@ export class NexusWebSocketClient {
   }
 
   /**
+   * Get the project settings received during authentication.
+   * Contains project configuration including voice settings and ASR config.
+   */
+  getProjectSettings(): ProjectSettings | null {
+    return this.projectSettings
+  }
+
+  /**
    * Check if the client is connected and authenticated.
    */
   isAuthenticated(): boolean {
@@ -673,6 +685,7 @@ export class NexusWebSocketClient {
     this.requestHandlers.clear()
     this.sessionId = null
     this.conversationId = null
+    this.projectSettings = null
   }
 
   /**
