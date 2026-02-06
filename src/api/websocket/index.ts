@@ -14,18 +14,13 @@ export {
 export type {
   AuthRequest,
   AuthResponse,
-} from './contracts/auth'
-
-export type {
+  ProjectSettings,
   StartConversationRequest,
   StartConversationResponse,
   ResumeConversationRequest,
   ResumeConversationResponse,
   EndConversationRequest,
   EndConversationResponse,
-} from './contracts/session'
-
-export type {
   StartUserVoiceInputRequest,
   StartUserVoiceInputResponse,
   SendUserVoiceChunkRequest,
@@ -34,15 +29,9 @@ export type {
   EndUserVoiceInputResponse,
   SendUserTextInputRequest,
   SendUserTextInputResponse,
-} from './contracts/userInput'
-
-export type {
-  StartAiVoiceOutputMessage,
-  SendAiVoiceChunkMessage,
-  EndAiVoiceOutputMessage,
-} from './contracts/aiResponse'
-
-export type {
+  StartAiVoiceOutput,
+  SendAiVoiceChunk,
+  EndAiVoiceOutput,
   GoToStageRequest,
   GoToStageResponse,
   SetVarRequest,
@@ -53,4 +42,5 @@ export type {
   GetAllVarsResponse,
   RunActionRequest,
   RunActionResponse,
-} from './contracts/command'
+  AudioFormat,
+} from './websocket-contracts'

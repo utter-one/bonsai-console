@@ -1,5 +1,5 @@
 import { ref, computed, onUnmounted } from 'vue'
-import type { AudioFormat } from '@/api/websocket/contracts/audio'
+import type { AudioFormat } from '@/api/websocket/websocket-contracts'
 
 interface AudioChunk {
   audioData: string // base64-encoded PCM audio

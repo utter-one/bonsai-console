@@ -2,16 +2,12 @@ import type {
   AuthRequest,
   AuthResponse,
   ProjectSettings,
-} from './contracts/auth'
-import type {
   StartConversationRequest,
   StartConversationResponse,
   ResumeConversationRequest,
   ResumeConversationResponse,
   EndConversationRequest,
   EndConversationResponse,
-} from './contracts/session'
-import type {
   StartUserVoiceInputRequest,
   StartUserVoiceInputResponse,
   SendUserVoiceChunkRequest,
@@ -20,13 +16,9 @@ import type {
   EndUserVoiceInputResponse,
   SendUserTextInputRequest,
   SendUserTextInputResponse,
-} from './contracts/userInput'
-import type {
-  StartAiVoiceOutputMessage,
-  SendAiVoiceChunkMessage,
-  EndAiVoiceOutputMessage,
-} from './contracts/aiResponse'
-import type {
+  StartAiVoiceOutput,
+  SendAiVoiceChunk,
+  EndAiVoiceOutput,
   GoToStageRequest,
   GoToStageResponse,
   SetVarRequest,
@@ -37,7 +29,7 @@ import type {
   GetAllVarsResponse,
   RunActionRequest,
   RunActionResponse,
-} from './contracts/command'
+} from './websocket-contracts'
 
 /** Error message structure from server */
 interface ErrorMessage {
@@ -56,9 +48,9 @@ type ServerMessage =
   | SendUserVoiceChunkResponse
   | EndUserVoiceInputResponse
   | SendUserTextInputResponse
-  | StartAiVoiceOutputMessage
-  | SendAiVoiceChunkMessage
-  | EndAiVoiceOutputMessage
+  | StartAiVoiceOutput
+  | SendAiVoiceChunk
+  | EndAiVoiceOutput
   | GoToStageResponse
   | SetVarResponse
   | GetVarResponse
@@ -69,11 +61,11 @@ type ServerMessage =
 /** Event handlers for server-initiated messages */
 export interface WebSocketEventHandlers {
   /** Called when AI voice output starts */
-  onAiVoiceStart?: (message: StartAiVoiceOutputMessage) => void
+  onAiVoiceStart?: (message: StartAiVoiceOutput) => void
   /** Called when an AI voice chunk is received */
-  onAiVoiceChunk?: (message: SendAiVoiceChunkMessage) => void
+  onAiVoiceChunk?: (message: SendAiVoiceChunk) => void
   /** Called when AI voice output ends */
-  onAiVoiceEnd?: (message: EndAiVoiceOutputMessage) => void
+  onAiVoiceEnd?: (message: EndAiVoiceOutput) => void
   /** Called when a server error occurs */
   onError?: (message: ErrorMessage) => void
   /** Called when the WebSocket connection is established */
@@ -614,13 +606,13 @@ export class NexusWebSocketClient {
     // Handle server-initiated messages
     switch (message.type) {
       case 'start_ai_voice_output':
-        this.config.handlers.onAiVoiceStart?.(message as StartAiVoiceOutputMessage)
+        this.config.handlers.onAiVoiceStart?.(message as StartAiVoiceOutput)
         break
       case 'send_ai_voice_chunk':
-        this.config.handlers.onAiVoiceChunk?.(message as SendAiVoiceChunkMessage)
+        this.config.handlers.onAiVoiceChunk?.(message as SendAiVoiceChunk)
         break
       case 'end_ai_voice_output':
-        this.config.handlers.onAiVoiceEnd?.(message as EndAiVoiceOutputMessage)
+        this.config.handlers.onAiVoiceEnd?.(message as EndAiVoiceOutput)
         break
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
