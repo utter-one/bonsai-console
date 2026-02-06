@@ -82,12 +82,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the admin user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the admin user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -160,12 +160,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the admin user was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the admin user was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -219,12 +219,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the admin user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the admin user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -294,12 +294,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the admin user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the admin user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -382,12 +382,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the admin user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the admin user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -442,12 +442,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the admin user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the admin user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -624,7 +624,7 @@ export class Api<
           metadata?: Record<string, any>;
           /**
            * Timestamp when the admin user was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
         };
@@ -681,6 +681,10 @@ export class Api<
           /** Audio input format for speech recognition (e.g., "pcm_16000") */
           audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
         };
+        /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+        unintelligiblePlaceholder?: string;
+        /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+        voiceActivityDetection?: boolean;
       };
       /**
        * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -720,6 +724,10 @@ export class Api<
             /** Audio input format for speech recognition (e.g., "pcm_16000") */
             audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           };
+          /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+          unintelligiblePlaceholder?: string;
+          /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+          voiceActivityDetection?: boolean;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -733,12 +741,12 @@ export class Api<
         version: number;
         /**
          * The timestamp when the project was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * The timestamp when the project was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -818,6 +826,10 @@ export class Api<
               /** Audio input format for speech recognition (e.g., "pcm_16000") */
               audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
             };
+            /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+            unintelligiblePlaceholder?: string;
+            /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+            voiceActivityDetection?: boolean;
           } | null;
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
@@ -831,12 +843,12 @@ export class Api<
           version: number;
           /**
            * The timestamp when the project was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * The timestamp when the project was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -883,6 +895,10 @@ export class Api<
             /** Audio input format for speech recognition (e.g., "pcm_16000") */
             audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           };
+          /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+          unintelligiblePlaceholder?: string;
+          /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+          voiceActivityDetection?: boolean;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -896,12 +912,12 @@ export class Api<
         version: number;
         /**
          * The timestamp when the project was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * The timestamp when the project was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -969,6 +985,10 @@ export class Api<
             /** Audio input format for speech recognition (e.g., "pcm_16000") */
             audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
           };
+          /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+          unintelligiblePlaceholder?: string;
+          /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+          voiceActivityDetection?: boolean;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -982,12 +1002,12 @@ export class Api<
         version: number;
         /**
          * The timestamp when the project was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * The timestamp when the project was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1082,12 +1102,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the audit log was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the audit log was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -1189,12 +1209,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the classifier was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the classifier was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1279,12 +1299,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the classifier was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the classifier was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -1350,12 +1370,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the classifier was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the classifier was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1435,12 +1455,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the classifier was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the classifier was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1574,12 +1594,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the transformer was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the transformer was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1666,12 +1686,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the transformer was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the transformer was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -1739,12 +1759,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the transformer was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the transformer was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1828,12 +1848,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the transformer was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the transformer was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -1923,12 +1943,12 @@ export class Api<
         metadata: Record<string, any>;
         /**
          * Timestamp when the conversation was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the conversation was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2023,12 +2043,12 @@ export class Api<
           metadata: Record<string, any>;
           /**
            * Timestamp when the conversation was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the conversation was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2194,7 +2214,7 @@ export class Api<
               };
           /**
            * Timestamp when the event occurred
-           * @format date
+           * @format date-time
            */
           timestamp: string | null;
           /** Additional metadata associated with the event */
@@ -2330,7 +2350,7 @@ export class Api<
             };
         /**
          * Timestamp when the event occurred
-         * @format date
+         * @format date-time
          */
         timestamp: string | null;
         /** Additional metadata associated with the event */
@@ -2392,12 +2412,12 @@ export class Api<
         name: string;
         /**
          * Timestamp when the section was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the section was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2464,12 +2484,12 @@ export class Api<
           name: string;
           /**
            * Timestamp when the section was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the section was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2517,12 +2537,12 @@ export class Api<
         name: string;
         /**
          * Timestamp when the section was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the section was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2562,12 +2582,12 @@ export class Api<
         name: string;
         /**
          * Timestamp when the section was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the section was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2668,12 +2688,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the item was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the item was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2681,12 +2701,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the category was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the category was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2775,12 +2795,12 @@ export class Api<
             version: number;
             /**
              * Timestamp when the item was created
-             * @format date
+             * @format date-time
              */
             createdAt: string | null;
             /**
              * Timestamp when the item was last updated
-             * @format date
+             * @format date-time
              */
             updatedAt: string | null;
           }[];
@@ -2788,12 +2808,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the category was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the category was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2863,12 +2883,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the item was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the item was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2876,12 +2896,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the category was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the category was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -2960,12 +2980,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the item was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the item was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -2973,12 +2993,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the category was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the category was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3075,12 +3095,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the item was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the item was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3155,12 +3175,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the item was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the item was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -3216,12 +3236,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the item was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the item was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3289,12 +3309,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the item was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the item was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3365,12 +3385,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the item was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the item was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       }[],
@@ -3492,12 +3512,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the persona was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the persona was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3624,12 +3644,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the persona was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the persona was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -3737,12 +3757,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the persona was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the persona was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -3860,12 +3880,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the persona was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the persona was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -4037,12 +4057,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the provider was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the provider was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -4151,12 +4171,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the provider was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the provider was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -4246,12 +4266,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the provider was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the provider was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -4377,12 +4397,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the provider was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the provider was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -4892,12 +4912,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the environment was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the environment was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -4970,12 +4990,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the environment was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the environment was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -5029,12 +5049,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the environment was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the environment was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5100,12 +5120,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the environment was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the environment was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5246,12 +5266,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the global action was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the global action was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5340,12 +5360,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the global action was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the global action was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -5415,12 +5435,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the global action was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the global action was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5505,12 +5525,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the global action was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the global action was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5667,12 +5687,12 @@ export class Api<
         status: string;
         /**
          * Timestamp when the issue was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the issue was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5763,12 +5783,12 @@ export class Api<
           status: string;
           /**
            * Timestamp when the issue was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the issue was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -5840,12 +5860,12 @@ export class Api<
         status: string;
         /**
          * Timestamp when the issue was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the issue was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -5949,12 +5969,12 @@ export class Api<
         status: string;
         /**
          * Timestamp when the issue was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the issue was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6136,12 +6156,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the stage was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the stage was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6246,12 +6266,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the stage was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the stage was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -6337,12 +6357,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the stage was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the stage was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6465,12 +6485,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the stage was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the stage was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6608,12 +6628,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the tool was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the tool was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6702,12 +6722,12 @@ export class Api<
           version: number;
           /**
            * Timestamp when the tool was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the tool was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -6777,12 +6797,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the tool was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the tool was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6870,12 +6890,12 @@ export class Api<
         version: number;
         /**
          * Timestamp when the tool was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the tool was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -6962,12 +6982,12 @@ export class Api<
         profile: Record<string, any>;
         /**
          * Timestamp when the user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -7034,12 +7054,12 @@ export class Api<
           profile: Record<string, any>;
           /**
            * Timestamp when the user was created
-           * @format date
+           * @format date-time
            */
           createdAt: string | null;
           /**
            * Timestamp when the user was last updated
-           * @format date
+           * @format date-time
            */
           updatedAt: string | null;
         }[];
@@ -7087,12 +7107,12 @@ export class Api<
         profile: Record<string, any>;
         /**
          * Timestamp when the user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },
@@ -7129,12 +7149,12 @@ export class Api<
         profile: Record<string, any>;
         /**
          * Timestamp when the user was created
-         * @format date
+         * @format date-time
          */
         createdAt: string | null;
         /**
          * Timestamp when the user was last updated
-         * @format date
+         * @format date-time
          */
         updatedAt: string | null;
       },

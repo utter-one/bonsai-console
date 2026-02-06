@@ -1,54 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import ProjectEditModal from '@/components/modals/ProjectEditModal.vue'
-import type { ProjectResponse } from '@/api/types'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
 
-const showModal = ref(false)
-const editingProject = ref<ProjectResponse | null>(null)
+const sortedProjects = computed(() => {
+  return [...projectsStore.items].sort((a, b) => a.name.localeCompare(b.name))
+})
 
 onMounted(async () => {
   await projectsStore.fetchAll({ offset: 0, limit: 20 })
 })
 
-function openCreateModal() {
-  editingProject.value = null
-  showModal.value = true
+function createProject() {
+  router.push({ name: 'administration.projects.create' })
 }
 
-function openEditModal(project: ProjectResponse) {
-  editingProject.value = project
-  showModal.value = true
-}
-
-async function handleSave(data: { name: string; description?: string; asrConfig?: any; acceptVoice?: boolean; version?: number }) {
-  try {
-    if (editingProject.value) {
-      await projectsStore.update(editingProject.value.id, {
-        version: data.version!,
-        name: data.name,
-        description: data.description,
-        asrConfig: data.asrConfig,
-        acceptVoice: data.acceptVoice,
-      })
-    } else {
-      await projectsStore.create({ 
-        name: data.name,
-        description: data.description,
-        asrConfig: data.asrConfig,
-        acceptVoice: data.acceptVoice,
-      })
-    }
-    showModal.value = false
-    editingProject.value = null
-  } catch (error) {
-    console.error('Failed to save project:', error)
-  }
+function editProject(projectId: string) {
+  router.push({ name: 'administration.projects.edit', params: { projectId } })
 }
 
 async function deleteProject(id: string, name: string) {
@@ -69,7 +41,7 @@ function selectProject(projectId: string) {
         <h1 class="page-title">Projects</h1>
         <p class="page-subtitle">Manage your AI application projects</p>
       </div>
-      <button @click="openCreateModal" class="btn-primary">
+      <button @click="createProject" class="btn-primary">
         + New Project
       </button>
     </div>
@@ -83,7 +55,7 @@ function selectProject(projectId: string) {
     </div>
     
     <div v-else class="grid-cards">
-      <div v-for="project in projectsStore.items" :key="project.id" class="project-card">
+      <div v-for="project in sortedProjects" :key="project.id" class="project-card">
         <div class="project-card-header">
           <h3 class="project-card-title">{{ project.name }}</h3>
         </div>
@@ -93,19 +65,11 @@ function selectProject(projectId: string) {
         </div>
         <div class="flex gap-2">
           <button @click="selectProject(project.id)" class="btn-secondary">Design</button>
-          <button @click="openEditModal(project)" class="btn-secondary">Edit</button>
+          <button @click="editProject(project.id)" class="btn-secondary">Edit</button>
           <button @click="deleteProject(project.id, project.name)" class="btn-danger">Delete</button>
         </div>
       </div>
     </div>
-
-    <!-- Edit Modal -->
-    <ProjectEditModal
-      v-if="showModal"
-      :project="editingProject"
-      @close="showModal = false"
-      @save="handleSave"
-    />
   </div>
   </AdministrationSectionLayout>
 </template>
