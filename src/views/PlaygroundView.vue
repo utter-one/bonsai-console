@@ -230,7 +230,57 @@
 
         <!-- Input Panel -->
         <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-          <div class="flex gap-3 items-end">
+          <div class="flex gap-3 ">
+            <!-- Voice Recording -->
+            <div class="flex flex-col gap-2">
+              <label class="form-label">Voice</label>
+              <div class="flex gap-2 items-center">
+                <button
+                  v-if="recording?.recordingState !== 'recording'"
+                  class="btn-secondary h-10 px-4 flex items-center gap-2"
+                  :disabled="!canRecordVoice"
+                  @click="startVoiceRecording"
+                  title="Start voice recording"
+                >
+                  <Mic :size="20" />
+                  Speak
+                </button>
+                <button
+                  v-else
+                  class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
+                  @click="stopVoiceRecording"
+                  title="Stop voice recording"
+                >
+                  <Square :size="20" />
+                  Stop
+                </button>
+                
+                <!-- Settings Button -->
+                <button
+                  @click="showAudioSettingsModal = true"
+                  class="btn-secondary h-10 w-10 p-0 flex items-center justify-center"
+                  title="Audio settings"
+                >
+                  <Settings :size="20" />
+                </button>
+                
+                <!-- Audio Level Indicator -->
+                <div 
+                  v-if="recording?.recordingState === 'recording'"
+                  class="flex items-center gap-1"
+                  title="Audio level"
+                >
+                  <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full bg-blue-500 transition-all duration-100"
+                      :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
+            </div>
+
             <!-- Text Input -->
             <div class="flex-1">
               <label class="form-label">Message</label>
@@ -239,15 +289,15 @@
                 class="form-textarea"
                 rows="2"
                 placeholder="Type your message here..."
-                :disabled="!canSendMessage"
+                :disabled="!canSendMessage || recording?.recordingState === 'recording'"
                 @keydown.enter.ctrl="sendMessage"
               />
             </div>
 
             <!-- Send Button -->
             <button
-              class="btn-primary h-10 px-6"
-              :disabled="!canSendMessage || !messageInput.trim()"
+              class="btn-primary h-10 px-6 mt-10"
+              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
               @click="sendMessage"
             >
               <Send :size="20" />
@@ -281,7 +331,13 @@
       @run="handleRunAction"
     />
     
-    <!-- TODO: Add Audio Settings Modal -->
+    <AudioSettingsModal
+      v-if="showAudioSettingsModal"
+      :current-settings="audioSettings"
+      :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+      @close="showAudioSettingsModal = false"
+      @save="handleAudioSettingsSave"
+    />
   </div>
 </template>
 
@@ -291,12 +347,50 @@ import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
-import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info } from 'lucide-vue-next'
+import { useAudioRecording } from '@/composables/useAudioRecording'
+import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info, Mic, Settings } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
+import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunkMessage, StartAiVoiceOutputMessage, EndAiVoiceOutputMessage } from '@/api/websocket/contracts/aiResponse'
+
+// Audio settings persistence
+interface AudioSettings {
+  deviceId: string | null
+  echoCancellation: boolean
+  noiseSuppression: boolean
+  autoGainControl: boolean
+}
+
+const AUDIO_SETTINGS_KEY = 'nexus_audio_settings'
+
+function loadAudioSettings(): AudioSettings {
+  try {
+    const stored = localStorage.getItem(AUDIO_SETTINGS_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('Failed to load audio settings:', error)
+  }
+  // Default settings
+  return {
+    deviceId: null,
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  }
+}
+
+function saveAudioSettings(settings: AudioSettings): void {
+  try {
+    localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(settings))
+  } catch (error) {
+    console.error('Failed to save audio settings:', error)
+  }
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -447,6 +541,180 @@ const canSendMessage = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
 })
 
+const canRecordVoice = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
+})
+
+// Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
+function parseSampleRate(audioFormat?: string): number {
+  if (!audioFormat) return 16000 // Default
+  const match = audioFormat.match(/(\d+)$/)
+  if (match && match[1]) {
+    return parseInt(match[1], 10)
+  }
+  return 16000
+}
+
+// Audio recording setup - reactive based on ASR settings
+const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+
+// Initialize/update recording when project settings change
+watch(() => wsClient.value?.projectSettings.value, (settings) => {
+  if (!settings) {
+    recording.value = null
+    return
+  }
+
+  const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
+  
+  addEvent({
+    type: 'system',
+    message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
+    timestamp: new Date(),
+    details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
+  })
+  
+  // Create new recording instance with correct sample rate and saved settings
+  recording.value = useAudioRecording({
+    sampleRate,
+    chunkDurationMs: 2000, // 2 seconds per chunk
+    deviceId: audioSettings.value.deviceId ?? undefined,
+    echoCancellation: audioSettings.value.echoCancellation,
+    noiseSuppression: audioSettings.value.noiseSuppression,
+    autoGainControl: audioSettings.value.autoGainControl,
+    onChunk: async (base64Audio: string) => {
+      if (!wsClient.value) return
+      
+      try {
+        // Stream audio chunk to backend
+        await wsClient.value.sendVoiceChunk(base64Audio)
+      } catch (error) {
+        console.error('Failed to send voice chunk:', error)
+        addEvent({
+          type: 'error',
+          message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+          timestamp: new Date()
+        })
+      }
+    },
+    onError: (error: Error) => {
+      addEvent({
+        type: 'error',
+        message: `Recording error: ${error.message}`,
+        timestamp: new Date()
+      })
+    }
+  })
+}, { immediate: true })
+
+async function startVoiceRecording() {
+  if (!canRecordVoice.value || !wsClient.value || !recording.value) return
+  
+  try {
+    addEvent({
+      type: 'system',
+      message: 'Starting voice input...',
+      timestamp: new Date()
+    })
+    
+    // Start voice input phase on backend
+    await wsClient.value.startVoiceInput()
+    
+    addEvent({
+      type: 'user',
+      message: '🎤 Recording voice...',
+      timestamp: new Date()
+    })
+    
+    // Start recording from microphone
+    await recording.value.startRecording()
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to start recording: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
+
+async function stopVoiceRecording() {
+  if (!wsClient.value || !recording.value) return
+  
+  try {
+    // Stop recording (will process remaining chunks)
+    recording.value.stopRecording()
+    
+    addEvent({
+      type: 'system',
+      message: 'Processing voice input...',
+      timestamp: new Date()
+    })
+    
+    // End voice input phase on backend
+    await wsClient.value.endVoiceInput()
+    
+    addEvent({
+      type: 'system',
+      message: 'Voice input sent successfully',
+      timestamp: new Date()
+    })
+  } catch (error) {
+    addEvent({
+      type: 'error',
+      message: `Failed to end voice input: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  }
+}
+
+function handleAudioSettingsSave(settings: AudioSettings) {
+  audioSettings.value = settings
+  saveAudioSettings(settings)
+  showAudioSettingsModal.value = false
+  
+  addEvent({
+    type: 'system',
+    message: 'Audio settings saved',
+    timestamp: new Date(),
+    details: `Device: ${settings.deviceId || 'default'}`
+  })
+  
+  // Recreate recording instance with new settings if project settings exist
+  if (wsClient.value?.projectSettings.value) {
+    const projectSettings = wsClient.value.projectSettings.value
+    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
+    
+    recording.value = useAudioRecording({
+      sampleRate,
+      chunkDurationMs: 2000,
+      deviceId: settings.deviceId ?? undefined,
+      echoCancellation: settings.echoCancellation,
+      noiseSuppression: settings.noiseSuppression,
+      autoGainControl: settings.autoGainControl,
+      onChunk: async (base64Audio: string) => {
+        if (!wsClient.value) return
+        try {
+          await wsClient.value.sendVoiceChunk(base64Audio)
+        } catch (error) {
+          console.error('Failed to send voice chunk:', error)
+          addEvent({
+            type: 'error',
+            message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date()
+          })
+        }
+      },
+      onError: (error: Error) => {
+        addEvent({
+          type: 'error',
+          message: `Recording error: ${error.message}`,
+          timestamp: new Date()
+        })
+      }
+    })
+  }
+}
+
 async function connectWebSocket() {
   if (!canConnectWebSocket.value) return
 
@@ -575,6 +843,10 @@ const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
+const showAudioSettingsModal = ref(false)
+
+// Audio settings
+const audioSettings = ref<AudioSettings>(loadAudioSettings())
 
 // Methods
 function startConversation() {

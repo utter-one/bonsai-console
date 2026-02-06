@@ -34,6 +34,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
   const error = ref<Error | null>(null)
   const sessionId = ref<string | null>(null)
   const conversationId = ref<string | null>(null)
+  const projectSettings = ref<any>(null)
 
   /**
    * Connect to the WebSocket server and authenticate
@@ -65,6 +66,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
 
       await client.value.connect()
       sessionId.value = client.value.getSessionId()
+      projectSettings.value = client.value.getProjectSettings()
       isConnected.value = true
     } catch (err) {
       error.value = err instanceof Error ? err : new Error(String(err))
@@ -148,6 +150,57 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
   }
 
   /**
+   * Start voice input phase
+   */
+  async function startVoiceInput() {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.startVoiceInput()
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
+   * Send voice audio chunk
+   */
+  async function sendVoiceChunk(base64Audio: string) {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.sendVoiceChunk(base64Audio)
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
+   * End voice input phase
+   */
+  async function endVoiceInput() {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.endVoiceInput()
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
    * Disconnect from the WebSocket server
    */
   function disconnect() {
@@ -159,6 +212,7 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
     isInConversation.value = false
     sessionId.value = null
     conversationId.value = null
+    projectSettings.value = null
   }
 
   // Auto cleanup on unmount
@@ -173,11 +227,15 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
     error,
     sessionId,
     conversationId,
+    projectSettings,
     connect,
     disconnect,
     startConversation,
     resumeConversation,
     endConversation,
     sendTextInput,
+    startVoiceInput,
+    sendVoiceChunk,
+    endVoiceInput,
   }
 }
