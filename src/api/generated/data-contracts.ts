@@ -39,24 +39,6 @@ export type Effect =
       type: "call_webhook";
     } & CallWebhookEffect);
 
-/** Filter operation with explicit operator and value */
-export interface ListFilterOperation {
-  /** Filter operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), like (pattern match), in (value in array), nin (not in array), between (range) */
-  op:
-    | "like"
-    | "eq"
-    | "ne"
-    | "gt"
-    | "gte"
-    | "lt"
-    | "lte"
-    | "in"
-    | "nin"
-    | "between";
-  /** Filter value to compare against. For "in", "nin", and "between" operations, use an array */
-  value: string | number | boolean | string[] | number[] | boolean[];
-}
-
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
   /**
@@ -88,6 +70,24 @@ export interface ListParams {
     | boolean[]
     | ListFilterOperation
   >;
+}
+
+/** Filter operation with explicit operator and value */
+export interface ListFilterOperation {
+  /** Filter operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), like (pattern match), in (value in array), nin (not in array), between (range) */
+  op:
+    | "like"
+    | "eq"
+    | "ne"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "in"
+    | "nin"
+    | "between";
+  /** Filter value to compare against. For "in", "nin", and "between" operations, use an array */
+  value: string | number | boolean | string[] | number[] | boolean[];
 }
 
 export interface OpenAILlmSettings {
@@ -297,6 +297,10 @@ export interface AsrConfig {
     /** Audio input format for speech recognition (e.g., "pcm_16000") */
     audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
   };
+  /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+  unintelligiblePlaceholder?: string;
+  /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+  voiceActivityDetection?: boolean;
 }
 
 export interface EndConversationEffect {
@@ -343,18 +347,6 @@ export interface ModifyUserInputEffect {
   template: string;
 }
 
-export interface VariableOperation {
-  /**
-   * Name of the variable to modify
-   * @minLength 1
-   */
-  variableName: string;
-  /** Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array) */
-  operation: "set" | "reset" | "add" | "remove";
-  /** Value for the operation (not used for reset operation) */
-  value?: any;
-}
-
 export interface ModifyVariablesEffect {
   /** Effect type */
   type: "modify_variables";
@@ -365,12 +357,12 @@ export interface ModifyVariablesEffect {
   modifications: VariableOperation[];
 }
 
-export interface UserProfileOperation {
+export interface VariableOperation {
   /**
-   * Name of the profile field to modify
+   * Name of the variable to modify
    * @minLength 1
    */
-  fieldName: string;
+  variableName: string;
   /** Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array) */
   operation: "set" | "reset" | "add" | "remove";
   /** Value for the operation (not used for reset operation) */
@@ -385,6 +377,18 @@ export interface ModifyUserProfileEffect {
    * @minItems 1
    */
   modifications: UserProfileOperation[];
+}
+
+export interface UserProfileOperation {
+  /**
+   * Name of the profile field to modify
+   * @minLength 1
+   */
+  fieldName: string;
+  /** Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array) */
+  operation: "set" | "reset" | "add" | "remove";
+  /** Value for the operation (not used for reset operation) */
+  value?: any;
 }
 
 export interface CallToolEffect {
@@ -553,12 +557,12 @@ export interface AdminResponse {
   version: number;
   /**
    * Timestamp when the admin user was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the admin user was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -578,12 +582,12 @@ export interface AdminListResponse {
     version: number;
     /**
      * Timestamp when the admin user was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the admin user was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -636,12 +640,12 @@ export interface ProfileResponse {
   version: number;
   /**
    * Timestamp when the admin user was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the admin user was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -668,12 +672,12 @@ export interface UserResponse {
   profile: Record<string, any>;
   /**
    * Timestamp when the user was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the user was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -687,12 +691,12 @@ export interface UserListResponse {
     profile: Record<string, any>;
     /**
      * Timestamp when the user was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the user was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -736,6 +740,10 @@ export interface CreateProjectRequest {
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
       audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
     };
+    /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+    unintelligiblePlaceholder?: string;
+    /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+    voiceActivityDetection?: boolean;
   };
   /**
    * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -796,6 +804,10 @@ export interface ProjectResponse {
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
       audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
     };
+    /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+    unintelligiblePlaceholder?: string;
+    /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+    voiceActivityDetection?: boolean;
   } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice: boolean;
@@ -809,12 +821,12 @@ export interface ProjectResponse {
   version: number;
   /**
    * The timestamp when the project was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * The timestamp when the project was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -841,6 +853,10 @@ export interface ProjectListResponse {
         /** Audio input format for speech recognition (e.g., "pcm_16000") */
         audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
       };
+      /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+      unintelligiblePlaceholder?: string;
+      /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+      voiceActivityDetection?: boolean;
     } | null;
     /** Whether conversations can accept voice input (requires asrConfig fully populated) */
     acceptVoice: boolean;
@@ -854,12 +870,12 @@ export interface ProjectListResponse {
     version: number;
     /**
      * The timestamp when the project was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * The timestamp when the project was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -999,12 +1015,12 @@ export interface PersonaResponse {
   version: number;
   /**
    * Timestamp when the persona was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the persona was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1078,12 +1094,12 @@ export interface PersonaListResponse {
     version: number;
     /**
      * Timestamp when the persona was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the persona was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1196,7 +1212,7 @@ export interface InitialAdminSetupResponse {
     metadata?: Record<string, any>;
     /**
      * Timestamp when the admin user was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
   };
@@ -1240,12 +1256,12 @@ export interface KnowledgeSectionResponse {
   name: string;
   /**
    * Timestamp when the section was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the section was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1259,12 +1275,12 @@ export interface KnowledgeSectionListResponse {
     name: string;
     /**
      * Timestamp when the section was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the section was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1378,12 +1394,12 @@ export interface KnowledgeCategoryResponse {
     version: number;
     /**
      * Timestamp when the item was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the item was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1391,12 +1407,12 @@ export interface KnowledgeCategoryResponse {
   version: number;
   /**
    * Timestamp when the category was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the category was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1432,12 +1448,12 @@ export interface KnowledgeCategoryListResponse {
       version: number;
       /**
        * Timestamp when the item was created
-       * @format date
+       * @format date-time
        */
       createdAt: string | null;
       /**
        * Timestamp when the item was last updated
-       * @format date
+       * @format date-time
        */
       updatedAt: string | null;
     }[];
@@ -1445,12 +1461,12 @@ export interface KnowledgeCategoryListResponse {
     version: number;
     /**
      * Timestamp when the category was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the category was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1551,12 +1567,12 @@ export interface KnowledgeItemResponse {
   version: number;
   /**
    * Timestamp when the item was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the item was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1578,12 +1594,12 @@ export interface KnowledgeItemListResponse {
     version: number;
     /**
      * Timestamp when the item was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the item was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1740,12 +1756,12 @@ export interface IssueResponse {
   status: string;
   /**
    * Timestamp when the issue was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the issue was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1783,12 +1799,12 @@ export interface IssueListResponse {
     status: string;
     /**
      * Timestamp when the issue was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the issue was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1831,12 +1847,12 @@ export interface ConversationResponse {
   metadata: Record<string, any>;
   /**
    * Timestamp when the conversation was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the conversation was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -1864,12 +1880,12 @@ export interface ConversationListResponse {
     metadata: Record<string, any>;
     /**
      * Timestamp when the conversation was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the conversation was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -1980,7 +1996,7 @@ export interface ConversationEventResponse {
       };
   /**
    * Timestamp when the event occurred
-   * @format date
+   * @format date-time
    */
   timestamp: string | null;
   /** Additional metadata associated with the event */
@@ -2078,7 +2094,7 @@ export interface ConversationEventListResponse {
         };
     /**
      * Timestamp when the event occurred
-     * @format date
+     * @format date-time
      */
     timestamp: string | null;
     /** Additional metadata associated with the event */
@@ -2287,12 +2303,12 @@ export interface StageResponse {
   version: number;
   /**
    * Timestamp when the stage was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the stage was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -2344,12 +2360,12 @@ export interface StageListResponse {
     version: number;
     /**
      * Timestamp when the stage was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the stage was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -2469,12 +2485,12 @@ export interface ClassifierResponse {
   version: number;
   /**
    * Timestamp when the classifier was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the classifier was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -2506,12 +2522,12 @@ export interface ClassifierListResponse {
     version: number;
     /**
      * Timestamp when the classifier was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the classifier was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -2637,12 +2653,12 @@ export interface ContextTransformerResponse {
   version: number;
   /**
    * Timestamp when the transformer was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the transformer was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -2676,12 +2692,12 @@ export interface ContextTransformerListResponse {
     version: number;
     /**
      * Timestamp when the transformer was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the transformer was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -2813,12 +2829,12 @@ export interface ToolResponse {
   version: number;
   /**
    * Timestamp when the tool was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the tool was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -2854,12 +2870,12 @@ export interface ToolListResponse {
     version: number;
     /**
      * Timestamp when the tool was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the tool was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -2991,12 +3007,12 @@ export interface GlobalActionResponse {
   version: number;
   /**
    * Timestamp when the global action was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the global action was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -3032,12 +3048,12 @@ export interface GlobalActionListResponse {
     version: number;
     /**
      * Timestamp when the global action was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the global action was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -3136,12 +3152,12 @@ export interface EnvironmentResponse {
   version: number;
   /**
    * Timestamp when the environment was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the environment was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -3161,12 +3177,12 @@ export interface EnvironmentListResponse {
     version: number;
     /**
      * Timestamp when the environment was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the environment was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -3351,12 +3367,12 @@ export interface ProviderResponse {
   version: number;
   /**
    * Timestamp when the provider was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the provider was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -3412,12 +3428,12 @@ export interface ProviderListResponse {
     version: number;
     /**
      * Timestamp when the provider was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the provider was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];
@@ -3764,12 +3780,12 @@ export interface AuditLogResponse {
   version: number;
   /**
    * Timestamp when the audit log was created
-   * @format date
+   * @format date-time
    */
   createdAt: string | null;
   /**
    * Timestamp when the audit log was last updated
-   * @format date
+   * @format date-time
    */
   updatedAt: string | null;
 }
@@ -3795,12 +3811,12 @@ export interface AuditLogListResponse {
     version: number;
     /**
      * Timestamp when the audit log was created
-     * @format date
+     * @format date-time
      */
     createdAt: string | null;
     /**
      * Timestamp when the audit log was last updated
-     * @format date
+     * @format date-time
      */
     updatedAt: string | null;
   }[];

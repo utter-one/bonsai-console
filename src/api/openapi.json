@@ -13,64 +13,6 @@
   ],
   "components": {
     "schemas": {
-      "ListFilterOperation": {
-        "type": "object",
-        "properties": {
-          "op": {
-            "type": "string",
-            "enum": [
-              "like",
-              "eq",
-              "ne",
-              "gt",
-              "gte",
-              "lt",
-              "lte",
-              "in",
-              "nin",
-              "between"
-            ],
-            "description": "Filter operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), like (pattern match), in (value in array), nin (not in array), between (range)"
-          },
-          "value": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "boolean"
-                }
-              }
-            ],
-            "description": "Filter value to compare against. For \"in\", \"nin\", and \"between\" operations, use an array"
-          }
-        },
-        "required": [
-          "op",
-          "value"
-        ],
-        "description": "Filter operation with explicit operator and value"
-      },
       "ListParams": {
         "type": "object",
         "properties": {
@@ -168,6 +110,64 @@
           }
         },
         "description": "List query parameters for filtering, sorting, pagination, and search"
+      },
+      "ListFilterOperation": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "like",
+              "eq",
+              "ne",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "in",
+              "nin",
+              "between"
+            ],
+            "description": "Filter operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), like (pattern match), in (value in array), nin (not in array), between (range)"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "boolean"
+                }
+              }
+            ],
+            "description": "Filter value to compare against. For \"in\", \"nin\", and \"between\" operations, use an array"
+          }
+        },
+        "required": [
+          "op",
+          "value"
+        ],
+        "description": "Filter operation with explicit operator and value"
       },
       "OpenAILlmSettings": {
         "type": "object",
@@ -477,6 +477,14 @@
               }
             },
             "description": "ASR-specific settings including model, language preferences, etc."
+          },
+          "unintelligiblePlaceholder": {
+            "type": "string",
+            "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+          },
+          "voiceActivityDetection": {
+            "type": "boolean",
+            "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
           }
         },
         "description": "ASR configuration settings"
@@ -582,6 +590,30 @@
           "template"
         ]
       },
+      "ModifyVariablesEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "modify_variables"
+            ],
+            "description": "Effect type"
+          },
+          "modifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariableOperation"
+            },
+            "minItems": 1,
+            "description": "Array of variable modifications to apply"
+          }
+        },
+        "required": [
+          "type",
+          "modifications"
+        ]
+      },
       "VariableOperation": {
         "type": "object",
         "properties": {
@@ -610,23 +642,23 @@
           "operation"
         ]
       },
-      "ModifyVariablesEffect": {
+      "ModifyUserProfileEffect": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "modify_variables"
+              "modify_user_profile"
             ],
             "description": "Effect type"
           },
           "modifications": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/VariableOperation"
+              "$ref": "#/components/schemas/UserProfileOperation"
             },
             "minItems": 1,
-            "description": "Array of variable modifications to apply"
+            "description": "Array of user profile field modifications to apply"
           }
         },
         "required": [
@@ -660,30 +692,6 @@
         "required": [
           "fieldName",
           "operation"
-        ]
-      },
-      "ModifyUserProfileEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "modify_user_profile"
-            ],
-            "description": "Effect type"
-          },
-          "modifications": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserProfileOperation"
-            },
-            "minItems": 1,
-            "description": "Array of user profile field modifications to apply"
-          }
-        },
-        "required": [
-          "type",
-          "modifications"
         ]
       },
       "CallToolEffect": {
@@ -1062,13 +1070,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the admin user was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the admin user was last updated"
           }
         },
@@ -1118,13 +1126,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the admin user was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the admin user was last updated"
                 }
               },
@@ -1216,13 +1224,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the admin user was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the admin user was last updated"
           }
         },
@@ -1284,13 +1292,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the user was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the user was last updated"
           }
         },
@@ -1323,13 +1331,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the user was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the user was last updated"
                 }
               },
@@ -1412,6 +1420,14 @@
                   }
                 },
                 "description": "ASR-specific settings including model, language preferences, etc."
+              },
+              "unintelligiblePlaceholder": {
+                "type": "string",
+                "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+              },
+              "voiceActivityDetection": {
+                "type": "boolean",
+                "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               }
             },
             "description": "Optional ASR configuration settings"
@@ -1548,6 +1564,14 @@
                   }
                 },
                 "description": "ASR-specific settings including model, language preferences, etc."
+              },
+              "unintelligiblePlaceholder": {
+                "type": "string",
+                "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+              },
+              "voiceActivityDetection": {
+                "type": "boolean",
+                "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               }
             },
             "description": "ASR configuration settings"
@@ -1583,13 +1607,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "The timestamp when the project was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "The timestamp when the project was last updated"
           }
         },
@@ -1660,6 +1684,14 @@
                         }
                       },
                       "description": "ASR-specific settings including model, language preferences, etc."
+                    },
+                    "unintelligiblePlaceholder": {
+                      "type": "string",
+                      "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                    },
+                    "voiceActivityDetection": {
+                      "type": "boolean",
+                      "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                     }
                   },
                   "description": "ASR configuration settings"
@@ -1695,13 +1727,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "The timestamp when the project was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "The timestamp when the project was last updated"
                 }
               },
@@ -1982,13 +2014,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the persona was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the persona was last updated"
           }
         },
@@ -2146,13 +2178,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the persona was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the persona was last updated"
                 }
               },
@@ -2369,7 +2401,7 @@
               "createdAt": {
                 "type": "string",
                 "nullable": true,
-                "format": "date",
+                "format": "date-time",
                 "description": "Timestamp when the admin user was created"
               }
             },
@@ -2448,13 +2480,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the section was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the section was last updated"
           }
         },
@@ -2484,13 +2516,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the section was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the section was last updated"
                 }
               },
@@ -2680,13 +2712,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the item was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the item was last updated"
                 }
               },
@@ -2710,13 +2742,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the category was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the category was last updated"
           }
         },
@@ -2799,13 +2831,13 @@
                       "createdAt": {
                         "type": "string",
                         "nullable": true,
-                        "format": "date",
+                        "format": "date-time",
                         "description": "Timestamp when the item was created"
                       },
                       "updatedAt": {
                         "type": "string",
                         "nullable": true,
-                        "format": "date",
+                        "format": "date-time",
                         "description": "Timestamp when the item was last updated"
                       }
                     },
@@ -2829,13 +2861,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the category was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the category was last updated"
                 }
               },
@@ -2989,13 +3021,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the item was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the item was last updated"
           }
         },
@@ -3045,13 +3077,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the item was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the item was last updated"
                 }
               },
@@ -3295,13 +3327,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the issue was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the issue was last updated"
           }
         },
@@ -3395,13 +3427,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the issue was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the issue was last updated"
                 }
               },
@@ -3505,13 +3537,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the conversation was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the conversation was last updated"
           }
         },
@@ -3588,13 +3620,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the conversation was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the conversation was last updated"
                 }
               },
@@ -3952,7 +3984,7 @@
           "timestamp": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the event occurred"
           },
           "metadata": {
@@ -4291,7 +4323,7 @@
                 "timestamp": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the event occurred"
                 },
                 "metadata": {
@@ -4737,13 +4769,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the stage was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the stage was last updated"
           }
         },
@@ -4901,13 +4933,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the stage was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the stage was last updated"
                 }
               },
@@ -5165,13 +5197,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the classifier was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the classifier was last updated"
           }
         },
@@ -5257,13 +5289,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the classifier was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the classifier was last updated"
                 }
               },
@@ -5533,13 +5565,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the transformer was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the transformer was last updated"
           }
         },
@@ -5634,13 +5666,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the transformer was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the transformer was last updated"
                 }
               },
@@ -5945,13 +5977,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the tool was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the tool was last updated"
           }
         },
@@ -6057,13 +6089,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the tool was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the tool was last updated"
                 }
               },
@@ -6337,13 +6369,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the global action was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the global action was last updated"
           }
         },
@@ -6443,13 +6475,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the global action was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the global action was last updated"
                 }
               },
@@ -6606,13 +6638,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the environment was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the environment was last updated"
           }
         },
@@ -6657,13 +6689,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the environment was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the environment was last updated"
                 }
               },
@@ -7174,13 +7206,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the provider was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the provider was last updated"
           }
         },
@@ -7357,13 +7389,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the provider was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the provider was last updated"
                 }
               },
@@ -8329,13 +8361,13 @@
           "createdAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the audit log was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
-            "format": "date",
+            "format": "date-time",
             "description": "Timestamp when the audit log was last updated"
           }
         },
@@ -8404,13 +8436,13 @@
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the audit log was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
-                  "format": "date",
+                  "format": "date-time",
                   "description": "Timestamp when the audit log was last updated"
                 }
               },
@@ -8775,13 +8807,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was last updated"
                     }
                   },
@@ -8983,13 +9015,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the admin user was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the admin user was last updated"
                           }
                         },
@@ -9095,13 +9127,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was last updated"
                     }
                   },
@@ -9230,13 +9262,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was last updated"
                     }
                   },
@@ -9392,13 +9424,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was last updated"
                     }
                   },
@@ -9488,13 +9520,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the admin user was last updated"
                     }
                   },
@@ -9782,7 +9814,7 @@
                         "createdAt": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date",
+                          "format": "date-time",
                           "description": "Timestamp when the admin user was created"
                         }
                       },
@@ -9883,6 +9915,14 @@
                           }
                         },
                         "description": "ASR-specific settings including model, language preferences, etc."
+                      },
+                      "unintelligiblePlaceholder": {
+                        "type": "string",
+                        "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                      },
+                      "voiceActivityDetection": {
+                        "type": "boolean",
+                        "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       }
                     },
                     "description": "Optional ASR configuration settings"
@@ -9973,6 +10013,14 @@
                             }
                           },
                           "description": "ASR-specific settings including model, language preferences, etc."
+                        },
+                        "unintelligiblePlaceholder": {
+                          "type": "string",
+                          "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                        },
+                        "voiceActivityDetection": {
+                          "type": "boolean",
+                          "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         }
                       },
                       "description": "ASR configuration settings"
@@ -10008,13 +10056,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was last updated"
                     }
                   },
@@ -10237,6 +10285,14 @@
                                   }
                                 },
                                 "description": "ASR-specific settings including model, language preferences, etc."
+                              },
+                              "unintelligiblePlaceholder": {
+                                "type": "string",
+                                "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                              },
+                              "voiceActivityDetection": {
+                                "type": "boolean",
+                                "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                               }
                             },
                             "description": "ASR configuration settings"
@@ -10272,13 +10328,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "The timestamp when the project was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "The timestamp when the project was last updated"
                           }
                         },
@@ -10386,6 +10442,14 @@
                             }
                           },
                           "description": "ASR-specific settings including model, language preferences, etc."
+                        },
+                        "unintelligiblePlaceholder": {
+                          "type": "string",
+                          "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                        },
+                        "voiceActivityDetection": {
+                          "type": "boolean",
+                          "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         }
                       },
                       "description": "ASR configuration settings"
@@ -10421,13 +10485,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was last updated"
                     }
                   },
@@ -10584,6 +10648,14 @@
                             }
                           },
                           "description": "ASR-specific settings including model, language preferences, etc."
+                        },
+                        "unintelligiblePlaceholder": {
+                          "type": "string",
+                          "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                        },
+                        "voiceActivityDetection": {
+                          "type": "boolean",
+                          "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         }
                       },
                       "description": "ASR configuration settings"
@@ -10619,13 +10691,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "The timestamp when the project was last updated"
                     }
                   },
@@ -10878,13 +10950,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the audit log was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the audit log was last updated"
                           }
                         },
@@ -11089,13 +11161,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
                     }
                   },
@@ -11333,13 +11405,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the classifier was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the classifier was last updated"
                           }
                         },
@@ -11480,13 +11552,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
                     }
                   },
@@ -11664,13 +11736,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
                     }
                   },
@@ -11947,13 +12019,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
                     }
                   },
@@ -12200,13 +12272,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the transformer was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the transformer was last updated"
                           }
                         },
@@ -12356,13 +12428,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
                     }
                   },
@@ -12556,13 +12628,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
                     }
                   },
@@ -12754,13 +12826,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the conversation was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the conversation was last updated"
                     }
                   },
@@ -13015,13 +13087,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the conversation was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the conversation was last updated"
                           }
                         },
@@ -13545,7 +13617,7 @@
                           "timestamp": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the event occurred"
                           },
                           "metadata": {
@@ -13952,7 +14024,7 @@
                     "timestamp": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the event occurred"
                     },
                     "metadata": {
@@ -14061,13 +14133,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was last updated"
                     }
                   },
@@ -14249,13 +14321,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the section was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the section was last updated"
                           }
                         },
@@ -14340,13 +14412,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was last updated"
                     }
                   },
@@ -14421,13 +14493,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the section was last updated"
                     }
                   },
@@ -14599,13 +14671,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was last updated"
                           }
                         },
@@ -14629,13 +14701,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was last updated"
                     }
                   },
@@ -14870,13 +14942,13 @@
                                 "createdAt": {
                                   "type": "string",
                                   "nullable": true,
-                                  "format": "date",
+                                  "format": "date-time",
                                   "description": "Timestamp when the item was created"
                                 },
                                 "updatedAt": {
                                   "type": "string",
                                   "nullable": true,
-                                  "format": "date",
+                                  "format": "date-time",
                                   "description": "Timestamp when the item was last updated"
                                 }
                               },
@@ -14900,13 +14972,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the category was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the category was last updated"
                           }
                         },
@@ -15044,13 +15116,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was last updated"
                           }
                         },
@@ -15074,13 +15146,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was last updated"
                     }
                   },
@@ -15230,13 +15302,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was last updated"
                           }
                         },
@@ -15260,13 +15332,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the category was last updated"
                     }
                   },
@@ -15432,13 +15504,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was last updated"
                     }
                   },
@@ -15640,13 +15712,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the item was last updated"
                           }
                         },
@@ -15751,13 +15823,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was last updated"
                     }
                   },
@@ -15872,13 +15944,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the item was last updated"
                     }
                   },
@@ -16016,13 +16088,13 @@
                       "createdAt": {
                         "type": "string",
                         "nullable": true,
-                        "format": "date",
+                        "format": "date-time",
                         "description": "Timestamp when the item was created"
                       },
                       "updatedAt": {
                         "type": "string",
                         "nullable": true,
-                        "format": "date",
+                        "format": "date-time",
                         "description": "Timestamp when the item was last updated"
                       }
                     },
@@ -16256,13 +16328,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was last updated"
                     }
                   },
@@ -16572,13 +16644,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the persona was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the persona was last updated"
                           }
                         },
@@ -16791,13 +16863,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was last updated"
                     }
                   },
@@ -17035,13 +17107,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the persona was last updated"
                     }
                   },
@@ -17480,13 +17552,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was last updated"
                     }
                   },
@@ -17815,13 +17887,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the provider was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the provider was last updated"
                           }
                         },
@@ -18053,13 +18125,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was last updated"
                     }
                   },
@@ -18416,13 +18488,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the provider was last updated"
                     }
                   },
@@ -19615,13 +19687,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was last updated"
                     }
                   },
@@ -19818,13 +19890,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the environment was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the environment was last updated"
                           }
                         },
@@ -19924,13 +19996,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was last updated"
                     }
                   },
@@ -20040,13 +20112,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the environment was last updated"
                     }
                   },
@@ -20322,13 +20394,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
                     }
                   },
@@ -20580,13 +20652,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the global action was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the global action was last updated"
                           }
                         },
@@ -20741,13 +20813,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
                     }
                   },
@@ -20946,13 +21018,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
                     }
                   },
@@ -21230,13 +21302,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was last updated"
                     }
                   },
@@ -21479,13 +21551,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the issue was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the issue was last updated"
                           }
                         },
@@ -21634,13 +21706,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was last updated"
                     }
                   },
@@ -21826,13 +21898,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the issue was last updated"
                     }
                   },
@@ -22204,13 +22276,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
                     }
                   },
@@ -22520,13 +22592,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the stage was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the stage was last updated"
                           }
                         },
@@ -22740,13 +22812,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
                     }
                   },
@@ -23059,13 +23131,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
                     }
                   },
@@ -23377,13 +23449,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
                     }
                   },
@@ -23641,13 +23713,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the tool was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the tool was last updated"
                           }
                         },
@@ -23809,13 +23881,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
                     }
                   },
@@ -24032,13 +24104,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
                     }
                   },
@@ -24210,13 +24282,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was last updated"
                     }
                   },
@@ -24401,13 +24473,13 @@
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the user was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date",
+                            "format": "date-time",
                             "description": "Timestamp when the user was last updated"
                           }
                         },
@@ -24496,13 +24568,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was last updated"
                     }
                   },
@@ -24580,13 +24652,13 @@
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
-                      "format": "date",
+                      "format": "date-time",
                       "description": "Timestamp when the user was last updated"
                     }
                   },

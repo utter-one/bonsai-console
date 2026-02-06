@@ -89,6 +89,14 @@ export interface AuthResponse {
          */
         audioFormat?: 'pcm_16000' | 'pcm_22050' | 'pcm_44100';
       };
+      /**
+       * Placeholder text to use when speech is unintelligible or cannot be transcribed
+       */
+      unintelligiblePlaceholder?: string;
+      /**
+       * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
+       */
+      voiceActivityDetection?: boolean;
     } | null;
   };
   /**
@@ -135,6 +143,14 @@ export interface ProjectSettings {
        */
       audioFormat?: 'pcm_16000' | 'pcm_22050' | 'pcm_44100';
     };
+    /**
+     * Placeholder text to use when speech is unintelligible or cannot be transcribed
+     */
+    unintelligiblePlaceholder?: string;
+    /**
+     * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
+     */
+    voiceActivityDetection?: boolean;
   } | null;
 }
 
@@ -835,15 +851,3 @@ export interface RunActionResponse {
   error?: string;
 }
 
-// ============================================================================
-// Type Aliases (for backward compatibility)
-// ============================================================================
-
-/** @deprecated Use StartAiVoiceOutput instead */
-export type StartAiVoiceOutputMessage = StartAiVoiceOutput;
-
-/** @deprecated Use SendAiVoiceChunk instead */
-export type SendAiVoiceChunkMessage = SendAiVoiceChunk;
-
-/** @deprecated Use EndAiVoiceOutput instead */
-export type EndAiVoiceOutputMessage = EndAiVoiceOutput;
