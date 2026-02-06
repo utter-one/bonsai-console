@@ -5,6 +5,7 @@ export * from './useActionForm'
 export * from './useWebSocketClient'
 export * from './useAudioPlayback'
 export * from './useAudioRecording'
+export * from './useAudioDevices'
 
 /**
  * Format role name to human-readable format

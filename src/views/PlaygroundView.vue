@@ -255,6 +255,15 @@
                   Stop
                 </button>
                 
+                <!-- Settings Button -->
+                <button
+                  @click="showAudioSettingsModal = true"
+                  class="btn-secondary h-10 w-10 p-0 flex items-center justify-center"
+                  title="Audio settings"
+                >
+                  <Settings :size="20" />
+                </button>
+                
                 <!-- Audio Level Indicator -->
                 <div 
                   v-if="recording?.recordingState === 'recording'"
@@ -324,7 +333,13 @@
       @run="handleRunAction"
     />
     
-    <!-- TODO: Add Audio Settings Modal -->
+    <AudioSettingsModal
+      v-if="showAudioSettingsModal"
+      :current-settings="audioSettings"
+      :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+      @close="showAudioSettingsModal = false"
+      @save="handleAudioSettingsSave"
+    />
   </div>
 </template>
 
@@ -335,12 +350,49 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info, Mic } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info, Mic, Settings } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
+import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunkMessage, StartAiVoiceOutputMessage, EndAiVoiceOutputMessage } from '@/api/websocket/contracts/aiResponse'
+
+// Audio settings persistence
+interface AudioSettings {
+  deviceId: string | null
+  echoCancellation: boolean
+  noiseSuppression: boolean
+  autoGainControl: boolean
+}
+
+const AUDIO_SETTINGS_KEY = 'nexus_audio_settings'
+
+function loadAudioSettings(): AudioSettings {
+  try {
+    const stored = localStorage.getItem(AUDIO_SETTINGS_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('Failed to load audio settings:', error)
+  }
+  // Default settings
+  return {
+    deviceId: null,
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  }
+}
+
+function saveAudioSettings(settings: AudioSettings): void {
+  try {
+    localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(settings))
+  } catch (error) {
+    console.error('Failed to save audio settings:', error)
+  }
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -524,10 +576,14 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
   })
   
-  // Create new recording instance with correct sample rate
+  // Create new recording instance with correct sample rate and saved settings
   recording.value = useAudioRecording({
     sampleRate,
     chunkDurationMs: 2000, // 2 seconds per chunk
+    deviceId: audioSettings.value.deviceId ?? undefined,
+    echoCancellation: audioSettings.value.echoCancellation,
+    noiseSuppression: audioSettings.value.noiseSuppression,
+    autoGainControl: audioSettings.value.autoGainControl,
     onChunk: async (base64Audio: string) => {
       if (!wsClient.value) return
       
@@ -609,6 +665,54 @@ async function stopVoiceRecording() {
       type: 'error',
       message: `Failed to end voice input: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
+    })
+  }
+}
+
+function handleAudioSettingsSave(settings: AudioSettings) {
+  audioSettings.value = settings
+  saveAudioSettings(settings)
+  showAudioSettingsModal.value = false
+  
+  addEvent({
+    type: 'system',
+    message: 'Audio settings saved',
+    timestamp: new Date(),
+    details: `Device: ${settings.deviceId || 'default'}`
+  })
+  
+  // Recreate recording instance with new settings if project settings exist
+  if (wsClient.value?.projectSettings.value) {
+    const projectSettings = wsClient.value.projectSettings.value
+    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
+    
+    recording.value = useAudioRecording({
+      sampleRate,
+      chunkDurationMs: 2000,
+      deviceId: settings.deviceId ?? undefined,
+      echoCancellation: settings.echoCancellation,
+      noiseSuppression: settings.noiseSuppression,
+      autoGainControl: settings.autoGainControl,
+      onChunk: async (base64Audio: string) => {
+        if (!wsClient.value) return
+        try {
+          await wsClient.value.sendVoiceChunk(base64Audio)
+        } catch (error) {
+          console.error('Failed to send voice chunk:', error)
+          addEvent({
+            type: 'error',
+            message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date()
+          })
+        }
+      },
+      onError: (error: Error) => {
+        addEvent({
+          type: 'error',
+          message: `Recording error: ${error.message}`,
+          timestamp: new Date()
+        })
+      }
     })
   }
 }
@@ -741,6 +845,10 @@ const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
+const showAudioSettingsModal = ref(false)
+
+// Audio settings
+const audioSettings = ref<AudioSettings>(loadAudioSettings())
 
 // Methods
 function startConversation() {

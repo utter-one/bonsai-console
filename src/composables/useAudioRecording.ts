@@ -5,6 +5,10 @@ export type RecordingState = 'idle' | 'recording' | 'processing' | 'error'
 export interface AudioRecordingOptions {
   sampleRate?: number // Default: 16000 (matches backend PCM format)
   chunkDurationMs?: number // Default: 2000 (2 seconds per chunk)
+  deviceId?: string // Microphone device ID (optional, uses default if not specified)
+  echoCancellation?: boolean // Default: true
+  noiseSuppression?: boolean // Default: true
+  autoGainControl?: boolean // Default: true
   onChunk?: (base64Audio: string) => void // Callback when chunk is ready
   onError?: (error: Error) => void
 }
@@ -20,6 +24,10 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
   const {
     sampleRate = 16000,
     chunkDurationMs = 2000,
+    deviceId,
+    echoCancellation = true,
+    noiseSuppression = true,
+    autoGainControl = true,
     onChunk,
     onError,
   } = options
@@ -111,11 +119,12 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
       // Request microphone access
       mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
           channelCount: 1, // Mono
           sampleRate: { ideal: sampleRate },
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+          echoCancellation,
+          noiseSuppression,
+          autoGainControl,
         },
       })
 
