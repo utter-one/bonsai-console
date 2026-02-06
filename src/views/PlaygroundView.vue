@@ -335,7 +335,7 @@ import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
-import type { SendAiVoiceChunkMessage, StartAiVoiceOutputMessage, EndAiVoiceOutputMessage } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiVoiceOutput, EndAiVoiceOutput } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -742,7 +742,7 @@ async function connectWebSocket() {
           timestamp: new Date()
         })
       },
-      onAiVoiceStart: (msg: StartAiVoiceOutputMessage) => {
+      onAiVoiceStart: (msg: StartAiVoiceOutput) => {
         // Initialize audio player for this voice output
         const player = useAudioPlayback()
         
@@ -758,7 +758,7 @@ async function connectWebSocket() {
           voiceOutputId: msg.voiceOutputId
         })
       },
-      onAiVoiceChunk: async (msg: SendAiVoiceChunkMessage) => {
+      onAiVoiceChunk: async (msg: SendAiVoiceChunk) => {
         const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
         if (!voiceOutput) {
           console.warn('Received audio chunk for unknown voice output:', msg.voiceOutputId)
@@ -773,7 +773,7 @@ async function connectWebSocket() {
           isFinal: msg.isFinal
         })
       },
-      onAiVoiceEnd: (msg: EndAiVoiceOutputMessage) => {
+      onAiVoiceEnd: (msg: EndAiVoiceOutput) => {
         const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
         if (voiceOutput) {
           // Store transcript for display in AudioPlayer
