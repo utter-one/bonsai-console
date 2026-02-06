@@ -16,8 +16,25 @@
     </div>
   </div>
 
+  <!-- No Active API Keys State -->
+  <div v-else-if="hasProject && !apiKeysLoading && activeApiKeys.length === 0" class="flex items-center justify-center bg-gray-50 h-[calc(100vh-7rem)] overflow-hidden">
+    <div class="text-center max-w-md">
+      <AlertCircle class="mx-auto mb-4 text-gray-400" :size="64" />
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">No Active API Keys</h2>
+      <p class="text-gray-600 mb-6">
+        This project doesn't have any active API keys. Please create an API key to use the Playground.
+      </p>
+      <button 
+        @click="goToApiKeys"
+        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600"
+      >
+        Manage API Keys
+      </button>
+    </div>
+  </div>
+
   <!-- Main Playground UI -->
-  <div v-else class="flex flex-col bg-gray-50 overflow-hidden h-[calc(100vh-7rem)]">
+  <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)" class="flex flex-col bg-gray-50 overflow-hidden h-[calc(100vh-7rem)]">
       <!-- Header -->
       <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div class="flex items-center justify-between">
@@ -399,6 +416,10 @@ watch(projectId, async (newProjectId) => {
 
 function goToProjects() {
   router.push({ name: 'administration.projects' })
+}
+
+function goToApiKeys() {
+  router.push({ name: 'administration.projects', params: { projectId: projectId.value } })
 }
 
 // Computed
