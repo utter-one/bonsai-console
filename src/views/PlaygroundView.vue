@@ -16,8 +16,25 @@
     </div>
   </div>
 
+  <!-- No Active API Keys State -->
+  <div v-else-if="hasProject && !apiKeysLoading && activeApiKeys.length === 0" class="flex items-center justify-center bg-gray-50 h-[calc(100vh-7rem)] overflow-hidden">
+    <div class="text-center max-w-md">
+      <AlertCircle class="mx-auto mb-4 text-gray-400" :size="64" />
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">No Active API Keys</h2>
+      <p class="text-gray-600 mb-6">
+        This project doesn't have any active API keys. Please create an API key to use the Playground.
+      </p>
+      <button 
+        @click="goToApiKeys"
+        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600"
+      >
+        Manage API Keys
+      </button>
+    </div>
+  </div>
+
   <!-- Main Playground UI -->
-  <div v-else class="flex flex-col bg-gray-50 overflow-hidden h-[calc(100vh-7rem)]">
+  <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)" class="flex flex-col bg-gray-50 overflow-hidden h-[calc(100vh-7rem)]">
       <!-- Header -->
       <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div class="flex items-center justify-between">
@@ -26,12 +43,13 @@
             <p class="text-sm text-gray-600 mt-1">Test and debug conversation flows in real-time</p>
           </div>
           
-          <!-- API Key Selection -->
+          <!-- Controls -->
           <div class="flex items-center gap-3">
-            <label class="text-sm font-medium text-gray-700">API&nbsp;Key:</label>
+            <!-- API Key Selection -->
+            <label class="text-sm font-medium text-gray-700 whitespace-nowrap">API Key:</label>
             <select
               v-model="selectedApiKeyId"
-              class="form-select min-w-[200px]"
+              class="form-select min-w-[100px]"
               :disabled="wsIsConnected || apiKeysLoading"
             >
               <option :value="null">Select API Key...</option>
@@ -43,63 +61,34 @@
                 {{ key.name }}
               </option>
             </select>
+
+            <div class="h-8 border-l border-gray-300"></div>
+
+            <!-- Conversation Controls -->
             <button
-              v-if="!wsIsConnected"
-              @click="connectWebSocket"
-              :disabled="!canConnectWebSocket"
-              class="btn-primary flex items-center gap-2"
+              v-if="!isConversationActive"
+              class="btn-primary flex items-center gap-2 whitespace-nowrap"
+              @click="startConversation"
+              :disabled="!canStartConversation"
             >
-              <Plug :size="16" />
-              {{ isWsConnecting ? 'Connecting...' : 'Connect' }}
+              <Play :size="18" />
+              {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
             </button>
             <button
               v-else
-              @click="disconnectWebSocket"
-              :disabled="!canDisconnectWebSocket"
-              class="btn-danger flex items-center gap-2"
+              class="btn-danger flex items-center gap-2 whitespace-nowrap"
+              @click="endConversation"
+              :disabled="!canEndConversation"
             >
-              <X :size="16" />
-              {{ isWsDisconnecting ? 'Disconnecting...' : 'Disconnect' }}
+              <Square :size="18" />
+              {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
-        <!-- Control Panel -->
-        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h2 class="text-sm font-semibold text-gray-700">Controls</h2>
-          </div>
-          <div class="p-4 flex flex-wrap gap-3">
-            <!-- Conversation Controls -->
-            <div class="flex gap-2">
-              <button
-                v-if="!isConversationActive"
-                class="btn-primary flex items-center gap-2"
-                @click="startConversation"
-                :disabled="!canStartConversation"
-              >
-                <Play :size="18" />
-                {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
-              </button>
-              <button
-                v-else
-                class="btn-danger flex items-center gap-2"
-                @click="endConversation"
-                :disabled="!canEndConversation"
-              >
-                <Square :size="18" />
-                {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
-              </button>
-            </div>
 
             <div class="h-8 border-l border-gray-300"></div>
 
             <!-- Advanced Controls -->
             <button
-              class="btn-secondary flex items-center gap-2"
+              class="btn-secondary flex items-center gap-2 whitespace-nowrap"
               :disabled="!canRunAction"
               @click="showRunActionDialog = true"
             >
@@ -108,52 +97,31 @@
             </button>
 
             <button
-              class="btn-secondary flex items-center gap-2"
+              class="btn-secondary flex items-center gap-2 whitespace-nowrap"
               :disabled="!canJumpToStage"
               @click="showJumpToStageDialog = true"
             >
               <SkipForward :size="18" />
               Jump to Stage
             </button>
-
-            <button
-              class="btn-secondary flex items-center gap-2"
-              :disabled="!isConversationActive || isConversationStarting || isConversationEnding"
-            >
-              <RefreshCw :size="18" />
-              Reset Context
-            </button>
-
-            <div class="h-8 border-l border-gray-300"></div>
-
-            <!-- Info -->
-            <div class="flex items-center gap-4 text-sm text-gray-600 ml-auto">
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-2 h-2 rounded-full"
-                  :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400'"
-                ></div>
-                <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-2 h-2 rounded-full"
-                  :class="isConversationActive ? 'bg-blue-500' : 'bg-gray-400'"
-                ></div>
-                <span>{{ isConversationActive ? 'Conversation Active' : 'No Conversation' }}</span>
-              </div>
-              <div v-if="conversationId">
-                <span class="text-gray-500">Conv ID:</span>
-                <span class="font-mono ml-1 text-xs">{{ conversationId }}</span>
-              </div>
-            </div>
           </div>
         </div>
+      </div>
 
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
         <!-- History Panel (Main Area) -->
         <div class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
+          <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
             <h2 class="text-sm font-semibold text-gray-700">Conversation History</h2>
+            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="showSystemEvents"
+                class="form-checkbox"
+              />
+              <span>Show system events</span>
+            </label>
           </div>
           <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
             <!-- No conversation state -->
@@ -167,7 +135,7 @@
             <!-- Conversation events -->
             <div v-else class="space-y-3">
               <div
-                v-for="(event, index) in conversationEvents"
+                v-for="(event, index) in filteredConversationEvents"
                 :key="index"
                 class="p-3 rounded-lg border"
                 :class="{
@@ -303,6 +271,19 @@
               <Send :size="20" />
             </button>
           </div>
+
+          <!-- Connection Status -->
+          <div class="flex items-center gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200">
+            <div
+              class="w-2 h-2 rounded-full"
+              :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400'"
+            ></div>
+            <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
+            <div v-if="conversationId" class="ml-auto">
+              <span class="text-gray-500">Conv ID:</span>
+              <span class="font-mono ml-1 text-xs">{{ conversationId }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -348,7 +329,7 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, RefreshCw, Plug, X, User, Bot, AlertCircle, Info, Mic, Settings } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
@@ -437,6 +418,10 @@ function goToProjects() {
   router.push({ name: 'administration.projects' })
 }
 
+function goToApiKeys() {
+  router.push({ name: 'administration.projects', params: { projectId: projectId.value } })
+}
+
 // Computed
 const globalActions = computed(() => {
   if (!projectId.value) return []
@@ -468,6 +453,15 @@ interface ConversationEvent {
 
 const conversationEvents = ref<ConversationEvent[]>([])
 const historyContainer = ref<HTMLElement | null>(null)
+const showSystemEvents = ref(false) // Hidden by default
+
+// Filter events based on showSystemEvents toggle
+const filteredConversationEvents = computed(() => {
+  if (showSystemEvents.value) {
+    return conversationEvents.value
+  }
+  return conversationEvents.value.filter(event => event.type !== 'system')
+})
 
 // Voice output tracking
 const activeVoiceOutputs = ref<Map<string, { player: ReturnType<typeof useAudioPlayback>; transcript: string | null }>>(new Map())
@@ -517,12 +511,8 @@ const canConnectWebSocket = computed(() => {
   return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value
 })
 
-const canDisconnectWebSocket = computed(() => {
-  return wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value && !isConversationActive.value
-})
-
 const canStartConversation = computed(() => {
-  return wsIsConnected.value && !isConversationActive.value && !isWsConnecting.value && !isWsDisconnecting.value && !isConversationStarting.value && !isConversationEnding.value
+  return !!selectedApiKey.value?.key && !isConversationActive.value && !isWsConnecting.value && !isWsDisconnecting.value && !isConversationStarting.value && !isConversationEnding.value
 })
 
 const canEndConversation = computed(() => {
@@ -818,18 +808,17 @@ async function connectWebSocket() {
 
 async function disconnectWebSocket() {
   if (!wsClient.value) return
-  if (isConversationActive.value) {
-    addEvent({
-      type: 'error',
-      message: 'End the conversation before disconnecting',
-      timestamp: new Date()
-    })
-    return
-  }
   if (isWsDisconnecting.value) return
 
   try {
     isWsDisconnecting.value = true
+    
+    addEvent({
+      type: 'system',
+      message: 'Disconnecting from WebSocket...',
+      timestamp: new Date()
+    })
+    
     wsClient.value.disconnect()
     wsClient.value = null
   } finally {
@@ -849,18 +838,19 @@ const showAudioSettingsModal = ref(false)
 const audioSettings = ref<AudioSettings>(loadAudioSettings())
 
 // Methods
-function startConversation() {
-  if (!wsIsConnected.value) {
-    addEvent({
-      type: 'error',
-      message: 'Please connect to WebSocket first',
-      timestamp: new Date()
-    })
-    return
-  }
+async function startConversation() {
   if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value) {
     return
   }
+  
+  // Auto-connect WebSocket if not connected
+  if (!wsIsConnected.value) {
+    await connectWebSocket()
+    if (!wsIsConnected.value) {
+      return // Connection failed
+    }
+  }
+  
   showStartConversationModal.value = true
 }
 
@@ -919,6 +909,11 @@ async function handleStartConversation(stage: StageResponse) {
 
   try {
     isConversationStarting.value = true
+    
+    // Clear conversation history when starting a new conversation
+    conversationEvents.value = []
+    activeVoiceOutputs.value.clear()
+    
     addEvent({
       type: 'system',
       message: `Starting conversation with stage: ${stage.name}`,
@@ -1011,6 +1006,9 @@ async function endConversation() {
       message: 'Conversation ended successfully',
       timestamp: new Date()
     })
+
+    // Auto-disconnect WebSocket
+    await disconnectWebSocket()
   } catch (error) {
     addEvent({
       type: 'error',
