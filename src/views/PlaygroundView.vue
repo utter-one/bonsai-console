@@ -230,7 +230,7 @@
 
         <!-- Input Panel -->
         <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-          <div class="flex gap-3 items-end">
+          <div class="flex gap-3 ">
             <!-- Voice Recording -->
             <div class="flex flex-col gap-2">
               <label class="form-label">Voice</label>
@@ -243,7 +243,7 @@
                   title="Start voice recording"
                 >
                   <Mic :size="20" />
-                  Record
+                  Speak
                 </button>
                 <button
                   v-else
@@ -281,8 +281,6 @@
               <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
             </div>
 
-            <div class="h-8 border-l border-gray-300 self-end mb-1"></div>
-
             <!-- Text Input -->
             <div class="flex-1">
               <label class="form-label">Message</label>
@@ -298,7 +296,7 @@
 
             <!-- Send Button -->
             <button
-              class="btn-primary h-10 px-6"
+              class="btn-primary h-10 px-6 mt-10"
               :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
               @click="sendMessage"
             >
