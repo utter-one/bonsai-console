@@ -236,7 +236,7 @@ function selectActionFilter(value: typeof actionFilter.value) {
         <!-- Time Filter -->
         <div class="relative">
           <button @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors">
+            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
             <Calendar class="w-4 h-4 mr-2" />
             <span>{{ currentTimeFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
@@ -244,10 +244,10 @@ function selectActionFilter(value: typeof actionFilter.value) {
 
           <!-- Time Dropdown -->
           <div v-if="showTimeDropdown"
-            class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1">
+            class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700">
             <button v-for="option in timeFilterOptions" :key="option.value" @click="selectTimeFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium': timeFilter === option.value }">
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': timeFilter === option.value }">
               {{ option.label }}
             </button>
           </div>
@@ -256,17 +256,17 @@ function selectActionFilter(value: typeof actionFilter.value) {
         <!-- Action Filter -->
         <div class="relative">
           <button @click="showActionDropdown = !showActionDropdown"
-            class="action-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors">
+            class="action-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
             <span>{{ currentActionFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
 
           <!-- Action Dropdown -->
           <div v-if="showActionDropdown"
-            class="action-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1">
+            class="action-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1 dark:bg-gray-800 dark:border-gray-700">
             <button v-for="option in actionFilterOptions" :key="option.value" @click="selectActionFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium': actionFilter === option.value }">
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': actionFilter === option.value }">
               {{ option.label }}
             </button>
           </div>

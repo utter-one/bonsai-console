@@ -290,14 +290,14 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
   <AdministrationSectionLayout>
   <div class="flex flex-col h-full">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to projects">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Project' : 'Create Project' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Project' : 'Create Project' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update project configuration and settings' : 'Create a new AI application project' }}
           </p>
         </div>
@@ -363,7 +363,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
@@ -405,14 +405,14 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
         <div v-show="activeTab === 'voice'" class="tab-content">
           <div class="space-y-6">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Input & Output Configuration</h3>
-              <p class="text-sm text-gray-600 mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Voice Input & Output Configuration</h3>
+              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
                 Configure voice capabilities for your conversations, including speech recognition (ASR) and text-to-speech (TTS).
               </p>
             </div>
             
             <!-- Voice Input Checkbox (Top) -->
-            <div class="form-group bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div class="form-group bg-blue-50 p-4 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.acceptVoice"
@@ -420,7 +420,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                   Enable Voice Input
                 </span>
               </label>
@@ -430,7 +430,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
             </div>
 
             <!-- Voice Output Checkbox -->
-            <div class="form-group bg-green-50 p-4 rounded-lg border border-green-200">
+            <div class="form-group bg-green-50 p-4 rounded-lg border border-green-200 dark:bg-green-900/20 dark:border-green-800">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.generateVoice"
@@ -438,17 +438,17 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                   Enable Voice Output
                 </span>
               </label>
-              <p class="form-help-text mt-1">
+              <p class="form-help-text mt-1 text-gray-500 dark:text-gray-400">
                 Allow conversations to generate voice responses using text-to-speech
               </p>
             </div>
 
-            <div class="border-t border-gray-200 pt-6">
-              <h4 class="text-base font-semibold text-gray-900 mb-4">ASR Configuration</h4>
+            <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
+              <h4 class="text-base font-semibold text-gray-900 mb-4 dark:text-white">ASR Configuration</h4>
               
               <div class="form-group">
                 <label class="form-label">
@@ -474,7 +474,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                     class="form-checkbox"
                     :disabled="isLoading"
                   />
-                  <span class="ml-2 text-sm font-medium text-gray-700">
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                     Enable Voice Activity Detection
                   </span>
                 </label>
@@ -506,7 +506,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
               </div>
 
               <!-- ASR Provider Settings (shown when provider is selected) -->
-              <div v-if="form.asrConfig.asrProviderId" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4">
+              <div v-if="form.asrConfig.asrProviderId" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
                 <div class="form-group">
                   <label class="form-label">
                     Language <span class="text-gray-500">(optional)</span>
@@ -569,9 +569,9 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                     <div
                       v-for="(phrase, index) in form.asrConfig.settings.dictionaryPhrases"
                       :key="index"
-                      class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200"
+                      class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                     >
-                      <span class="flex-1 text-sm">{{ phrase }}</span>
+                      <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ phrase }}</span>
                       <button
                         type="button"
                         @click="removeDictionaryPhrase(index)"
@@ -596,8 +596,8 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
         <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900">API Keys</h3>
-              <p class="text-sm text-gray-600">Manage API keys for this project</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Manage API keys for this project</p>
             </div>
             <button @click="handleCreateApiKey" class="btn-primary">
               <Plus class="inline-block w-4 h-4 mr-2" />
@@ -621,12 +621,12 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
             <div
               v-for="apiKey in filteredApiKeys"
               :key="apiKey.id"
-              class="api-key-card"
+              class="bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow dark:bg-gray-800 dark:border-gray-700"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-semibold text-gray-900">{{ apiKey.name }}</h4>
+                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ apiKey.name }}</h4>
                     <span
                       :class="[
                         'badge',
@@ -636,7 +636,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                       {{ apiKey.isActive ? 'Active' : 'Inactive' }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-600 font-mono">{{ apiKey.keyPreview }}</p>
+                  <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ apiKey.keyPreview }}</p>
                   <div class="text-xs text-gray-500 mt-1">
                     <span>Created: {{ formatDate(apiKey.createdAt) }}</span>
                     <span class="mx-2">•</span>
@@ -696,17 +696,6 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
   color: #ef4444;
 }
 
-.api-key-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  transition: box-shadow 0.2s;
-}
-
-.api-key-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
 
 .badge {
   display: inline-block;

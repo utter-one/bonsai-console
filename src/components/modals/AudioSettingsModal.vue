@@ -31,17 +31,17 @@
               {{ audioDevices.isLoading.value ? 'Requesting...' : 'Allow Access' }}
             </button>
           </div>
-          <p v-if="audioDevices.error.value" class="text-sm text-red-600 mt-1">
+          <p v-if="audioDevices.error.value" class="text-sm text-red-600 mt-1 dark:text-red-400">
             {{ audioDevices.error.value }}
           </p>
-          <p v-else-if="!audioDevices.hasPermission.value" class="text-sm text-gray-600 mt-1">
+          <p v-else-if="!audioDevices.hasPermission.value" class="text-sm text-gray-600 mt-1 dark:text-gray-400">
             Microphone permission required to list available devices
           </p>
         </div>
 
         <!-- Audio Processing Options -->
-        <div class="border-t border-gray-200 pt-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">Audio Processing</h3>
+        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Audio Processing</h3>
           <div class="space-y-3">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
@@ -49,8 +49,8 @@
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700">Echo Cancellation</span>
-              <span class="text-xs text-gray-500">(Reduces echo from speakers)</span>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
             </label>
 
             <label class="flex items-center gap-2 cursor-pointer">
@@ -59,8 +59,8 @@
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700">Noise Suppression</span>
-              <span class="text-xs text-gray-500">(Reduces background noise)</span>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
             </label>
 
             <label class="flex items-center gap-2 cursor-pointer">
@@ -69,16 +69,16 @@
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700">Auto Gain Control</span>
-              <span class="text-xs text-gray-500">(Automatically adjusts volume)</span>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
             </label>
           </div>
         </div>
 
         <!-- Audio Level Testing -->
-        <div class="border-t border-gray-200 pt-4">
+        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-gray-700">Test Microphone</h3>
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Test Microphone</h3>
             <button
               v-if="!testRecording || testRecording.recordingState === 'idle'"
               @click="startTest"
@@ -99,8 +99,8 @@
           <!-- Audio Level Visualization -->
           <div class="space-y-2">
             <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-600 w-16">Level:</span>
-              <div class="flex-1 h-6 bg-gray-200 rounded-md overflow-hidden relative">
+              <span class="text-xs text-gray-600 w-16 dark:text-gray-400">Level:</span>
+              <div class="flex-1 h-6 bg-gray-200 rounded-md overflow-hidden relative dark:bg-gray-700">
                 <div
                   class="h-full transition-all duration-100"
                   :class="{
@@ -113,18 +113,18 @@
                 <!-- Reference lines -->
                 <div class="absolute inset-0 flex items-center pointer-events-none">
                   <div class="w-full h-full flex">
-                    <div class="flex-1 border-r border-gray-300"></div>
-                    <div class="flex-1 border-r border-gray-300"></div>
-                    <div class="flex-1 border-r border-gray-300"></div>
+                    <div class="flex-1 border-r border-gray-300 dark:border-gray-600"></div>
+                    <div class="flex-1 border-r border-gray-300 dark:border-gray-600"></div>
+                    <div class="flex-1 border-r border-gray-300 dark:border-gray-600"></div>
                     <div class="flex-1"></div>
                   </div>
                 </div>
               </div>
-              <span class="text-xs text-gray-600 w-12 text-right">
+              <span class="text-xs text-gray-600 w-12 text-right dark:text-gray-400">
                 {{ Math.round((testRecording?.audioLevel ?? 0) * 100) }}%
               </span>
             </div>
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
               <template v-if="testRecording?.recordingState === 'recording'">
                 🎤 Speak into your microphone to test the audio level
               </template>
@@ -139,10 +139,10 @@
         </div>
 
         <!-- Current Configuration Summary -->
-        <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 dark:bg-blue-900/20 dark:border-blue-800">
           <div class="flex items-start gap-2">
-            <Info :size="16" class="text-blue-600 mt-0.5 flex-shrink-0" />
-            <div class="text-sm text-blue-800">
+            <Info :size="16" class="text-blue-600 mt-0.5 flex-shrink-0 dark:text-blue-400" />
+            <div class="text-sm text-blue-800 dark:text-blue-200">
               <p class="font-medium mb-1">Current Configuration</p>
               <ul class="space-y-1 text-xs">
                 <li>Device: {{ currentDeviceName }}</li>

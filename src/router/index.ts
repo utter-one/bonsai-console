@@ -129,7 +129,7 @@ const routes: RouteRecordRaw[] = [
       },
       // Playground Section
       {
-        path: 'playground/:projectId',
+        path: 'playground/:projectId?',
         name: 'playground',
         component: () => import('@/views/PlaygroundView.vue'),
       },

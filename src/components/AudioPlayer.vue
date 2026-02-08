@@ -1,22 +1,22 @@
 <template>
-  <div class="audio-player bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+  <div class="audio-player bg-white border border-gray-200 rounded-lg p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
     <!-- Transcript Text -->
-    <div v-if="transcript" class="mb-3 text-sm text-gray-700 leading-relaxed">
+    <div v-if="transcript" class="mb-3 text-sm text-gray-700 leading-relaxed dark:text-gray-200">
       {{ transcript }}
     </div>
 
     <!-- Error State -->
-    <div v-if="state.error" class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+    <div v-if="state.error" class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">
       <span class="font-medium">Playback Error:</span> {{ state.error }}
     </div>
 
     <!-- Progress Bar -->
     <div class="mb-3">
-      <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+      <div class="flex items-center justify-between text-xs text-gray-500 mb-1 dark:text-gray-400">
         <span>{{ formatTime(state.currentTime) }}</span>
         <span>{{ formatTime(state.duration) }}</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden dark:bg-gray-700">
         <div
           class="bg-blue-500 h-full transition-all duration-200"
           :style="{ width: `${progress}%` }"
@@ -51,23 +51,23 @@
 
       <!-- Volume Control -->
       <div class="flex items-center gap-2 ml-auto">
-        <Volume2 :size="18" class="text-gray-500" />
+        <Volume2 :size="18" class="text-gray-500 dark:text-gray-400" />
         <input
           type="range"
           min="0"
           max="100"
           :value="state.volume * 100"
           @input="handleVolumeChange"
-          class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
           style="
             accent-color: #3b82f6;
           "
         />
-        <span class="text-xs text-gray-500 w-8 text-right">{{ Math.round(state.volume * 100) }}%</span>
+        <span class="text-xs text-gray-500 w-8 text-right dark:text-gray-400">{{ Math.round(state.volume * 100) }}%</span>
       </div>
 
       <!-- Buffering Indicator -->
-      <div v-if="state.buffering" class="flex items-center gap-2 text-sm text-gray-500">
+      <div v-if="state.buffering" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <div class="animate-spin">
           <Loader :size="16" />
         </div>
@@ -75,7 +75,7 @@
       </div>
 
       <!-- Status Indicator -->
-      <div v-else-if="isReady && !state.playing && !state.paused" class="text-sm text-gray-500">
+      <div v-else-if="isReady && !state.playing && !state.paused" class="text-sm text-gray-500 dark:text-gray-400">
         Ready to play
       </div>
     </div>
@@ -178,5 +178,13 @@ input[type="range"]::-moz-range-track {
   height: 8px;
   background: #e5e7eb;
   border-radius: 4px;
+}
+
+:root.dark input[type="range"]::-webkit-slider-runnable-track {
+  background: #374151; /* gray-700 */
+}
+
+:root.dark input[type="range"]::-moz-range-track {
+  background: #374151; /* gray-700 */
 }
 </style>

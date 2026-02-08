@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { EditorView, placeholder as placeholderExt } from '@codemirror/view'
 import { EditorState, Compartment } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
 import { autocompletion } from '@codemirror/autocomplete'
 import { liquid } from '@codemirror/lang-liquid'
 import { handlebarsPromptCompletionSource } from '@/components/prompt/handlebarsPromptCompletions'
+import { useThemeStore } from '@/stores/theme'
 
 const props = withDefaults(
   defineProps<{
@@ -30,6 +31,9 @@ const emit = defineEmits<{
   (e: 'blur'): void
 }>()
 
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.isDark)
+
 const editorRoot = ref<HTMLDivElement | null>(null)
 let view: EditorView | null = null
 
@@ -40,11 +44,15 @@ const themeCompartment = new Compartment()
 function buildTheme() {
   const monoFont =
     'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+  
+  const dark = isDark.value
 
   return EditorView.theme(
     {
       '&': {
         height: '100%',
+        backgroundColor: dark ? '#1f2937' : '#ffffff', // gray-800 : white
+        color: dark ? '#e5e7eb' : '#1f2937', // gray-200 : gray-800
       },
       '.cm-scroller': {
         fontFamily: props.monospace ? monoFont : 'inherit',
@@ -58,10 +66,22 @@ function buildTheme() {
         outline: 'none',
       },
       '.cm-placeholder': {
-        color: '#9ca3af',
+        color: dark ? '#9ca3af' : '#9ca3af',
+      },
+      '.cm-cursor': {
+        borderLeftColor: dark ? '#e5e7eb' : '#000000',
+      },
+      '.cm-activeLine': {
+        backgroundColor: dark ? '#374151' : '#f3f4f6', // gray-700 : gray-100
+      },
+      '.cm-selectionBackground': {
+        backgroundColor: dark ? '#4b5563' : '#e5e7eb', // gray-600 : gray-200
+      },
+      '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+        backgroundColor: dark ? '#4b5563' : '#e5e7eb',
       },
     },
-    { dark: false }
+    { dark }
   )
 }
 
@@ -178,12 +198,19 @@ watch(
     reconfigureTheme()
   }
 )
+
+watch(
+  isDark,
+  () => {
+    reconfigureTheme()
+  }
+)
 </script>
 
 <template>
   <div
-    class="w-full border border-gray-300 rounded-md text-sm focus-within:outline-none focus-within:border-primary-500 bg-white overflow-hidden"
-    :class="{ 'opacity-60 pointer-events-none bg-gray-100': disabled }"
+    class="w-full border border-gray-300 rounded-md text-sm focus-within:outline-none focus-within:border-primary-500 bg-white overflow-hidden dark:bg-gray-900 dark:border-gray-700"
+    :class="{ 'opacity-60 pointer-events-none bg-gray-100 dark:bg-gray-800': disabled }"
     :style="{ minHeight }"
   >
     <div ref="editorRoot" class="h-full" />

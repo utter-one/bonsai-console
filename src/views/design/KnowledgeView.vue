@@ -227,7 +227,7 @@ function clearSearch() {
                           </div>
                           <div class="mb-1">
                             <span class="text-sm font-medium text-gray-700">Q:</span>
-                            <span class="text-sm text-gray-900 ml-2">{{ item.question }}</span>
+                            <span class="text-sm text-gray-900 dark:text-gray-200 ml-2">{{ item.question }}</span>
                           </div>
                           <div>
                             <span class="text-sm font-medium text-gray-700">A:</span>
