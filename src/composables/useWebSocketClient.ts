@@ -17,6 +17,12 @@ import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, 
  * const { client, isConnected, isInConversation, connect, disconnect } = useWebSocketClient('api-key', {
  *   onAiVoiceChunk: (message) => {
  *     console.log('Audio chunk:', message.chunkId)
+ *   },
+ *   onUserTranscribedChunk: (message) => {
+ *     console.log('User ASR chunk:', message.chunkText)
+ *   },
+ *   onAiTranscribedChunk: (message) => {
+ *     console.log('AI text chunk:', message.chunkText)
  *   }
  * })
  * 
@@ -151,15 +157,16 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
 
   /**
    * Start voice input phase
+   * @returns The inputTurnId for this voice input session
    */
-  async function startVoiceInput() {
+  async function startVoiceInput(): Promise<string> {
     if (!client.value) {
       throw new Error('Client not connected')
     }
 
     try {
       error.value = null
-      await client.value.startVoiceInput()
+      return await client.value.startVoiceInput()
     } catch (err) {
       error.value = err instanceof Error ? err : new Error(String(err))
       throw err

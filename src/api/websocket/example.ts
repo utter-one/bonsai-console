@@ -18,14 +18,14 @@ export async function basicTextConversation() {
     debug: true,
     handlers: {
       onAiVoiceStart: (message) => {
-        console.log('AI started speaking:', message.voiceOutputId)
+        console.log('AI started speaking:', message.outputTurnId)
       },
       onAiVoiceChunk: (message) => {
         console.log(`Received audio chunk ${message.ordinal}, final: ${message.isFinal}`)
         // Decode and play audioData: message.audioData
       },
       onAiVoiceEnd: (message) => {
-        console.log('AI finished speaking:', message.voiceOutputId)
+        console.log('AI finished speaking:', message.outputTurnId)
       },
       onError: (error) => {
         console.error('Server error:', error.error)
