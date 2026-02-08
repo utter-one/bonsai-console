@@ -572,12 +572,6 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
   
   console.log('Final message:', event.message)
 
-  // Mark as not real-time if all chunks are final
-  const allFinal = event.transcriptChunks.every(chunk => chunk.isFinal)
-  if (allFinal) {
-    event.isRealTime = false
-  }
-
   // Auto-scroll to bottom
   nextTick(() => scrollHistoryToBottom())
 }
@@ -747,8 +741,22 @@ async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value || !recording.value) return
   
   try {
-    // Start voice input phase on backend
-    await wsClient.value.startVoiceInput()
+    // Start voice input phase on backend and get inputTurnId
+    const inputTurnId = await wsClient.value.startVoiceInput()
+    
+    // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
+    const event: ConversationEvent = {
+      type: 'user',
+      message: '',
+      timestamp: new Date(),
+      inputTurnId: inputTurnId,
+      isRealTime: true,
+      transcriptChunks: []
+    }
+    conversationEvents.value.push(event)
+    
+    // Auto-scroll to show the new event
+    nextTick(() => scrollHistoryToBottom())
     
     // Start recording from microphone
     await recording.value.startRecording()
@@ -767,6 +775,12 @@ async function stopVoiceRecording() {
   try {
     // Stop recording (will process remaining chunks)
     recording.value.stopRecording()
+    
+    // Mark the last event not real-time anymore (in case onChunk is still processing)
+    const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
+    if (lastEvent) {
+      lastEvent.isRealTime = false
+    }
     
     // End voice input phase on backend
     await wsClient.value.endVoiceInput()

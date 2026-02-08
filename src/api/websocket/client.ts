@@ -333,9 +333,10 @@ export class NexusWebSocketClient {
   /**
    * Start voice input phase (step 1 of 3).
    * Must be followed by sendVoiceChunk() calls and endVoiceInput().
+   * @returns The inputTurnId for this voice input session
    * @throws {Error} If starting voice input fails or no active conversation
    */
-  async startVoiceInput(): Promise<void> {
+  async startVoiceInput(): Promise<string> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
     
@@ -349,6 +350,7 @@ export class NexusWebSocketClient {
         this.currentInputTurnId = response.inputTurnId
         this.currentVoiceChunkOrdinal = 0
         this.log('Voice input started, inputTurnId:', this.currentInputTurnId)
+        return response.inputTurnId
       } else {
         throw new Error(response.error || 'Failed to start voice input')
       }
