@@ -50,10 +50,12 @@ async function generateTypes() {
       'start-user-voice-input-request', 'start-user-voice-input-response',
       'send-user-voice-chunk-request', 'send-user-voice-chunk-response',
       'end-user-voice-input-request', 'end-user-voice-input-response',
-      'send-user-text-input-request', 'send-user-text-input-response'
+      'send-user-text-input-request', 'send-user-text-input-response',
+      'user-transcribed-chunk'
     ],
     aiResponse: [
-      'start-ai-voice-output', 'send-ai-voice-chunk', 'end-ai-voice-output'
+      'start-ai-voice-output', 'send-ai-voice-chunk', 'end-ai-voice-output',
+      'ai-transcribed-chunk'
     ],
     command: [
       'go-to-stage-request', 'go-to-stage-response',

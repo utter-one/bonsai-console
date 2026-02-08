@@ -17,6 +17,12 @@ import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, 
  * const { client, isConnected, isInConversation, connect, disconnect } = useWebSocketClient('api-key', {
  *   onAiVoiceChunk: (message) => {
  *     console.log('Audio chunk:', message.chunkId)
+ *   },
+ *   onUserTranscribedChunk: (message) => {
+ *     console.log('User ASR chunk:', message.chunkText)
+ *   },
+ *   onAiTranscribedChunk: (message) => {
+ *     console.log('AI text chunk:', message.chunkText)
  *   }
  * })
  * 

@@ -344,6 +344,10 @@ export interface StartUserVoiceInputResponse {
    * Error message if voice input start failed
    */
   error?: string;
+  /**
+   * Unique identifier for the input turn
+   */
+  inputTurnId: string;
 }
 
 export interface SendUserVoiceChunkRequest {
@@ -367,6 +371,14 @@ export interface SendUserVoiceChunkRequest {
    * Base64-encoded audio chunk data
    */
   audioData: string;
+  /**
+   * Sequential order of this chunk in the voice input sequence
+   */
+  ordinal: number;
+  /**
+   * Unique identifier for the input turn
+   */
+  inputTurnId: string;
 }
 
 export interface SendUserVoiceChunkResponse {
@@ -390,6 +402,10 @@ export interface SendUserVoiceChunkResponse {
    * Error message if voice chunk processing failed
    */
   error?: string;
+  /**
+   * Unique identifier for the input turn
+   */
+  inputTurnId: string;
 }
 
 export interface EndUserVoiceInputRequest {
@@ -409,6 +425,10 @@ export interface EndUserVoiceInputRequest {
    * Unique identifier of the conversation
    */
   conversationId: string;
+  /**
+   * Unique identifier for the input turn
+   */
+  inputTurnId: string;
 }
 
 export interface EndUserVoiceInputResponse {
@@ -432,6 +452,10 @@ export interface EndUserVoiceInputResponse {
    * Error message if voice input ending failed
    */
   error?: string;
+  /**
+   * Unique identifier for the input turn
+   */
+  inputTurnId: string;
 }
 
 export interface SendUserTextInputRequest {
@@ -478,6 +502,41 @@ export interface SendUserTextInputResponse {
    * Error message if text input processing failed
    */
   error?: string;
+  /**
+   * Unique identifier for the input turn, can be used to correlate with voice input if applicable
+   */
+  inputTurnId: string;
+}
+
+export interface UserTranscribedChunk {
+  /**
+   * Message type for user text chunk
+   */
+  type: 'user_transcribed_chunk';
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Unique identifier for the input turn this chunk belongs to
+   */
+  inputTurnId: string;
+  /**
+   * Unique identifier for this text chunk
+   */
+  chunkId: string;
+  /**
+   * Chunk of transcribed text input from the user
+   */
+  chunkText: string;
+  /**
+   * Sequential order of this chunk in the transcription sequence
+   */
+  ordinal: number;
+  /**
+   * Whether this is the final version of the chunk of text input
+   */
+  isFinal: boolean;
 }
 
 // ============================================================================
@@ -504,7 +563,7 @@ export interface StartAiVoiceOutput {
   /**
    * Unique identifier for this voice output sequence for correlation
    */
-  voiceOutputId: string;
+  outputTurnId: string;
 }
 
 export interface SendAiVoiceChunk {
@@ -527,7 +586,7 @@ export interface SendAiVoiceChunk {
   /**
    * Unique identifier for this voice output sequence for correlation
    */
-  voiceOutputId: string;
+  outputTurnId: string;
   /**
    * Base64-encoded audio chunk data
    */
@@ -570,11 +629,38 @@ export interface EndAiVoiceOutput {
   /**
    * Unique identifier for this voice output sequence for correlation
    */
-  voiceOutputId: string;
+  outputTurnId: string;
   /**
    * The full text that was converted to speech, if available
    */
   fullText: string;
+}
+
+export interface AiTranscribedChunk {
+  /**
+   * Message type for AI transcribed text chunk
+   */
+  type: 'ai_transcribed_chunk';
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Unique identifier for this voice output sequence for correlation
+   */
+  outputTurnId: string;
+  /**
+   * Unique identifier for this text chunk
+   */
+  chunkId: string;
+  /**
+   * Chunk of transcribed text output from the AI
+   */
+  chunkText: string;
+  /**
+   * Whether this is the final chunk of text output
+   */
+  isFinal: boolean;
 }
 
 // ============================================================================

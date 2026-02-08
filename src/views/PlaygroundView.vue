@@ -173,17 +173,37 @@
                           :state="getVoiceOutput(event.voiceOutputId)!.player.state"
                           :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
                           :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
-                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || undefined"
+                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
                           @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
                           @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
                           @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
                           @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }"
                         />
+                        <!-- Show real-time text below audio player if transcription is in progress -->
+                        <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
+                          <span class="whitespace-pre-wrap">{{ event.message }}</span>
+                          <span
+                            class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                            title="Real-time transcription in progress"
+                          ></span>
+                        </div>
                       </template>
                       
                       <!-- Regular text message -->
                       <template v-else>
-                        <p v-if="event.message" class="whitespace-pre-wrap">{{ event.message }}</p>
+                        <div class="relative">
+                          <p v-if="event.message" class="whitespace-pre-wrap">{{ event.message }}</p>
+                          <!-- Real-time indicator -->
+                          <span
+                            v-if="event.isRealTime"
+                            class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse"
+                            :class="{
+                              'text-blue-500': event.type === 'user',
+                              'text-green-500': event.type === 'ai'
+                            }"
+                            title="Real-time transcription in progress"
+                          ></span>
+                        </div>
                         <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono">
                           {{ event.details }}
                         </div>
@@ -335,7 +355,7 @@ import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiVoiceOutput, EndAiVoiceOutput } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiVoiceOutput, EndAiVoiceOutput, UserTranscribedChunk, AiTranscribedChunk } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -449,6 +469,10 @@ interface ConversationEvent {
   timestamp: Date
   details?: string
   voiceOutputId?: string // Link to voice output for audio playback
+  inputTurnId?: string // Link to input turn for real-time transcription
+  outputTurnId?: string // Link to output turn for real-time transcription
+  isRealTime?: boolean // Whether this is a real-time updating text
+  transcriptChunks?: Map<string, { text: string; ordinal: number; isFinal: boolean }> // For tracking real-time chunks
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -490,6 +514,99 @@ function addEvent(event: ConversationEvent) {
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+/**
+ * Update user transcript with real-time ASR chunks
+ */
+function updateUserTranscript(msg: UserTranscribedChunk) {
+  // Find or create the event for this input turn
+  let event = conversationEvents.value.find(e => e.inputTurnId === msg.inputTurnId && e.type === 'user')
+  
+  if (!event) {
+    // Create new event for this input turn
+    event = {
+      type: 'user',
+      message: '',
+      timestamp: new Date(),
+      inputTurnId: msg.inputTurnId,
+      isRealTime: true,
+      transcriptChunks: new Map()
+    }
+    conversationEvents.value.push(event)
+  }
+
+  // Initialize transcriptChunks if not exists
+  if (!event.transcriptChunks) {
+    event.transcriptChunks = new Map()
+  }
+
+  // Update or add this chunk
+  event.transcriptChunks.set(msg.chunkId, {
+    text: msg.chunkText,
+    ordinal: msg.ordinal,
+    isFinal: msg.isFinal
+  })
+
+  // Rebuild message from chunks sorted by ordinal
+  const sortedChunks = Array.from(event.transcriptChunks.values())
+    .sort((a, b) => a.ordinal - b.ordinal)
+  event.message = sortedChunks.map(chunk => chunk.text).join('')
+
+  // Mark as not real-time if all chunks are final
+  const allFinal = sortedChunks.every(chunk => chunk.isFinal)
+  if (allFinal) {
+    event.isRealTime = false
+  }
+
+  // Auto-scroll to bottom
+  nextTick(() => scrollHistoryToBottom())
+}
+
+/**
+ * Update AI transcript with real-time text streaming chunks
+ */
+function updateAiTranscript(msg: AiTranscribedChunk) {
+  // Find existing event for this output turn (may have voice output)
+  let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'ai')
+  
+  if (!event) {
+    // Create new event for this output turn (text-only AI response)
+    event = {
+      type: 'ai',
+      message: '',
+      timestamp: new Date(),
+      outputTurnId: msg.outputTurnId,
+      isRealTime: true,
+      transcriptChunks: new Map()
+    }
+    conversationEvents.value.push(event)
+  }
+
+  // Initialize transcriptChunks if not exists
+  if (!event.transcriptChunks) {
+    event.transcriptChunks = new Map()
+  }
+
+  // Update or add this chunk
+  event.transcriptChunks.set(msg.chunkId, {
+    text: msg.chunkText,
+    ordinal: 0, // AI chunks don't have ordinal, just append
+    isFinal: msg.isFinal
+  })
+
+  // Rebuild message from all chunks (in insertion order)
+  event.message = Array.from(event.transcriptChunks.values())
+    .map(chunk => chunk.text)
+    .join('')
+
+  // Mark as not real-time if this chunk is final
+  if (msg.isFinal) {
+    event.isRealTime = false
+  }
+
+  // Auto-scroll to bottom
+  nextTick(() => scrollHistoryToBottom())
 }
 
 // WebSocket client setup
@@ -742,26 +859,42 @@ async function connectWebSocket() {
           timestamp: new Date()
         })
       },
+      onUserTranscribedChunk: (msg: UserTranscribedChunk) => {
+        updateUserTranscript(msg)
+      },
       onAiVoiceStart: (msg: StartAiVoiceOutput) => {
+        // Find or create event for this output turn
+        let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'ai')
+        
+        if (!event) {
+          // Create new event
+          event = {
+            type: 'ai',
+            message: '',
+            timestamp: new Date(),
+            voiceOutputId: msg.outputTurnId,
+            outputTurnId: msg.outputTurnId
+          }
+          conversationEvents.value.push(event)
+        } else {
+          // Update existing event to include voice
+          event.voiceOutputId = msg.outputTurnId
+        }
+        
         // Initialize audio player for this voice output
         const player = useAudioPlayback()
-        
-        activeVoiceOutputs.value.set(msg.voiceOutputId, {
+        activeVoiceOutputs.value.set(msg.outputTurnId, {
           player: player as any,
           transcript: null
         })
         
-        addEvent({
-          type: 'ai',
-          message: 'Voice message',
-          timestamp: new Date(),
-          voiceOutputId: msg.voiceOutputId
-        })
+        // Auto-scroll
+        nextTick(() => scrollHistoryToBottom())
       },
       onAiVoiceChunk: async (msg: SendAiVoiceChunk) => {
-        const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
+        const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)
         if (!voiceOutput) {
-          console.warn('Received audio chunk for unknown voice output:', msg.voiceOutputId)
+          console.warn('Received audio chunk for unknown voice output:', msg.outputTurnId)
           return
         }
         
@@ -774,11 +907,14 @@ async function connectWebSocket() {
         })
       },
       onAiVoiceEnd: (msg: EndAiVoiceOutput) => {
-        const voiceOutput = activeVoiceOutputs.value.get(msg.voiceOutputId)
+        const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)
         if (voiceOutput) {
           // Store transcript for display in AudioPlayer
           voiceOutput.transcript = msg.fullText?.trim() || null
         }
+      },
+      onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
+        updateAiTranscript(msg)
       }
     })
 

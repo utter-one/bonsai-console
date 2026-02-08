@@ -16,9 +16,11 @@ import type {
   EndUserVoiceInputResponse,
   SendUserTextInputRequest,
   SendUserTextInputResponse,
+  UserTranscribedChunk,
   StartAiVoiceOutput,
   SendAiVoiceChunk,
   EndAiVoiceOutput,
+  AiTranscribedChunk,
   GoToStageRequest,
   GoToStageResponse,
   SetVarRequest,
@@ -48,9 +50,11 @@ type ServerMessage =
   | SendUserVoiceChunkResponse
   | EndUserVoiceInputResponse
   | SendUserTextInputResponse
+  | UserTranscribedChunk
   | StartAiVoiceOutput
   | SendAiVoiceChunk
   | EndAiVoiceOutput
+  | AiTranscribedChunk
   | GoToStageResponse
   | SetVarResponse
   | GetVarResponse
@@ -60,12 +64,16 @@ type ServerMessage =
 
 /** Event handlers for server-initiated messages */
 export interface WebSocketEventHandlers {
+  /** Called when a user transcribed text chunk is received (real-time ASR) */
+  onUserTranscribedChunk?: (message: UserTranscribedChunk) => void
   /** Called when AI voice output starts */
   onAiVoiceStart?: (message: StartAiVoiceOutput) => void
   /** Called when an AI voice chunk is received */
   onAiVoiceChunk?: (message: SendAiVoiceChunk) => void
   /** Called when AI voice output ends */
   onAiVoiceEnd?: (message: EndAiVoiceOutput) => void
+  /** Called when an AI transcribed text chunk is received (real-time text streaming) */
+  onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
   /** Called when a server error occurs */
   onError?: (message: ErrorMessage) => void
   /** Called when the WebSocket connection is established */
@@ -137,6 +145,8 @@ export class NexusWebSocketClient {
   private sessionId: string | null = null
   private conversationId: string | null = null
   private projectSettings: ProjectSettings | null = null
+  private currentInputTurnId: string | null = null
+  private currentVoiceChunkOrdinal: number = 0
   private requestHandlers = new Map<string, {
     resolve: (response: any) => void
     reject: (error: Error) => void
@@ -335,7 +345,11 @@ export class NexusWebSocketClient {
       sessionId: this.sessionId!,
       conversationId: this.conversationId!,
     } as StartUserVoiceInputRequest, (response) => {
-      if (!response.success) {
+      if (response.success && response.inputTurnId) {
+        this.currentInputTurnId = response.inputTurnId
+        this.currentVoiceChunkOrdinal = 0
+        this.log('Voice input started, inputTurnId:', this.currentInputTurnId)
+      } else {
         throw new Error(response.error || 'Failed to start voice input')
       }
     })
@@ -349,6 +363,9 @@ export class NexusWebSocketClient {
    */
   async sendVoiceChunk(audioData: string): Promise<void> {
     this.ensureConversation()
+    if (!this.currentInputTurnId) {
+      throw new Error('No active voice input turn. Call startVoiceInput() first.')
+    }
     const requestId = this.generateRequestId()
     
     return this.sendRequest<SendUserVoiceChunkResponse>({
@@ -357,6 +374,8 @@ export class NexusWebSocketClient {
       sessionId: this.sessionId!,
       conversationId: this.conversationId!,
       audioData,
+      ordinal: this.currentVoiceChunkOrdinal++,
+      inputTurnId: this.currentInputTurnId,
     } as SendUserVoiceChunkRequest, (response) => {
       if (!response.success) {
         throw new Error(response.error || 'Failed to send voice chunk')
@@ -594,8 +613,12 @@ export class NexusWebSocketClient {
   private handleMessage(message: ServerMessage): void {
     this.log('Received message:', message.type)
 
-    // Handle responses to requests
-    if (message.requestId && this.requestHandlers.has(message.requestId)) {
+    // Handle responses to requests (only for messages with requestId)
+    const hasRequestId = (msg: ServerMessage): msg is ServerMessage & { requestId: string } => {
+      return 'requestId' in msg && typeof msg.requestId === 'string'
+    }
+    
+    if (hasRequestId(message) && this.requestHandlers.has(message.requestId)) {
       const handler = this.requestHandlers.get(message.requestId)!
       clearTimeout(handler.timeout)
       this.requestHandlers.delete(message.requestId)
@@ -605,6 +628,9 @@ export class NexusWebSocketClient {
 
     // Handle server-initiated messages
     switch (message.type) {
+      case 'user_transcribed_chunk':
+        this.config.handlers.onUserTranscribedChunk?.(message as UserTranscribedChunk)
+        break
       case 'start_ai_voice_output':
         this.config.handlers.onAiVoiceStart?.(message as StartAiVoiceOutput)
         break
@@ -613,6 +639,9 @@ export class NexusWebSocketClient {
         break
       case 'end_ai_voice_output':
         this.config.handlers.onAiVoiceEnd?.(message as EndAiVoiceOutput)
+        break
+      case 'ai_transcribed_chunk':
+        this.config.handlers.onAiTranscribedChunk?.(message as AiTranscribedChunk)
         break
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
@@ -678,6 +707,8 @@ export class NexusWebSocketClient {
     this.sessionId = null
     this.conversationId = null
     this.projectSettings = null
+    this.currentInputTurnId = null
+    this.currentVoiceChunkOrdinal = 0
   }
 
   /**
