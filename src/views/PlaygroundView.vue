@@ -472,7 +472,7 @@ interface ConversationEvent {
   inputTurnId?: string // Link to input turn for real-time transcription
   outputTurnId?: string // Link to output turn for real-time transcription
   isRealTime?: boolean // Whether this is a real-time updating text
-  transcriptChunks?: Map<string, { text: string; ordinal: number; isFinal: boolean }> // For tracking real-time chunks
+  transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }> // Array to maintain insertion order
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -520,6 +520,8 @@ function formatTime(date: Date): string {
  * Update user transcript with real-time ASR chunks
  */
 function updateUserTranscript(msg: UserTranscribedChunk) {
+  console.log('Received user chunk:', msg.chunkId, 'Text:', msg.chunkText, 'isFinal:', msg.isFinal)
+  
   // Find or create the event for this input turn
   let event = conversationEvents.value.find(e => e.inputTurnId === msg.inputTurnId && e.type === 'user')
   
@@ -531,30 +533,47 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
       timestamp: new Date(),
       inputTurnId: msg.inputTurnId,
       isRealTime: true,
-      transcriptChunks: new Map()
+      transcriptChunks: []
     }
     conversationEvents.value.push(event)
+    console.log('Created new event for inputTurnId:', msg.inputTurnId)
   }
 
   // Initialize transcriptChunks if not exists
   if (!event.transcriptChunks) {
-    event.transcriptChunks = new Map()
+    event.transcriptChunks = []
   }
 
-  // Update or add this chunk
-  event.transcriptChunks.set(msg.chunkId, {
-    text: msg.chunkText,
-    ordinal: msg.ordinal,
-    isFinal: msg.isFinal
-  })
+  // Find existing chunk by chunkId
+  const existingIndex = event.transcriptChunks.findIndex(c => c.chunkId === msg.chunkId)
+  
+  if (existingIndex >= 0) {
+    console.log('Updating existing chunk at index:', existingIndex)
+    // Update existing chunk
+    event.transcriptChunks[existingIndex] = {
+      chunkId: msg.chunkId,
+      text: msg.chunkText,
+      isFinal: msg.isFinal
+    }
+  } else {
+    console.log('Adding new chunk, current array length:', event.transcriptChunks.length)
+    // Add new chunk to array
+    event.transcriptChunks.push({
+      chunkId: msg.chunkId,
+      text: msg.chunkText,
+      isFinal: msg.isFinal
+    })
+  }
 
-  // Rebuild message from chunks sorted by ordinal
-  const sortedChunks = Array.from(event.transcriptChunks.values())
-    .sort((a, b) => a.ordinal - b.ordinal)
-  event.message = sortedChunks.map(chunk => chunk.text).join('')
+  console.log('Total chunks:', event.transcriptChunks.length, 'Chunks:', event.transcriptChunks.map(c => c.chunkId))
+
+  // Rebuild message from chunks in array order
+  event.message = event.transcriptChunks.map(chunk => chunk.text).join(' ')
+  
+  console.log('Final message:', event.message)
 
   // Mark as not real-time if all chunks are final
-  const allFinal = sortedChunks.every(chunk => chunk.isFinal)
+  const allFinal = event.transcriptChunks.every(chunk => chunk.isFinal)
   if (allFinal) {
     event.isRealTime = false
   }
@@ -578,27 +597,37 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
       timestamp: new Date(),
       outputTurnId: msg.outputTurnId,
       isRealTime: true,
-      transcriptChunks: new Map()
+      transcriptChunks: []
     }
     conversationEvents.value.push(event)
   }
 
   // Initialize transcriptChunks if not exists
   if (!event.transcriptChunks) {
-    event.transcriptChunks = new Map()
+    event.transcriptChunks = []
   }
 
-  // Update or add this chunk
-  event.transcriptChunks.set(msg.chunkId, {
-    text: msg.chunkText,
-    ordinal: 0, // AI chunks don't have ordinal, just append
-    isFinal: msg.isFinal
-  })
+  // Find existing chunk by chunkId
+  const existingIndex = event.transcriptChunks.findIndex(c => c.chunkId === msg.chunkId)
+  
+  if (existingIndex >= 0) {
+    // Update existing chunk
+    event.transcriptChunks[existingIndex] = {
+      chunkId: msg.chunkId,
+      text: msg.chunkText,
+      isFinal: msg.isFinal
+    }
+  } else {
+    // Add new chunk to array
+    event.transcriptChunks.push({
+      chunkId: msg.chunkId,
+      text: msg.chunkText,
+      isFinal: msg.isFinal
+    })
+  }
 
-  // Rebuild message from all chunks (in insertion order)
-  event.message = Array.from(event.transcriptChunks.values())
-    .map(chunk => chunk.text)
-    .join('')
+  // Rebuild message from chunks in array order
+  event.message = event.transcriptChunks.map(chunk => chunk.text).join(' ')
 
   // Mark as not real-time if this chunk is final
   if (msg.isFinal) {
@@ -718,20 +747,8 @@ async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value || !recording.value) return
   
   try {
-    addEvent({
-      type: 'system',
-      message: 'Starting voice input...',
-      timestamp: new Date()
-    })
-    
     // Start voice input phase on backend
     await wsClient.value.startVoiceInput()
-    
-    addEvent({
-      type: 'user',
-      message: '🎤 Recording voice...',
-      timestamp: new Date()
-    })
     
     // Start recording from microphone
     await recording.value.startRecording()
@@ -751,20 +768,8 @@ async function stopVoiceRecording() {
     // Stop recording (will process remaining chunks)
     recording.value.stopRecording()
     
-    addEvent({
-      type: 'system',
-      message: 'Processing voice input...',
-      timestamp: new Date()
-    })
-    
     // End voice input phase on backend
     await wsClient.value.endVoiceInput()
-    
-    addEvent({
-      type: 'system',
-      message: 'Voice input sent successfully',
-      timestamp: new Date()
-    })
   } catch (error) {
     addEvent({
       type: 'error',

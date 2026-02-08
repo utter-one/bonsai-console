@@ -510,9 +510,17 @@ export interface SendUserTextInputResponse {
 
 export interface UserTranscribedChunk {
   /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
    * Message type for user text chunk
    */
   type: 'user_transcribed_chunk';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
   /**
    * Unique identifier of the conversation
    */
@@ -638,15 +646,23 @@ export interface EndAiVoiceOutput {
 
 export interface AiTranscribedChunk {
   /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
    * Message type for AI transcribed text chunk
    */
   type: 'ai_transcribed_chunk';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
   /**
-   * Unique identifier for this voice output sequence for correlation
+   * Unique identifier for the output turn this chunk belongs to
    */
   outputTurnId: string;
   /**
@@ -657,6 +673,10 @@ export interface AiTranscribedChunk {
    * Chunk of transcribed text output from the AI
    */
   chunkText: string;
+  /**
+   * Sequential order of this chunk in the transcription sequence
+   */
+  ordinal: number;
   /**
    * Whether this is the final chunk of text output
    */

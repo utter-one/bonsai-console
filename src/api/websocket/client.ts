@@ -390,15 +390,24 @@ export class NexusWebSocketClient {
    */
   async endVoiceInput(): Promise<void> {
     this.ensureConversation()
+    if (!this.currentInputTurnId) {
+      throw new Error('No active voice input turn. Call startVoiceInput() first.')
+    }
     const requestId = this.generateRequestId()
+    const inputTurnId = this.currentInputTurnId
     
     return this.sendRequest<EndUserVoiceInputResponse>({
       type: 'end_user_voice_input',
       requestId,
       sessionId: this.sessionId!,
       conversationId: this.conversationId!,
+      inputTurnId,
     } as EndUserVoiceInputRequest, (response) => {
-      if (!response.success) {
+      if (response.success) {
+        this.currentInputTurnId = null
+        this.currentVoiceChunkOrdinal = 0
+        this.log('Voice input ended')
+      } else {
         throw new Error(response.error || 'Failed to end voice input')
       }
     })
