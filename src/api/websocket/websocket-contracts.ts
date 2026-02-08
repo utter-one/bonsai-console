@@ -29,6 +29,27 @@ export interface AuthRequest {
    * API key for authentication
    */
   apiKey: string;
+  /**
+   * Session settings for the client
+   */
+  sessionSettings?: {
+    /**
+     * Whether the client can send voice input
+     */
+    sendVoiceInput: boolean;
+    /**
+     * Whether the client can send text input
+     */
+    sendTextInput: boolean;
+    /**
+     * Whether the client wants to receive voice output
+     */
+    receiveVoiceOutput: boolean;
+    /**
+     * Whether the client wants to receive intermediate transcription updates for voice input and output
+     */
+    receiveTranscriptionUpdates: boolean;
+  };
 }
 
 export interface AuthResponse {
