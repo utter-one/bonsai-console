@@ -92,6 +92,13 @@ export interface WebSocketClientConfig {
   apiKey: string
   /** Event handlers for server-initiated messages */
   handlers?: WebSocketEventHandlers
+  /** Session settings for client capabilities */
+  sessionSettings?: {
+    sendVoiceInput: boolean
+    sendTextInput: boolean
+    receiveVoiceOutput: boolean
+    receiveTranscriptionUpdates: boolean
+  }
   /** Timeout for request-response operations (in milliseconds, default: 30000) */
   timeout?: number
   /** Enable debug logging */
@@ -152,7 +159,7 @@ export class NexusWebSocketClient {
     reject: (error: Error) => void
     timeout: number
   }>()
-  private config: Required<WebSocketClientConfig>
+  private config: Required<Omit<WebSocketClientConfig, 'sessionSettings'>> & Pick<WebSocketClientConfig, 'sessionSettings'>
 
   constructor(config: WebSocketClientConfig) {
     this.config = {
@@ -221,6 +228,7 @@ export class NexusWebSocketClient {
       type: 'auth',
       requestId,
       apiKey: this.config.apiKey,
+      sessionSettings: this.config.sessionSettings,
     } as AuthRequest, (response) => {
       if (response.success && response.sessionId) {
         this.sessionId = response.sessionId

@@ -6,7 +6,7 @@ import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, 
  * Handles connection, authentication, and cleanup automatically.
  * 
  * @param apiKey - API key for authentication
- * @param handlers - Event handlers for WebSocket events
+ * @param options - WebSocket client options including handlers and session settings
  * @returns WebSocket client utilities and state
  * 
  * @example
@@ -15,6 +15,12 @@ import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, 
  * import { useWebSocketClient } from '@/composables/useWebSocketClient'
  * 
  * const { client, isConnected, isInConversation, connect, disconnect } = useWebSocketClient('api-key', {
+ *   sessionSettings: {
+ *     sendVoiceInput: true,
+ *     sendTextInput: true,
+ *     receiveVoiceOutput: true,
+ *     receiveTranscriptionUpdates: true
+ *   },
  *   onAiVoiceChunk: (message) => {
  *     console.log('Audio chunk:', message.chunkId)
  *   },
@@ -33,7 +39,17 @@ import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, 
  * </script>
  * ```
  */
-export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHandlers) {
+export function useWebSocketClient(
+  apiKey: string,
+  options?: WebSocketEventHandlers & {
+    sessionSettings?: {
+      sendVoiceInput: boolean
+      sendTextInput: boolean
+      receiveVoiceOutput: boolean
+      receiveTranscriptionUpdates: boolean
+    }
+  }
+) {
   const client: Ref<NexusWebSocketClient | null> = ref(null)
   const isConnected = ref(false)
   const isInConversation = ref(false)
@@ -54,18 +70,19 @@ export function useWebSocketClient(apiKey: string, handlers?: WebSocketEventHand
       client.value = new NexusWebSocketClient({
         url: wsUrl,
         apiKey,
+        sessionSettings: options?.sessionSettings,
         handlers: {
-          ...handlers,
+          ...options,
           onConnect: () => {
             isConnected.value = true
-            handlers?.onConnect?.()
+            options?.onConnect?.()
           },
           onDisconnect: (event) => {
             isConnected.value = false
             isInConversation.value = false
             sessionId.value = null
             conversationId.value = null
-            handlers?.onDisconnect?.(event)
+            options?.onDisconnect?.(event)
           },
         },
       })

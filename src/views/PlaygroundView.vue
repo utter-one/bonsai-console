@@ -65,15 +65,54 @@
             <div class="h-8 border-l border-gray-300"></div>
 
             <!-- Conversation Controls -->
-            <button
-              v-if="!isConversationActive"
-              class="btn-primary flex items-center gap-2 whitespace-nowrap"
-              @click="startConversation"
-              :disabled="!canStartConversation"
-            >
-              <Play :size="18" />
-              {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
-            </button>
+            <div v-if="!isConversationActive" class="relative inline-flex">
+              <!-- Main Action Button -->
+              <button
+                class="btn-primary flex items-center gap-2 whitespace-nowrap rounded-r-none"
+                @click="startConversation"
+                :disabled="!canStartConversation"
+              >
+                <Play :size="18" />
+                {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+              </button>
+              
+              <!-- Dropdown Toggle -->
+              <button
+                @click="showPresetMenu = !showPresetMenu"
+                class="btn-primary px-3 rounded-l-none border-l border-primary-600"
+                :disabled="!canStartConversation"
+                :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`"
+              >
+                <ChevronDown :size="18" />
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div
+                v-if="showPresetMenu"
+                class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1"
+                @click.stop
+              >
+                <button
+                  v-for="{ preset, disabled, reason } in availablePresets"
+                  :key="preset.id"
+                  @click="handlePresetSelect(preset.id)"
+                  :disabled="disabled"
+                  class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed relative"
+                  :class="{ 'bg-primary-50': preset.id === selectedConversationMode }"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-900 flex items-center gap-2">
+                        {{ preset.name }}
+                        <span v-if="preset.id === selectedConversationMode" class="text-primary-600 text-xs">(Active)</span>
+                      </div>
+                      <div class="text-xs text-gray-500 mt-0.5">{{ preset.description }}</div>
+                      <div v-if="disabled && reason" class="text-xs text-red-600 mt-1">{{ reason }}</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
             <button
               v-else
               class="btn-danger flex items-center gap-2 whitespace-nowrap"
@@ -139,30 +178,30 @@
                 :key="index"
                 class="p-3 rounded-lg border"
                 :class="{
-                  'bg-blue-50 border-blue-200': event.type === 'user',
-                  'bg-green-50 border-green-200': event.type === 'ai',
-                  'bg-gray-50 border-gray-200': event.type === 'system',
-                  'bg-red-50 border-red-200': event.type === 'error'
+                  'bg-blue-50 border-blue-200': event.type === 'User',
+                  'bg-green-50 border-green-200': event.type === 'AI',
+                  'bg-gray-50 border-gray-200': event.type === 'System',
+                  'bg-red-50 border-red-200': event.type === 'Error'
                 }"
               >
                 <div class="flex items-start gap-3">
                   <div
                     class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                     :class="{
-                      'bg-blue-500 text-white': event.type === 'user',
-                      'bg-green-500 text-white': event.type === 'ai',
-                      'bg-gray-500 text-white': event.type === 'system',
-                      'bg-red-500 text-white': event.type === 'error'
+                      'bg-blue-500 text-white': event.type === 'User',
+                      'bg-green-500 text-white': event.type === 'AI',
+                      'bg-gray-500 text-white': event.type === 'System',
+                      'bg-red-500 text-white': event.type === 'Error'
                     }"
                   >
-                    <User v-if="event.type === 'user'" :size="16" />
-                    <Bot v-else-if="event.type === 'ai'" :size="16" />
-                    <AlertCircle v-else-if="event.type === 'error'" :size="16" />
+                    <User v-if="event.type === 'User'" :size="16" />
+                    <Bot v-else-if="event.type === 'AI'" :size="16" />
+                    <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
                     <Info v-else :size="16" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                      <span class="font-semibold text-sm capitalize">{{ event.type }}</span>
+                      <span class="font-semibold text-sm">{{ event.type }}</span>
                       <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                     </div>
                     <div class="text-sm">
@@ -198,8 +237,8 @@
                             v-if="event.isRealTime"
                             class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse"
                             :class="{
-                              'text-blue-500': event.type === 'user',
-                              'text-green-500': event.type === 'ai'
+                              'text-blue-500': event.type === 'User',
+                              'text-green-500': event.type === 'AI'
                             }"
                             title="Real-time transcription in progress"
                           ></span>
@@ -349,7 +388,7 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
@@ -393,6 +432,115 @@ function saveAudioSettings(settings: AudioSettings): void {
   }
 }
 
+// Conversation mode presets and playground preferences
+interface SessionSettings {
+  sendVoiceInput: boolean
+  sendTextInput: boolean
+  receiveVoiceOutput: boolean
+  receiveTranscriptionUpdates: boolean
+}
+
+type ConversationMode = 'text-only' | 'voice-input' | 'voice-output' | 'full-voice'
+
+interface ConversationPreset {
+  id: ConversationMode
+  name: string
+  description: string
+  sessionSettings: SessionSettings
+}
+
+interface PlaygroundPreferences {
+  lastApiKeyId: string | null
+  lastStageId: string | null
+  showSystemEvents: boolean
+  conversationMode: ConversationMode
+}
+
+interface PlaygroundPreferencesStorage {
+  [projectId: string]: PlaygroundPreferences
+}
+
+const PLAYGROUND_PREFS_KEY = 'nexus_playground_prefs'
+
+const conversationPresets: ConversationPreset[] = [
+  {
+    id: 'text-only',
+    name: 'Text Only',
+    description: 'Text input and output only',
+    sessionSettings: {
+      sendVoiceInput: false,
+      sendTextInput: true,
+      receiveVoiceOutput: false,
+      receiveTranscriptionUpdates: false,
+    }
+  },
+  {
+    id: 'voice-input',
+    name: 'Voice Input + Text',
+    description: 'Speak to the AI, receive text responses',
+    sessionSettings: {
+      sendVoiceInput: true,
+      sendTextInput: true,
+      receiveVoiceOutput: false,
+      receiveTranscriptionUpdates: true,
+    }
+  },
+  {
+    id: 'voice-output',
+    name: 'Text + Voice Output',
+    description: 'Type messages, hear AI responses',
+    sessionSettings: {
+      sendVoiceInput: false,
+      sendTextInput: true,
+      receiveVoiceOutput: true,
+      receiveTranscriptionUpdates: true,
+    }
+  },
+  {
+    id: 'full-voice',
+    name: 'Full Voice',
+    description: 'Complete voice conversation',
+    sessionSettings: {
+      sendVoiceInput: true,
+      sendTextInput: true,
+      receiveVoiceOutput: true,
+      receiveTranscriptionUpdates: true,
+    }
+  }
+]
+
+function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
+  try {
+    const stored = localStorage.getItem(PLAYGROUND_PREFS_KEY)
+    if (stored) {
+      const allPrefs: PlaygroundPreferencesStorage = JSON.parse(stored)
+      if (allPrefs[projectId]) {
+        return allPrefs[projectId]
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load playground preferences:', error)
+  }
+  // Default preferences
+  return {
+    lastApiKeyId: null,
+    lastStageId: null,
+    showSystemEvents: false,
+    conversationMode: 'full-voice', // Default to full voice
+  }
+}
+
+function savePlaygroundPreferences(projectId: string, prefs: PlaygroundPreferences): void {
+  try {
+    const stored = localStorage.getItem(PLAYGROUND_PREFS_KEY)
+    const allPrefs: PlaygroundPreferencesStorage = stored ? JSON.parse(stored) : {}
+    allPrefs[projectId] = prefs
+    localStorage.setItem(PLAYGROUND_PREFS_KEY, JSON.stringify(allPrefs))
+  } catch (error) {
+    console.error('Failed to save playground preferences:', error)
+  }
+}
+
 const router = useRouter()
 const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
@@ -409,6 +557,19 @@ const hasProject = computed(() => !!projectId.value)
 onMounted(() => {
   if (projectId.value) {
     projectSelectionStore.setSelectedProjectId(projectId.value)
+  }
+  
+  // Close preset menu when clicking outside
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.relative')) {
+      showPresetMenu.value = false
+    }
+  }
+  document.addEventListener('click', handleClickOutside)
+  
+  return () => {
+    document.removeEventListener('click', handleClickOutside)
   }
 })
 
@@ -462,9 +623,65 @@ const selectedApiKey = computed(() => {
   return apiKeysStore.items.find(k => k.id === selectedApiKeyId.value)
 })
 
+// Conversation mode and preferences
+const selectedConversationMode = ref<ConversationMode>('full-voice')
+const showPresetMenu = ref(false)
+const showSystemEvents = ref(false)
+
+// Load preferences when project changes
+watch(projectId, (newProjectId) => {
+  if (newProjectId) {
+    const prefs = loadPlaygroundPreferences(newProjectId)
+    selectedApiKeyId.value = prefs.lastApiKeyId
+    showSystemEvents.value = prefs.showSystemEvents
+    selectedConversationMode.value = prefs.conversationMode
+  }
+}, { immediate: true })
+
+// Save preferences when they change
+watch([selectedApiKeyId, showSystemEvents, selectedConversationMode], () => {
+  if (projectId.value) {
+    const prefs: PlaygroundPreferences = {
+      lastApiKeyId: selectedApiKeyId.value,
+      lastStageId: null, // Will be implemented when stage is selected
+      showSystemEvents: showSystemEvents.value,
+      conversationMode: selectedConversationMode.value,
+    }
+    savePlaygroundPreferences(projectId.value, prefs)
+  }
+})
+
+// Get session settings for selected mode
+const currentSessionSettings = computed(() => {
+  const preset = conversationPresets.find(p => p.id === selectedConversationMode.value)
+  return preset?.sessionSettings
+})
+
+// Filter presets based on project voice capabilities
+const availablePresets = computed(() => {
+  const settings = wsClient.value?.projectSettings.value
+  if (!settings) {
+    // If not connected yet, show all presets
+    return conversationPresets.map(preset => ({ preset, disabled: false, reason: null }))
+  }
+
+  return conversationPresets.map(preset => {
+    const needsVoiceInput = preset.sessionSettings.sendVoiceInput
+    const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
+    
+    if (needsVoiceInput && !settings.acceptVoice) {
+      return { preset, disabled: true, reason: 'Project does not support voice input' }
+    }
+    if (needsVoiceOutput && !settings.generateVoice) {
+      return { preset, disabled: true, reason: 'Project does not support voice output' }
+    }
+    return { preset, disabled: false, reason: null }
+  })
+})
+
 // Conversation event log
 interface ConversationEvent {
-  type: 'user' | 'ai' | 'system' | 'error'
+  type: 'User' | 'AI' | 'System' | 'Error'
   message: string
   timestamp: Date
   details?: string
@@ -477,14 +694,13 @@ interface ConversationEvent {
 
 const conversationEvents = ref<ConversationEvent[]>([])
 const historyContainer = ref<HTMLElement | null>(null)
-const showSystemEvents = ref(false) // Hidden by default
 
 // Filter events based on showSystemEvents toggle
 const filteredConversationEvents = computed(() => {
   if (showSystemEvents.value) {
     return conversationEvents.value
   }
-  return conversationEvents.value.filter(event => event.type !== 'system')
+  return conversationEvents.value.filter(event => event.type !== 'System')
 })
 
 // Voice output tracking
@@ -523,12 +739,12 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
   console.log('Received user chunk:', msg.chunkId, 'Text:', msg.chunkText, 'isFinal:', msg.isFinal)
   
   // Find or create the event for this input turn
-  let event = conversationEvents.value.find(e => e.inputTurnId === msg.inputTurnId && e.type === 'user')
+  let event = conversationEvents.value.find(e => e.inputTurnId === msg.inputTurnId && e.type === 'User')
   
   if (!event) {
     // Create new event for this input turn
     event = {
-      type: 'user',
+      type: 'User',
       message: '',
       timestamp: new Date(),
       inputTurnId: msg.inputTurnId,
@@ -568,7 +784,7 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
   console.log('Total chunks:', event.transcriptChunks.length, 'Chunks:', event.transcriptChunks.map(c => c.chunkId))
 
   // Rebuild message from chunks in array order
-  event.message = event.transcriptChunks.map(chunk => chunk.text).join(' ')
+  event.message = event.transcriptChunks.map(chunk => chunk.text.trim()).join(' ')
   
   console.log('Final message:', event.message)
 
@@ -581,12 +797,12 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
  */
 function updateAiTranscript(msg: AiTranscribedChunk) {
   // Find existing event for this output turn (may have voice output)
-  let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'ai')
+  let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
   
   if (!event) {
     // Create new event for this output turn (text-only AI response)
     event = {
-      type: 'ai',
+      type: 'AI',
       message: '',
       timestamp: new Date(),
       outputTurnId: msg.outputTurnId,
@@ -621,7 +837,7 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
   }
 
   // Rebuild message from chunks in array order
-  event.message = event.transcriptChunks.map(chunk => chunk.text).join(' ')
+  event.message = event.transcriptChunks.map(chunk => chunk.text).join('')
 
   // Mark as not real-time if this chunk is final
   if (msg.isFinal) {
@@ -698,7 +914,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
   const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
   
   addEvent({
-    type: 'system',
+    type: 'System',
     message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
     timestamp: new Date(),
     details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
@@ -721,7 +937,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
       } catch (error) {
         console.error('Failed to send voice chunk:', error)
         addEvent({
-          type: 'error',
+          type: 'Error',
           message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
           timestamp: new Date()
         })
@@ -729,7 +945,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     },
     onError: (error: Error) => {
       addEvent({
-        type: 'error',
+        type: 'Error',
         message: `Recording error: ${error.message}`,
         timestamp: new Date()
       })
@@ -746,7 +962,7 @@ async function startVoiceRecording() {
     
     // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
     const event: ConversationEvent = {
-      type: 'user',
+      type: 'User',
       message: '',
       timestamp: new Date(),
       inputTurnId: inputTurnId,
@@ -762,7 +978,7 @@ async function startVoiceRecording() {
     await recording.value.startRecording()
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to start recording: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -786,7 +1002,7 @@ async function stopVoiceRecording() {
     await wsClient.value.endVoiceInput()
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to end voice input: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -799,7 +1015,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
   showAudioSettingsModal.value = false
   
   addEvent({
-    type: 'system',
+    type: 'System',
     message: 'Audio settings saved',
     timestamp: new Date(),
     details: `Device: ${settings.deviceId || 'default'}`
@@ -824,7 +1040,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
         } catch (error) {
           console.error('Failed to send voice chunk:', error)
           addEvent({
-            type: 'error',
+            type: 'Error',
             message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
             timestamp: new Date()
           })
@@ -832,7 +1048,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
       },
       onError: (error: Error) => {
         addEvent({
-          type: 'error',
+          type: 'Error',
           message: `Recording error: ${error.message}`,
           timestamp: new Date()
         })
@@ -851,29 +1067,30 @@ async function connectWebSocket() {
     isWsConnecting.value = true
 
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'Connecting to WebSocket server...',
       timestamp: new Date()
     })
 
     const client = useWebSocketClient(apiKey, {
+      sessionSettings: currentSessionSettings.value,
       onConnect: () => {
         addEvent({
-          type: 'system',
+          type: 'System',
           message: 'Connected to WebSocket',
           timestamp: new Date()
         })
       },
       onDisconnect: () => {
         addEvent({
-          type: 'system',
+          type: 'System',
           message: 'Disconnected from WebSocket',
           timestamp: new Date()
         })
       },
       onError: (error) => {
         addEvent({
-          type: 'error',
+          type: 'Error',
           message: error.error,
           timestamp: new Date()
         })
@@ -883,12 +1100,12 @@ async function connectWebSocket() {
       },
       onAiVoiceStart: (msg: StartAiVoiceOutput) => {
         // Find or create event for this output turn
-        let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'ai')
+        let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
         
         if (!event) {
           // Create new event
           event = {
-            type: 'ai',
+            type: 'AI',
             message: '',
             timestamp: new Date(),
             voiceOutputId: msg.outputTurnId,
@@ -942,7 +1159,7 @@ async function connectWebSocket() {
 
     if (wsSessionId.value) {
       addEvent({
-        type: 'system',
+        type: 'System',
         message: 'WebSocket session established',
         timestamp: new Date(),
         details: `Session ID: ${wsSessionId.value}`
@@ -950,7 +1167,7 @@ async function connectWebSocket() {
     }
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to connect: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -969,7 +1186,7 @@ async function disconnectWebSocket() {
     isWsDisconnecting.value = true
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'Disconnecting from WebSocket...',
       timestamp: new Date()
     })
@@ -991,6 +1208,18 @@ const showAudioSettingsModal = ref(false)
 
 // Audio settings
 const audioSettings = ref<AudioSettings>(loadAudioSettings())
+
+// Conversation mode selection
+function handlePresetSelect(mode: ConversationMode) {
+  selectedConversationMode.value = mode
+  showPresetMenu.value = false
+  
+  addEvent({
+    type: 'System',
+    message: `Conversation mode changed to: ${conversationPresets.find(p => p.id === mode)?.name}`,
+    timestamp: new Date()
+  })
+}
 
 // Methods
 async function startConversation() {
@@ -1032,7 +1261,7 @@ async function ensureUserExists(): Promise<string> {
   // Create user with admin ID
   try {
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Creating user profile for admin: ${authStore.currentAdmin?.name}`,
       timestamp: new Date()
     })
@@ -1047,7 +1276,7 @@ async function ensureUserExists(): Promise<string> {
     })
 
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'User profile created successfully',
       timestamp: new Date()
     })
@@ -1070,7 +1299,7 @@ async function handleStartConversation(stage: StageResponse) {
     activeVoiceOutputs.value.clear()
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Starting conversation with stage: ${stage.name}`,
       timestamp: new Date()
     })
@@ -1087,14 +1316,14 @@ async function handleStartConversation(stage: StageResponse) {
     currentStage.value = stage
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'Conversation started successfully',
       timestamp: new Date(),
       details: `Conversation ID: ${convId}, User ID: ${userId}`
     })
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to start conversation: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -1106,7 +1335,7 @@ async function handleStartConversation(stage: StageResponse) {
 async function handleJumpToStage(stage: StageResponse) {
   if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: 'No active WebSocket connection',
       timestamp: new Date()
     })
@@ -1117,7 +1346,7 @@ async function handleJumpToStage(stage: StageResponse) {
   try {
     isJumpingStage.value = true
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Jumping to stage: ${stage.name}`,
       timestamp: new Date()
     })
@@ -1126,13 +1355,13 @@ async function handleJumpToStage(stage: StageResponse) {
     currentStage.value = stage
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Successfully moved to stage: ${stage.name}`,
       timestamp: new Date()
     })
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to jump to stage: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -1148,7 +1377,7 @@ async function endConversation() {
   try {
     isConversationEnding.value = true
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'Ending conversation...',
       timestamp: new Date()
     })
@@ -1157,7 +1386,7 @@ async function endConversation() {
     currentStage.value = null
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: 'Conversation ended successfully',
       timestamp: new Date()
     })
@@ -1166,7 +1395,7 @@ async function endConversation() {
     await disconnectWebSocket()
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to end conversation: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -1184,7 +1413,7 @@ async function sendMessage() {
   try {
     isSendingMessage.value = true
     addEvent({
-      type: 'user',
+      type: 'User',
       message: message,
       timestamp: new Date()
     })
@@ -1193,7 +1422,7 @@ async function sendMessage() {
     messageInput.value = ''
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
@@ -1205,7 +1434,7 @@ async function sendMessage() {
 async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
   if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: 'No active WebSocket connection',
       timestamp: new Date()
     })
@@ -1216,7 +1445,7 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
   try {
     isRunningAction.value = true
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Running action: ${data.actionKey}`,
       timestamp: new Date(),
       details: `Parameters: ${JSON.stringify(data.parameters)}`
@@ -1227,7 +1456,7 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
     const result = await wsClient.value.client.value.runAction(data.actionKey, paramsArray)
     
     addEvent({
-      type: 'system',
+      type: 'System',
       message: `Action completed: ${data.actionKey}`,
       timestamp: new Date(),
       details: `Result: ${JSON.stringify(result)}`
@@ -1236,7 +1465,7 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
     showRunActionDialog.value = false
   } catch (error) {
     addEvent({
-      type: 'error',
+      type: 'Error',
       message: `Failed to run action: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
