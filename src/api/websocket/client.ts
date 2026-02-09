@@ -17,9 +17,9 @@ import type {
   SendUserTextInputRequest,
   SendUserTextInputResponse,
   UserTranscribedChunk,
-  StartAiVoiceOutput,
+  StartAiGenerationOutput,
   SendAiVoiceChunk,
-  EndAiVoiceOutput,
+  EndAiGenerationOutput,
   AiTranscribedChunk,
   GoToStageRequest,
   GoToStageResponse,
@@ -51,9 +51,9 @@ type ServerMessage =
   | EndUserVoiceInputResponse
   | SendUserTextInputResponse
   | UserTranscribedChunk
-  | StartAiVoiceOutput
+  | StartAiGenerationOutput
   | SendAiVoiceChunk
-  | EndAiVoiceOutput
+  | EndAiGenerationOutput
   | AiTranscribedChunk
   | GoToStageResponse
   | SetVarResponse
@@ -66,12 +66,12 @@ type ServerMessage =
 export interface WebSocketEventHandlers {
   /** Called when a user transcribed text chunk is received (real-time ASR) */
   onUserTranscribedChunk?: (message: UserTranscribedChunk) => void
-  /** Called when AI voice output starts */
-  onAiVoiceStart?: (message: StartAiVoiceOutput) => void
+  /** Called when AI generation output starts (voice or text) */
+  onAiOutputStart?: (message: StartAiGenerationOutput) => void
   /** Called when an AI voice chunk is received */
   onAiVoiceChunk?: (message: SendAiVoiceChunk) => void
-  /** Called when AI voice output ends */
-  onAiVoiceEnd?: (message: EndAiVoiceOutput) => void
+  /** Called when AI generation output ends (voice or text) */
+  onAiOutputEnd?: (message: EndAiGenerationOutput) => void
   /** Called when an AI transcribed text chunk is received (real-time text streaming) */
   onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
   /** Called when a server error occurs */
@@ -650,14 +650,14 @@ export class NexusWebSocketClient {
       case 'user_transcribed_chunk':
         this.config.handlers.onUserTranscribedChunk?.(message as UserTranscribedChunk)
         break
-      case 'start_ai_voice_output':
-        this.config.handlers.onAiVoiceStart?.(message as StartAiVoiceOutput)
+      case 'start_ai_generation_output':
+        this.config.handlers.onAiOutputStart?.(message as StartAiGenerationOutput)
         break
       case 'send_ai_voice_chunk':
         this.config.handlers.onAiVoiceChunk?.(message as SendAiVoiceChunk)
         break
-      case 'end_ai_voice_output':
-        this.config.handlers.onAiVoiceEnd?.(message as EndAiVoiceOutput)
+      case 'end_ai_generation_output':
+        this.config.handlers.onAiOutputEnd?.(message as EndAiGenerationOutput)
         break
       case 'ai_transcribed_chunk':
         this.config.handlers.onAiTranscribedChunk?.(message as AiTranscribedChunk)

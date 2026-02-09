@@ -572,7 +572,7 @@ export interface UserTranscribedChunk {
 // AI Response (Voice Output)
 // ============================================================================
 
-export interface StartAiVoiceOutput {
+export interface StartAiGenerationOutput {
   /**
    * Optional request ID for correlating responses with requests
    */
@@ -580,7 +580,7 @@ export interface StartAiVoiceOutput {
   /**
    * Message type for starting AI voice output
    */
-  type: 'start_ai_voice_output';
+  type: 'start_ai_generation_output';
   /**
    * Unique identifier for the session
    */
@@ -593,6 +593,10 @@ export interface StartAiVoiceOutput {
    * Unique identifier for this voice output sequence for correlation
    */
   outputTurnId: string;
+  /**
+   * Whether the AI response will include voice output
+   */
+  expectVoice: boolean;
 }
 
 export interface SendAiVoiceChunk {
@@ -638,7 +642,7 @@ export interface SendAiVoiceChunk {
   isFinal: boolean;
 }
 
-export interface EndAiVoiceOutput {
+export interface EndAiGenerationOutput {
   /**
    * Optional request ID for correlating responses with requests
    */
@@ -646,7 +650,7 @@ export interface EndAiVoiceOutput {
   /**
    * Message type for ending AI voice output
    */
-  type: 'end_ai_voice_output';
+  type: 'end_ai_generation_output';
   /**
    * Unique identifier for the session
    */

@@ -313,7 +313,7 @@ The AI response is delivered as streaming voice output with three phases: start,
 **Server Message:**
 ```json
 {
-  "type": "start_ai_voice_output",
+  "type": "start_ai_generation_output",
   "sessionId": "session_abc123xyz",
   "conversationId": "conv-xyz789",
   "voiceOutputId": "voice-out-001"
@@ -355,7 +355,7 @@ The `voiceOutputId` identifies this specific voice output sequence.
 **Server Message:**
 ```json
 {
-  "type": "end_ai_voice_output",
+  "type": "end_ai_generation_output",
   "sessionId": "session_abc123xyz",
   "conversationId": "conv-xyz789",
   "voiceOutputId": "voice-out-001"
@@ -535,9 +535,9 @@ Execute a global action with parameters:
 - `send_user_text_input` (requires auth)
 
 ### AI Output (Server → Client)
-- `start_ai_voice_output`
+- `start_ai_generation_output`
 - `send_ai_voice_chunk`
-- `end_ai_voice_output`
+- `end_ai_generation_output`
 
 ### Conversation Control
 - `go_to_stage` (requires auth)
@@ -564,9 +564,9 @@ Execute a global action with parameters:
 8. Server → Client: send_user_voice_chunk (success, multiple)
 9. Client → Server: end_user_voice_input
 10. Server → Client: end_user_voice_input (success)
-11. Server → Client: start_ai_voice_output
+11. Server → Client: start_ai_generation_output
 12. Server → Client: send_ai_voice_chunk (multiple times)
-13. Server → Client: end_ai_voice_output
+13. Server → Client: end_ai_generation_output
 14. ... repeat steps 5-13 for conversation turns ...
 15. Client → Server: end_conversation
 16. Server → Client: end_conversation (success)
@@ -582,9 +582,9 @@ Execute a global action with parameters:
 4. Server → Client: start_conversation (success, conversationId)
 5. Client → Server: send_user_text_input
 6. Server → Client: send_user_text_input (success)
-7. Server → Client: start_ai_voice_output
+7. Server → Client: start_ai_generation_output
 8. Server → Client: send_ai_voice_chunk (multiple times)
-9. Server → Client: end_ai_voice_output
+9. Server → Client: end_ai_generation_output
 10. ... repeat steps 5-9 for conversation turns ...
 11. Client → Server: end_conversation
 12. Server → Client: end_conversation (success)
@@ -806,14 +806,14 @@ class NexusWebSocketClient {
 
     // Handle server-initiated messages
     switch (message.type) {
-      case 'start_ai_voice_output':
-        this.onAiVoiceStart(message);
+      case 'start_ai_generation_output':
+        this.onAiOutputStart(message);
         break;
       case 'send_ai_voice_chunk':
         this.onAiVoiceChunk(message);
         break;
-      case 'end_ai_voice_output':
-        this.onAiVoiceEnd(message);
+      case 'end_ai_generation_output':
+        this.onAiOutputEnd(message);
         break;
       case 'error':
         this.onError(message);
@@ -824,8 +824,8 @@ class NexusWebSocketClient {
   }
 
   // Override these methods in your implementation
-  protected onAiVoiceStart(message: any): void {
-    console.log('AI voice output started:', message.voiceOutputId);
+  protected onAiOutputStart(message: any): void {
+    console.log('AI generation output started:', message.outputTurnId);
   }
 
   protected onAiVoiceChunk(message: any): void {
@@ -833,8 +833,8 @@ class NexusWebSocketClient {
     // Decode base64 audioData and play/buffer it
   }
 
-  protected onAiVoiceEnd(message: any): void {
-    console.log('AI voice output ended:', message.voiceOutputId);
+  protected onAiOutputEnd(message: any): void {
+    console.log('AI generation output ended:', message.outputTurnId);
   }
 
   protected onError(message: any): void {

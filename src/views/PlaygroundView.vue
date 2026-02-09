@@ -394,7 +394,7 @@ import RunActionModal from '@/components/modals/RunActionModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiVoiceOutput, EndAiVoiceOutput, UserTranscribedChunk, AiTranscribedChunk } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -471,7 +471,7 @@ const conversationPresets: ConversationPreset[] = [
       sendVoiceInput: false,
       sendTextInput: true,
       receiveVoiceOutput: false,
-      receiveTranscriptionUpdates: false,
+      receiveTranscriptionUpdates: true,
     }
   },
   {
@@ -1098,7 +1098,7 @@ async function connectWebSocket() {
       onUserTranscribedChunk: (msg: UserTranscribedChunk) => {
         updateUserTranscript(msg)
       },
-      onAiVoiceStart: (msg: StartAiVoiceOutput) => {
+      onAiOutputStart: (msg: StartAiGenerationOutput) => {
         // Find or create event for this output turn
         let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
         
@@ -1108,21 +1108,20 @@ async function connectWebSocket() {
             type: 'AI',
             message: '',
             timestamp: new Date(),
-            voiceOutputId: msg.outputTurnId,
             outputTurnId: msg.outputTurnId
           }
           conversationEvents.value.push(event)
-        } else {
-          // Update existing event to include voice
-          event.voiceOutputId = msg.outputTurnId
         }
         
-        // Initialize audio player for this voice output
-        const player = useAudioPlayback()
-        activeVoiceOutputs.value.set(msg.outputTurnId, {
-          player: player as any,
-          transcript: null
-        })
+        // Only initialize audio player if voice output is expected
+        if (msg.expectVoice) {
+          event.voiceOutputId = msg.outputTurnId
+          const player = useAudioPlayback()
+          activeVoiceOutputs.value.set(msg.outputTurnId, {
+            player: player as any,
+            transcript: null
+          })
+        }
         
         // Auto-scroll
         nextTick(() => scrollHistoryToBottom())
@@ -1142,11 +1141,21 @@ async function connectWebSocket() {
           isFinal: msg.isFinal
         })
       },
-      onAiVoiceEnd: (msg: EndAiVoiceOutput) => {
+      onAiOutputEnd: (msg: EndAiGenerationOutput) => {
         const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)
         if (voiceOutput) {
           // Store transcript for display in AudioPlayer
           voiceOutput.transcript = msg.fullText?.trim() || null
+        }
+        
+        // Update the conversation event with the full text
+        const event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
+        if (event && msg.fullText) {
+          event.message = msg.fullText.trim()
+          event.isRealTime = false
+          
+          // Auto-scroll to bottom
+          nextTick(() => scrollHistoryToBottom())
         }
       },
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {

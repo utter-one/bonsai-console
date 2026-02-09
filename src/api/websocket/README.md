@@ -174,9 +174,9 @@ async function handleSendMessage(text: string) {
 
 ```typescript
 interface WebSocketEventHandlers {
-  onAiVoiceStart?: (message) => void
+  onAiOutputStart?: (message) => void
   onAiVoiceChunk?: (message) => void
-  onAiVoiceEnd?: (message) => void
+  onAiOutputEnd?: (message) => void
   onError?: (message) => void
   onConnect?: () => void
   onDisconnect?: (event) => void

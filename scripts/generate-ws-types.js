@@ -54,7 +54,7 @@ async function generateTypes() {
       'user-transcribed-chunk'
     ],
     aiResponse: [
-      'start-ai-voice-output', 'send-ai-voice-chunk', 'end-ai-voice-output',
+      'start-ai-generation-output', 'send-ai-voice-chunk', 'end-ai-generation-output',
       'ai-transcribed-chunk'
     ],
     command: [
