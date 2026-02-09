@@ -131,7 +131,7 @@ const changes = computed(() => {
       <div v-else-if="auditLog" class="space-y-6">
         <!-- Header -->
         <div class="card">
-          <div class="mb-6">
+          <div class="mb-6 pl-4 pt-4">
             <h1 class="page-title mb-2">Audit Log Details</h1>
             <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ auditLog.id }}</p>
           </div>
@@ -197,7 +197,7 @@ const changes = computed(() => {
 
         <!-- Changes Summary (for UPDATE actions) -->
         <div v-if="auditLog.action === 'UPDATE' && changes.length > 0" class="card">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Changes Summary</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pt-4 pl-4">Changes Summary</h2>
           <div class="space-y-4">
             <div v-for="change in changes" :key="change.field" class="border-l-4 border-blue-500 pl-4 py-2">
               <div class="font-medium text-gray-900 dark:text-gray-200 mb-2">{{ change.field }}</div>
@@ -217,18 +217,18 @@ const changes = computed(() => {
 
         <!-- Old Entity (for UPDATE and DELETE) -->
         <div v-if="auditLog.oldEntity && (auditLog.action === 'UPDATE' || auditLog.action === 'DELETE')" class="card">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pt-4 pl-4">
             {{ auditLog.action === 'DELETE' ? 'Deleted Entity' : 'Previous State' }}
           </h2>
-          <pre class="bg-gray-50 border border-gray-200 rounded p-4 overflow-x-auto text-sm">{{ formatJSON(auditLog.oldEntity) }}</pre>
+          <pre class="bg-gray-50 border-t border-gray-200 p-4 overflow-x-auto text-sm dark:bg-gray-900 dark:border-gray-700">{{ formatJSON(auditLog.oldEntity) }}</pre>
         </div>
 
         <!-- New Entity (for CREATE and UPDATE) -->
         <div v-if="auditLog.newEntity && (auditLog.action === 'CREATE' || auditLog.action === 'UPDATE')" class="card">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pt-4 pl-4">
             {{ auditLog.action === 'CREATE' ? 'Created Entity' : 'Current State' }}
           </h2>
-          <pre class="bg-gray-50 border border-gray-200 rounded p-4 overflow-x-auto text-sm">{{ formatJSON(auditLog.newEntity) }}</pre>
+          <pre class="bg-gray-50 border-t border-gray-200 p-4 overflow-x-auto text-sm dark:bg-gray-900 dark:border-gray-700">{{ formatJSON(auditLog.newEntity) }}</pre>
         </div>
       </div>
     </div>
