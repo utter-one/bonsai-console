@@ -5,6 +5,7 @@ import { useAuthStore, useProjectsStore, useProjectSelectionStore } from '@/stor
 import { formatEnum } from '@/composables'
 import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
+import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
 
 const router = useRouter()
@@ -194,6 +195,9 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               </option>
             </select>
           </div>
+
+          <!-- Dark Mode Toggle -->
+          <DarkModeToggle />
 
           <!-- User Menu -->
           <div class="relative">
