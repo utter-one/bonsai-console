@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGlobalActionsStore, useClassifiersStore, useProjectSelectionStore } from '@/stores'
+import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const globalActionsStore = useGlobalActionsStore()
 const classifiersStore = useClassifiersStore()
+const stagesStore = useStagesStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // State
@@ -46,10 +47,15 @@ const projectClassifiers = computed(() =>
   classifiersStore.items.filter(c => c.projectId === projectId.value)
 )
 
+const projectStages = computed(() => 
+  stagesStore.items.filter(s => s.projectId === projectId.value)
+)
+
 // Lifecycle
 onMounted(async () => {
-  // Load classifiers for dropdown
+  // Load classifiers and stages for dropdowns
   await classifiersStore.fetchAll({ filters: { projectId: projectId.value } })
+  await stagesStore.fetchAll({ filters: { projectId: projectId.value } })
   
   if (isEditMode.value) {
     await loadGlobalAction()
@@ -249,6 +255,7 @@ const metadataFields = computed(() => {
             :active-tab="activeTab"
             @update:active-tab="activeTab = $event as TabType"
             :available-classifiers="projectClassifiers"
+            :available-stages="projectStages"
             :show-tabs="true"
             :show-key-field="false"
             :show-parameters="false"

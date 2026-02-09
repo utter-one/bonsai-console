@@ -51,6 +51,7 @@ const props = withDefaults(
     parameters?: ActionParameter[]
     activeTab: string
     availableClassifiers?: Array<{ id: string; name: string }>
+    availableStages?: Array<{ id: string; name: string }>
     showParameters?: boolean
     showKeyField?: boolean
     actionKey?: string
@@ -62,6 +63,7 @@ const props = withDefaults(
   {
     parameters: () => [],
     availableClassifiers: () => [],
+    availableStages: () => [],
     showParameters: false,
     showKeyField: false,
     actionKey: '',
@@ -648,17 +650,20 @@ function removeProfileModification(index: number) {
     <div v-show="localActiveTab === 'goToStage'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">
-          Target Stage ID <span class="required">*</span>
+          Target Stage <span class="required">*</span>
         </label>
-        <input
+        <select
           v-model="localOperations.goToStage.stageId"
-          type="text"
           :required="localOperations.goToStage.enabled"
-          placeholder="stage_abc123"
-          class="form-input font-mono"
-        />
+          class="form-select-auto"
+        >
+          <option value="">Select a stage...</option>
+          <option v-for="stage in availableStages" :key="stage.id" :value="stage.id">
+            {{ stage.name }}
+          </option>
+        </select>
         <p class="form-help-text">
-          The ID of the stage to navigate to
+          The stage to navigate to when this action is triggered
         </p>
       </div>
     </div>
