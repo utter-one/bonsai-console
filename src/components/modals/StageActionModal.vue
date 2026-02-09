@@ -78,7 +78,6 @@ const form = ref({
   triggerOnClientCommand: false,
   classificationTrigger: '',
   overrideClassifierId: '',
-  template: '',
   examples: ''
 })
 
@@ -102,7 +101,6 @@ watch(() => props.action, (action) => {
       triggerOnClientCommand: action.triggerOnClientCommand,
       classificationTrigger: action.classificationTrigger || '',
       overrideClassifierId: action.overrideClassifierId || '',
-      template: action.template || '',
       examples: action.examples?.join('\n') || ''
     }
 
@@ -124,7 +122,6 @@ watch(() => props.action, (action) => {
       triggerOnClientCommand: false,
       classificationTrigger: '',
       overrideClassifierId: '',
-      template: '',
       examples: ''
     }
 
@@ -158,7 +155,6 @@ function handleSubmit() {
     overrideClassifierId: form.value.overrideClassifierId || null,
     parameters: parameters.value.length > 0 ? parameters.value : [],
     effects: result.effects,
-    template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,
     metadata: props.action?.metadata || undefined
   }
