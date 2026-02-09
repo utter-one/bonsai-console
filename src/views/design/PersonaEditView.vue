@@ -245,7 +245,7 @@ function removeNoSpeechMarker(index: number) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
     <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">

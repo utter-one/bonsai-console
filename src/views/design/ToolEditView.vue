@@ -155,7 +155,7 @@ const metadataFields = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
     <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
@@ -294,8 +294,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.inputType === 'text'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >
@@ -308,8 +308,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.inputType === 'image'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >
@@ -322,8 +322,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.inputType === 'multi-modal'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >
@@ -347,8 +347,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.outputType === 'text'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >
@@ -361,8 +361,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.outputType === 'image'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >
@@ -375,8 +375,8 @@ const metadataFields = computed(() => {
                   :class="[
                     'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
                     form.outputType === 'multi-modal'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
                   ]"
                   :disabled="isLoading"
                 >

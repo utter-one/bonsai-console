@@ -152,8 +152,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'basic'"
           :class="[
             localActiveTab === 'basic'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -164,8 +164,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'trigger'"
           :class="[
             localActiveTab === 'trigger'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -177,8 +177,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'parameters'"
           :class="[
             localActiveTab === 'parameters'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -189,8 +189,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'effects'"
           :class="[
             localActiveTab === 'effects'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -202,8 +202,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'goToStage'"
           :class="[
             localActiveTab === 'goToStage'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -215,8 +215,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'runScript'"
           :class="[
             localActiveTab === 'runScript'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -228,8 +228,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'modifyUserInput'"
           :class="[
             localActiveTab === 'modifyUserInput'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -241,8 +241,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'modifyVariables'"
           :class="[
             localActiveTab === 'modifyVariables'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -254,8 +254,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'modifyUserProfile'"
           :class="[
             localActiveTab === 'modifyUserProfile'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -267,8 +267,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'callTool'"
           :class="[
             localActiveTab === 'callTool'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -280,8 +280,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'callWebhook'"
           :class="[
             localActiveTab === 'callWebhook'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -293,8 +293,8 @@ function removeProfileModification(index: number) {
           @click="localActiveTab = 'metadata'"
           :class="[
             localActiveTab === 'metadata'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
           ]"
         >
@@ -464,11 +464,11 @@ function removeProfileModification(index: number) {
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">Parameter {{ index + 1 }}</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Parameter {{ index + 1 }}</span>
               <button
                 type="button"
                 @click="removeParameter(index)"
-                class="text-red-600 hover:text-red-700 text-sm"
+                class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
               >
                 Remove
               </button>
@@ -556,8 +556,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">End Conversation</span>
-              <p class="text-xs text-gray-500">Gracefully end the conversation</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">End Conversation</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Gracefully end the conversation</p>
             </div>
           </label>
 
@@ -568,8 +568,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Abort Conversation</span>
-              <p class="text-xs text-gray-500">Immediately terminate the conversation</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Abort Conversation</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Immediately terminate the conversation</p>
             </div>
           </label>
 
@@ -580,8 +580,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Go To Stage</span>
-              <p class="text-xs text-gray-500">Navigate to a different stage (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Go To Stage</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Navigate to a different stage (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -592,8 +592,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Run Script</span>
-              <p class="text-xs text-gray-500">Execute custom JavaScript code (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Run Script</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Execute custom JavaScript code (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -604,8 +604,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Modify User Input</span>
-              <p class="text-xs text-gray-500">Transform the user's input before processing (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Modify User Input</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Transform the user's input before processing (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -616,8 +616,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Modify Variables</span>
-              <p class="text-xs text-gray-500">Set, update, or remove conversation variables (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Modify Variables</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Set, update, or remove conversation variables (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -628,8 +628,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Modify User Profile</span>
-              <p class="text-xs text-gray-500">Update user profile fields (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Modify User Profile</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Update user profile fields (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -640,8 +640,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Call Tool</span>
-              <p class="text-xs text-gray-500">Invoke a registered tool (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Call Tool</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Invoke a registered tool (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -652,8 +652,8 @@ function removeProfileModification(index: number) {
               class="form-checkbox mt-0.5"
             />
             <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700">Call Webhook</span>
-              <p class="text-xs text-gray-500">Make an HTTP request to an external endpoint (adds tab for configuration)</p>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Call Webhook</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Make an HTTP request to an external endpoint (adds tab for configuration)</p>
             </div>
           </label>
         </div>
@@ -728,11 +728,11 @@ function removeProfileModification(index: number) {
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">Modification {{ index + 1 }}</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Modification {{ index + 1 }}</span>
               <button
                 type="button"
                 @click="removeVariableModification(index)"
-                class="text-red-600 hover:text-red-700 text-sm"
+                class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
               >
                 Remove
               </button>
@@ -791,11 +791,11 @@ function removeProfileModification(index: number) {
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700">Modification {{ index + 1 }}</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Modification {{ index + 1 }}</span>
               <button
                 type="button"
                 @click="removeProfileModification(index)"
-                class="text-red-600 hover:text-red-700 text-sm"
+                class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
               >
                 Remove
               </button>

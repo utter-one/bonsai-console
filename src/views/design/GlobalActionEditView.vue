@@ -187,7 +187,7 @@ const metadataFields = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
     <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
@@ -214,22 +214,22 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Error Message -->
-    <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-4">
+    <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-4 dark:bg-red-900/30 dark:border-red-500">
       <div class="flex">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <svg class="h-5 w-5 text-red-400 dark:text-red-500" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
           </svg>
         </div>
         <div class="ml-3">
-          <p class="text-sm text-red-700">{{ error }}</p>
+          <p class="text-sm text-red-700 dark:text-red-200">{{ error }}</p>
         </div>
       </div>
     </div>
 
     <!-- Form Content -->
-    <div class="flex-1 overflow-y-auto px-8 py-6 bg-gray-50">
-      <div class="max-w-4xl mx-auto">
+    <div class="flex-1 overflow-y-auto px-8 py-6 bg-gray-50 dark:bg-gray-800">
+      <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <!-- Action ID Field (only for create mode) -->
           <div v-show="activeTab === 'basic' && !isEditMode" class="form-group">
