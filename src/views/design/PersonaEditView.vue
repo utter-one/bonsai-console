@@ -245,16 +245,16 @@ function removeNoSpeechMarker(index: number) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to personas">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Persona' : 'Create Persona' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Persona' : 'Create Persona' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the persona configuration' : 'Define a new AI persona for this project' }}
           </p>
         </div>
@@ -319,7 +319,7 @@ function removeNoSpeechMarker(index: number) {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
@@ -491,8 +491,8 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- Voice Settings Section -->
-          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Voice Settings</h3>
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings</h3>
 
             <!-- Stability -->
             <div class="form-group">
@@ -572,8 +572,8 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- Boolean Settings Section -->
-          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Settings</h3>
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Settings</h3>
 
             <!-- Use Speaker Boost -->
             <div class="form-group">
@@ -584,7 +584,7 @@ function removeNoSpeechMarker(index: number) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Speaker Boost
                 </span>
               </label>
@@ -602,7 +602,7 @@ function removeNoSpeechMarker(index: number) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Remove Exclamation Marks
                 </span>
               </label>
@@ -620,7 +620,7 @@ function removeNoSpeechMarker(index: number) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Use Global Preview
                 </span>
               </label>
@@ -638,7 +638,7 @@ function removeNoSpeechMarker(index: number) {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Use Sentence Splitter
                 </span>
               </label>
@@ -666,9 +666,9 @@ function removeNoSpeechMarker(index: number) {
           </div>
 
           <!-- No Speech Markers Section -->
-          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200">
+          <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-900">No Speech Markers</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">No Speech Markers</h3>
               <button
                 @click="addNoSpeechMarker"
                 type="button"

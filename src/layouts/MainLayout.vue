@@ -95,12 +95,22 @@ watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
 function navigateToSection(section: string) {
   if (section === 'dashboard') {
     router.push({ name: 'dashboard' })
-  } else if (section === 'design' && selectedProjectId.value) {
-    // Navigate to design with the selected project
-    router.push({ name: 'design.stages', params: { projectId: selectedProjectId.value } })
-  } else if (section === 'playground' && selectedProjectId.value) {
-    // Navigate to playground with the selected project
-    router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
+  } else if (section === 'design') {
+    if (selectedProjectId.value) {
+      // Navigate to design with the selected project
+      router.push({ name: 'design.stages', params: { projectId: selectedProjectId.value } })
+    } else {
+       // Cannot go to design without a project usually, but let's default to design root if it exists, or prompting
+       router.push({ name: 'design' })
+    }
+  } else if (section === 'playground') {
+     if (selectedProjectId.value) {
+        // Navigate to playground with the selected project
+        router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
+     } else {
+        // Navigate to playground root (no project)
+        router.push({ name: 'playground' })
+     }
   } else {
     router.push({ name: section })
   }
@@ -132,13 +142,13 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50">
+  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-[100]">
+    <header class="bg-white  shadow-sm sticky top-0 z-[100] dark:bg-gray-800 ">
       <div class="flex items-center px-6 h-16 max-w-[1920px] mx-auto">
         <!-- Logo & Brand -->
         <div class="mr-12">
-          <h1 class="m-0 text-xl font-semibold text-gray-900">Nexus Admin</h1>
+          <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Nexus Admin</h1>
         </div>
 
         <!-- Main Navigation -->
@@ -149,8 +159,8 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             :class="[
               'flex items-center gap-2 px-4 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
               currentSection === section.id 
-                ? 'bg-blue-50 text-primary-500' 
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                ? 'bg-blue-50 text-primary-500 dark:bg-gray-700 dark:text-primary-400' 
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
             ]"
             @click="navigateToSection(section.id)"
           >
@@ -167,10 +177,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               v-model="selectedProjectId" 
               :disabled="isInEditOrDetailView"
               :class="[
-                'px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] focus:outline-none',
+                'px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200',
                 isInEditOrDetailView 
-                  ? 'cursor-not-allowed opacity-60 bg-gray-50' 
-                  : 'cursor-pointer focus:border-primary-500'
+                  ? 'cursor-not-allowed opacity-60 bg-gray-50 dark:bg-gray-900' 
+                  : 'cursor-pointer focus:border-primary-500 dark:focus:border-primary-400'
               ]"
               :title="isInEditOrDetailView ? 'Cannot change project while editing or viewing details' : ''"
             >
@@ -188,35 +198,35 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
           <!-- User Menu -->
           <div class="relative">
             <button 
-              class="flex items-center gap-2 px-3 py-1.5 pl-1.5 border border-gray-300 rounded-full bg-white cursor-pointer transition-all hover:border-primary-500"
+              class="flex items-center gap-2 px-3 py-1.5 pl-1.5 border border-gray-300 rounded-full bg-white cursor-pointer transition-all hover:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-400"
               @click="showUserMenu = !showUserMenu"
             >
               <span class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
                 {{ authStore.currentAdmin?.name?.[0]?.toUpperCase() }}
               </span>
-              <span class="text-sm font-medium text-gray-900 sm:inline hidden">
+              <span class="text-sm font-medium text-gray-900 sm:inline hidden dark:text-gray-200">
                 {{ authStore.currentAdmin?.name }}
               </span>
             </button>
             
             <div 
               v-if="showUserMenu" 
-              class="absolute top-[calc(100%+0.5rem)] right-0 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] z-[1000]"
+              class="absolute top-[calc(100%+0.5rem)] right-0 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] z-[1000] dark:bg-gray-800 dark:border-gray-700"
             >
               <div class="p-3">
-                <div class="text-sm font-medium text-gray-900">{{ authStore.currentAdmin?.name }}</div>
-                <div class="text-xs text-gray-600 mt-1">{{ formattedRoles }}</div>
+                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ authStore.currentAdmin?.name }}</div>
+                <div class="text-xs text-gray-600 mt-1 dark:text-gray-400">{{ formattedRoles }}</div>
               </div>
-              <div class="h-px bg-gray-200 my-2"></div>
+              <div class="h-px bg-gray-200 my-2 dark:bg-gray-700"></div>
               <button 
                 @click="handleEditProfile" 
-                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
+                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Edit Profile
               </button>
               <button 
                 @click="handleLogout" 
-                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100"
+                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Logout
               </button>
@@ -228,7 +238,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             class="p-2 border-none bg-transparent text-2xl cursor-pointer text-gray-900 md:hidden block"
             @click="showMobileMenu = !showMobileMenu"
           >
-            <Menu :size="24" />
+            <Menu :size="24" class="dark:text-white" />
           </button>
         </div>
       </div>
@@ -245,8 +255,8 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
         :class="[
           'flex items-center gap-3 w-full px-3 py-3 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
           currentSection === section.id 
-            ? 'bg-blue-50 text-primary-500' 
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            ? 'bg-blue-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400' 
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
         ]"
         @click="navigateToSection(section.id)"
       >

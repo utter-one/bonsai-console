@@ -29,9 +29,9 @@ function navigateTo(routeName: string) {
   <div class="flex gap-6 h-full">
     <!-- Sidebar Navigation -->
     <aside class="w-64 flex-shrink-0">
-      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24">
-        <div class="px-4 py-4 border-b border-gray-200 bg-gray-50">
-          <h2 class="m-0 text-lg font-semibold text-gray-900">{{ title }}</h2>
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24 dark:bg-gray-800 dark:border-gray-700">
+        <div class="px-4 py-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+          <h2 class="m-0 text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h2>
         </div>
         <nav class="p-2">
           <button
@@ -40,8 +40,8 @@ function navigateTo(routeName: string) {
             :class="[
               'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
               currentRouteName === item.name
-                ? 'bg-primary-50 text-primary-600'
-                : 'text-gray-700 hover:bg-gray-100'
+                ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             ]"
             @click="navigateTo(item.name)"
           >

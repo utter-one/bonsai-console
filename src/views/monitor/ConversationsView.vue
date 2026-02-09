@@ -255,7 +255,7 @@ async function refreshData() {
         <div class="relative">
           <button 
             @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors"
+            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
           >
             <Calendar class="w-4 h-4 mr-2" />
             <span>{{ currentTimeFilterLabel }}</span>
@@ -263,13 +263,13 @@ async function refreshData() {
           </button>
           
           <!-- Time Dropdown -->
-          <div v-if="showTimeDropdown" class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1">
+          <div v-if="showTimeDropdown" class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700">
             <button
               v-for="option in timeFilterOptions"
               :key="option.value"
               @click="selectTimeFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium': timeFilter === option.value }"
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-200': timeFilter === option.value }"
             >
               {{ option.label }}
             </button>
@@ -280,20 +280,20 @@ async function refreshData() {
         <div class="relative">
           <button 
             @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors"
+            class="status-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
           >
             <span>{{ currentStatusFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
           
           <!-- Status Dropdown -->
-          <div v-if="showStatusDropdown" class="status-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1">
+          <div v-if="showStatusDropdown" class="status-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1 dark:bg-gray-800 dark:border-gray-700">
             <button
               v-for="option in statusFilterOptions"
               :key="option.value"
               @click="selectStatusFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium': statusFilter === option.value }"
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-200': statusFilter === option.value }"
             >
               {{ option.label }}
             </button>

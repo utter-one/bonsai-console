@@ -4,34 +4,34 @@
       <h2 class="modal-header">{{ title }}</h2>
       
       <div class="mb-4">
-        <p class="text-sm text-gray-600">Select a stage to continue</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Select a stage to continue</p>
       </div>
 
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <div class="text-gray-500">Loading stages...</div>
+        <div class="text-gray-500 dark:text-gray-400">Loading stages...</div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="py-6 text-center text-red-600">
+      <div v-else-if="error" class="py-6 text-center text-red-600 dark:text-red-400">
         <p>Error loading stages: {{ error }}</p>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="sortedStages.length === 0" class="py-12 text-center text-gray-500">
+      <div v-else-if="sortedStages.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
         <p>No stages found for this project</p>
       </div>
 
       <!-- Stage List -->
-      <div v-else class="max-h-96 overflow-y-auto mb-6 border border-gray-200 rounded-lg">
+      <div v-else class="max-h-96 overflow-y-auto mb-6 border border-gray-200 rounded-lg dark:border-gray-700">
         <button
           v-for="stage in sortedStages"
           :key="stage.id"
           @click="selectStage(stage)"
-          class="w-full text-left px-4 py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
+          class="w-full text-left px-4 py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer dark:border-gray-700 dark:hover:bg-gray-700"
         >
-          <div class="font-medium text-gray-900">{{ stage.name }}</div>
-          <div v-if="stage.description" class="text-sm text-gray-600 mt-1">
+          <div class="font-medium text-gray-900 dark:text-white">{{ stage.name }}</div>
+          <div v-if="stage.description" class="text-sm text-gray-600 mt-1 dark:text-gray-400">
             {{ stage.description }}
           </div>
         </button>

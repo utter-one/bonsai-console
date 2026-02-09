@@ -113,16 +113,16 @@ const profileEntries = computed(() => {
 
 <template>
   <MonitorSectionLayout>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+      <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
         <div class="flex items-center gap-4 flex-1">
           <button @click="goBack" class="btn-icon" title="Back to users">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-1">User Details</h1>
-            <p class="text-sm text-gray-600 font-mono">{{ userId }}</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">User Details</h1>
+            <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ userId }}</p>
           </div>
         </div>
       </div>
@@ -172,14 +172,14 @@ const profileEntries = computed(() => {
       </div>
 
       <!-- Content -->
-      <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+      <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
         <div class="mx-auto">
           <!-- Profile Tab -->
           <div v-show="activeTab === 'profile'" class="tab-content">
-            <div class="card">
-              <div class="flex items-center gap-3 mb-6">
+            <div class="">
+              <div class="flex items-center gap-3 mb-6 ">
                 <User class="w-6 h-6 text-gray-600" />
-                <h2 class="text-xl font-semibold text-gray-900">User Profile</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Profile</h2>
               </div>
 
               <div v-if="profileEntries.length === 0" class="text-center py-8 text-gray-500">
@@ -204,7 +204,7 @@ const profileEntries = computed(() => {
                           <div v-if="entry.isComplex" class="bg-gray-50 rounded p-3 font-mono text-xs overflow-x-auto max-w-2xl">
                             <pre class="whitespace-pre-wrap break-words">{{ entry.displayValue }}</pre>
                           </div>
-                          <div v-else class="text-gray-900">
+                          <div v-else class="text-gray-900 dark:text-gray-200">
                             {{ entry.displayValue }}
                           </div>
                         </td>
@@ -218,10 +218,10 @@ const profileEntries = computed(() => {
 
           <!-- Conversations Tab -->
           <div v-show="activeTab === 'conversations'" class="tab-content">
-            <div class="card">
+            <div class="">
               <div class="flex items-center gap-3 mb-6">
                 <MessageSquare class="w-6 h-6 text-gray-600" />
-                <h2 class="text-xl font-semibold text-gray-900">User Conversations</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Conversations</h2>
               </div>
 
               <div v-if="conversations.length === 0" class="text-center py-8 text-gray-500">
@@ -232,13 +232,13 @@ const profileEntries = computed(() => {
                 <div 
                   v-for="conversation in conversations" 
                   :key="conversation.id"
-                  class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                  class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer dark:border-gray-700 dark:hover:border-gray-600 dark:hover:shadow-sm"
                   @click="viewConversation(conversation)"
                 >
                   <div class="flex items-start justify-between gap-4">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-mono text-sm text-gray-600 truncate">
+                        <span class="font-mono text-sm text-gray-600 truncate dark:text-gray-400">
                           {{ conversation.id }}
                         </span>
                         <span 
@@ -250,23 +250,23 @@ const profileEntries = computed(() => {
                       </div>
                       <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                         <div>
-                          <span class="text-gray-600">Project:</span>
-                          <span class="ml-1 font-mono text-xs text-gray-900">{{ conversation.projectId }}</span>
+                          <span class="text-gray-600 dark:text-gray-400">Project:</span>
+                          <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.projectId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Stage:</span>
-                          <span class="ml-1 font-mono text-xs text-gray-900">{{ conversation.stageId }}</span>
+                          <span class="text-gray-600 dark:text-gray-400">Stage:</span>
+                          <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.stageId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Created:</span>
-                          <span class="ml-1 text-gray-900">{{ formatDate(conversation.createdAt) }}</span>
+                          <span class="text-gray-600 dark:text-gray-400">Created:</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.createdAt) }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Updated:</span>
-                          <span class="ml-1 text-gray-900">{{ formatDate(conversation.updatedAt) }}</span>
+                          <span class="text-gray-600 dark:text-gray-400">Updated:</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.updatedAt) }}</span>
                         </div>
                       </div>
-                      <div v-if="conversation.statusDetails" class="mt-2 text-sm text-gray-600">
+                      <div v-if="conversation.statusDetails" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         <span class="font-medium">Details:</span> {{ conversation.statusDetails }}
                       </div>
                     </div>

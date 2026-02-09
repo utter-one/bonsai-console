@@ -250,16 +250,16 @@ const actionsList = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to stages">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the stage configuration' : 'Define a new conversation stage for this project' }}
           </p>
         </div>
@@ -331,7 +331,7 @@ const actionsList = computed(() => {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
           <!-- Error Message -->
@@ -465,7 +465,7 @@ const actionsList = computed(() => {
 
           <!-- Features & Integrations Tab -->
           <div v-show="activeTab === 'features'" class="tab-content">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Knowledge Integration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Knowledge Integration</h3>
             
             <div class="form-group">
               <label class="flex items-center cursor-pointer">
@@ -475,7 +475,7 @@ const actionsList = computed(() => {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Knowledge Base
                 </span>
               </label>
@@ -492,7 +492,7 @@ const actionsList = computed(() => {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Global Actions
                 </span>
               </label>
@@ -501,8 +501,8 @@ const actionsList = computed(() => {
               </p>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Classifiers</h3>
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Classifiers</h3>
               
               <div class="form-group">
                 <label class="form-label">
@@ -532,8 +532,8 @@ const actionsList = computed(() => {
               </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Context Transformers</h3>
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Context Transformers</h3>
               
               <div class="form-group">
                 <label class="form-label">
@@ -568,7 +568,7 @@ const actionsList = computed(() => {
           <div v-show="activeTab === 'actions'" class="tab-content">
             <div class="flex items-center justify-between mb-6">
               <div>
-                <h3 class="text-lg font-semibold text-gray-900">Stage Actions</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
                 <p class="text-sm text-gray-600 mt-1">
                   Define custom actions that can be triggered during conversations
                 </p>
@@ -606,7 +606,7 @@ const actionsList = computed(() => {
                   <tbody class="table-body">
                     <tr v-for="action in actionsList" :key="action.key" class="table-row">
                       <td class="table-cell">
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">{{ action.key }}</code>
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">{{ action.key }}</code>
                       </td>
                       <td class="table-clickable-cell" @click="editAction(action.key)">
                         {{ action.name }}
@@ -618,7 +618,7 @@ const actionsList = computed(() => {
                         </div>
                       </td>
                       <td class="table-cell">
-                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">
                           {{ action.classificationTrigger }}
                         </code>
                         <span v-else class="text-gray-400 text-sm">—</span>

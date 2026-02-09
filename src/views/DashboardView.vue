@@ -52,7 +52,7 @@ function navigateToDesign(projectId: string) {
 <template>
   <div class="container-constrained mx-auto">
     <div class="mb-8">
-      <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900">Dashboard</h1>
+      <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
       <p class="m-0 text-base text-gray-600">Welcome to Nexus Admin - Your AI Platform Management Console</p>
     </div>
 

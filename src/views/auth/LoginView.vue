@@ -58,7 +58,7 @@ async function handleLogin() {
     <div class="w-full max-w-md">
       <div v-if="isCheckingSetup" class="auth-card text-center py-16">
         <div class="spinner mx-auto mb-5"></div>
-        <p class="text-gray-700">Checking system status...</p>
+        <p class="text-gray-700 dark:text-gray-300">Checking system status...</p>
       </div>
 
       <div v-else class="auth-card">

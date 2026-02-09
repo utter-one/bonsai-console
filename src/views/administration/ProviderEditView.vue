@@ -250,16 +250,16 @@ const metadataFields = computed(() => {
 
 <template>
   <AdministrationSectionLayout>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to providers">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Provider' : 'Create Provider' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Provider' : 'Create Provider' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the provider configuration' : 'Define a new AI provider' }}
           </p>
         </div>
@@ -317,7 +317,7 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
@@ -409,7 +409,7 @@ const metadataFields = computed(() => {
 
           <!-- OpenAI Configuration -->
           <template v-if="showOpenAIFields">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">OpenAI Configuration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">OpenAI Configuration</h3>
             
             <div class="form-group">
               <label class="form-label">
@@ -463,7 +463,7 @@ const metadataFields = computed(() => {
 
           <!-- Anthropic Configuration -->
           <template v-if="showAnthropicFields">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Anthropic Configuration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Anthropic Configuration</h3>
             
             <div class="form-group">
               <label class="form-label">
@@ -501,7 +501,7 @@ const metadataFields = computed(() => {
 
           <!-- Google Configuration -->
           <template v-if="showGoogleFields">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Google Configuration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Google Configuration</h3>
             
             <div class="form-group">
               <label class="form-label">
@@ -523,7 +523,7 @@ const metadataFields = computed(() => {
 
           <!-- ElevenLabs Configuration -->
           <template v-if="showElevenLabsFields">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">ElevenLabs Configuration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">ElevenLabs Configuration</h3>
             
             <div class="form-group">
               <label class="form-label">
@@ -545,7 +545,7 @@ const metadataFields = computed(() => {
 
           <!-- Azure ASR Configuration -->
           <template v-if="showAzureASRFields">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Azure Speech Configuration</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Speech Configuration</h3>
             
             <div class="form-group">
               <label class="form-label">

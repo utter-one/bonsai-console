@@ -68,27 +68,27 @@ function formatStatusLabel(status: string): string {
 function getEventTypeColor(eventType: string): string {
   switch (eventType) {
     case 'message':
-      return 'bg-blue-50 border-blue-200'
+      return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
     case 'classification':
-      return 'bg-yellow-50 border-yellow-200'
+      return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
     case 'action':
-      return 'bg-purple-50 border-purple-200'
+      return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
     case 'command':
-      return 'bg-indigo-50 border-indigo-200'
+      return 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-800'
     case 'conversation_start':
-      return 'bg-green-50 border-green-200'
+      return 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
     case 'conversation_resume':
-      return 'bg-cyan-50 border-cyan-200'
+      return 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/10 dark:border-cyan-800'
     case 'conversation_end':
-      return 'bg-gray-50 border-gray-300'
+      return 'bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-600'
     case 'conversation_aborted':
-      return 'bg-orange-50 border-orange-200'
+      return 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
     case 'conversation_failed':
-      return 'bg-red-50 border-red-200'
+      return 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
     case 'jump_to_stage':
-      return 'bg-teal-50 border-teal-200'
+      return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
     default:
-      return 'bg-gray-50 border-gray-200'
+      return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
   }
 }
 
@@ -211,16 +211,16 @@ const metadataFields = computed(() => {
 
 <template>
   <MonitorSectionLayout>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
-        <div class="flex items-center gap-4 flex-1">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
+      <div class="flex items-center gap-4 flex-1">
           <button @click="goBack" class="btn-icon" title="Back to conversations">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-1">Conversation Details</h1>
-            <p class="text-sm text-gray-600 font-mono">{{ conversationId }}</p>
+            <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
+            <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ conversationId }}</p>
           </div>
         </div>
       </div>
@@ -253,7 +253,7 @@ const metadataFields = computed(() => {
       </div>
 
       <!-- Content -->
-      <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+      <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div class="mx-auto">
           <!-- Events Timeline Tab -->
           <div v-show="activeTab === 'events'" class="tab-content">
@@ -274,28 +274,28 @@ const metadataFields = computed(() => {
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
                         <span class="font-semibold"
-                          :class="event.eventData.role === 'user' ? 'text-blue-900' : 'text-green-900'">
+                          :class="event.eventData.role === 'user' ? 'text-blue-900 dark:text-blue-100' : 'text-green-900 dark:text-green-100'">
                           {{ event.eventData.role === 'user' ? 'User' : 'Assistant' }}
                         </span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="text-gray-900 whitespace-pre-wrap">{{ event.eventData.text }}</div>
+                      <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
                       <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
-                        class="mt-2 pt-2 border-t border-gray-300">
-                        <span class="text-xs font-medium text-gray-600">Original:</span>
-                        <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ event.eventData.originalText }}
+                        class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Original:</span>
+                        <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}
                         </div>
                       </div>
                       <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0"
-                        class="mt-2 pt-2 border-t border-gray-300">
+                        class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
                         <details class="group">
                           <summary
-                            class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                            class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                             Message Metadata ({{ Object.keys(event.eventData.metadata).length }})
                           </summary>
-                          <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                          <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                             <pre
-                              class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                              class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                           </div>
                         </details>
                       </div>
@@ -309,23 +309,23 @@ const metadataFields = computed(() => {
                     <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-yellow-900">Classification</span>
+                        <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Classifier:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.classifierId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.classifierId }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Input:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.input }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.input }}</div>
                         </div>
                         <div v-if="event.eventData.actions && event.eventData.actions.length > 0">
-                          <span class="text-xs font-medium text-gray-600">Matched Actions:</span>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Matched Actions:</span>
                           <div class="mt-1 space-y-2">
                             <div v-for="(actionGroup, idx) in event.eventData.actions" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-2.5">
+                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
                               <div class="text-xs font-medium text-gray-700 mb-1.5">
                                 {{ actionGroup.classifierName }}
                               </div>
@@ -333,13 +333,13 @@ const metadataFields = computed(() => {
                               <div class="space-y-2.5">
                                 <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
                                   class="pl-2.5 border-l-2 border-yellow-300">
-                                  <div class="text-sm font-semibold text-gray-900 mb-1.5">{{ action.name }}</div>
+                                  <div class="text-sm font-semibold text-gray-900 mb-1.5 dark:text-white">{{ action.name }}</div>
                                   <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
                                     class="space-y-1">
                                     <div v-for="(value, key) in action.parameters" :key="key"
                                       class="flex items-start gap-2 text-xs">
-                                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0">{{ key }}:</span>
-                                      <span class="text-gray-900 break-words">{{ 
+                                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
+                                      <span class="text-gray-900 break-words dark:text-gray-200">{{ 
                                         typeof value === 'object' ? JSON.stringify(value) : String(value) 
                                       }}</span>
                                     </div>
@@ -352,10 +352,10 @@ const metadataFields = computed(() => {
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -372,31 +372,31 @@ const metadataFields = computed(() => {
                     <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-purple-900">Action</span>
+                        <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Action Name:</span>
-                          <div class="text-sm font-medium text-gray-900">{{ event.eventData.actionName }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
+                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Stage ID:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
-                          <span class="text-xs font-medium text-gray-600">Effects ({{ event.eventData.effects.length }}):</span>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.eventData.effects.length }}):</span>
                           <div class="mt-1 space-y-2">
                             <div v-for="(effect, idx) in event.eventData.effects" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-2.5">
-                              <div class="text-sm font-semibold text-purple-900 mb-2">
+                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+                              <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
                                 {{ effect.type || 'Effect' }} {{ idx + 1 }}
                               </div>
                               <div class="space-y-1">
                                 <div v-for="(value, key) in effect" :key="key"
                                   class="flex items-start gap-2 text-xs">
-                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0">{{ key }}:</span>
-                                  <span class="text-gray-900 break-words font-mono">{{ 
+                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}:</span>
+                                  <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
                                     typeof value === 'object' ? JSON.stringify(value) : String(value) 
                                   }}</span>
                                 </div>
@@ -407,10 +407,10 @@ const metadataFields = computed(() => {
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -427,21 +427,21 @@ const metadataFields = computed(() => {
                     <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-indigo-900">Command</span>
+                        <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Command:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.command }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.command }}</div>
                         </div>
                         <div v-if="event.eventData.parameters && Object.keys(event.eventData.parameters).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Parameters ({{ Object.keys(event.eventData.parameters).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
                             </div>
@@ -450,10 +450,10 @@ const metadataFields = computed(() => {
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -470,22 +470,22 @@ const metadataFields = computed(() => {
                     <Play class="w-5 h-5 mt-0.5 text-green-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-green-900">Conversation Started</span>
+                        <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Initial Stage:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div
                           v-if="event.eventData.initialVariables && Object.keys(event.eventData.initialVariables).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Initial Variables ({{ Object.keys(event.eventData.initialVariables).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.initialVariables, null, 2) }}</pre>
                             </div>
@@ -494,10 +494,10 @@ const metadataFields = computed(() => {
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -514,25 +514,25 @@ const metadataFields = computed(() => {
                     <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-cyan-900">Conversation Resumed</span>
+                        <span class="font-semibold text-cyan-900 dark:text-cyan-100">Conversation Resumed</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Previous Status:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.previousStatus }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.previousStatus }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Stage ID:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -549,25 +549,25 @@ const metadataFields = computed(() => {
                     <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-gray-900">Conversation Ended</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">Conversation Ended</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div v-if="event.eventData.reason">
-                          <span class="text-xs font-medium text-gray-600">Reason:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.reason }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Stage ID:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -584,25 +584,25 @@ const metadataFields = computed(() => {
                     <XCircle class="w-5 h-5 mt-0.5 text-orange-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-orange-900">Conversation Aborted</span>
+                        <span class="font-semibold text-orange-900 dark:text-orange-100">Conversation Aborted</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Reason:</span>
-                          <div class="text-sm text-gray-900">{{ event.eventData.reason }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Stage ID:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -619,26 +619,26 @@ const metadataFields = computed(() => {
                     <AlertCircle class="w-5 h-5 mt-0.5 text-red-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-red-900">Conversation Failed</span>
+                        <span class="font-semibold text-red-900 dark:text-red-100">Conversation Failed</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">Error:</span>
-                          <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1">{{
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
+                          <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
                             event.eventData.error }}</div>
                         </div>
                         <div v-if="event.eventData.stageId">
-                          <span class="text-xs font-medium text-gray-600">Stage ID:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.stageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -655,25 +655,25 @@ const metadataFields = computed(() => {
                     <Layers class="w-5 h-5 mt-0.5 text-teal-600" />
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-teal-900">Stage Transition</span>
+                        <span class="font-semibold text-teal-900 dark:text-teal-100">Stage Transition</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
                       <div class="space-y-2">
                         <div>
-                          <span class="text-xs font-medium text-gray-600">From:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.fromStageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.fromStageId }}</div>
                         </div>
                         <div>
-                          <span class="text-xs font-medium text-gray-600">To:</span>
-                          <div class="text-sm font-mono text-gray-900">{{ event.eventData.toStageId }}</div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toStageId }}</div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
                           <details class="group">
                             <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none">
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
@@ -689,7 +689,7 @@ const metadataFields = computed(() => {
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex-1">
                       <div class="flex items-center gap-2">
-                        <span class="font-semibold text-gray-900">
+                        <span class="font-semibold text-gray-900 dark:text-white">
                           {{ formatEventType(event.eventType) }}
                         </span>
                         <span class="text-xs text-gray-500 font-mono">
@@ -705,7 +705,7 @@ const metadataFields = computed(() => {
                   <!-- Event Data -->
                   <div v-if="Object.keys(event.eventData).length > 0" class="mt-3">
                     <details class="group">
-                      <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none">
+                      <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
                         Event Data
                         <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
                       </summary>
@@ -720,7 +720,7 @@ const metadataFields = computed(() => {
                 <!-- Metadata (Available for all events) -->
                 <div v-if="event.metadata && Object.keys(event.metadata).length > 0" class="mt-3">
                   <details class="group">
-                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none">
+                    <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
                       Metadata
                       <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
                     </summary>

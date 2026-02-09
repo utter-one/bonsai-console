@@ -226,11 +226,11 @@ function clearSearch() {
                             <span class="badge-secondary text-xs">Order: {{ item.order }}</span>
                           </div>
                           <div class="mb-1">
-                            <span class="text-sm font-medium text-gray-700">Q:</span>
-                            <span class="text-sm text-gray-900 ml-2">{{ item.question }}</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Q:</span>
+                            <span class="text-sm text-gray-900 dark:text-gray-200 ml-2">{{ item.question }}</span>
                           </div>
                           <div>
-                            <span class="text-sm font-medium text-gray-700">A:</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">A:</span>
                             <span class="text-sm text-gray-600 ml-2">{{ item.answer }}</span>
                           </div>
                         </div>

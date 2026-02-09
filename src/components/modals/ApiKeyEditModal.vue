@@ -68,11 +68,11 @@
         <div v-if="apiKey" class="card-info">
           <div class="text-sm space-y-1">
             <div class="flex justify-between">
-              <span class="text-gray-600">Created:</span>
+              <span class="text-gray-600 dark:text-gray-400">Created:</span>
               <span>{{ formatDate(apiKey.createdAt) }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Last Used:</span>
+              <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
               <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
             </div>
           </div>

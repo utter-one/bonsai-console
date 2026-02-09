@@ -27,8 +27,8 @@ defineProps<{
         <Construction class="text-orange-500 mb-5 mx-auto" :size="64" />
         <h2 class="construction-title">View Under Construction</h2>
         <p class="construction-text">This {{ title }} view is being built and will be available soon.</p>
-        <p v-if="storeName" class="mt-5 p-3 bg-gray-100 rounded-md text-sm">
-          Connected to: <code class="bg-gray-300 px-1.5 py-0.5 rounded font-mono">{{ storeName }}</code>
+        <p v-if="storeName" class="mt-5 p-3 bg-gray-100 rounded-md text-sm dark:bg-gray-900 dark:text-gray-300">
+          Connected to: <code class="bg-gray-300 px-1.5 py-0.5 rounded font-mono dark:bg-gray-800">{{ storeName }}</code>
         </p>
       </div>
     </div>

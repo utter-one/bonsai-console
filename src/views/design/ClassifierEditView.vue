@@ -154,16 +154,16 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to classifiers">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Classifier' : 'Create Classifier' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Classifier' : 'Create Classifier' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the classifier configuration' : 'Define a new intent classifier for this project' }}
           </p>
         </div>
@@ -221,7 +221,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->

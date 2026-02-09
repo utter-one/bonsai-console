@@ -165,16 +165,16 @@ const metadataFields = computed(() => {
 
 <template>
   <AdministrationSectionLayout>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center gap-4 flex-1">
         <button @click="goBack" class="btn-icon" title="Back to administrators">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ isEditMode ? 'Edit Administrator' : 'Create Administrator' }}</h1>
-          <p class="text-sm text-gray-600">
+          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Administrator' : 'Create Administrator' }}</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update administrator details and permissions' : 'Create a new administrator account' }}
           </p>
         </div>
@@ -232,7 +232,7 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-gray-50">
+    <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
@@ -319,7 +319,7 @@ const metadataFields = computed(() => {
                   class="form-checkbox"
                 />
                 <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900">{{ formatEnum(role) }}</span>
+                  <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatEnum(role) }}</span>
                   <span class="text-xs text-gray-500">
                     {{ role === 'super_admin' ? 'Full system access (overrides all other roles)' : 
                        role === 'content_manager' ? 'Manage content and projects' :

@@ -52,7 +52,7 @@ function generatePageNumbers() {
   <div class="table-footer">
     <div class="flex-between">
       <!-- Count on the left -->
-      <span class="text-sm text-gray-600">
+      <span class="text-sm text-gray-600 dark:text-gray-400">
         Showing {{ displayedCount }} of {{ pagination.total.value }} {{ resourceName }}
       </span>
 
