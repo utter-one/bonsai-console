@@ -198,6 +198,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/administration/ProjectEditView.vue'),
           },
           {
+            path: 'api-keys',
+            name: 'administration.apiKeys',
+            component: () => import('@/views/administration/ApiKeysView.vue'),
+          },
+          {
             path: 'admins',
             name: 'administration.admins',
             component: () => import('@/views/administration/AdminsView.vue'),

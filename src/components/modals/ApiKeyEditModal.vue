@@ -10,9 +10,8 @@
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
           </svg>
           <div class="flex-1">
-            <p class="font-medium mb-2">API Key Created Successfully!</p>
-            <p class="text-sm mb-2">Make sure to copy your API key now. You won't be able to see it again!</p>
-            <div class="bg-white p-3 rounded border border-green-300 font-mono text-sm break-all">
+            <p class="font-medium mb-2">This is your API Key</p>
+            <div class="bg-gray-800 p-3 rounded border border-green-600 font-mono text-sm break-all text-green-400">
               {{ newKeyValue }}
             </div>
             <button 
@@ -40,17 +39,6 @@
             class="form-input"
           />
           <p class="form-hint">A descriptive name to identify this API key</p>
-        </div>
-
-        <div v-if="apiKey" class="form-group">
-          <label class="form-label">Key Preview</label>
-          <input
-            :value="apiKey.keyPreview"
-            type="text"
-            disabled
-            class="form-input-disabled font-mono"
-          />
-          <p class="form-hint">First characters of the key for identification</p>
         </div>
 
         <div v-if="apiKey" class="form-group">
@@ -188,7 +176,7 @@ async function copyToClipboard() {
 }
 
 .card-info {
-  background: #f3f4f6;
+  background: rgb(55 65 81 / 0.5);
   padding: 12px;
   border-radius: 6px;
   margin-top: 16px;
@@ -196,14 +184,14 @@ async function copyToClipboard() {
 
 .form-hint {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
   margin-top: 4px;
 }
 
 .alert-success {
-  background-color: #d1fae5;
+  background-color: rgb(6 78 59 / 0.2);
   border: 1px solid #10b981;
-  color: #065f46;
+  color: #10b981;
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 20px;
