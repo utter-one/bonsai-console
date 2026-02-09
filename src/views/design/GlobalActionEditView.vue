@@ -31,7 +31,6 @@ const form = ref({
   triggerOnClientCommand: false,
   classificationTrigger: '',
   overrideClassifierId: '',
-  template: '',
   examples: ''
 })
 
@@ -76,7 +75,6 @@ async function loadGlobalAction() {
         triggerOnClientCommand: currentGlobalAction.value.triggerOnClientCommand,
         classificationTrigger: currentGlobalAction.value.classificationTrigger || '',
         overrideClassifierId: currentGlobalAction.value.overrideClassifierId || '',
-        template: currentGlobalAction.value.template || '',
         examples: currentGlobalAction.value.examples?.join('\n') || ''
       }
 
@@ -115,7 +113,6 @@ async function handleSubmit() {
         classificationTrigger: form.value.classificationTrigger || null,
         overrideClassifierId: form.value.overrideClassifierId || null,
         effects: effectsArray,
-        template: form.value.template || null,
         examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : [],
         metadata: actionMetadata.value
       })
@@ -147,10 +144,6 @@ async function handleSubmit() {
 
       if (form.value.overrideClassifierId) {
         createData.overrideClassifierId = form.value.overrideClassifierId
-      }
-
-      if (form.value.template) {
-        createData.template = form.value.template
       }
 
       if (form.value.examples) {

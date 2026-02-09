@@ -16,7 +16,6 @@ interface ActionFormData {
   triggerOnClientCommand: boolean
   classificationTrigger: string
   overrideClassifierId: string
-  template: string
   examples: string
 }
 
@@ -336,21 +335,6 @@ function removeProfileModification(index: number) {
         />
         <p class="form-help-text">
           Human-readable name for this action
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Template <span class="text-gray-500">(optional)</span>
-        </label>
-        <textarea
-          v-model="localForm.template"
-          rows="3"
-          class="form-textarea"
-          placeholder="I'll connect you with an agent. Please hold..."
-        ></textarea>
-        <p class="form-help-text">
-          Optional message template for the action response
         </p>
       </div>
 

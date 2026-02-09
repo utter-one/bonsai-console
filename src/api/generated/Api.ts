@@ -5223,12 +5223,10 @@ export class Api<
       triggerOnClientCommand?: boolean;
       /** Optional classification label that triggers this action */
       classificationTrigger?: string | null;
-      /** Optional classifier ID to override the default classifier for this action */
+      /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
       overrideClassifierId?: string | null;
       /** Array of effects to execute when action is triggered */
       effects?: Effect[];
-      /** Optional message template for the action */
-      template?: string | null;
       /** Example phrases that trigger this action */
       examples?: string[];
       /** Additional action-specific metadata */
@@ -5252,12 +5250,10 @@ export class Api<
         triggerOnClientCommand: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
-        /** Optional classifier ID to override the default classifier */
+        /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
         /** Array of effects to execute */
         effects: Effect[];
-        /** Message template for the action */
-        template: string | null;
         /** Example phrases that trigger this action */
         examples: string[] | null;
         /** Additional metadata */
@@ -5346,12 +5342,10 @@ export class Api<
           triggerOnClientCommand: boolean;
           /** Optional classification label that triggers this action */
           classificationTrigger: string | null;
-          /** Optional classifier ID to override the default classifier */
+          /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
           overrideClassifierId: string | null;
           /** Array of effects to execute */
           effects: Effect[];
-          /** Message template for the action */
-          template: string | null;
           /** Example phrases that trigger this action */
           examples: string[] | null;
           /** Additional metadata */
@@ -5421,12 +5415,10 @@ export class Api<
         triggerOnClientCommand: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
-        /** Optional classifier ID to override the default classifier */
+        /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
         /** Array of effects to execute */
         effects: Effect[];
-        /** Message template for the action */
-        template: string | null;
         /** Example phrases that trigger this action */
         examples: string[] | null;
         /** Additional metadata */
@@ -5481,8 +5473,6 @@ export class Api<
       overrideClassifierId?: string | null;
       /** Updated effects array */
       effects?: Effect[];
-      /** Updated message template */
-      template?: string | null;
       /** Updated example phrases */
       examples?: string[];
       /** Updated metadata */
@@ -5511,12 +5501,10 @@ export class Api<
         triggerOnClientCommand: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
-        /** Optional classifier ID to override the default classifier */
+        /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
         /** Array of effects to execute */
         effects: Effect[];
-        /** Message template for the action */
-        template: string | null;
         /** Example phrases that trigger this action */
         examples: string[] | null;
         /** Additional metadata */
