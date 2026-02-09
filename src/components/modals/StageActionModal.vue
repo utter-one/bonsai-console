@@ -25,7 +25,7 @@
           :show-tabs="true"
         />
 
-        <div class="modal-footer border-t border-gray-200 mt-auto pt-4">
+        <div class="modal-footer border-t border-gray-200 mt-auto py-4">
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>

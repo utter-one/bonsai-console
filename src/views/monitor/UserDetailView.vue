@@ -176,8 +176,8 @@ const profileEntries = computed(() => {
         <div class="mx-auto">
           <!-- Profile Tab -->
           <div v-show="activeTab === 'profile'" class="tab-content">
-            <div class="card">
-              <div class="flex items-center gap-3 mb-6">
+            <div class="">
+              <div class="flex items-center gap-3 mb-6 ">
                 <User class="w-6 h-6 text-gray-600" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Profile</h2>
               </div>
@@ -218,7 +218,7 @@ const profileEntries = computed(() => {
 
           <!-- Conversations Tab -->
           <div v-show="activeTab === 'conversations'" class="tab-content">
-            <div class="card">
+            <div class="">
               <div class="flex items-center gap-3 mb-6">
                 <MessageSquare class="w-6 h-6 text-gray-600" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Conversations</h2>
@@ -232,13 +232,13 @@ const profileEntries = computed(() => {
                 <div 
                   v-for="conversation in conversations" 
                   :key="conversation.id"
-                  class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                  class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer dark:border-gray-700 dark:hover:border-gray-600 dark:hover:shadow-sm"
                   @click="viewConversation(conversation)"
                 >
                   <div class="flex items-start justify-between gap-4">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 mb-2">
-                        <span class="font-mono text-sm text-gray-600 truncate">
+                        <span class="font-mono text-sm text-gray-600 truncate dark:text-gray-400">
                           {{ conversation.id }}
                         </span>
                         <span 
@@ -250,19 +250,19 @@ const profileEntries = computed(() => {
                       </div>
                       <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                         <div>
-                          <span class="text-gray-600">Project:</span>
+                          <span class="text-gray-600 dark:text-gray-400">Project:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.projectId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Stage:</span>
+                          <span class="text-gray-600 dark:text-gray-400">Stage:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.stageId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Created:</span>
+                          <span class="text-gray-600 dark:text-gray-400">Created:</span>
                           <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.createdAt) }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600">Updated:</span>
+                          <span class="text-gray-600 dark:text-gray-400">Updated:</span>
                           <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.updatedAt) }}</span>
                         </div>
                       </div>

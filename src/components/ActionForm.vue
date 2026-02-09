@@ -145,7 +145,7 @@ function removeProfileModification(index: number) {
 <template>
   <div>
     <!-- Tab Navigation -->
-    <div v-if="showTabs" class="border-b border-gray-200 mb-6">
+    <div v-if="showTabs" class="border-b border-gray-200 mb-6 dark:border-gray-700">
       <nav class="-mb-px flex space-x-8 overflow-x-auto">
         <button
           type="button"
@@ -381,7 +381,7 @@ function removeProfileModification(index: number) {
               type="checkbox"
               class="form-checkbox"
             />
-            <span class="ml-2 text-sm font-medium text-gray-700">
+            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
               Trigger on User Input
             </span>
           </label>
@@ -391,7 +391,7 @@ function removeProfileModification(index: number) {
               type="checkbox"
               class="form-checkbox"
             />
-            <span class="ml-2 text-sm font-medium text-gray-700">
+            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
               Trigger on Client Command
             </span>
           </label>
@@ -461,7 +461,7 @@ function removeProfileModification(index: number) {
           <div
             v-for="(param, index) in localParameters"
             :key="index"
-            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white"
+            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
               <span class="text-sm font-medium text-gray-700">Parameter {{ index + 1 }}</span>
@@ -520,7 +520,7 @@ function removeProfileModification(index: number) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Required parameter
                 </span>
               </label>
@@ -725,7 +725,7 @@ function removeProfileModification(index: number) {
           <div
             v-for="(mod, index) in localOperations.modifyVariables.modifications"
             :key="index"
-            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white"
+            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
               <span class="text-sm font-medium text-gray-700">Modification {{ index + 1 }}</span>
@@ -788,7 +788,7 @@ function removeProfileModification(index: number) {
           <div
             v-for="(mod, index) in localOperations.modifyUserProfile.modifications"
             :key="index"
-            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white"
+            class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
               <span class="text-sm font-medium text-gray-700">Modification {{ index + 1 }}</span>

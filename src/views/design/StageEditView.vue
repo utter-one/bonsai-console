@@ -475,7 +475,7 @@ const actionsList = computed(() => {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Knowledge Base
                 </span>
               </label>
@@ -492,7 +492,7 @@ const actionsList = computed(() => {
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Global Actions
                 </span>
               </label>
@@ -501,7 +501,7 @@ const actionsList = computed(() => {
               </p>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200">
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Classifiers</h3>
               
               <div class="form-group">
@@ -532,7 +532,7 @@ const actionsList = computed(() => {
               </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200">
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Context Transformers</h3>
               
               <div class="form-group">
@@ -606,7 +606,7 @@ const actionsList = computed(() => {
                   <tbody class="table-body">
                     <tr v-for="action in actionsList" :key="action.key" class="table-row">
                       <td class="table-cell">
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">{{ action.key }}</code>
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">{{ action.key }}</code>
                       </td>
                       <td class="table-clickable-cell" @click="editAction(action.key)">
                         {{ action.name }}
@@ -618,7 +618,7 @@ const actionsList = computed(() => {
                         </div>
                       </td>
                       <td class="table-cell">
-                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">
                           {{ action.classificationTrigger }}
                         </code>
                         <span v-else class="text-gray-400 text-sm">—</span>
