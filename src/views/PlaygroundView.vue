@@ -1,383 +1,290 @@
 <template>
   <!-- No Project Selected State -->
-  <div v-if="!hasProject" class="flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-[calc(100vh-7rem)] overflow-hidden">
+  <div v-if="!hasProject"
+    class="flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-[calc(100vh-7rem)] overflow-hidden">
     <div class="text-center max-w-md">
       <Play class="mx-auto mb-4 text-gray-400 dark:text-gray-500" :size="64" />
       <h2 class="text-2xl font-semibold text-gray-900 mb-2 dark:text-white">No Project Selected</h2>
       <p class="text-gray-600 mb-6 dark:text-gray-400">
         Please select a project from the dropdown in the top navigation bar to use the Playground.
       </p>
-      <button 
-        @click="goToProjects"
-        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600"
-      >
+      <button @click="goToProjects"
+        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
         View All Projects
       </button>
     </div>
   </div>
 
   <!-- No Active API Keys State -->
-  <div v-else-if="hasProject && !apiKeysLoading && activeApiKeys.length === 0" class="flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-[calc(100vh-7rem)] overflow-hidden">
+  <div v-else-if="hasProject && !apiKeysLoading && activeApiKeys.length === 0"
+    class="flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-[calc(100vh-7rem)] overflow-hidden">
     <div class="text-center max-w-md">
       <AlertCircle class="mx-auto mb-4 text-gray-400 dark:text-gray-500" :size="64" />
       <h2 class="text-2xl font-semibold text-gray-900 mb-2 dark:text-white">No Active API Keys</h2>
       <p class="text-gray-600 mb-6 dark:text-gray-400">
         This project doesn't have any active API keys. Please create an API key to use the Playground.
       </p>
-      <button 
-        @click="goToApiKeys"
-        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600"
-      >
+      <button @click="goToApiKeys"
+        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
         Manage API Keys
       </button>
     </div>
   </div>
 
   <!-- Main Playground UI -->
-  <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)" class="flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden h-[calc(100vh-7rem)]">
-      <!-- Header -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 flex-shrink-0 border border-gray-200 dark:border-gray-700">
-        <div class="flex md:flex-row flex-col items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
-            <p class="text-sm text-gray-600 mt-1 dark:text-gray-400">Test and debug conversation flows in real-time</p>
+  <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)"
+    class="flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden h-[calc(100vh-7rem)]">
+    <!-- Header -->
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 flex-shrink-0 border border-gray-200 dark:border-gray-700">
+      <div class="flex md:flex-row flex-col items-center justify-between">
+        <div>
+          <div class="flex items-center">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
+          <div class="ml-2 w-3 h-3 rounded-full" :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
           </div>
-          
-          <!-- Controls -->
-          <div class="flex md:flex-row flex-col md:items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
-            <!-- API Key Selection -->
-            <label class="text-sm font-medium text-gray-700 whitespace-nowrap dark:text-gray-300">API Key:</label>
-            <select
-              v-model="selectedApiKeyId"
-              class="form-select min-w-[100px] dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-              :disabled="wsIsConnected || apiKeysLoading"
-            >
-              <option :value="null">Select API Key...</option>
-              <option
-                v-for="key in activeApiKeys"
-                :key="key.id"
-                :value="key.id"
-              >
-                {{ key.name }}
-              </option>
-            </select>
+          <p class="text-sm text-gray-600 mt-1 dark:text-gray-400">Test and debug conversation flows in real-time</p>
+        </div>
 
-            <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+        <!-- Controls -->
+        <div class="flex md:flex-row flex-col md:items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
+          <!-- API Key Selection -->
+          <label class="text-sm font-medium text-gray-700 whitespace-nowrap dark:text-gray-300">API Key:</label>
+          <select v-model="selectedApiKeyId"
+            class="form-select min-w-[100px] dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+            :disabled="wsIsConnected || apiKeysLoading">
+            <option :value="null">Select API Key...</option>
+            <option v-for="key in activeApiKeys" :key="key.id" :value="key.id">
+              {{ key.name }}
+            </option>
+          </select>
 
-            <!-- Conversation Controls -->
-            <div v-if="!isConversationActive" class="relative inline-flex">
-              <!-- Main Action Button -->
-              <button
-                class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
-                @click="startConversation"
-                :disabled="!canStartConversation"
-              >
-                <Play :size="18" />
-                {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+
+          <!-- Conversation Controls -->
+          <div v-if="!isConversationActive" class="relative inline-flex">
+            <!-- Main Action Button -->
+            <button class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
+              @click="startConversation" :disabled="!canStartConversation">
+              <Play :size="18" />
+              {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+            </button>
+
+            <!-- Dropdown Toggle -->
+            <button @click="showPresetMenu = !showPresetMenu" class="btn-primary-hardleft border-primary-600"
+              :disabled="!canStartConversation"
+              :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`">
+              <ChevronDown :size="18" />
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div v-if="showPresetMenu"
+              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1"
+              @click.stop>
+              <button v-for="{ preset, disabled, reason } in availablePresets" :key="preset.id"
+                @click="handlePresetSelect(preset.id)" :disabled="disabled"
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed relative"
+                :class="{ 'bg-primary-50': preset.id === selectedConversationMode }">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900 flex items-center gap-2">
+                      {{ preset.name }}
+                      <span v-if="preset.id === selectedConversationMode"
+                        class="text-primary-600 text-xs">(Active)</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-0.5">{{ preset.description }}</div>
+                    <div v-if="disabled && reason" class="text-xs text-red-600 mt-1">{{ reason }}</div>
+                  </div>
+                </div>
               </button>
-              
-              <!-- Dropdown Toggle -->
-              <button
-                @click="showPresetMenu = !showPresetMenu"
-                class="btn-primary-hardleft border-primary-600"
-                :disabled="!canStartConversation"
-                :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`"
-              >
-                <ChevronDown :size="18" />
-              </button>
-              
-              <!-- Dropdown Menu -->
-              <div
-                v-if="showPresetMenu"
-                class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1"
-                @click.stop
-              >
-                <button
-                  v-for="{ preset, disabled, reason } in availablePresets"
-                  :key="preset.id"
-                  @click="handlePresetSelect(preset.id)"
-                  :disabled="disabled"
-                  class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed relative"
-                  :class="{ 'bg-primary-50': preset.id === selectedConversationMode }"
-                >
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="flex-1">
-                      <div class="font-medium text-gray-900 flex items-center gap-2">
-                        {{ preset.name }}
-                        <span v-if="preset.id === selectedConversationMode" class="text-primary-600 text-xs">(Active)</span>
+            </div>
+          </div>
+          <button v-else class="btn-danger flex items-center gap-2 whitespace-nowrap" @click="endConversation"
+            :disabled="!canEndConversation">
+            <Square :size="18" />
+            {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
+          </button>
+
+          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+
+          <!-- Advanced Controls -->
+          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
+            @click="showRunActionDialog = true">
+            <Zap :size="18" />
+            Run Action
+          </button>
+
+          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
+            @click="showJumpToStageDialog = true">
+            <SkipForward :size="18" />
+            Jump to Stage
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
+      <!-- History Panel (Main Area) -->
+      <div
+        class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
+        <div
+          class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
+          <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
+          <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
+            <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
+            <span>Show system events</span>
+          </label>
+        </div>
+        <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
+          <!-- No conversation state -->
+          <div v-if="conversationEvents.length === 0"
+            class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+            <div class="text-center">
+              <p class="text-lg font-medium">No active conversation</p>
+              <p class="text-sm mt-1">Start a conversation to see events appear here</p>
+            </div>
+          </div>
+
+          <!-- Conversation events -->
+          <div v-else class="space-y-3">
+            <div v-for="(event, index) in filteredConversationEvents" :key="index" class="p-3 rounded-lg border" :class="{
+              'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
+              'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
+              'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600': event.type === 'System',
+              'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
+            }">
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="{
+                  'bg-blue-500 text-white': event.type === 'User',
+                  'bg-green-500 text-white': event.type === 'AI',
+                  'bg-gray-500 text-white': event.type === 'System',
+                  'bg-red-500 text-white': event.type === 'Error'
+                }">
+                  <User v-if="event.type === 'User'" :size="16" />
+                  <Bot v-else-if="event.type === 'AI'" :size="16" />
+                  <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
+                  <Info v-else :size="16" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-semibold text-sm">{{ event.type }}</span>
+                    <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                  </div>
+                  <div class="text-sm">
+                    <!-- Voice message with audio player -->
+                    <template v-if="event.voiceOutputId">
+                      <AudioPlayer v-if="getVoiceOutput(event.voiceOutputId)"
+                        :state="getVoiceOutput(event.voiceOutputId)!.player.state"
+                        :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
+                        :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
+                        :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
+                        @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
+                        @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
+                        @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
+                        @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }" />
+                      <!-- Show real-time text below audio player if transcription is in progress -->
+                      <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
+                        <span class="whitespace-pre-wrap">{{ event.message }}</span>
+                        <span class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                          title="Real-time transcription in progress"></span>
                       </div>
-                      <div class="text-xs text-gray-500 mt-0.5">{{ preset.description }}</div>
-                      <div v-if="disabled && reason" class="text-xs text-red-600 mt-1">{{ reason }}</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
-            <button
-              v-else
-              class="btn-danger flex items-center gap-2 whitespace-nowrap"
-              @click="endConversation"
-              :disabled="!canEndConversation"
-            >
-              <Square :size="18" />
-              {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
-            </button>
+                    </template>
 
-            <div class="h-8 border-l border-gray-300 hidden md:block"></div>
-
-            <!-- Advanced Controls -->
-            <button
-              class="btn-secondary flex items-center gap-2 whitespace-nowrap"
-              :disabled="!canRunAction"
-              @click="showRunActionDialog = true"
-            >
-              <Zap :size="18" />
-              Run Action
-            </button>
-
-            <button
-              class="btn-secondary flex items-center gap-2 whitespace-nowrap"
-              :disabled="!canJumpToStage"
-              @click="showJumpToStageDialog = true"
-            >
-              <SkipForward :size="18" />
-              Jump to Stage
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
-        <!-- History Panel (Main Area) -->
-        <div class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
-          <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Conversation History</h2>
-            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
-              <input
-                type="checkbox"
-                v-model="showSystemEvents"
-                class="form-checkbox"
-              />
-              <span>Show system events</span>
-            </label>
-          </div>
-          <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
-            <!-- No conversation state -->
-            <div v-if="conversationEvents.length === 0" class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
-              <div class="text-center">
-                <p class="text-lg font-medium">No active conversation</p>
-                <p class="text-sm mt-1">Start a conversation to see events appear here</p>
-              </div>
-            </div>
-
-            <!-- Conversation events -->
-            <div v-else class="space-y-3">
-              <div
-                v-for="(event, index) in filteredConversationEvents"
-                :key="index"
-                class="p-3 rounded-lg border"
-                :class="{
-                  'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
-                  'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
-                  'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600': event.type === 'System',
-                  'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
-                }"
-              >
-                <div class="flex items-start gap-3">
-                  <div
-                    class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                    :class="{
-                      'bg-blue-500 text-white': event.type === 'User',
-                      'bg-green-500 text-white': event.type === 'AI',
-                      'bg-gray-500 text-white': event.type === 'System',
-                      'bg-red-500 text-white': event.type === 'Error'
-                    }"
-                  >
-                    <User v-if="event.type === 'User'" :size="16" />
-                    <Bot v-else-if="event.type === 'AI'" :size="16" />
-                    <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
-                    <Info v-else :size="16" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="font-semibold text-sm">{{ event.type }}</span>
-                      <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
-                    </div>
-                    <div class="text-sm">
-                      <!-- Voice message with audio player -->
-                      <template v-if="event.voiceOutputId">
-                        <AudioPlayer
-                          v-if="getVoiceOutput(event.voiceOutputId)"
-                          :state="getVoiceOutput(event.voiceOutputId)!.player.state"
-                          :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
-                          :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
-                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
-                          @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
-                          @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
-                          @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
-                          @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }"
-                        />
-                        <!-- Show real-time text below audio player if transcription is in progress -->
-                        <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
-                          <span class="whitespace-pre-wrap">{{ event.message }}</span>
-                          <span
-                            class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                            title="Real-time transcription in progress"
-                          ></span>
-                        </div>
-                      </template>
-                      
-                      <!-- Regular text message -->
-                      <template v-else>
-                        <div class="relative">
-                          <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
-                          <!-- Real-time indicator -->
-                          <span
-                            v-if="event.isRealTime"
-                            class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse"
-                            :class="{
-                              'text-blue-500': event.type === 'User',
-                              'text-green-500': event.type === 'AI'
-                            }"
-                            title="Real-time transcription in progress"
-                          ></span>
-                        </div>
-                        <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono dark:text-gray-400">
-                          {{ event.details }}
-                        </div>
-                      </template>
-                    </div>
+                    <!-- Regular text message -->
+                    <template v-else>
+                      <div class="relative">
+                        <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
+                        <!-- Real-time indicator -->
+                        <span v-if="event.isRealTime"
+                          class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse" :class="{
+                            'text-blue-500': event.type === 'User',
+                            'text-green-500': event.type === 'AI'
+                          }" title="Real-time transcription in progress"></span>
+                      </div>
+                      <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono dark:text-gray-400">
+                        {{ event.details }}
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Input Panel -->
-        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700">
-          <div class="flex gap-3 ">
-            <!-- Voice Recording -->
-            <div class="flex flex-col gap-2">
-              <label class="form-label">Voice</label>
-              <div class="flex gap-2 items-center">
-                <button
-                  v-if="recording?.recordingState !== 'recording'"
-                  class="btn-secondary h-10 px-4 flex items-center gap-2"
-                  :disabled="!canRecordVoice"
-                  @click="startVoiceRecording"
-                  title="Start voice recording"
-                >
-                  <Mic :size="20" />
-                  Speak
-                </button>
-                <button
-                  v-else
-                  class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
-                  @click="stopVoiceRecording"
-                  title="Stop voice recording"
-                >
-                  <Square :size="20" />
-                  Stop
-                </button>
-                
-                <!-- Settings Button -->
-                <button
-                  @click="showAudioSettingsModal = true"
-                  class="btn-secondary h-10 w-10 p-0 flex items-center justify-center"
-                  title="Audio settings"
-                >
-                  <Settings :size="20" />
-                </button>
-                
-                <!-- Audio Level Indicator -->
-                <div 
-                  v-if="recording?.recordingState === 'recording'"
-                  class="flex items-center gap-1"
-                  title="Audio level"
-                >
-                  <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                    <div 
-                      class="h-full bg-blue-500 transition-all duration-100"
-                      :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"
-                    ></div>
-                  </div>
+      <!-- Input Panel -->
+      <div
+        class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex gap-3 ">
+          <!-- Voice Recording -->
+          <div class="flex flex-col gap-2">
+            <label class="form-label">Voice</label>
+            <div class="flex gap-2 items-center">
+              <button v-if="recording?.recordingState !== 'recording'"
+                class="btn-secondary h-10 px-4 flex items-center gap-2" :disabled="!canRecordVoice"
+                @click="startVoiceRecording" title="Start voice recording">
+                <Mic :size="20" />
+                Speak
+              </button>
+              <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
+                @click="stopVoiceRecording" title="Stop voice recording">
+                <Square :size="20" />
+                Stop
+              </button>
+
+              <!-- Settings Button -->
+              <button @click="showAudioSettingsModal = true"
+                class="btn-secondary h-10 w-10 p-0 flex items-center justify-center" title="Audio settings">
+                <Settings :size="20" />
+              </button>
+
+              <!-- Audio Level Indicator -->
+              <div v-if="recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
+                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
+                  <div class="h-full bg-blue-500 transition-all duration-100"
+                    :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"></div>
                 </div>
               </div>
-              <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
             </div>
-
-            <!-- Text Input -->
-            <div class="flex-1">
-              <label class="form-label">Message</label>
-              <textarea
-                v-model="messageInput"
-                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400"
-                rows="2"
-                placeholder="Type your message here..."
-                :disabled="!canSendMessage || recording?.recordingState === 'recording'"
-                @keydown.enter.ctrl="sendMessage"
-              />
-            </div>
-
-            <!-- Send Button -->
-            <button
-              class="btn-primary h-10 px-6 mt-10"
-              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
-              @click="sendMessage"
-            >
-              <Send :size="20" />
-            </button>
+            <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
           </div>
 
-          <!-- Connection Status -->
-          <div class="flex items-center gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">
-            <div
-              class="w-2 h-2 rounded-full"
-              :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"
-            ></div>
-            <span>{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</span>
-            <div v-if="conversationId" class="ml-auto">
-              <span class="text-gray-500 dark:text-gray-500">Conv ID:</span>
-              <span class="font-mono ml-1 text-xs dark:text-gray-300">{{ conversationId }}</span>
-            </div>
+          <!-- Text Input -->
+          <div class="flex-1">
+            <label class="form-label">Message</label>
+            <textarea v-model="messageInput"
+              class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400"
+              rows="2" placeholder="Type your message here..."
+              :disabled="!canSendMessage || recording?.recordingState === 'recording'"
+              @keydown.enter.ctrl="sendMessage" />
           </div>
+
+          <!-- Send Button -->
+          <button class="btn-primary h-10 px-6 mt-10"
+            :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
+            @click="sendMessage">
+            <Send :size="20" />
+          </button>
         </div>
+
       </div>
+    </div>
 
     <!-- Modals -->
-    <StageSelectionModal
-      v-if="showStartConversationModal"
-      :project-id="projectId"
-      title="Start Conversation"
-      @close="showStartConversationModal = false"
-      @select="handleStartConversation"
-    />
-    
-    <StageSelectionModal
-      v-if="showJumpToStageDialog"
-      :project-id="projectId"
-      title="Jump to Stage"
-      @close="showJumpToStageDialog = false"
-      @select="handleJumpToStage"
-    />
-    
-    <RunActionModal
-      v-if="showRunActionDialog"
-      :global-actions="globalActions"
-      :current-stage="currentStage"
-      @close="showRunActionDialog = false"
-      @run="handleRunAction"
-    />
-    
-    <AudioSettingsModal
-      v-if="showAudioSettingsModal"
-      :current-settings="audioSettings"
+    <StageSelectionModal v-if="showStartConversationModal" :project-id="projectId" title="Start Conversation"
+      @close="showStartConversationModal = false" @select="handleStartConversation" />
+
+    <StageSelectionModal v-if="showJumpToStageDialog" :project-id="projectId" title="Jump to Stage"
+      @close="showJumpToStageDialog = false" @select="handleJumpToStage" />
+
+    <RunActionModal v-if="showRunActionDialog" :global-actions="globalActions" :current-stage="currentStage"
+      @close="showRunActionDialog = false" @run="handleRunAction" />
+
+    <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
       :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
-      @close="showAudioSettingsModal = false"
-      @save="handleAudioSettingsSave"
-    />
+      @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
   </div>
 </template>
 
@@ -558,7 +465,7 @@ onMounted(() => {
   if (projectId.value) {
     projectSelectionStore.setSelectedProjectId(projectId.value)
   }
-  
+
   // Close preset menu when clicking outside
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement
@@ -567,7 +474,7 @@ onMounted(() => {
     }
   }
   document.addEventListener('click', handleClickOutside)
-  
+
   return () => {
     document.removeEventListener('click', handleClickOutside)
   }
@@ -586,7 +493,7 @@ watch(projectId, async (newProjectId) => {
       globalActionsStore.fetchAll({ filters: { projectId: newProjectId } }),
       apiKeysStore.fetchAll({ filters: { projectId: newProjectId, isActive: true } })
     ])
-    
+
     // Auto-select first active API key
     const firstActiveKey = activeApiKeys.value[0]
     if (firstActiveKey && !selectedApiKeyId.value) {
@@ -668,7 +575,7 @@ const availablePresets = computed(() => {
   return conversationPresets.map(preset => {
     const needsVoiceInput = preset.sessionSettings.sendVoiceInput
     const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
-    
+
     if (needsVoiceInput && !settings.acceptVoice) {
       return { preset, disabled: true, reason: 'Project does not support voice input' }
     }
@@ -737,10 +644,10 @@ function formatTime(date: Date): string {
  */
 function updateUserTranscript(msg: UserTranscribedChunk) {
   console.log('Received user chunk:', msg.chunkId, 'Text:', msg.chunkText, 'isFinal:', msg.isFinal)
-  
+
   // Find or create the event for this input turn
   let event = conversationEvents.value.find(e => e.inputTurnId === msg.inputTurnId && e.type === 'User')
-  
+
   if (!event) {
     // Create new event for this input turn
     event = {
@@ -762,7 +669,7 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
 
   // Find existing chunk by chunkId
   const existingIndex = event.transcriptChunks.findIndex(c => c.chunkId === msg.chunkId)
-  
+
   if (existingIndex >= 0) {
     console.log('Updating existing chunk at index:', existingIndex)
     // Update existing chunk
@@ -785,7 +692,7 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
 
   // Rebuild message from chunks in array order
   event.message = event.transcriptChunks.map(chunk => chunk.text.trim()).join(' ')
-  
+
   console.log('Final message:', event.message)
 
   // Auto-scroll to bottom
@@ -798,7 +705,7 @@ function updateUserTranscript(msg: UserTranscribedChunk) {
 function updateAiTranscript(msg: AiTranscribedChunk) {
   // Find existing event for this output turn (may have voice output)
   let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
-  
+
   if (!event) {
     // Create new event for this output turn (text-only AI response)
     event = {
@@ -819,7 +726,7 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
 
   // Find existing chunk by chunkId
   const existingIndex = event.transcriptChunks.findIndex(c => c.chunkId === msg.chunkId)
-  
+
   if (existingIndex >= 0) {
     // Update existing chunk
     event.transcriptChunks[existingIndex] = {
@@ -912,14 +819,14 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
   }
 
   const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
-  
+
   addEvent({
     type: 'System',
     message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
     timestamp: new Date(),
     details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
   })
-  
+
   // Create new recording instance with correct sample rate and saved settings
   recording.value = useAudioRecording({
     sampleRate,
@@ -930,7 +837,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     autoGainControl: audioSettings.value.autoGainControl,
     onChunk: async (base64Audio: string) => {
       if (!wsClient.value) return
-      
+
       try {
         // Stream audio chunk to backend
         await wsClient.value.sendVoiceChunk(base64Audio)
@@ -955,11 +862,11 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
 
 async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value || !recording.value) return
-  
+
   try {
     // Start voice input phase on backend and get inputTurnId
     const inputTurnId = await wsClient.value.startVoiceInput()
-    
+
     // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
     const event: ConversationEvent = {
       type: 'User',
@@ -970,10 +877,10 @@ async function startVoiceRecording() {
       transcriptChunks: []
     }
     conversationEvents.value.push(event)
-    
+
     // Auto-scroll to show the new event
     nextTick(() => scrollHistoryToBottom())
-    
+
     // Start recording from microphone
     await recording.value.startRecording()
   } catch (error) {
@@ -987,17 +894,17 @@ async function startVoiceRecording() {
 
 async function stopVoiceRecording() {
   if (!wsClient.value || !recording.value) return
-  
+
   try {
     // Stop recording (will process remaining chunks)
     recording.value.stopRecording()
-    
+
     // Mark the last event not real-time anymore (in case onChunk is still processing)
     const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
     if (lastEvent) {
       lastEvent.isRealTime = false
     }
-    
+
     // End voice input phase on backend
     await wsClient.value.endVoiceInput()
   } catch (error) {
@@ -1013,19 +920,19 @@ function handleAudioSettingsSave(settings: AudioSettings) {
   audioSettings.value = settings
   saveAudioSettings(settings)
   showAudioSettingsModal.value = false
-  
+
   addEvent({
     type: 'System',
     message: 'Audio settings saved',
     timestamp: new Date(),
     details: `Device: ${settings.deviceId || 'default'}`
   })
-  
+
   // Recreate recording instance with new settings if project settings exist
   if (wsClient.value?.projectSettings.value) {
     const projectSettings = wsClient.value.projectSettings.value
     const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
-    
+
     recording.value = useAudioRecording({
       sampleRate,
       chunkDurationMs: 2000,
@@ -1101,7 +1008,7 @@ async function connectWebSocket() {
       onAiOutputStart: (msg: StartAiGenerationOutput) => {
         // Find or create event for this output turn
         let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
-        
+
         if (!event) {
           // Create new event
           event = {
@@ -1112,7 +1019,7 @@ async function connectWebSocket() {
           }
           conversationEvents.value.push(event)
         }
-        
+
         // Only initialize audio player if voice output is expected
         if (msg.expectVoice) {
           event.voiceOutputId = msg.outputTurnId
@@ -1122,7 +1029,7 @@ async function connectWebSocket() {
             transcript: null
           })
         }
-        
+
         // Auto-scroll
         nextTick(() => scrollHistoryToBottom())
       },
@@ -1132,7 +1039,7 @@ async function connectWebSocket() {
           console.warn('Received audio chunk for unknown voice output:', msg.outputTurnId)
           return
         }
-        
+
         // Add chunk to audio player queue
         await voiceOutput.player.addChunk({
           audioData: msg.audioData,
@@ -1147,13 +1054,13 @@ async function connectWebSocket() {
           // Store transcript for display in AudioPlayer
           voiceOutput.transcript = msg.fullText?.trim() || null
         }
-        
+
         // Update the conversation event with the full text
         const event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
         if (event && msg.fullText) {
           event.message = msg.fullText.trim()
           event.isRealTime = false
-          
+
           // Auto-scroll to bottom
           nextTick(() => scrollHistoryToBottom())
         }
@@ -1193,13 +1100,13 @@ async function disconnectWebSocket() {
 
   try {
     isWsDisconnecting.value = true
-    
+
     addEvent({
       type: 'System',
       message: 'Disconnecting from WebSocket...',
       timestamp: new Date()
     })
-    
+
     wsClient.value.disconnect()
     wsClient.value = null
   } finally {
@@ -1222,7 +1129,7 @@ const audioSettings = ref<AudioSettings>(loadAudioSettings())
 function handlePresetSelect(mode: ConversationMode) {
   selectedConversationMode.value = mode
   showPresetMenu.value = false
-  
+
   addEvent({
     type: 'System',
     message: `Conversation mode changed to: ${conversationPresets.find(p => p.id === mode)?.name}`,
@@ -1235,7 +1142,7 @@ async function startConversation() {
   if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value) {
     return
   }
-  
+
   // Auto-connect WebSocket if not connected
   if (!wsIsConnected.value) {
     await connectWebSocket()
@@ -1243,7 +1150,7 @@ async function startConversation() {
       return // Connection failed
     }
   }
-  
+
   showStartConversationModal.value = true
 }
 
@@ -1302,11 +1209,11 @@ async function handleStartConversation(stage: StageResponse) {
 
   try {
     isConversationStarting.value = true
-    
+
     // Clear conversation history when starting a new conversation
     conversationEvents.value = []
     activeVoiceOutputs.value.clear()
-    
+
     addEvent({
       type: 'System',
       message: `Starting conversation with stage: ${stage.name}`,
@@ -1323,7 +1230,7 @@ async function handleStartConversation(stage: StageResponse) {
     })
 
     currentStage.value = stage
-    
+
     addEvent({
       type: 'System',
       message: 'Conversation started successfully',
@@ -1362,7 +1269,7 @@ async function handleJumpToStage(stage: StageResponse) {
 
     await wsClient.value.client.value.goToStage(stage.id)
     currentStage.value = stage
-    
+
     addEvent({
       type: 'System',
       message: `Successfully moved to stage: ${stage.name}`,
@@ -1393,7 +1300,7 @@ async function endConversation() {
 
     await wsClient.value.endConversation()
     currentStage.value = null
-    
+
     addEvent({
       type: 'System',
       message: 'Conversation ended successfully',
@@ -1416,9 +1323,9 @@ async function endConversation() {
 async function sendMessage() {
   if (!messageInput.value.trim() || !wsClient.value) return
   if (!canSendMessage.value) return
-  
+
   const message = messageInput.value.trim()
-  
+
   try {
     isSendingMessage.value = true
     addEvent({
@@ -1463,14 +1370,14 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
     // Convert parameters object to array format expected by the API
     const paramsArray = Object.values(data.parameters)
     const result = await wsClient.value.client.value.runAction(data.actionKey, paramsArray)
-    
+
     addEvent({
       type: 'System',
       message: `Action completed: ${data.actionKey}`,
       timestamp: new Date(),
       details: `Result: ${JSON.stringify(result)}`
     })
-    
+
     showRunActionDialog.value = false
   } catch (error) {
     addEvent({
