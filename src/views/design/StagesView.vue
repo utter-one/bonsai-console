@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum, usePagination } from '@/composables'
-import { RefreshCw, Search, X } from 'lucide-vue-next'
+import { RefreshCw, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -116,7 +116,7 @@ function clearSearch() {
           <p class="page-subtitle">Define conversation stages for this project</p>
         </div>
         <button @click="createStage" class="btn-primary">
-          <RefreshCw class="inline-block mr-2 w-4 h-4" />
+          <Plus class="inline-block mr-2 w-4 h-4" />
           New Stage
         </button>
       </div>

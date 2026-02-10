@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
+import { useAuthStore, useProjectsStore, useProjectSelectionStore, useLayoutStore } from '@/stores'
 import { formatEnum } from '@/composables'
-import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu } from 'lucide-vue-next'
+import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
@@ -13,6 +13,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const layoutStore = useLayoutStore()
 
 const currentSection = computed(() => {
   const path = route.path
@@ -147,6 +148,14 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
     <!-- Top Navigation Bar -->
     <header class="bg-white  shadow-sm sticky top-0 z-[100] dark:bg-gray-800 ">
       <div class="flex items-center px-6 h-16 max-w-[1920px] mx-auto">
+        <!-- Mobile Menu Toggle -->
+        <button 
+          class="p-2 -ml-2 mr-2 border-none bg-transparent text-2xl cursor-pointer text-gray-900 md:hidden block hover:bg-gray-100 rounded-md dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+          @click="showMobileMenu = !showMobileMenu"
+        >
+          <Menu :size="24" />
+        </button>
+
         <!-- Logo & Brand -->
         <div class="md:mr-12">
           <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Nexus Admin</h1>
@@ -202,7 +211,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
           <!-- User Menu -->
           <div class="relative">
             <button 
-              class="flex items-center gap-2 px-3 py-1.5 pl-1.5 border border-gray-300 rounded-full bg-white cursor-pointer transition-all hover:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-400"
+              class="flex items-center md:gap-2 gap-1 md:px-3 px-1.5 py-1.5 pl-1.5 border border-gray-300 rounded-full bg-white cursor-pointer transition-all hover:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-400"
               @click="showUserMenu = !showUserMenu"
             >
               <span class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
@@ -237,37 +246,117 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             </div>
           </div>
 
-          <!-- Mobile Menu Toggle -->
-          <button 
-            class="p-2 border-none bg-transparent text-2xl cursor-pointer text-gray-900 md:hidden block"
-            @click="showMobileMenu = !showMobileMenu"
-          >
-            <Menu :size="24" class="dark:text-white" />
-          </button>
         </div>
       </div>
     </header>
 
-    <!-- Mobile Navigation -->
-    <div 
-      v-if="showMobileMenu" 
-      class="md:hidden flex flex-col gap-1 bg-white border-b border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700"
-    >
-      <button
-        v-for="section in sections"
-        :key="section.id"
-        :class="[
-          'flex items-center gap-3 w-full px-3 py-3 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
-          currentSection === section.id 
-            ? 'bg-blue-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400' 
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-        ]"
-        @click="navigateToSection(section.id)"
+    <!-- Mobile Navigation Sidebar -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity ease-linear duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity ease-linear duration-300"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
-        <component :is="section.icon" class="icon" :size="20" />
-        <span>{{ section.label }}</span>
-      </button>
-    </div>
+        <div 
+          v-if="showMobileMenu" 
+          class="fixed inset-0 bg-gray-900/80 z-[200]" 
+          @click="showMobileMenu = false"
+        ></div>
+      </Transition>
+
+      <Transition
+        enter-active-class="transition ease-in-out duration-300 transform"
+        enter-from-class="-translate-x-full"
+        enter-to-class="translate-x-0"
+        leave-active-class="transition ease-in-out duration-300 transform"
+        leave-from-class="translate-x-0"
+        leave-to-class="-translate-x-full"
+      >
+        <div 
+          v-if="showMobileMenu" 
+          class="fixed inset-y-0 left-0 z-[210] w-full max-w-xs bg-white p-6 overflow-y-auto flex flex-col dark:bg-gray-800"
+        >
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 m-0 dark:text-white">Nexus Admin</h2>
+            <button 
+              class="p-2 -mr-2 bg-transparent border-none text-gray-500 cursor-pointer hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+              @click="showMobileMenu = false"
+            >
+              <X :size="24" />
+            </button>
+          </div>
+
+          <nav class="flex-1 flex flex-col gap-1">
+            <div v-for="section in sections" :key="section.id">
+              <button
+                :class="[
+                  'flex items-center gap-3 w-full px-3 py-3 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+                  currentSection === section.id 
+                    ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400' 
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                ]"
+                @click="navigateToSection(section.id)"
+              >
+                <component :is="section.icon" class="flex-shrink-0" :size="20" />
+                <span>{{ section.label }}</span>
+              </button>
+
+              <!-- Sidebar Items (Sub-menu) -->
+              <div v-if="currentSection === section.id && layoutStore.sidebarItems.length > 0" class="pl-4 mt-1 flex flex-col gap-1 border-l-2 border-gray-100 ml-4 mb-2 dark:border-gray-700">
+                <button
+                  v-for="item in layoutStore.sidebarItems"
+                  :key="item.name"
+                  :class="[
+                    'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+                    route.name === item.name
+                      ? 'text-primary-600 font-semibold dark:text-primary-400'
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                  ]"
+                  @click="() => { router.push({ name: item.name }); showMobileMenu = false; }"
+                >
+                  <component v-if="item.icon" :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
+                  <span>{{ item.label }}</span>
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          <!-- Divider -->
+          <div class="h-px bg-gray-200 my-6 dark:bg-gray-700"></div>
+
+          <!-- User Section -->
+          <div class="flex flex-col gap-2">
+            <div class="px-3 py-2 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
+                {{ authStore.currentAdmin?.name?.[0]?.toUpperCase() }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate dark:text-white">{{ authStore.currentAdmin?.name }}</div>
+                <div class="text-xs text-gray-500 truncate dark:text-gray-400">{{ formattedRoles }}</div>
+              </div>
+            </div>
+            
+            <button 
+              @click="handleEditProfile" 
+              class="flex items-center gap-3 w-full px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium text-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              <User :size="20" />
+              <span>Edit Profile</span>
+            </button>
+            <button 
+              @click="handleLogout" 
+              class="flex items-center gap-3 w-full px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium text-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              <LogOut :size="20" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Main Content Area -->
     <main class="flex-1 min-h-0 p-6 max-w-[1920px] w-full mx-auto flex flex-col">
