@@ -68,7 +68,7 @@
             <div v-if="!isConversationActive" class="relative inline-flex">
               <!-- Main Action Button -->
               <button
-                class="btn-primary flex items-center gap-2 whitespace-nowrap rounded-r-none"
+                class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
                 @click="startConversation"
                 :disabled="!canStartConversation"
               >
@@ -79,7 +79,7 @@
               <!-- Dropdown Toggle -->
               <button
                 @click="showPresetMenu = !showPresetMenu"
-                class="btn-primary px-3 rounded-l-none border-l border-primary-600"
+                class="btn-primary-hardleft border-primary-600"
                 :disabled="!canStartConversation"
                 :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`"
               >
