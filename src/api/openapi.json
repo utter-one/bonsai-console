@@ -8336,12 +8336,6 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the audit log was created"
-          },
-          "updatedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time",
-            "description": "Timestamp when the audit log was last updated"
           }
         },
         "required": [
@@ -8353,8 +8347,7 @@
           "oldEntity",
           "newEntity",
           "version",
-          "createdAt",
-          "updatedAt"
+          "createdAt"
         ]
       },
       "AuditLogListResponse": {
@@ -8411,12 +8404,6 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the audit log was created"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "nullable": true,
-                  "format": "date-time",
-                  "description": "Timestamp when the audit log was last updated"
                 }
               },
               "required": [
@@ -8428,8 +8415,7 @@
                 "oldEntity",
                 "newEntity",
                 "version",
-                "createdAt",
-                "updatedAt"
+                "createdAt"
               ]
             },
             "description": "Array of audit logs in the current page"
@@ -10925,12 +10911,6 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the audit log was created"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "date-time",
-                            "description": "Timestamp when the audit log was last updated"
                           }
                         },
                         "required": [
@@ -10942,8 +10922,7 @@
                           "oldEntity",
                           "newEntity",
                           "version",
-                          "createdAt",
-                          "updatedAt"
+                          "createdAt"
                         ]
                       },
                       "description": "Array of audit logs in the current page"
