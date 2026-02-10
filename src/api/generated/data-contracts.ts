@@ -458,14 +458,12 @@ export interface StageAction {
   triggerOnClientCommand: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger?: string | null;
-  /** Optional classifier ID to override the stage classifier for this action */
+  /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
   overrideClassifierId?: string | null;
   /** Optional array of parameters to extract from user input */
   parameters: StageActionParameter[];
   /** Array of effects to execute when action is triggered */
   effects: Effect[];
-  /** Optional message template for the action */
-  template?: string | null;
   /** Example phrases that trigger this action */
   examples?: string[] | null;
   /** Additional action-specific metadata */
@@ -2927,12 +2925,10 @@ export interface CreateGlobalActionRequest {
   triggerOnClientCommand?: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger?: string | null;
-  /** Optional classifier ID to override the default classifier for this action */
+  /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
   overrideClassifierId?: string | null;
   /** Array of effects to execute when action is triggered */
   effects?: Effect[];
-  /** Optional message template for the action */
-  template?: string | null;
   /** Example phrases that trigger this action */
   examples?: string[];
   /** Additional action-specific metadata */
@@ -2957,8 +2953,6 @@ export interface UpdateGlobalActionRequest {
   overrideClassifierId?: string | null;
   /** Updated effects array */
   effects?: Effect[];
-  /** Updated message template */
-  template?: string | null;
   /** Updated example phrases */
   examples?: string[];
   /** Updated metadata */
@@ -2993,12 +2987,10 @@ export interface GlobalActionResponse {
   triggerOnClientCommand: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger: string | null;
-  /** Optional classifier ID to override the default classifier */
+  /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
   overrideClassifierId: string | null;
   /** Array of effects to execute */
   effects: Effect[];
-  /** Message template for the action */
-  template: string | null;
   /** Example phrases that trigger this action */
   examples: string[] | null;
   /** Additional metadata */
@@ -3034,12 +3026,10 @@ export interface GlobalActionListResponse {
     triggerOnClientCommand: boolean;
     /** Optional classification label that triggers this action */
     classificationTrigger: string | null;
-    /** Optional classifier ID to override the default classifier */
+    /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
     overrideClassifierId: string | null;
     /** Array of effects to execute */
     effects: Effect[];
-    /** Message template for the action */
-    template: string | null;
     /** Example phrases that trigger this action */
     examples: string[] | null;
     /** Additional metadata */
@@ -3783,11 +3773,6 @@ export interface AuditLogResponse {
    * @format date-time
    */
   createdAt: string | null;
-  /**
-   * Timestamp when the audit log was last updated
-   * @format date-time
-   */
-  updatedAt: string | null;
 }
 
 export interface AuditLogListResponse {
@@ -3814,11 +3799,6 @@ export interface AuditLogListResponse {
      * @format date-time
      */
     createdAt: string | null;
-    /**
-     * Timestamp when the audit log was last updated
-     * @format date-time
-     */
-    updatedAt: string | null;
   }[];
   /**
    * Total number of audit logs matching the query

@@ -884,7 +884,7 @@
           "overrideClassifierId": {
             "type": "string",
             "nullable": true,
-            "description": "Optional classifier ID to override the stage classifier for this action"
+            "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
           },
           "parameters": {
             "type": "array",
@@ -899,11 +899,6 @@
               "$ref": "#/components/schemas/Effect"
             },
             "description": "Array of effects to execute when action is triggered"
-          },
-          "template": {
-            "type": "string",
-            "nullable": true,
-            "description": "Optional message template for the action"
           },
           "examples": {
             "type": "array",
@@ -6182,7 +6177,7 @@
           "overrideClassifierId": {
             "type": "string",
             "nullable": true,
-            "description": "Optional classifier ID to override the default classifier for this action"
+            "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
           },
           "effects": {
             "type": "array",
@@ -6190,11 +6185,6 @@
               "$ref": "#/components/schemas/Effect"
             },
             "description": "Array of effects to execute when action is triggered"
-          },
-          "template": {
-            "type": "string",
-            "nullable": true,
-            "description": "Optional message template for the action"
           },
           "examples": {
             "type": "array",
@@ -6253,11 +6243,6 @@
               "$ref": "#/components/schemas/Effect"
             },
             "description": "Updated effects array"
-          },
-          "template": {
-            "type": "string",
-            "nullable": true,
-            "description": "Updated message template"
           },
           "examples": {
             "type": "array",
@@ -6332,7 +6317,7 @@
           "overrideClassifierId": {
             "type": "string",
             "nullable": true,
-            "description": "Optional classifier ID to override the default classifier"
+            "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
           },
           "effects": {
             "type": "array",
@@ -6340,11 +6325,6 @@
               "$ref": "#/components/schemas/Effect"
             },
             "description": "Array of effects to execute"
-          },
-          "template": {
-            "type": "string",
-            "nullable": true,
-            "description": "Message template for the action"
           },
           "examples": {
             "type": "array",
@@ -6389,7 +6369,6 @@
           "classificationTrigger",
           "overrideClassifierId",
           "effects",
-          "template",
           "examples",
           "metadata",
           "version",
@@ -6438,7 +6417,7 @@
                 "overrideClassifierId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Optional classifier ID to override the default classifier"
+                  "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                 },
                 "effects": {
                   "type": "array",
@@ -6446,11 +6425,6 @@
                     "$ref": "#/components/schemas/Effect"
                   },
                   "description": "Array of effects to execute"
-                },
-                "template": {
-                  "type": "string",
-                  "nullable": true,
-                  "description": "Message template for the action"
                 },
                 "examples": {
                   "type": "array",
@@ -6495,7 +6469,6 @@
                 "classificationTrigger",
                 "overrideClassifierId",
                 "effects",
-                "template",
                 "examples",
                 "metadata",
                 "version",
@@ -8363,12 +8336,6 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the audit log was created"
-          },
-          "updatedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time",
-            "description": "Timestamp when the audit log was last updated"
           }
         },
         "required": [
@@ -8380,8 +8347,7 @@
           "oldEntity",
           "newEntity",
           "version",
-          "createdAt",
-          "updatedAt"
+          "createdAt"
         ]
       },
       "AuditLogListResponse": {
@@ -8438,12 +8404,6 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the audit log was created"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "nullable": true,
-                  "format": "date-time",
-                  "description": "Timestamp when the audit log was last updated"
                 }
               },
               "required": [
@@ -8455,8 +8415,7 @@
                 "oldEntity",
                 "newEntity",
                 "version",
-                "createdAt",
-                "updatedAt"
+                "createdAt"
               ]
             },
             "description": "Array of audit logs in the current page"
@@ -10952,12 +10911,6 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the audit log was created"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "date-time",
-                            "description": "Timestamp when the audit log was last updated"
                           }
                         },
                         "required": [
@@ -10969,8 +10922,7 @@
                           "oldEntity",
                           "newEntity",
                           "version",
-                          "createdAt",
-                          "updatedAt"
+                          "createdAt"
                         ]
                       },
                       "description": "Array of audit logs in the current page"
@@ -20279,7 +20231,7 @@
                   "overrideClassifierId": {
                     "type": "string",
                     "nullable": true,
-                    "description": "Optional classifier ID to override the default classifier for this action"
+                    "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                   },
                   "effects": {
                     "type": "array",
@@ -20287,11 +20239,6 @@
                       "$ref": "#/components/schemas/Effect"
                     },
                     "description": "Array of effects to execute when action is triggered"
-                  },
-                  "template": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Optional message template for the action"
                   },
                   "examples": {
                     "type": "array",
@@ -20357,7 +20304,7 @@
                     "overrideClassifierId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Optional classifier ID to override the default classifier"
+                      "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
                     "effects": {
                       "type": "array",
@@ -20365,11 +20312,6 @@
                         "$ref": "#/components/schemas/Effect"
                       },
                       "description": "Array of effects to execute"
-                    },
-                    "template": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "Message template for the action"
                     },
                     "examples": {
                       "type": "array",
@@ -20414,7 +20356,6 @@
                     "classificationTrigger",
                     "overrideClassifierId",
                     "effects",
-                    "template",
                     "examples",
                     "metadata",
                     "version",
@@ -20615,7 +20556,7 @@
                           "overrideClassifierId": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Optional classifier ID to override the default classifier"
+                            "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                           },
                           "effects": {
                             "type": "array",
@@ -20623,11 +20564,6 @@
                               "$ref": "#/components/schemas/Effect"
                             },
                             "description": "Array of effects to execute"
-                          },
-                          "template": {
-                            "type": "string",
-                            "nullable": true,
-                            "description": "Message template for the action"
                           },
                           "examples": {
                             "type": "array",
@@ -20672,7 +20608,6 @@
                           "classificationTrigger",
                           "overrideClassifierId",
                           "effects",
-                          "template",
                           "examples",
                           "metadata",
                           "version",
@@ -20776,7 +20711,7 @@
                     "overrideClassifierId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Optional classifier ID to override the default classifier"
+                      "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
                     "effects": {
                       "type": "array",
@@ -20784,11 +20719,6 @@
                         "$ref": "#/components/schemas/Effect"
                       },
                       "description": "Array of effects to execute"
-                    },
-                    "template": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "Message template for the action"
                     },
                     "examples": {
                       "type": "array",
@@ -20833,7 +20763,6 @@
                     "classificationTrigger",
                     "overrideClassifierId",
                     "effects",
-                    "template",
                     "examples",
                     "metadata",
                     "version",
@@ -20908,11 +20837,6 @@
                     },
                     "description": "Updated effects array"
                   },
-                  "template": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Updated message template"
-                  },
                   "examples": {
                     "type": "array",
                     "items": {
@@ -20981,7 +20905,7 @@
                     "overrideClassifierId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Optional classifier ID to override the default classifier"
+                      "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
                     "effects": {
                       "type": "array",
@@ -20989,11 +20913,6 @@
                         "$ref": "#/components/schemas/Effect"
                       },
                       "description": "Array of effects to execute"
-                    },
-                    "template": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "Message template for the action"
                     },
                     "examples": {
                       "type": "array",
@@ -21038,7 +20957,6 @@
                     "classificationTrigger",
                     "overrideClassifierId",
                     "effects",
-                    "template",
                     "examples",
                     "metadata",
                     "version",

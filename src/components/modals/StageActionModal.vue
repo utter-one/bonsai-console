@@ -17,6 +17,7 @@
           :active-tab="activeTab"
           @update:active-tab="activeTab = $event as TabType"
           :available-classifiers="projectClassifiers"
+          :available-stages="projectStages"
           :show-key-field="true"
           :action-key="actionKey"
           @update:action-key="actionKey = $event"
@@ -41,13 +42,14 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useClassifiersStore } from '@/stores'
+import { useClassifiersStore, useStagesStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
 import type { StageAction } from '@/api/types'
 
 const route = useRoute()
 const classifiersStore = useClassifiersStore()
+const stagesStore = useStagesStore()
 
 const props = defineProps<{
   action: StageAction | null
@@ -57,6 +59,11 @@ const props = defineProps<{
 const projectClassifiers = computed(() => {
   const projectId = route.params.projectId as string
   return classifiersStore.items.filter(c => c.projectId === projectId)
+})
+
+const projectStages = computed(() => {
+  const projectId = route.params.projectId as string
+  return stagesStore.items.filter(s => s.projectId === projectId)
 })
 
 const emit = defineEmits<{
@@ -78,7 +85,6 @@ const form = ref({
   triggerOnClientCommand: false,
   classificationTrigger: '',
   overrideClassifierId: '',
-  template: '',
   examples: ''
 })
 
@@ -102,7 +108,6 @@ watch(() => props.action, (action) => {
       triggerOnClientCommand: action.triggerOnClientCommand,
       classificationTrigger: action.classificationTrigger || '',
       overrideClassifierId: action.overrideClassifierId || '',
-      template: action.template || '',
       examples: action.examples?.join('\n') || ''
     }
 
@@ -124,7 +129,6 @@ watch(() => props.action, (action) => {
       triggerOnClientCommand: false,
       classificationTrigger: '',
       overrideClassifierId: '',
-      template: '',
       examples: ''
     }
 
@@ -158,7 +162,6 @@ function handleSubmit() {
     overrideClassifierId: form.value.overrideClassifierId || null,
     parameters: parameters.value.length > 0 ? parameters.value : [],
     effects: result.effects,
-    template: form.value.template || null,
     examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : null,
     metadata: props.action?.metadata || undefined
   }
