@@ -40,8 +40,10 @@
       <div class="flex md:flex-row flex-col items-center justify-between">
         <div>
           <div class="flex items-center">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
-          <div class="ml-2 w-3 h-3 rounded-full" :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
+            <div class="ml-2 w-3 h-3 rounded-full"
+              :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
+            <div class="text-gray-900 text-sm dark:text-gray-500 ml-2">{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</div>
           </div>
           <p class="text-sm text-gray-600 mt-1 dark:text-gray-400">Test and debug conversation flows in real-time</p>
         </div>
