@@ -37,14 +37,14 @@
   <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)" class="flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden h-[calc(100vh-7rem)]">
       <!-- Header -->
       <div class="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 flex-shrink-0 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between">
+        <div class="flex md:flex-row flex-col items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
             <p class="text-sm text-gray-600 mt-1 dark:text-gray-400">Test and debug conversation flows in real-time</p>
           </div>
           
           <!-- Controls -->
-          <div class="flex items-center gap-3">
+          <div class="flex md:flex-row flex-col md:items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
             <!-- API Key Selection -->
             <label class="text-sm font-medium text-gray-700 whitespace-nowrap dark:text-gray-300">API Key:</label>
             <select
@@ -62,7 +62,7 @@
               </option>
             </select>
 
-            <div class="h-8 border-l border-gray-300"></div>
+            <div class="h-8 border-l border-gray-300 hidden md:block"></div>
 
             <!-- Conversation Controls -->
             <div v-if="!isConversationActive" class="relative inline-flex">
@@ -123,7 +123,7 @@
               {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
             </button>
 
-            <div class="h-8 border-l border-gray-300"></div>
+            <div class="h-8 border-l border-gray-300 hidden md:block"></div>
 
             <!-- Advanced Controls -->
             <button
