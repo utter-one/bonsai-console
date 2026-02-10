@@ -20,6 +20,7 @@ interface ActionFormData {
 }
 
 interface ActionOperations {
+  generateResponse: { enabled: boolean }
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
@@ -535,6 +536,18 @@ function removeProfileModification(index: number) {
           Choose which effects this action should perform. Complex effects will add dedicated tabs for configuration.
         </p>
         <div class="space-y-3">
+          <label class="flex items-start cursor-pointer">
+            <input
+              v-model="localOperations.generateResponse.enabled"
+              type="checkbox"
+              class="form-checkbox mt-0.5"
+            />
+            <div class="ml-3">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Generate Response</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Generate an AI response for this action</p>
+            </div>
+          </label>
+
           <label class="flex items-start cursor-pointer">
             <input
               v-model="localOperations.endConversation.enabled"

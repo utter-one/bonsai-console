@@ -1,6 +1,7 @@
 import type { Effect } from '@/api/types'
 
 export interface ActionOperations {
+  generateResponse: { enabled: boolean }
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
@@ -27,6 +28,7 @@ export interface ActionOperations {
 
 export function createDefaultOperations(): ActionOperations {
   return {
+    generateResponse: { enabled: true },
     endConversation: { enabled: false, reason: '' },
     abortConversation: { enabled: false, reason: '' },
     goToStage: { enabled: false, stageId: '' },
@@ -48,6 +50,9 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   // Load existing effects
   effects.forEach(effect => {
     switch (effect.type) {
+      case 'generate_response':
+        operations.generateResponse.enabled = true
+        break
       case 'end_conversation':
         operations.endConversation.enabled = true
         operations.endConversation.reason = effect.reason || ''
@@ -104,6 +109,12 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
 export function buildEffectsFromOperations(operations: ActionOperations): { effects: Effect[]; error: string | null } {
   const effectsArray: Effect[] = []
   let error: string | null = null
+
+  if (operations.generateResponse.enabled) {
+    effectsArray.push({
+      type: 'generate_response'
+    })
+  }
 
   if (operations.endConversation.enabled) {
     effectsArray.push({

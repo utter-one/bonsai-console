@@ -773,6 +773,21 @@
           "resultKey"
         ]
       },
+      "GenerateResponseEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "generate_response"
+            ],
+            "description": "Effect type"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "Effect": {
         "oneOf": [
           {
@@ -801,6 +816,9 @@
           },
           {
             "$ref": "#/components/schemas/CallWebhookEffect"
+          },
+          {
+            "$ref": "#/components/schemas/GenerateResponseEffect"
           }
         ],
         "discriminator": {
@@ -814,7 +832,8 @@
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
-            "call_webhook": "#/components/schemas/CallWebhookEffect"
+            "call_webhook": "#/components/schemas/CallWebhookEffect",
+            "generate_response": "#/components/schemas/GenerateResponseEffect"
           }
         }
       },
