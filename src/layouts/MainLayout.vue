@@ -148,7 +148,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
     <header class="bg-white  shadow-sm sticky top-0 z-[100] dark:bg-gray-800 ">
       <div class="flex items-center px-6 h-16 max-w-[1920px] mx-auto">
         <!-- Logo & Brand -->
-        <div class="mr-12">
+        <div class="md:mr-12">
           <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Nexus Admin</h1>
         </div>
 
@@ -251,7 +251,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
     <!-- Mobile Navigation -->
     <div 
       v-if="showMobileMenu" 
-      class="md:hidden flex flex-col gap-1 bg-white border-b border-gray-200 p-3"
+      class="md:hidden flex flex-col gap-1 bg-white border-b border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700"
     >
       <button
         v-for="section in sections"
