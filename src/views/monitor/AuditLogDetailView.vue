@@ -89,7 +89,7 @@ const changes = computed(() => {
     const newVal = newEntity[key]
     
     // Skip metadata fields
-    if (['id', 'createdAt', 'updatedAt', 'version'].includes(key)) return
+    if (['id', 'createdAt', 'version'].includes(key)) return
     
     // Compare values (stringify for deep comparison)
     const oldStr = JSON.stringify(oldVal)

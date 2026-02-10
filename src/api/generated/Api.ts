@@ -1105,11 +1105,6 @@ export class Api<
            * @format date-time
            */
           createdAt: string | null;
-          /**
-           * Timestamp when the audit log was last updated
-           * @format date-time
-           */
-          updatedAt: string | null;
         }[];
         /**
          * Total number of audit logs matching the query
