@@ -236,7 +236,7 @@
 
               <!-- Settings Button -->
               <button @click="showAudioSettingsModal = true"
-                class="btn-secondary h-10 w-10 p-0 flex items-center justify-center" title="Audio settings">
+                class="btn-secondary h-10 p-0 flex items-center justify-center" title="Audio settings">
                 <Settings :size="20" />
               </button>
 
