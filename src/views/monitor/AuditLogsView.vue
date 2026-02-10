@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { ClipboardList, Search, X, Calendar, ChevronDown } from 'lucide-vue-next'
+import { ClipboardList, Search, X, Calendar, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -38,6 +38,9 @@ const actionFilterOptions = [
   { value: 'DELETE', label: 'Delete' },
 ] as const
 
+// Mobile Filter State
+const showFilterDrawer = ref(false)
+
 // UI State
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
@@ -57,6 +60,10 @@ const currentTimeFilterLabel = computed(() => {
 
 const currentActionFilterLabel = computed(() => {
   return actionFilterOptions.find(opt => opt.value === actionFilter.value)?.label || 'All Actions'
+})
+
+const hasActiveFilters = computed(() => {
+  return timeFilter.value !== 'last-24h' || actionFilter.value !== 'all'
 })
 
 const filteredLogs = computed(() => {
@@ -233,56 +240,160 @@ function selectActionFilter(value: typeof actionFilter.value) {
 
       <!-- Filter Bar -->
       <div class="mb-6 flex items-center gap-3">
-        <!-- Time Filter -->
-        <div class="relative">
-          <button @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-            <Calendar class="w-4 h-4 mr-2" />
-            <span>{{ currentTimeFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2" />
-          </button>
-
-          <!-- Time Dropdown -->
-          <div v-if="showTimeDropdown"
-            class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700">
-            <button v-for="option in timeFilterOptions" :key="option.value" @click="selectTimeFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': timeFilter === option.value }">
-              {{ option.label }}
+        <!-- Desktop Filters (Hidden on Mobile) -->
+        <div class="hidden md:flex items-center gap-3">
+          <!-- Time Filter -->
+          <div class="relative">
+            <button @click="showTimeDropdown = !showTimeDropdown"
+              class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+              <Calendar class="w-4 h-4 mr-2" />
+              <span>{{ currentTimeFilterLabel }}</span>
+              <ChevronDown class="w-4 h-4 ml-2" />
             </button>
+
+            <!-- Time Dropdown -->
+            <div v-if="showTimeDropdown"
+              class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700">
+              <button v-for="option in timeFilterOptions" :key="option.value" @click="selectTimeFilter(option.value)"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+                :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': timeFilter === option.value }">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Filter -->
+          <div class="relative">
+            <button @click="showActionDropdown = !showActionDropdown"
+              class="action-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+              <span>{{ currentActionFilterLabel }}</span>
+              <ChevronDown class="w-4 h-4 ml-2" />
+            </button>
+
+            <!-- Action Dropdown -->
+            <div v-if="showActionDropdown"
+              class="action-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1 dark:bg-gray-800 dark:border-gray-700">
+              <button v-for="option in actionFilterOptions" :key="option.value" @click="selectActionFilter(option.value)"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
+                :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': actionFilter === option.value }">
+                {{ option.label }}
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Action Filter -->
-        <div class="relative">
-          <button @click="showActionDropdown = !showActionDropdown"
-            class="action-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-            <span>{{ currentActionFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2" />
-          </button>
-
-          <!-- Action Dropdown -->
-          <div v-if="showActionDropdown"
-            class="action-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1 dark:bg-gray-800 dark:border-gray-700">
-            <button v-for="option in actionFilterOptions" :key="option.value" @click="selectActionFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400': actionFilter === option.value }">
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="relative min-w-[300px] flex-grow">
+        <!-- Search Bar (Always Visible) -->
+        <div class="relative min-w-[100px] md:min-w-[300px] flex-grow">
             <Search class="input-icon-left" />
             <input v-model="searchQuery" type="text"
-              placeholder="Search by action, entity type, entity ID, or user ID..." class="search-input" />
+              placeholder="Search..." class="search-input" />
             <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
               <X class="w-5 h-5" />
             </button>
         </div>
 
+        <!-- Mobile Filter Button -->
+        <button 
+          @click="showFilterDrawer = true"
+          class="md:hidden flex items-center justify-center p-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 relative"
+        >
+          <Filter class="w-5 h-5" />
+          <span v-if="hasActiveFilters" class="absolute top-1 right-1 w-2.5 h-2.5 bg-primary-500 rounded-full border border-white dark:border-gray-800"></span>
+        </button>
       </div>
+
+      <!-- Mobile Filter Drawer -->
+      <Teleport to="body">
+        <Transition
+          enter-active-class="transition-opacity ease-linear duration-300"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition-opacity ease-linear duration-300"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div 
+            v-if="showFilterDrawer" 
+            class="fixed inset-0 bg-gray-900/80 z-[300]" 
+            @click="showFilterDrawer = false"
+          ></div>
+        </Transition>
+
+        <Transition
+          enter-active-class="transition ease-in-out duration-300 transform"
+          enter-from-class="translate-x-full"
+          enter-to-class="translate-x-0"
+          leave-active-class="transition ease-in-out duration-300 transform"
+          leave-from-class="translate-x-0"
+          leave-to-class="translate-x-full"
+        >
+          <div 
+            v-if="showFilterDrawer" 
+            class="fixed inset-y-0 right-0 z-[310] w-full max-w-xs bg-white p-6 shadow-xl overflow-y-auto flex flex-col dark:bg-gray-800"
+          >
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-lg font-semibold text-gray-900 m-0 dark:text-white">Filters</h2>
+              <button 
+                class="p-2 -mr-2 bg-transparent border-none text-gray-500 cursor-pointer hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+                @click="showFilterDrawer = false"
+              >
+                <X :size="24" />
+              </button>
+            </div>
+
+            <div class="flex flex-col gap-6">
+              <!-- Time Filter -->
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range</label>
+                <div class="flex flex-col gap-1">
+                  <button 
+                    v-for="option in timeFilterOptions" 
+                    :key="option.value" 
+                    @click="timeFilter = option.value"
+                    class="flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left"
+                    :class="timeFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
+                  >
+                    {{ option.label }}
+                    <span v-if="timeFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action Filter -->
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Action Type</label>
+                <div class="flex flex-col gap-1">
+                  <button 
+                    v-for="option in actionFilterOptions" 
+                    :key="option.value" 
+                    @click="actionFilter = option.value"
+                    class="flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left"
+                    :class="actionFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
+                  >
+                    {{ option.label }}
+                    <span v-if="actionFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-auto pt-6 flex gap-3">
+              <button 
+                @click="() => { timeFilter = 'last-24h'; actionFilter = 'all'; }"
+                class="btn-secondary flex-1 justify-center"
+              >
+                Reset
+              </button>
+              <button 
+                @click="showFilterDrawer = false"
+                class="btn-primary flex-1 justify-center"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
       <!-- Loading State -->
       <div v-if="auditLogsStore.isLoading" class="loading-state">

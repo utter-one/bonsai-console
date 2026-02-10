@@ -289,6 +289,30 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             </button>
           </div>
 
+          <!-- Mobile Project Selector -->
+          <div v-if="currentSection !== 'administration' && currentSection !== 'dashboard'" class="mb-6">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Project</label>
+            <select 
+              v-model="selectedProjectId" 
+              :disabled="isInEditOrDetailView"
+              :class="[
+                'w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200',
+                isInEditOrDetailView 
+                  ? 'cursor-not-allowed opacity-60 bg-gray-50 dark:bg-gray-800' 
+                  : 'cursor-pointer focus:border-primary-500 dark:focus:border-primary-400'
+              ]"
+            >
+              <option :value="null">Select Project...</option>
+              <option
+                v-for="project in projectsStore.items"
+                :key="project.id"
+                :value="project.id"
+              >
+                {{ project.name }}
+              </option>
+            </select>
+          </div>
+
           <nav class="flex-1 flex flex-col gap-1">
             <div v-for="section in sections" :key="section.id">
               <button
