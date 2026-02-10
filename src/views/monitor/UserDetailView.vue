@@ -139,11 +139,11 @@ const profileEntries = computed(() => {
           </button>
           <button 
             @click="activeTab = 'conversations'" 
-            :class="['tab-button', { 'tab-button-active': activeTab === 'conversations' }]"
+            :class="['tab-button relative', { 'tab-button-active': activeTab === 'conversations' }]"
             type="button"
           >
             Conversations
-            <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
+            <span class="absolute top-1 -right-4 ml-2 px-1 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
               {{ conversations.length }}
             </span>
           </button>
