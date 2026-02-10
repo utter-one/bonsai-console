@@ -505,15 +505,15 @@
 
 /* Tabs */
 .tabs-container {
-  @apply border-b border-gray-200 bg-white px-8 dark:bg-gray-800 dark:border-gray-700;
+  @apply border-b border-gray-200 bg-transparent md:bg-white px-0 md:px-8 dark:bg-transparent md:dark:bg-gray-800 dark:border-gray-700 md:mb-0 mb-4;
 }
 
 .tabs-nav {
-  @apply flex gap-8;
+  @apply flex gap-4 md:gap-8 overflow-x-auto;
 }
 
 .tab-button {
-  @apply py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600;
+  @apply py-3 md:py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600 whitespace-nowrap;
 }
 
 .tab-button-active {
@@ -522,7 +522,7 @@
 
 /* Metadata Display */
 .metadata-container {
-  @apply grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700/50;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700/50;
 }
 
 .metadata-item {
@@ -534,10 +534,10 @@
 }
 
 .metadata-value {
-  @apply text-sm font-medium text-gray-900 dark:text-white;
+  @apply text-sm font-medium text-gray-900 dark:text-white break-all;
 }
 
 /* Tab Content */
 .tab-content {
-  @apply bg-white border-gray-200 p-6 dark:bg-gray-800;
+  @apply bg-transparent md:bg-white border-gray-200 p-0 md:p-6 dark:bg-transparent md:dark:bg-gray-800;
 }
