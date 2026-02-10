@@ -37,7 +37,10 @@ export type Effect =
     } & CallToolEffect)
   | ({
       type: "call_webhook";
-    } & CallWebhookEffect);
+    } & CallWebhookEffect)
+  | ({
+      type: "generate_response";
+    } & GenerateResponseEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -425,6 +428,11 @@ export interface CallWebhookEffect {
    * @minLength 1
    */
   resultKey: string;
+}
+
+export interface GenerateResponseEffect {
+  /** Effect type */
+  type: "generate_response";
 }
 
 export interface StageActionParameter {
