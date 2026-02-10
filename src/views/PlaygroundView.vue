@@ -770,7 +770,6 @@ const isJumpingStage = ref(false)
 const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
 const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
 const isConversationActive = computed(() => wsClient.value?.isInConversation.value || false)
-const conversationId = computed(() => wsClient.value?.conversationId.value || null)
 
 const canConnectWebSocket = computed(() => {
   return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value
