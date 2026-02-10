@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watchEffect, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useLayoutStore } from '@/stores'
 import type { Component } from 'vue'
 
 interface MenuItem {
@@ -17,8 +18,22 @@ interface Props {
 const props = defineProps<Props>()
 const route = useRoute()
 const router = useRouter()
+const layoutStore = useLayoutStore()
 
 const currentRouteName = computed(() => route.name as string)
+
+// Generate a unique ID for this instance
+const ownerId = Math.random().toString(36).substring(7)
+
+// Update store when props change
+watchEffect(() => {
+  layoutStore.setSidebar(props.title, props.menuItems, ownerId)
+})
+
+// Clear store on unmount
+onUnmounted(() => {
+  layoutStore.clearSidebar(ownerId)
+})
 
 function navigateTo(routeName: string) {
   router.push({ name: routeName })
@@ -26,9 +41,9 @@ function navigateTo(routeName: string) {
 </script>
 
 <template>
-  <div class="flex gap-6 h-full">
+  <div class="md:flex gap-6 h-full ">
     <!-- Sidebar Navigation -->
-    <aside class="w-64 flex-shrink-0">
+    <aside class="w-64 flex-shrink-0 hidden md:block">
       <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24 dark:bg-gray-800 dark:border-gray-700">
         <div class="px-4 py-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
           <h2 class="m-0 text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h2>

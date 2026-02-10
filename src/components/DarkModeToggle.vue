@@ -7,8 +7,8 @@ const themeStore = useThemeStore()
 
 <template>
   <button
-    @click="themeStore.toggleTheme()"
-    class="fixed bottom-4 left-4 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform cursor-pointer z-[9999] flex items-center justify-center text-gray-800 dark:text-yellow-400"
+    @click="themeStore.toggleTheme"
+    class="p-2 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer flex items-center justify-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-yellow-400"
     :title="themeStore.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
   >
     <Sun v-if="themeStore.isDark" :size="20" />

@@ -116,7 +116,7 @@ const profileEntries = computed(() => {
     <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
       <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex items-center gap-4 flex-1">
+        <div class="md:flex items-center gap-4 flex-1">
           <button @click="goBack" class="btn-icon" title="Back to users">
             <ArrowLeft class="w-5 h-5" />
           </button>
@@ -139,11 +139,11 @@ const profileEntries = computed(() => {
           </button>
           <button 
             @click="activeTab = 'conversations'" 
-            :class="['tab-button', { 'tab-button-active': activeTab === 'conversations' }]"
+            :class="['tab-button relative', { 'tab-button-active': activeTab === 'conversations' }]"
             type="button"
           >
             Conversations
-            <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
+            <span class="absolute top-1 -right-4 ml-2 px-1 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
               {{ conversations.length }}
             </span>
           </button>
