@@ -173,16 +173,16 @@ function clearSearch() {
                   {{ stage.name }}
                 </td>
                 <td class="table-cell">
-                  <span class="badge-secondary">{{ formatEnum(stage.enterBehavior) }}</span>
+                  <span class="badge-secondary whitespace-nowrap">{{ formatEnum(stage.enterBehavior) }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex gap-1 flex-wrap">
                     <span v-if="stage.useKnowledge" class="badge-info">Knowledge</span>
                     <span v-if="stage.useGlobalActions" class="badge-info">Global Actions</span>
-                    <span v-if="stage.classifierIds?.length" class="badge-info">
+                    <span v-if="stage.classifierIds?.length" class="badge-info whitespace-nowrap">
                       {{ stage.classifierIds.length }} Classifier(s)
                     </span>
-                    <span v-if="stage.transformerIds?.length" class="badge-info">
+                    <span v-if="stage.transformerIds?.length" class="badge-info whitespace-nowrap">
                       {{ stage.transformerIds.length }} Transformer(s)
                     </span>
                   </div>
