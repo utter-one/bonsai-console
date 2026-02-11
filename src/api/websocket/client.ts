@@ -31,6 +31,8 @@ import type {
   GetAllVarsResponse,
   RunActionRequest,
   RunActionResponse,
+  CallToolRequest,
+  CallToolResponse,
 } from './websocket-contracts'
 
 /** Error message structure from server */
@@ -60,6 +62,7 @@ type ServerMessage =
   | GetVarResponse
   | GetAllVarsResponse
   | RunActionResponse
+  | CallToolResponse
   | ErrorMessage
 
 /** Event handlers for server-initiated messages */
@@ -546,6 +549,33 @@ export class NexusWebSocketClient {
         return response.result
       } else {
         throw new Error(response.error || 'Failed to run action')
+      }
+    })
+  }
+
+  /**
+   * Call a tool with parameters.
+   * @param toolId - The tool ID to call
+   * @param parameters - Object map of parameter names to their values
+   * @returns The result returned by the tool
+   * @throws {Error} If tool execution fails or no active conversation
+   */
+  async callTool(toolId: string, parameters: Record<string, any> = {}): Promise<any> {
+    this.ensureConversation()
+    const requestId = this.generateRequestId()
+    
+    return this.sendRequest<CallToolResponse>({
+      type: 'call_tool',
+      requestId,
+      sessionId: this.sessionId!,
+      conversationId: this.conversationId!,
+      toolId,
+      parameters,
+    } as CallToolRequest, (response) => {
+      if (response.success) {
+        return response.result
+      } else {
+        throw new Error(response.error || 'Failed to call tool')
       }
     })
   }

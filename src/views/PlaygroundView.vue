@@ -121,6 +121,12 @@
             <SkipForward :size="18" />
             Jump to Stage
           </button>
+
+          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
+            @click="showCallToolDialog = true">
+            <Wrench :size="18" />
+            Call Tool
+          </button>
         </div>
       </div>
     </div>
@@ -284,6 +290,9 @@
     <RunActionModal v-if="showRunActionDialog" :global-actions="globalActions" :current-stage="currentStage"
       @close="showRunActionDialog = false" @run="handleRunAction" />
 
+    <CallToolModal v-if="showCallToolDialog" :project-id="projectId"
+      @close="showCallToolDialog = false" @call="handleCallTool" />
+
     <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
       :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
       @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
@@ -297,9 +306,10 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
+import CallToolModal from '@/components/modals/CallToolModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
@@ -766,6 +776,7 @@ const isConversationEnding = ref(false)
 const isSendingMessage = ref(false)
 const isRunningAction = ref(false)
 const isJumpingStage = ref(false)
+const isCallingTool = ref(false)
 
 const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
 const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
@@ -789,6 +800,10 @@ const canRunAction = computed(() => {
 
 const canJumpToStage = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isJumpingStage.value
+})
+
+const canCallTool = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isCallingTool.value
 })
 
 const canSendMessage = computed(() => {
@@ -1121,6 +1136,7 @@ const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
+const showCallToolDialog = ref(false)
 const showAudioSettingsModal = ref(false)
 
 // Audio settings
@@ -1284,6 +1300,43 @@ async function handleJumpToStage(stage: StageResponse) {
     })
   } finally {
     isJumpingStage.value = false
+  }
+}
+
+async function handleCallTool(toolId: string, parameters: Record<string, any>) {
+  if (!wsClient.value || !wsClient.value.client.value) {
+    addEvent({
+      type: 'Error',
+      message: 'No active WebSocket connection',
+      timestamp: new Date()
+    })
+    return
+  }
+  if (isCallingTool.value || isConversationStarting.value || isConversationEnding.value) return
+
+  try {
+    isCallingTool.value = true
+    addEvent({
+      type: 'System',
+      message: `Calling tool: ${toolId}`,
+      timestamp: new Date()
+    })
+
+    const result = await wsClient.value.client.value.callTool(toolId, parameters)
+
+    addEvent({
+      type: 'System',
+      message: `Tool executed successfully. Result: ${JSON.stringify(result, null, 2)}`,
+      timestamp: new Date()
+    })
+  } catch (error) {
+    addEvent({
+      type: 'Error',
+      message: `Failed to call tool: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+  } finally {
+    isCallingTool.value = false
   }
 }
 

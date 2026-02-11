@@ -874,6 +874,43 @@
           "required"
         ]
       },
+      "ToolParameter": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the parameter (used as key when passing to tool)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "string[]",
+              "number[]",
+              "boolean[]"
+            ],
+            "description": "Expected type of the parameter value"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Description of what the parameter represents"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether this parameter must be provided when invoking the tool"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "description",
+          "required"
+        ]
+      },
       "StageAction": {
         "type": "object",
         "properties": {
@@ -5802,6 +5839,14 @@
             ],
             "description": "Expected output format from the tool"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "default": [],
+            "description": "Parameters that this tool expects to receive"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -5878,6 +5923,13 @@
               "multi-modal"
             ],
             "description": "Updated output format"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Updated parameters for the tool"
           },
           "metadata": {
             "type": "object",
@@ -5976,6 +6028,13 @@
             ],
             "description": "Expected output format"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Parameters that this tool expects to receive"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -6010,6 +6069,7 @@
           "llmProviderId",
           "inputType",
           "outputType",
+          "parameters",
           "metadata",
           "version",
           "createdAt",
@@ -6088,6 +6148,13 @@
                   ],
                   "description": "Expected output format"
                 },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ToolParameter"
+                  },
+                  "description": "Parameters that this tool expects to receive"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -6122,6 +6189,7 @@
                 "llmProviderId",
                 "inputType",
                 "outputType",
+                "parameters",
                 "metadata",
                 "version",
                 "createdAt",
@@ -23280,6 +23348,14 @@
                     ],
                     "description": "Expected output format from the tool"
                   },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ToolParameter"
+                    },
+                    "default": [],
+                    "description": "Parameters that this tool expects to receive"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -23371,6 +23447,13 @@
                       ],
                       "description": "Expected output format"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ToolParameter"
+                      },
+                      "description": "Parameters that this tool expects to receive"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -23405,6 +23488,7 @@
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "parameters",
                     "metadata",
                     "version",
                     "createdAt",
@@ -23635,6 +23719,13 @@
                             ],
                             "description": "Expected output format"
                           },
+                          "parameters": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/ToolParameter"
+                            },
+                            "description": "Parameters that this tool expects to receive"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -23669,6 +23760,7 @@
                           "llmProviderId",
                           "inputType",
                           "outputType",
+                          "parameters",
                           "metadata",
                           "version",
                           "createdAt",
@@ -23803,6 +23895,13 @@
                       ],
                       "description": "Expected output format"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ToolParameter"
+                      },
+                      "description": "Parameters that this tool expects to receive"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -23837,6 +23936,7 @@
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "parameters",
                     "metadata",
                     "version",
                     "createdAt",
@@ -23934,6 +24034,13 @@
                     ],
                     "description": "Updated output format"
                   },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ToolParameter"
+                    },
+                    "description": "Updated parameters for the tool"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -24026,6 +24133,13 @@
                       ],
                       "description": "Expected output format"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ToolParameter"
+                      },
+                      "description": "Parameters that this tool expects to receive"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -24060,6 +24174,7 @@
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "parameters",
                     "metadata",
                     "version",
                     "createdAt",

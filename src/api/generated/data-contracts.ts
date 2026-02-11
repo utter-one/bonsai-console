@@ -452,6 +452,23 @@ export interface StageActionParameter {
   required: boolean;
 }
 
+export interface ToolParameter {
+  /**
+   * Name of the parameter (used as key when passing to tool)
+   * @minLength 1
+   */
+  name: string;
+  /** Expected type of the parameter value */
+  type: "string" | "number" | "boolean" | "string[]" | "number[]" | "boolean[]";
+  /**
+   * Description of what the parameter represents
+   * @minLength 1
+   */
+  description: string;
+  /** Whether this parameter must be provided when invoking the tool */
+  required: boolean;
+}
+
 export interface StageAction {
   /**
    * Display name of the action
@@ -2760,6 +2777,11 @@ export interface CreateToolRequest {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
   outputType: "text" | "image" | "multi-modal";
+  /**
+   * Parameters that this tool expects to receive
+   * @default []
+   */
+  parameters?: ToolParameter[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -2789,6 +2811,8 @@ export interface UpdateToolRequest {
   inputType?: "text" | "image" | "multi-modal";
   /** Updated output format */
   outputType?: "text" | "image" | "multi-modal";
+  /** Updated parameters for the tool */
+  parameters?: ToolParameter[];
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -2829,6 +2853,8 @@ export interface ToolResponse {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format */
   outputType: "text" | "image" | "multi-modal";
+  /** Parameters that this tool expects to receive */
+  parameters: ToolParameter[];
   /** Additional metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -2870,6 +2896,8 @@ export interface ToolListResponse {
     inputType: "text" | "image" | "multi-modal";
     /** Expected output format */
     outputType: "text" | "image" | "multi-modal";
+    /** Parameters that this tool expects to receive */
+    parameters: ToolParameter[];
     /** Additional metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
