@@ -320,9 +320,9 @@ const lifecycleActions = computed(() => {
 <template>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
-      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1">
-        <button @click="goBack" class="btn-icon" title="Back to stages">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
+        <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to stages">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
@@ -494,7 +494,7 @@ const lifecycleActions = computed(() => {
               <label class="form-label">
                 LLM Provider <span class="required">*</span>
               </label>
-              <div class="flex gap-2">
+              <div class="flex flex-col md:flex-row gap-2">
                 <select
                   v-model="form.llmProviderId"
                   required
@@ -641,7 +641,7 @@ const lifecycleActions = computed(() => {
 
           <!-- Actions Tab -->
           <div v-show="activeTab === 'actions'" class="tab-content">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
                 <p class="text-sm text-gray-600 mt-1">
@@ -688,8 +688,8 @@ const lifecycleActions = computed(() => {
                       </td>
                       <td class="table-cell">
                         <div class="flex flex-col gap-1">
-                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs">User Input</span>
-                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs">Client Command</span>
+                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs whitespace-nowrap">User Input</span>
+                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
                         </div>
                       </td>
                       <td class="table-cell">

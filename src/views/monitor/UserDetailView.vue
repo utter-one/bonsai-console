@@ -117,7 +117,7 @@ const profileEntries = computed(() => {
       <!-- Header -->
       <div class="flex items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
         <div class="md:flex items-center gap-4 flex-1">
-          <button @click="goBack" class="btn-icon" title="Back to users">
+          <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to users">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
@@ -248,13 +248,13 @@ const profileEntries = computed(() => {
                           {{ formatStatusLabel(conversation.status) }}
                         </span>
                       </div>
-                      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <div class="md:grid md:grid-cols-2 md:gap-x-4 md:gap-y-1 text-sm">
                         <div>
-                          <span class="text-gray-600 dark:text-gray-400">Project:</span>
+                          <span class="text-gray-600 dark:text-gray-400 w-32 md:w-auto">Project:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.projectId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600 dark:text-gray-400">Stage:</span>
+                          <span class="text-gray-600 dark:text-gray-400 w-32 md:w-auto">Stage:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.stageId }}</span>
                         </div>
                         <div>

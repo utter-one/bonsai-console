@@ -32,7 +32,7 @@ function formatValue(field: MetadataField): string {
 
 // Helper function to get value class
 function getValueClass(field: MetadataField): string {
-  return field.format === 'mono' ? 'metadata-value font-mono' : 'metadata-value'
+  return field.format === 'mono' ? 'metadata-value font-mono !pl-0' : 'metadata-value !pl-0'
 }
 </script>
 
