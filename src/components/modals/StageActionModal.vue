@@ -2,8 +2,18 @@
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
       <h2 class="modal-header">
-        {{ editingKey ? 'Edit Action' : 'New Action' }}
+        {{ modalTitle }}
       </h2>
+      
+      <!-- Lifecycle Action Info -->
+      <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+        <p class="text-sm text-blue-800 dark:text-blue-300">
+          <strong>Lifecycle Action:</strong> {{ lifecycleInfo }}
+        </p>
+        <p class="text-xs text-blue-700 dark:text-blue-400 mt-1">
+          Note: Some effects may be restricted based on the lifecycle context. Trigger settings are not applicable.
+        </p>
+      </div>
 
       <form @submit.prevent="handleSubmit" class="flex flex-col" style="height: calc(100% - 80px);">
         <!-- Use shared ActionForm component -->
@@ -18,11 +28,12 @@
           @update:active-tab="activeTab = $event as TabType"
           :available-classifiers="projectClassifiers"
           :available-stages="projectStages"
-          :show-key-field="true"
+          :show-key-field="!isLifecycleAction"
           :action-key="actionKey"
           @update:action-key="actionKey = $event"
           :is-key-disabled="!!editingKey"
-          :show-parameters="true"
+          :show-parameters="!isLifecycleAction"
+          :show-trigger="!isLifecycleAction"
           :show-tabs="true"
         />
 
@@ -51,9 +62,26 @@ const route = useRoute()
 const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
 
+// Lifecycle action constants (matching StageEditView)
+const LIFECYCLE_ACTION_INFO = {
+  '__on_enter': {
+    name: 'Stage Entry Action',
+    description: 'Executes when entering this stage, before enterBehavior',
+  },
+  '__on_leave': {
+    name: 'Stage Exit Action',
+    description: 'Executes when leaving this stage, before loading the new stage',
+  },
+  '__on_fallback': {
+    name: 'Fallback Action',
+    description: 'Executes when no action matches user input after classification',
+  },
+} as const
+
 const props = defineProps<{
   action: StageAction | null
   editingKey: string | null
+  isLifecycleAction?: boolean
 }>()
 
 const projectClassifiers = computed(() => {
@@ -64,6 +92,22 @@ const projectClassifiers = computed(() => {
 const projectStages = computed(() => {
   const projectId = route.params.projectId as string
   return stagesStore.items.filter(s => s.projectId === projectId)
+})
+
+const modalTitle = computed(() => {
+  if (props.isLifecycleAction && props.editingKey) {
+    const info = LIFECYCLE_ACTION_INFO[props.editingKey as keyof typeof LIFECYCLE_ACTION_INFO]
+    return info ? `Configure ${info.name}` : 'Configure Lifecycle Action'
+  }
+  return props.editingKey ? 'Edit Action' : 'New Action'
+})
+
+const lifecycleInfo = computed(() => {
+  if (props.isLifecycleAction && props.editingKey) {
+    const info = LIFECYCLE_ACTION_INFO[props.editingKey as keyof typeof LIFECYCLE_ACTION_INFO]
+    return info?.description || ''
+  }
+  return ''
 })
 
 const emit = defineEmits<{
@@ -121,11 +165,12 @@ watch(() => props.action, (action) => {
     }
   } else {
     // Reset form for new action
-    actionKey.value = ''
+    actionKey.value = props.editingKey || ''
     form.value = {
       name: '',
       condition: '',
-      triggerOnUserInput: true,
+      // Lifecycle actions don't use triggers
+      triggerOnUserInput: props.isLifecycleAction ? false : true,
       triggerOnClientCommand: false,
       classificationTrigger: '',
       overrideClassifierId: '',

@@ -2,12 +2,41 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
+
+// Lifecycle action constants
+const LIFECYCLE_ACTIONS = {
+  ON_ENTER: '__on_enter',
+  ON_LEAVE: '__on_leave',
+  ON_FALLBACK: '__on_fallback',
+} as const
+
+const LIFECYCLE_ACTION_INFO = {
+  [LIFECYCLE_ACTIONS.ON_ENTER]: {
+    name: 'On Enter',
+    description: 'Executes when entering this stage',
+    context: 'on_enter',
+  },
+  [LIFECYCLE_ACTIONS.ON_LEAVE]: {
+    name: 'On Leave',
+    description: 'Executes when leaving this stage',
+    context: 'on_leave',
+  },
+  [LIFECYCLE_ACTIONS.ON_FALLBACK]: {
+    name: 'On Fallback',
+    description: 'Executes when no action matches user input',
+    context: 'on_fallback',
+  },
+} as const
+
+function isLifecycleAction(key: string): boolean {
+  return Object.values(LIFECYCLE_ACTIONS).includes(key as any)
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -21,11 +50,12 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'actions' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
+const isLifecycleActionKey = ref(false)
 const form = ref({
   id: '',
   name: '',
@@ -214,6 +244,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
 function addAction() {
   editingActionKey.value = null
   editingAction.value = null
+  isLifecycleActionKey.value = false
   showActionModal.value = true
 }
 
@@ -223,15 +254,41 @@ function editAction(key: string) {
   
   editingActionKey.value = key
   editingAction.value = action
+  isLifecycleActionKey.value = isLifecycleAction(key)
   showActionModal.value = true
 }
 
 function deleteAction(key: string) {
+  // Prevent deletion of lifecycle actions
+  if (isLifecycleAction(key)) {
+    alert('Lifecycle actions cannot be deleted. Use "Clear" to remove the configuration instead.')
+    return
+  }
+  
   if (confirm(`Are you sure you want to delete action "${key}"?`)) {
     const newActions = { ...form.value.actions }
     delete newActions[key]
     form.value.actions = newActions
   }
+}
+
+function configureLifecycleAction(key: string) {
+  editingActionKey.value = key
+  editingAction.value = form.value.actions[key] || null
+  isLifecycleActionKey.value = true
+  showActionModal.value = true
+}
+
+function clearLifecycleAction(key: string) {
+  if (confirm(`Are you sure you want to clear the "${LIFECYCLE_ACTION_INFO[key as keyof typeof LIFECYCLE_ACTION_INFO].name}" action?`)) {
+    const newActions = { ...form.value.actions }
+    delete newActions[key]
+    form.value.actions = newActions
+  }
+}
+
+function isLifecycleActionConfigured(key: string): boolean {
+  return !!form.value.actions[key]
 }
 
 function handleActionSave(data: { key: string; action: StageAction }) {
@@ -242,9 +299,20 @@ function handleActionSave(data: { key: string; action: StageAction }) {
 }
 
 const actionsList = computed(() => {
-  return Object.entries(form.value.actions).map(([key, action]) => ({
+  return Object.entries(form.value.actions)
+    .filter(([key]) => !isLifecycleAction(key))
+    .map(([key, action]) => ({
+      key,
+      ...action
+    }))
+})
+
+const lifecycleActions = computed(() => {
+  return Object.values(LIFECYCLE_ACTIONS).map(key => ({
     key,
-    ...action
+    info: LIFECYCLE_ACTION_INFO[key as keyof typeof LIFECYCLE_ACTION_INFO],
+    action: form.value.actions[key] || null,
+    isConfigured: isLifecycleActionConfigured(key),
   }))
 })
 </script>
@@ -305,6 +373,13 @@ const actionsList = computed(() => {
           type="button"
         >
           Actions
+        </button>
+        <button
+          @click="activeTab = 'lifecycle'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'lifecycle' }]"
+          type="button"
+        >
+          Lifecycle
         </button>
         <button
           v-if="isEditMode"
@@ -653,6 +728,77 @@ const actionsList = computed(() => {
             </div>
           </div>
 
+          <!-- Lifecycle Tab -->
+          <div v-show="activeTab === 'lifecycle'" class="tab-content">
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Lifecycle Actions</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Special system actions that execute at specific lifecycle points in the conversation flow.
+                These are optional but provide powerful hooks for initialization, cleanup, and fallback handling.
+              </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div 
+                v-for="lifecycle in lifecycleActions" 
+                :key="lifecycle.key"
+                class="lifecycle-action-card"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-medium text-gray-900 dark:text-white">{{ lifecycle.info.name }}</h4>
+                      <span 
+                        v-if="lifecycle.isConfigured" 
+                        class="badge-configured"
+                      >
+                        <CheckCircle class="w-3 h-3 mr-1 inline-block" />
+                        Configured
+                      </span>
+                      <span 
+                        v-else
+                        class="badge-unconfigured"
+                      >
+                        <Circle class="w-3 h-3 mr-1 inline-block" />
+                        Not Set
+                      </span>
+                    </div>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ lifecycle.info.description }}</p>
+                  </div>
+                </div>
+                
+                <div v-if="lifecycle.action" class="mb-3 text-sm">
+                  <p class="text-gray-700 dark:text-gray-300 font-medium">{{ lifecycle.action.name }}</p>
+                  <p class="text-gray-500 text-xs mt-1">
+                    {{ lifecycle.action.effects?.length || 0 }} effect(s)
+                  </p>
+                </div>
+                
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    @click="configureLifecycleAction(lifecycle.key)"
+                    class="btn-secondary btn-sm flex-1"
+                    :disabled="isLoading"
+                  >
+                    <Settings class="w-3 h-3 mr-1 inline-block" />
+                    {{ lifecycle.isConfigured ? 'Edit' : 'Configure' }}
+                  </button>
+                  <button
+                    v-if="lifecycle.isConfigured"
+                    type="button"
+                    @click="clearLifecycleAction(lifecycle.key)"
+                    class="btn-danger btn-sm"
+                    :disabled="isLoading"
+                    title="Clear action"
+                  >
+                    <Trash2 class="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Metadata Tab -->
           <MetadataTab
             v-if="isEditMode && currentStage"
@@ -678,6 +824,7 @@ const actionsList = computed(() => {
       v-if="showActionModal"
       :action="editingAction"
       :editing-key="editingActionKey"
+      :is-lifecycle-action="isLifecycleActionKey"
       @close="showActionModal = false"
       @save="handleActionSave"
     />

@@ -179,7 +179,7 @@ function isConversationAbortedEvent(event: ConversationEventResponse): event is 
 // Type guard to check if event data is a conversation failed event
 function isConversationFailedEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
   eventType: 'conversation_failed'
-  eventData: { error: string; stageId?: string; metadata?: Record<string, any> }
+  eventData: { reason: string; stageId?: string; metadata?: Record<string, any> }
 } {
   return event.eventType === 'conversation_failed'
 }
@@ -626,7 +626,7 @@ const metadataFields = computed(() => {
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
                           <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
-                            event.eventData.error }}</div>
+                            event.eventData.reason }}</div>
                         </div>
                         <div v-if="event.eventData.stageId">
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
