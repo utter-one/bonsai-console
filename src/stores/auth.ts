@@ -71,6 +71,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    
+    // Clear project selection on logout
+    localStorage.removeItem('selectedProjectId')
   }
 
   async function checkSetupStatus() {

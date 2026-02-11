@@ -64,7 +64,10 @@ const selectedProjectId = computed({
 onMounted(async () => {
   await projectsStore.fetchAll({ offset: 0, limit: 100 })
   
-  // Set selectedProjectId from route if present
+  // Validate that the saved project still exists
+  projectSelectionStore.validateSelectedProject(projectsStore.items)
+  
+  // Set selectedProjectId from route if present (route takes priority)
   if (route.params.projectId) {
     projectSelectionStore.setSelectedProjectId(route.params.projectId as string)
   }
