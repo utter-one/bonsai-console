@@ -201,14 +201,14 @@ const changes = computed(() => {
           <div class="space-y-4">
             <div v-for="change in changes" :key="change.field" class="border-l-4 border-blue-500 pl-4 py-2">
               <div class="font-medium text-gray-900 dark:text-gray-200 mb-2">{{ change.field }}</div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">Old Value</div>
-                  <pre class="text-xs bg-red-50 border border-red-200 rounded p-2 overflow-x-auto">{{ formatJSON(change.oldValue) }}</pre>
+              <div class="md:grid grid-cols-2 gap-4 pr-2">
+                <div class="mb-2 md:mb-0">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Old Value</div>
+                  <pre class="text-xs bg-red-50 border border-red-200 rounded p-2 overflow-x-auto dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">{{ formatJSON(change.oldValue) }}</pre>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 mb-1">New Value</div>
-                  <pre class="text-xs bg-green-50 border border-green-200 rounded p-2 overflow-x-auto">{{ formatJSON(change.newValue) }}</pre>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">New Value</div>
+                  <pre class="text-xs bg-green-50 border border-green-200 rounded p-2 overflow-x-auto dark:bg-green-900/20 dark:border-green-800 dark:text-green-200">{{ formatJSON(change.newValue) }}</pre>
                 </div>
               </div>
             </div>

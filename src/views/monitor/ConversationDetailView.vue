@@ -211,11 +211,11 @@ const metadataFields = computed(() => {
 
 <template>
   <MonitorSectionLayout>
-    <div class="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div class="flex flex-col h-full md:border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex items-center justify-between md:px-8 px-0 md:py-6 pb-6 border-b border-gray-200 md:bg-white bg-transparent flex-shrink-0 md:dark:bg-gray-800 dark:border-gray-700">
       <div class="md:flex items-center gap-4 flex-1">
-          <button @click="goBack" class="btn-icon" title="Back to conversations">
+          <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to conversations">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
@@ -337,7 +337,7 @@ const metadataFields = computed(() => {
                                   <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
                                     class="space-y-1">
                                     <div v-for="(value, key) in action.parameters" :key="key"
-                                      class="flex items-start gap-2 text-xs">
+                                      class="md:flex items-start gap-2 text-xs">
                                       <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
                                       <span class="text-gray-900 break-words dark:text-gray-200">{{ 
                                         typeof value === 'object' ? JSON.stringify(value) : String(value) 
@@ -394,8 +394,8 @@ const metadataFields = computed(() => {
                               </div>
                               <div class="space-y-1">
                                 <div v-for="(value, key) in effect" :key="key"
-                                  class="flex items-start gap-2 text-xs">
-                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}:</span>
+                                  class="md:flex items-start gap-2 text-xs">
+                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}: </span>
                                   <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
                                     typeof value === 'object' ? JSON.stringify(value) : String(value) 
                                   }}</span>

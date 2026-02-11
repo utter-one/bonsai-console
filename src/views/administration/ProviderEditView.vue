@@ -252,9 +252,9 @@ const metadataFields = computed(() => {
   <AdministrationSectionLayout>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
-      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1">
-        <button @click="goBack" class="btn-icon" title="Back to providers">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
+        <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to providers">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>

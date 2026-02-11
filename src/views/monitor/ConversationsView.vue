@@ -337,7 +337,7 @@ async function refreshData() {
                 </td>
                 <td class="table-cell">
                   <span 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help whitespace-nowrap"
                     :class="getStatusBadgeClass(conversation.status)"
                     :title="conversation.statusDetails || 'No status details provided'"
                   >
