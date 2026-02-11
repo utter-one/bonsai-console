@@ -2198,7 +2198,7 @@ export class Api<
                 metadata?: Record<string, any>;
               }
             | {
-                error: string;
+                reason: string;
                 stageId?: string;
                 metadata?: Record<string, any>;
               }
@@ -2334,7 +2334,7 @@ export class Api<
               metadata?: Record<string, any>;
             }
           | {
-              error: string;
+              reason: string;
               stageId?: string;
               metadata?: Record<string, any>;
             }

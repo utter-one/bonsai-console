@@ -54,6 +54,7 @@ const props = withDefaults(
     availableClassifiers?: Array<{ id: string; name: string }>
     availableStages?: Array<{ id: string; name: string }>
     showParameters?: boolean
+    showTrigger?: boolean
     showKeyField?: boolean
     actionKey?: string
     isKeyDisabled?: boolean
@@ -66,6 +67,7 @@ const props = withDefaults(
     availableClassifiers: () => [],
     availableStages: () => [],
     showParameters: false,
+    showTrigger: true,
     showKeyField: false,
     actionKey: '',
     isKeyDisabled: false,
@@ -162,6 +164,7 @@ function removeProfileModification(index: number) {
           Basic
         </button>
         <button
+          v-if="showTrigger"
           type="button"
           @click="localActiveTab = 'trigger'"
           :class="[

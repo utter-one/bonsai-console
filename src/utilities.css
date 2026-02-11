@@ -364,6 +364,19 @@
   @apply text-sm text-gray-600 dark:text-gray-400;
 }
 
+/* Lifecycle Action Cards */
+.lifecycle-action-card {
+  @apply bg-white border-2 border-blue-200 rounded-lg p-4 transition-all hover:border-blue-400 dark:bg-gray-800 dark:border-blue-800 dark:hover:border-blue-600;
+}
+
+.badge-configured {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.badge-unconfigured {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400;
+}
+
 /* Section */
 .section-card {
   @apply bg-white rounded-xl p-6 shadow-sm dark:bg-gray-800 dark:shadow-black/40;

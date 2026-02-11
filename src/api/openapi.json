@@ -3954,7 +3954,7 @@
               {
                 "type": "object",
                 "properties": {
-                  "error": {
+                  "reason": {
                     "type": "string"
                   },
                   "stageId": {
@@ -3968,7 +3968,7 @@
                   }
                 },
                 "required": [
-                  "error"
+                  "reason"
                 ]
               },
               {
@@ -4293,7 +4293,7 @@
                     {
                       "type": "object",
                       "properties": {
-                        "error": {
+                        "reason": {
                           "type": "string"
                         },
                         "stageId": {
@@ -4307,7 +4307,7 @@
                         }
                       },
                       "required": [
-                        "error"
+                        "reason"
                       ]
                     },
                     {
@@ -13544,7 +13544,7 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "error": {
+                                  "reason": {
                                     "type": "string"
                                   },
                                   "stageId": {
@@ -13558,7 +13558,7 @@
                                   }
                                 },
                                 "required": [
-                                  "error"
+                                  "reason"
                                 ]
                               },
                               {
@@ -13951,7 +13951,7 @@
                         {
                           "type": "object",
                           "properties": {
-                            "error": {
+                            "reason": {
                               "type": "string"
                             },
                             "stageId": {
@@ -13965,7 +13965,7 @@
                             }
                           },
                           "required": [
-                            "error"
+                            "reason"
                           ]
                         },
                         {

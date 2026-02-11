@@ -1991,7 +1991,7 @@ export interface ConversationEventResponse {
         metadata?: Record<string, any>;
       }
     | {
-        error: string;
+        reason: string;
         stageId?: string;
         metadata?: Record<string, any>;
       }
@@ -2089,7 +2089,7 @@ export interface ConversationEventListResponse {
           metadata?: Record<string, any>;
         }
       | {
-          error: string;
+          reason: string;
           stageId?: string;
           metadata?: Record<string, any>;
         }
