@@ -3740,6 +3740,7 @@
               "classification",
               "action",
               "command",
+              "tool_call",
               "conversation_start",
               "conversation_resume",
               "conversation_end",
@@ -3891,6 +3892,44 @@
                 },
                 "required": [
                   "command"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "toolId": {
+                    "type": "string"
+                  },
+                  "toolName": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  },
+                  "success": {
+                    "type": "boolean"
+                  },
+                  "result": {
+                    "nullable": true
+                  },
+                  "error": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "toolId",
+                  "toolName",
+                  "parameters",
+                  "success"
                 ]
               },
               {
@@ -4079,6 +4118,7 @@
                     "classification",
                     "action",
                     "command",
+                    "tool_call",
                     "conversation_start",
                     "conversation_resume",
                     "conversation_end",
@@ -4230,6 +4270,44 @@
                       },
                       "required": [
                         "command"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "toolId": {
+                          "type": "string"
+                        },
+                        "toolName": {
+                          "type": "string"
+                        },
+                        "parameters": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "result": {
+                          "nullable": true
+                        },
+                        "error": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "toolId",
+                        "toolName",
+                        "parameters",
+                        "success"
                       ]
                     },
                     {
@@ -13361,6 +13439,7 @@
                               "classification",
                               "action",
                               "command",
+                              "tool_call",
                               "conversation_start",
                               "conversation_resume",
                               "conversation_end",
@@ -13512,6 +13591,44 @@
                                 },
                                 "required": [
                                   "command"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "toolId": {
+                                    "type": "string"
+                                  },
+                                  "toolName": {
+                                    "type": "string"
+                                  },
+                                  "parameters": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  },
+                                  "success": {
+                                    "type": "boolean"
+                                  },
+                                  "result": {
+                                    "nullable": true
+                                  },
+                                  "error": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "toolId",
+                                  "toolName",
+                                  "parameters",
+                                  "success"
                                 ]
                               },
                               {
@@ -13768,6 +13885,7 @@
                         "classification",
                         "action",
                         "command",
+                        "tool_call",
                         "conversation_start",
                         "conversation_resume",
                         "conversation_end",
@@ -13919,6 +14037,44 @@
                           },
                           "required": [
                             "command"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "toolId": {
+                              "type": "string"
+                            },
+                            "toolName": {
+                              "type": "string"
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            },
+                            "success": {
+                              "type": "boolean"
+                            },
+                            "result": {
+                              "nullable": true
+                            },
+                            "error": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "toolId",
+                            "toolName",
+                            "parameters",
+                            "success"
                           ]
                         },
                         {

@@ -1941,6 +1941,7 @@ export interface ConversationEventResponse {
     | "classification"
     | "action"
     | "command"
+    | "tool_call"
     | "conversation_start"
     | "conversation_resume"
     | "conversation_end"
@@ -1977,6 +1978,15 @@ export interface ConversationEventResponse {
     | {
         command: string;
         parameters?: Record<string, any>;
+        metadata?: Record<string, any>;
+      }
+    | {
+        toolId: string;
+        toolName: string;
+        parameters: Record<string, any>;
+        success: boolean;
+        result?: any;
+        error?: string;
         metadata?: Record<string, any>;
       }
     | {
@@ -2039,6 +2049,7 @@ export interface ConversationEventListResponse {
       | "classification"
       | "action"
       | "command"
+      | "tool_call"
       | "conversation_start"
       | "conversation_resume"
       | "conversation_end"
@@ -2075,6 +2086,15 @@ export interface ConversationEventListResponse {
       | {
           command: string;
           parameters?: Record<string, any>;
+          metadata?: Record<string, any>;
+        }
+      | {
+          toolId: string;
+          toolName: string;
+          parameters: Record<string, any>;
+          success: boolean;
+          result?: any;
+          error?: string;
           metadata?: Record<string, any>;
         }
       | {

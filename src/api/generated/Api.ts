@@ -2132,6 +2132,7 @@ export class Api<
             | "classification"
             | "action"
             | "command"
+            | "tool_call"
             | "conversation_start"
             | "conversation_resume"
             | "conversation_end"
@@ -2168,6 +2169,15 @@ export class Api<
             | {
                 command: string;
                 parameters?: Record<string, any>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                toolId: string;
+                toolName: string;
+                parameters: Record<string, any>;
+                success: boolean;
+                result?: any;
+                error?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -2268,6 +2278,7 @@ export class Api<
           | "classification"
           | "action"
           | "command"
+          | "tool_call"
           | "conversation_start"
           | "conversation_resume"
           | "conversation_end"
@@ -2304,6 +2315,15 @@ export class Api<
           | {
               command: string;
               parameters?: Record<string, any>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              toolId: string;
+              toolName: string;
+              parameters: Record<string, any>;
+              success: boolean;
+              result?: any;
+              error?: string;
               metadata?: Record<string, any>;
             }
           | {
