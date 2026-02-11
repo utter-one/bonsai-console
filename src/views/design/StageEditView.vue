@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -566,7 +566,7 @@ const actionsList = computed(() => {
 
           <!-- Actions Tab -->
           <div v-show="activeTab === 'actions'" class="tab-content">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
                 <p class="text-sm text-gray-600 mt-1">
@@ -613,8 +613,8 @@ const actionsList = computed(() => {
                       </td>
                       <td class="table-cell">
                         <div class="flex flex-col gap-1">
-                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs">User Input</span>
-                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs">Client Command</span>
+                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs whitespace-nowrap">User Input</span>
+                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
                         </div>
                       </td>
                       <td class="table-cell">
