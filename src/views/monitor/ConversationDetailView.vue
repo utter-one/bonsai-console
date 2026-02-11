@@ -215,7 +215,7 @@ const metadataFields = computed(() => {
       <!-- Header -->
     <div class="flex items-center justify-between md:px-8 px-0 md:py-6 pb-6 border-b border-gray-200 md:bg-white bg-transparent flex-shrink-0 md:dark:bg-gray-800 dark:border-gray-700">
       <div class="md:flex items-center gap-4 flex-1">
-          <button @click="goBack" class="btn-icon" title="Back to conversations">
+          <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to conversations">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
