@@ -98,7 +98,7 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
       const result = response as T
       const index = items.value.findIndex((item: any) => item.id === id)
       if (index !== -1) {
-        items.value = items.value.map((item: any) => 
+        items.value = items.value.map((item: any) =>
           item.id === id ? result : item
         )
       }
@@ -121,7 +121,7 @@ export function createResourceStore<T extends { id: string }, CreateRequest, Upd
     try {
       // For resources that require optimistic locking, pass version in the delete request
       if (version !== undefined) {
-        await apiMethods.delete(id, { data: { version } })
+        await apiMethods.delete(id, { version })
       } else {
         await apiMethods.delete(id)
       }
