@@ -248,13 +248,13 @@ const profileEntries = computed(() => {
                           {{ formatStatusLabel(conversation.status) }}
                         </span>
                       </div>
-                      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <div class="md:grid md:grid-cols-2 md:gap-x-4 md:gap-y-1 text-sm">
                         <div>
-                          <span class="text-gray-600 dark:text-gray-400">Project:</span>
+                          <span class="text-gray-600 dark:text-gray-400 w-32 md:w-auto">Project:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.projectId }}</span>
                         </div>
                         <div>
-                          <span class="text-gray-600 dark:text-gray-400">Stage:</span>
+                          <span class="text-gray-600 dark:text-gray-400 w-32 md:w-auto">Stage:</span>
                           <span class="ml-1 font-mono text-xs text-gray-900 dark:text-gray-200">{{ conversation.stageId }}</span>
                         </div>
                         <div>

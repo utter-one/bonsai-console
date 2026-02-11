@@ -291,7 +291,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
     <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
-      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1">
+      <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon" title="Back to projects">
           <ArrowLeft class="w-5 h-5" />
         </button>
@@ -594,7 +594,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
 
         <!-- API Keys Tab -->
         <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">Manage API keys for this project</p>
@@ -623,7 +623,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
               :key="apiKey.id"
               class="bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow dark:bg-gray-800 dark:border-gray-700"
             >
-              <div class="flex items-start justify-between">
+              <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
                     <h4 class="font-semibold text-gray-900 dark:text-white">{{ apiKey.name }}</h4>

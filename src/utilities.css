@@ -222,7 +222,7 @@
 
 /* Page Headers */
 .page-header {
-  @apply flex justify-between items-start mb-6;
+  @apply flex flex-col md:flex-row gap-3 md:gap-0 justify-between items-start mb-6;
 }
 
 .page-title {
@@ -538,11 +538,11 @@
 }
 
 .metadata-label {
-  @apply text-sm text-gray-500 mb-1 dark:text-gray-400;
+  @apply text-sm text-gray-500 mb-1 dark:text-gray-400 flex items-center gap-2;
 }
 
 .metadata-value {
-  @apply text-sm font-medium text-gray-900 dark:text-white break-all;
+  @apply text-sm font-medium text-gray-900 dark:text-white break-all pl-6;
 }
 
 /* Tab Content */
