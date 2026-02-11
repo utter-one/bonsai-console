@@ -229,7 +229,7 @@ async function handleApiKeySave(data: any) {
     } else {
       // Create new key
       const newKey = await apiKeysStore.create({
-        projectId: currentProject.value!.id,
+        projectId: data.projectId,
         name: data.name,
         metadata: data.metadata
       })
@@ -278,7 +278,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
   apiKeysError.value = null
   
   try {
-    await apiKeysStore.remove(apiKey.id)
+    await apiKeysStore.remove(apiKey.id, apiKey.version)
     await loadApiKeys()
   } catch (err: any) {
     apiKeysError.value = err.response?.data?.message || 'Failed to delete API key'
@@ -599,7 +599,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">Manage API keys for this project</p>
             </div>
-            <button @click="handleCreateApiKey" class="btn-primary">
+            <button @click="handleCreateApiKey" class="btn-primary" type="button">
               <Plus class="inline-block w-4 h-4 mr-2" />
               Create API Key
             </button>
@@ -648,18 +648,21 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
                     @click="handleToggleApiKey(apiKey)"
                     class="btn-secondary text-sm"
                     :title="apiKey.isActive ? 'Deactivate' : 'Activate'"
+                    type="button"
                   >
                     {{ apiKey.isActive ? 'Deactivate' : 'Activate' }}
                   </button>
                   <button
                     @click="handleEditApiKey(apiKey)"
                     class="btn-secondary text-sm"
+                    type="button"
                   >
                     Edit
                   </button>
                   <button
                     @click="handleDeleteApiKey(apiKey)"
                     class="btn-danger text-sm"
+                    type="button"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>

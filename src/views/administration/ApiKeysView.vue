@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useProjectsStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { Key, Search, X } from 'lucide-vue-next'
-import type { ApiKeyResponse } from '@/api/types'
+import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
@@ -86,8 +86,7 @@ function openCreateModal() {
     return
   }
   
-  // Pre-select the first project if none selected
-  selectedProjectId.value = projectsStore.items[0]?.id || ''
+  selectedProjectId.value = ''
   editingApiKey.value = null
   showModal.value = true
 }
@@ -98,24 +97,26 @@ function openEditModal(apiKey: ApiKeyResponse) {
   showModal.value = true
 }
 
-async function handleSave(data: any) {
+async function handleSave(data: CreateApiKeyRequest | UpdateApiKeyRequest) {
   try {
     if (editingApiKey.value) {
+      const updateData = data as UpdateApiKeyRequest;
       // Update existing API key
       await apiKeysStore.update(editingApiKey.value.id, {
-        name: data.name,
-        isActive: data.isActive,
-        metadata: data.metadata,
-        version: data.version,
+        name: updateData.name,
+        isActive: updateData.isActive,
+        metadata: updateData.metadata,
+        version: updateData.version,
       })
       showModal.value = false
       editingApiKey.value = null
     } else {
+      const createData = data as CreateApiKeyRequest;
       // Create new API key
       const result = await apiKeysStore.create({
-        projectId: selectedProjectId.value,
-        name: data.name,
-        metadata: data.metadata || {},
+        projectId: createData.projectId,
+        name: createData.name,
+        metadata: createData.metadata || {},
       })
       
       // Show the modal again with the created key to display the secret
