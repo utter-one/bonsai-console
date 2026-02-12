@@ -47,6 +47,7 @@ export function useWebSocketClient(
       sendTextInput: boolean
       receiveVoiceOutput: boolean
       receiveTranscriptionUpdates: boolean
+      receiveEvents: boolean
     }
   }
 ) {

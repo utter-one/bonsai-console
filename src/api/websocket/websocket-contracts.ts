@@ -49,6 +49,10 @@ export interface AuthRequest {
      * Whether the client wants to receive intermediate transcription updates for voice input and output
      */
     receiveTranscriptionUpdates: boolean;
+    /**
+     * Whether the client wants to receive all conversation events (e.g. turn start/end, agent actions)
+     */
+    receiveEvents: boolean;
   };
 }
 
@@ -319,6 +323,352 @@ export interface EndConversationResponse {
    * Error message if conversation termination failed
    */
   error?: string;
+}
+
+export interface ConversationEvent {
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Message type for conversation events
+   */
+  type: 'conversation_event';
+  /**
+   * Session ID containing the conversation
+   */
+  sessionId: string;
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Identifier of the input turn associated with the event, if applicable
+   */
+  inputTurnId?: string;
+  /**
+   * Identifier of the output turn associated with the event, if applicable
+   */
+  outputTurnId?: string;
+  /**
+   * Type of the conversation event
+   */
+  eventType:
+    | 'message'
+    | 'classification'
+    | 'action'
+    | 'command'
+    | 'tool_call'
+    | 'conversation_start'
+    | 'conversation_resume'
+    | 'conversation_end'
+    | 'conversation_aborted'
+    | 'conversation_failed'
+    | 'jump_to_stage';
+  /**
+   * Data associated with the conversation event
+   */
+  eventData:
+    | {
+        role: 'user' | 'assistant';
+        text: string;
+        originalText: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        classifierId: string;
+        input: string;
+        actions: {
+          classifierId: string;
+          classifierName: string;
+          actions: {
+            name: string;
+            parameters: {
+              [k: string]: unknown;
+            };
+          }[];
+        }[];
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        actionName: string;
+        stageId: string;
+        effects: (
+          | {
+              /**
+               * Effect type
+               */
+              type: 'end_conversation';
+              /**
+               * Optional reason for ending the conversation
+               */
+              reason?: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'abort_conversation';
+              /**
+               * Optional reason for aborting the conversation
+               */
+              reason?: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'go_to_stage';
+              /**
+               * ID of the stage to switch to
+               */
+              stageId: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'run_script';
+              /**
+               * JavaScript code to execute in isolated context
+               */
+              code: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'modify_user_input';
+              /**
+               * Template to render and replace user input with
+               */
+              template: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'modify_variables';
+              /**
+               * Array of variable modifications to apply
+               *
+               * @minItems 1
+               */
+              modifications: [
+                {
+                  /**
+                   * Name of the variable to modify
+                   */
+                  variableName: string;
+                  /**
+                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+                   */
+                  operation: 'set' | 'reset' | 'add' | 'remove';
+                  /**
+                   * Value for the operation (not used for reset operation)
+                   */
+                  value: {
+                    [k: string]: unknown;
+                  };
+                },
+                ...{
+                  /**
+                   * Name of the variable to modify
+                   */
+                  variableName: string;
+                  /**
+                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+                   */
+                  operation: 'set' | 'reset' | 'add' | 'remove';
+                  /**
+                   * Value for the operation (not used for reset operation)
+                   */
+                  value: {
+                    [k: string]: unknown;
+                  };
+                }[]
+              ];
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'modify_user_profile';
+              /**
+               * Array of user profile field modifications to apply
+               *
+               * @minItems 1
+               */
+              modifications: [
+                {
+                  /**
+                   * Name of the profile field to modify
+                   */
+                  fieldName: string;
+                  /**
+                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+                   */
+                  operation: 'set' | 'reset' | 'add' | 'remove';
+                  /**
+                   * Value for the operation (not used for reset operation)
+                   */
+                  value: {
+                    [k: string]: unknown;
+                  };
+                },
+                ...{
+                  /**
+                   * Name of the profile field to modify
+                   */
+                  fieldName: string;
+                  /**
+                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+                   */
+                  operation: 'set' | 'reset' | 'add' | 'remove';
+                  /**
+                   * Value for the operation (not used for reset operation)
+                   */
+                  value: {
+                    [k: string]: unknown;
+                  };
+                }[]
+              ];
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'call_tool';
+              /**
+               * ID of the tool to call
+               */
+              toolId: string;
+              /**
+               * Parameters to pass to the tool
+               */
+              parameters: {
+                [k: string]: unknown;
+              };
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'call_webhook';
+              /**
+               * HTTP(S) URL to call
+               */
+              url: string;
+              /**
+               * HTTP method to use
+               */
+              method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+              /**
+               * HTTP headers to send with the request
+               */
+              headers?: {
+                [k: string]: string;
+              };
+              /**
+               * Request body for POST/PUT/PATCH requests
+               */
+              body?: {
+                [k: string]: unknown;
+              };
+              /**
+               * Key name to store the webhook result under in context.results.webhooks
+               */
+              resultKey: string;
+            }
+          | {
+              /**
+               * Effect type
+               */
+              type: 'generate_response';
+            }
+        )[];
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        command: string;
+        parameters?: {
+          [k: string]: unknown;
+        };
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        toolId: string;
+        toolName: string;
+        parameters: {
+          [k: string]: unknown;
+        };
+        success: boolean;
+        result?: unknown;
+        error?: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        stageId: string;
+        initialVariables?: {
+          [k: string]: unknown;
+        };
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        previousStatus:
+          | 'initialized'
+          | 'awaiting_user_input'
+          | 'receiving_user_voice'
+          | 'processing_user_input'
+          | 'generating_response'
+          | 'finished'
+          | 'aborted'
+          | 'failed';
+        stageId: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        reason?: string;
+        stageId: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        reason: string;
+        stageId: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        reason: string;
+        stageId?: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      }
+    | {
+        fromStageId: string;
+        toStageId: string;
+        metadata?: {
+          [k: string]: unknown;
+        };
+      };
 }
 
 // ============================================================================

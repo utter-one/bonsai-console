@@ -282,7 +282,10 @@ const metadataFields = computed(() => {
             <div v-else class="space-y-4">
               <div v-for="event in events" :key="event.id"
                 class="border rounded-lg p-4 shadow-sm transition-shadow hover:shadow-md"
-                :class="getEventTypeColor(event.eventType)">
+                :class="[
+                  getEventTypeColor(event.eventType),
+                  { 'ml-8': !isMessageEvent(event) }
+                ]">
 
                 <!-- Message Event -->
                 <div v-if="isMessageEvent(event)">
