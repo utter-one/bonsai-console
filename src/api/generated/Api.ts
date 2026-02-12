@@ -19,6 +19,7 @@ import {
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   StageAction,
+  ToolParameter,
   VoiceConfig,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
@@ -2131,6 +2132,7 @@ export class Api<
             | "classification"
             | "action"
             | "command"
+            | "tool_call"
             | "conversation_start"
             | "conversation_resume"
             | "conversation_end"
@@ -2167,6 +2169,15 @@ export class Api<
             | {
                 command: string;
                 parameters?: Record<string, any>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                toolId: string;
+                toolName: string;
+                parameters: Record<string, any>;
+                success: boolean;
+                result?: any;
+                error?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -2267,6 +2278,7 @@ export class Api<
           | "classification"
           | "action"
           | "command"
+          | "tool_call"
           | "conversation_start"
           | "conversation_resume"
           | "conversation_end"
@@ -2303,6 +2315,15 @@ export class Api<
           | {
               command: string;
               parameters?: Record<string, any>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              toolId: string;
+              toolName: string;
+              parameters: Record<string, any>;
+              success: boolean;
+              result?: any;
+              error?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -4561,6 +4582,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */
@@ -4722,6 +4747,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */
@@ -4841,6 +4870,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */
@@ -6576,6 +6609,11 @@ export class Api<
       inputType: "text" | "image" | "multi-modal";
       /** Expected output format from the tool */
       outputType: "text" | "image" | "multi-modal";
+      /**
+       * Parameters that this tool expects to receive
+       * @default []
+       */
+      parameters?: ToolParameter[];
       /** Additional tool-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -6605,6 +6643,8 @@ export class Api<
         inputType: "text" | "image" | "multi-modal";
         /** Expected output format */
         outputType: "text" | "image" | "multi-modal";
+        /** Parameters that this tool expects to receive */
+        parameters: ToolParameter[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -6699,6 +6739,8 @@ export class Api<
           inputType: "text" | "image" | "multi-modal";
           /** Expected output format */
           outputType: "text" | "image" | "multi-modal";
+          /** Parameters that this tool expects to receive */
+          parameters: ToolParameter[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -6774,6 +6816,8 @@ export class Api<
         inputType: "text" | "image" | "multi-modal";
         /** Expected output format */
         outputType: "text" | "image" | "multi-modal";
+        /** Parameters that this tool expects to receive */
+        parameters: ToolParameter[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -6833,6 +6877,8 @@ export class Api<
       inputType?: "text" | "image" | "multi-modal";
       /** Updated output format */
       outputType?: "text" | "image" | "multi-modal";
+      /** Updated parameters for the tool */
+      parameters?: ToolParameter[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -6867,6 +6913,8 @@ export class Api<
         inputType: "text" | "image" | "multi-modal";
         /** Expected output format */
         outputType: "text" | "image" | "multi-modal";
+        /** Parameters that this tool expects to receive */
+        parameters: ToolParameter[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */

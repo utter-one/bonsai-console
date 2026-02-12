@@ -982,3 +982,61 @@ export interface RunActionResponse {
   error?: string;
 }
 
+export interface CallToolRequest {
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
+  /**
+   * Message type for calling a tool
+   */
+  type: 'call_tool';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Unique identifier of the tool to execute
+   */
+  toolId: string;
+  /**
+   * Map of parameter names to their values
+   */
+  parameters: {
+    [k: string]: unknown;
+  };
+}
+
+export interface CallToolResponse {
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Message type for call tool response
+   */
+  type: 'call_tool';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+  /**
+   * Whether the tool was successfully executed
+   */
+  success: boolean;
+  /**
+   * Result returned by the tool execution
+   */
+  result?: {
+    [k: string]: unknown;
+  };
+  /**
+   * Error message if tool execution failed
+   */
+  error?: string;
+}
+

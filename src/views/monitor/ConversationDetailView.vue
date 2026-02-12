@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore } from '@/stores'
-import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers } from 'lucide-vue-next'
+import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -75,6 +75,8 @@ function getEventTypeColor(eventType: string): string {
       return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
     case 'command':
       return 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-800'
+    case 'tool_call':
+      return 'bg-pink-50 border-pink-200 dark:bg-pink-900/10 dark:border-pink-800'
     case 'conversation_start':
       return 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
     case 'conversation_resume':
@@ -138,6 +140,22 @@ function isCommandEvent(event: ConversationEventResponse): event is Conversation
   eventData: { command: string; parameters?: Record<string, any>; metadata?: Record<string, any> }
 } {
   return event.eventType === 'command'
+}
+
+// Type guard to check if event data is a tool call event
+function isToolCallEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'tool_call'
+  eventData: {
+    toolId: string
+    toolName: string
+    parameters: Record<string, any>
+    success: boolean
+    result?: any
+    error?: string
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'tool_call'
 }
 
 // Type guard to check if event data is a conversation start event
@@ -456,6 +474,79 @@ const metadataFields = computed(() => {
                             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tool Call Event -->
+                <div v-else-if="isToolCallEvent(event)">
+                  <div class="flex items-start gap-3">
+                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
+                        <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          <CheckCircle class="w-3 h-3" />
+                          Success
+                        </span>
+                        <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                          <XCircle class="w-3 h-3" />
+                          Failed
+                        </span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
+                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.toolName }}</div>
+                        </div>
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool ID:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toolId }}</div>
+                        </div>
+                        <div v-if="event.eventData.parameters && Object.keys(event.eventData.parameters).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Parameters ({{ Object.keys(event.eventData.parameters).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre
+                                class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                        <div v-if="event.eventData.success && event.eventData.result !== null && event.eventData.result !== undefined">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Result
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre
+                                class="whitespace-pre-wrap break-words dark:text-gray-300">{{ typeof event.eventData.result === 'object' ? JSON.stringify(event.eventData.result, null, 2) : String(event.eventData.result) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                        <div v-if="!event.eventData.success && event.eventData.error">
+                          <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
+                            <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
+                            <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.eventData.error }}</div>
+                          </div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre
+                                class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
                           </details>
                         </div>

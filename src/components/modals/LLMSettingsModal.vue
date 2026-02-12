@@ -50,14 +50,134 @@
               placeholder="e.g., 2000"
             />
             <p class="form-help-text">
-              Maximum number of tokens to generate
+              Maximum output tokens{{ hasReasoningCapability ? ' (includes reasoning/thinking tokens)' : '' }}
             </p>
           </div>
 
+          <!-- OpenAI Reasoning Settings -->
+          <template v-if="isOpenAI">
+            <div class="form-group">
+              <label class="form-label">
+                Reasoning Effort <span class="text-gray-500">(optional)</span>
+              </label>
+              <select v-model="form.reasoningEffort" class="form-select">
+                <option :value="null">None (use temperature/topP)</option>
+                <option value="minimal">Minimal</option>
+                <option value="low">Low - Fast, economical</option>
+                <option value="medium">Medium - Balanced (default)</option>
+                <option value="high">High - Complex problems</option>
+                <option value="xhigh">Extra High - Extreme reasoning</option>
+              </select>
+              <p class="form-help-text">
+                Controls internal reasoning depth. When set, temperature and topP are disabled.
+              </p>
+            </div>
+
+            <div v-if="form.reasoningEffort" class="form-group">
+              <label class="form-label">
+                Reasoning Summary <span class="text-gray-500">(optional)</span>
+              </label>
+              <select v-model="form.reasoningSummary" class="form-select">
+                <option :value="null">Disabled</option>
+                <option value="auto">Auto - Adapts to model</option>
+                <option value="concise">Concise - Brief summary</option>
+                <option value="detailed">Detailed - Comprehensive breakdown</option>
+              </select>
+              <p class="form-help-text">
+                Generate a summary of the model's reasoning process for debugging
+              </p>
+            </div>
+          </template>
+
+          <!-- Anthropic Thinking Settings -->
+          <template v-if="isAnthropic">
+            <div class="form-group">
+              <label class="form-label">
+                Thinking Mode <span class="text-gray-500">(optional)</span>
+              </label>
+              <select v-model="form.thinkingMode" class="form-select">
+                <option :value="null">Disabled</option>
+                <option value="enabled">Enabled - Manual token budget</option>
+                <option value="adaptive">Adaptive - Auto-adjusts (Claude Opus 4.6+)</option>
+              </select>
+              <p class="form-help-text">
+                Enable Claude's extended thinking capability for internal reasoning
+              </p>
+            </div>
+
+            <div v-if="form.thinkingMode === 'enabled'" class="form-group">
+              <label class="form-label">
+                Thinking Budget Tokens <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model.number="form.thinkingBudgetTokens"
+                type="number"
+                min="1024"
+                class="form-input"
+                placeholder="e.g., 10000"
+              />
+              <p class="form-help-text">
+                Maximum tokens for internal reasoning (min: 1024). Recommended: 4096-16384 for most tasks.
+              </p>
+            </div>
+          </template>
+
+          <!-- Gemini Thinking Settings -->
+          <template v-if="isGemini">
+            <div class="form-group">
+              <label class="form-label">
+                Thinking Level <span class="text-gray-500">(Gemini 3 models)</span>
+              </label>
+              <select v-model="form.thinkingLevel" class="form-select">
+                <option :value="null">Not set</option>
+                <option value="minimal">Minimal - Best for chat/high-throughput</option>
+                <option value="low">Low - Basic reasoning</option>
+                <option value="medium">Medium - Balanced</option>
+                <option value="high">High - Maximum reasoning (default for Gemini 3)</option>
+              </select>
+              <p class="form-help-text">
+                Controls reasoning depth using predefined levels (for gemini-3-pro, gemini-3-flash)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Thinking Budget <span class="text-gray-500">(Gemini 2.5 models)</span>
+              </label>
+              <input
+                v-model.number="form.thinkingBudget"
+                type="number"
+                min="-1"
+                class="form-input"
+                placeholder="e.g., -1 for dynamic"
+              />
+              <p class="form-help-text">
+                Token budget for thinking. -1: Dynamic (default), 0: Disabled, 128-32768: Specific budget (for gemini-2.5-pro, gemini-2.5-flash)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="form.includeThoughts"
+                  type="checkbox"
+                  class="form-checkbox mr-2"
+                />
+                <span class="form-label mb-0">Include Thoughts</span>
+              </label>
+              <p class="form-help-text">
+                Include thought summaries in the response for debugging and transparency
+              </p>
+            </div>
+          </template>
+
           <!-- Temperature -->
-          <div class="form-group">
+          <div class="form-group" :class="{ 'opacity-50': isTemperatureDisabled }">
             <label class="form-label">
               Temperature <span class="text-gray-500">(optional)</span>
+              <span v-if="isTemperatureDisabled" class="text-red-500 text-sm ml-2">
+                (Disabled with reasoning/thinking)
+              </span>
             </label>
             <input
               v-model.number="form.defaultTemperature"
@@ -66,29 +186,37 @@
               :min="0"
               :max="temperatureMax"
               class="form-input"
+              :disabled="isTemperatureDisabled"
               placeholder="e.g., 0.7"
             />
             <p class="form-help-text">
-              Sampling temperature ({{ temperatureRange }})
+              Sampling temperature ({{ temperatureRange }}){{ isTemperatureDisabled ? ' - Not compatible with reasoning/thinking' : '' }}
             </p>
           </div>
 
           <!-- Top P -->
-          <div class="form-group">
+          <div class="form-group" :class="{ 'opacity-50': isTopPDisabled }">
             <label class="form-label">
               Top P <span class="text-gray-500">(optional)</span>
+              <span v-if="isTopPLimited" class="text-yellow-600 text-sm ml-2">
+                (Limited to 0.95-1.0 with thinking)
+              </span>
+              <span v-else-if="isTopPDisabled" class="text-red-500 text-sm ml-2">
+                (Disabled with reasoning)
+              </span>
             </label>
             <input
               v-model.number="form.defaultTopP"
               type="number"
               step="0.1"
-              min="0"
+              :min="isTopPLimited ? 0.95 : 0"
               max="1"
               class="form-input"
+              :disabled="isTopPDisabled"
               placeholder="e.g., 1.0"
             />
             <p class="form-help-text">
-              Nucleus sampling threshold (0-1)
+              Nucleus sampling threshold{{ isTopPLimited ? ' (0.95-1.0 with thinking enabled)' : ' (0-1)' }}
             </p>
           </div>
 
@@ -186,6 +314,16 @@ interface LLMSettingsForm {
   defaultTopK: number | null
   timeout: number | null
   anthropicVersion: string | null
+  // OpenAI reasoning settings
+  reasoningEffort: string | null
+  reasoningSummary: string | null
+  // Anthropic thinking settings
+  thinkingMode: string | null
+  thinkingBudgetTokens: number | null
+  // Gemini thinking settings
+  thinkingLevel: string | null
+  thinkingBudget: number | null
+  includeThoughts: boolean | null
 }
 
 const form = ref<LLMSettingsForm>({
@@ -195,7 +333,14 @@ const form = ref<LLMSettingsForm>({
   defaultTopP: null,
   defaultTopK: null,
   timeout: null,
-  anthropicVersion: null
+  anthropicVersion: null,
+  reasoningEffort: null,
+  reasoningSummary: null,
+  thinkingMode: null,
+  thinkingBudgetTokens: null,
+  thinkingLevel: null,
+  thinkingBudget: null,
+  includeThoughts: null
 })
 
 const validationError = ref<string | null>(null)
@@ -206,6 +351,10 @@ const selectedProvider = computed(() =>
 
 const providerApiType = computed(() => selectedProvider.value?.apiType?.toLowerCase() || '')
 
+const isOpenAI = computed(() => 
+  providerApiType.value === 'openai'
+)
+
 const isAnthropic = computed(() => 
   providerApiType.value === 'anthropic'
 )
@@ -213,6 +362,29 @@ const isAnthropic = computed(() =>
 const isGemini = computed(() => 
   providerApiType.value === 'google'
 )
+
+const hasReasoningCapability = computed(() => {
+  return isOpenAI.value || isAnthropic.value || isGemini.value
+})
+
+const isTemperatureDisabled = computed(() => {
+  // OpenAI: temperature disabled when reasoning is enabled
+  if (isOpenAI.value && form.value.reasoningEffort) return true
+  // Anthropic: temperature not allowed with thinking
+  if (isAnthropic.value && form.value.thinkingMode) return true
+  return false
+})
+
+const isTopPDisabled = computed(() => {
+  // OpenAI: topP disabled when reasoning is enabled
+  if (isOpenAI.value && form.value.reasoningEffort) return true
+  return false
+})
+
+const isTopPLimited = computed(() => {
+  // Anthropic: topP limited to 0.95-1.0 when thinking is enabled
+  return isAnthropic.value && form.value.thinkingMode !== null
+})
 
 const temperatureMax = computed(() => {
   // Anthropic supports 0-1, OpenAI and Gemini support 0-2
@@ -253,9 +425,16 @@ watch([() => props.settings, selectedProvider], ([settings]) => {
       defaultMaxTokens: settings.defaultMaxTokens ?? null,
       defaultTemperature: settings.defaultTemperature ?? null,
       defaultTopP: settings.defaultTopP ?? null,
-      defaultTopK: ('defaultTopK' in settings ? settings.defaultTopK : null) ?? null,
+      defaultTopK: ('defaultTopK' in settings ? settings.defaultTopK as number | null : null) ?? null,
       timeout: settings.timeout ?? null,
-      anthropicVersion: ('anthropicVersion' in settings ? settings.anthropicVersion : null) ?? null
+      anthropicVersion: ('anthropicVersion' in settings ? settings.anthropicVersion as string | null : null) ?? null,
+      reasoningEffort: ('reasoningEffort' in settings ? settings.reasoningEffort as string | null : null) ?? null,
+      reasoningSummary: ('reasoningSummary' in settings ? settings.reasoningSummary as string | null : null) ?? null,
+      thinkingMode: ('thinkingMode' in settings ? settings.thinkingMode as string | null : null) ?? null,
+      thinkingBudgetTokens: ('thinkingBudgetTokens' in settings ? settings.thinkingBudgetTokens as number | null : null) ?? null,
+      thinkingLevel: ('thinkingLevel' in settings ? settings.thinkingLevel as string | null : null) ?? null,
+      thinkingBudget: ('thinkingBudget' in settings ? settings.thinkingBudget as number | null : null) ?? null,
+      includeThoughts: ('includeThoughts' in settings ? settings.includeThoughts as boolean | null : null) ?? null
     }
   } else {
     form.value = {
@@ -265,7 +444,14 @@ watch([() => props.settings, selectedProvider], ([settings]) => {
       defaultTopP: null,
       defaultTopK: null,
       timeout: null,
-      anthropicVersion: null
+      anthropicVersion: null,
+      reasoningEffort: null,
+      reasoningSummary: null,
+      thinkingMode: null,
+      thinkingBudgetTokens: null,
+      thinkingLevel: null,
+      thinkingBudget: null,
+      includeThoughts: null
     }
   }
 }, { immediate: true })
@@ -286,22 +472,65 @@ const handleSubmit = () => {
   if (form.value.defaultMaxTokens !== null) {
     settings.defaultMaxTokens = form.value.defaultMaxTokens
   }
-  if (form.value.defaultTemperature !== null) {
+  
+  // Temperature and TopP handling with reasoning/thinking constraints
+  if (form.value.defaultTemperature !== null && !isTemperatureDisabled.value) {
     settings.defaultTemperature = form.value.defaultTemperature
   }
-  if (form.value.defaultTopP !== null) {
+  if (form.value.defaultTopP !== null && !isTopPDisabled.value) {
+    // Validate topP range for Anthropic with thinking
+    if (isTopPLimited.value && form.value.defaultTopP < 0.95) {
+      validationError.value = 'Top P must be between 0.95 and 1.0 when using Anthropic thinking mode'
+      return
+    }
     settings.defaultTopP = form.value.defaultTopP
   }
+  
   if (form.value.timeout !== null) {
     settings.timeout = form.value.timeout
   }
 
-  // Provider-specific fields
-  if (isGemini.value && form.value.defaultTopK !== null) {
-    settings.defaultTopK = form.value.defaultTopK
+  // OpenAI reasoning settings
+  if (isOpenAI.value) {
+    if (form.value.reasoningEffort) {
+      settings.reasoningEffort = form.value.reasoningEffort
+    }
+    if (form.value.reasoningSummary) {
+      settings.reasoningSummary = form.value.reasoningSummary
+    }
   }
-  if (isAnthropic.value && form.value.anthropicVersion) {
-    settings.anthropicVersion = form.value.anthropicVersion
+
+  // Anthropic settings
+  if (isAnthropic.value) {
+    if (form.value.anthropicVersion) {
+      settings.anthropicVersion = form.value.anthropicVersion
+    }
+    if (form.value.thinkingMode) {
+      settings.thinkingMode = form.value.thinkingMode
+    }
+    if (form.value.thinkingMode === 'enabled' && form.value.thinkingBudgetTokens !== null) {
+      if (form.value.thinkingBudgetTokens < 1024) {
+        validationError.value = 'Thinking budget tokens must be at least 1024'
+        return
+      }
+      settings.thinkingBudgetTokens = form.value.thinkingBudgetTokens
+    }
+  }
+
+  // Gemini settings
+  if (isGemini.value) {
+    if (form.value.defaultTopK !== null) {
+      settings.defaultTopK = form.value.defaultTopK
+    }
+    if (form.value.thinkingLevel) {
+      settings.thinkingLevel = form.value.thinkingLevel
+    }
+    if (form.value.thinkingBudget !== null && form.value.thinkingBudget !== undefined) {
+      settings.thinkingBudget = form.value.thinkingBudget
+    }
+    if (form.value.includeThoughts !== null) {
+      settings.includeThoughts = form.value.includeThoughts
+    }
   }
 
   emit('save', settings)

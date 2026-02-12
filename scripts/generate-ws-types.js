@@ -62,7 +62,8 @@ async function generateTypes() {
       'set-var-request', 'set-var-response',
       'get-var-request', 'get-var-response',
       'get-all-vars-request', 'get-all-vars-response',
-      'run-action-request', 'run-action-response'
+      'run-action-request', 'run-action-response',
+      'call-tool-request', 'call-tool-response'
     ]
   }
 

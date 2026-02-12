@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
-import type { ToolResponse, LlmSettings } from '@/api/types'
+import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -17,7 +17,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'parameters' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
@@ -28,6 +28,7 @@ const form = ref({
   llmSettings: null as LlmSettings | null,
   inputType: '',
   outputType: '',
+  parameters: [] as ToolParameter[],
   metadata: {}
 })
 
@@ -70,6 +71,7 @@ async function loadTool() {
         llmSettings: currentTool.value.llmSettings || null,
         inputType: currentTool.value.inputType,
         outputType: currentTool.value.outputType,
+        parameters: currentTool.value.parameters || [],
         metadata: currentTool.value.metadata || {}
       }
     }
@@ -96,6 +98,7 @@ async function handleSubmit() {
         llmSettings: form.value.llmSettings || undefined,
         inputType: form.value.inputType as "text" | "image" | "multi-modal" | undefined,
         outputType: form.value.outputType as "text" | "image" | "multi-modal" | undefined,
+        parameters: form.value.parameters,
         metadata: form.value.metadata
       })
     } else {
@@ -108,6 +111,7 @@ async function handleSubmit() {
         llmSettings: form.value.llmSettings,
         inputType: form.value.inputType,
         outputType: form.value.outputType,
+        parameters: form.value.parameters,
         metadata: form.value.metadata
       }
 
@@ -140,6 +144,19 @@ function goBack() {
 function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
+}
+
+function addParameter() {
+  form.value.parameters.push({
+    name: '',
+    type: 'string',
+    description: '',
+    required: false
+  })
+}
+
+function removeParameter(index: number) {
+  form.value.parameters.splice(index, 1)
 }
 
 const metadataFields = computed(() => {
@@ -196,6 +213,13 @@ const metadataFields = computed(() => {
           type="button"
         >
           Prompt Configuration
+        </button>
+        <button
+          @click="activeTab = 'parameters'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'parameters' }]"
+          type="button"
+        >
+          Parameters
         </button>
         <button
           v-if="isEditMode"
@@ -437,6 +461,98 @@ const metadataFields = computed(() => {
               <p class="form-help-text">
                 The system prompt or instructions for this tool's operation
               </p>
+            </div>
+          </div>
+
+          <!-- Parameters Tab -->
+          <div v-show="activeTab === 'parameters'" class="tab-content">
+            <div class="form-group">
+              <label class="form-label">Tool Parameters</label>
+              <p class="form-help-text mb-3">
+                Define parameters that this tool expects to receive when invoked. These are used for validation and documentation.
+              </p>
+              <div class="space-y-4">
+                <div
+                  v-for="(param, index) in form.parameters"
+                  :key="index"
+                  class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
+                >
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Parameter {{ index + 1 }}</span>
+                    <button
+                      type="button"
+                      @click="removeParameter(index)"
+                      class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="form-label text-sm">Parameter Name <span class="required">*</span></label>
+                      <input
+                        v-model="param.name"
+                        type="text"
+                        required
+                        placeholder="input_data"
+                        class="form-input font-mono text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="form-label text-sm">Type <span class="required">*</span></label>
+                      <select v-model="param.type" class="form-select-auto text-sm" required>
+                        <option value="string">string</option>
+                        <option value="number">number</option>
+                        <option value="boolean">boolean</option>
+                        <option value="string[]">string[]</option>
+                        <option value="number[]">number[]</option>
+                        <option value="boolean[]">boolean[]</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label text-sm">Description <span class="required">*</span></label>
+                    <input
+                      v-model="param.description"
+                      type="text"
+                      required
+                      placeholder="The data to process"
+                      class="form-input text-sm"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Describe what this parameter represents for documentation
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="param.required"
+                        type="checkbox"
+                        class="form-checkbox"
+                      />
+                      <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                        Required parameter
+                      </span>
+                    </label>
+                    <p class="text-xs text-gray-500 ml-6">
+                      Whether this parameter must be provided when calling the tool
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  @click="addParameter"
+                  class="btn-secondary w-full"
+                  :disabled="isLoading"
+                >
+                  + Add Parameter
+                </button>
+              </div>
             </div>
           </div>
 
