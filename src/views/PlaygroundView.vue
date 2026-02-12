@@ -183,9 +183,22 @@
                     <Info v-else :size="16" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="font-semibold text-sm">{{ event.type }}</span>
-                      <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-sm">{{ event.type }}</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <button
+                        v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                        @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                        class="btn-icon p-1"
+                        :class="{
+                          'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                          'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
+                        }"
+                        title="View system prompt">
+                        <FileText class="w-4 h-4" />
+                      </button>
                     </div>
                     <div class="text-sm">
                       <!-- Voice message with audio player -->
@@ -1300,8 +1313,28 @@ function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
  * Handle conversation event from WebSocket
  */
 function handleConversationEvent(event: WSConversationEvent) {
-  // Skip message events - already handled by AI/User message events
+  // Handle message events - update existing events with final metadata
   if (isMessageEvent(event)) {
+    // Find existing User or AI event by matching the text
+    const existingEvent = conversationEvents.value.find(e => 
+      (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
+      (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
+    )
+
+    if (existingEvent) {
+      // Update existing event with message event data (includes metadata with systemPrompt)
+      existingEvent.wsEvent = event
+      existingEvent.isRealTime = false
+    } else {
+      // No existing event found - create new one (shouldn't normally happen but safe fallback)
+      addEvent({
+        type: event.eventData.role === 'user' ? 'User' : 'AI',
+        message: event.eventData.text,
+        timestamp: new Date(),
+        wsEvent: event,
+        isRealTime: false
+      })
+    }
     return
   }
 
