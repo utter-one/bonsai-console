@@ -175,25 +175,46 @@
           "model": {
             "type": "string",
             "minLength": 1,
-            "description": "Model name (e.g., gpt-4, gpt-3.5-turbo)"
+            "description": "Model name (e.g., gpt-4, gpt-3.5-turbo, gpt-5, o1)"
           },
           "defaultMaxTokens": {
             "type": "integer",
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Default maximum tokens for generation"
+            "description": "Default maximum output tokens for generation (includes reasoning and output tokens for reasoning models)"
           },
           "defaultTemperature": {
             "type": "number",
             "minimum": 0,
             "maximum": 2,
-            "description": "Default temperature for generation (0-2)"
+            "description": "Default temperature for generation (0-2). Not used with reasoning models - use reasoningEffort instead."
           },
           "defaultTopP": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Default top-p for generation (0-1)"
+            "description": "Default top-p for generation (0-1). Not used with reasoning models - use reasoningEffort instead."
+          },
+          "reasoningEffort": {
+            "type": "string",
+            "enum": [
+              "none",
+              "minimal",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "description": "Reasoning effort for reasoning models (gpt-5, o-series). Controls how many reasoning tokens to generate. low=fast/economical, high=more complete reasoning. Default: medium. gpt-5.1 defaults to none."
+          },
+          "reasoningSummary": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "concise",
+              "detailed"
+            ],
+            "description": "Generate a summary of reasoning performed by the model. Useful for debugging. Only for reasoning models."
           },
           "timeout": {
             "type": "integer",
@@ -249,25 +270,38 @@
           "model": {
             "type": "string",
             "minLength": 1,
-            "description": "Model name (e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229)"
+            "description": "Model name (e.g., claude-sonnet-4-5, claude-opus-4-5, claude-haiku-4-5)"
           },
           "defaultMaxTokens": {
             "type": "integer",
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Default maximum tokens for generation"
+            "description": "Default maximum tokens for generation (includes thinking tokens when extended thinking is enabled)"
           },
           "defaultTemperature": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Default temperature for generation (0-1)"
+            "description": "Default temperature for generation (0-1). Not compatible with extended thinking."
           },
           "defaultTopP": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Default top-p for generation (0-1)"
+            "description": "Default top-p for generation (0-1). Limited to 0.95-1 when thinking is enabled."
+          },
+          "thinkingMode": {
+            "type": "string",
+            "enum": [
+              "enabled",
+              "adaptive"
+            ],
+            "description": "Enable extended thinking. Use \"adaptive\" for Claude Opus 4.6+, \"enabled\" for earlier models. Allows Claude to reason internally before responding."
+          },
+          "thinkingBudgetTokens": {
+            "type": "integer",
+            "minimum": 1024,
+            "description": "Maximum tokens for internal reasoning (min: 1024). Only used with thinkingMode=\"enabled\". Higher budgets enable deeper reasoning but increase latency."
           },
           "timeout": {
             "type": "integer",
@@ -290,13 +324,13 @@
           "model": {
             "type": "string",
             "minLength": 1,
-            "description": "Model name (e.g., gemini-2.5-flash, gemini-2.5-pro, gemini-3-flash)"
+            "description": "Model name (e.g., gemini-2.5-flash, gemini-2.5-pro, gemini-3-flash, gemini-3-pro)"
           },
           "defaultMaxTokens": {
             "type": "integer",
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Default maximum tokens for generation"
+            "description": "Default maximum tokens for generation (includes thinking tokens for thinking models)"
           },
           "defaultTemperature": {
             "type": "number",
@@ -315,6 +349,24 @@
             "minimum": 0,
             "exclusiveMinimum": true,
             "description": "Default top-k for generation"
+          },
+          "thinkingLevel": {
+            "type": "string",
+            "enum": [
+              "minimal",
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "Thinking level for Gemini 3 models. Controls reasoning depth: minimal=chat/high-throughput, low=simple tasks, medium=balanced, high=max reasoning depth."
+          },
+          "thinkingBudget": {
+            "type": "integer",
+            "description": "Thinking budget (tokens) for Gemini 2.5 models. Set to -1 for dynamic thinking (default), 0 to disable, or specific token count (128-32768). Use thinkingLevel for Gemini 3."
+          },
+          "includeThoughts": {
+            "type": "boolean",
+            "description": "Include thought summaries in response. Provides insight into model's reasoning process for debugging. Available for all thinking models."
           },
           "timeout": {
             "type": "integer",
@@ -7841,6 +7893,17 @@
                   "type": "boolean",
                   "description": "Whether vision/image input is supported"
                 },
+                "supportsReasoning": {
+                  "type": "boolean",
+                  "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+                },
+                "reasoningModels": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of model IDs that support reasoning/thinking capabilities"
+                },
                 "contextWindows": {
                   "type": "object",
                   "additionalProperties": {
@@ -8151,6 +8214,17 @@
                   "type": "boolean",
                   "description": "Whether vision/image input is supported"
                 },
+                "supportsReasoning": {
+                  "type": "boolean",
+                  "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+                },
+                "reasoningModels": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of model IDs that support reasoning/thinking capabilities"
+                },
                 "contextWindows": {
                   "type": "object",
                   "additionalProperties": {
@@ -8429,6 +8503,17 @@
           "supportsVision": {
             "type": "boolean",
             "description": "Whether vision/image input is supported"
+          },
+          "supportsReasoning": {
+            "type": "boolean",
+            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+          },
+          "reasoningModels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of model IDs that support reasoning/thinking capabilities"
           },
           "contextWindows": {
             "type": "object",
@@ -19079,6 +19164,17 @@
                             "type": "boolean",
                             "description": "Whether vision/image input is supported"
                           },
+                          "supportsReasoning": {
+                            "type": "boolean",
+                            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+                          },
+                          "reasoningModels": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "List of model IDs that support reasoning/thinking capabilities"
+                          },
                           "contextWindows": {
                             "type": "object",
                             "additionalProperties": {
@@ -19443,6 +19539,17 @@
                             "type": "boolean",
                             "description": "Whether vision/image input is supported"
                           },
+                          "supportsReasoning": {
+                            "type": "boolean",
+                            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+                          },
+                          "reasoningModels": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "List of model IDs that support reasoning/thinking capabilities"
+                          },
                           "contextWindows": {
                             "type": "object",
                             "additionalProperties": {
@@ -19768,6 +19875,17 @@
                         "supportsVision": {
                           "type": "boolean",
                           "description": "Whether vision/image input is supported"
+                        },
+                        "supportsReasoning": {
+                          "type": "boolean",
+                          "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
+                        },
+                        "reasoningModels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of model IDs that support reasoning/thinking capabilities"
                         },
                         "contextWindows": {
                           "type": "object",

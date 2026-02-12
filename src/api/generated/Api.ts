@@ -4582,6 +4582,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */
@@ -4743,6 +4747,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */
@@ -4862,6 +4870,10 @@ export class Api<
           supportsStreaming: boolean;
           /** Whether vision/image input is supported */
           supportsVision: boolean;
+          /** Whether provider supports reasoning/thinking modes for deeper analysis */
+          supportsReasoning?: boolean;
+          /** List of model IDs that support reasoning/thinking capabilities */
+          reasoningModels?: string[];
           /** Context window size (in tokens) for each model */
           contextWindows?: Record<string, number>;
           /** Additional information */

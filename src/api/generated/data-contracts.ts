@@ -95,28 +95,32 @@ export interface ListFilterOperation {
 
 export interface OpenAILlmSettings {
   /**
-   * Model name (e.g., gpt-4, gpt-3.5-turbo)
+   * Model name (e.g., gpt-4, gpt-3.5-turbo, gpt-5, o1)
    * @minLength 1
    */
   model: string;
   /**
-   * Default maximum tokens for generation
+   * Default maximum output tokens for generation (includes reasoning and output tokens for reasoning models)
    * @min 0
    * @exclusiveMin true
    */
   defaultMaxTokens?: number;
   /**
-   * Default temperature for generation (0-2)
+   * Default temperature for generation (0-2). Not used with reasoning models - use reasoningEffort instead.
    * @min 0
    * @max 2
    */
   defaultTemperature?: number;
   /**
-   * Default top-p for generation (0-1)
+   * Default top-p for generation (0-1). Not used with reasoning models - use reasoningEffort instead.
    * @min 0
    * @max 1
    */
   defaultTopP?: number;
+  /** Reasoning effort for reasoning models (gpt-5, o-series). Controls how many reasoning tokens to generate. low=fast/economical, high=more complete reasoning. Default: medium. gpt-5.1 defaults to none. */
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Generate a summary of reasoning performed by the model. Useful for debugging. Only for reasoning models. */
+  reasoningSummary?: "auto" | "concise" | "detailed";
   /**
    * Request timeout in milliseconds
    * @min 0
@@ -159,28 +163,35 @@ export interface OpenAILegacyLlmSettings {
 
 export interface AnthropicLlmSettings {
   /**
-   * Model name (e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229)
+   * Model name (e.g., claude-sonnet-4-5, claude-opus-4-5, claude-haiku-4-5)
    * @minLength 1
    */
   model: string;
   /**
-   * Default maximum tokens for generation
+   * Default maximum tokens for generation (includes thinking tokens when extended thinking is enabled)
    * @min 0
    * @exclusiveMin true
    */
   defaultMaxTokens?: number;
   /**
-   * Default temperature for generation (0-1)
+   * Default temperature for generation (0-1). Not compatible with extended thinking.
    * @min 0
    * @max 1
    */
   defaultTemperature?: number;
   /**
-   * Default top-p for generation (0-1)
+   * Default top-p for generation (0-1). Limited to 0.95-1 when thinking is enabled.
    * @min 0
    * @max 1
    */
   defaultTopP?: number;
+  /** Enable extended thinking. Use "adaptive" for Claude Opus 4.6+, "enabled" for earlier models. Allows Claude to reason internally before responding. */
+  thinkingMode?: "enabled" | "adaptive";
+  /**
+   * Maximum tokens for internal reasoning (min: 1024). Only used with thinkingMode="enabled". Higher budgets enable deeper reasoning but increase latency.
+   * @min 1024
+   */
+  thinkingBudgetTokens?: number;
   /**
    * Request timeout in milliseconds
    * @min 0
@@ -193,12 +204,12 @@ export interface AnthropicLlmSettings {
 
 export interface GeminiLlmSettings {
   /**
-   * Model name (e.g., gemini-2.5-flash, gemini-2.5-pro, gemini-3-flash)
+   * Model name (e.g., gemini-2.5-flash, gemini-2.5-pro, gemini-3-flash, gemini-3-pro)
    * @minLength 1
    */
   model: string;
   /**
-   * Default maximum tokens for generation
+   * Default maximum tokens for generation (includes thinking tokens for thinking models)
    * @min 0
    * @exclusiveMin true
    */
@@ -221,6 +232,12 @@ export interface GeminiLlmSettings {
    * @exclusiveMin true
    */
   defaultTopK?: number;
+  /** Thinking level for Gemini 3 models. Controls reasoning depth: minimal=chat/high-throughput, low=simple tasks, medium=balanced, high=max reasoning depth. */
+  thinkingLevel?: "minimal" | "low" | "medium" | "high";
+  /** Thinking budget (tokens) for Gemini 2.5 models. Set to -1 for dynamic thinking (default), 0 to disable, or specific token count (128-32768). Use thinkingLevel for Gemini 3. */
+  thinkingBudget?: number;
+  /** Include thought summaries in response. Provides insight into model's reasoning process for debugging. Available for all thinking models. */
+  includeThoughts?: boolean;
   /**
    * Request timeout in milliseconds
    * @min 0
@@ -3595,6 +3612,10 @@ export interface ProviderCatalog {
     supportsStreaming: boolean;
     /** Whether vision/image input is supported */
     supportsVision: boolean;
+    /** Whether provider supports reasoning/thinking modes for deeper analysis */
+    supportsReasoning?: boolean;
+    /** List of model IDs that support reasoning/thinking capabilities */
+    reasoningModels?: string[];
     /** Context window size (in tokens) for each model */
     contextWindows?: Record<string, number>;
     /** Additional information */
@@ -3702,6 +3723,10 @@ export interface LlmProvidersResponse {
     supportsStreaming: boolean;
     /** Whether vision/image input is supported */
     supportsVision: boolean;
+    /** Whether provider supports reasoning/thinking modes for deeper analysis */
+    supportsReasoning?: boolean;
+    /** List of model IDs that support reasoning/thinking capabilities */
+    reasoningModels?: string[];
     /** Context window size (in tokens) for each model */
     contextWindows?: Record<string, number>;
     /** Additional information */
@@ -3801,6 +3826,10 @@ export interface LlmProviderInfo {
   supportsStreaming: boolean;
   /** Whether vision/image input is supported */
   supportsVision: boolean;
+  /** Whether provider supports reasoning/thinking modes for deeper analysis */
+  supportsReasoning?: boolean;
+  /** List of model IDs that support reasoning/thinking capabilities */
+  reasoningModels?: string[];
   /** Context window size (in tokens) for each model */
   contextWindows?: Record<string, number>;
   /** Additional information */
