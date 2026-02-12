@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore, useUsersStore, useConversationsStore, useStagesStore, usePersonasStore, useProvidersStore } from '@/stores'
-import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, RefreshCw, Drama, CloudCog } from 'lucide-vue-next'
+import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, RefreshCw, Drama, CloudCog, DraftingCompass, FlaskConical } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -26,7 +26,7 @@ const stats = computed(() => ({
 onMounted(async () => {
   try {
     await Promise.all([
-      projectsStore.fetchAll({ offset: 0, limit: 10 }),
+      projectsStore.fetchAll({ offset: 0, limit: 10, orderBy: '-updatedAt' }),
       usersStore.fetchAll({ offset: 0, limit: 1 }),
       conversationsStore.fetchAll({ offset: 0, limit: 1 }),
       stagesStore.fetchAll({ offset: 0, limit: 1 }),
@@ -46,6 +46,10 @@ function navigateTo(route: string) {
 
 function navigateToDesign(projectId: string) {
   router.push({ name: 'design.stages', params: { projectId } })
+}
+
+function navigateToPlayground(projectId: string) {
+  router.push({ name: 'playground', params: { projectId } })
 }
 </script>
 
@@ -115,30 +119,6 @@ function navigateToDesign(projectId: string) {
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div class="section-card mb-6">
-        <h2 class="section-title pb-4">Quick Actions</h2>
-        <div class="grid-cards-sm">
-          <button @click="navigateTo('administration.projects')" class="action-card">
-            <BriefcaseBusiness class="text-primary-500" :size="32" />
-            <span class="action-card-title">Projects</span>
-            <span class="action-card-description">Create and configure AI projects</span>
-          </button>
-
-          <button @click="navigateTo('administration.providers')" class="action-card">
-            <CloudCog class="text-primary-500" :size="32" />
-            <span class="action-card-title">Providers</span>
-            <span class="action-card-description">Manage LLM providers and models</span>
-          </button>
-
-          <button @click="navigateTo('administration.admins')" class="action-card">
-            <Settings class="text-primary-500" :size="32" />
-            <span class="action-card-title">Administration</span>
-            <span class="action-card-description">Manage system configuration</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Recent Projects -->
       <div class="section-card mb-6">
         <div class="section-header">
@@ -156,22 +136,61 @@ function navigateToDesign(projectId: string) {
         </div>
 
         <div v-else class="flex flex-col gap-3">
-          <button 
+          <div 
             v-for="project in projectsStore.items.slice(0, 5)" 
             :key="project.id" 
-            @click="navigateToDesign(project.id)"
-            class="list-item cursor-pointer hover:bg-gray-50 transition-colors text-left w-full"
+            class="list-item"
           >
-            <div>
+            <div class="flex-1">
               <h3 class="list-item-title">{{ project.name }}</h3>
               <p v-if="project.description" class="list-item-subtitle">{{ project.description }}</p>
             </div>
-            <span class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-primary-500">
-              v{{ project.version }}
-            </span>
+            <div class="flex items-center gap-2">
+              <button 
+                @click="navigateToDesign(project.id)"
+                class="btn-secondary"
+                title="Design"
+              >
+                <DraftingCompass :size="14" />
+                <span>Design</span>
+              </button>
+              <button 
+                @click="navigateToPlayground(project.id)"
+                class="btn-secondary"
+                title="Test in Playground"
+              >
+                <FlaskConical :size="14" />
+                <span>Test</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>      
+
+      <!-- Quick Actions -->
+      <div class="section-card mb-6">
+        <h2 class="section-title pb-4">Manage</h2>
+        <div class="grid-cards-sm">
+          <button @click="navigateTo('administration.projects')" class="action-card">
+            <BriefcaseBusiness class="text-primary-500" :size="32" />
+            <span class="action-card-title">Projects</span>
+            <span class="action-card-description">Create and configure AI projects</span>
+          </button>
+
+          <button @click="navigateTo('administration.providers')" class="action-card">
+            <CloudCog class="text-primary-500" :size="32" />
+            <span class="action-card-title">Providers</span>
+            <span class="action-card-description">Manage LLM providers and models</span>
+          </button>
+
+          <button @click="navigateTo('administration.admins')" class="action-card">
+            <Settings class="text-primary-500" :size="32" />
+            <span class="action-card-title">Access</span>
+            <span class="action-card-description">Manage access to the system</span>
           </button>
         </div>
       </div>
+
     </div>
   </div>
 </template>
