@@ -2,10 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore } from '@/stores'
-import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench } from 'lucide-vue-next'
+import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 
 
 const route = useRoute()
@@ -18,6 +19,8 @@ const events = ref<ConversationEventResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'events' | 'metadata'>('events')
+const showPromptPreviewModal = ref(false)
+const selectedPrompt = ref('')
 
 onMounted(async () => {
   await loadConversationData()
@@ -99,6 +102,15 @@ function formatEventType(eventType: string): string {
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
+}
+
+function openPromptPreview(prompt: string) {
+  selectedPrompt.value = prompt
+  showPromptPreviewModal.value = true
+}
+
+function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
 }
 
 // Type guard to check if event data is a message event
@@ -293,12 +305,21 @@ const metadataFields = computed(() => {
                     <MessageSquare class="w-5 h-5 mt-0.5"
                       :class="event.eventData.role === 'user' ? 'text-blue-600' : 'text-green-600'" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold"
-                          :class="event.eventData.role === 'user' ? 'text-blue-900 dark:text-blue-100' : 'text-green-900 dark:text-green-100'">
-                          {{ event.eventData.role === 'user' ? 'User' : 'Assistant' }}
-                        </span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold"
+                            :class="event.eventData.role === 'user' ? 'text-blue-900 dark:text-blue-100' : 'text-green-900 dark:text-green-100'">
+                            {{ event.eventData.role === 'user' ? 'User' : 'Assistant' }}
+                          </span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
                       <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
@@ -329,9 +350,18 @@ const metadataFields = computed(() => {
                   <div class="flex items-start gap-3">
                     <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -392,9 +422,18 @@ const metadataFields = computed(() => {
                   <div class="flex items-start gap-3">
                     <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -447,9 +486,18 @@ const metadataFields = computed(() => {
                   <div class="flex items-start gap-3">
                     <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -490,17 +538,26 @@ const metadataFields = computed(() => {
                   <div class="flex items-start gap-3">
                     <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
-                        <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                          <CheckCircle class="w-3 h-3" />
-                          Success
-                        </span>
-                        <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                          <XCircle class="w-3 h-3" />
-                          Failed
-                        </span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
+                          <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <CheckCircle class="w-3 h-3" />
+                            Success
+                          </span>
+                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            <XCircle class="w-3 h-3" />
+                            Failed
+                          </span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -563,9 +620,18 @@ const metadataFields = computed(() => {
                   <div class="flex items-start gap-3">
                     <Play class="w-5 h-5 mt-0.5 text-green-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.eventData.metadata)"
+                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -832,6 +898,12 @@ const metadataFields = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- Prompt Preview Modal -->
+    <PromptPreviewModal
+      v-if="showPromptPreviewModal"
+      :prompt="selectedPrompt"
+      @close="showPromptPreviewModal = false" />
   </MonitorSectionLayout>
 </template>
 

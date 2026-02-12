@@ -183,9 +183,22 @@
                     <Info v-else :size="16" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="font-semibold text-sm">{{ event.type }}</span>
-                      <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-sm">{{ event.type }}</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <button
+                        v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                        @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                        class="btn-icon p-1"
+                        :class="{
+                          'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                          'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
+                        }"
+                        title="View system prompt">
+                        <FileText class="w-4 h-4" />
+                      </button>
                     </div>
                     <div class="text-sm">
                       <!-- Voice message with audio player -->
@@ -236,9 +249,18 @@
                   <div class="flex items-start gap-3">
                     <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -286,9 +308,18 @@
                   <div class="flex items-start gap-3">
                     <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -325,9 +356,18 @@
                   <div class="flex items-start gap-3">
                     <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -356,17 +396,26 @@
                   <div class="flex items-start gap-3">
                     <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
-                        <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                          <CheckCircle class="w-3 h-3" />
-                          Success
-                        </span>
-                        <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                          <XCircle class="w-3 h-3" />
-                          Failed
-                        </span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
+                          <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <CheckCircle class="w-3 h-3" />
+                            Success
+                          </span>
+                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            <XCircle class="w-3 h-3" />
+                            Failed
+                          </span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -389,9 +438,18 @@
                   <div class="flex items-start gap-3">
                     <Play class="w-5 h-5 mt-0.5 text-green-600" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <button
+                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -612,6 +670,11 @@
     <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
       :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
       @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
+
+    <PromptPreviewModal
+      v-if="showPromptPreviewModal"
+      :prompt="selectedPrompt"
+      @close="showPromptPreviewModal = false" />
   </div>
 </template>
 
@@ -622,12 +685,13 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
+import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
@@ -1236,12 +1300,41 @@ function getEventTypeColor(eventType: string): string {
   }
 }
 
+function openPromptPreview(prompt: string) {
+  selectedPrompt.value = prompt
+  showPromptPreviewModal.value = true
+}
+
+function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
+}
+
 /**
  * Handle conversation event from WebSocket
  */
 function handleConversationEvent(event: WSConversationEvent) {
-  // Skip message events - already handled by AI/User message events
+  // Handle message events - update existing events with final metadata
   if (isMessageEvent(event)) {
+    // Find existing User or AI event by matching the text
+    const existingEvent = conversationEvents.value.find(e => 
+      (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
+      (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
+    )
+
+    if (existingEvent) {
+      // Update existing event with message event data (includes metadata with systemPrompt)
+      existingEvent.wsEvent = event
+      existingEvent.isRealTime = false
+    } else {
+      // No existing event found - create new one (shouldn't normally happen but safe fallback)
+      addEvent({
+        type: event.eventData.role === 'user' ? 'User' : 'AI',
+        message: event.eventData.text,
+        timestamp: new Date(),
+        wsEvent: event,
+        isRealTime: false
+      })
+    }
     return
   }
 
@@ -1628,6 +1721,8 @@ const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
 const showAudioSettingsModal = ref(false)
+const showPromptPreviewModal = ref(false)
+const selectedPrompt = ref('')
 
 // Audio settings
 const audioSettings = ref<AudioSettings>(loadAudioSettings())
