@@ -255,13 +255,12 @@ export type LlmSettings =
   | AnthropicLlmSettings
   | GeminiLlmSettings;
 
-/** Voice configuration for TTS */
-export interface VoiceConfig {
+export interface ElevenLabsTtsSettings {
   /** Model ID to use for speech synthesis (e.g., "eleven_flash_v2_5", "eleven_multilingual_v2") */
   model?: string;
-  /** Text-to-speech voice identifier */
+  /** Voice UUID to use for speech synthesis */
   voiceId?: string;
-  /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
+  /** Preferred audio output format for synthesized speech */
   audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
   /** Markers to identify sections of text that should not be spoken */
   noSpeechMarkers?: {
@@ -298,7 +297,93 @@ export interface VoiceConfig {
   speed?: number | null;
   /** Use global preview endpoint for geographic proximity optimization */
   useGlobalPreview?: boolean;
-  /** WebSocket inactivity timeout in seconds, defaults to 180 */
+  /**
+   * WebSocket inactivity timeout in seconds, defaults to 180
+   * @min 0
+   * @exclusiveMin true
+   */
+  inactivityTimeout?: number;
+  /** Whether to use sentence splitter for text processing, defaults to true */
+  useSentenceSplitter?: boolean;
+}
+
+export interface OpenAiTtsSettings {
+  /** Model ID to use for speech synthesis: "gpt-4o-mini-tts" (promptable), "tts-1" (low latency), or "tts-1-hd" (high quality) */
+  model?: string;
+  /** Voice ID to use (alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse, marin, cedar) */
+  voiceId?: string;
+  /** Preferred audio output format for synthesized speech */
+  audioFormat?: "mp3" | "opus" | "aac" | "flac" | "wav" | "pcm_24000";
+  /**
+   * Speech speed (0.25-4.0), defaults to 1.0
+   * @min 0.25
+   * @max 4
+   */
+  speed?: number;
+  /** Voice control instructions for gpt-4o-mini-tts model. Controls accent, tone, emotion, speed, whispering, etc. Only supported by gpt-4o-mini-tts model */
+  instructions?: string;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Whether to use sentence splitter for text processing, defaults to true */
+  useSentenceSplitter?: boolean;
+}
+
+/** Voice configuration for TTS */
+export interface VoiceConfig {
+  /** Model ID to use for speech synthesis. ElevenLabs: "eleven_flash_v2_5", "eleven_multilingual_v2", etc. OpenAI: "gpt-4o-mini-tts", "tts-1", "tts-1-hd" */
+  model?: string;
+  /** Text-to-speech voice identifier. ElevenLabs: voice UUID. OpenAI: "alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar" */
+  voiceId?: string;
+  /** Preferred audio output format for synthesized speech. ElevenLabs: "pcm_16000", "pcm_22050", "pcm_44100". OpenAI: "mp3", "opus", "aac", "flac", "wav", "pcm_24000" */
+  audioFormat?:
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100";
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Voice control instructions for OpenAI gpt-4o-mini-tts model. Controls accent, tone, emotion, speed, whispering, etc. Only supported by gpt-4o-mini-tts model */
+  instructions?: string;
+  /**
+   * ElevenLabs: Voice stability setting (0.0-1.0), defaults to 0.5
+   * @min 0
+   * @max 1
+   */
+  stability?: number | null;
+  /**
+   * ElevenLabs: Similarity boost setting (0.0-1.0), defaults to 0.75
+   * @min 0
+   * @max 1
+   */
+  similarityBoost?: number | null;
+  /**
+   * ElevenLabs: Style setting for V2+ models (0.0-1.0), defaults to 0
+   * @min 0
+   * @max 1
+   */
+  style?: number | null;
+  /** ElevenLabs: Enable speaker boost for V2+ models, defaults to true */
+  useSpeakerBoost?: boolean | null;
+  /** Speech speed. ElevenLabs: 0.7-1.2, defaults to 1.0. OpenAI: 0.25-4.0, defaults to 1.0 */
+  speed?: number | null;
+  /** ElevenLabs: Use global preview endpoint for geographic proximity optimization */
+  useGlobalPreview?: boolean;
+  /** ElevenLabs: WebSocket inactivity timeout in seconds, defaults to 180 */
   inactivityTimeout?: number;
   /** Whether to use sentence splitter for text processing, defaults to true */
   useSentenceSplitter?: boolean;
@@ -315,7 +400,16 @@ export interface AsrConfig {
     /** The phrases to add to the speech recognition dictionary */
     dictionaryPhrases?: string[];
     /** Audio input format for speech recognition (e.g., "pcm_16000") */
-    audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+    audioFormat?:
+      | "mp3"
+      | "opus"
+      | "aac"
+      | "flac"
+      | "wav"
+      | "pcm_16000"
+      | "pcm_22050"
+      | "pcm_24000"
+      | "pcm_44100";
   };
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
@@ -778,7 +872,16 @@ export interface CreateProjectRequest {
       /** The phrases to add to the speech recognition dictionary */
       dictionaryPhrases?: string[];
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
-      audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+      audioFormat?:
+        | "mp3"
+        | "opus"
+        | "aac"
+        | "flac"
+        | "wav"
+        | "pcm_16000"
+        | "pcm_22050"
+        | "pcm_24000"
+        | "pcm_44100";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -842,7 +945,16 @@ export interface ProjectResponse {
       /** The phrases to add to the speech recognition dictionary */
       dictionaryPhrases?: string[];
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
-      audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+      audioFormat?:
+        | "mp3"
+        | "opus"
+        | "aac"
+        | "flac"
+        | "wav"
+        | "pcm_16000"
+        | "pcm_22050"
+        | "pcm_24000"
+        | "pcm_44100";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -891,7 +1003,16 @@ export interface ProjectListResponse {
         /** The phrases to add to the speech recognition dictionary */
         dictionaryPhrases?: string[];
         /** Audio input format for speech recognition (e.g., "pcm_16000") */
-        audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+        audioFormat?:
+          | "mp3"
+          | "opus"
+          | "aac"
+          | "flac"
+          | "wav"
+          | "pcm_16000"
+          | "pcm_22050"
+          | "pcm_24000"
+          | "pcm_44100";
       };
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
@@ -948,8 +1069,8 @@ export interface CreatePersonaRequest {
   prompt: string;
   /** ID of the TTS provider (e.g., "eleven-labs") */
   ttsProviderId?: string;
-  /** Optional voice configuration settings for TTS */
-  voiceConfig?: VoiceConfig;
+  /** TTS provider-specific settings */
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -969,8 +1090,8 @@ export interface UpdatePersonaRequest {
   prompt?: string;
   /** Updated TTS provider ID */
   ttsProviderId?: string;
-  /** Updated voice configuration */
-  voiceConfig?: VoiceConfig;
+  /** Updated TTS provider-specific settings */
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1001,54 +1122,8 @@ export interface PersonaResponse {
   prompt: string;
   /** ID of the TTS provider */
   ttsProviderId: string | null;
-  /** Voice configuration settings */
-  voiceConfig?: {
-    /** Model ID to use for speech synthesis (e.g., "eleven_flash_v2_5", "eleven_multilingual_v2") */
-    model?: string;
-    /** Text-to-speech voice identifier */
-    voiceId?: string;
-    /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
-    audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
-    /** Markers to identify sections of text that should not be spoken */
-    noSpeechMarkers?: {
-      start: string;
-      end: string;
-    }[];
-    /** Whether to replace exclamation marks with periods */
-    removeExclamationMarks?: boolean;
-    /**
-     * Voice stability setting (0.0-1.0), defaults to 0.5
-     * @min 0
-     * @max 1
-     */
-    stability?: number | null;
-    /**
-     * Similarity boost setting (0.0-1.0), defaults to 0.75
-     * @min 0
-     * @max 1
-     */
-    similarityBoost?: number | null;
-    /**
-     * Style setting for V2+ models (0.0-1.0), defaults to 0
-     * @min 0
-     * @max 1
-     */
-    style?: number | null;
-    /** Enable speaker boost for V2+ models, defaults to true */
-    useSpeakerBoost?: boolean | null;
-    /**
-     * Speech speed (0.7-1.2), defaults to 1.0
-     * @min 0.7
-     * @max 1.2
-     */
-    speed?: number | null;
-    /** Use global preview endpoint for geographic proximity optimization */
-    useGlobalPreview?: boolean;
-    /** WebSocket inactivity timeout in seconds, defaults to 180 */
-    inactivityTimeout?: number;
-    /** Whether to use sentence splitter for text processing, defaults to true */
-    useSentenceSplitter?: boolean;
-  };
+  /** TTS provider-specific settings */
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1080,54 +1155,8 @@ export interface PersonaListResponse {
     prompt: string;
     /** ID of the TTS provider */
     ttsProviderId: string | null;
-    /** Voice configuration settings */
-    voiceConfig?: {
-      /** Model ID to use for speech synthesis (e.g., "eleven_flash_v2_5", "eleven_multilingual_v2") */
-      model?: string;
-      /** Text-to-speech voice identifier */
-      voiceId?: string;
-      /** Preferred audio output format for synthesized speech (e.g., "pcm_16000") */
-      audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
-      /** Markers to identify sections of text that should not be spoken */
-      noSpeechMarkers?: {
-        start: string;
-        end: string;
-      }[];
-      /** Whether to replace exclamation marks with periods */
-      removeExclamationMarks?: boolean;
-      /**
-       * Voice stability setting (0.0-1.0), defaults to 0.5
-       * @min 0
-       * @max 1
-       */
-      stability?: number | null;
-      /**
-       * Similarity boost setting (0.0-1.0), defaults to 0.75
-       * @min 0
-       * @max 1
-       */
-      similarityBoost?: number | null;
-      /**
-       * Style setting for V2+ models (0.0-1.0), defaults to 0
-       * @min 0
-       * @max 1
-       */
-      style?: number | null;
-      /** Enable speaker boost for V2+ models, defaults to true */
-      useSpeakerBoost?: boolean | null;
-      /**
-       * Speech speed (0.7-1.2), defaults to 1.0
-       * @min 0.7
-       * @max 1.2
-       */
-      speed?: number | null;
-      /** Use global preview endpoint for geographic proximity optimization */
-      useGlobalPreview?: boolean;
-      /** WebSocket inactivity timeout in seconds, defaults to 180 */
-      inactivityTimeout?: number;
-      /** Whether to use sentence splitter for text processing, defaults to true */
-      useSentenceSplitter?: boolean;
-    };
+    /** TTS provider-specific settings */
+    ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -3309,6 +3338,10 @@ export interface CreateProviderRequest {
         apiKey: string;
       }
     | {
+        /** API key for authenticating with OpenAI */
+        apiKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3363,6 +3396,10 @@ export interface UpdateProviderRequest {
         apiKey: string;
       }
     | {
+        /** API key for authenticating with OpenAI */
+        apiKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3414,6 +3451,10 @@ export interface ProviderResponse {
       }
     | {
         /** API key for authenticating with ElevenLabs */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with OpenAI */
         apiKey: string;
       }
     | {
@@ -3478,6 +3519,10 @@ export interface ProviderListResponse {
           apiKey: string;
         }
       | {
+          /** API key for authenticating with OpenAI */
+          apiKey: string;
+        }
+      | {
           /** The Azure region to use for the speech recognition service */
           region: string;
           /** The subscription key to use for the speech recognition service */
@@ -3518,6 +3563,44 @@ export interface ProviderListResponse {
   limit: number | null;
 }
 
+export interface ModelInfo {
+  /** Model identifier */
+  id: string;
+  /** Human-readable display name */
+  displayName: string;
+  /** Description of the model's capabilities and use cases */
+  description?: string;
+  /** Whether this is a recommended or default model */
+  recommended?: boolean;
+}
+
+export interface VoiceInfo {
+  /** Voice identifier */
+  id: string;
+  /** Human-readable name */
+  displayName: string;
+  /** Description of voice characteristics */
+  description?: string;
+  /** Gender of the voice (if applicable) */
+  gender?: "male" | "female" | "neutral";
+  /** Languages supported by this voice */
+  languages?: string[];
+  /** Whether this is a recommended or default voice */
+  recommended?: boolean;
+}
+
+export interface LanguageInfo {
+  /** ISO language code (e.g., 'en-US', 'es-ES') */
+  code: string;
+  /** Human-readable language name */
+  displayName: string;
+}
+
+export type TtsModelInfo = ModelInfo & {
+  /** Model-specific voices that override provider-level voices */
+  voices?: VoiceInfo[];
+};
+
 export interface ProviderCatalog {
   /** ASR providers */
   asr: {
@@ -3526,12 +3609,7 @@ export interface ProviderCatalog {
     /** Human-readable provider name */
     displayName: string;
     /** Languages supported by this provider */
-    languages: {
-      /** ISO language code (e.g., 'en-US', 'es-ES') */
-      code: string;
-      /** Human-readable language name */
-      displayName: string;
-    }[];
+    languages: LanguageInfo[];
     /** Audio input formats supported by this provider */
     supportedAudioFormats: string[];
     /** Whether custom vocabulary/phrases are supported */
@@ -3548,36 +3626,11 @@ export interface ProviderCatalog {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: {
-      /** Model identifier */
-      id: string;
-      /** Human-readable display name */
-      displayName: string;
-      /** Description of the model's capabilities and use cases */
-      description?: string;
-      /** Whether this is a recommended or default model */
-      recommended?: boolean;
-    }[];
+    models: TtsModelInfo[];
     /** Voices available (can be provider-specific or model-specific) */
-    voices: {
-      /** Voice identifier */
-      id: string;
-      /** Human-readable name */
-      displayName: string;
-      /** Description of voice characteristics */
-      description?: string;
-      /** Gender of the voice (if applicable) */
-      gender?: "male" | "female" | "neutral";
-      /** Languages supported by this voice */
-      languages?: string[];
-    }[];
+    voices: VoiceInfo[];
     /** Languages supported */
-    languages: {
-      /** ISO language code (e.g., 'en-US', 'es-ES') */
-      code: string;
-      /** Human-readable language name */
-      displayName: string;
-    }[];
+    languages: LanguageInfo[];
     /** Audio output formats supported by this provider */
     supportedAudioFormats: string[];
     /** Whether full streaming (chunk-by-chunk) is supported */
@@ -3594,16 +3647,7 @@ export interface ProviderCatalog {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: {
-      /** Model identifier */
-      id: string;
-      /** Human-readable display name */
-      displayName: string;
-      /** Description of the model's capabilities and use cases */
-      description?: string;
-      /** Whether this is a recommended or default model */
-      recommended?: boolean;
-    }[];
+    models: ModelInfo[];
     /** Whether tool calling (function calling) is supported */
     supportsToolCalling: boolean;
     /** Whether structured JSON output is supported */
@@ -3631,12 +3675,7 @@ export interface AsrProvidersResponse {
     /** Human-readable provider name */
     displayName: string;
     /** Languages supported by this provider */
-    languages: {
-      /** ISO language code (e.g., 'en-US', 'es-ES') */
-      code: string;
-      /** Human-readable language name */
-      displayName: string;
-    }[];
+    languages: LanguageInfo[];
     /** Audio input formats supported by this provider */
     supportedAudioFormats: string[];
     /** Whether custom vocabulary/phrases are supported */
@@ -3656,36 +3695,11 @@ export interface TtsProvidersResponse {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: {
-      /** Model identifier */
-      id: string;
-      /** Human-readable display name */
-      displayName: string;
-      /** Description of the model's capabilities and use cases */
-      description?: string;
-      /** Whether this is a recommended or default model */
-      recommended?: boolean;
-    }[];
+    models: TtsModelInfo[];
     /** Voices available (can be provider-specific or model-specific) */
-    voices: {
-      /** Voice identifier */
-      id: string;
-      /** Human-readable name */
-      displayName: string;
-      /** Description of voice characteristics */
-      description?: string;
-      /** Gender of the voice (if applicable) */
-      gender?: "male" | "female" | "neutral";
-      /** Languages supported by this voice */
-      languages?: string[];
-    }[];
+    voices: VoiceInfo[];
     /** Languages supported */
-    languages: {
-      /** ISO language code (e.g., 'en-US', 'es-ES') */
-      code: string;
-      /** Human-readable language name */
-      displayName: string;
-    }[];
+    languages: LanguageInfo[];
     /** Audio output formats supported by this provider */
     supportedAudioFormats: string[];
     /** Whether full streaming (chunk-by-chunk) is supported */
@@ -3705,16 +3719,7 @@ export interface LlmProvidersResponse {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: {
-      /** Model identifier */
-      id: string;
-      /** Human-readable display name */
-      displayName: string;
-      /** Description of the model's capabilities and use cases */
-      description?: string;
-      /** Whether this is a recommended or default model */
-      recommended?: boolean;
-    }[];
+    models: ModelInfo[];
     /** Whether tool calling (function calling) is supported */
     supportsToolCalling: boolean;
     /** Whether structured JSON output is supported */
@@ -3740,12 +3745,7 @@ export interface AsrProviderInfo {
   /** Human-readable provider name */
   displayName: string;
   /** Languages supported by this provider */
-  languages: {
-    /** ISO language code (e.g., 'en-US', 'es-ES') */
-    code: string;
-    /** Human-readable language name */
-    displayName: string;
-  }[];
+  languages: LanguageInfo[];
   /** Audio input formats supported by this provider */
   supportedAudioFormats: string[];
   /** Whether custom vocabulary/phrases are supported */
@@ -3762,36 +3762,11 @@ export interface TtsProviderInfo {
   /** Human-readable provider name */
   displayName: string;
   /** Models available for this provider */
-  models: {
-    /** Model identifier */
-    id: string;
-    /** Human-readable display name */
-    displayName: string;
-    /** Description of the model's capabilities and use cases */
-    description?: string;
-    /** Whether this is a recommended or default model */
-    recommended?: boolean;
-  }[];
+  models: TtsModelInfo[];
   /** Voices available (can be provider-specific or model-specific) */
-  voices: {
-    /** Voice identifier */
-    id: string;
-    /** Human-readable name */
-    displayName: string;
-    /** Description of voice characteristics */
-    description?: string;
-    /** Gender of the voice (if applicable) */
-    gender?: "male" | "female" | "neutral";
-    /** Languages supported by this voice */
-    languages?: string[];
-  }[];
+  voices: VoiceInfo[];
   /** Languages supported */
-  languages: {
-    /** ISO language code (e.g., 'en-US', 'es-ES') */
-    code: string;
-    /** Human-readable language name */
-    displayName: string;
-  }[];
+  languages: LanguageInfo[];
   /** Audio output formats supported by this provider */
   supportedAudioFormats: string[];
   /** Whether full streaming (chunk-by-chunk) is supported */
@@ -3808,16 +3783,7 @@ export interface LlmProviderInfo {
   /** Human-readable provider name */
   displayName: string;
   /** Models available for this provider */
-  models: {
-    /** Model identifier */
-    id: string;
-    /** Human-readable display name */
-    displayName: string;
-    /** Description of the model's capabilities and use cases */
-    description?: string;
-    /** Whether this is a recommended or default model */
-    recommended?: boolean;
-  }[];
+  models: ModelInfo[];
   /** Whether tool calling (function calling) is supported */
   supportsToolCalling: boolean;
   /** Whether structured JSON output is supported */
