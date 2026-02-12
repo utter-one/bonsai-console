@@ -44,7 +44,8 @@ async function generateTypes() {
     session: [
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',
-      'end-conversation-request', 'end-conversation-response'
+      'end-conversation-request', 'end-conversation-response',
+      'conversation-event'
     ],
     userInput: [
       'start-user-voice-input-request', 'start-user-voice-input-response',

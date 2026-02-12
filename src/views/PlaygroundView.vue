@@ -139,10 +139,16 @@
         <div
           class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
           <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
-          <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
-            <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
-            <span>Show system events</span>
-          </label>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
+              <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
+              <span>Show system events</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
+              <input type="checkbox" v-model="showConversationEvents" class="form-checkbox" />
+              <span>Show conversation events</span>
+            </label>
+          </div>
         </div>
         <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
           <!-- No conversation state -->
@@ -156,64 +162,374 @@
 
           <!-- Conversation events -->
           <div v-else class="space-y-3">
-            <div v-for="(event, index) in filteredConversationEvents" :key="index" class="p-3 rounded-lg border" :class="{
-              'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
-              'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
-              'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600': event.type === 'System',
-              'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
-            }">
-              <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="{
-                  'bg-blue-500 text-white': event.type === 'User',
-                  'bg-green-500 text-white': event.type === 'AI',
-                  'bg-gray-500 text-white': event.type === 'System',
-                  'bg-red-500 text-white': event.type === 'Error'
-                }">
-                  <User v-if="event.type === 'User'" :size="16" />
-                  <Bot v-else-if="event.type === 'AI'" :size="16" />
-                  <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
-                  <Info v-else :size="16" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-semibold text-sm">{{ event.type }}</span>
-                    <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+            <div v-for="(event, index) in filteredConversationEvents" :key="index">
+              <!-- Regular User/AI/System/Error events -->
+              <div v-if="event.type !== 'ConversationEvent'" class="p-3 rounded-lg border" :class="{
+                'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
+                'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
+                'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600 ml-8': event.type === 'System',
+                'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
+              }">
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="{
+                    'bg-blue-500 text-white': event.type === 'User',
+                    'bg-green-500 text-white': event.type === 'AI',
+                    'bg-gray-500 text-white': event.type === 'System',
+                    'bg-red-500 text-white': event.type === 'Error'
+                  }">
+                    <User v-if="event.type === 'User'" :size="16" />
+                    <Bot v-else-if="event.type === 'AI'" :size="16" />
+                    <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
+                    <Info v-else :size="16" />
                   </div>
-                  <div class="text-sm">
-                    <!-- Voice message with audio player -->
-                    <template v-if="event.voiceOutputId">
-                      <AudioPlayer v-if="getVoiceOutput(event.voiceOutputId)"
-                        :state="getVoiceOutput(event.voiceOutputId)!.player.state"
-                        :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
-                        :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
-                        :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
-                        @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
-                        @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
-                        @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
-                        @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }" />
-                      <!-- Show real-time text below audio player if transcription is in progress -->
-                      <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
-                        <span class="whitespace-pre-wrap">{{ event.message }}</span>
-                        <span class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                          title="Real-time transcription in progress"></span>
-                      </div>
-                    </template>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-semibold text-sm">{{ event.type }}</span>
+                      <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                    </div>
+                    <div class="text-sm">
+                      <!-- Voice message with audio player -->
+                      <template v-if="event.voiceOutputId">
+                        <AudioPlayer v-if="getVoiceOutput(event.voiceOutputId)"
+                          :state="getVoiceOutput(event.voiceOutputId)!.player.state"
+                          :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
+                          :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
+                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
+                          @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
+                          @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
+                          @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
+                          @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }" />
+                        <!-- Show real-time text below audio player if transcription is in progress -->
+                        <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
+                          <span class="whitespace-pre-wrap">{{ event.message }}</span>
+                          <span class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                            title="Real-time transcription in progress"></span>
+                        </div>
+                      </template>
 
-                    <!-- Regular text message -->
-                    <template v-else>
-                      <div class="relative">
-                        <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
-                        <!-- Real-time indicator -->
-                        <span v-if="event.isRealTime"
-                          class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse" :class="{
-                            'text-blue-500': event.type === 'User',
-                            'text-green-500': event.type === 'AI'
-                          }" title="Real-time transcription in progress"></span>
+                      <!-- Regular text message -->
+                      <template v-else>
+                        <div class="relative">
+                          <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
+                          <!-- Real-time indicator -->
+                          <span v-if="event.isRealTime"
+                            class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse" :class="{
+                              'text-blue-500': event.type === 'User',
+                              'text-green-500': event.type === 'AI'
+                            }" title="Real-time transcription in progress"></span>
+                        </div>
+                        <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono dark:text-gray-400">
+                          {{ event.details }}
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Conversation Events (styled like ConversationDetailView) -->
+              <div v-else-if="event.wsEvent" class="border rounded-lg p-4 shadow-sm transition-shadow hover:shadow-md ml-8"
+                :class="getEventTypeColor(event.wsEvent.eventType)">
+                
+                <!-- Classification Event -->
+                <div v-if="isClassificationEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono dark:text-gray-400">
-                        {{ event.details }}
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.classifierId }}</div>
+                        </div>
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.input }}</div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.actions && event.wsEvent.eventData.actions.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Matched Actions:</span>
+                          <div class="mt-1 space-y-2">
+                            <div v-for="(actionGroup, idx) in event.wsEvent.eventData.actions" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+                              <div class="text-xs font-medium text-gray-700 mb-1.5">
+                                {{ actionGroup.classifierName }}
+                              </div>
+                              <div class="space-y-2.5">
+                                <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
+                                  class="pl-2.5 border-l-2 border-yellow-300">
+                                  <div class="text-sm font-semibold text-gray-900 mb-1.5 dark:text-white">{{ action.name }}</div>
+                                  <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
+                                    class="space-y-1">
+                                    <div v-for="(value, key) in action.parameters" :key="key"
+                                      class="md:flex items-start gap-2 text-xs">
+                                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
+                                      <span class="text-gray-900 break-words dark:text-gray-200">{{ 
+                                        typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                                      }}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Event -->
+                <div v-else-if="isActionEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
+                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.actionName }}</div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.effects && event.wsEvent.eventData.effects.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.wsEvent.eventData.effects.length }}):</span>
+                          <div class="mt-1 space-y-2">
+                            <div v-for="(effect, idx) in event.wsEvent.eventData.effects" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+                              <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
+                                {{ effect.type || 'Effect' }} {{ idx + 1 }}
+                              </div>
+                              <div class="space-y-1">
+                                <div v-for="(value, key) in effect" :key="key"
+                                  class="md:flex items-start gap-2 text-xs">
+                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}: </span>
+                                  <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
+                                    typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                                  }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Command Event -->
+                <div v-else-if="isCommandEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.command }}</div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.parameters && Object.keys(event.wsEvent.eventData.parameters).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Parameters ({{ Object.keys(event.wsEvent.eventData.parameters).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.parameters, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tool Call Event -->
+                <div v-else-if="isToolCallEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
+                        <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          <CheckCircle class="w-3 h-3" />
+                          Success
+                        </span>
+                        <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                          <XCircle class="w-3 h-3" />
+                          Failed
+                        </span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
+                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toolName }}</div>
+                        </div>
+                        <div v-if="!event.wsEvent.eventData.success && event.wsEvent.eventData.error">
+                          <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
+                            <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
+                            <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.wsEvent.eventData.error }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Conversation Start Event -->
+                <div v-else-if="isConversationStartEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <Play class="w-5 h-5 mt-0.5 text-green-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.stageId }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Conversation Resume Event -->
+                <div v-else-if="isConversationResumeEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-cyan-900 dark:text-cyan-100">Conversation Resumed</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.previousStatus }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Conversation End Event -->
+                <div v-else-if="isConversationEndEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-gray-900 dark:text-white">Conversation Ended</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2" v-if="event.wsEvent.eventData.reason">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Conversation Aborted Event -->
+                <div v-else-if="isConversationAbortedEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-orange-900 dark:text-orange-100">Conversation Aborted</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Conversation Failed Event -->
+                <div v-else-if="isConversationFailedEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-red-900 dark:text-red-100">Conversation Failed</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
+                          <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
+                            event.wsEvent.eventData.reason }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Jump to Stage Event -->
+                <div v-else-if="isJumpToStageEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <Layers class="w-5 h-5 mt-0.5 text-teal-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="font-semibold text-teal-900 dark:text-teal-100">Stage Transition</span>
+                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.fromStageId }}</div>
+                        </div>
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toStageId }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Generic Event (Fallback) -->
+                <div v-else>
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-gray-900 dark:text-white">
+                          {{ formatEventType(event.wsEvent.eventType) }}
+                        </span>
+                      </div>
+                      <div class="text-xs text-gray-600 mt-1">
+                        {{ formatTime(event.timestamp) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Event Data -->
+                  <div v-if="Object.keys(event.wsEvent.eventData).length > 0" class="mt-3">
+                    <details class="group">
+                      <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
+                        Event Data
+                        <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
+                      </summary>
+                      <div class="mt-2 bg-white bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
+                        <pre
+                          class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData, null, 2) }}</pre>
+                      </div>
+                    </details>
                   </div>
                 </div>
               </div>
@@ -306,14 +622,14 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import type { StageResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -357,6 +673,7 @@ interface SessionSettings {
   sendTextInput: boolean
   receiveVoiceOutput: boolean
   receiveTranscriptionUpdates: boolean
+  receiveEvents: boolean
 }
 
 type ConversationMode = 'text-only' | 'voice-input' | 'voice-output' | 'full-voice'
@@ -372,6 +689,7 @@ interface PlaygroundPreferences {
   lastApiKeyId: string | null
   lastStageId: string | null
   showSystemEvents: boolean
+  showConversationEvents: boolean
   conversationMode: ConversationMode
 }
 
@@ -391,6 +709,7 @@ const conversationPresets: ConversationPreset[] = [
       sendTextInput: true,
       receiveVoiceOutput: false,
       receiveTranscriptionUpdates: true,
+      receiveEvents: true,
     }
   },
   {
@@ -402,6 +721,7 @@ const conversationPresets: ConversationPreset[] = [
       sendTextInput: true,
       receiveVoiceOutput: false,
       receiveTranscriptionUpdates: true,
+      receiveEvents: true,
     }
   },
   {
@@ -413,6 +733,7 @@ const conversationPresets: ConversationPreset[] = [
       sendTextInput: true,
       receiveVoiceOutput: true,
       receiveTranscriptionUpdates: true,
+      receiveEvents: true,
     }
   },
   {
@@ -424,6 +745,7 @@ const conversationPresets: ConversationPreset[] = [
       sendTextInput: true,
       receiveVoiceOutput: true,
       receiveTranscriptionUpdates: true,
+      receiveEvents: true,
     }
   }
 ]
@@ -445,6 +767,7 @@ function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
     lastApiKeyId: null,
     lastStageId: null,
     showSystemEvents: false,
+    showConversationEvents: true,
     conversationMode: 'full-voice', // Default to full voice
   }
 }
@@ -546,6 +869,7 @@ const selectedApiKey = computed(() => {
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const showPresetMenu = ref(false)
 const showSystemEvents = ref(false)
+const showConversationEvents = ref(true)
 
 // Load preferences when project changes
 watch(projectId, (newProjectId) => {
@@ -553,17 +877,19 @@ watch(projectId, (newProjectId) => {
     const prefs = loadPlaygroundPreferences(newProjectId)
     selectedApiKeyId.value = prefs.lastApiKeyId
     showSystemEvents.value = prefs.showSystemEvents
+    showConversationEvents.value = prefs.showConversationEvents
     selectedConversationMode.value = prefs.conversationMode
   }
 }, { immediate: true })
 
 // Save preferences when they change
-watch([selectedApiKeyId, showSystemEvents, selectedConversationMode], () => {
+watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode], () => {
   if (projectId.value) {
     const prefs: PlaygroundPreferences = {
       lastApiKeyId: selectedApiKeyId.value,
       lastStageId: null, // Will be implemented when stage is selected
       showSystemEvents: showSystemEvents.value,
+      showConversationEvents: showConversationEvents.value,
       conversationMode: selectedConversationMode.value,
     }
     savePlaygroundPreferences(projectId.value, prefs)
@@ -600,7 +926,7 @@ const availablePresets = computed(() => {
 
 // Conversation event log
 interface ConversationEvent {
-  type: 'User' | 'AI' | 'System' | 'Error'
+  type: 'User' | 'AI' | 'System' | 'Error' | 'ConversationEvent'
   message: string
   timestamp: Date
   details?: string
@@ -609,17 +935,25 @@ interface ConversationEvent {
   outputTurnId?: string // Link to output turn for real-time transcription
   isRealTime?: boolean // Whether this is a real-time updating text
   transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }> // Array to maintain insertion order
+  wsEvent?: WSConversationEvent // Raw WebSocket conversation event for detailed display
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
 const historyContainer = ref<HTMLElement | null>(null)
 
-// Filter events based on showSystemEvents toggle
+// Filter events based on showSystemEvents and showConversationEvents toggles
 const filteredConversationEvents = computed(() => {
-  if (showSystemEvents.value) {
-    return conversationEvents.value
+  let filtered = conversationEvents.value
+  
+  if (!showSystemEvents.value) {
+    filtered = filtered.filter(event => event.type !== 'System')
   }
-  return conversationEvents.value.filter(event => event.type !== 'System')
+  
+  if (!showConversationEvents.value) {
+    filtered = filtered.filter(event => event.type !== 'ConversationEvent')
+  }
+  
+  return filtered
 })
 
 // Voice output tracking
@@ -765,6 +1099,159 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
 
   // Auto-scroll to bottom
   nextTick(() => scrollHistoryToBottom())
+}
+
+// Type guards for conversation events (matching ConversationDetailView)
+function isMessageEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'message'
+  eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'message'
+}
+
+function isClassificationEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'classification'
+  eventData: {
+    classifierId: string
+    input: string
+    actions: {
+      classifierId: string
+      classifierName: string
+      actions: { name: string; parameters: Record<string, any> }[]
+    }[]
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'classification'
+}
+
+function isActionEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'action'
+  eventData: { actionName: string; stageId: string; effects: any[]; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'action'
+}
+
+function isCommandEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'command'
+  eventData: { command: string; parameters?: Record<string, any>; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'command'
+}
+
+function isToolCallEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'tool_call'
+  eventData: {
+    toolId: string
+    toolName: string
+    parameters: Record<string, any>
+    success: boolean
+    result?: any
+    error?: string
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'tool_call'
+}
+
+function isConversationStartEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'conversation_start'
+  eventData: { stageId: string; initialVariables?: Record<string, any>; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'conversation_start'
+}
+
+function isConversationResumeEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'conversation_resume'
+  eventData: {
+    previousStatus: string
+    stageId: string
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'conversation_resume'
+}
+
+function isConversationEndEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'conversation_end'
+  eventData: { reason?: string; stageId: string; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'conversation_end'
+}
+
+function isConversationAbortedEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'conversation_aborted'
+  eventData: { reason: string; stageId: string; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'conversation_aborted'
+}
+
+function isConversationFailedEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'conversation_failed'
+  eventData: { reason: string; stageId?: string; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'conversation_failed'
+}
+
+function isJumpToStageEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'jump_to_stage'
+  eventData: { fromStageId: string; toStageId: string; metadata?: Record<string, any> }
+} {
+  return event.eventType === 'jump_to_stage'
+}
+
+function formatEventType(eventType: string): string {
+  return eventType
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function getEventTypeColor(eventType: string): string {
+  switch (eventType) {
+    case 'message':
+      return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
+    case 'classification':
+      return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
+    case 'action':
+      return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
+    case 'command':
+      return 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-800'
+    case 'tool_call':
+      return 'bg-pink-50 border-pink-200 dark:bg-pink-900/10 dark:border-pink-800'
+    case 'conversation_start':
+      return 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
+    case 'conversation_resume':
+      return 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/10 dark:border-cyan-800'
+    case 'conversation_end':
+      return 'bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-600'
+    case 'conversation_aborted':
+      return 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
+    case 'conversation_failed':
+      return 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
+    case 'jump_to_stage':
+      return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
+    default:
+      return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+  }
+}
+
+/**
+ * Handle conversation event from WebSocket
+ */
+function handleConversationEvent(event: WSConversationEvent) {
+  // Skip message events - already handled by AI/User message events
+  if (isMessageEvent(event)) {
+    return
+  }
+
+  // Store the raw WebSocket event for rendering in ConversationDetailView style
+  addEvent({
+    type: 'ConversationEvent',
+    message: formatEventType(event.eventType),
+    timestamp: new Date(),
+    wsEvent: event
+  })
 }
 
 // WebSocket client setup
@@ -1083,6 +1570,9 @@ async function connectWebSocket() {
       },
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
         updateAiTranscript(msg)
+      },
+      onConversationEvent: (event: WSConversationEvent) => {
+        handleConversationEvent(event)
       }
     })
 
