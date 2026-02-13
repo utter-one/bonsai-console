@@ -153,7 +153,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden">
+    <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden pb-15 md:pb-0">
       <!-- History Panel (Main Area) -->
       <div
         class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
@@ -620,18 +620,19 @@
       <!-- Input Panel -->
       <div
         class="fixed md:relative bottom-0 left-0 right-0 flex-shrink-0 bg-white md:rounded-lg md:border border-t border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700 ">
-        <div class="flex flex-col md:flex-row gap-3 ">
+        <div class="flex flex-row items-end md:items-start gap-0 md:gap-3">
           <!-- Voice Recording -->
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden"
+            :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']">
             <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
             <div class="flex gap-2 items-center">
               <button v-if="recording?.recordingState !== 'recording'"
-                class="btn-secondary h-10 px-4 flex items-center gap-2" :disabled="!canRecordVoice"
+                class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
                 @click="startVoiceRecording" title="Start voice recording">
                 <Mic :size="20" />
                 <span class="hidden md:block">Speak</span>
               </button>
-              <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
+              <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
                 @click="stopVoiceRecording" title="Stop voice recording">
                 <Square :size="20" />
                 <span class="hidden md:block">Stop</span>
@@ -639,7 +640,7 @@
 
               <!-- Settings Button -->
               <button @click="showAudioSettingsModal = true"
-                class="btn-secondary h-10 p-0 flex items-center justify-center" title="Audio settings">
+                class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]" title="Audio settings">
                 <Settings :size="20" />
               </button>
 
@@ -651,22 +652,28 @@
                 </div>
               </div>
             </div>
-            <p v-if="recording?.errorMessage" class="text-xs text-red-600">{{ recording.errorMessage }}</p>
+            <p v-if="recording?.errorMessage" class="text-xs text-red-600 whitespace-nowrap overflow-hidden text-ellipsis">{{ recording.errorMessage }}</p>
           </div>
 
           <!-- Text Input -->
-          <div class="flex gap-2 flex-1">
-            <div class="flex-1 w-full">
+          <div class="flex gap-2 flex-1 w-full items-end">
+            <div class="flex-1 w-full flex flex-col">
               <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
               <textarea v-model="messageInput"
-                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400"
-                rows="2" placeholder="Type your message here..."
+               @focus="isInputFocused = true"
+                @blur="handleInputBlur"
+                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400 transition-all duration-300 ease-in-out"
+                rows="1" 
+                placeholder="Type your message here..."
                 :disabled="!canSendMessage || recording?.recordingState === 'recording'"
-                @keydown.enter.ctrl="sendMessage" />
+                @keydown.enter.ctrl="sendMessage" 
+                style="min-height: 42px; max-height: 120px;" 
+                />
             </div>
 
             <!-- Send Button -->
-            <button class="btn-primary h-10 w-10 flex-grow-0 flex-1 px-6 justify-center w-full md:w-auto md:mt-10"
+            <button class="btn-primary h-10 items-center justify-center transition-all duration-300 ease-in-out"
+              :class="[isInputFocused ? 'w-14 px-0' : 'w-10 px-0', 'md:w-auto md:px-6 md:mt-10']"
               :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
               @click="sendMessage">
               <Send :size="20" />
@@ -1740,6 +1747,12 @@ async function disconnectWebSocket() {
 
 // State
 const messageInput = ref('')
+const isInputFocused = ref(false)
+const handleInputBlur = () => {
+  setTimeout(() => {
+    isInputFocused.value = false
+  }, 200)
+}
 const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
