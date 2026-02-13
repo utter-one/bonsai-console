@@ -35,9 +35,8 @@
   <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)"
     class="flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden h-[calc(100vh-7rem)]">
     <!-- Header -->
-    <div
-      class="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 flex-shrink-0 border border-gray-200 dark:border-gray-700">
-      <div class="flex md:flex-row flex-col items-center justify-between">
+    <div class="flex-shrink-0">
+      <div class="flex md:flex-row flex-col md:items-center justify-between">
         <div>
           <div class="flex items-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
@@ -49,7 +48,7 @@
         </div>
 
         <!-- Controls -->
-        <div class="flex md:flex-row flex-col md:items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
+        <div class="flex flex-row flex-wrap items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
           <!-- API Key Selection -->
           <label class="text-sm font-medium text-gray-700 whitespace-nowrap dark:text-gray-300">API Key:</label>
           <select v-model="selectedApiKeyId"
@@ -61,7 +60,7 @@
             </option>
           </select>
 
-          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
           <!-- Conversation Controls -->
           <div v-if="!isConversationActive" class="relative inline-flex">
@@ -69,7 +68,7 @@
             <button class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
               @click="startConversation" :disabled="!canStartConversation">
               <Play :size="18" />
-              {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+              <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}</span>
             </button>
 
             <!-- Dropdown Toggle -->
@@ -104,28 +103,28 @@
           <button v-else class="btn-danger flex items-center gap-2 whitespace-nowrap" @click="endConversation"
             :disabled="!canEndConversation">
             <Square :size="18" />
-            {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
+            <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End Conversation' }}</span>
           </button>
 
-          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
           <!-- Advanced Controls -->
           <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
             @click="showRunActionDialog = true">
             <Zap :size="18" />
-            Run Action
+            <span class="hidden md:inline">Run Action</span>
           </button>
 
           <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
             @click="showJumpToStageDialog = true">
             <SkipForward :size="18" />
-            Jump to Stage
+            <span class="hidden md:inline">Jump to Stage</span>
           </button>
 
           <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
             @click="showCallToolDialog = true">
             <Wrench :size="18" />
-            Call Tool
+            <span class="hidden md:inline">Call Tool</span>
           </button>
         </div>
       </div>
