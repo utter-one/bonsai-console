@@ -112,7 +112,7 @@ export interface AuthResponse {
         /**
          * Audio input format for speech recognition (e.g., "pcm_16000")
          */
-        audioFormat?: 'pcm_16000' | 'pcm_22050' | 'pcm_44100';
+        audioFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
       };
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
@@ -166,7 +166,7 @@ export interface ProjectSettings {
       /**
        * Audio input format for speech recognition (e.g., "pcm_16000")
        */
-      audioFormat?: 'pcm_16000' | 'pcm_22050' | 'pcm_44100';
+      audioFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
     };
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
@@ -977,7 +977,7 @@ export interface SendAiVoiceChunk {
   /**
    * Audio format of the chunk data
    */
-  audioFormat: 'pcm_16000' | 'pcm_22050' | 'pcm_44100';
+  audioFormat: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
   /**
    * Unique identifier for this specific audio chunk
    */

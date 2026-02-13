@@ -333,62 +333,6 @@ export interface OpenAiTtsSettings {
   useSentenceSplitter?: boolean;
 }
 
-/** Voice configuration for TTS */
-export interface VoiceConfig {
-  /** Model ID to use for speech synthesis. ElevenLabs: "eleven_flash_v2_5", "eleven_multilingual_v2", etc. OpenAI: "gpt-4o-mini-tts", "tts-1", "tts-1-hd" */
-  model?: string;
-  /** Text-to-speech voice identifier. ElevenLabs: voice UUID. OpenAI: "alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar" */
-  voiceId?: string;
-  /** Preferred audio output format for synthesized speech. ElevenLabs: "pcm_16000", "pcm_22050", "pcm_44100". OpenAI: "mp3", "opus", "aac", "flac", "wav", "pcm_24000" */
-  audioFormat?:
-    | "mp3"
-    | "opus"
-    | "aac"
-    | "flac"
-    | "wav"
-    | "pcm_16000"
-    | "pcm_22050"
-    | "pcm_24000"
-    | "pcm_44100";
-  /** Markers to identify sections of text that should not be spoken */
-  noSpeechMarkers?: {
-    start: string;
-    end: string;
-  }[];
-  /** Whether to replace exclamation marks with periods */
-  removeExclamationMarks?: boolean;
-  /** Voice control instructions for OpenAI gpt-4o-mini-tts model. Controls accent, tone, emotion, speed, whispering, etc. Only supported by gpt-4o-mini-tts model */
-  instructions?: string;
-  /**
-   * ElevenLabs: Voice stability setting (0.0-1.0), defaults to 0.5
-   * @min 0
-   * @max 1
-   */
-  stability?: number | null;
-  /**
-   * ElevenLabs: Similarity boost setting (0.0-1.0), defaults to 0.75
-   * @min 0
-   * @max 1
-   */
-  similarityBoost?: number | null;
-  /**
-   * ElevenLabs: Style setting for V2+ models (0.0-1.0), defaults to 0
-   * @min 0
-   * @max 1
-   */
-  style?: number | null;
-  /** ElevenLabs: Enable speaker boost for V2+ models, defaults to true */
-  useSpeakerBoost?: boolean | null;
-  /** Speech speed. ElevenLabs: 0.7-1.2, defaults to 1.0. OpenAI: 0.25-4.0, defaults to 1.0 */
-  speed?: number | null;
-  /** ElevenLabs: Use global preview endpoint for geographic proximity optimization */
-  useGlobalPreview?: boolean;
-  /** ElevenLabs: WebSocket inactivity timeout in seconds, defaults to 180 */
-  inactivityTimeout?: number;
-  /** Whether to use sentence splitter for text processing, defaults to true */
-  useSentenceSplitter?: boolean;
-}
-
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -2272,11 +2216,8 @@ export interface CreateStageRequest {
   variables?: Record<string, any>;
   /** Action definitions for this stage */
   actions?: Record<string, StageAction>;
-  /**
-   * List of classifier IDs to use in this stage
-   * @default []
-   */
-  classifierIds?: string[];
+  /** ID of the default classifier to use for this stage (can be overridden per action) */
+  defaultClassifierId?: string | null;
   /**
    * List of context transformer IDs to use in this stage
    * @default []
@@ -2326,8 +2267,8 @@ export interface UpdateStageRequest {
   variables?: Record<string, any>;
   /** Updated action definitions */
   actions?: Record<string, StageAction>;
-  /** Updated classifier IDs */
-  classifierIds?: string[];
+  /** Updated default classifier ID */
+  defaultClassifierId?: string | null;
   /** Updated transformer IDs */
   transformerIds?: string[];
   /** Updated metadata */
@@ -2382,8 +2323,8 @@ export interface StageResponse {
   variables: Record<string, any>;
   /** Action definitions */
   actions: Record<string, StageAction>;
-  /** Classifier IDs used in this stage */
-  classifierIds: string[];
+  /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+  defaultClassifierId: string | null;
   /** Context transformer IDs used in this stage */
   transformerIds: string[];
   /** Additional metadata */
@@ -2439,8 +2380,8 @@ export interface StageListResponse {
     variables: Record<string, any>;
     /** Action definitions */
     actions: Record<string, StageAction>;
-    /** Classifier IDs used in this stage */
-    classifierIds: string[];
+    /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+    defaultClassifierId: string | null;
     /** Context transformer IDs used in this stage */
     transformerIds: string[];
     /** Additional metadata */
