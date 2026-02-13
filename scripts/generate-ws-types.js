@@ -73,7 +73,8 @@ async function generateTypes() {
 // Audio Types (Shared)
 // ============================================================================
 
-export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_44100'
+export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | "mp3" | "opus" | "aac" | "flac" | "wav"
+
 
 `
 
