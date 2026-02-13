@@ -35,9 +35,8 @@
   <div v-else-if="hasProject && (apiKeysLoading || activeApiKeys.length > 0)"
     class="flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden h-[calc(100vh-7rem)]">
     <!-- Header -->
-    <div
-      class="bg-white dark:bg-gray-800 rounded-lg px-6 py-4 flex-shrink-0 border border-gray-200 dark:border-gray-700">
-      <div class="flex md:flex-row flex-col items-center justify-between">
+    <div class="flex-shrink-0">
+      <div class="flex md:flex-row flex-col md:items-center justify-between">
         <div>
           <div class="flex items-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
@@ -49,19 +48,41 @@
         </div>
 
         <!-- Controls -->
-        <div class="flex md:flex-row flex-col md:items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
+        <div class="flex flex-row items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
           <!-- API Key Selection -->
-          <label class="text-sm font-medium text-gray-700 whitespace-nowrap dark:text-gray-300">API Key:</label>
-          <select v-model="selectedApiKeyId"
-            class="form-select min-w-[100px] dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-            :disabled="wsIsConnected || apiKeysLoading">
-            <option :value="null">Select API Key...</option>
-            <option v-for="key in activeApiKeys" :key="key.id" :value="key.id">
-              {{ key.name }}
-            </option>
-          </select>
+          <!-- API Key Selection -->
+          <div class="relative inline-flex">
+            <button class="btn-secondary flex items-center gap-2 whitespace-nowrap"
+              @click="showApiKeyMenu = !showApiKeyMenu" :disabled="wsIsConnected || apiKeysLoading">
+              <Key :size="18" />
+              <span class="hidden md:inline">{{ activeApiKeys.find(k => k.id === selectedApiKeyId)?.name || 'Select API Key' }}</span>
+              <ChevronDown :size="16" class="ml-1 text-gray-500" />
+            </button>
 
-          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+            <!-- API Key Dropdown Menu -->
+            <div v-if="showApiKeyMenu"
+              class="absolute top-full mt-1 left-0 z-20 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700"
+              @click.stop>
+              <!-- Select API Key Option -->
+              <button
+                @click="selectedApiKeyId = null; showApiKeyMenu = false"
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
+                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedApiKeyId === null }">
+                <div class="font-medium">Select API Key...</div>
+              </button>
+              <div v-if="activeApiKeys.length > 0" class="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
+
+              <button v-for="key in activeApiKeys" :key="key.id"
+                @click="selectedApiKeyId = key.id; showApiKeyMenu = false"
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
+                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': key.id === selectedApiKeyId }">
+                <div class="font-medium">{{ key.name }}</div>
+              </button>
+              <div v-if="activeApiKeys.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">No active keys</div>
+            </div>
+          </div>
+
+          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
           <!-- Conversation Controls -->
           <div v-if="!isConversationActive" class="relative inline-flex">
@@ -69,7 +90,7 @@
             <button class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
               @click="startConversation" :disabled="!canStartConversation">
               <Play :size="18" />
-              {{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}
+              <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}</span>
             </button>
 
             <!-- Dropdown Toggle -->
@@ -104,28 +125,28 @@
           <button v-else class="btn-danger flex items-center gap-2 whitespace-nowrap" @click="endConversation"
             :disabled="!canEndConversation">
             <Square :size="18" />
-            {{ isConversationEnding ? 'Ending...' : 'End Conversation' }}
+            <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End Conversation' }}</span>
           </button>
 
-          <div class="h-8 border-l border-gray-300 hidden md:block"></div>
+          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
           <!-- Advanced Controls -->
-          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
+          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
             @click="showRunActionDialog = true">
             <Zap :size="18" />
-            Run Action
+            <span class="hidden md:inline">Run Action</span>
           </button>
 
-          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
+          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
             @click="showJumpToStageDialog = true">
             <SkipForward :size="18" />
-            Jump to Stage
+            <span class="hidden md:inline">Jump to Stage</span>
           </button>
 
-          <button class="btn-secondary flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
+          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
             @click="showCallToolDialog = true">
             <Wrench :size="18" />
-            Call Tool
+            <span class="hidden md:inline">Call Tool</span>
           </button>
         </div>
       </div>
@@ -137,14 +158,14 @@
       <div
         class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
         <div
-          class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
+          class="bg-gray-50 border-b border-gray-200 px-4 py-3 md:flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
           <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
-          <div class="flex items-center gap-4">
-            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
+          <div class="flex items-center md:gap-4 mt-2 md:mt-0">
+            <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
               <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
               <span>Show system events</span>
             </label>
-            <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
+            <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
               <input type="checkbox" v-model="showConversationEvents" class="form-checkbox" />
               <span>Show conversation events</span>
             </label>
@@ -598,22 +619,22 @@
 
       <!-- Input Panel -->
       <div
-        class="flex-shrink-0 bg-white rounded-lg border border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex gap-3 ">
+        class="fixed md:relative bottom-0 left-0 right-0 flex-shrink-0 bg-white md:rounded-lg md:border border-t border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700 ">
+        <div class="flex flex-col md:flex-row gap-3 ">
           <!-- Voice Recording -->
           <div class="flex flex-col gap-2">
-            <label class="form-label">Voice</label>
+            <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
             <div class="flex gap-2 items-center">
               <button v-if="recording?.recordingState !== 'recording'"
                 class="btn-secondary h-10 px-4 flex items-center gap-2" :disabled="!canRecordVoice"
                 @click="startVoiceRecording" title="Start voice recording">
                 <Mic :size="20" />
-                Speak
+                <span class="hidden md:block">Speak</span>
               </button>
               <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse"
                 @click="stopVoiceRecording" title="Stop voice recording">
                 <Square :size="20" />
-                Stop
+                <span class="hidden md:block">Stop</span>
               </button>
 
               <!-- Settings Button -->
@@ -634,21 +655,23 @@
           </div>
 
           <!-- Text Input -->
-          <div class="flex-1">
-            <label class="form-label">Message</label>
-            <textarea v-model="messageInput"
-              class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400"
-              rows="2" placeholder="Type your message here..."
-              :disabled="!canSendMessage || recording?.recordingState === 'recording'"
-              @keydown.enter.ctrl="sendMessage" />
-          </div>
+          <div class="flex gap-2 flex-1">
+            <div class="flex-1 w-full">
+              <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
+              <textarea v-model="messageInput"
+                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400"
+                rows="2" placeholder="Type your message here..."
+                :disabled="!canSendMessage || recording?.recordingState === 'recording'"
+                @keydown.enter.ctrl="sendMessage" />
+            </div>
 
-          <!-- Send Button -->
-          <button class="btn-primary h-10 px-6 mt-10"
-            :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
-            @click="sendMessage">
-            <Send :size="20" />
-          </button>
+            <!-- Send Button -->
+            <button class="btn-primary h-10 w-10 flex-grow-0 flex-1 px-6 justify-center w-full md:w-auto md:mt-10"
+              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
+              @click="sendMessage">
+              <Send :size="20" />
+            </button>
+            </div>
         </div>
 
       </div>
@@ -685,7 +708,7 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -870,6 +893,7 @@ onMounted(() => {
     const target = e.target as HTMLElement
     if (!target.closest('.relative')) {
       showPresetMenu.value = false
+      showApiKeyMenu.value = false
     }
   }
   document.addEventListener('click', handleClickOutside)
@@ -932,6 +956,7 @@ const selectedApiKey = computed(() => {
 // Conversation mode and preferences
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const showPresetMenu = ref(false)
+const showApiKeyMenu = ref(false)
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 

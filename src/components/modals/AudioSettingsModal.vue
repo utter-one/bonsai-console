@@ -3,7 +3,7 @@
     <div class="modal-content max-w-2xl" @click.stop>
       <h2 class="modal-header">Audio Settings</h2>
       
-      <div class="p-6 space-y-6">
+      <div class="space-y-6">
         <!-- Device Selection -->
         <div class="form-group">
           <label class="form-label">Microphone Device</label>
@@ -43,34 +43,40 @@
         <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
           <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Audio Processing</h3>
           <div class="space-y-3">
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-start md:items-center gap-2 cursor-pointer">
               <input
                 v-model="echoCancellation"
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
+              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
+                <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
+              </div>
             </label>
 
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-start md:items-center gap-2 cursor-pointer">
               <input
                 v-model="noiseSuppression"
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
+              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
+                <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
+              </div>
             </label>
 
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-start md:items-center gap-2 cursor-pointer">
               <input
                 v-model="autoGainControl"
                 type="checkbox"
                 class="form-checkbox"
               />
-              <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
+              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
+                <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
+              </div>
             </label>
           </div>
         </div>
