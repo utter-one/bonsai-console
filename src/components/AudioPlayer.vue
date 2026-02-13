@@ -49,23 +49,6 @@
         <Square :size="18" />
       </button>
 
-      <!-- Volume Control -->
-      <div class="flex items-center gap-2 ml-auto">
-        <Volume2 :size="18" class="text-gray-500 dark:text-gray-400" />
-        <input
-          type="range"
-          min="0"
-          max="100"
-          :value="state.volume * 100"
-          @input="handleVolumeChange"
-          class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-          style="
-            accent-color: #3b82f6;
-          "
-        />
-        <span class="text-xs text-gray-500 w-8 text-right dark:text-gray-400">{{ Math.round(state.volume * 100) }}%</span>
-      </div>
-
       <!-- Buffering Indicator -->
       <div v-if="state.buffering" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <div class="animate-spin">
@@ -83,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { Play, Pause, Square, Volume2, Loader } from 'lucide-vue-next'
+import { Play, Pause, Square, Loader } from 'lucide-vue-next'
 import type { AudioPlaybackState } from '@/composables/useAudioPlayback'
 
 interface Props {
@@ -130,14 +113,6 @@ function handleStop() {
   emit('stop')
 }
 
-/**
- * Handle volume slider change
- */
-function handleVolumeChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const volume = parseInt(target.value) / 100
-  emit('volume-change', volume)
-}
 </script>
 
 <style scoped>
