@@ -673,7 +673,7 @@
 
             <!-- Send Button -->
             <button class="btn-primary h-10 items-center justify-center transition-all duration-300 ease-in-out"
-              :class="[isInputFocused ? 'w-14 px-0' : 'w-10 px-0', 'md:w-auto md:px-6 md:mt-10']"
+              :class="[isInputFocused ? 'w-14 px-0' : 'w-14 px-0', 'md:w-auto md:px-3 md:mt-10']"
               :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
               @click="sendMessage">
               <Send :size="20" />
