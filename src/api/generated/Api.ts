@@ -5884,11 +5884,8 @@ export class Api<
       variables?: Record<string, any>;
       /** Action definitions for this stage */
       actions?: Record<string, StageAction>;
-      /**
-       * List of classifier IDs to use in this stage
-       * @default []
-       */
-      classifierIds?: string[];
+      /** ID of the default classifier to use for this stage (can be overridden per action) */
+      defaultClassifierId?: string | null;
       /**
        * List of context transformer IDs to use in this stage
        * @default []
@@ -5935,8 +5932,8 @@ export class Api<
         variables: Record<string, any>;
         /** Action definitions */
         actions: Record<string, StageAction>;
-        /** Classifier IDs used in this stage */
-        classifierIds: string[];
+        /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+        defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
         /** Additional metadata */
@@ -6045,8 +6042,8 @@ export class Api<
           variables: Record<string, any>;
           /** Action definitions */
           actions: Record<string, StageAction>;
-          /** Classifier IDs used in this stage */
-          classifierIds: string[];
+          /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+          defaultClassifierId: string | null;
           /** Context transformer IDs used in this stage */
           transformerIds: string[];
           /** Additional metadata */
@@ -6136,8 +6133,8 @@ export class Api<
         variables: Record<string, any>;
         /** Action definitions */
         actions: Record<string, StageAction>;
-        /** Classifier IDs used in this stage */
-        classifierIds: string[];
+        /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+        defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
         /** Additional metadata */
@@ -6214,8 +6211,8 @@ export class Api<
       variables?: Record<string, any>;
       /** Updated action definitions */
       actions?: Record<string, StageAction>;
-      /** Updated classifier IDs */
-      classifierIds?: string[];
+      /** Updated default classifier ID */
+      defaultClassifierId?: string | null;
       /** Updated transformer IDs */
       transformerIds?: string[];
       /** Updated metadata */
@@ -6264,8 +6261,8 @@ export class Api<
         variables: Record<string, any>;
         /** Action definitions */
         actions: Record<string, StageAction>;
-        /** Classifier IDs used in this stage */
-        classifierIds: string[];
+        /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+        defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
         /** Additional metadata */

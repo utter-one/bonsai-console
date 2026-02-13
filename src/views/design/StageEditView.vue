@@ -71,7 +71,7 @@ const form = ref({
   globalActions: [] as string[],
   variables: {},
   actions: {} as Record<string, StageAction>,
-  classifierIds: [] as string[],
+  defaultClassifierId: '',
   transformerIds: [] as string[],
   metadata: {}
 })
@@ -138,7 +138,7 @@ async function loadStage() {
         globalActions: currentStage.value.globalActions || [],
         variables: currentStage.value.variables || {},
         actions: currentStage.value.actions || {},
-        classifierIds: currentStage.value.classifierIds || [],
+        defaultClassifierId: currentStage.value.defaultClassifierId || '',
         transformerIds: currentStage.value.transformerIds || [],
         metadata: currentStage.value.metadata || {}
       }
@@ -172,7 +172,7 @@ async function handleSubmit() {
         globalActions: form.value.globalActions,
         variables: form.value.variables,
         actions: form.value.actions,
-        classifierIds: form.value.classifierIds,
+        defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
         metadata: form.value.metadata
       })
@@ -192,7 +192,7 @@ async function handleSubmit() {
         globalActions: form.value.globalActions,
         variables: form.value.variables,
         actions: form.value.actions,
-        classifierIds: form.value.classifierIds,
+        defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
         metadata: form.value.metadata
       }
@@ -581,29 +581,25 @@ const lifecycleActions = computed(() => {
               
               <div class="form-group">
                 <label class="form-label">
-                  Attached Classifiers <span class="text-gray-500">(optional)</span>
+                  Default Classifier <span class="text-gray-500">(required for actions)</span>
                 </label>
-                <div class="space-y-2">
-                  <label
+                <select
+                  v-model="form.defaultClassifierId"
+                  class="form-select-auto min-w-64"
+                  :disabled="isLoading"
+                >
+                  <option value="">No default classifier</option>
+                  <option
                     v-for="classifier in projectClassifiers"
                     :key="classifier.id"
-                    class="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded"
+                    :value="classifier.id"
                   >
-                    <input
-                      v-model="form.classifierIds"
-                      :value="classifier.id"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm text-gray-700">
-                      {{ classifier.name }}
-                    </span>
-                  </label>
-                  <p v-if="projectClassifiers.length === 0" class="text-sm text-gray-500 italic">
-                    No classifiers available for this project
-                  </p>
-                </div>
+                    {{ classifier.name }}
+                  </option>
+                </select>
+                <p class="form-help-text">
+                  Default classifier for this stage. Individual actions can override this using "Override Classifier ID" in action settings.
+                </p>
               </div>
             </div>
 

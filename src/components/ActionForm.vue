@@ -414,13 +414,13 @@ function removeProfileModification(index: number) {
           v-model="localForm.overrideClassifierId"
           class="form-select-auto"
         >
-          <option value="">No override (use stage classifiers)</option>
+          <option value="">No override (use stage default classifier)</option>
           <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
             {{ classifier.name }}
           </option>
         </select>
         <p class="form-help-text">
-          Override the stage classifier for this action
+          Override the stage's default classifier for this specific action
         </p>
       </div>
 
