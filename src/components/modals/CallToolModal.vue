@@ -91,7 +91,19 @@
                 </span>
               </label>
               
-              <!-- Array inputs (string[], number[], boolean[]) -->
+              <!-- Object input (JSON) -->
+              <div v-else-if="param.type === 'object'" class="space-y-1">
+                <textarea
+                  v-model="parameterValues[param.name]"
+                  :required="param.required"
+                  :placeholder="param.description + ' (JSON format)'"
+                  class="form-textarea text-sm font-mono"
+                  rows="4"
+                />
+                <p class="text-xs text-gray-500">Enter a valid JSON object</p>
+              </div>
+              
+              <!-- Array inputs (string[], number[], boolean[], object[]) -->
               <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
                 <div 
                   v-for="(_item, index) in getArrayValue(param.name)" 
@@ -122,6 +134,13 @@
                       Item {{ index + 1 }}
                     </span>
                   </label>
+                  <textarea
+                    v-else-if="param.type === 'object[]'"
+                    v-model="parameterValues[param.name][index]"
+                    :placeholder="`${param.description} (item ${index + 1}, JSON format)`"
+                    class="form-textarea text-sm font-mono flex-1"
+                    rows="3"
+                  />
                   <button 
                     type="button"
                     @click="removeArrayItem(param.name, index)"
@@ -235,6 +254,8 @@ function onToolChange() {
     for (const param of selectedTool.value.parameters) {
       if (param.type === 'boolean') {
         parameterValues.value[param.name] = false
+      } else if (param.type === 'object') {
+        parameterValues.value[param.name] = '{}'
       } else if (param.type.endsWith('[]')) {
         parameterValues.value[param.name] = []
       } else {
@@ -262,6 +283,8 @@ function addArrayItem(paramName: string, paramType: string) {
     parameterValues.value[paramName].push(0)
   } else if (paramType === 'boolean[]') {
     parameterValues.value[paramName].push(false)
+  } else if (paramType === 'object[]') {
+    parameterValues.value[paramName].push('{}')
   }
 }
 
@@ -277,29 +300,60 @@ function handleCallTool() {
   // Build the parameters object with only non-empty values
   const parameters: Record<string, any> = {}
   
-  for (const param of selectedTool.value.parameters) {
-    const value = parameterValues.value[param.name]
-    
-    // Only include if value is provided
-    if (value !== undefined && value !== null && value !== '') {
-      // For arrays, filter out empty strings if it's a string array
-      if (param.type.endsWith('[]') && Array.isArray(value)) {
-        if (param.type === 'string[]') {
-          const filtered = value.filter(item => item !== '')
-          if (filtered.length > 0) {
-            parameters[param.name] = filtered
+  try {
+    for (const param of selectedTool.value.parameters) {
+      const value = parameterValues.value[param.name]
+      
+      // Only include if value is provided
+      if (value !== undefined && value !== null && value !== '') {
+        // Handle object type - parse JSON
+        if (param.type === 'object') {
+          try {
+            parameters[param.name] = JSON.parse(value)
+          } catch (e) {
+            alert(`Invalid JSON for parameter "${param.name}": ${e instanceof Error ? e.message : 'Parse error'}`)
+            return
+          }
+        }
+        // Handle object[] type - parse each JSON string in array
+        else if (param.type === 'object[]' && Array.isArray(value)) {
+          const parsedArray: any[] = []
+          for (let i = 0; i < value.length; i++) {
+            const item = value[i]
+            if (item && item.trim()) {
+              try {
+                parsedArray.push(JSON.parse(item))
+              } catch (e) {
+                alert(`Invalid JSON for parameter "${param.name}" at item ${i + 1}: ${e instanceof Error ? e.message : 'Parse error'}`)
+                return
+              }
+            }
+          }
+          if (parsedArray.length > 0) {
+            parameters[param.name] = parsedArray
+          }
+        }
+        // For other arrays, filter out empty strings if it's a string array
+        else if (param.type.endsWith('[]') && Array.isArray(value)) {
+          if (param.type === 'string[]') {
+            const filtered = value.filter(item => item !== '')
+            if (filtered.length > 0) {
+              parameters[param.name] = filtered
+            }
+          } else {
+            parameters[param.name] = value
           }
         } else {
           parameters[param.name] = value
         }
-      } else {
-        parameters[param.name] = value
       }
     }
+    
+    emit('call', selectedTool.value.id, parameters)
+    emit('close')
+  } catch (e) {
+    alert(`Error preparing parameters: ${e instanceof Error ? e.message : 'Unknown error'}`)
   }
-  
-  emit('call', selectedTool.value.id, parameters)
-  emit('close')
 }
 
 // Load tools on mount

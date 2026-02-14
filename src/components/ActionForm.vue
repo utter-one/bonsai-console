@@ -4,7 +4,7 @@ import MetadataTab from './MetadataTab.vue'
 
 interface ActionParameter {
   name: string
-  type: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | 'boolean[]'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]'
   description: string
   required: boolean
 }
@@ -482,9 +482,11 @@ function removeProfileModification(index: number) {
                   <option value="string">string</option>
                   <option value="number">number</option>
                   <option value="boolean">boolean</option>
+                  <option value="object">object</option>
                   <option value="string[]">string[]</option>
                   <option value="number[]">number[]</option>
                   <option value="boolean[]">boolean[]</option>
+                  <option value="object[]">object[]</option>
                 </select>
               </div>
             </div>

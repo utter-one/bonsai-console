@@ -74,6 +74,18 @@
               <span class="text-sm text-gray-700 dark:text-gray-200">Enable</span>
             </div>
             
+            <!-- Object input (JSON) -->
+            <div v-else-if="param.type === 'object'" class="space-y-1">
+              <textarea
+                v-model="parameters[param.name]"
+                class="form-textarea font-mono"
+                rows="4"
+                :required="param.required"
+                :placeholder="`Enter ${param.name} (JSON format)...`"
+              />
+              <p class="text-xs text-gray-500">Enter a valid JSON object</p>
+            </div>
+            
             <!-- String array input -->
             <textarea
               v-else-if="param.type === 'string[]'"
@@ -103,6 +115,18 @@
               :required="param.required"
               :placeholder="`Enter ${param.name} (true/false, one per line)...`"
             />
+            
+            <!-- Object array input (JSON) -->
+            <div v-else-if="param.type === 'object[]'" class="space-y-1">
+              <textarea
+                v-model="parameters[param.name]"
+                class="form-textarea font-mono"
+                rows="4"
+                :required="param.required"
+                :placeholder="`Enter ${param.name} (JSON objects, one per line)...`"
+              />
+              <p class="text-xs text-gray-500">Enter one JSON object per line</p>
+            </div>
           </div>
         </div>
 
@@ -195,7 +219,9 @@ function onActionChange() {
     selectedAction.value.parameters.forEach(param => {
       if (param.type === 'boolean') {
         parameters.value[param.name] = false
-      } else if (param.type === 'string[]' || param.type === 'number[]' || param.type === 'boolean[]') {
+      } else if (param.type === 'object') {
+        parameters.value[param.name] = '{}'
+      } else if (param.type === 'string[]' || param.type === 'number[]' || param.type === 'boolean[]' || param.type === 'object[]') {
         parameters.value[param.name] = ''
       } else {
         parameters.value[param.name] = ''
@@ -219,8 +245,39 @@ function handleSubmit() {
     for (const param of selectedAction.value.parameters) {
       const value = parameters.value[param.name]
       
-      // Handle array types - convert from textarea string to array
-      if (param.type === 'string[]') {
+      // Handle object type - parse JSON
+      if (param.type === 'object') {
+        if (value) {
+          try {
+            processedParams[param.name] = JSON.parse(value)
+          } catch (e) {
+            errorMessage.value = `Invalid JSON for parameter "${param.name}": ${e instanceof Error ? e.message : 'Parse error'}`
+            return
+          }
+        } else {
+          processedParams[param.name] = value
+        }
+      }
+      // Handle object[] type - parse each JSON line
+      else if (param.type === 'object[]') {
+        if (value) {
+          const lines = value.split('\n').filter((line: string) => line.trim())
+          const parsedArray: any[] = []
+          for (let i = 0; i < lines.length; i++) {
+            try {
+              parsedArray.push(JSON.parse(lines[i]))
+            } catch (e) {
+              errorMessage.value = `Invalid JSON for parameter "${param.name}" at line ${i + 1}: ${e instanceof Error ? e.message : 'Parse error'}`
+              return
+            }
+          }
+          processedParams[param.name] = parsedArray
+        } else {
+          processedParams[param.name] = []
+        }
+      }
+      // Handle other array types - convert from textarea string to array
+      else if (param.type === 'string[]') {
         processedParams[param.name] = value ? value.split('\n').filter((line: string) => line.trim()) : []
       } else if (param.type === 'number[]') {
         processedParams[param.name] = value 

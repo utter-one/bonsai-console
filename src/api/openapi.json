@@ -972,9 +972,11 @@
               "string",
               "number",
               "boolean",
+              "object",
               "string[]",
               "number[]",
-              "boolean[]"
+              "boolean[]",
+              "object[]"
             ],
             "description": "Expected type of the parameter value"
           },
@@ -1009,9 +1011,11 @@
               "string",
               "number",
               "boolean",
+              "object",
               "string[]",
               "number[]",
-              "boolean[]"
+              "boolean[]",
+              "object[]"
             ],
             "description": "Expected type of the parameter value"
           },
