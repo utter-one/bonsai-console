@@ -41,6 +41,7 @@ const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
 const newPhrase = ref('')
+const createPlaygroundApiKey = ref(true)
 
 // Computed
 const projectId = computed(() => route.params.projectId as string | undefined)
@@ -169,13 +170,30 @@ async function handleSubmit() {
       })
     } else {
       // Create new project
-      await projectsStore.create({
+      const newProject = await projectsStore.create({
         name: form.value.name,
         description: form.value.description || undefined,
         asrConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
       })
+
+      // Create Playground API key if checkbox is checked
+      if (createPlaygroundApiKey.value && newProject) {
+        try {
+          await apiKeysStore.create({
+            projectId: newProject.id,
+            name: 'Playground',
+            metadata: {
+              autoCreated: true,
+              createdDuring: 'projectCreation'
+            }
+          })
+        } catch (err: any) {
+          // Don't fail project creation if API key creation fails
+          console.error('Failed to create Playground API key:', err)
+        }
+      }
     }
 
     // Navigate back to projects list
@@ -398,6 +416,24 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
               :disabled="isLoading"
             ></textarea>
             <p class="form-help-text">Provide additional context about the project's purpose</p>
+          </div>
+
+          <!-- Create Playground API Key Checkbox (only when creating) -->
+          <div v-if="!isEditMode" class="form-group bg-purple-50 p-4 rounded-lg border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
+            <label class="flex items-center cursor-pointer">
+              <input
+                v-model="createPlaygroundApiKey"
+                type="checkbox"
+                class="form-checkbox"
+                :disabled="isLoading"
+              />
+              <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                Create API key for Playground
+              </span>
+            </label>
+            <p class="form-help-text mt-1">
+              Automatically create a "Playground" API key for testing and development
+            </p>
           </div>
         </div>
 
