@@ -497,7 +497,15 @@ export interface StageActionParameter {
    */
   name: string;
   /** Expected type of the parameter value */
-  type: "string" | "number" | "boolean" | "string[]" | "number[]" | "boolean[]";
+  type:
+    | "string"
+    | "number"
+    | "boolean"
+    | "object"
+    | "string[]"
+    | "number[]"
+    | "boolean[]"
+    | "object[]";
   /**
    * Description of what the parameter represents (helps with extraction)
    * @minLength 1
@@ -514,7 +522,15 @@ export interface ToolParameter {
    */
   name: string;
   /** Expected type of the parameter value */
-  type: "string" | "number" | "boolean" | "string[]" | "number[]" | "boolean[]";
+  type:
+    | "string"
+    | "number"
+    | "boolean"
+    | "object"
+    | "string[]"
+    | "number[]"
+    | "boolean[]"
+    | "object[]";
   /**
    * Description of what the parameter represents
    * @minLength 1

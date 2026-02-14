@@ -136,7 +136,7 @@ const operations = ref(createDefaultOperations())
 
 const parameters = ref<Array<{
   name: string
-  type: 'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | 'boolean[]'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]'
   description: string
   required: boolean
 }>>([])
