@@ -175,16 +175,35 @@ watch(() => [localOperations.value.callTool.toolId, props.availableTools.length]
   for (const param of tool.parameters) {
     // Use existing parameter value if available, otherwise initialize with default
     if (hasExistingParams && param.name in existingParams) {
-      // For object types that are stored as strings, keep them as strings
-      if (param.type === 'object' && typeof existingParams[param.name] === 'object') {
-        newParams[param.name] = JSON.stringify(existingParams[param.name], null, 2)
-      } else if (param.type === 'object[]' && Array.isArray(existingParams[param.name])) {
+      const existingValue = existingParams[param.name]
+      
+      // For object types, ensure they're represented as JSON strings in the UI
+      if (param.type === 'object') {
+        if (typeof existingValue === 'object' && existingValue !== null) {
+          // Convert object to formatted JSON string for textarea
+          newParams[param.name] = JSON.stringify(existingValue, null, 2)
+        } else if (typeof existingValue === 'string') {
+          // Already a string, keep it (but validate it's valid JSON)
+          try {
+            // Parse and re-stringify to ensure it's valid and formatted
+            const parsed = JSON.parse(existingValue)
+            newParams[param.name] = JSON.stringify(parsed, null, 2)
+          } catch {
+            // If invalid JSON, treat as empty object
+            newParams[param.name] = '{}'
+          }
+        } else {
+          // Other types, convert to empty object
+          newParams[param.name] = '{}'
+        }
+      } else if (param.type === 'object[]' && Array.isArray(existingValue)) {
         // For object arrays, stringify each item
-        newParams[param.name] = existingParams[param.name].map((item: any) => 
-          typeof item === 'object' ? JSON.stringify(item, null, 2) : item
+        newParams[param.name] = existingValue.map((item: any) => 
+          typeof item === 'object' && item !== null ? JSON.stringify(item, null, 2) : item
         )
       } else {
-        newParams[param.name] = existingParams[param.name]
+        // For other types, use as is
+        newParams[param.name] = existingValue
       }
     } else {
       // Initialize with default value
