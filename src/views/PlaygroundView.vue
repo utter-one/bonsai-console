@@ -443,6 +443,16 @@
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
                           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toolName }}</div>
                         </div>
+                        <div v-if="event.wsEvent.eventData.success && event.wsEvent.eventData.result && Array.isArray(event.wsEvent.eventData.result) && event.wsEvent.eventData.result.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.wsEvent.eventData.result.length }} item{{ event.wsEvent.eventData.result.length !== 1 ? 's' : '' }}):</span>
+                          <div class="mt-2 space-y-3">
+                            <div v-for="(content, idx) in event.wsEvent.eventData.result" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-3 dark:bg-gray-900 dark:bg-opacity-60">
+                              <div class="text-xs font-medium text-gray-500 mb-2 uppercase dark:text-gray-400">{{ content.contentType }}</div>
+                              <ContentViewer :content="content" />
+                            </div>
+                          </div>
+                        </div>
                         <div v-if="!event.wsEvent.eventData.success && event.wsEvent.eventData.error">
                           <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
                             <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
@@ -722,6 +732,7 @@ import CallToolModal from '@/components/modals/CallToolModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
+import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
@@ -1242,7 +1253,7 @@ function isToolCallEvent(event: WSConversationEvent): event is WSConversationEve
     toolName: string
     parameters: Record<string, any>
     success: boolean
-    result?: any
+    result?: Content[]
     error?: string
     metadata?: Record<string, any>
   }

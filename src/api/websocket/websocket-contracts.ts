@@ -612,7 +612,49 @@ export interface ConversationEvent {
           [k: string]: unknown;
         };
         success: boolean;
-        result?: unknown;
+        result?: (
+          | {
+              contentType: 'text';
+              text: string;
+            }
+          | {
+              contentType: 'image';
+              /**
+               * Base64-encoded image data
+               */
+              data: string;
+              /**
+               * MIME type (e.g., image/png, image/jpeg)
+               */
+              mimeType: string;
+              metadata?: {
+                width?: number;
+                height?: number;
+                [k: string]: unknown;
+              };
+            }
+          | {
+              contentType: 'audio';
+              /**
+               * Base64-encoded audio data
+               */
+              data: string;
+              /**
+               * Audio format
+               */
+              format: 'pcm' | 'mp3' | 'wav' | 'opus';
+              /**
+               * MIME type (e.g., audio/pcm, audio/mpeg)
+               */
+              mimeType: string;
+              metadata?: {
+                sampleRate?: number;
+                channels?: number;
+                bitDepth?: number;
+                [k: string]: unknown;
+              };
+            }
+        )[];
         error?: string;
         metadata?: {
           [k: string]: unknown;
@@ -1057,6 +1099,97 @@ export interface AiTranscribedChunk {
    * Whether this is the final chunk of text output
    */
   isFinal: boolean;
+}
+
+export interface SendAiAudioOutput {
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Message type for sending AI-generated audio
+   */
+  type: 'send_ai_audio_output';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Unique identifier for this output sequence for correlation
+   */
+  outputTurnId: string;
+  /**
+   * Base64-encoded audio data
+   */
+  audioData: string;
+  /**
+   * Audio format identifier
+   */
+  audioFormat: 'pcm' | 'mp3' | 'wav' | 'opus';
+  /**
+   * MIME type of the audio (e.g., audio/pcm, audio/mpeg)
+   */
+  mimeType: string;
+  /**
+   * Sequence number if multiple audio blocks in response
+   */
+  sequenceNumber: number;
+  /**
+   * Audio metadata
+   */
+  metadata?: {
+    /**
+     * Sample rate in Hz
+     */
+    sampleRate?: number;
+    /**
+     * Number of audio channels
+     */
+    channels?: number;
+    /**
+     * Bit depth per sample
+     */
+    bitDepth?: number;
+  };
+}
+
+export interface SendAiImageOutput {
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Message type for sending AI-generated image
+   */
+  type: 'send_ai_image_output';
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Unique identifier for this output sequence for correlation
+   */
+  outputTurnId: string;
+  /**
+   * Base64-encoded image data
+   */
+  imageData: string;
+  /**
+   * MIME type of the image (e.g., image/png, image/jpeg)
+   */
+  mimeType: string;
+  /**
+   * Sequence number if multiple images in response
+   */
+  sequenceNumber: number;
 }
 
 // ============================================================================
