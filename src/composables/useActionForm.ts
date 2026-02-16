@@ -180,58 +180,17 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
   }
 
   if (operations.callTool.enabled) {
-    // Validate and prepare parameters
+    // Build parameters object, accepting all values as-is
     const params: Record<string, any> = {}
     
-    // Build parameters object, handling JSON strings for object types
     for (const [key, value] of Object.entries(operations.callTool.parameters)) {
-      // Skip null or undefined values
-      if (value === null || value === undefined) {
+      // Skip null, undefined, or empty string values
+      if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
         continue
       }
       
-      // Skip empty strings, but allow empty objects/arrays
-      if (value === '' || (typeof value === 'string' && value.trim() === '')) {
-        continue
-      }
-      
-      // Handle arrays (for array types like string[], object[], etc.)
-      if (Array.isArray(value)) {
-        // For arrays, parse any JSON strings within them
-        const parsedArray = value.map(item => {
-          if (typeof item === 'string' && (item.trim().startsWith('{') || item.trim().startsWith('['))) {
-            try {
-              return JSON.parse(item)
-            } catch (e) {
-              error = `Invalid JSON for parameter "${key}" in array item`
-              return null
-            }
-          }
-          return item
-        })
-        
-        // Check if any parsing failed
-        if (parsedArray.includes(null) && error) {
-          return { effects: [], error }
-        }
-        
-        params[key] = parsedArray
-      }
-      // If it's a string that looks like JSON (object or array), try to parse it
-      else if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
-        try {
-          params[key] = JSON.parse(value)
-        } catch (e) {
-          error = `Invalid JSON for parameter "${key}"`
-          return { effects: [], error }
-        }
-      } else if (typeof value === 'object') {
-        // If it's already an object (but not an array), keep it as is
-        params[key] = value
-      } else {
-        // For other types (string, number, boolean), use as is
-        params[key] = value
-      }
+      // Accept all values as-is without validation or parsing
+      params[key] = value
     }
 
     effectsArray.push({
