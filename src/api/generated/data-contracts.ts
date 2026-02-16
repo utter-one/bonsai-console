@@ -333,6 +333,38 @@ export interface OpenAiTtsSettings {
   useSentenceSplitter?: boolean;
 }
 
+export interface DeepgramTtsSettings {
+  /** Model version to use ("aura-1" or "aura-2") */
+  model?: "aura-1" | "aura-2";
+  /** Voice ID to use for speech synthesis (e.g., "thalia-en", "andromeda-en"). Combined with model to form full model string (e.g., "aura-2-thalia-en") */
+  voiceId?: string;
+  /** Preferred audio output format. Streaming supports: linear16, opus, mulaw, alaw. REST-only: mp3, flac, aac */
+  audioFormat?: "linear16" | "opus" | "mulaw" | "alaw" | "mp3" | "flac" | "aac";
+  /**
+   * Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format
+   * @min 0
+   * @exclusiveMin true
+   */
+  sampleRate?: number;
+  /**
+   * Bit rate for audio output (e.g., 32000, 64000, 128000). Applies to certain formats like mp3, opus, aac
+   * @min 0
+   * @exclusiveMin true
+   */
+  bitRate?: number;
+  /** Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container */
+  container?: "none" | "wav" | "ogg";
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Whether to use sentence splitter for text processing, defaults to true */
+  useSentenceSplitter?: boolean;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -350,10 +382,15 @@ export interface AsrConfig {
       | "aac"
       | "flac"
       | "wav"
+      | "pcm_8000"
       | "pcm_16000"
       | "pcm_22050"
       | "pcm_24000"
-      | "pcm_44100";
+      | "pcm_44100"
+      | "pcm_48000"
+      | "mulaw"
+      | "alaw"
+      | "linear16";
   };
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
@@ -838,10 +875,15 @@ export interface CreateProjectRequest {
         | "aac"
         | "flac"
         | "wav"
+        | "pcm_8000"
         | "pcm_16000"
         | "pcm_22050"
         | "pcm_24000"
-        | "pcm_44100";
+        | "pcm_44100"
+        | "pcm_48000"
+        | "mulaw"
+        | "alaw"
+        | "linear16";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -911,10 +953,15 @@ export interface ProjectResponse {
         | "aac"
         | "flac"
         | "wav"
+        | "pcm_8000"
         | "pcm_16000"
         | "pcm_22050"
         | "pcm_24000"
-        | "pcm_44100";
+        | "pcm_44100"
+        | "pcm_48000"
+        | "mulaw"
+        | "alaw"
+        | "linear16";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -969,10 +1016,15 @@ export interface ProjectListResponse {
           | "aac"
           | "flac"
           | "wav"
+          | "pcm_8000"
           | "pcm_16000"
           | "pcm_22050"
           | "pcm_24000"
-          | "pcm_44100";
+          | "pcm_44100"
+          | "pcm_48000"
+          | "mulaw"
+          | "alaw"
+          | "linear16";
       };
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
@@ -1030,7 +1082,7 @@ export interface CreatePersonaRequest {
   /** ID of the TTS provider (e.g., "eleven-labs") */
   ttsProviderId?: string;
   /** TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -1051,7 +1103,7 @@ export interface UpdatePersonaRequest {
   /** Updated TTS provider ID */
   ttsProviderId?: string;
   /** Updated TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1083,7 +1135,7 @@ export interface PersonaResponse {
   /** ID of the TTS provider */
   ttsProviderId: string | null;
   /** TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1116,7 +1168,10 @@ export interface PersonaListResponse {
     /** ID of the TTS provider */
     ttsProviderId: string | null;
     /** TTS provider-specific settings */
-    ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+    ttsSettings?:
+      | ElevenLabsTtsSettings
+      | OpenAiTtsSettings
+      | DeepgramTtsSettings;
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */

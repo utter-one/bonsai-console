@@ -14,6 +14,7 @@ import {
   AnthropicLlmSettings,
   AsrConfig,
   AsrModelInfo,
+  DeepgramTtsSettings,
   Effect,
   ElevenLabsTtsSettings,
   GeminiLlmSettings,
@@ -692,10 +693,15 @@ export class Api<
             | "aac"
             | "flac"
             | "wav"
+            | "pcm_8000"
             | "pcm_16000"
             | "pcm_22050"
             | "pcm_24000"
-            | "pcm_44100";
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw"
+            | "linear16";
         };
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
@@ -744,10 +750,15 @@ export class Api<
               | "aac"
               | "flac"
               | "wav"
+              | "pcm_8000"
               | "pcm_16000"
               | "pcm_22050"
               | "pcm_24000"
-              | "pcm_44100";
+              | "pcm_44100"
+              | "pcm_48000"
+              | "mulaw"
+              | "alaw"
+              | "linear16";
           };
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
@@ -855,10 +866,15 @@ export class Api<
                 | "aac"
                 | "flac"
                 | "wav"
+                | "pcm_8000"
                 | "pcm_16000"
                 | "pcm_22050"
                 | "pcm_24000"
-                | "pcm_44100";
+                | "pcm_44100"
+                | "pcm_48000"
+                | "mulaw"
+                | "alaw"
+                | "linear16";
             };
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
@@ -933,10 +949,15 @@ export class Api<
               | "aac"
               | "flac"
               | "wav"
+              | "pcm_8000"
               | "pcm_16000"
               | "pcm_22050"
               | "pcm_24000"
-              | "pcm_44100";
+              | "pcm_44100"
+              | "pcm_48000"
+              | "mulaw"
+              | "alaw"
+              | "linear16";
           };
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
@@ -1032,10 +1053,15 @@ export class Api<
               | "aac"
               | "flac"
               | "wav"
+              | "pcm_8000"
               | "pcm_16000"
               | "pcm_22050"
               | "pcm_24000"
-              | "pcm_44100";
+              | "pcm_44100"
+              | "pcm_48000"
+              | "mulaw"
+              | "alaw"
+              | "linear16";
           };
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
@@ -3569,7 +3595,10 @@ export class Api<
       /** ID of the TTS provider (e.g., "eleven-labs") */
       ttsProviderId?: string;
       /** TTS provider-specific settings */
-      ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+      ttsSettings?:
+        | ElevenLabsTtsSettings
+        | OpenAiTtsSettings
+        | DeepgramTtsSettings;
       /** Additional persona-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -3590,7 +3619,10 @@ export class Api<
         /** ID of the TTS provider */
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
-        ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+        ttsSettings?:
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3676,7 +3708,10 @@ export class Api<
           /** ID of the TTS provider */
           ttsProviderId: string | null;
           /** TTS provider-specific settings */
-          ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+          ttsSettings?:
+            | ElevenLabsTtsSettings
+            | OpenAiTtsSettings
+            | DeepgramTtsSettings;
           /** Additional persona-specific metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -3743,7 +3778,10 @@ export class Api<
         /** ID of the TTS provider */
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
-        ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+        ttsSettings?:
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3794,7 +3832,10 @@ export class Api<
       /** Updated TTS provider ID */
       ttsProviderId?: string;
       /** Updated TTS provider-specific settings */
-      ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+      ttsSettings?:
+        | ElevenLabsTtsSettings
+        | OpenAiTtsSettings
+        | DeepgramTtsSettings;
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -3820,7 +3861,10 @@ export class Api<
         /** ID of the TTS provider */
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
-        ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings;
+        ttsSettings?:
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */

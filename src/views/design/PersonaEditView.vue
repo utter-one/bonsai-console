@@ -3,9 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
-import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings } from '@/api/types'
+import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings } from '@/api/types'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -65,6 +65,7 @@ const selectedProviderCatalogInfo = computed(() => {
 const selectedProviderApiType = computed(() => selectedProvider.value?.apiType || '')
 const isElevenLabs = computed(() => selectedProviderApiType.value === 'elevenlabs')
 const isOpenAI = computed(() => selectedProviderApiType.value === 'openai')
+const isDeepgram = computed(() => selectedProviderApiType.value === 'deepgram')
 
 const isModelSelected = computed(() => !!form.value.ttsSettings.model)
 
@@ -176,6 +177,17 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
           removeExclamationMarks: false,
           useSentenceSplitter: true
         } as OpenAiTtsSettings
+      } else if (newApiType === 'deepgram') {
+        form.value.ttsSettings = {
+          model: undefined,
+          voiceId: '',
+          audioFormat: 'linear16',
+          sampleRate: 24000,
+          container: 'none',
+          noSpeechMarkers: [],
+          removeExclamationMarks: false,
+          useSentenceSplitter: true
+        } as DeepgramTtsSettings
       } else {
         // Other/custom provider
         form.value.ttsSettings = {}
@@ -636,6 +648,70 @@ function removeNoSpeechMarker(index: number) {
               />
               <p class="form-help-text">
                 Speech speed (0.25-4.0), defaults to 1.0
+              </p>
+            </div>
+          </div>
+
+          <!-- Voice Settings Section (Deepgram) -->
+          <div v-if="form.ttsProviderId && isDeepgram" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Deepgram)</h3>
+
+            <!-- Sample Rate -->
+            <div class="form-group">
+              <label class="form-label">Sample Rate (Hz)</label>
+              <select
+                v-model.number="(form.ttsSettings as DeepgramTtsSettings).sampleRate"
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option :value="undefined">Default</option>
+                <option :value="8000">8000 Hz</option>
+                <option :value="16000">16000 Hz</option>
+                <option :value="24000">24000 Hz (Recommended)</option>
+                <option :value="48000">48000 Hz</option>
+              </select>
+              <p class="form-help-text">
+                Audio sample rate in Hz. Higher values provide better quality but larger file sizes. Common values: 8000, 16000, 24000, 48000.
+              </p>
+            </div>
+
+            <!-- Bit Rate -->
+            <div class="form-group">
+              <label class="form-label">
+                Bit Rate <span class="text-gray-500">(optional)</span>
+              </label>
+              <select
+                v-model.number="(form.ttsSettings as DeepgramTtsSettings).bitRate"
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option :value="undefined">Default</option>
+                <option :value="32000">32 kbps</option>
+                <option :value="64000">64 kbps</option>
+                <option :value="96000">96 kbps</option>
+                <option :value="128000">128 kbps</option>
+                <option :value="192000">192 kbps</option>
+                <option :value="256000">256 kbps</option>
+              </select>
+              <p class="form-help-text">
+                Bit rate for compressed formats (mp3, opus, aac). Higher values provide better quality.
+              </p>
+            </div>
+
+            <!-- Container -->
+            <div class="form-group">
+              <label class="form-label">Container Format</label>
+              <select
+                v-model="(form.ttsSettings as DeepgramTtsSettings).container"
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="none">None (raw audio)</option>
+                <option value="wav">WAV</option>
+                <option value="ogg">Ogg</option>
+              </select>
+              <p class="form-help-text">
+                Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container
               </p>
             </div>
           </div>
