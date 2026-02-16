@@ -1991,7 +1991,39 @@ export interface ConversationEventResponse {
         toolName: string;
         parameters: Record<string, any>;
         success: boolean;
-        result?: any;
+        result?: (
+          | {
+              contentType: "text";
+              text: string;
+            }
+          | {
+              contentType: "image";
+              /** Base64-encoded image data */
+              data: string;
+              /** MIME type (e.g., image/png, image/jpeg) */
+              mimeType: string;
+              metadata?: {
+                width?: number;
+                height?: number;
+                [key: string]: any;
+              };
+            }
+          | {
+              contentType: "audio";
+              /** Base64-encoded audio data */
+              data: string;
+              /** Audio format */
+              format: "pcm" | "mp3" | "wav" | "opus";
+              /** MIME type (e.g., audio/pcm, audio/mpeg) */
+              mimeType: string;
+              metadata?: {
+                sampleRate?: number;
+                channels?: number;
+                bitDepth?: number;
+                [key: string]: any;
+              };
+            }
+        )[];
         error?: string;
         metadata?: Record<string, any>;
       }
@@ -2099,7 +2131,39 @@ export interface ConversationEventListResponse {
           toolName: string;
           parameters: Record<string, any>;
           success: boolean;
-          result?: any;
+          result?: (
+            | {
+                contentType: "text";
+                text: string;
+              }
+            | {
+                contentType: "image";
+                /** Base64-encoded image data */
+                data: string;
+                /** MIME type (e.g., image/png, image/jpeg) */
+                mimeType: string;
+                metadata?: {
+                  width?: number;
+                  height?: number;
+                  [key: string]: any;
+                };
+              }
+            | {
+                contentType: "audio";
+                /** Base64-encoded audio data */
+                data: string;
+                /** Audio format */
+                format: "pcm" | "mp3" | "wav" | "opus";
+                /** MIME type (e.g., audio/pcm, audio/mpeg) */
+                mimeType: string;
+                metadata?: {
+                  sampleRate?: number;
+                  channels?: number;
+                  bitDepth?: number;
+                  [key: string]: any;
+                };
+              }
+          )[];
           error?: string;
           metadata?: Record<string, any>;
         }
@@ -3520,7 +3584,7 @@ export interface ProviderListResponse {
   limit: number | null;
 }
 
-export interface ModelInfo {
+export interface AsrModelInfo {
   /** Model identifier */
   id: string;
   /** Human-readable display name */
@@ -3529,6 +3593,37 @@ export interface ModelInfo {
   description?: string;
   /** Whether this is a recommended or default model */
   recommended?: boolean;
+  /** Language codes supported by this model (if model-specific) */
+  languages?: string[];
+  /** Whether this model supports custom vocabulary/phrases */
+  supportsCustomVocabulary?: boolean;
+  /** Whether this model supports streaming transcription */
+  supportsStreaming?: boolean;
+  /** Audio input formats supported by this model */
+  supportedAudioFormats?: string[];
+}
+
+export interface LlmModelInfo {
+  /** Model identifier */
+  id: string;
+  /** Human-readable display name */
+  displayName: string;
+  /** Description of the model's capabilities and use cases */
+  description?: string;
+  /** Whether this is a recommended or default model */
+  recommended?: boolean;
+  /** Whether this model supports tool calling (function calling) */
+  supportsToolCalling?: boolean;
+  /** Whether this model supports structured JSON output */
+  supportsJsonOutput?: boolean;
+  /** Whether this model supports streaming responses */
+  supportsStreaming?: boolean;
+  /** Whether this model supports vision/image input */
+  supportsVision?: boolean;
+  /** Whether this model supports reasoning/thinking modes for deeper analysis */
+  supportsReasoning?: boolean;
+  /** Context window size (in tokens) for this model */
+  contextWindow?: number;
 }
 
 export interface VoiceInfo {
@@ -3553,10 +3648,26 @@ export interface LanguageInfo {
   displayName: string;
 }
 
-export type TtsModelInfo = ModelInfo & {
+export interface TtsModelInfo {
+  /** Model identifier */
+  id: string;
+  /** Human-readable display name */
+  displayName: string;
+  /** Description of the model's capabilities and use cases */
+  description?: string;
+  /** Whether this is a recommended or default model */
+  recommended?: boolean;
   /** Model-specific voices that override provider-level voices */
   voices?: VoiceInfo[];
-};
+  /** Language codes supported by this model (if model-specific) */
+  languages?: string[];
+  /** Whether this model supports full streaming (chunk-by-chunk) */
+  supportsFullStreaming?: boolean;
+  /** Whether this model supports voice customization settings */
+  supportsVoiceSettings?: boolean;
+  /** Audio output formats supported by this model */
+  supportedAudioFormats?: string[];
+}
 
 export interface ProviderCatalog {
   /** ASR providers */
@@ -3565,14 +3676,10 @@ export interface ProviderCatalog {
     apiType: string;
     /** Human-readable provider name */
     displayName: string;
-    /** Languages supported by this provider */
+    /** Models available for this provider */
+    models: AsrModelInfo[];
+    /** Languages commonly supported across models (for reference) */
     languages: LanguageInfo[];
-    /** Audio input formats supported by this provider */
-    supportedAudioFormats: string[];
-    /** Whether custom vocabulary/phrases are supported */
-    supportsCustomVocabulary: boolean;
-    /** Whether streaming transcription is supported */
-    supportsStreaming: boolean;
     /** Additional information */
     description?: string;
   }[];
@@ -3586,14 +3693,8 @@ export interface ProviderCatalog {
     models: TtsModelInfo[];
     /** Voices available (can be provider-specific or model-specific) */
     voices: VoiceInfo[];
-    /** Languages supported */
+    /** Languages commonly supported across models (for reference) */
     languages: LanguageInfo[];
-    /** Audio output formats supported by this provider */
-    supportedAudioFormats: string[];
-    /** Whether full streaming (chunk-by-chunk) is supported */
-    supportsFullStreaming: boolean;
-    /** Whether voice customization settings are supported */
-    supportsVoiceSettings: boolean;
     /** Additional information */
     description?: string;
   }[];
@@ -3604,21 +3705,7 @@ export interface ProviderCatalog {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: ModelInfo[];
-    /** Whether tool calling (function calling) is supported */
-    supportsToolCalling: boolean;
-    /** Whether structured JSON output is supported */
-    supportsJsonOutput: boolean;
-    /** Whether streaming responses are supported */
-    supportsStreaming: boolean;
-    /** Whether vision/image input is supported */
-    supportsVision: boolean;
-    /** Whether provider supports reasoning/thinking modes for deeper analysis */
-    supportsReasoning?: boolean;
-    /** List of model IDs that support reasoning/thinking capabilities */
-    reasoningModels?: string[];
-    /** Context window size (in tokens) for each model */
-    contextWindows?: Record<string, number>;
+    models: LlmModelInfo[];
     /** Additional information */
     description?: string;
   }[];
@@ -3631,14 +3718,10 @@ export interface AsrProvidersResponse {
     apiType: string;
     /** Human-readable provider name */
     displayName: string;
-    /** Languages supported by this provider */
+    /** Models available for this provider */
+    models: AsrModelInfo[];
+    /** Languages commonly supported across models (for reference) */
     languages: LanguageInfo[];
-    /** Audio input formats supported by this provider */
-    supportedAudioFormats: string[];
-    /** Whether custom vocabulary/phrases are supported */
-    supportsCustomVocabulary: boolean;
-    /** Whether streaming transcription is supported */
-    supportsStreaming: boolean;
     /** Additional information */
     description?: string;
   }[];
@@ -3655,14 +3738,8 @@ export interface TtsProvidersResponse {
     models: TtsModelInfo[];
     /** Voices available (can be provider-specific or model-specific) */
     voices: VoiceInfo[];
-    /** Languages supported */
+    /** Languages commonly supported across models (for reference) */
     languages: LanguageInfo[];
-    /** Audio output formats supported by this provider */
-    supportedAudioFormats: string[];
-    /** Whether full streaming (chunk-by-chunk) is supported */
-    supportsFullStreaming: boolean;
-    /** Whether voice customization settings are supported */
-    supportsVoiceSettings: boolean;
     /** Additional information */
     description?: string;
   }[];
@@ -3676,21 +3753,7 @@ export interface LlmProvidersResponse {
     /** Human-readable provider name */
     displayName: string;
     /** Models available for this provider */
-    models: ModelInfo[];
-    /** Whether tool calling (function calling) is supported */
-    supportsToolCalling: boolean;
-    /** Whether structured JSON output is supported */
-    supportsJsonOutput: boolean;
-    /** Whether streaming responses are supported */
-    supportsStreaming: boolean;
-    /** Whether vision/image input is supported */
-    supportsVision: boolean;
-    /** Whether provider supports reasoning/thinking modes for deeper analysis */
-    supportsReasoning?: boolean;
-    /** List of model IDs that support reasoning/thinking capabilities */
-    reasoningModels?: string[];
-    /** Context window size (in tokens) for each model */
-    contextWindows?: Record<string, number>;
+    models: LlmModelInfo[];
     /** Additional information */
     description?: string;
   }[];
@@ -3701,14 +3764,10 @@ export interface AsrProviderInfo {
   apiType: string;
   /** Human-readable provider name */
   displayName: string;
-  /** Languages supported by this provider */
+  /** Models available for this provider */
+  models: AsrModelInfo[];
+  /** Languages commonly supported across models (for reference) */
   languages: LanguageInfo[];
-  /** Audio input formats supported by this provider */
-  supportedAudioFormats: string[];
-  /** Whether custom vocabulary/phrases are supported */
-  supportsCustomVocabulary: boolean;
-  /** Whether streaming transcription is supported */
-  supportsStreaming: boolean;
   /** Additional information */
   description?: string;
 }
@@ -3722,14 +3781,8 @@ export interface TtsProviderInfo {
   models: TtsModelInfo[];
   /** Voices available (can be provider-specific or model-specific) */
   voices: VoiceInfo[];
-  /** Languages supported */
+  /** Languages commonly supported across models (for reference) */
   languages: LanguageInfo[];
-  /** Audio output formats supported by this provider */
-  supportedAudioFormats: string[];
-  /** Whether full streaming (chunk-by-chunk) is supported */
-  supportsFullStreaming: boolean;
-  /** Whether voice customization settings are supported */
-  supportsVoiceSettings: boolean;
   /** Additional information */
   description?: string;
 }
@@ -3740,21 +3793,7 @@ export interface LlmProviderInfo {
   /** Human-readable provider name */
   displayName: string;
   /** Models available for this provider */
-  models: ModelInfo[];
-  /** Whether tool calling (function calling) is supported */
-  supportsToolCalling: boolean;
-  /** Whether structured JSON output is supported */
-  supportsJsonOutput: boolean;
-  /** Whether streaming responses are supported */
-  supportsStreaming: boolean;
-  /** Whether vision/image input is supported */
-  supportsVision: boolean;
-  /** Whether provider supports reasoning/thinking modes for deeper analysis */
-  supportsReasoning?: boolean;
-  /** List of model IDs that support reasoning/thinking capabilities */
-  reasoningModels?: string[];
-  /** Context window size (in tokens) for each model */
-  contextWindows?: Record<string, number>;
+  models: LlmModelInfo[];
   /** Additional information */
   description?: string;
 }

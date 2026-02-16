@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProvidersStore } from '@/stores'
+import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -10,6 +10,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 const route = useRoute()
 const router = useRouter()
 const providersStore = useProvidersStore()
+const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
@@ -43,32 +44,46 @@ const providerTypes = [
   { value: 'embeddings', label: 'Embeddings' }
 ]
 
-// API type options based on provider type
+// API type options from provider catalog based on provider type
 const apiTypeOptions = computed(() => {
+  if (!providerCatalogStore.catalog) return []
+  
+  let providers: { apiType: string; displayName: string; description?: string }[] = []
+  
   switch (form.value.providerType) {
     case 'llm':
     case 'embeddings':
-      return [
-        { value: 'openai', label: 'OpenAI' },
-        { value: 'anthropic', label: 'Anthropic' },
-        { value: 'google', label: 'Google' },
-        { value: 'custom', label: 'Custom' }
-      ]
+      providers = providerCatalogStore.catalog.llm
+      break
     case 'tts':
-      return [
-        { value: 'elevenlabs', label: 'ElevenLabs' },
-        { value: 'openai', label: 'OpenAI' },
-        { value: 'custom', label: 'Custom' }
-      ]
+      providers = providerCatalogStore.catalog.tts
+      break
     case 'asr':
-      return [
-        { value: 'azure', label: 'Azure Speech' },
-        { value: 'openai', label: 'OpenAI Whisper' },
-        { value: 'custom', label: 'Custom' }
-      ]
+      providers = providerCatalogStore.catalog.asr
+      break
     default:
       return []
   }
+  
+  // Map catalog providers to options, always include 'custom' option
+  const options = providers.map(p => ({
+    value: p.apiType,
+    label: p.displayName,
+    description: p.description
+  }))
+  
+  // Add custom option if not already present
+  if (!options.some(o => o.value === 'custom')) {
+    options.push({ value: 'custom', label: 'Custom', description: 'Custom API implementation' })
+  }
+  
+  return options
+})
+
+// Get description for selected API type
+const selectedApiTypeDescription = computed(() => {
+  const option = apiTypeOptions.value.find(o => o.value === form.value.apiType)
+  return option?.description
 })
 
 // Check which config fields to show based on API type
@@ -90,6 +105,15 @@ const showAzureASRFields = computed(() =>
 
 // Lifecycle
 onMounted(async () => {
+  // Load provider catalog for API type options
+  if (!providerCatalogStore.catalog) {
+    try {
+      await providerCatalogStore.fetchCatalog()
+    } catch (err) {
+      console.error('Failed to load provider catalog:', err)
+    }
+  }
+  
   if (isEditMode.value) {
     await loadProvider()
   }
@@ -391,20 +415,33 @@ const metadataFields = computed(() => {
               v-model="form.apiType"
               required
               class="form-select"
-              :disabled="isLoading"
+              :disabled="isLoading || providerCatalogStore.isLoading"
             >
-              <option value="" disabled>Select API type...</option>
+              <option value="" disabled>
+                {{ providerCatalogStore.isLoading ? 'Loading providers...' : 'Select API type...' }}
+              </option>
               <option v-for="type in apiTypeOptions" :key="type.value" :value="type.value">
                 {{ type.label }}
               </option>
             </select>
-            <p class="form-help-text">
+            <p v-if="selectedApiTypeDescription" class="form-help-text">
+              {{ selectedApiTypeDescription }}
+            </p>
+            <p v-else class="form-help-text">
               The API implementation type for this provider
             </p>
           </div>
 
-          <div v-if="!form.apiType" class="alert-info mb-6">
-            Please select a Provider Type and API Type above to configure provider settings.
+          <div v-if="providerCatalogStore.isLoading" class="alert-info mb-6">
+            Loading available provider types...
+          </div>
+
+          <div v-else-if="!form.providerType" class="alert-info mb-6">
+            Please select a Provider Type above to see available API types.
+          </div>
+
+          <div v-else-if="!form.apiType" class="alert-info mb-6">
+            Please select an API Type above to configure provider settings.
           </div>
 
           <!-- OpenAI Configuration -->

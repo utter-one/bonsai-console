@@ -3,6 +3,9 @@ import { ref } from 'vue'
 import apiClient from '@/api/client'
 import type {
   ProviderCatalog,
+  AsrProviderInfo,
+  TtsProviderInfo,
+  LlmProviderInfo,
 } from '@/api/types'
 
 export const useProviderCatalogStore = defineStore('providerCatalog', () => {
@@ -97,19 +100,22 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     }
   }
 
-  function getAsrProviders() {
+  function getAsrProviders(): AsrProviderInfo[] {
     return catalog.value?.asr || []
   }
 
-  function getTtsProviders() {
+  function getTtsProviders(): TtsProviderInfo[] {
     return catalog.value?.tts || []
   }
 
-  function getLlmProviders() {
+  function getLlmProviders(): LlmProviderInfo[] {
     return catalog.value?.llm || []
   }
 
-  function getProviderByApiType(type: 'asr' | 'tts' | 'llm', apiType: string) {
+  function getProviderByApiType(type: 'asr', apiType: string): AsrProviderInfo | null
+  function getProviderByApiType(type: 'tts', apiType: string): TtsProviderInfo | null
+  function getProviderByApiType(type: 'llm', apiType: string): LlmProviderInfo | null
+  function getProviderByApiType(type: 'asr' | 'tts' | 'llm', apiType: string): AsrProviderInfo | TtsProviderInfo | LlmProviderInfo | null {
     return catalog.value?.[type]?.find(provider => provider.apiType === apiType) || null
   }
 
