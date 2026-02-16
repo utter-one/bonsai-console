@@ -7914,6 +7914,10 @@
             "type": "boolean",
             "description": "Whether this model supports vision/image input"
           },
+          "supportsImageGeneration": {
+            "type": "boolean",
+            "description": "Whether this model supports image generation output"
+          },
           "supportsReasoning": {
             "type": "boolean",
             "description": "Whether this model supports reasoning/thinking modes for deeper analysis"

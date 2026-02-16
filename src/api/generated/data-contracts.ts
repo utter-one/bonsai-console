@@ -3620,6 +3620,8 @@ export interface LlmModelInfo {
   supportsStreaming?: boolean;
   /** Whether this model supports vision/image input */
   supportsVision?: boolean;
+  /** Whether this model supports image generation output */
+  supportsImageGeneration?: boolean;
   /** Whether this model supports reasoning/thinking modes for deeper analysis */
   supportsReasoning?: boolean;
   /** Context window size (in tokens) for this model */
