@@ -28,6 +28,7 @@
           @update:active-tab="activeTab = $event as TabType"
           :available-classifiers="projectClassifiers"
           :available-stages="projectStages"
+          :available-tools="projectTools"
           :show-key-field="!isLifecycleAction"
           :action-key="actionKey"
           @update:action-key="actionKey = $event"
@@ -53,7 +54,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useClassifiersStore, useStagesStore } from '@/stores'
+import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
 import type { StageAction } from '@/api/types'
@@ -61,6 +62,7 @@ import type { StageAction } from '@/api/types'
 const route = useRoute()
 const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
+const toolsStore = useToolsStore()
 
 // Lifecycle action constants (matching StageEditView)
 const LIFECYCLE_ACTION_INFO = {
@@ -92,6 +94,11 @@ const projectClassifiers = computed(() => {
 const projectStages = computed(() => {
   const projectId = route.params.projectId as string
   return stagesStore.items.filter(s => s.projectId === projectId)
+})
+
+const projectTools = computed(() => {
+  const projectId = route.params.projectId as string
+  return toolsStore.items.filter(t => t.projectId === projectId)
 })
 
 const modalTitle = computed(() => {

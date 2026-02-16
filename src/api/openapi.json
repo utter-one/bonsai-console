@@ -3908,7 +3908,119 @@
                     "type": "boolean"
                   },
                   "result": {
-                    "nullable": true
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "contentType": {
+                              "type": "string",
+                              "enum": [
+                                "text"
+                              ]
+                            },
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "contentType",
+                            "text"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "contentType": {
+                              "type": "string",
+                              "enum": [
+                                "image"
+                              ]
+                            },
+                            "data": {
+                              "type": "string",
+                              "description": "Base64-encoded image data"
+                            },
+                            "mimeType": {
+                              "type": "string",
+                              "description": "MIME type (e.g., image/png, image/jpeg)"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "properties": {
+                                "width": {
+                                  "type": "number"
+                                },
+                                "height": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "contentType",
+                            "data",
+                            "mimeType"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "contentType": {
+                              "type": "string",
+                              "enum": [
+                                "audio"
+                              ]
+                            },
+                            "data": {
+                              "type": "string",
+                              "description": "Base64-encoded audio data"
+                            },
+                            "format": {
+                              "type": "string",
+                              "enum": [
+                                "pcm",
+                                "mp3",
+                                "wav",
+                                "opus"
+                              ],
+                              "description": "Audio format"
+                            },
+                            "mimeType": {
+                              "type": "string",
+                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "properties": {
+                                "sampleRate": {
+                                  "type": "number"
+                                },
+                                "channels": {
+                                  "type": "number"
+                                },
+                                "bitDepth": {
+                                  "type": "number"
+                                }
+                              },
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "contentType",
+                            "data",
+                            "format",
+                            "mimeType"
+                          ]
+                        }
+                      ]
+                    }
                   },
                   "error": {
                     "type": "string"
@@ -4286,7 +4398,119 @@
                           "type": "boolean"
                         },
                         "result": {
-                          "nullable": true
+                          "type": "array",
+                          "items": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "contentType": {
+                                    "type": "string",
+                                    "enum": [
+                                      "text"
+                                    ]
+                                  },
+                                  "text": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "contentType",
+                                  "text"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "contentType": {
+                                    "type": "string",
+                                    "enum": [
+                                      "image"
+                                    ]
+                                  },
+                                  "data": {
+                                    "type": "string",
+                                    "description": "Base64-encoded image data"
+                                  },
+                                  "mimeType": {
+                                    "type": "string",
+                                    "description": "MIME type (e.g., image/png, image/jpeg)"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "properties": {
+                                      "width": {
+                                        "type": "number"
+                                      },
+                                      "height": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "contentType",
+                                  "data",
+                                  "mimeType"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "contentType": {
+                                    "type": "string",
+                                    "enum": [
+                                      "audio"
+                                    ]
+                                  },
+                                  "data": {
+                                    "type": "string",
+                                    "description": "Base64-encoded audio data"
+                                  },
+                                  "format": {
+                                    "type": "string",
+                                    "enum": [
+                                      "pcm",
+                                      "mp3",
+                                      "wav",
+                                      "opus"
+                                    ],
+                                    "description": "Audio format"
+                                  },
+                                  "mimeType": {
+                                    "type": "string",
+                                    "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "properties": {
+                                      "sampleRate": {
+                                        "type": "number"
+                                      },
+                                      "channels": {
+                                        "type": "number"
+                                      },
+                                      "bitDepth": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "contentType",
+                                  "data",
+                                  "format",
+                                  "mimeType"
+                                ]
+                              }
+                            ]
+                          }
                         },
                         "error": {
                           "type": "string"
@@ -7608,7 +7832,7 @@
           "limit"
         ]
       },
-      "ModelInfo": {
+      "AsrModelInfo": {
         "type": "object",
         "properties": {
           "id": {
@@ -7626,6 +7850,77 @@
           "recommended": {
             "type": "boolean",
             "description": "Whether this is a recommended or default model"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Language codes supported by this model (if model-specific)"
+          },
+          "supportsCustomVocabulary": {
+            "type": "boolean",
+            "description": "Whether this model supports custom vocabulary/phrases"
+          },
+          "supportsStreaming": {
+            "type": "boolean",
+            "description": "Whether this model supports streaming transcription"
+          },
+          "supportedAudioFormats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Audio input formats supported by this model"
+          }
+        },
+        "required": [
+          "id",
+          "displayName"
+        ]
+      },
+      "LlmModelInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Model identifier"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the model's capabilities and use cases"
+          },
+          "recommended": {
+            "type": "boolean",
+            "description": "Whether this is a recommended or default model"
+          },
+          "supportsToolCalling": {
+            "type": "boolean",
+            "description": "Whether this model supports tool calling (function calling)"
+          },
+          "supportsJsonOutput": {
+            "type": "boolean",
+            "description": "Whether this model supports structured JSON output"
+          },
+          "supportsStreaming": {
+            "type": "boolean",
+            "description": "Whether this model supports streaming responses"
+          },
+          "supportsVision": {
+            "type": "boolean",
+            "description": "Whether this model supports vision/image input"
+          },
+          "supportsReasoning": {
+            "type": "boolean",
+            "description": "Whether this model supports reasoning/thinking modes for deeper analysis"
+          },
+          "contextWindow": {
+            "type": "number",
+            "description": "Context window size (in tokens) for this model"
           }
         },
         "required": [
@@ -7692,22 +7987,57 @@
         ]
       },
       "TtsModelInfo": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ModelInfo"
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Model identifier"
           },
-          {
-            "type": "object",
-            "properties": {
-              "voices": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/VoiceInfo"
-                },
-                "description": "Model-specific voices that override provider-level voices"
-              }
-            }
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the model's capabilities and use cases"
+          },
+          "recommended": {
+            "type": "boolean",
+            "description": "Whether this is a recommended or default model"
+          },
+          "voices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoiceInfo"
+            },
+            "description": "Model-specific voices that override provider-level voices"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Language codes supported by this model (if model-specific)"
+          },
+          "supportsFullStreaming": {
+            "type": "boolean",
+            "description": "Whether this model supports full streaming (chunk-by-chunk)"
+          },
+          "supportsVoiceSettings": {
+            "type": "boolean",
+            "description": "Whether this model supports voice customization settings"
+          },
+          "supportedAudioFormats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Audio output formats supported by this model"
           }
+        },
+        "required": [
+          "id",
+          "displayName"
         ]
       },
       "ProviderCatalog": {
@@ -7726,27 +8056,19 @@
                   "type": "string",
                   "description": "Human-readable provider name"
                 },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AsrModelInfo"
+                  },
+                  "description": "Models available for this provider"
+                },
                 "languages": {
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/LanguageInfo"
                   },
-                  "description": "Languages supported by this provider"
-                },
-                "supportedAudioFormats": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Audio input formats supported by this provider"
-                },
-                "supportsCustomVocabulary": {
-                  "type": "boolean",
-                  "description": "Whether custom vocabulary/phrases are supported"
-                },
-                "supportsStreaming": {
-                  "type": "boolean",
-                  "description": "Whether streaming transcription is supported"
+                  "description": "Languages commonly supported across models (for reference)"
                 },
                 "description": {
                   "type": "string",
@@ -7756,10 +8078,8 @@
               "required": [
                 "apiType",
                 "displayName",
-                "languages",
-                "supportedAudioFormats",
-                "supportsCustomVocabulary",
-                "supportsStreaming"
+                "models",
+                "languages"
               ]
             },
             "description": "ASR providers"
@@ -7796,22 +8116,7 @@
                   "items": {
                     "$ref": "#/components/schemas/LanguageInfo"
                   },
-                  "description": "Languages supported"
-                },
-                "supportedAudioFormats": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Audio output formats supported by this provider"
-                },
-                "supportsFullStreaming": {
-                  "type": "boolean",
-                  "description": "Whether full streaming (chunk-by-chunk) is supported"
-                },
-                "supportsVoiceSettings": {
-                  "type": "boolean",
-                  "description": "Whether voice customization settings are supported"
+                  "description": "Languages commonly supported across models (for reference)"
                 },
                 "description": {
                   "type": "string",
@@ -7823,10 +8128,7 @@
                 "displayName",
                 "models",
                 "voices",
-                "languages",
-                "supportedAudioFormats",
-                "supportsFullStreaming",
-                "supportsVoiceSettings"
+                "languages"
               ]
             },
             "description": "TTS providers"
@@ -7847,43 +8149,9 @@
                 "models": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ModelInfo"
+                    "$ref": "#/components/schemas/LlmModelInfo"
                   },
                   "description": "Models available for this provider"
-                },
-                "supportsToolCalling": {
-                  "type": "boolean",
-                  "description": "Whether tool calling (function calling) is supported"
-                },
-                "supportsJsonOutput": {
-                  "type": "boolean",
-                  "description": "Whether structured JSON output is supported"
-                },
-                "supportsStreaming": {
-                  "type": "boolean",
-                  "description": "Whether streaming responses are supported"
-                },
-                "supportsVision": {
-                  "type": "boolean",
-                  "description": "Whether vision/image input is supported"
-                },
-                "supportsReasoning": {
-                  "type": "boolean",
-                  "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-                },
-                "reasoningModels": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "List of model IDs that support reasoning/thinking capabilities"
-                },
-                "contextWindows": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "number"
-                  },
-                  "description": "Context window size (in tokens) for each model"
                 },
                 "description": {
                   "type": "string",
@@ -7893,11 +8161,7 @@
               "required": [
                 "apiType",
                 "displayName",
-                "models",
-                "supportsToolCalling",
-                "supportsJsonOutput",
-                "supportsStreaming",
-                "supportsVision"
+                "models"
               ]
             },
             "description": "LLM providers"
@@ -7925,27 +8189,19 @@
                   "type": "string",
                   "description": "Human-readable provider name"
                 },
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AsrModelInfo"
+                  },
+                  "description": "Models available for this provider"
+                },
                 "languages": {
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/LanguageInfo"
                   },
-                  "description": "Languages supported by this provider"
-                },
-                "supportedAudioFormats": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Audio input formats supported by this provider"
-                },
-                "supportsCustomVocabulary": {
-                  "type": "boolean",
-                  "description": "Whether custom vocabulary/phrases are supported"
-                },
-                "supportsStreaming": {
-                  "type": "boolean",
-                  "description": "Whether streaming transcription is supported"
+                  "description": "Languages commonly supported across models (for reference)"
                 },
                 "description": {
                   "type": "string",
@@ -7955,10 +8211,8 @@
               "required": [
                 "apiType",
                 "displayName",
-                "languages",
-                "supportedAudioFormats",
-                "supportsCustomVocabulary",
-                "supportsStreaming"
+                "models",
+                "languages"
               ]
             },
             "description": "List of ASR providers"
@@ -8003,22 +8257,7 @@
                   "items": {
                     "$ref": "#/components/schemas/LanguageInfo"
                   },
-                  "description": "Languages supported"
-                },
-                "supportedAudioFormats": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Audio output formats supported by this provider"
-                },
-                "supportsFullStreaming": {
-                  "type": "boolean",
-                  "description": "Whether full streaming (chunk-by-chunk) is supported"
-                },
-                "supportsVoiceSettings": {
-                  "type": "boolean",
-                  "description": "Whether voice customization settings are supported"
+                  "description": "Languages commonly supported across models (for reference)"
                 },
                 "description": {
                   "type": "string",
@@ -8030,10 +8269,7 @@
                 "displayName",
                 "models",
                 "voices",
-                "languages",
-                "supportedAudioFormats",
-                "supportsFullStreaming",
-                "supportsVoiceSettings"
+                "languages"
               ]
             },
             "description": "List of TTS providers"
@@ -8062,43 +8298,9 @@
                 "models": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ModelInfo"
+                    "$ref": "#/components/schemas/LlmModelInfo"
                   },
                   "description": "Models available for this provider"
-                },
-                "supportsToolCalling": {
-                  "type": "boolean",
-                  "description": "Whether tool calling (function calling) is supported"
-                },
-                "supportsJsonOutput": {
-                  "type": "boolean",
-                  "description": "Whether structured JSON output is supported"
-                },
-                "supportsStreaming": {
-                  "type": "boolean",
-                  "description": "Whether streaming responses are supported"
-                },
-                "supportsVision": {
-                  "type": "boolean",
-                  "description": "Whether vision/image input is supported"
-                },
-                "supportsReasoning": {
-                  "type": "boolean",
-                  "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-                },
-                "reasoningModels": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "List of model IDs that support reasoning/thinking capabilities"
-                },
-                "contextWindows": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "number"
-                  },
-                  "description": "Context window size (in tokens) for each model"
                 },
                 "description": {
                   "type": "string",
@@ -8108,11 +8310,7 @@
               "required": [
                 "apiType",
                 "displayName",
-                "models",
-                "supportsToolCalling",
-                "supportsJsonOutput",
-                "supportsStreaming",
-                "supportsVision"
+                "models"
               ]
             },
             "description": "List of LLM providers"
@@ -8133,27 +8331,19 @@
             "type": "string",
             "description": "Human-readable provider name"
           },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AsrModelInfo"
+            },
+            "description": "Models available for this provider"
+          },
           "languages": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LanguageInfo"
             },
-            "description": "Languages supported by this provider"
-          },
-          "supportedAudioFormats": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Audio input formats supported by this provider"
-          },
-          "supportsCustomVocabulary": {
-            "type": "boolean",
-            "description": "Whether custom vocabulary/phrases are supported"
-          },
-          "supportsStreaming": {
-            "type": "boolean",
-            "description": "Whether streaming transcription is supported"
+            "description": "Languages commonly supported across models (for reference)"
           },
           "description": {
             "type": "string",
@@ -8163,10 +8353,8 @@
         "required": [
           "apiType",
           "displayName",
-          "languages",
-          "supportedAudioFormats",
-          "supportsCustomVocabulary",
-          "supportsStreaming"
+          "models",
+          "languages"
         ]
       },
       "TtsProviderInfo": {
@@ -8199,22 +8387,7 @@
             "items": {
               "$ref": "#/components/schemas/LanguageInfo"
             },
-            "description": "Languages supported"
-          },
-          "supportedAudioFormats": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Audio output formats supported by this provider"
-          },
-          "supportsFullStreaming": {
-            "type": "boolean",
-            "description": "Whether full streaming (chunk-by-chunk) is supported"
-          },
-          "supportsVoiceSettings": {
-            "type": "boolean",
-            "description": "Whether voice customization settings are supported"
+            "description": "Languages commonly supported across models (for reference)"
           },
           "description": {
             "type": "string",
@@ -8226,10 +8399,7 @@
           "displayName",
           "models",
           "voices",
-          "languages",
-          "supportedAudioFormats",
-          "supportsFullStreaming",
-          "supportsVoiceSettings"
+          "languages"
         ]
       },
       "LlmProviderInfo": {
@@ -8246,43 +8416,9 @@
           "models": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ModelInfo"
+              "$ref": "#/components/schemas/LlmModelInfo"
             },
             "description": "Models available for this provider"
-          },
-          "supportsToolCalling": {
-            "type": "boolean",
-            "description": "Whether tool calling (function calling) is supported"
-          },
-          "supportsJsonOutput": {
-            "type": "boolean",
-            "description": "Whether structured JSON output is supported"
-          },
-          "supportsStreaming": {
-            "type": "boolean",
-            "description": "Whether streaming responses are supported"
-          },
-          "supportsVision": {
-            "type": "boolean",
-            "description": "Whether vision/image input is supported"
-          },
-          "supportsReasoning": {
-            "type": "boolean",
-            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-          },
-          "reasoningModels": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of model IDs that support reasoning/thinking capabilities"
-          },
-          "contextWindows": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "number"
-            },
-            "description": "Context window size (in tokens) for each model"
           },
           "description": {
             "type": "string",
@@ -8292,11 +8428,7 @@
         "required": [
           "apiType",
           "displayName",
-          "models",
-          "supportsToolCalling",
-          "supportsJsonOutput",
-          "supportsStreaming",
-          "supportsVision"
+          "models"
         ]
       },
       "AuditLogResponse": {
@@ -13489,7 +13621,119 @@
                                     "type": "boolean"
                                   },
                                   "result": {
-                                    "nullable": true
+                                    "type": "array",
+                                    "items": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "contentType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "text"
+                                              ]
+                                            },
+                                            "text": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "contentType",
+                                            "text"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "contentType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "image"
+                                              ]
+                                            },
+                                            "data": {
+                                              "type": "string",
+                                              "description": "Base64-encoded image data"
+                                            },
+                                            "mimeType": {
+                                              "type": "string",
+                                              "description": "MIME type (e.g., image/png, image/jpeg)"
+                                            },
+                                            "metadata": {
+                                              "type": "object",
+                                              "properties": {
+                                                "width": {
+                                                  "type": "number"
+                                                },
+                                                "height": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              "additionalProperties": {
+                                                "nullable": true
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "contentType",
+                                            "data",
+                                            "mimeType"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "contentType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "audio"
+                                              ]
+                                            },
+                                            "data": {
+                                              "type": "string",
+                                              "description": "Base64-encoded audio data"
+                                            },
+                                            "format": {
+                                              "type": "string",
+                                              "enum": [
+                                                "pcm",
+                                                "mp3",
+                                                "wav",
+                                                "opus"
+                                              ],
+                                              "description": "Audio format"
+                                            },
+                                            "mimeType": {
+                                              "type": "string",
+                                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
+                                            },
+                                            "metadata": {
+                                              "type": "object",
+                                              "properties": {
+                                                "sampleRate": {
+                                                  "type": "number"
+                                                },
+                                                "channels": {
+                                                  "type": "number"
+                                                },
+                                                "bitDepth": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              "additionalProperties": {
+                                                "nullable": true
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "contentType",
+                                            "data",
+                                            "format",
+                                            "mimeType"
+                                          ]
+                                        }
+                                      ]
+                                    }
                                   },
                                   "error": {
                                     "type": "string"
@@ -13935,7 +14179,119 @@
                               "type": "boolean"
                             },
                             "result": {
-                              "nullable": true
+                              "type": "array",
+                              "items": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "contentType": {
+                                        "type": "string",
+                                        "enum": [
+                                          "text"
+                                        ]
+                                      },
+                                      "text": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "contentType",
+                                      "text"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "contentType": {
+                                        "type": "string",
+                                        "enum": [
+                                          "image"
+                                        ]
+                                      },
+                                      "data": {
+                                        "type": "string",
+                                        "description": "Base64-encoded image data"
+                                      },
+                                      "mimeType": {
+                                        "type": "string",
+                                        "description": "MIME type (e.g., image/png, image/jpeg)"
+                                      },
+                                      "metadata": {
+                                        "type": "object",
+                                        "properties": {
+                                          "width": {
+                                            "type": "number"
+                                          },
+                                          "height": {
+                                            "type": "number"
+                                          }
+                                        },
+                                        "additionalProperties": {
+                                          "nullable": true
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "contentType",
+                                      "data",
+                                      "mimeType"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "contentType": {
+                                        "type": "string",
+                                        "enum": [
+                                          "audio"
+                                        ]
+                                      },
+                                      "data": {
+                                        "type": "string",
+                                        "description": "Base64-encoded audio data"
+                                      },
+                                      "format": {
+                                        "type": "string",
+                                        "enum": [
+                                          "pcm",
+                                          "mp3",
+                                          "wav",
+                                          "opus"
+                                        ],
+                                        "description": "Audio format"
+                                      },
+                                      "mimeType": {
+                                        "type": "string",
+                                        "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
+                                      },
+                                      "metadata": {
+                                        "type": "object",
+                                        "properties": {
+                                          "sampleRate": {
+                                            "type": "number"
+                                          },
+                                          "channels": {
+                                            "type": "number"
+                                          },
+                                          "bitDepth": {
+                                            "type": "number"
+                                          }
+                                        },
+                                        "additionalProperties": {
+                                          "nullable": true
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "contentType",
+                                      "data",
+                                      "format",
+                                      "mimeType"
+                                    ]
+                                  }
+                                ]
+                              }
                             },
                             "error": {
                               "type": "string"
@@ -18471,27 +18827,19 @@
                             "type": "string",
                             "description": "Human-readable provider name"
                           },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/AsrModelInfo"
+                            },
+                            "description": "Models available for this provider"
+                          },
                           "languages": {
                             "type": "array",
                             "items": {
                               "$ref": "#/components/schemas/LanguageInfo"
                             },
-                            "description": "Languages supported by this provider"
-                          },
-                          "supportedAudioFormats": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "Audio input formats supported by this provider"
-                          },
-                          "supportsCustomVocabulary": {
-                            "type": "boolean",
-                            "description": "Whether custom vocabulary/phrases are supported"
-                          },
-                          "supportsStreaming": {
-                            "type": "boolean",
-                            "description": "Whether streaming transcription is supported"
+                            "description": "Languages commonly supported across models (for reference)"
                           },
                           "description": {
                             "type": "string",
@@ -18501,10 +18849,8 @@
                         "required": [
                           "apiType",
                           "displayName",
-                          "languages",
-                          "supportedAudioFormats",
-                          "supportsCustomVocabulary",
-                          "supportsStreaming"
+                          "models",
+                          "languages"
                         ]
                       },
                       "description": "ASR providers"
@@ -18541,22 +18887,7 @@
                             "items": {
                               "$ref": "#/components/schemas/LanguageInfo"
                             },
-                            "description": "Languages supported"
-                          },
-                          "supportedAudioFormats": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "Audio output formats supported by this provider"
-                          },
-                          "supportsFullStreaming": {
-                            "type": "boolean",
-                            "description": "Whether full streaming (chunk-by-chunk) is supported"
-                          },
-                          "supportsVoiceSettings": {
-                            "type": "boolean",
-                            "description": "Whether voice customization settings are supported"
+                            "description": "Languages commonly supported across models (for reference)"
                           },
                           "description": {
                             "type": "string",
@@ -18568,10 +18899,7 @@
                           "displayName",
                           "models",
                           "voices",
-                          "languages",
-                          "supportedAudioFormats",
-                          "supportsFullStreaming",
-                          "supportsVoiceSettings"
+                          "languages"
                         ]
                       },
                       "description": "TTS providers"
@@ -18592,43 +18920,9 @@
                           "models": {
                             "type": "array",
                             "items": {
-                              "$ref": "#/components/schemas/ModelInfo"
+                              "$ref": "#/components/schemas/LlmModelInfo"
                             },
                             "description": "Models available for this provider"
-                          },
-                          "supportsToolCalling": {
-                            "type": "boolean",
-                            "description": "Whether tool calling (function calling) is supported"
-                          },
-                          "supportsJsonOutput": {
-                            "type": "boolean",
-                            "description": "Whether structured JSON output is supported"
-                          },
-                          "supportsStreaming": {
-                            "type": "boolean",
-                            "description": "Whether streaming responses are supported"
-                          },
-                          "supportsVision": {
-                            "type": "boolean",
-                            "description": "Whether vision/image input is supported"
-                          },
-                          "supportsReasoning": {
-                            "type": "boolean",
-                            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-                          },
-                          "reasoningModels": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "List of model IDs that support reasoning/thinking capabilities"
-                          },
-                          "contextWindows": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "number"
-                            },
-                            "description": "Context window size (in tokens) for each model"
                           },
                           "description": {
                             "type": "string",
@@ -18638,11 +18932,7 @@
                         "required": [
                           "apiType",
                           "displayName",
-                          "models",
-                          "supportsToolCalling",
-                          "supportsJsonOutput",
-                          "supportsStreaming",
-                          "supportsVision"
+                          "models"
                         ]
                       },
                       "description": "LLM providers"
@@ -18688,27 +18978,19 @@
                             "type": "string",
                             "description": "Human-readable provider name"
                           },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/AsrModelInfo"
+                            },
+                            "description": "Models available for this provider"
+                          },
                           "languages": {
                             "type": "array",
                             "items": {
                               "$ref": "#/components/schemas/LanguageInfo"
                             },
-                            "description": "Languages supported by this provider"
-                          },
-                          "supportedAudioFormats": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "Audio input formats supported by this provider"
-                          },
-                          "supportsCustomVocabulary": {
-                            "type": "boolean",
-                            "description": "Whether custom vocabulary/phrases are supported"
-                          },
-                          "supportsStreaming": {
-                            "type": "boolean",
-                            "description": "Whether streaming transcription is supported"
+                            "description": "Languages commonly supported across models (for reference)"
                           },
                           "description": {
                             "type": "string",
@@ -18718,10 +19000,8 @@
                         "required": [
                           "apiType",
                           "displayName",
-                          "languages",
-                          "supportedAudioFormats",
-                          "supportsCustomVocabulary",
-                          "supportsStreaming"
+                          "models",
+                          "languages"
                         ]
                       },
                       "description": "List of ASR providers"
@@ -18784,22 +19064,7 @@
                             "items": {
                               "$ref": "#/components/schemas/LanguageInfo"
                             },
-                            "description": "Languages supported"
-                          },
-                          "supportedAudioFormats": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "Audio output formats supported by this provider"
-                          },
-                          "supportsFullStreaming": {
-                            "type": "boolean",
-                            "description": "Whether full streaming (chunk-by-chunk) is supported"
-                          },
-                          "supportsVoiceSettings": {
-                            "type": "boolean",
-                            "description": "Whether voice customization settings are supported"
+                            "description": "Languages commonly supported across models (for reference)"
                           },
                           "description": {
                             "type": "string",
@@ -18811,10 +19076,7 @@
                           "displayName",
                           "models",
                           "voices",
-                          "languages",
-                          "supportedAudioFormats",
-                          "supportsFullStreaming",
-                          "supportsVoiceSettings"
+                          "languages"
                         ]
                       },
                       "description": "List of TTS providers"
@@ -18861,43 +19123,9 @@
                           "models": {
                             "type": "array",
                             "items": {
-                              "$ref": "#/components/schemas/ModelInfo"
+                              "$ref": "#/components/schemas/LlmModelInfo"
                             },
                             "description": "Models available for this provider"
-                          },
-                          "supportsToolCalling": {
-                            "type": "boolean",
-                            "description": "Whether tool calling (function calling) is supported"
-                          },
-                          "supportsJsonOutput": {
-                            "type": "boolean",
-                            "description": "Whether structured JSON output is supported"
-                          },
-                          "supportsStreaming": {
-                            "type": "boolean",
-                            "description": "Whether streaming responses are supported"
-                          },
-                          "supportsVision": {
-                            "type": "boolean",
-                            "description": "Whether vision/image input is supported"
-                          },
-                          "supportsReasoning": {
-                            "type": "boolean",
-                            "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-                          },
-                          "reasoningModels": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "List of model IDs that support reasoning/thinking capabilities"
-                          },
-                          "contextWindows": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "number"
-                            },
-                            "description": "Context window size (in tokens) for each model"
                           },
                           "description": {
                             "type": "string",
@@ -18907,11 +19135,7 @@
                         "required": [
                           "apiType",
                           "displayName",
-                          "models",
-                          "supportsToolCalling",
-                          "supportsJsonOutput",
-                          "supportsStreaming",
-                          "supportsVision"
+                          "models"
                         ]
                       },
                       "description": "List of LLM providers"
@@ -18979,27 +19203,19 @@
                           "type": "string",
                           "description": "Human-readable provider name"
                         },
+                        "models": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AsrModelInfo"
+                          },
+                          "description": "Models available for this provider"
+                        },
                         "languages": {
                           "type": "array",
                           "items": {
                             "$ref": "#/components/schemas/LanguageInfo"
                           },
-                          "description": "Languages supported by this provider"
-                        },
-                        "supportedAudioFormats": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Audio input formats supported by this provider"
-                        },
-                        "supportsCustomVocabulary": {
-                          "type": "boolean",
-                          "description": "Whether custom vocabulary/phrases are supported"
-                        },
-                        "supportsStreaming": {
-                          "type": "boolean",
-                          "description": "Whether streaming transcription is supported"
+                          "description": "Languages commonly supported across models (for reference)"
                         },
                         "description": {
                           "type": "string",
@@ -19009,10 +19225,8 @@
                       "required": [
                         "apiType",
                         "displayName",
-                        "languages",
-                        "supportedAudioFormats",
-                        "supportsCustomVocabulary",
-                        "supportsStreaming"
+                        "models",
+                        "languages"
                       ]
                     },
                     {
@@ -19045,22 +19259,7 @@
                           "items": {
                             "$ref": "#/components/schemas/LanguageInfo"
                           },
-                          "description": "Languages supported"
-                        },
-                        "supportedAudioFormats": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Audio output formats supported by this provider"
-                        },
-                        "supportsFullStreaming": {
-                          "type": "boolean",
-                          "description": "Whether full streaming (chunk-by-chunk) is supported"
-                        },
-                        "supportsVoiceSettings": {
-                          "type": "boolean",
-                          "description": "Whether voice customization settings are supported"
+                          "description": "Languages commonly supported across models (for reference)"
                         },
                         "description": {
                           "type": "string",
@@ -19072,10 +19271,7 @@
                         "displayName",
                         "models",
                         "voices",
-                        "languages",
-                        "supportedAudioFormats",
-                        "supportsFullStreaming",
-                        "supportsVoiceSettings"
+                        "languages"
                       ]
                     },
                     {
@@ -19092,43 +19288,9 @@
                         "models": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/components/schemas/ModelInfo"
+                            "$ref": "#/components/schemas/LlmModelInfo"
                           },
                           "description": "Models available for this provider"
-                        },
-                        "supportsToolCalling": {
-                          "type": "boolean",
-                          "description": "Whether tool calling (function calling) is supported"
-                        },
-                        "supportsJsonOutput": {
-                          "type": "boolean",
-                          "description": "Whether structured JSON output is supported"
-                        },
-                        "supportsStreaming": {
-                          "type": "boolean",
-                          "description": "Whether streaming responses are supported"
-                        },
-                        "supportsVision": {
-                          "type": "boolean",
-                          "description": "Whether vision/image input is supported"
-                        },
-                        "supportsReasoning": {
-                          "type": "boolean",
-                          "description": "Whether provider supports reasoning/thinking modes for deeper analysis"
-                        },
-                        "reasoningModels": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "List of model IDs that support reasoning/thinking capabilities"
-                        },
-                        "contextWindows": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "number"
-                          },
-                          "description": "Context window size (in tokens) for each model"
                         },
                         "description": {
                           "type": "string",
@@ -19138,11 +19300,7 @@
                       "required": [
                         "apiType",
                         "displayName",
-                        "models",
-                        "supportsToolCalling",
-                        "supportsJsonOutput",
-                        "supportsStreaming",
-                        "supportsVision"
+                        "models"
                       ]
                     }
                   ]

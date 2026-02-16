@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import MetadataTab from './MetadataTab.vue'
+import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
   name: string
@@ -34,7 +35,7 @@ interface ActionOperations {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
-  callTool: { enabled: boolean; toolId: string; parameters: string }
+  callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
   callWebhook: {
     enabled: boolean
     url: string
@@ -53,6 +54,7 @@ const props = withDefaults(
     activeTab: string
     availableClassifiers?: Array<{ id: string; name: string }>
     availableStages?: Array<{ id: string; name: string }>
+    availableTools?: ToolResponse[]
     showParameters?: boolean
     showTrigger?: boolean
     showKeyField?: boolean
@@ -66,6 +68,7 @@ const props = withDefaults(
     parameters: () => [],
     availableClassifiers: () => [],
     availableStages: () => [],
+    availableTools: () => [],
     showParameters: false,
     showTrigger: true,
     showKeyField: false,
@@ -143,6 +146,96 @@ function removeProfileModification(index: number) {
   const newOps = { ...localOperations.value }
   newOps.modifyUserProfile.modifications.splice(index, 1)
   emit('update:operations', newOps)
+}
+
+// Tool parameter helpers
+const selectedTool = computed(() => {
+  if (!localOperations.value.callTool.toolId) return null
+  return props.availableTools.find(tool => tool.id === localOperations.value.callTool.toolId) || null
+})
+
+const toolParameters = ref<Record<string, any>>({})
+
+// Initialize tool parameters when tool changes or when loading existing data
+watch(() => [localOperations.value.callTool.toolId, props.availableTools.length] as const, ([newToolId]) => {
+  if (!newToolId) {
+    toolParameters.value = {}
+    return
+  }
+  
+  const tool = props.availableTools.find(t => t.id === newToolId)
+  if (!tool) return
+  
+  // Check if we already have parameters from loaded data
+  const existingParams = localOperations.value.callTool.parameters
+  const hasExistingParams = existingParams && Object.keys(existingParams).length > 0
+  
+  // Initialize parameters for new tool or load existing ones
+  const newParams: Record<string, any> = {}
+  for (const param of tool.parameters) {
+    // Use existing parameter value if available, otherwise initialize with default
+    if (hasExistingParams && param.name in existingParams) {
+      // For object types that are stored as strings, keep them as strings
+      if (param.type === 'object' && typeof existingParams[param.name] === 'object') {
+        newParams[param.name] = JSON.stringify(existingParams[param.name], null, 2)
+      } else if (param.type === 'object[]' && Array.isArray(existingParams[param.name])) {
+        // For object arrays, stringify each item
+        newParams[param.name] = existingParams[param.name].map((item: any) => 
+          typeof item === 'object' ? JSON.stringify(item, null, 2) : item
+        )
+      } else {
+        newParams[param.name] = existingParams[param.name]
+      }
+    } else {
+      // Initialize with default value
+      if (param.type === 'boolean') {
+        newParams[param.name] = false
+      } else if (param.type === 'object') {
+        newParams[param.name] = '{}'
+      } else if (param.type.endsWith('[]')) {
+        newParams[param.name] = []
+      } else {
+        newParams[param.name] = ''
+      }
+    }
+  }
+  toolParameters.value = newParams
+}, { immediate: true })
+
+// Watch toolParameters and sync to operations
+watch(toolParameters, (newParams) => {
+  const newOps = { ...localOperations.value }
+  newOps.callTool.parameters = { ...newParams }
+  emit('update:operations', newOps)
+}, { deep: true })
+
+function getArrayValue(paramName: string): any[] {
+  if (!Array.isArray(toolParameters.value[paramName])) {
+    toolParameters.value[paramName] = []
+  }
+  return toolParameters.value[paramName]
+}
+
+function addArrayItem(paramName: string, paramType: string) {
+  if (!Array.isArray(toolParameters.value[paramName])) {
+    toolParameters.value[paramName] = []
+  }
+  
+  if (paramType === 'string[]') {
+    toolParameters.value[paramName].push('')
+  } else if (paramType === 'number[]') {
+    toolParameters.value[paramName].push(0)
+  } else if (paramType === 'boolean[]') {
+    toolParameters.value[paramName].push(false)
+  } else if (paramType === 'object[]') {
+    toolParameters.value[paramName].push('{}')
+  }
+}
+
+function removeArrayItem(paramName: string, index: number) {
+  if (Array.isArray(toolParameters.value[paramName])) {
+    toolParameters.value[paramName].splice(index, 1)
+  }
 }
 </script>
 
@@ -852,35 +945,160 @@ function removeProfileModification(index: number) {
 
     <!-- Call Tool Tab -->
     <div v-show="localActiveTab === 'callTool'" class="space-y-6">
+      <!-- Tool Dropdown -->
       <div class="form-group">
-        <label class="form-label">
-          Tool ID <span class="required">*</span>
-        </label>
-        <input
-          v-model="localOperations.callTool.toolId"
-          type="text"
+        <label class="form-label">Tool <span class="required">*</span></label>
+        <select 
+          v-model="localOperations.callTool.toolId" 
+          class="form-select-auto"
           :required="localOperations.callTool.enabled"
-          placeholder="tool_abc123"
-          class="form-input font-mono"
-        />
-        <p class="form-help-text">
-          The ID of the tool to invoke
+        >
+          <option :value="''">Select a tool...</option>
+          <option v-for="tool in availableTools" :key="tool.id" :value="tool.id">
+            {{ tool.name }}
+          </option>
+        </select>
+        <p v-if="selectedTool?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
+          {{ selectedTool.description }}
         </p>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">
-          Parameters <span class="text-gray-500">(optional, JSON)</span>
-        </label>
-        <textarea
-          v-model="localOperations.callTool.parameters"
-          rows="6"
-          class="form-textarea font-mono text-sm"
-          placeholder='{\n  "query": "{{user.input}}",\n  "limit": 10\n}'
-        ></textarea>
-        <p class="form-help-text">
-          JSON object with tool parameters. Supports template variables.
-        </p>
+      <!-- Parameters Section -->
+      <div v-if="selectedTool && selectedTool.parameters.length > 0" class="space-y-4">
+        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-300">Tool Parameters</h3>
+          
+          <div 
+            v-for="param in selectedTool.parameters" 
+            :key="param.name"
+            class="form-group"
+          >
+            <label class="form-label text-sm">
+              {{ param.name }}
+              <span v-if="param.required" class="required">*</span>
+              <span v-else class="text-gray-500 text-xs ml-1">(optional)</span>
+            </label>
+            
+            <!-- String input -->
+            <input 
+              v-if="param.type === 'string'"
+              v-model="toolParameters[param.name]"
+              type="text"
+              :required="param.required"
+              :placeholder="param.description"
+              class="form-input text-sm"
+            />
+            
+            <!-- Number input -->
+            <input 
+              v-else-if="param.type === 'number'"
+              v-model.number="toolParameters[param.name]"
+              type="number"
+              :required="param.required"
+              :placeholder="param.description"
+              class="form-input text-sm"
+            />
+            
+            <!-- Boolean checkbox -->
+            <label v-else-if="param.type === 'boolean'" class="flex items-center cursor-pointer">
+              <input
+                v-model="toolParameters[param.name]"
+                type="checkbox"
+                class="form-checkbox"
+              />
+              <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                {{ param.description }}
+              </span>
+            </label>
+            
+            <!-- Object input (JSON) -->
+            <div v-else-if="param.type === 'object'" class="space-y-1">
+              <textarea
+                v-model="toolParameters[param.name]"
+                :required="param.required"
+                :placeholder="param.description + ' (JSON format)'"
+                class="form-textarea text-sm font-mono"
+                rows="4"
+              />
+              <p class="text-xs text-gray-500">Enter a valid JSON object.</p>
+            </div>
+            
+            <!-- Array inputs (string[], number[], boolean[], object[]) -->
+            <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
+              <div 
+                v-for="(_item, index) in getArrayValue(param.name)" 
+                :key="index"
+                class="flex gap-2"
+              >
+                <input 
+                  v-if="param.type === 'string[]'"
+                  v-model="toolParameters[param.name][index]"
+                  type="text"
+                  :placeholder="`${param.description} (item ${index + 1})`"
+                  class="form-input text-sm flex-1"
+                />
+                <input 
+                  v-else-if="param.type === 'number[]'"
+                  v-model.number="toolParameters[param.name][index]"
+                  type="number"
+                  :placeholder="`${param.description} (item ${index + 1})`"
+                  class="form-input text-sm flex-1"
+                />
+                <label v-else-if="param.type === 'boolean[]'" class="flex items-center cursor-pointer flex-1">
+                  <input
+                    v-model="toolParameters[param.name][index]"
+                    type="checkbox"
+                    class="form-checkbox"
+                  />
+                  <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    Item {{ index + 1 }}
+                  </span>
+                </label>
+                <textarea
+                  v-else-if="param.type === 'object[]'"
+                  v-model="toolParameters[param.name][index]"
+                  :placeholder="`${param.description} (item ${index + 1}, JSON format)`"
+                  class="form-textarea text-sm font-mono flex-1"
+                  rows="3"
+                />
+                <button 
+                  type="button"
+                  @click="removeArrayItem(param.name, index)"
+                  class="btn-secondary px-3"
+                >
+                  Remove
+                </button>
+              </div>
+              <button 
+                type="button"
+                @click="addArrayItem(param.name, param.type)"
+                class="btn-secondary text-sm w-full"
+              >
+                + Add Item
+              </button>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-1">
+              {{ param.description }} ({{ param.type }})
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Parameters Message -->
+      <div v-else-if="selectedTool && selectedTool.parameters.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-4 border-t border-gray-200 dark:border-gray-700">
+        This tool doesn't require any parameters.
+      </div>
+
+      <!-- No Tool Selected Message -->
+      <div v-else-if="!selectedTool && availableTools.length > 0" class="text-sm text-gray-500 dark:text-gray-400 py-4">
+        Select a tool to configure its parameters.
+      </div>
+
+      <!-- No Tools Available Message -->
+      <div v-else-if="availableTools.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-4 border border-gray-200 rounded-lg p-4 dark:border-gray-700">
+        <p class="font-medium mb-1">No tools available</p>
+        <p class="text-xs">Create tools for this project first before using the Call Tool action.</p>
       </div>
     </div>
 

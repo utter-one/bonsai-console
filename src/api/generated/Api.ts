@@ -13,12 +13,13 @@
 import {
   AnthropicLlmSettings,
   AsrConfig,
+  AsrModelInfo,
   Effect,
   ElevenLabsTtsSettings,
   GeminiLlmSettings,
   LanguageInfo,
   ListFilterOperation,
-  ModelInfo,
+  LlmModelInfo,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
@@ -2226,7 +2227,39 @@ export class Api<
                 toolName: string;
                 parameters: Record<string, any>;
                 success: boolean;
-                result?: any;
+                result?: (
+                  | {
+                      contentType: "text";
+                      text: string;
+                    }
+                  | {
+                      contentType: "image";
+                      /** Base64-encoded image data */
+                      data: string;
+                      /** MIME type (e.g., image/png, image/jpeg) */
+                      mimeType: string;
+                      metadata?: {
+                        width?: number;
+                        height?: number;
+                        [key: string]: any;
+                      };
+                    }
+                  | {
+                      contentType: "audio";
+                      /** Base64-encoded audio data */
+                      data: string;
+                      /** Audio format */
+                      format: "pcm" | "mp3" | "wav" | "opus";
+                      /** MIME type (e.g., audio/pcm, audio/mpeg) */
+                      mimeType: string;
+                      metadata?: {
+                        sampleRate?: number;
+                        channels?: number;
+                        bitDepth?: number;
+                        [key: string]: any;
+                      };
+                    }
+                )[];
                 error?: string;
                 metadata?: Record<string, any>;
               }
@@ -2372,7 +2405,39 @@ export class Api<
               toolName: string;
               parameters: Record<string, any>;
               success: boolean;
-              result?: any;
+              result?: (
+                | {
+                    contentType: "text";
+                    text: string;
+                  }
+                | {
+                    contentType: "image";
+                    /** Base64-encoded image data */
+                    data: string;
+                    /** MIME type (e.g., image/png, image/jpeg) */
+                    mimeType: string;
+                    metadata?: {
+                      width?: number;
+                      height?: number;
+                      [key: string]: any;
+                    };
+                  }
+                | {
+                    contentType: "audio";
+                    /** Base64-encoded audio data */
+                    data: string;
+                    /** Audio format */
+                    format: "pcm" | "mp3" | "wav" | "opus";
+                    /** MIME type (e.g., audio/pcm, audio/mpeg) */
+                    mimeType: string;
+                    metadata?: {
+                      sampleRate?: number;
+                      channels?: number;
+                      bitDepth?: number;
+                      [key: string]: any;
+                    };
+                  }
+              )[];
               error?: string;
               metadata?: Record<string, any>;
             }
@@ -4385,14 +4450,10 @@ export class Api<
           apiType: string;
           /** Human-readable provider name */
           displayName: string;
-          /** Languages supported by this provider */
+          /** Models available for this provider */
+          models: AsrModelInfo[];
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio input formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether custom vocabulary/phrases are supported */
-          supportsCustomVocabulary: boolean;
-          /** Whether streaming transcription is supported */
-          supportsStreaming: boolean;
           /** Additional information */
           description?: string;
         }[];
@@ -4406,14 +4467,8 @@ export class Api<
           models: TtsModelInfo[];
           /** Voices available (can be provider-specific or model-specific) */
           voices: VoiceInfo[];
-          /** Languages supported */
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio output formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether full streaming (chunk-by-chunk) is supported */
-          supportsFullStreaming: boolean;
-          /** Whether voice customization settings are supported */
-          supportsVoiceSettings: boolean;
           /** Additional information */
           description?: string;
         }[];
@@ -4424,21 +4479,7 @@ export class Api<
           /** Human-readable provider name */
           displayName: string;
           /** Models available for this provider */
-          models: ModelInfo[];
-          /** Whether tool calling (function calling) is supported */
-          supportsToolCalling: boolean;
-          /** Whether structured JSON output is supported */
-          supportsJsonOutput: boolean;
-          /** Whether streaming responses are supported */
-          supportsStreaming: boolean;
-          /** Whether vision/image input is supported */
-          supportsVision: boolean;
-          /** Whether provider supports reasoning/thinking modes for deeper analysis */
-          supportsReasoning?: boolean;
-          /** List of model IDs that support reasoning/thinking capabilities */
-          reasoningModels?: string[];
-          /** Context window size (in tokens) for each model */
-          contextWindows?: Record<string, number>;
+          models: LlmModelInfo[];
           /** Additional information */
           description?: string;
         }[];
@@ -4469,14 +4510,10 @@ export class Api<
           apiType: string;
           /** Human-readable provider name */
           displayName: string;
-          /** Languages supported by this provider */
+          /** Models available for this provider */
+          models: AsrModelInfo[];
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio input formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether custom vocabulary/phrases are supported */
-          supportsCustomVocabulary: boolean;
-          /** Whether streaming transcription is supported */
-          supportsStreaming: boolean;
           /** Additional information */
           description?: string;
         }[];
@@ -4511,14 +4548,8 @@ export class Api<
           models: TtsModelInfo[];
           /** Voices available (can be provider-specific or model-specific) */
           voices: VoiceInfo[];
-          /** Languages supported */
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio output formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether full streaming (chunk-by-chunk) is supported */
-          supportsFullStreaming: boolean;
-          /** Whether voice customization settings are supported */
-          supportsVoiceSettings: boolean;
           /** Additional information */
           description?: string;
         }[];
@@ -4550,21 +4581,7 @@ export class Api<
           /** Human-readable provider name */
           displayName: string;
           /** Models available for this provider */
-          models: ModelInfo[];
-          /** Whether tool calling (function calling) is supported */
-          supportsToolCalling: boolean;
-          /** Whether structured JSON output is supported */
-          supportsJsonOutput: boolean;
-          /** Whether streaming responses are supported */
-          supportsStreaming: boolean;
-          /** Whether vision/image input is supported */
-          supportsVision: boolean;
-          /** Whether provider supports reasoning/thinking modes for deeper analysis */
-          supportsReasoning?: boolean;
-          /** List of model IDs that support reasoning/thinking capabilities */
-          reasoningModels?: string[];
-          /** Context window size (in tokens) for each model */
-          contextWindows?: Record<string, number>;
+          models: LlmModelInfo[];
           /** Additional information */
           description?: string;
         }[];
@@ -4597,14 +4614,10 @@ export class Api<
           apiType: string;
           /** Human-readable provider name */
           displayName: string;
-          /** Languages supported by this provider */
+          /** Models available for this provider */
+          models: AsrModelInfo[];
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio input formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether custom vocabulary/phrases are supported */
-          supportsCustomVocabulary: boolean;
-          /** Whether streaming transcription is supported */
-          supportsStreaming: boolean;
           /** Additional information */
           description?: string;
         }
@@ -4617,14 +4630,8 @@ export class Api<
           models: TtsModelInfo[];
           /** Voices available (can be provider-specific or model-specific) */
           voices: VoiceInfo[];
-          /** Languages supported */
+          /** Languages commonly supported across models (for reference) */
           languages: LanguageInfo[];
-          /** Audio output formats supported by this provider */
-          supportedAudioFormats: string[];
-          /** Whether full streaming (chunk-by-chunk) is supported */
-          supportsFullStreaming: boolean;
-          /** Whether voice customization settings are supported */
-          supportsVoiceSettings: boolean;
           /** Additional information */
           description?: string;
         }
@@ -4634,21 +4641,7 @@ export class Api<
           /** Human-readable provider name */
           displayName: string;
           /** Models available for this provider */
-          models: ModelInfo[];
-          /** Whether tool calling (function calling) is supported */
-          supportsToolCalling: boolean;
-          /** Whether structured JSON output is supported */
-          supportsJsonOutput: boolean;
-          /** Whether streaming responses are supported */
-          supportsStreaming: boolean;
-          /** Whether vision/image input is supported */
-          supportsVision: boolean;
-          /** Whether provider supports reasoning/thinking modes for deeper analysis */
-          supportsReasoning?: boolean;
-          /** List of model IDs that support reasoning/thinking capabilities */
-          reasoningModels?: string[];
-          /** Context window size (in tokens) for each model */
-          contextWindows?: Record<string, number>;
+          models: LlmModelInfo[];
           /** Additional information */
           description?: string;
         },

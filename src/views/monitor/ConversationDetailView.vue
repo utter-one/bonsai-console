@@ -7,6 +7,7 @@ import type { ConversationResponse, ConversationEventResponse } from '@/api/type
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
+import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 
 
 const route = useRoute()
@@ -162,7 +163,7 @@ function isToolCallEvent(event: ConversationEventResponse): event is Conversatio
     toolName: string
     parameters: Record<string, any>
     success: boolean
-    result?: any
+    result?: Content[]
     error?: string
     metadata?: Record<string, any>
   }
@@ -580,17 +581,15 @@ const metadataFields = computed(() => {
                             </div>
                           </details>
                         </div>
-                        <div v-if="event.eventData.success && event.eventData.result !== null && event.eventData.result !== undefined">
-                          <details class="group">
-                            <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Result
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre
-                                class="whitespace-pre-wrap break-words dark:text-gray-300">{{ typeof event.eventData.result === 'object' ? JSON.stringify(event.eventData.result, null, 2) : String(event.eventData.result) }}</pre>
+                        <div v-if="event.eventData.success && event.eventData.result && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.eventData.result.length }} item{{ event.eventData.result.length !== 1 ? 's' : '' }}):</span>
+                          <div class="mt-2 space-y-3">
+                            <div v-for="(content, idx) in event.eventData.result" :key="idx"
+                              class="bg-white bg-opacity-60 rounded p-3 dark:bg-gray-900 dark:bg-opacity-60">
+                              <div class="text-xs font-medium text-gray-500 mb-2 uppercase dark:text-gray-400">{{ content.contentType }}</div>
+                              <ContentViewer :content="content" />
                             </div>
-                          </details>
+                          </div>
                         </div>
                         <div v-if="!event.eventData.success && event.eventData.error">
                           <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">

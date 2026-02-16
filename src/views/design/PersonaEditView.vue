@@ -96,9 +96,25 @@ const currentVoiceValue = computed(() => {
   return settings.voiceId
 })
 
-const availableAudioFormats = computed(() => 
-  selectedProviderCatalogInfo.value?.supportedAudioFormats || []
-)
+const availableAudioFormats = computed(() => {
+  if (!selectedProviderCatalogInfo.value) return []
+  
+  // Get formats from the selected model
+  const modelId = form.value.ttsSettings.model
+  if (modelId) {
+    const selectedModel = selectedProviderCatalogInfo.value.models.find(
+      m => m.id === modelId
+    )
+    return selectedModel?.supportedAudioFormats || []
+  }
+  
+  // If no model is selected, collect all unique formats from all models
+  const allFormats = new Set<string>()
+  selectedProviderCatalogInfo.value.models.forEach(model => {
+    model.supportedAudioFormats?.forEach(format => allFormats.add(format))
+  })
+  return Array.from(allFormats)
+})
 
 // Computed properties for select bindings to handle undefined values
 const modelValue = computed({
