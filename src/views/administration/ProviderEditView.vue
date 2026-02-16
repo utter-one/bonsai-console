@@ -71,12 +71,7 @@ const apiTypeOptions = computed(() => {
     label: p.displayName,
     description: p.description
   }))
-  
-  // Add custom option if not already present
-  if (!options.some(o => o.value === 'custom')) {
-    options.push({ value: 'custom', label: 'Custom', description: 'Custom API implementation' })
-  }
-  
+    
   return options
 })
 
@@ -88,13 +83,13 @@ const selectedApiTypeDescription = computed(() => {
 
 // Check which config fields to show based on API type
 const showOpenAIFields = computed(() => 
-  form.value.apiType === 'openai'
+  form.value.apiType === 'openai' || form.value.apiType === 'openai-legacy' || form.value.apiType === 'groq'
 )
 const showAnthropicFields = computed(() => 
   form.value.apiType === 'anthropic'
 )
 const showGoogleFields = computed(() => 
-  form.value.apiType === 'google'
+  form.value.apiType === 'gemini'
 )
 const showElevenLabsFields = computed(() => 
   form.value.apiType === 'elevenlabs'
