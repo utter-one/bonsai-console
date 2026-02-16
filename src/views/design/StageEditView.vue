@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useProjectSelectionStore } from '@/stores'
+import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -45,6 +45,7 @@ const personasStore = usePersonasStore()
 const providersStore = useProvidersStore()
 const classifiersStore = useClassifiersStore()
 const transformersStore = useContextTransformersStore()
+const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // State
@@ -105,7 +106,8 @@ onMounted(async () => {
     providersStore.fetchAll(),
     personasStore.fetchAll({ filters: { projectId: projectId.value } }),
     classifiersStore.fetchAll({ filters: { projectId: projectId.value } }),
-    transformersStore.fetchAll({ filters: { projectId: projectId.value } })
+    transformersStore.fetchAll({ filters: { projectId: projectId.value } }),
+    toolsStore.fetchAll({ filters: { projectId: projectId.value } })
   ])
   
   if (isEditMode.value) {

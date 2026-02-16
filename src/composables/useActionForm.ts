@@ -15,7 +15,7 @@ export interface ActionOperations {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
-  callTool: { enabled: boolean; toolId: string; parameters: string }
+  callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
   callWebhook: {
     enabled: boolean
     url: string
@@ -36,7 +36,7 @@ export function createDefaultOperations(): ActionOperations {
     modifyUserInput: { enabled: false, template: '' },
     modifyVariables: { enabled: false, modifications: [] },
     modifyUserProfile: { enabled: false, modifications: [] },
-    callTool: { enabled: false, toolId: '', parameters: '' },
+    callTool: { enabled: false, toolId: '', parameters: {} },
     callWebhook: { enabled: false, url: '', method: 'POST', headers: '', body: '', resultKey: '' }
   }
 }
@@ -91,7 +91,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
           operations.callTool.toolId = effect.toolId || ''
         }
         if ('parameters' in effect) {
-          operations.callTool.parameters = effect.parameters ? JSON.stringify(effect.parameters, null, 2) : ''
+          operations.callTool.parameters = effect.parameters || {}
         }
         break
       case 'call_webhook':
@@ -180,13 +180,26 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
   }
 
   if (operations.callTool.enabled) {
-    let params: Record<string, any> = {}
-    if (operations.callTool.parameters) {
-      try {
-        params = JSON.parse(operations.callTool.parameters)
-      } catch (e) {
-        error = 'Invalid JSON in tool parameters'
-        return { effects: [], error }
+    // Validate and prepare parameters
+    const params: Record<string, any> = {}
+    
+    // Build parameters object, handling JSON strings for object types
+    for (const [key, value] of Object.entries(operations.callTool.parameters)) {
+      // Skip empty or null values
+      if (value === null || value === undefined || value === '') {
+        continue
+      }
+      
+      // If it's a string that looks like JSON (object or array), try to parse it
+      if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
+        try {
+          params[key] = JSON.parse(value)
+        } catch (e) {
+          error = `Invalid JSON for parameter "${key}"`
+          return { effects: [], error }
+        }
+      } else {
+        params[key] = value
       }
     }
 
