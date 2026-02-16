@@ -27,8 +27,9 @@ export interface AudioPlaybackState {
 export function useAudioPlayback() {
   // Audio context (initialized on first use due to browser autoplay restrictions)
   let audioContext: AudioContext | null = null
-  let currentSource: AudioBufferSourceNode | null = null
-  let startTime = 0
+  let scheduledSources: AudioBufferSourceNode[] = []
+  let nextScheduledTime = 0
+  let playbackStartTime = 0
 
   // State
   const state = ref<AudioPlaybackState>({
@@ -44,7 +45,7 @@ export function useAudioPlayback() {
   // Chunk queue (sorted by ordinal) - must be reactive for computed properties
   const chunkQueue = ref<AudioChunk[]>([])
   const audioBuffers = ref<AudioBuffer[]>([])
-  let currentBufferIndex = 0
+  let lastScheduledBufferIndex = -1
 
   /**
    * Initialize AudioContext (must be called after user gesture for autoplay policy)
@@ -106,6 +107,54 @@ export function useAudioPlayback() {
   }
 
   /**
+   * Schedule a single audio buffer on the AudioContext timeline
+   */
+  function scheduleBuffer(buffer: AudioBuffer, startTime: number): number {
+    const ctx = initAudioContext()
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(ctx.destination)
+
+    // Schedule at specific time for gapless playback
+    source.start(startTime)
+    scheduledSources.push(source)
+
+    // Handle when this buffer finishes (for cleanup and state updates)
+    source.onended = () => {
+      const index = scheduledSources.indexOf(source)
+      if (index > -1) {
+        scheduledSources.splice(index, 1)
+      }
+
+      // Check if all buffers have finished playing
+      if (scheduledSources.length === 0 && lastScheduledBufferIndex >= audioBuffers.value.length - 1) {
+        state.value.playing = false
+        state.value.currentTime = 0
+        lastScheduledBufferIndex = -1
+        nextScheduledTime = 0
+        playbackStartTime = 0
+      }
+    }
+
+    // Return the next available start time
+    return startTime + buffer.duration
+  }
+
+  /**
+   * Schedule all unscheduled buffers for playback
+   */
+  function scheduleAllBuffers() {
+    // Schedule any new buffers that haven't been scheduled yet
+    for (let i = lastScheduledBufferIndex + 1; i < audioBuffers.value.length; i++) {
+      const buffer = audioBuffers.value[i]
+      if (!buffer) continue
+
+      nextScheduledTime = scheduleBuffer(buffer, nextScheduledTime)
+      lastScheduledBufferIndex = i
+    }
+  }
+
+  /**
    * Add an audio chunk to the queue
    */
   async function addChunk(chunk: AudioChunk) {
@@ -126,8 +175,12 @@ export function useAudioPlayback() {
 
       state.value.buffering = false
 
+      // If already playing, schedule this new buffer immediately for gapless continuation
+      if (state.value.playing) {
+        scheduleAllBuffers()
+      }
       // Auto-start playback when first chunk arrives
-      if (audioBuffers.value.length === 1 && !state.value.playing && !state.value.paused) {
+      else if (audioBuffers.value.length === 1 && !state.value.paused) {
         play()
       }
     } catch (err) {
@@ -138,54 +191,29 @@ export function useAudioPlayback() {
   }
 
   /**
-   * Play the next audio buffer in the queue
+   * Update current playback time (called periodically)
    */
-  function playNextBuffer() {
-    if (currentBufferIndex >= audioBuffers.value.length) {
-      // Playback complete
-      state.value.playing = false
-      currentBufferIndex = 0
-      state.value.currentTime = 0
-      return
-    }
+  let timeUpdateInterval: ReturnType<typeof setInterval> | null = null
 
-    const ctx = initAudioContext()
-    const buffer = audioBuffers.value[currentBufferIndex]
+  function startTimeTracking() {
+    if (timeUpdateInterval) return
 
-    if (!buffer) return
-
-    // Create source node
-    const source = ctx.createBufferSource()
-    source.buffer = buffer
-    source.connect(ctx.destination)
-
-    // Handle playback end
-    source.onended = () => {
-      if (state.value.playing) {
-        currentBufferIndex++
-        playNextBuffer()
-      }
-    }
-
-    // Start playback
-    currentSource = source
-    startTime = ctx.currentTime
-    source.start(0)
-
-    // Update current time periodically
-    const updateInterval = setInterval(() => {
-      if (!state.value.playing || !audioContext) {
-        clearInterval(updateInterval)
+    timeUpdateInterval = setInterval(() => {
+      if (!state.value.playing || !audioContext || playbackStartTime === 0) {
         return
       }
 
-      const elapsed = audioContext.currentTime - startTime
-      const previousDuration = audioBuffers.value
-        .slice(0, currentBufferIndex)
-        .reduce((sum, buf) => sum + buf.duration, 0)
-
-      state.value.currentTime = previousDuration + elapsed
+      // Calculate elapsed time since playback started
+      const elapsed = audioContext.currentTime - playbackStartTime
+      state.value.currentTime = Math.min(elapsed, state.value.duration)
     }, 100)
+  }
+
+  function stopTimeTracking() {
+    if (timeUpdateInterval) {
+      clearInterval(timeUpdateInterval)
+      timeUpdateInterval = null
+    }
   }
 
   /**
@@ -198,20 +226,48 @@ export function useAudioPlayback() {
         return
       }
 
-      initAudioContext()
+      const ctx = initAudioContext()
 
       if (state.value.paused) {
-        // Resume from pause
+        // Resume from pause - reschedule remaining buffers
         state.value.paused = false
         state.value.playing = true
-        playNextBuffer()
+
+        // Calculate where to resume from
+        const currentTime = state.value.currentTime
+        let accumulatedTime = 0
+        let resumeBufferIndex = 0
+
+        // Find which buffer we were on
+        for (let i = 0; i < audioBuffers.value.length; i++) {
+          const buffer = audioBuffers.value[i]
+          if (!buffer) continue
+
+          if (accumulatedTime + buffer.duration > currentTime) {
+            resumeBufferIndex = i
+            break
+          }
+          accumulatedTime += buffer.duration
+        }
+
+        // Schedule from resume point
+        nextScheduledTime = ctx.currentTime + 0.1 // Small buffer to prevent immediate playback issues
+        playbackStartTime = nextScheduledTime - accumulatedTime // Adjust for elapsed time
+        lastScheduledBufferIndex = resumeBufferIndex - 1
+        scheduleAllBuffers()
+        startTimeTracking()
       } else if (!state.value.playing) {
         // Start fresh
-        currentBufferIndex = 0
         state.value.playing = true
         state.value.paused = false
         state.value.currentTime = 0
-        playNextBuffer()
+
+        // Schedule all buffers on the timeline
+        nextScheduledTime = ctx.currentTime + 0.1 // Small buffer to prevent immediate playback issues
+        playbackStartTime = nextScheduledTime
+        lastScheduledBufferIndex = -1
+        scheduleAllBuffers()
+        startTimeTracking()
       }
 
       state.value.error = null
@@ -225,9 +281,18 @@ export function useAudioPlayback() {
    * Pause playback
    */
   function pause() {
-    if (currentSource && state.value.playing) {
-      currentSource.stop()
-      currentSource = null
+    if (state.value.playing) {
+      // Stop all scheduled sources
+      for (const source of scheduledSources) {
+        try {
+          source.stop()
+        } catch (err) {
+          // Source may have already ended, ignore
+        }
+      }
+      scheduledSources = []
+
+      stopTimeTracking()
       state.value.playing = false
       state.value.paused = true
     }
@@ -237,15 +302,23 @@ export function useAudioPlayback() {
    * Stop playback and reset
    */
   function stop() {
-    if (currentSource) {
-      currentSource.stop()
-      currentSource = null
+    // Stop all scheduled sources
+    for (const source of scheduledSources) {
+      try {
+        source.stop()
+      } catch (err) {
+        // Source may have already ended, ignore
+      }
     }
+    scheduledSources = []
 
+    stopTimeTracking()
     state.value.playing = false
     state.value.paused = false
     state.value.currentTime = 0
-    currentBufferIndex = 0
+    lastScheduledBufferIndex = -1
+    nextScheduledTime = 0
+    playbackStartTime = 0
   }
 
   /**
@@ -272,6 +345,7 @@ export function useAudioPlayback() {
    * Cleanup on unmount
    */
   onUnmounted(() => {
+    stopTimeTracking()
     clear()
     if (audioContext) {
       audioContext.close()
