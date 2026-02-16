@@ -1039,7 +1039,7 @@ function removeArrayItem(paramName: string, index: number) {
                 class="form-textarea text-sm font-mono"
                 rows="4"
               />
-              <p class="text-xs text-gray-500">Enter a valid JSON object.</p>
+              <p class="text-xs text-gray-500">Enter a valid JSON object or use Handlebars syntax (e.g., <code>&#123;&#123;variable&#125;&#125;</code>)</p>
             </div>
             
             <!-- Array inputs (string[], number[], boolean[], object[]) -->
