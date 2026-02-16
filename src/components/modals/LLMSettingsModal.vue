@@ -35,6 +35,65 @@
             <p v-else class="form-help-text">
               Select the model to use for this stage
             </p>
+            
+            <!-- Model Capabilities -->
+            <div v-if="selectedModelInfo" class="mt-3 flex flex-wrap gap-2">
+              <span
+                v-if="selectedModelInfo.supportsImageGeneration"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                title="Supports image generation output"
+              >
+                <Image class="w-3.5 h-3.5" />
+                Image Generation
+              </span>
+              <span
+                v-if="selectedModelInfo.supportsVision"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                title="Supports vision/image input"
+              >
+                <Eye class="w-3.5 h-3.5" />
+                Vision
+              </span>
+              <span
+                v-if="selectedModelInfo.supportsToolCalling"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                title="Supports tool calling (function calling)"
+              >
+                <Wrench class="w-3.5 h-3.5" />
+                Tool Calling
+              </span>
+              <span
+                v-if="selectedModelInfo.supportsJsonOutput"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                title="Supports structured JSON output"
+              >
+                <FileJson class="w-3.5 h-3.5" />
+                JSON Output
+              </span>
+              <span
+                v-if="selectedModelInfo.supportsStreaming"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300"
+                title="Supports streaming responses"
+              >
+                <Zap class="w-3.5 h-3.5" />
+                Streaming
+              </span>
+              <span
+                v-if="selectedModelInfo.supportsReasoning"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                title="Supports reasoning/thinking modes for deeper analysis"
+              >
+                <Brain class="w-3.5 h-3.5" />
+                Reasoning
+              </span>
+              <span
+                v-if="selectedModelInfo.contextWindow"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                title="Context window size"
+              >
+                {{ selectedModelInfo.contextWindow.toLocaleString() }} tokens
+              </span>
+            </div>
           </div>
 
           <!-- Max Tokens -->
@@ -292,6 +351,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import type { ProviderResponse, LlmSettings } from '@/api/types'
 import { useProviderCatalogStore } from '@/stores'
+import { Wrench, Eye, FileJson, Zap, Brain, Image } from 'lucide-vue-next'
 
 const props = defineProps<{
   settings: LlmSettings | null
@@ -404,6 +464,12 @@ const availableModels = computed(() => {
   )
   
   return llmProvider?.models || []
+})
+
+// Get selected model info for capability display
+const selectedModelInfo = computed(() => {
+  if (!form.value.model) return null
+  return availableModels.value.find(m => m.id === form.value.model)
 })
 
 // Load catalog on mount
