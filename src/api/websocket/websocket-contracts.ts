@@ -10,9 +10,7 @@
 // Audio Types (Shared)
 // ============================================================================
 
-export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | "mp3" | "opus" | "aac" | "flac" | "wav"
-
-
+export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_8000' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | 'pcm_48000' | 'mulaw' | 'alaw' | 'linear16'
 // ============================================================================
 // Authentication and Project Settings
 // ============================================================================
@@ -113,7 +111,21 @@ export interface AuthResponse {
         /**
          * Audio input format for speech recognition (e.g., "pcm_16000")
          */
-        audioFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
+        audioFormat?:
+          | 'mp3'
+          | 'opus'
+          | 'aac'
+          | 'flac'
+          | 'wav'
+          | 'pcm_8000'
+          | 'pcm_16000'
+          | 'pcm_22050'
+          | 'pcm_24000'
+          | 'pcm_44100'
+          | 'pcm_48000'
+          | 'mulaw'
+          | 'alaw'
+          | 'linear16';
       };
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
@@ -167,7 +179,21 @@ export interface ProjectSettings {
       /**
        * Audio input format for speech recognition (e.g., "pcm_16000")
        */
-      audioFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
+      audioFormat?:
+        | 'mp3'
+        | 'opus'
+        | 'aac'
+        | 'flac'
+        | 'wav'
+        | 'pcm_8000'
+        | 'pcm_16000'
+        | 'pcm_22050'
+        | 'pcm_24000'
+        | 'pcm_44100'
+        | 'pcm_48000'
+        | 'mulaw'
+        | 'alaw'
+        | 'linear16';
     };
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
@@ -179,6 +205,7 @@ export interface ProjectSettings {
     voiceActivityDetection?: boolean;
   } | null;
 }
+
 
 // ============================================================================
 // Session and Conversation Lifecycle
@@ -714,6 +741,7 @@ export interface ConversationEvent {
       };
 }
 
+
 // ============================================================================
 // User Input (Voice and Text)
 // ============================================================================
@@ -961,6 +989,7 @@ export interface UserTranscribedChunk {
   isFinal: boolean;
 }
 
+
 // ============================================================================
 // AI Response (Voice Output)
 // ============================================================================
@@ -1020,7 +1049,21 @@ export interface SendAiVoiceChunk {
   /**
    * Audio format of the chunk data
    */
-  audioFormat: 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
+  audioFormat:
+    | 'mp3'
+    | 'opus'
+    | 'aac'
+    | 'flac'
+    | 'wav'
+    | 'pcm_8000'
+    | 'pcm_16000'
+    | 'pcm_22050'
+    | 'pcm_24000'
+    | 'pcm_44100'
+    | 'pcm_48000'
+    | 'mulaw'
+    | 'alaw'
+    | 'linear16';
   /**
    * Unique identifier for this specific audio chunk
    */
@@ -1033,6 +1076,14 @@ export interface SendAiVoiceChunk {
    * Whether this is the final chunk in the voice output sequence
    */
   isFinal: boolean;
+  /**
+   * Sample rate of the audio chunk (e.g., 24000)
+   */
+  sampleRate?: number;
+  /**
+   * Bit rate of the audio chunk in bits per second (e.g., 64000)
+   */
+  bitRate?: number;
 }
 
 export interface EndAiGenerationOutput {
@@ -1191,6 +1242,7 @@ export interface SendAiImageOutput {
    */
   sequenceNumber: number;
 }
+
 
 // ============================================================================
 // Commands (Stage Navigation, Variables, Actions)

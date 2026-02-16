@@ -6,6 +6,8 @@ interface AudioChunk {
   audioFormat: AudioFormat
   ordinal: number
   isFinal: boolean
+  sampleRate?: number
+  bitRate?: number
 }
 
 export interface AudioPlaybackState {
@@ -58,8 +60,13 @@ export function useAudioPlayback() {
    * Parse PCM format to extract sample rate
    * e.g., 'pcm_16000' -> 16000
    */
-  function parseSampleRate(format: AudioFormat): number {
+  function getSampleRate(chunk: AudioChunk): number {
+    if (chunk.sampleRate)
+      return chunk.sampleRate
+
+    const format = chunk.audioFormat
     const match = format.match(/\d+/)
+    if (format as string === 'linear16') return 16000; // Deepgrams linear16 format
     return match ? parseInt(match[0], 10) : 16000
   }
 
@@ -68,7 +75,7 @@ export function useAudioPlayback() {
    */
   async function decodePCMChunk(chunk: AudioChunk): Promise<AudioBuffer> {
     const ctx = initAudioContext()
-    const sampleRate = parseSampleRate(chunk.audioFormat)
+    const sampleRate = getSampleRate(chunk)
 
     // Decode base64 to binary
     const binaryString = atob(chunk.audioData)
@@ -78,6 +85,8 @@ export function useAudioPlayback() {
     }
 
     // Parse as 16-bit little-endian PCM
+    console.log(`Lenght of bytes:`, bytes.length, bytes.buffer.byteLength)
+    console.log(`Chunk info:`, { ...chunk, sampleRate2: sampleRate })
     const samples = new Int16Array(bytes.buffer)
     const floatSamples = new Float32Array(samples.length)
 
@@ -85,6 +94,9 @@ export function useAudioPlayback() {
     for (let i = 0; i < samples.length; i++) {
       floatSamples[i] = (samples[i] ?? 0) / 32768.0
     }
+
+    console.log(`Start:`, { floatSamples: floatSamples.slice(0, 10) }) // Log first 10 samples for debugging
+    console.log(`End:`, { floatSamples: floatSamples.slice(-10) }) // Log last 10 samples for debugging
 
     // Create AudioBuffer
     const audioBuffer = ctx.createBuffer(1, floatSamples.length, sampleRate)
@@ -139,7 +151,7 @@ export function useAudioPlayback() {
 
     const ctx = initAudioContext()
     const buffer = audioBuffers.value[currentBufferIndex]
-    
+
     if (!buffer) return
 
     // Create source node
@@ -171,7 +183,7 @@ export function useAudioPlayback() {
       const previousDuration = audioBuffers.value
         .slice(0, currentBufferIndex)
         .reduce((sum, buf) => sum + buf.duration, 0)
-      
+
       state.value.currentTime = previousDuration + elapsed
     }, 100)
   }

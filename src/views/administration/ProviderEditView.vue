@@ -94,6 +94,9 @@ const showGoogleFields = computed(() =>
 const showElevenLabsFields = computed(() => 
   form.value.apiType === 'elevenlabs'
 )
+const showDeepgramFields = computed(() => 
+  form.value.apiType === 'deepgram'
+)
 const showAzureASRFields = computed(() => 
   form.value.apiType === 'azure' && form.value.providerType === 'asr'
 )
@@ -176,6 +179,10 @@ async function handleSubmit() {
       apiKey: form.value.config.apiKey
     }
   } else if (showElevenLabsFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+  } else if (showDeepgramFields.value) {
     config = {
       apiKey: form.value.config.apiKey
     }
@@ -571,6 +578,28 @@ const metadataFields = computed(() => {
               />
               <p class="form-help-text">
                 Your ElevenLabs API key
+              </p>
+            </div>
+          </template>
+
+          <!-- Deepgram Configuration -->
+          <template v-if="showDeepgramFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Deepgram Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Deepgram API key
               </p>
             </div>
           </template>

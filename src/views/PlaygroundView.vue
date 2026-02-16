@@ -1684,7 +1684,9 @@ async function connectWebSocket() {
           audioData: msg.audioData,
           audioFormat: msg.audioFormat,
           ordinal: msg.ordinal,
-          isFinal: msg.isFinal
+          isFinal: msg.isFinal,
+          bitRate: msg.bitRate,
+          sampleRate: msg.sampleRate,
         })
       },
       onAiOutputEnd: (msg: EndAiGenerationOutput) => {
