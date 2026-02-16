@@ -560,6 +560,84 @@
           }
         }
       },
+      "DeepgramTtsSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "enum": [
+              "aura-1",
+              "aura-2"
+            ],
+            "description": "Model version to use (\"aura-1\" or \"aura-2\")"
+          },
+          "voiceId": {
+            "type": "string",
+            "description": "Voice ID to use for speech synthesis (e.g., \"thalia-en\", \"andromeda-en\"). Combined with model to form full model string (e.g., \"aura-2-thalia-en\")"
+          },
+          "audioFormat": {
+            "type": "string",
+            "enum": [
+              "linear16",
+              "opus",
+              "mulaw",
+              "alaw",
+              "mp3",
+              "flac",
+              "aac"
+            ],
+            "description": "Preferred audio output format. Streaming supports: linear16, opus, mulaw, alaw. REST-only: mp3, flac, aac"
+          },
+          "sampleRate": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format"
+          },
+          "bitRate": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Bit rate for audio output (e.g., 32000, 64000, 128000). Applies to certain formats like mp3, opus, aac"
+          },
+          "container": {
+            "type": "string",
+            "enum": [
+              "none",
+              "wav",
+              "ogg"
+            ],
+            "description": "Audio container format. Use \"none\" for raw audio, \"wav\" for WAV container, \"ogg\" for Ogg container"
+          },
+          "noSpeechMarkers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "string"
+                },
+                "end": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            },
+            "description": "Markers to identify sections of text that should not be spoken"
+          },
+          "removeExclamationMarks": {
+            "type": "boolean",
+            "description": "Whether to replace exclamation marks with periods"
+          },
+          "useSentenceSplitter": {
+            "type": "boolean",
+            "description": "Whether to use sentence splitter for text processing, defaults to true"
+          }
+        }
+      },
       "AsrConfig": {
         "type": "object",
         "properties": {
@@ -589,10 +667,15 @@
                   "aac",
                   "flac",
                   "wav",
+                  "pcm_8000",
                   "pcm_16000",
                   "pcm_22050",
                   "pcm_24000",
-                  "pcm_44100"
+                  "pcm_44100",
+                  "pcm_48000",
+                  "mulaw",
+                  "alaw",
+                  "linear16"
                 ],
                 "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
               }
@@ -1593,10 +1676,15 @@
                       "aac",
                       "flac",
                       "wav",
+                      "pcm_8000",
                       "pcm_16000",
                       "pcm_22050",
                       "pcm_24000",
-                      "pcm_44100"
+                      "pcm_44100",
+                      "pcm_48000",
+                      "mulaw",
+                      "alaw",
+                      "linear16"
                     ],
                     "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                   }
@@ -1743,10 +1831,15 @@
                       "aac",
                       "flac",
                       "wav",
+                      "pcm_8000",
                       "pcm_16000",
                       "pcm_22050",
                       "pcm_24000",
-                      "pcm_44100"
+                      "pcm_44100",
+                      "pcm_48000",
+                      "mulaw",
+                      "alaw",
+                      "linear16"
                     ],
                     "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                   }
@@ -1869,10 +1962,15 @@
                             "aac",
                             "flac",
                             "wav",
+                            "pcm_8000",
                             "pcm_16000",
                             "pcm_22050",
                             "pcm_24000",
-                            "pcm_44100"
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw",
+                            "linear16"
                           ],
                           "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                         }
@@ -1996,6 +2094,9 @@
                 "$ref": "#/components/schemas/OpenAiTtsSettings"
               },
               {
+                "$ref": "#/components/schemas/DeepgramTtsSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -2043,6 +2144,9 @@
               },
               {
                 "$ref": "#/components/schemas/OpenAiTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramTtsSettings"
               },
               {
                 "nullable": true
@@ -2116,6 +2220,9 @@
               },
               {
                 "$ref": "#/components/schemas/OpenAiTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramTtsSettings"
               },
               {
                 "nullable": true
@@ -2202,6 +2309,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/OpenAiTtsSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepgramTtsSettings"
                     },
                     {
                       "nullable": true
@@ -10019,10 +10129,15 @@
                               "aac",
                               "flac",
                               "wav",
+                              "pcm_8000",
                               "pcm_16000",
                               "pcm_22050",
                               "pcm_24000",
-                              "pcm_44100"
+                              "pcm_44100",
+                              "pcm_48000",
+                              "mulaw",
+                              "alaw",
+                              "linear16"
                             ],
                             "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                           }
@@ -10123,10 +10238,15 @@
                                 "aac",
                                 "flac",
                                 "wav",
+                                "pcm_8000",
                                 "pcm_16000",
                                 "pcm_22050",
                                 "pcm_24000",
-                                "pcm_44100"
+                                "pcm_44100",
+                                "pcm_48000",
+                                "mulaw",
+                                "alaw",
+                                "linear16"
                               ],
                               "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                             }
@@ -10401,10 +10521,15 @@
                                       "aac",
                                       "flac",
                                       "wav",
+                                      "pcm_8000",
                                       "pcm_16000",
                                       "pcm_22050",
                                       "pcm_24000",
-                                      "pcm_44100"
+                                      "pcm_44100",
+                                      "pcm_48000",
+                                      "mulaw",
+                                      "alaw",
+                                      "linear16"
                                     ],
                                     "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                                   }
@@ -10564,10 +10689,15 @@
                                 "aac",
                                 "flac",
                                 "wav",
+                                "pcm_8000",
                                 "pcm_16000",
                                 "pcm_22050",
                                 "pcm_24000",
-                                "pcm_44100"
+                                "pcm_44100",
+                                "pcm_48000",
+                                "mulaw",
+                                "alaw",
+                                "linear16"
                               ],
                               "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                             }
@@ -10776,10 +10906,15 @@
                                 "aac",
                                 "flac",
                                 "wav",
+                                "pcm_8000",
                                 "pcm_16000",
                                 "pcm_22050",
                                 "pcm_24000",
-                                "pcm_44100"
+                                "pcm_44100",
+                                "pcm_48000",
+                                "mulaw",
+                                "alaw",
+                                "linear16"
                               ],
                               "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
                             }
@@ -16601,6 +16736,9 @@
                         "$ref": "#/components/schemas/OpenAiTtsSettings"
                       },
                       {
+                        "$ref": "#/components/schemas/DeepgramTtsSettings"
+                      },
+                      {
                         "nullable": true
                       }
                     ],
@@ -16664,6 +16802,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/OpenAiTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepgramTtsSettings"
                         },
                         {
                           "nullable": true
@@ -16904,6 +17045,9 @@
                                 "$ref": "#/components/schemas/OpenAiTtsSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/DeepgramTtsSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -17045,6 +17189,9 @@
                           "$ref": "#/components/schemas/OpenAiTtsSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/DeepgramTtsSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -17147,6 +17294,9 @@
                         "$ref": "#/components/schemas/OpenAiTtsSettings"
                       },
                       {
+                        "$ref": "#/components/schemas/DeepgramTtsSettings"
+                      },
+                      {
                         "nullable": true
                       }
                     ],
@@ -17213,6 +17363,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/OpenAiTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepgramTtsSettings"
                         },
                         {
                           "nullable": true

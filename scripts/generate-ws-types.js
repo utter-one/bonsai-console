@@ -20,12 +20,12 @@ const outputPath = join(__dirname, '../src/api/websocket/websocket-contracts.ts'
 async function generateTypes() {
   console.log('📄 Reading JSON Schema...')
   const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'))
-  
+
   const definitions = schema.definitions || {}
   const definitionNames = Object.keys(definitions)
-  
+
   console.log(`✨ Found ${definitionNames.length} type definitions`)
-  
+
   // Header comment
   let output = `/**
  * WebSocket Message Contracts
@@ -39,7 +39,6 @@ async function generateTypes() {
 
   // Group definitions by category
   const categories = {
-    audio: ['AudioFormat'],
     auth: ['auth-request', 'auth-response', 'project-settings'],
     session: [
       'start-conversation-request', 'start-conversation-response',
@@ -68,15 +67,19 @@ async function generateTypes() {
     ]
   }
 
-  // Process AudioFormat specially (it's an enum)
-  output += `// ============================================================================
+  // Extract AudioFormat enum from schema
+  const audioFormatEnums = definitions['send-ai-voice-chunk']?.properties?.audioFormat?.enum
+  if (audioFormatEnums && Array.isArray(audioFormatEnums)) {
+    const audioFormatUnion = audioFormatEnums.map(f => `'${f}'`).join(' | ')
+    output += `// ============================================================================
 // Audio Types (Shared)
 // ============================================================================
 
-export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | "mp3" | "opus" | "aac" | "flac" | "wav"
-
-
-`
+export type AudioFormat = ${audioFormatUnion}`
+    console.log(`  → Generated AudioFormat with ${audioFormatEnums.length} formats`)
+  } else {
+    console.warn('⚠️  Could not find audioFormat enum in schema')
+  }
 
   // Process other categories
   const categoryHeaders = {
@@ -88,31 +91,29 @@ export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' 
   }
 
   for (const [category, names] of Object.entries(categories)) {
-    if (category === 'audio') continue // Already handled
-    
-    output += `// ============================================================================
+    output += `\n// ============================================================================
 // ${categoryHeaders[category]}
 // ============================================================================
 
 `
-    
+
     for (const name of names) {
       if (!definitions[name]) {
         console.warn(`⚠️  Definition '${name}' not found in schema`)
         continue
       }
-      
+
       try {
         // Convert kebab-case to PascalCase for type name
         const typeName = name
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join('')
-        
+
         console.log(`  → Generating ${typeName}...`)
-        
+
         const typeDefinition = definitions[name]
-        
+
         // Compile the type
         const compiled = await compile(typeDefinition, typeName, {
           bannerComment: '',
@@ -121,12 +122,12 @@ export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' 
           },
           additionalProperties: false,
         })
-        
+
         // Clean up the output (remove extra newlines)
         const cleaned = compiled
           .replace(/\n{3,}/g, '\n\n')
           .trim()
-        
+
         output += cleaned + '\n\n'
       } catch (error) {
         console.error(`❌ Error generating type for '${name}':`, error.message)
@@ -137,7 +138,7 @@ export type AudioFormat = 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' 
   // Write the output file
   console.log(`\n💾 Writing to ${outputPath}...`)
   writeFileSync(outputPath, output, 'utf-8')
-  
+
   console.log('✅ TypeScript types generated successfully!')
   console.log(`📦 Generated ${definitionNames.length} type definitions`)
 }
