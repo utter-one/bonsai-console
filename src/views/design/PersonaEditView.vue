@@ -3,9 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
-import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings } from '@/api/types'
+import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings } from '@/api/types'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -66,6 +66,7 @@ const selectedProviderApiType = computed(() => selectedProvider.value?.apiType |
 const isElevenLabs = computed(() => selectedProviderApiType.value === 'elevenlabs')
 const isOpenAI = computed(() => selectedProviderApiType.value === 'openai')
 const isDeepgram = computed(() => selectedProviderApiType.value === 'deepgram')
+const isCartesia = computed(() => selectedProviderApiType.value === 'cartesia')
 
 const isModelSelected = computed(() => !!form.value.ttsSettings.model)
 
@@ -134,6 +135,22 @@ const audioFormatValue = computed({
   }
 })
 
+// Computed property for Cartesia emotion tags (array <-> comma-separated string)
+const emotionTagsInput = computed({
+  get: () => {
+    if (!isCartesia.value) return ''
+    const emotion = (form.value.ttsSettings as CartesiaTtsSettings).emotion
+    return emotion ? emotion.join(', ') : ''
+  },
+  set: (value: string) => {
+    if (!isCartesia.value) return
+    const settings = form.value.ttsSettings as CartesiaTtsSettings
+    settings.emotion = value
+      ? value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : []
+  }
+})
+
 // Watch for provider changes to reset fields (different providers have different models/voices)
 watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
   if (newProviderId && selectedProvider.value) {
@@ -188,6 +205,19 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
           removeExclamationMarks: false,
           useSentenceSplitter: true
         } as DeepgramTtsSettings
+      } else if (newApiType === 'cartesia') {
+        form.value.ttsSettings = {
+          model: '',
+          voiceId: '',
+          language: 'en',
+          audioFormat: 'pcm_24000',
+          speed: 'normal',
+          emotion: [],
+          maxBufferDelayMs: 3000,
+          useSentenceSplitter: false,
+          noSpeechMarkers: [],
+          removeExclamationMarks: false
+        } as CartesiaTtsSettings
       } else {
         // Other/custom provider
         form.value.ttsSettings = {}
@@ -716,6 +746,100 @@ function removeNoSpeechMarker(index: number) {
             </div>
           </div>
 
+          <!-- Voice Settings Section (Cartesia) -->
+          <div v-if="form.ttsProviderId && isCartesia" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Cartesia)</h3>
+
+            <!-- Language -->
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select
+                v-model="(form.ttsSettings as CartesiaTtsSettings).language"
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="en">English (en)</option>
+                <option value="es">Spanish (es)</option>
+                <option value="fr">French (fr)</option>
+                <option value="de">German (de)</option>
+                <option value="it">Italian (it)</option>
+                <option value="pt">Portuguese (pt)</option>
+                <option value="nl">Dutch (nl)</option>
+                <option value="pl">Polish (pl)</option>
+                <option value="ru">Russian (ru)</option>
+                <option value="zh">Chinese (zh)</option>
+                <option value="ja">Japanese (ja)</option>
+                <option value="ko">Korean (ko)</option>
+                <option value="ar">Arabic (ar)</option>
+                <option value="hi">Hindi (hi)</option>
+                <option value="tr">Turkish (tr)</option>
+                <option value="sv">Swedish (sv)</option>
+                <option value="da">Danish (da)</option>
+                <option value="no">Norwegian (no)</option>
+                <option value="fi">Finnish (fi)</option>
+                <option value="cs">Czech (cs)</option>
+              </select>
+              <p class="form-help-text">
+                Language code for speech synthesis (e.g., en, es, fr). Sonic-3 supports 42 languages.
+              </p>
+            </div>
+
+            <!-- Speed -->
+            <div class="form-group">
+              <label class="form-label">Speed</label>
+              <select
+                v-model="(form.ttsSettings as CartesiaTtsSettings).speed"
+                class="form-select"
+                :disabled="isLoading"
+              >
+                <option value="slowest">Slowest</option>
+                <option value="slow">Slow</option>
+                <option value="normal">Normal</option>
+                <option value="fast">Fast</option>
+                <option value="fastest">Fastest</option>
+              </select>
+              <p class="form-help-text">
+                Speech speed control. Defaults to "normal".
+              </p>
+            </div>
+
+            <!-- Emotion Tags -->
+            <div class="form-group">
+              <label class="form-label">
+                Emotion Tags <span class="text-gray-500">(optional)</span>
+              </label>
+              <textarea
+                v-model="emotionTagsInput"
+                rows="2"
+                class="form-textarea"
+                placeholder="positivity:high, curiosity"
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                Emotion tags for expressive speech (comma-separated, e.g., "positivity:high, curiosity"). See Cartesia emotion documentation.
+              </p>
+            </div>
+
+            <!-- Max Buffer Delay -->
+            <div class="form-group">
+              <label class="form-label">
+                Max Buffer Delay: {{ (form.ttsSettings as CartesiaTtsSettings).maxBufferDelayMs ?? 3000 }}ms
+              </label>
+              <input
+                v-model.number="(form.ttsSettings as CartesiaTtsSettings).maxBufferDelayMs"
+                type="range"
+                min="0"
+                max="5000"
+                step="100"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Maximum time in milliseconds to buffer text chunks before sending to TTS (0-5000ms). Defaults to 3000ms. Set to 0 to disable buffering.
+              </p>
+            </div>
+          </div>
+
           <!-- Voice Settings Section (ElevenLabs) -->
           <div v-if="form.ttsProviderId && isElevenLabs" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (ElevenLabs)</h3>
@@ -868,7 +992,10 @@ function removeNoSpeechMarker(index: number) {
                   Use Sentence Splitter
                 </span>
               </label>
-              <p class="form-help-text mt-1">
+              <p v-if="isCartesia" class="form-help-text mt-1">
+                Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).
+              </p>
+              <p v-else class="form-help-text mt-1">
                 Send only full sentences to TTS (can introduce small latency)
               </p>
             </div>
