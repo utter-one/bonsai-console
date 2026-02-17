@@ -5,7 +5,7 @@ import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
   name: string
-  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
   description: string
   required: boolean
 }

@@ -610,7 +610,11 @@ export interface StageActionParameter {
     | "string[]"
     | "number[]"
     | "boolean[]"
-    | "object[]";
+    | "object[]"
+    | "image"
+    | "image[]"
+    | "audio"
+    | "audio[]";
   /**
    * Description of what the parameter represents (helps with extraction)
    * @minLength 1
@@ -635,7 +639,11 @@ export interface ToolParameter {
     | "string[]"
     | "number[]"
     | "boolean[]"
-    | "object[]";
+    | "object[]"
+    | "image"
+    | "image[]"
+    | "audio"
+    | "audio[]";
   /**
    * Description of what the parameter represents
    * @minLength 1
@@ -980,9 +988,58 @@ export interface CreateProjectRequest {
       | LocalStorageSettings;
   };
   /** Key-value store of constants used in templating and conversation logic */
-  constants?: Record<string, any>;
+  constants?: Record<string, ParameterValue>;
   /** Additional metadata for the project */
   metadata?: Record<string, any>;
+}
+
+/** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
+export type ParameterValue =
+  | string
+  | number
+  | boolean
+  | Record<string, any>
+  | string[]
+  | number[]
+  | boolean[]
+  | Record<string, any>[]
+  | ImageParameterValue
+  | AudioParameterValue;
+
+/** Image parameter value structure for multimodal parameters */
+export interface ImageParameterValue {
+  /** Base64-encoded image data */
+  data: string;
+  /** MIME type of the image (e.g., image/png, image/jpeg, image/webp) */
+  mimeType: string;
+  /** Optional metadata about the image */
+  metadata?: {
+    /** Image width in pixels */
+    width?: number;
+    /** Image height in pixels */
+    height?: number;
+    [key: string]: any;
+  };
+}
+
+/** Audio parameter value structure for multimodal parameters */
+export interface AudioParameterValue {
+  /** Base64-encoded audio data */
+  data: string;
+  /** Audio format identifier (pcm, mp3, wav, opus) */
+  format: "pcm" | "mp3" | "wav" | "opus";
+  /** MIME type of the audio (e.g., audio/pcm, audio/mpeg, audio/wav) */
+  mimeType: string;
+  /** Optional metadata about the audio */
+  metadata?: {
+    /** Sample rate in Hz (e.g., 44100, 48000) */
+    sampleRate?: number;
+    /** Number of audio channels (1 for mono, 2 for stereo) */
+    channels?: number;
+    /** Bit depth per sample (e.g., 16, 24) */
+    bitDepth?: number;
+    [key: string]: any;
+  };
 }
 
 export interface UpdateProjectRequest {
@@ -1003,7 +1060,7 @@ export interface UpdateProjectRequest {
   /** Updated storage configuration settings */
   storageConfig?: StorageConfig;
   /** Updated constants key-value store */
-  constants?: Record<string, any>;
+  constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
   metadata?: Record<string, any>;
   /** The current version number for optimistic locking */
@@ -1077,7 +1134,7 @@ export interface ProjectResponse {
       | LocalStorageSettings;
   } | null;
   /** Key-value store of constants used in templating and conversation logic */
-  constants: Record<string, any>;
+  constants: Record<string, ParameterValue>;
   /** Additional metadata for the project */
   metadata: Record<string, any>;
   /** The version number of the project */
@@ -1151,7 +1208,7 @@ export interface ProjectListResponse {
         | LocalStorageSettings;
     } | null;
     /** Key-value store of constants used in templating and conversation logic */
-    constants: Record<string, any>;
+    constants: Record<string, ParameterValue>;
     /** Additional metadata for the project */
     metadata: Record<string, any>;
     /** The version number of the project */
@@ -2140,7 +2197,7 @@ export interface ConversationEventResponse {
           classifierName: string;
           actions: {
             name: string;
-            parameters: Record<string, any>;
+            parameters: Record<string, ParameterValue>;
           }[];
         }[];
         metadata?: Record<string, any>;
@@ -2153,13 +2210,13 @@ export interface ConversationEventResponse {
       }
     | {
         command: string;
-        parameters?: Record<string, any>;
+        parameters?: Record<string, ParameterValue>;
         metadata?: Record<string, any>;
       }
     | {
         toolId: string;
         toolName: string;
-        parameters: Record<string, any>;
+        parameters: Record<string, ParameterValue>;
         success: boolean;
         result?: (
           | {
@@ -2199,7 +2256,7 @@ export interface ConversationEventResponse {
       }
     | {
         stageId: string;
-        initialVariables?: Record<string, any>;
+        initialVariables?: Record<string, ParameterValue>;
         metadata?: Record<string, any>;
       }
     | {
@@ -2280,7 +2337,7 @@ export interface ConversationEventListResponse {
             classifierName: string;
             actions: {
               name: string;
-              parameters: Record<string, any>;
+              parameters: Record<string, ParameterValue>;
             }[];
           }[];
           metadata?: Record<string, any>;
@@ -2293,13 +2350,13 @@ export interface ConversationEventListResponse {
         }
       | {
           command: string;
-          parameters?: Record<string, any>;
+          parameters?: Record<string, ParameterValue>;
           metadata?: Record<string, any>;
         }
       | {
           toolId: string;
           toolName: string;
-          parameters: Record<string, any>;
+          parameters: Record<string, ParameterValue>;
           success: boolean;
           result?: (
             | {
@@ -2339,7 +2396,7 @@ export interface ConversationEventListResponse {
         }
       | {
           stageId: string;
-          initialVariables?: Record<string, any>;
+          initialVariables?: Record<string, ParameterValue>;
           metadata?: Record<string, any>;
         }
       | {

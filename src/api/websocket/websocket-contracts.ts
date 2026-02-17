@@ -12,6 +12,276 @@
 
 export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_8000' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | 'pcm_48000' | 'mulaw' | 'alaw' | 'linear16'
 // ============================================================================
+// Shared Types (Parameters)
+// ============================================================================
+
+/**
+ * Image parameter value structure for multimodal parameters
+ */
+export interface ImageParameterValue {
+  /**
+   * Base64-encoded image data
+   */
+  data: string;
+  /**
+   * MIME type of the image (e.g., image/png, image/jpeg, image/webp)
+   */
+  mimeType: string;
+  /**
+   * Optional metadata about the image
+   */
+  metadata?: {
+    /**
+     * Image width in pixels
+     */
+    width?: number;
+    /**
+     * Image height in pixels
+     */
+    height?: number;
+
+  };
+}
+
+/**
+ * Audio parameter value structure for multimodal parameters
+ */
+export interface AudioParameterValue {
+  /**
+   * Base64-encoded audio data
+   */
+  data: string;
+  /**
+   * Audio format identifier (pcm, mp3, wav, opus)
+   */
+  format: 'pcm' | 'mp3' | 'wav' | 'opus';
+  /**
+   * MIME type of the audio (e.g., audio/pcm, audio/mpeg, audio/wav)
+   */
+  mimeType: string;
+  /**
+   * Optional metadata about the audio
+   */
+  metadata?: {
+    /**
+     * Sample rate in Hz (e.g., 44100, 48000)
+     */
+    sampleRate?: number;
+    /**
+     * Number of audio channels (1 for mono, 2 for stereo)
+     */
+    channels?: number;
+    /**
+     * Bit depth per sample (e.g., 16, 24)
+     */
+    bitDepth?: number;
+
+  };
+}
+
+/**
+ * Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio)
+ */
+export type ParameterValue =
+  | string
+  | number
+  | boolean
+  | {
+
+    }
+  | string[]
+  | number[]
+  | boolean[]
+  | {
+
+    }[]
+  | ImageParameterValue
+  | AudioParameterValue;
+
+export type Effect =
+  | EndConversationEffect
+  | AbortConversationEffect
+  | GoToStageEffect
+  | RunScriptEffect
+  | ModifyUserInputEffect
+  | ModifyVariablesEffect
+  | ModifyUserProfileEffect
+  | CallToolEffect
+  | CallWebhookEffect
+  | GenerateResponseEffect;
+
+export interface EndConversationEffect {
+  /**
+   * Effect type
+   */
+  type: 'end_conversation';
+  /**
+   * Optional reason for ending the conversation
+   */
+  reason?: string;
+}
+
+export interface AbortConversationEffect {
+  /**
+   * Effect type
+   */
+  type: 'abort_conversation';
+  /**
+   * Optional reason for aborting the conversation
+   */
+  reason?: string;
+}
+
+export interface GoToStageEffect {
+  /**
+   * Effect type
+   */
+  type: 'go_to_stage';
+  /**
+   * ID of the stage to switch to
+   */
+  stageId: string;
+}
+
+export interface RunScriptEffect {
+  /**
+   * Effect type
+   */
+  type: 'run_script';
+  /**
+   * JavaScript code to execute in isolated context
+   */
+  code: string;
+}
+
+export interface ModifyUserInputEffect {
+  /**
+   * Effect type
+   */
+  type: 'modify_user_input';
+  /**
+   * Template to render and replace user input with
+   */
+  template: string;
+}
+
+export interface ModifyVariablesEffect {
+  /**
+   * Effect type
+   */
+  type: 'modify_variables';
+  /**
+   * Array of variable modifications to apply
+   *
+   * @minItems 1
+   */
+  modifications: [VariableOperation, ...VariableOperation[]];
+}
+
+export interface VariableOperation {
+  /**
+   * Name of the variable to modify
+   */
+  variableName: string;
+  /**
+   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+   */
+  operation: 'set' | 'reset' | 'add' | 'remove';
+  /**
+   * Value for the operation (not used for reset operation)
+   */
+  value?: {
+
+  };
+}
+
+export interface ModifyUserProfileEffect {
+  /**
+   * Effect type
+   */
+  type: 'modify_user_profile';
+  /**
+   * Array of user profile field modifications to apply
+   *
+   * @minItems 1
+   */
+  modifications: [UserProfileOperation, ...UserProfileOperation[]];
+}
+
+export interface UserProfileOperation {
+  /**
+   * Name of the profile field to modify
+   */
+  fieldName: string;
+  /**
+   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
+   */
+  operation: 'set' | 'reset' | 'add' | 'remove';
+  /**
+   * Value for the operation (not used for reset operation)
+   */
+  value?: {
+
+  };
+}
+
+export interface CallToolEffect {
+  /**
+   * Effect type
+   */
+  type: 'call_tool';
+  /**
+   * ID of the tool to call
+   */
+  toolId: string;
+  /**
+   * Parameters to pass to the tool
+   */
+  parameters: {
+
+  };
+}
+
+export interface CallWebhookEffect {
+  /**
+   * Effect type
+   */
+  type: 'call_webhook';
+  /**
+   * HTTP(S) URL to call
+   */
+  url: string;
+  /**
+   * HTTP method to use
+   */
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  /**
+   * HTTP headers to send with the request
+   */
+  headers?: {
+    [k: string]: string;
+  };
+  /**
+   * Request body for POST/PUT/PATCH requests
+   */
+  body?: {
+
+  };
+  /**
+   * Key name to store the webhook result under in context.results.webhooks
+   */
+  resultKey: string;
+}
+
+export interface GenerateResponseEffect {
+  /**
+   * Effect type
+   */
+  type: 'generate_response';
+}
+
+
+// ============================================================================
 // Authentication and Project Settings
 // ============================================================================
 
@@ -35,23 +305,23 @@ export interface AuthRequest {
     /**
      * Whether the client can send voice input
      */
-    sendVoiceInput: boolean;
+    sendVoiceInput?: boolean;
     /**
      * Whether the client can send text input
      */
-    sendTextInput: boolean;
+    sendTextInput?: boolean;
     /**
      * Whether the client wants to receive voice output
      */
-    receiveVoiceOutput: boolean;
+    receiveVoiceOutput?: boolean;
     /**
      * Whether the client wants to receive intermediate transcription updates for voice input and output
      */
-    receiveTranscriptionUpdates: boolean;
+    receiveTranscriptionUpdates?: boolean;
     /**
      * Whether the client wants to receive all conversation events (e.g. turn start/end, agent actions)
      */
-    receiveEvents: boolean;
+    receiveEvents?: boolean;
   };
 }
 
@@ -135,7 +405,7 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
-    } | null;
+    };
   };
   /**
    * Error message if authentication failed
@@ -203,7 +473,7 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
-  } | null;
+  };
 }
 
 
@@ -401,9 +671,7 @@ export interface ConversationEvent {
         role: 'user' | 'assistant';
         text: string;
         originalText: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         classifierId: string;
@@ -414,229 +682,30 @@ export interface ConversationEvent {
           actions: {
             name: string;
             parameters: {
-              [k: string]: unknown;
+              [k: string]: ParameterValue;
             };
           }[];
         }[];
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         actionName: string;
         stageId: string;
-        effects: (
-          | {
-              /**
-               * Effect type
-               */
-              type: 'end_conversation';
-              /**
-               * Optional reason for ending the conversation
-               */
-              reason?: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'abort_conversation';
-              /**
-               * Optional reason for aborting the conversation
-               */
-              reason?: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'go_to_stage';
-              /**
-               * ID of the stage to switch to
-               */
-              stageId: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'run_script';
-              /**
-               * JavaScript code to execute in isolated context
-               */
-              code: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'modify_user_input';
-              /**
-               * Template to render and replace user input with
-               */
-              template: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'modify_variables';
-              /**
-               * Array of variable modifications to apply
-               *
-               * @minItems 1
-               */
-              modifications: [
-                {
-                  /**
-                   * Name of the variable to modify
-                   */
-                  variableName: string;
-                  /**
-                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
-                   */
-                  operation: 'set' | 'reset' | 'add' | 'remove';
-                  /**
-                   * Value for the operation (not used for reset operation)
-                   */
-                  value: {
-                    [k: string]: unknown;
-                  };
-                },
-                ...{
-                  /**
-                   * Name of the variable to modify
-                   */
-                  variableName: string;
-                  /**
-                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
-                   */
-                  operation: 'set' | 'reset' | 'add' | 'remove';
-                  /**
-                   * Value for the operation (not used for reset operation)
-                   */
-                  value: {
-                    [k: string]: unknown;
-                  };
-                }[]
-              ];
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'modify_user_profile';
-              /**
-               * Array of user profile field modifications to apply
-               *
-               * @minItems 1
-               */
-              modifications: [
-                {
-                  /**
-                   * Name of the profile field to modify
-                   */
-                  fieldName: string;
-                  /**
-                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
-                   */
-                  operation: 'set' | 'reset' | 'add' | 'remove';
-                  /**
-                   * Value for the operation (not used for reset operation)
-                   */
-                  value: {
-                    [k: string]: unknown;
-                  };
-                },
-                ...{
-                  /**
-                   * Name of the profile field to modify
-                   */
-                  fieldName: string;
-                  /**
-                   * Operation to perform: set (assign value), reset (clear value), add (append to array), remove (remove from array)
-                   */
-                  operation: 'set' | 'reset' | 'add' | 'remove';
-                  /**
-                   * Value for the operation (not used for reset operation)
-                   */
-                  value: {
-                    [k: string]: unknown;
-                  };
-                }[]
-              ];
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'call_tool';
-              /**
-               * ID of the tool to call
-               */
-              toolId: string;
-              /**
-               * Parameters to pass to the tool
-               */
-              parameters: {
-                [k: string]: unknown;
-              };
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'call_webhook';
-              /**
-               * HTTP(S) URL to call
-               */
-              url: string;
-              /**
-               * HTTP method to use
-               */
-              method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-              /**
-               * HTTP headers to send with the request
-               */
-              headers?: {
-                [k: string]: string;
-              };
-              /**
-               * Request body for POST/PUT/PATCH requests
-               */
-              body?: {
-                [k: string]: unknown;
-              };
-              /**
-               * Key name to store the webhook result under in context.results.webhooks
-               */
-              resultKey: string;
-            }
-          | {
-              /**
-               * Effect type
-               */
-              type: 'generate_response';
-            }
-        )[];
-        metadata?: {
-          [k: string]: unknown;
-        };
+        effects: Effect[];
+        metadata?: Record<string, unknown>;
       }
     | {
         command: string;
         parameters?: {
-          [k: string]: unknown;
+          [k: string]: ParameterValue;
         };
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         toolId: string;
         toolName: string;
         parameters: {
-          [k: string]: unknown;
+          [k: string]: ParameterValue;
         };
         success: boolean;
         result?: (
@@ -657,7 +726,7 @@ export interface ConversationEvent {
               metadata?: {
                 width?: number;
                 height?: number;
-                [k: string]: unknown;
+
               };
             }
           | {
@@ -678,23 +747,19 @@ export interface ConversationEvent {
                 sampleRate?: number;
                 channels?: number;
                 bitDepth?: number;
-                [k: string]: unknown;
+
               };
             }
         )[];
         error?: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         stageId: string;
         initialVariables?: {
-          [k: string]: unknown;
+          [k: string]: ParameterValue;
         };
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         previousStatus:
@@ -707,37 +772,27 @@ export interface ConversationEvent {
           | 'aborted'
           | 'failed';
         stageId: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         reason?: string;
         stageId: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         reason: string;
         stageId: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         reason: string;
         stageId?: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       }
     | {
         fromStageId: string;
         toStageId: string;
-        metadata?: {
-          [k: string]: unknown;
-        };
+        metadata?: Record<string, unknown>;
       };
 }
 
@@ -1319,11 +1374,8 @@ export interface SetVarRequest {
    * Name of the variable to set
    */
   variableName: string;
-  /**
-   * Value to set for the variable (can be any JSON-serializable type)
-   */
-  variableValue: {
-    [k: string]: unknown;
+  variableValue: ParameterValue & {
+
   };
 }
 
@@ -1401,9 +1453,21 @@ export interface GetVarResponse {
   /**
    * Value of the variable (undefined if not found)
    */
-  variableValue?: {
-    [k: string]: unknown;
-  };
+  variableValue?:
+    | string
+    | number
+    | boolean
+    | {
+
+      }
+    | string[]
+    | number[]
+    | boolean[]
+    | {
+
+      }[]
+    | ImageParameterValue
+    | AudioParameterValue;
   /**
    * Error message if retrieving the variable failed
    */
@@ -1454,7 +1518,7 @@ export interface GetAllVarsResponse {
    * Map of variable names to their values
    */
   variables: {
-    [k: string]: unknown;
+    [k: string]: ParameterValue;
   };
   /**
    * Error message if retrieving variables failed
@@ -1486,7 +1550,7 @@ export interface RunActionRequest {
   /**
    * Array of parameters to pass to the action
    */
-  parameters: unknown[];
+  parameters: ParameterValue[];
 }
 
 export interface RunActionResponse {
@@ -1507,11 +1571,51 @@ export interface RunActionResponse {
    */
   success: boolean;
   /**
-   * Result returned by the action
+   * Result returned by the action as array of multi-modal content blocks (text, image, or audio)
    */
-  result?: {
-    [k: string]: unknown;
-  };
+  result?: (
+    | {
+        contentType: 'text';
+        text: string;
+      }
+    | {
+        contentType: 'image';
+        /**
+         * Base64-encoded image data
+         */
+        data: string;
+        /**
+         * MIME type (e.g., image/png, image/jpeg)
+         */
+        mimeType: string;
+        metadata?: {
+          width?: number;
+          height?: number;
+
+        };
+      }
+    | {
+        contentType: 'audio';
+        /**
+         * Base64-encoded audio data
+         */
+        data: string;
+        /**
+         * Audio format
+         */
+        format: 'pcm' | 'mp3' | 'wav' | 'opus';
+        /**
+         * MIME type (e.g., audio/pcm, audio/mpeg)
+         */
+        mimeType: string;
+        metadata?: {
+          sampleRate?: number;
+          channels?: number;
+          bitDepth?: number;
+
+        };
+      }
+  )[];
   /**
    * Error message if action execution failed
    */
@@ -1543,7 +1647,7 @@ export interface CallToolRequest {
    * Map of parameter names to their values
    */
   parameters: {
-    [k: string]: unknown;
+    [k: string]: ParameterValue;
   };
 }
 
@@ -1565,11 +1669,51 @@ export interface CallToolResponse {
    */
   success: boolean;
   /**
-   * Result returned by the tool execution
+   * Result returned by the tool execution as array of multi-modal content blocks (text, image, or audio)
    */
-  result?: {
-    [k: string]: unknown;
-  };
+  result?: (
+    | {
+        contentType: 'text';
+        text: string;
+      }
+    | {
+        contentType: 'image';
+        /**
+         * Base64-encoded image data
+         */
+        data: string;
+        /**
+         * MIME type (e.g., image/png, image/jpeg)
+         */
+        mimeType: string;
+        metadata?: {
+          width?: number;
+          height?: number;
+
+        };
+      }
+    | {
+        contentType: 'audio';
+        /**
+         * Base64-encoded audio data
+         */
+        data: string;
+        /**
+         * Audio format
+         */
+        format: 'pcm' | 'mp3' | 'wav' | 'opus';
+        /**
+         * MIME type (e.g., audio/pcm, audio/mpeg)
+         */
+        mimeType: string;
+        metadata?: {
+          sampleRate?: number;
+          channels?: number;
+          bitDepth?: number;
+
+        };
+      }
+  )[];
   /**
    * Error message if tool execution failed
    */
