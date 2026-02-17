@@ -20,14 +20,23 @@ const form = ref({
   id: '',
   name: '',
   description: '',
-  providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings',
+  providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings' | 'storage',
   apiType: '',
   config: {
     apiKey: '',
     organizationId: '',
     baseUrl: '',
     region: '',
-    subscriptionKey: ''
+    subscriptionKey: '',
+    // Storage config fields
+    accessKeyId: '',
+    secretAccessKey: '',
+    endpoint: '',
+    accountName: '',
+    accountKey: '',
+    projectId: '',
+    keyFileJson: '',
+    basePath: ''
   },
   createdBy: ''
 })
@@ -41,7 +50,8 @@ const providerTypes = [
   { value: 'llm', label: 'LLM (Large Language Model)' },
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
   { value: 'tts', label: 'TTS (Text-to-Speech)' },
-  { value: 'embeddings', label: 'Embeddings' }
+  { value: 'embeddings', label: 'Embeddings' },
+  { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' }
 ]
 
 // API type options from provider catalog based on provider type
@@ -60,6 +70,9 @@ const apiTypeOptions = computed(() => {
       break
     case 'asr':
       providers = providerCatalogStore.catalog.asr
+      break
+    case 'storage':
+      providers = providerCatalogStore.catalog.storage || []
       break
     default:
       return []
@@ -101,6 +114,20 @@ const showAzureASRFields = computed(() =>
   form.value.apiType === 'azure' && form.value.providerType === 'asr'
 )
 
+// Storage provider config fields
+const showS3Fields = computed(() => 
+  form.value.apiType === 's3' && form.value.providerType === 'storage'
+)
+const showAzureBlobFields = computed(() => 
+  form.value.apiType === 'azure-blob' && form.value.providerType === 'storage'
+)
+const showGcsFields = computed(() => 
+  form.value.apiType === 'gcs' && form.value.providerType === 'storage'
+)
+const showLocalStorageFields = computed(() => 
+  form.value.apiType === 'local' && form.value.providerType === 'storage'
+)
+
 // Lifecycle
 onMounted(async () => {
   // Load provider catalog for API type options
@@ -139,7 +166,16 @@ async function loadProvider() {
           organizationId: config.organizationId || '',
           baseUrl: config.baseUrl || '',
           region: config.region || '',
-          subscriptionKey: config.subscriptionKey || ''
+          subscriptionKey: config.subscriptionKey || '',
+          // Storage config fields
+          accessKeyId: config.accessKeyId || '',
+          secretAccessKey: config.secretAccessKey || '',
+          endpoint: config.endpoint || '',
+          accountName: config.accountName || '',
+          accountKey: config.accountKey || '',
+          projectId: config.projectId || '',
+          keyFileJson: config.keyFileJson || '',
+          basePath: config.basePath || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }
@@ -191,6 +227,35 @@ async function handleSubmit() {
       region: form.value.config.region,
       subscriptionKey: form.value.config.subscriptionKey
     }
+  } else if (showS3Fields.value) {
+    config = {
+      accessKeyId: form.value.config.accessKeyId,
+      secretAccessKey: form.value.config.secretAccessKey,
+      region: form.value.config.region
+    }
+    if (form.value.config.endpoint) {
+      config.endpoint = form.value.config.endpoint
+    }
+  } else if (showAzureBlobFields.value) {
+    config = {
+      accountName: form.value.config.accountName,
+      accountKey: form.value.config.accountKey
+    }
+    if (form.value.config.endpoint) {
+      config.endpoint = form.value.config.endpoint
+    }
+  } else if (showGcsFields.value) {
+    config = {
+      projectId: form.value.config.projectId,
+      keyFileJson: form.value.config.keyFileJson
+    }
+  } else if (showLocalStorageFields.value) {
+    config = {
+      basePath: form.value.config.basePath
+    }
+    if (form.value.config.baseUrl) {
+      config.baseUrl = form.value.config.baseUrl
+    }
   } else {
     error.value = 'Please select a valid API type'
     return
@@ -202,7 +267,27 @@ async function handleSubmit() {
       error.value = 'Region and Subscription Key are required for Azure Speech'
       return
     }
-  } else {
+  } else if (showS3Fields.value) {
+    if (!config.accessKeyId || !config.secretAccessKey || !config.region) {
+      error.value = 'Access Key ID, Secret Access Key, and Region are required for S3'
+      return
+    }
+  } else if (showAzureBlobFields.value) {
+    if (!config.accountName || !config.accountKey) {
+      error.value = 'Account Name and Account Key are required for Azure Blob Storage'
+      return
+    }
+  } else if (showGcsFields.value) {
+    if (!config.projectId || !config.keyFileJson) {
+      error.value = 'Project ID and Key File JSON are required for Google Cloud Storage'
+      return
+    }
+  } else if (showLocalStorageFields.value) {
+    if (!config.basePath) {
+      error.value = 'Base Path is required for Local Storage'
+      return
+    }
+  } else if (!showAzureASRFields.value && !showS3Fields.value && !showAzureBlobFields.value && !showGcsFields.value && !showLocalStorageFields.value) {
     if (!config.apiKey) {
       error.value = 'API Key is required'
       return
@@ -639,6 +724,210 @@ const metadataFields = computed(() => {
               />
               <p class="form-help-text">
                 Your Azure Speech service subscription key
+              </p>
+            </div>
+          </template>
+
+          <!-- S3 Storage Configuration -->
+          <template v-if="showS3Fields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">AWS S3 Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                AWS Access Key ID <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.accessKeyId"
+                type="text"
+                required
+                placeholder="AKIA..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your AWS Access Key ID for S3 access
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                AWS Secret Access Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.secretAccessKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your AWS Secret Access Key for S3 access
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                AWS Region <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.region"
+                type="text"
+                required
+                placeholder="us-east-1"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                AWS region for S3 (e.g., us-east-1, eu-west-1)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Custom Endpoint <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.endpoint"
+                type="url"
+                placeholder="https://s3.example.com"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Optional custom endpoint for S3-compatible services (e.g., MinIO)
+              </p>
+            </div>
+          </template>
+
+          <!-- Azure Blob Storage Configuration -->
+          <template v-if="showAzureBlobFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Blob Storage Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Storage Account Name <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.accountName"
+                type="text"
+                required
+                placeholder="mystorageaccount"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Azure Storage account name
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Storage Account Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.accountKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Azure Storage account key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Custom Endpoint <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.endpoint"
+                type="url"
+                placeholder="https://mystorageaccount.blob.core.windows.net"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Optional custom endpoint for Azure Blob Storage
+              </p>
+            </div>
+          </template>
+
+          <!-- Google Cloud Storage Configuration -->
+          <template v-if="showGcsFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Google Cloud Storage Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                GCP Project ID <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.projectId"
+                type="text"
+                required
+                placeholder="my-project-id"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Google Cloud project ID
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Service Account Key (JSON) <span class="required">*</span>
+              </label>
+              <textarea
+                v-model="form.config.keyFileJson"
+                rows="6"
+                required
+                placeholder='{"type": "service_account", "project_id": "...", ...}'
+                class="form-textarea font-mono text-sm"
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                The complete JSON content of your service account key file
+              </p>
+            </div>
+          </template>
+
+          <!-- Local Storage Configuration -->
+          <template v-if="showLocalStorageFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Local Storage Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Base Path <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.basePath"
+                type="text"
+                required
+                placeholder="/var/data/storage"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Base directory path for local file storage
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Base URL <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.config.baseUrl"
+                type="url"
+                placeholder="https://storage.example.com"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Base URL for generating file URLs (if files are served via HTTP)
               </p>
             </div>
           </template>

@@ -2,11 +2,12 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Trash2, X } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
+import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,7 +18,7 @@ const providersStore = useProvidersStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'voice' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata'>('basic')
 const form = ref({
   name: '',
   description: '',
@@ -31,6 +32,10 @@ const form = ref({
     unintelligiblePlaceholder: '',
     voiceActivityDetection: false
   },
+  storageConfig: {
+    storageProviderId: '',
+    settings: {} as any
+  },
   acceptVoice: false,
   generateVoice: false,
   version: undefined as number | undefined,
@@ -42,6 +47,7 @@ const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
 const newPhrase = ref('')
 const createPlaygroundApiKey = ref(true)
+const showStorageSettingsModal = ref(false)
 
 // Computed
 const projectId = computed(() => route.params.projectId as string | undefined)
@@ -51,6 +57,15 @@ const currentProject = ref<ProjectResponse | null>(null)
 const asrProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'asr')
 )
+
+const storageProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'storage')
+)
+
+const selectedStorageProvider = computed(() => {
+  if (!form.value.storageConfig.storageProviderId) return null
+  return storageProviders.value.find(p => p.id === form.value.storageConfig.storageProviderId) || null
+})
 
 const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
@@ -107,6 +122,10 @@ async function loadProject() {
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false
         },
+        storageConfig: {
+          storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
+          settings: currentProject.value.storageConfig?.settings || {}
+        },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
         version: currentProject.value.version,
@@ -158,6 +177,14 @@ async function handleSubmit() {
       voiceActivityDetection: form.value.asrConfig.voiceActivityDetection
     } : undefined
 
+    // Build storage config only if provider is selected
+    const storageConfig = form.value.storageConfig.storageProviderId ? {
+      storageProviderId: form.value.storageConfig.storageProviderId,
+      ...(Object.keys(form.value.storageConfig.settings || {}).length > 0 && {
+        settings: form.value.storageConfig.settings
+      })
+    } : undefined
+
     if (isEditMode.value && currentProject.value) {
       // Update existing project
       await projectsStore.update(currentProject.value.id, {
@@ -165,6 +192,7 @@ async function handleSubmit() {
         name: form.value.name,
         description: form.value.description || undefined,
         asrConfig,
+        storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
       })
@@ -174,6 +202,7 @@ async function handleSubmit() {
         name: form.value.name,
         description: form.value.description || undefined,
         asrConfig,
+        storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
       })
@@ -302,6 +331,20 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
     apiKeysError.value = err.response?.data?.message || 'Failed to delete API key'
   }
 }
+
+// Storage settings management
+function handleConfigureStorageSettings() {
+  showStorageSettingsModal.value = true
+}
+
+function handleStorageSettingsSave(settings: any) {
+  form.value.storageConfig.settings = settings
+  showStorageSettingsModal.value = false
+}
+
+function handleStorageSettingsClose() {
+  showStorageSettingsModal.value = false
+}
 </script>
 
 <template>
@@ -347,6 +390,13 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
           type="button"
         >
           Voice Settings
+        </button>
+        <button
+          @click="activeTab = 'storage'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'storage' }]"
+          type="button"
+        >
+          Storage
         </button>
         <button
           v-if="isEditMode"
@@ -628,6 +678,65 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
           </div>
         </div>
 
+        <!-- Storage Tab -->
+        <div v-show="activeTab === 'storage'" class="tab-content">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Storage Configuration</h3>
+              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                Configure storage for conversation artifacts such as audio recordings, transcripts, and other files. Storage providers allow conversations to persist data beyond the database.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Storage Provider <span class="text-gray-500">(optional)</span>
+              </label>
+              <select
+                v-model="form.storageConfig.storageProviderId"
+                class="form-select-auto"
+                :disabled="isLoading"
+              >
+                <option value="">None</option>
+                <option v-for="provider in storageProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }} ({{ provider.apiType }})
+                </option>
+              </select>
+              <p class="form-help-text">
+                Select a storage provider to enable persistent storage of conversation artifacts
+              </p>
+            </div>
+
+            <div v-if="form.storageConfig.storageProviderId" class="space-y-4">
+              <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-sm text-gray-700 dark:text-gray-300">
+                    <strong>Storage provider selected:</strong> {{ storageProviders.find(p => p.id === form.storageConfig.storageProviderId)?.name }}
+                  </p>
+                  <button
+                    type="button"
+                    @click="handleConfigureStorageSettings"
+                    class="btn-secondary btn-sm"
+                    :disabled="isLoading"
+                  >
+                    <Settings class="inline-block w-4 h-4 mr-1" />
+                    Configure Settings
+                  </button>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-gray-400">
+                  Storage settings {{ Object.keys(form.storageConfig.settings || {}).length > 0 ? 'configured' : 'not configured yet' }}. Click "Configure Settings" to set up bucket/container and other options.
+                </p>
+              </div>
+            </div>
+
+            <div v-else class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                No storage provider selected. Conversation artifacts will not be persisted to external storage.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- API Keys Tab -->
         <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
           <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
@@ -725,6 +834,15 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
       :project-id="currentProject?.id || ''"
       @close="handleApiKeyModalClose"
       @save="handleApiKeySave"
+    />
+
+    <!-- Storage Settings Modal -->
+    <StorageSettingsModal
+      v-if="showStorageSettingsModal"
+      :selected-provider="selectedStorageProvider"
+      :settings="form.storageConfig.settings"
+      @close="handleStorageSettingsClose"
+      @save="handleStorageSettingsSave"
     />
   </div>
   </AdministrationSectionLayout>

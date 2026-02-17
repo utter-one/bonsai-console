@@ -96,6 +96,7 @@ function getProviderTypeBadgeClass(type: string) {
     case 'asr': return 'badge-info'
     case 'tts': return 'badge-warning'
     case 'embeddings': return 'badge-secondary'
+    case 'storage': return 'badge-success'
     default: return 'badge-default'
   }
 }
@@ -108,7 +109,7 @@ function getProviderTypeBadgeClass(type: string) {
       <div class="page-header">
         <div>
           <h1 class="page-title">Providers</h1>
-          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Embeddings)</p>
+          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Embeddings, Storage)</p>
         </div>
         <button @click="createProvider" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />

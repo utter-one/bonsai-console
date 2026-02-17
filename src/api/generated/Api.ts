@@ -14,17 +14,26 @@ import {
   AnthropicLlmSettings,
   AsrConfig,
   AsrModelInfo,
+  AzureBlobStorageConfig,
+  AzureBlobStorageSettings,
   DeepgramTtsSettings,
   Effect,
   ElevenLabsTtsSettings,
+  GcsStorageConfig,
+  GcsStorageSettings,
   GeminiLlmSettings,
   LanguageInfo,
   ListFilterOperation,
   LlmModelInfo,
+  LocalStorageConfig,
+  LocalStorageSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
+  S3StorageConfig,
+  S3StorageSettings,
   StageAction,
+  StorageConfig,
   ToolParameter,
   TtsModelInfo,
   VoiceInfo,
@@ -718,6 +727,17 @@ export class Api<
        * @default true
        */
       generateVoice?: boolean;
+      /** Optional storage configuration for conversation artifacts */
+      storageConfig?: {
+        /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+        storageProviderId?: string;
+        /** Storage-specific settings including bucket, prefix, etc. */
+        settings?:
+          | S3StorageSettings
+          | AzureBlobStorageSettings
+          | GcsStorageSettings
+          | LocalStorageSettings;
+      };
       /** Key-value store of constants used in templating and conversation logic */
       constants?: Record<string, any>;
       /** Additional metadata for the project */
@@ -769,6 +789,17 @@ export class Api<
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
         generateVoice: boolean;
+        /** Storage configuration for conversation artifacts */
+        storageConfig?: {
+          /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+          storageProviderId?: string;
+          /** Storage-specific settings including bucket, prefix, etc. */
+          settings?:
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
+        } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, any>;
         /** Additional metadata for the project */
@@ -885,6 +916,17 @@ export class Api<
           acceptVoice: boolean;
           /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
           generateVoice: boolean;
+          /** Storage configuration for conversation artifacts */
+          storageConfig?: {
+            /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+            storageProviderId?: string;
+            /** Storage-specific settings including bucket, prefix, etc. */
+            settings?:
+              | S3StorageSettings
+              | AzureBlobStorageSettings
+              | GcsStorageSettings
+              | LocalStorageSettings;
+          } | null;
           /** Key-value store of constants used in templating and conversation logic */
           constants: Record<string, any>;
           /** Additional metadata for the project */
@@ -968,6 +1010,17 @@ export class Api<
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
         generateVoice: boolean;
+        /** Storage configuration for conversation artifacts */
+        storageConfig?: {
+          /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+          storageProviderId?: string;
+          /** Storage-specific settings including bucket, prefix, etc. */
+          settings?:
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
+        } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, any>;
         /** Additional metadata for the project */
@@ -1019,6 +1072,8 @@ export class Api<
       acceptVoice?: boolean;
       /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
       generateVoice?: boolean;
+      /** Updated storage configuration settings */
+      storageConfig?: StorageConfig;
       /** Updated constants key-value store */
       constants?: Record<string, any>;
       /** Updated metadata for the project */
@@ -1072,6 +1127,17 @@ export class Api<
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
         generateVoice: boolean;
+        /** Storage configuration for conversation artifacts */
+        storageConfig?: {
+          /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+          storageProviderId?: string;
+          /** Storage-specific settings including bucket, prefix, etc. */
+          settings?:
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
+        } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, any>;
         /** Additional metadata for the project */
@@ -3958,7 +4024,7 @@ export class Api<
       /** Detailed description of provider purpose and use case */
       description?: string;
       /** Provider category: asr, tts, llm, or embeddings */
-      providerType: "asr" | "tts" | "llm" | "embeddings";
+      providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
       /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
       apiType: string;
       /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -3994,7 +4060,11 @@ export class Api<
             region: string;
             /** The subscription key to use for the speech recognition service */
             subscriptionKey: string;
-          };
+          }
+        | S3StorageConfig
+        | AzureBlobStorageConfig
+        | GcsStorageConfig
+        | LocalStorageConfig;
       /** Admin user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -4011,7 +4081,7 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings";
+        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -4047,7 +4117,11 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
-            };
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Admin user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -4129,7 +4203,7 @@ export class Api<
           /** Description of provider purpose and use case */
           description: string | null;
           /** Provider category (asr, tts, llm, embeddings) */
-          providerType: "asr" | "tts" | "llm" | "embeddings";
+          providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
           /** Specific provider implementation */
           apiType: string;
           /** Provider-specific configuration object */
@@ -4165,7 +4239,11 @@ export class Api<
                 region: string;
                 /** The subscription key to use for the speech recognition service */
                 subscriptionKey: string;
-              };
+              }
+            | S3StorageConfig
+            | AzureBlobStorageConfig
+            | GcsStorageConfig
+            | LocalStorageConfig;
           /** Admin user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -4228,7 +4306,7 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings";
+        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -4264,7 +4342,11 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
-            };
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Admin user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -4316,7 +4398,7 @@ export class Api<
       /** Updated description of provider purpose */
       description?: string;
       /** Updated provider category */
-      providerType?: "asr" | "tts" | "llm" | "embeddings";
+      providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
       /** Updated specific provider implementation */
       apiType?: string;
       /** Updated provider-specific configuration */
@@ -4352,7 +4434,11 @@ export class Api<
             region: string;
             /** The subscription key to use for the speech recognition service */
             subscriptionKey: string;
-          };
+          }
+        | S3StorageConfig
+        | AzureBlobStorageConfig
+        | GcsStorageConfig
+        | LocalStorageConfig;
       /** Updated searchable tags */
       tags?: string[];
     },
@@ -4367,7 +4453,7 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings";
+        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -4403,7 +4489,11 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
-            };
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Admin user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -4527,6 +4617,17 @@ export class Api<
           /** Additional information */
           description?: string;
         }[];
+        /** Storage providers */
+        storage: {
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
+        }[];
       },
       any
     >({
@@ -4639,6 +4740,38 @@ export class Api<
       ...params,
     });
   /**
+   * @description Returns information about all available storage providers including S3, Azure Blob, Google Cloud Storage, and local filesystem
+   *
+   * @tags Provider Catalog
+   * @name ProviderCatalogStorageList
+   * @summary Get storage providers
+   * @request GET:/api/provider-catalog/storage
+   * @secure
+   */
+  providerCatalogStorageList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** List of storage providers */
+        providers: {
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
+        }[];
+      },
+      any
+    >({
+      path: `/api/provider-catalog/storage`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns detailed information about a specific provider by type and API type
    *
    * @tags Provider Catalog
@@ -4648,7 +4781,7 @@ export class Api<
    * @secure
    */
   providerCatalogDetail = (
-    type: "asr" | "tts" | "llm",
+    type: "asr" | "tts" | "llm" | "storage",
     apiType: string,
     params: RequestParams = {},
   ) =>
@@ -4688,6 +4821,16 @@ export class Api<
           models: LlmModelInfo[];
           /** Additional information */
           description?: string;
+        }
+      | {
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
         },
       void
     >({
