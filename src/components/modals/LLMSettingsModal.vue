@@ -14,7 +14,22 @@
             <label class="form-label">
               Model <span class="required">*</span>
             </label>
+
+            <!-- Custom model toggle -->
+            <div class="mb-3">
+              <label class="flex items-center cursor-pointer">
+                <input
+                  v-model="useCustomModel"
+                  type="checkbox"
+                  class="form-checkbox mr-2"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Use custom model name</span>
+              </label>
+            </div>
+
+            <!-- Model dropdown (catalog) -->
             <select
+              v-if="!useCustomModel"
               v-model="form.model"
               required
               class="form-select"
@@ -29,15 +44,29 @@
                 {{ model.displayName }}{{ model.recommended ? ' (Recommended)' : '' }}
               </option>
             </select>
-            <p v-if="form.model && availableModels.find(m => m.id === form.model)?.description" class="form-help-text">
+
+            <!-- Custom model input -->
+            <input
+              v-else
+              v-model="form.model"
+              type="text"
+              required
+              class="form-input"
+              placeholder="e.g., custom-model-name"
+            />
+
+            <p v-if="!useCustomModel && form.model && availableModels.find(m => m.id === form.model)?.description" class="form-help-text">
               {{ availableModels.find(m => m.id === form.model)?.description }}
             </p>
-            <p v-else class="form-help-text">
+            <p v-else-if="!useCustomModel" class="form-help-text">
               Select the model to use for this stage
             </p>
+            <p v-else class="form-help-text">
+              Enter the exact model name as expected by the provider
+            </p>
             
-            <!-- Model Capabilities -->
-            <div v-if="selectedModelInfo" class="mt-3 flex flex-wrap gap-2">
+            <!-- Model Capabilities (only show for catalog models) -->
+            <div v-if="!useCustomModel && selectedModelInfo" class="mt-3 flex flex-wrap gap-2">
               <span
                 v-if="selectedModelInfo.supportsImageGeneration"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
@@ -403,6 +432,7 @@ const form = ref<LLMSettingsForm>({
   includeThoughts: null
 })
 
+const useCustomModel = ref(false)
 const validationError = ref<string | null>(null)
 
 const selectedProvider = computed(() => 
@@ -484,10 +514,11 @@ onMounted(async () => {
 })
 
 // Initialize form when settings or provider changes
-watch([() => props.settings, selectedProvider], ([settings]) => {
+watch([() => props.settings, selectedProvider, () => catalogStore.catalog], ([settings]) => {
   if (settings && typeof settings === 'object') {
+    const modelName = settings.model || ''
     form.value = {
-      model: settings.model || '',
+      model: modelName,
       defaultMaxTokens: settings.defaultMaxTokens ?? null,
       defaultTemperature: settings.defaultTemperature ?? null,
       defaultTopP: settings.defaultTopP ?? null,
@@ -501,6 +532,14 @@ watch([() => props.settings, selectedProvider], ([settings]) => {
       thinkingLevel: ('thinkingLevel' in settings ? settings.thinkingLevel as string | null : null) ?? null,
       thinkingBudget: ('thinkingBudget' in settings ? settings.thinkingBudget as number | null : null) ?? null,
       includeThoughts: ('includeThoughts' in settings ? settings.includeThoughts as boolean | null : null) ?? null
+    }
+    
+    // Check if model is in catalog. If not, enable custom model mode
+    if (modelName) {
+      const isInCatalog = availableModels.value.some(m => m.id === modelName)
+      useCustomModel.value = !isInCatalog
+    } else {
+      useCustomModel.value = false
     }
   } else {
     form.value = {
@@ -519,8 +558,14 @@ watch([() => props.settings, selectedProvider], ([settings]) => {
       thinkingBudget: null,
       includeThoughts: null
     }
+    useCustomModel.value = false
   }
 }, { immediate: true })
+
+// Clear model field when toggling between custom and catalog mode
+watch(useCustomModel, () => {
+  form.value.model = ''
+})
 
 const handleSubmit = () => {
   validationError.value = null
