@@ -365,6 +365,44 @@ export interface DeepgramTtsSettings {
   useSentenceSplitter?: boolean;
 }
 
+export interface CartesiaTtsSettings {
+  /** Model ID to use for speech synthesis (e.g., "sonic-3", "sonic-3-latest", "sonic-3-2026-01-12"). Defaults to "sonic-3-latest" */
+  model?: string;
+  /** Voice ID to use for speech synthesis (e.g., "f786b574-daa5-4673-aa0c-cbe3e8534c02" for Katie). See Cartesia voice catalog */
+  voiceId?: string;
+  /** Language code for speech synthesis (e.g., "en", "es", "fr"). Sonic-3 supports 42 languages */
+  language?: string;
+  /** Preferred audio output format for synthesized speech. Defaults to "pcm_24000" */
+  audioFormat?:
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "opus"
+    | "mulaw"
+    | "alaw";
+  /** Speech speed control. Defaults to "normal" */
+  speed?: "slowest" | "slow" | "normal" | "fast" | "fastest";
+  /** Emotion tags for expressive speech (e.g., ["positivity:high", "curiosity"]). See Cartesia emotion documentation */
+  emotion?: string[];
+  /**
+   * Maximum time in milliseconds to buffer text chunks before sending to TTS (0-5000ms). Defaults to 3000ms. Set to 0 to disable buffering
+   * @min 0
+   * @max 5000
+   */
+  maxBufferDelayMs?: number;
+  /** Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead) */
+  useSentenceSplitter?: boolean;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -1197,7 +1235,11 @@ export interface CreatePersonaRequest {
   /** ID of the TTS provider (e.g., "eleven-labs") */
   ttsProviderId?: string;
   /** TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
+  ttsSettings?:
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings;
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -1218,7 +1260,11 @@ export interface UpdatePersonaRequest {
   /** Updated TTS provider ID */
   ttsProviderId?: string;
   /** Updated TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
+  ttsSettings?:
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1250,7 +1296,11 @@ export interface PersonaResponse {
   /** ID of the TTS provider */
   ttsProviderId: string | null;
   /** TTS provider-specific settings */
-  ttsSettings?: ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings;
+  ttsSettings?:
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings;
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1286,7 +1336,8 @@ export interface PersonaListResponse {
     ttsSettings?:
       | ElevenLabsTtsSettings
       | OpenAiTtsSettings
-      | DeepgramTtsSettings;
+      | DeepgramTtsSettings
+      | CartesiaTtsSettings;
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -3533,6 +3584,14 @@ export interface CreateProviderRequest {
         apiKey: string;
       }
     | {
+        /** API key for authenticating with Deepgram */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Cartesia */
+        apiKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3595,6 +3654,14 @@ export interface UpdateProviderRequest {
         apiKey: string;
       }
     | {
+        /** API key for authenticating with Deepgram */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Cartesia */
+        apiKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3654,6 +3721,14 @@ export interface ProviderResponse {
       }
     | {
         /** API key for authenticating with OpenAI */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Deepgram */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Cartesia */
         apiKey: string;
       }
     | {
@@ -3723,6 +3798,14 @@ export interface ProviderListResponse {
         }
       | {
           /** API key for authenticating with OpenAI */
+          apiKey: string;
+        }
+      | {
+          /** API key for authenticating with Deepgram */
+          apiKey: string;
+        }
+      | {
+          /** API key for authenticating with Cartesia */
           apiKey: string;
         }
       | {

@@ -160,6 +160,15 @@ export function useAudioPlayback() {
   async function addChunk(chunk: AudioChunk) {
     try {
       state.value.error = null
+      
+      // Skip processing if audio data is empty (e.g., in final messages with isFinal: true)
+      if (!chunk.audioData || chunk.audioData.trim() === '') {
+        // Add to queue for tracking but don't decode or create buffer
+        chunkQueue.value.push(chunk)
+        chunkQueue.value.sort((a, b) => a.ordinal - b.ordinal)
+        return
+      }
+      
       state.value.buffering = true
 
       // Add to queue in order

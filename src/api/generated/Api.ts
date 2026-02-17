@@ -16,6 +16,7 @@ import {
   AsrModelInfo,
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
+  CartesiaTtsSettings,
   DeepgramTtsSettings,
   Effect,
   ElevenLabsTtsSettings,
@@ -3664,7 +3665,8 @@ export class Api<
       ttsSettings?:
         | ElevenLabsTtsSettings
         | OpenAiTtsSettings
-        | DeepgramTtsSettings;
+        | DeepgramTtsSettings
+        | CartesiaTtsSettings;
       /** Additional persona-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -3688,7 +3690,8 @@ export class Api<
         ttsSettings?:
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
-          | DeepgramTtsSettings;
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3777,7 +3780,8 @@ export class Api<
           ttsSettings?:
             | ElevenLabsTtsSettings
             | OpenAiTtsSettings
-            | DeepgramTtsSettings;
+            | DeepgramTtsSettings
+            | CartesiaTtsSettings;
           /** Additional persona-specific metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -3847,7 +3851,8 @@ export class Api<
         ttsSettings?:
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
-          | DeepgramTtsSettings;
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3901,7 +3906,8 @@ export class Api<
       ttsSettings?:
         | ElevenLabsTtsSettings
         | OpenAiTtsSettings
-        | DeepgramTtsSettings;
+        | DeepgramTtsSettings
+        | CartesiaTtsSettings;
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -3930,7 +3936,8 @@ export class Api<
         ttsSettings?:
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
-          | DeepgramTtsSettings;
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -4056,6 +4063,14 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** API key for authenticating with Deepgram */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Cartesia */
+            apiKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4110,6 +4125,14 @@ export class Api<
             }
           | {
               /** API key for authenticating with OpenAI */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
               apiKey: string;
             }
           | {
@@ -4235,6 +4258,14 @@ export class Api<
                 apiKey: string;
               }
             | {
+                /** API key for authenticating with Deepgram */
+                apiKey: string;
+              }
+            | {
+                /** API key for authenticating with Cartesia */
+                apiKey: string;
+              }
+            | {
                 /** The Azure region to use for the speech recognition service */
                 region: string;
                 /** The subscription key to use for the speech recognition service */
@@ -4338,6 +4369,14 @@ export class Api<
               apiKey: string;
             }
           | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
+              apiKey: string;
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -4430,6 +4469,14 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** API key for authenticating with Deepgram */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Cartesia */
+            apiKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4482,6 +4529,14 @@ export class Api<
             }
           | {
               /** API key for authenticating with OpenAI */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
               apiKey: string;
             }
           | {
