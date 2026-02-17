@@ -12,6 +12,131 @@ const router = useRouter()
 const providersStore = useProvidersStore()
 const providerCatalogStore = useProviderCatalogStore()
 
+// OpenAI-compatible provider presets
+interface ProviderPreset {
+  name: string
+  displayName: string
+  baseUrl: string
+  urlPattern: RegExp
+  icon: string // SVG path or simple identifier
+  color: string // Brand color for the button
+}
+
+const providerPresets: ProviderPreset[] = [
+  {
+    name: 'openai',
+    displayName: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    urlPattern: /openai\.com/i,
+    icon: 'O',
+    color: '#10a37f'
+  },
+  {
+    name: 'mistral',
+    displayName: 'Mistral AI',
+    baseUrl: 'https://api.mistral.ai/v1',
+    urlPattern: /mistral\.ai/i,
+    icon: 'M',
+    color: '#f2773d'
+  },
+  {
+    name: 'groq',
+    displayName: 'Groq',
+    baseUrl: 'https://api.groq.com/openai/v1',
+    urlPattern: /groq\.com/i,
+    icon: 'G',
+    color: '#f55036'
+  },
+  {
+    name: 'together',
+    displayName: 'Together AI',
+    baseUrl: 'https://api.together.xyz/v1',
+    urlPattern: /together\.xyz/i,
+    icon: 'T',
+    color: '#6366f1'
+  },
+  {
+    name: 'fireworks',
+    displayName: 'Fireworks AI',
+    baseUrl: 'https://api.fireworks.ai/inference/v1',
+    urlPattern: /fireworks\.ai/i,
+    icon: 'F',
+    color: '#ff6b35'
+  },
+  {
+    name: 'perplexity',
+    displayName: 'Perplexity AI',
+    baseUrl: 'https://api.perplexity.ai',
+    urlPattern: /perplexity\.ai/i,
+    icon: 'P',
+    color: '#20808d'
+  },
+  {
+    name: 'cohere',
+    displayName: 'Cohere',
+    baseUrl: 'https://api.cohere.ai/v1',
+    urlPattern: /cohere\.ai/i,
+    icon: 'C',
+    color: '#d18ee2'
+  },
+  {
+    name: 'ai21',
+    displayName: 'AI21 Labs',
+    baseUrl: 'https://api.ai21.com/studio/v1',
+    urlPattern: /ai21\.com/i,
+    icon: '21',
+    color: '#4a9eff'
+  },
+  {
+    name: 'deepseek',
+    displayName: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com/v1',
+    urlPattern: /deepseek\.com/i,
+    icon: 'D',
+    color: '#1a73e8'
+  },
+  {
+    name: 'xai',
+    displayName: 'xAI (Grok)',
+    baseUrl: 'https://api.x.ai/v1',
+    urlPattern: /x\.ai/i,
+    icon: 'X',
+    color: '#000000'
+  },
+  {
+    name: 'cerebras',
+    displayName: 'Cerebras',
+    baseUrl: 'https://api.cerebras.ai/v1',
+    urlPattern: /cerebras\.ai/i,
+    icon: 'Cb',
+    color: '#0066cc'
+  },
+  {
+    name: 'lepton',
+    displayName: 'Lepton AI',
+    baseUrl: 'https://api.lepton.ai/api/v1',
+    urlPattern: /lepton\.ai/i,
+    icon: 'L',
+    color: '#8b5cf6'
+  },
+  {
+    name: 'novita',
+    displayName: 'Novita AI',
+    baseUrl: 'https://api.novita.ai/v3/openai',
+    urlPattern: /novita\.ai/i,
+    icon: 'N',
+    color: '#22c55e'
+  },
+  {
+    name: 'openrouter',
+    displayName: 'OpenRouter',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    urlPattern: /openrouter\.ai/i,
+    icon: 'OR',
+    color: '#8b5cf6'
+  }
+]
+
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -130,6 +255,24 @@ const showGcsFields = computed(() =>
 const showLocalStorageFields = computed(() => 
   form.value.apiType === 'local' && form.value.providerType === 'storage'
 )
+
+// Detect which provider preset is currently selected based on baseUrl
+const detectedProvider = computed(() => {
+  const baseUrl = form.value.config.baseUrl
+  if (!baseUrl) return null
+  
+  return providerPresets.find(preset => preset.urlPattern.test(baseUrl))
+})
+
+// Select a provider preset
+function selectProviderPreset(preset: ProviderPreset) {
+  form.value.config.baseUrl = preset.baseUrl
+  
+  // If creating a new provider and name is empty, suggest a name
+  if (!isEditMode.value && !form.value.name) {
+    form.value.name = preset.displayName
+  }
+}
 
 // Lifecycle
 onMounted(async () => {
@@ -579,15 +722,31 @@ const metadataFields = computed(() => {
               <label class="form-label">
                 Base URL <span class="text-gray-500">(optional)</span>
               </label>
-              <input
-                v-model="form.config.baseUrl"
-                type="url"
-                placeholder="https://api.openai.com/v1"
-                class="form-input-mono"
-                :disabled="isLoading"
-              />
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <input
+                    v-model="form.config.baseUrl"
+                    type="url"
+                    placeholder="https://api.openai.com/v1"
+                    class="form-input-mono"
+                    :disabled="isLoading"
+                  />
+                </div>
+                <div class="relative">
+                  <select
+                    @change="(e) => { const preset = providerPresets.find(p => p.name === (e.target as HTMLSelectElement).value); if (preset) { selectProviderPreset(preset); (e.target as HTMLSelectElement).value = ''; } }"
+                    class="form-select min-w-[160px]"
+                    :disabled="isLoading"
+                  >
+                    <option value="">{{ detectedProvider ? detectedProvider.displayName : 'Quick Select...' }}</option>
+                    <option v-for="preset in providerPresets" :key="preset.name" :value="preset.name">
+                      {{ preset.displayName }}
+                    </option>
+                  </select>
+                </div>
+              </div>
               <p class="form-help-text">
-                Optional base URL for OpenAI-compatible APIs
+                Optional base URL for OpenAI-compatible APIs. Use the dropdown to quick-select popular providers.
               </p>
             </div>
           </template>
