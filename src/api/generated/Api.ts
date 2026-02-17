@@ -31,6 +31,7 @@ import {
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
+  ParameterValue,
   S3StorageConfig,
   S3StorageSettings,
   StageAction,
@@ -740,7 +741,7 @@ export class Api<
           | LocalStorageSettings;
       };
       /** Key-value store of constants used in templating and conversation logic */
-      constants?: Record<string, any>;
+      constants?: Record<string, ParameterValue>;
       /** Additional metadata for the project */
       metadata?: Record<string, any>;
     },
@@ -802,7 +803,7 @@ export class Api<
             | LocalStorageSettings;
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
-        constants: Record<string, any>;
+        constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
         /** The version number of the project */
@@ -929,7 +930,7 @@ export class Api<
               | LocalStorageSettings;
           } | null;
           /** Key-value store of constants used in templating and conversation logic */
-          constants: Record<string, any>;
+          constants: Record<string, ParameterValue>;
           /** Additional metadata for the project */
           metadata: Record<string, any>;
           /** The version number of the project */
@@ -1023,7 +1024,7 @@ export class Api<
             | LocalStorageSettings;
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
-        constants: Record<string, any>;
+        constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
         /** The version number of the project */
@@ -1076,7 +1077,7 @@ export class Api<
       /** Updated storage configuration settings */
       storageConfig?: StorageConfig;
       /** Updated constants key-value store */
-      constants?: Record<string, any>;
+      constants?: Record<string, ParameterValue>;
       /** Updated metadata for the project */
       metadata?: Record<string, any>;
       /** The current version number for optimistic locking */
@@ -1140,7 +1141,7 @@ export class Api<
             | LocalStorageSettings;
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
-        constants: Record<string, any>;
+        constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
         /** The version number of the project */
@@ -2299,7 +2300,7 @@ export class Api<
                   classifierName: string;
                   actions: {
                     name: string;
-                    parameters: Record<string, any>;
+                    parameters: Record<string, ParameterValue>;
                   }[];
                 }[];
                 metadata?: Record<string, any>;
@@ -2312,13 +2313,13 @@ export class Api<
               }
             | {
                 command: string;
-                parameters?: Record<string, any>;
+                parameters?: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
               }
             | {
                 toolId: string;
                 toolName: string;
-                parameters: Record<string, any>;
+                parameters: Record<string, ParameterValue>;
                 success: boolean;
                 result?: (
                   | {
@@ -2358,7 +2359,7 @@ export class Api<
               }
             | {
                 stageId: string;
-                initialVariables?: Record<string, any>;
+                initialVariables?: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
               }
             | {
@@ -2477,7 +2478,7 @@ export class Api<
                 classifierName: string;
                 actions: {
                   name: string;
-                  parameters: Record<string, any>;
+                  parameters: Record<string, ParameterValue>;
                 }[];
               }[];
               metadata?: Record<string, any>;
@@ -2490,13 +2491,13 @@ export class Api<
             }
           | {
               command: string;
-              parameters?: Record<string, any>;
+              parameters?: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
             }
           | {
               toolId: string;
               toolName: string;
-              parameters: Record<string, any>;
+              parameters: Record<string, ParameterValue>;
               success: boolean;
               result?: (
                 | {
@@ -2536,7 +2537,7 @@ export class Api<
             }
           | {
               stageId: string;
-              initialVariables?: Record<string, any>;
+              initialVariables?: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
             }
           | {

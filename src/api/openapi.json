@@ -1315,7 +1315,11 @@
               "string[]",
               "number[]",
               "boolean[]",
-              "object[]"
+              "object[]",
+              "image",
+              "image[]",
+              "audio",
+              "audio[]"
             ],
             "description": "Expected type of the parameter value"
           },
@@ -1354,7 +1358,11 @@
               "string[]",
               "number[]",
               "boolean[]",
-              "object[]"
+              "object[]",
+              "image",
+              "image[]",
+              "audio",
+              "audio[]"
             ],
             "description": "Expected type of the parameter value"
           },
@@ -1998,7 +2006,7 @@
           "constants": {
             "type": "object",
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ParameterValue"
             },
             "description": "Key-value store of constants used in templating and conversation logic"
           },
@@ -2013,6 +2021,146 @@
         "required": [
           "name"
         ]
+      },
+      "ParameterValue": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+              "nullable": true
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "nullable": true
+              }
+            }
+          },
+          {
+            "$ref": "#/components/schemas/ImageParameterValue"
+          },
+          {
+            "$ref": "#/components/schemas/AudioParameterValue"
+          }
+        ],
+        "description": "Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio)"
+      },
+      "ImageParameterValue": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "Base64-encoded image data"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the image (e.g., image/png, image/jpeg, image/webp)"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "number",
+                "description": "Image width in pixels"
+              },
+              "height": {
+                "type": "number",
+                "description": "Image height in pixels"
+              }
+            },
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Optional metadata about the image"
+          }
+        },
+        "required": [
+          "data",
+          "mimeType"
+        ],
+        "description": "Image parameter value structure for multimodal parameters"
+      },
+      "AudioParameterValue": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "Base64-encoded audio data"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "pcm",
+              "mp3",
+              "wav",
+              "opus"
+            ],
+            "description": "Audio format identifier (pcm, mp3, wav, opus)"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the audio (e.g., audio/pcm, audio/mpeg, audio/wav)"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "sampleRate": {
+                "type": "number",
+                "description": "Sample rate in Hz (e.g., 44100, 48000)"
+              },
+              "channels": {
+                "type": "number",
+                "description": "Number of audio channels (1 for mono, 2 for stereo)"
+              },
+              "bitDepth": {
+                "type": "number",
+                "description": "Bit depth per sample (e.g., 16, 24)"
+              }
+            },
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Optional metadata about the audio"
+          }
+        },
+        "required": [
+          "data",
+          "format",
+          "mimeType"
+        ],
+        "description": "Audio parameter value structure for multimodal parameters"
       },
       "UpdateProjectRequest": {
         "type": "object",
@@ -2051,7 +2199,7 @@
           "constants": {
             "type": "object",
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ParameterValue"
             },
             "description": "Updated constants key-value store"
           },
@@ -2210,7 +2358,7 @@
             "type": "object",
             "nullable": true,
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ParameterValue"
             },
             "description": "Key-value store of constants used in templating and conversation logic"
           },
@@ -2369,7 +2517,7 @@
                   "type": "object",
                   "nullable": true,
                   "additionalProperties": {
-                    "nullable": true
+                    "$ref": "#/components/schemas/ParameterValue"
                   },
                   "description": "Key-value store of constants used in templating and conversation logic"
                 },
@@ -4298,7 +4446,7 @@
                               "parameters": {
                                 "type": "object",
                                 "additionalProperties": {
-                                  "nullable": true
+                                  "$ref": "#/components/schemas/ParameterValue"
                                 }
                               }
                             },
@@ -4366,7 +4514,7 @@
                   "parameters": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ParameterValue"
                     }
                   },
                   "metadata": {
@@ -4392,7 +4540,7 @@
                   "parameters": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ParameterValue"
                     }
                   },
                   "success": {
@@ -4539,7 +4687,7 @@
                   "initialVariables": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ParameterValue"
                     }
                   },
                   "metadata": {
@@ -4788,7 +4936,7 @@
                                     "parameters": {
                                       "type": "object",
                                       "additionalProperties": {
-                                        "nullable": true
+                                        "$ref": "#/components/schemas/ParameterValue"
                                       }
                                     }
                                   },
@@ -4856,7 +5004,7 @@
                         "parameters": {
                           "type": "object",
                           "additionalProperties": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/ParameterValue"
                           }
                         },
                         "metadata": {
@@ -4882,7 +5030,7 @@
                         "parameters": {
                           "type": "object",
                           "additionalProperties": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/ParameterValue"
                           }
                         },
                         "success": {
@@ -5029,7 +5177,7 @@
                         "initialVariables": {
                           "type": "object",
                           "additionalProperties": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/ParameterValue"
                           }
                         },
                         "metadata": {
@@ -10757,7 +10905,7 @@
                   "constants": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ParameterValue"
                     },
                     "description": "Key-value store of constants used in templating and conversation logic"
                   },
@@ -10893,7 +11041,7 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ParameterValue"
                       },
                       "description": "Key-value store of constants used in templating and conversation logic"
                     },
@@ -11204,7 +11352,7 @@
                             "type": "object",
                             "nullable": true,
                             "additionalProperties": {
-                              "nullable": true
+                              "$ref": "#/components/schemas/ParameterValue"
                             },
                             "description": "Key-value store of constants used in templating and conversation logic"
                           },
@@ -11400,7 +11548,7 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ParameterValue"
                       },
                       "description": "Key-value store of constants used in templating and conversation logic"
                     },
@@ -11508,7 +11656,7 @@
                   "constants": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ParameterValue"
                     },
                     "description": "Updated constants key-value store"
                   },
@@ -11648,7 +11796,7 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ParameterValue"
                       },
                       "description": "Key-value store of constants used in templating and conversation logic"
                     },
@@ -14363,7 +14511,7 @@
                                               "parameters": {
                                                 "type": "object",
                                                 "additionalProperties": {
-                                                  "nullable": true
+                                                  "$ref": "#/components/schemas/ParameterValue"
                                                 }
                                               }
                                             },
@@ -14431,7 +14579,7 @@
                                   "parameters": {
                                     "type": "object",
                                     "additionalProperties": {
-                                      "nullable": true
+                                      "$ref": "#/components/schemas/ParameterValue"
                                     }
                                   },
                                   "metadata": {
@@ -14457,7 +14605,7 @@
                                   "parameters": {
                                     "type": "object",
                                     "additionalProperties": {
-                                      "nullable": true
+                                      "$ref": "#/components/schemas/ParameterValue"
                                     }
                                   },
                                   "success": {
@@ -14604,7 +14752,7 @@
                                   "initialVariables": {
                                     "type": "object",
                                     "additionalProperties": {
-                                      "nullable": true
+                                      "$ref": "#/components/schemas/ParameterValue"
                                     }
                                   },
                                   "metadata": {
@@ -14921,7 +15069,7 @@
                                         "parameters": {
                                           "type": "object",
                                           "additionalProperties": {
-                                            "nullable": true
+                                            "$ref": "#/components/schemas/ParameterValue"
                                           }
                                         }
                                       },
@@ -14989,7 +15137,7 @@
                             "parameters": {
                               "type": "object",
                               "additionalProperties": {
-                                "nullable": true
+                                "$ref": "#/components/schemas/ParameterValue"
                               }
                             },
                             "metadata": {
@@ -15015,7 +15163,7 @@
                             "parameters": {
                               "type": "object",
                               "additionalProperties": {
-                                "nullable": true
+                                "$ref": "#/components/schemas/ParameterValue"
                               }
                             },
                             "success": {
@@ -15162,7 +15310,7 @@
                             "initialVariables": {
                               "type": "object",
                               "additionalProperties": {
-                                "nullable": true
+                                "$ref": "#/components/schemas/ParameterValue"
                               }
                             },
                             "metadata": {

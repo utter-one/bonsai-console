@@ -37,8 +37,36 @@ async function generateTypes() {
 
 `
 
+  // Shared types that are referenced by other types
+  const sharedTypes = [
+    'ImageParameterValue',
+    'AudioParameterValue', 
+    'ParameterValue',
+    'Effect',
+    'EndConversationEffect',
+    'AbortConversationEffect',
+    'GoToStageEffect',
+    'RunScriptEffect',
+    'ModifyUserInputEffect',
+    'ModifyVariablesEffect',
+    'VariableOperation',
+    'ModifyUserProfileEffect',
+    'UserProfileOperation',
+    'CallToolEffect',
+    'CallWebhookEffect',
+    'GenerateResponseEffect'
+  ]
+
   // Group definitions by category
   const categories = {
+    shared: [
+      'ImageParameterValue', 'AudioParameterValue', 'ParameterValue',
+      'Effect', 'EndConversationEffect', 'AbortConversationEffect',
+      'GoToStageEffect', 'RunScriptEffect', 'ModifyUserInputEffect',
+      'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
+      'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
+      'GenerateResponseEffect'
+    ],
     auth: ['auth-request', 'auth-response', 'project-settings'],
     session: [
       'start-conversation-request', 'start-conversation-response',
@@ -83,12 +111,16 @@ export type AudioFormat = ${audioFormatUnion}`
 
   // Process other categories
   const categoryHeaders = {
+    shared: 'Shared Types (Parameters)',
     auth: 'Authentication and Project Settings',
     session: 'Session and Conversation Lifecycle',
     userInput: 'User Input (Voice and Text)',
     aiResponse: 'AI Response (Voice Output)',
     command: 'Commands (Stage Navigation, Variables, Actions)'
   }
+
+  // Track generated types to avoid duplicates
+  const generatedTypes = new Set()
 
   for (const [category, names] of Object.entries(categories)) {
     output += `\n// ============================================================================
@@ -103,32 +135,77 @@ export type AudioFormat = ${audioFormatUnion}`
         continue
       }
 
-      try {
-        // Convert kebab-case to PascalCase for type name
-        const typeName = name
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join('')
+      // Convert kebab-case to PascalCase for type name
+      const typeName = name
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('')
 
+      // Skip if already generated
+      if (generatedTypes.has(typeName)) {
+        console.log(`  ⏭️  Skipping ${typeName} (already generated)`)
+        continue
+      }
+
+      try {
         console.log(`  → Generating ${typeName}...`)
 
         const typeDefinition = definitions[name]
 
-        // Compile the type
-        const compiled = await compile(typeDefinition, typeName, {
-          bannerComment: '',
-          style: {
-            singleQuote: true,
-          },
-          additionalProperties: false,
-        })
+        // For shared types, also need definitions for $ref within shared types
+        // But we need to prevent duplicate generation
+        const schemaToCompile = {
+          ...typeDefinition,
+          definitions: schema.definitions,
+        }
+
+        const compiled = await compile(
+          schemaToCompile,
+          typeName,
+          {
+            bannerComment: '',
+            style: {
+              singleQuote: true,
+            },
+            additionalProperties: false,
+            declareExternallyReferenced: false,
+          }
+        )
 
         // Clean up the output (remove extra newlines)
-        const cleaned = compiled
+        let cleaned = compiled
           .replace(/\n{3,}/g, '\n\n')
           .trim()
 
-        output += cleaned + '\n\n'
+        // For non-shared types, remove duplicate definitions of shared types that were already generated
+        if (category !== 'shared') {
+          // Remove duplicate ImageParameterValue, AudioParameterValue, ParameterValue definitions
+          for (const sharedType of sharedTypes) {
+            const typeRegex = new RegExp(
+              `\\/\\*\\*[\\s\\S]*?\\*\\/\\s*export (interface|type) ${sharedType}[\\s\\S]*?(?=\nexport |$)`,
+              'g'
+            )
+            cleaned = cleaned.replace(typeRegex, '')
+          }
+          // Clean up extra blank lines after removal
+          cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim()
+        }
+
+        // Fix metadata object index signatures that conflict with specific properties
+        // Remove lines like:  [k: string]: { [k: string]: unknown; };
+        // or  [k: string]: unknown;
+        // that appear within metadata objects
+        cleaned = cleaned.replace(/^\s*\[k: string\]:\s*(\{[^}]+\}|unknown);?\s*$/gm, '')
+        
+        // Clean up empty metadata objects or trailing commas
+        cleaned = cleaned.replace(/metadata\?: \{\s*\};?/g, 'metadata?: Record<string, unknown>;')
+        cleaned = cleaned.replace(/,(\s*\})/g, '$1') // Remove trailing commas before closing braces
+
+        cleaned = cleaned.trim()
+        if (cleaned) {
+          output += cleaned + '\n\n'
+          generatedTypes.add(typeName)
+        }
       } catch (error) {
         console.error(`❌ Error generating type for '${name}':`, error.message)
       }
