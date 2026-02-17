@@ -511,6 +511,10 @@ const metadataFields = computed(() => {
                         <option value="number[]">number[]</option>
                         <option value="boolean[]">boolean[]</option>
                         <option value="object[]">object[]</option>
+                        <option value="image">image</option>
+                        <option value="image[]">image[]</option>
+                        <option value="audio">audio</option>
+                        <option value="audio[]">audio[]</option>
                       </select>
                     </div>
                   </div>

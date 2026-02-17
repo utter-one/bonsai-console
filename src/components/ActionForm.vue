@@ -248,6 +248,10 @@ function addArrayItem(paramName: string, paramType: string) {
     toolParameters.value[paramName].push(false)
   } else if (paramType === 'object[]') {
     toolParameters.value[paramName].push('{}')
+  } else if (paramType === 'image[]') {
+    toolParameters.value[paramName].push(null)
+  } else if (paramType === 'audio[]') {
+    toolParameters.value[paramName].push(null)
   }
 }
 
@@ -255,6 +259,136 @@ function removeArrayItem(paramName: string, index: number) {
   if (Array.isArray(toolParameters.value[paramName])) {
     toolParameters.value[paramName].splice(index, 1)
   }
+}
+
+function handleImageUpload(event: Event, paramName: string) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+    if (!dataUrl) return
+    const parts = dataUrl.split(',')
+    if (parts.length !== 2) return
+    const header = parts[0]!
+    const base64Data = parts[1]!
+    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
+    
+    // Create image to get dimensions
+    const img = new Image()
+    img.onload = () => {
+      toolParameters.value[paramName] = {
+        data: base64Data,
+        mimeType,
+        metadata: {
+          width: img.width,
+          height: img.height
+        }
+      }
+    }
+    img.src = dataUrl
+  }
+  reader.readAsDataURL(file)
+}
+
+function handleAudioUpload(event: Event, paramName: string) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+    if (!dataUrl) return
+    const parts = dataUrl.split(',')
+    if (parts.length !== 2) return
+    const header = parts[0]!
+    const base64Data = parts[1]!
+    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
+    
+    // Determine format from MIME type
+    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
+    if (mimeType.includes('wav')) format = 'wav'
+    else if (mimeType.includes('opus')) format = 'opus'
+    else if (mimeType.includes('pcm')) format = 'pcm'
+    
+    toolParameters.value[paramName] = {
+      data: base64Data,
+      format,
+      mimeType,
+      metadata: {}
+    }
+  }
+  reader.readAsDataURL(file)
+}
+
+function handleImageArrayUpload(event: Event, paramName: string, index: number) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+    if (!dataUrl) return
+    const parts = dataUrl.split(',')
+    if (parts.length !== 2) return
+    const header = parts[0]!
+    const base64Data = parts[1]!
+    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
+    
+    const img = new Image()
+    img.onload = () => {
+      if (!Array.isArray(toolParameters.value[paramName])) {
+        toolParameters.value[paramName] = []
+      }
+      toolParameters.value[paramName][index] = {
+        data: base64Data,
+        mimeType,
+        metadata: {
+          width: img.width,
+          height: img.height
+        }
+      }
+    }
+    img.src = dataUrl
+  }
+  reader.readAsDataURL(file)
+}
+
+function handleAudioArrayUpload(event: Event, paramName: string, index: number) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+    if (!dataUrl) return
+    const parts = dataUrl.split(',')
+    if (parts.length !== 2) return
+    const header = parts[0]!
+    const base64Data = parts[1]!
+    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
+    
+    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
+    if (mimeType.includes('wav')) format = 'wav'
+    else if (mimeType.includes('opus')) format = 'opus'
+    else if (mimeType.includes('pcm')) format = 'pcm'
+    
+    if (!Array.isArray(toolParameters.value[paramName])) {
+      toolParameters.value[paramName] = []
+    }
+    toolParameters.value[paramName][index] = {
+      data: base64Data,
+      format,
+      mimeType,
+      metadata: {}
+    }
+  }
+  reader.readAsDataURL(file)
 }
 </script>
 
@@ -599,6 +733,10 @@ function removeArrayItem(paramName: string, index: number) {
                   <option value="number[]">number[]</option>
                   <option value="boolean[]">boolean[]</option>
                   <option value="object[]">object[]</option>
+                  <option value="image">image</option>
+                  <option value="image[]">image[]</option>
+                  <option value="audio">audio</option>
+                  <option value="audio[]">audio[]</option>
                 </select>
               </div>
             </div>
@@ -1042,7 +1180,47 @@ function removeArrayItem(paramName: string, index: number) {
               <p class="text-xs text-gray-500">Enter a valid JSON object or use Handlebars syntax (e.g., <code>&#123;&#123;variable&#125;&#125;</code>)</p>
             </div>
             
-            <!-- Array inputs (string[], number[], boolean[], object[]) -->
+            <!-- Image input -->
+            <div v-else-if="param.type === 'image'" class="space-y-2">
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleImageUpload($event, param.name)"
+                class="form-input text-sm"
+                :required="param.required"
+              />
+              <div v-if="toolParameters[param.name]" class="mt-2">
+                <img
+                  :src="`data:${toolParameters[param.name].mimeType};base64,${toolParameters[param.name].data}`"
+                  class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
+                  alt="Preview"
+                />
+              </div>
+              <p class="text-xs text-gray-500">{{ param.description }}</p>
+            </div>
+            
+            <!-- Audio input -->
+            <div v-else-if="param.type === 'audio'" class="space-y-2">
+              <input
+                type="file"
+                accept="audio/*"
+                @change="handleAudioUpload($event, param.name)"
+                class="form-input text-sm"
+                :required="param.required"
+              />
+              <div v-if="toolParameters[param.name]" class="mt-2">
+                <audio
+                  controls
+                  :src="`data:${toolParameters[param.name].mimeType};base64,${toolParameters[param.name].data}`"
+                  class="w-full max-w-md"
+                >
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+              <p class="text-xs text-gray-500">{{ param.description }}</p>
+            </div>
+            
+            <!-- Array inputs (string[], number[], boolean[], object[], image[], audio[]) -->
             <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
               <div 
                 v-for="(_item, index) in getArrayValue(param.name)" 
@@ -1080,6 +1258,38 @@ function removeArrayItem(paramName: string, index: number) {
                   class="form-textarea text-sm font-mono flex-1"
                   rows="3"
                 />
+                <div v-else-if="param.type === 'image[]'" class="flex-1 space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    @change="handleImageArrayUpload($event, param.name, index)"
+                    class="form-input text-sm"
+                  />
+                  <div v-if="toolParameters[param.name][index]" class="mt-2">
+                    <img
+                      :src="`data:${toolParameters[param.name][index].mimeType};base64,${toolParameters[param.name][index].data}`"
+                      class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
+                      alt="Preview"
+                    />
+                  </div>
+                </div>
+                <div v-else-if="param.type === 'audio[]'" class="flex-1 space-y-2">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    @change="handleAudioArrayUpload($event, param.name, index)"
+                    class="form-input text-sm"
+                  />
+                  <div v-if="toolParameters[param.name][index]" class="mt-2">
+                    <audio
+                      controls
+                      :src="`data:${toolParameters[param.name][index].mimeType};base64,${toolParameters[param.name][index].data}`"
+                      class="w-full max-w-md"
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                </div>
                 <button 
                   type="button"
                   @click="removeArrayItem(param.name, index)"
