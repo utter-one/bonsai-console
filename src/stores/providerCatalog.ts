@@ -8,6 +8,13 @@ import type {
   LlmProviderInfo,
 } from '@/api/types'
 
+type StorageProviderInfo = {
+  apiType: string
+  displayName: string
+  description?: string
+  features?: string[]
+}
+
 export const useProviderCatalogStore = defineStore('providerCatalog', () => {
   const catalog = ref<ProviderCatalog | null>(null)
   const isLoading = ref(false)
@@ -54,7 +61,7 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     try {
       const response = await apiClient.providerCatalogTtsList()
       if (!catalog.value) {
-        catalog.value = { asr: [], tts: response.providers, llm: [] }
+        catalog.value = { asr: [], tts: response.providers, llm: [], storage: [] }
       } else {
         catalog.value.tts = response.providers
       }
@@ -85,7 +92,25 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     }
   }
 
-  async function fetchProviderDetails(type: 'asr' | 'tts' | 'llm', apiType: string) {
+  async function fetchStorageProviders() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await apiClient.providerCatalogStorageList()
+      if (catalog.value) {
+        catalog.value.storage = response.providers
+      }
+      return response.providers
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to fetch storage providers'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function fetchProviderDetails(type: 'asr' | 'tts' | 'llm' | 'storage', apiType: string) {
     isLoading.value = true
     error.value = null
 
@@ -112,10 +137,15 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     return catalog.value?.llm || []
   }
 
+  function getStorageProviders(): StorageProviderInfo[] {
+    return catalog.value?.storage || []
+  }
+
   function getProviderByApiType(type: 'asr', apiType: string): AsrProviderInfo | null
   function getProviderByApiType(type: 'tts', apiType: string): TtsProviderInfo | null
   function getProviderByApiType(type: 'llm', apiType: string): LlmProviderInfo | null
-  function getProviderByApiType(type: 'asr' | 'tts' | 'llm', apiType: string): AsrProviderInfo | TtsProviderInfo | LlmProviderInfo | null {
+  function getProviderByApiType(type: 'storage', apiType: string): StorageProviderInfo | null
+  function getProviderByApiType(type: 'asr' | 'tts' | 'llm' | 'storage', apiType: string): AsrProviderInfo | TtsProviderInfo | LlmProviderInfo | StorageProviderInfo | null {
     return catalog.value?.[type]?.find(provider => provider.apiType === apiType) || null
   }
 
@@ -127,10 +157,12 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     fetchAsrProviders,
     fetchTtsProviders,
     fetchLlmProviders,
+    fetchStorageProviders,
     fetchProviderDetails,
     getAsrProviders,
     getTtsProviders,
     getLlmProviders,
+    getStorageProviders,
     getProviderByApiType,
   }
 })

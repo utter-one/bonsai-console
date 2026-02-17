@@ -693,6 +693,180 @@
         },
         "description": "ASR configuration settings"
       },
+      "S3StorageConfig": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string",
+            "description": "AWS access key ID"
+          },
+          "secretAccessKey": {
+            "type": "string",
+            "description": "AWS secret access key"
+          },
+          "region": {
+            "type": "string",
+            "description": "AWS region (e.g., us-east-1)"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "Custom endpoint for S3-compatible services (e.g., MinIO)"
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "secretAccessKey",
+          "region"
+        ]
+      },
+      "S3StorageSettings": {
+        "type": "object",
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "description": "S3 bucket name"
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Key prefix for all operations (e.g., \"projects/123/\")"
+          },
+          "acl": {
+            "type": "string",
+            "enum": [
+              "private",
+              "public-read",
+              "public-read-write",
+              "authenticated-read"
+            ],
+            "description": "Access control list for uploaded objects"
+          },
+          "serverSideEncryption": {
+            "type": "string",
+            "enum": [
+              "AES256",
+              "aws:kms"
+            ],
+            "description": "Server-side encryption method"
+          }
+        },
+        "required": [
+          "bucket"
+        ]
+      },
+      "AzureBlobStorageConfig": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "description": "Azure storage account name"
+          },
+          "accountKey": {
+            "type": "string",
+            "description": "Azure storage account key"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "Custom endpoint for Azure Blob Storage"
+          }
+        },
+        "required": [
+          "accountName",
+          "accountKey"
+        ]
+      },
+      "AzureBlobStorageSettings": {
+        "type": "object",
+        "properties": {
+          "containerName": {
+            "type": "string",
+            "description": "Azure Blob Storage container name"
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Blob prefix for all operations (e.g., \"projects/123/\")"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "Hot",
+              "Cool",
+              "Archive"
+            ],
+            "description": "Access tier for uploaded blobs"
+          }
+        },
+        "required": [
+          "containerName"
+        ]
+      },
+      "GcsStorageConfig": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Google Cloud project ID"
+          },
+          "keyFileJson": {
+            "type": "string",
+            "description": "Service account key file content as JSON string"
+          }
+        },
+        "required": [
+          "projectId",
+          "keyFileJson"
+        ]
+      },
+      "GcsStorageSettings": {
+        "type": "object",
+        "properties": {
+          "bucketName": {
+            "type": "string",
+            "description": "Google Cloud Storage bucket name"
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Object prefix for all operations (e.g., \"projects/123/\")"
+          },
+          "storageClass": {
+            "type": "string",
+            "enum": [
+              "STANDARD",
+              "NEARLINE",
+              "COLDLINE",
+              "ARCHIVE"
+            ],
+            "description": "Storage class for uploaded objects"
+          }
+        },
+        "required": [
+          "bucketName"
+        ]
+      },
+      "LocalStorageConfig": {
+        "type": "object",
+        "properties": {
+          "basePath": {
+            "type": "string",
+            "description": "Base directory path for local storage"
+          },
+          "baseUrl": {
+            "type": "string",
+            "description": "Base URL for generating file URLs (if files are served via HTTP)"
+          }
+        },
+        "required": [
+          "basePath"
+        ]
+      },
+      "LocalStorageSettings": {
+        "type": "object",
+        "properties": {
+          "subPath": {
+            "type": "string",
+            "description": "Subdirectory within basePath for this project"
+          }
+        }
+      },
       "EndConversationEffect": {
         "type": "object",
         "properties": {
@@ -1712,6 +1886,33 @@
             "default": true,
             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
           },
+          "storageConfig": {
+            "type": "object",
+            "properties": {
+              "storageProviderId": {
+                "type": "string",
+                "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/S3StorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GcsStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LocalStorageSettings"
+                  }
+                ],
+                "description": "Storage-specific settings including bucket, prefix, etc."
+              }
+            },
+            "description": "Optional storage configuration for conversation artifacts"
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -1762,6 +1963,9 @@
             "type": "boolean",
             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
           },
+          "storageConfig": {
+            "$ref": "#/components/schemas/StorageConfig"
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -1784,6 +1988,33 @@
         "required": [
           "version"
         ]
+      },
+      "StorageConfig": {
+        "type": "object",
+        "properties": {
+          "storageProviderId": {
+            "type": "string",
+            "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/S3StorageSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AzureBlobStorageSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GcsStorageSettings"
+              },
+              {
+                "$ref": "#/components/schemas/LocalStorageSettings"
+              }
+            ],
+            "description": "Storage-specific settings including bucket, prefix, etc."
+          }
+        },
+        "description": "Updated storage configuration settings"
       },
       "ProjectResponse": {
         "type": "object",
@@ -1864,6 +2095,34 @@
           "generateVoice": {
             "type": "boolean",
             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+          },
+          "storageConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "storageProviderId": {
+                "type": "string",
+                "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/S3StorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GcsStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LocalStorageSettings"
+                  }
+                ],
+                "description": "Storage-specific settings including bucket, prefix, etc."
+              }
+            },
+            "description": "Storage configuration for conversation artifacts"
           },
           "constants": {
             "type": "object",
@@ -1995,6 +2254,34 @@
                 "generateVoice": {
                   "type": "boolean",
                   "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                },
+                "storageConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "storageProviderId": {
+                      "type": "string",
+                      "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                    },
+                    "settings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/S3StorageSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GcsStorageSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/LocalStorageSettings"
+                        }
+                      ],
+                      "description": "Storage-specific settings including bucket, prefix, etc."
+                    }
+                  },
+                  "description": "Storage configuration for conversation artifacts"
                 },
                 "constants": {
                   "type": "object",
@@ -7217,7 +7504,8 @@
               "asr",
               "tts",
               "llm",
-              "embeddings"
+              "embeddings",
+              "storage"
             ],
             "description": "Provider category: asr, tts, llm, or embeddings"
           },
@@ -7336,6 +7624,18 @@
                   "subscriptionKey"
                 ],
                 "description": "ASR provider configuration"
+              },
+              {
+                "$ref": "#/components/schemas/S3StorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/AzureBlobStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/GcsStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/LocalStorageConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -7383,7 +7683,8 @@
               "asr",
               "tts",
               "llm",
-              "embeddings"
+              "embeddings",
+              "storage"
             ],
             "description": "Updated provider category"
           },
@@ -7502,6 +7803,18 @@
                   "subscriptionKey"
                 ],
                 "description": "ASR provider configuration"
+              },
+              {
+                "$ref": "#/components/schemas/S3StorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/AzureBlobStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/GcsStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/LocalStorageConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -7554,7 +7867,8 @@
               "asr",
               "tts",
               "llm",
-              "embeddings"
+              "embeddings",
+              "storage"
             ],
             "description": "Provider category (asr, tts, llm, embeddings)"
           },
@@ -7673,6 +7987,18 @@
                   "subscriptionKey"
                 ],
                 "description": "ASR provider configuration"
+              },
+              {
+                "$ref": "#/components/schemas/S3StorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/AzureBlobStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/GcsStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/LocalStorageConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -7748,7 +8074,8 @@
                     "asr",
                     "tts",
                     "llm",
-                    "embeddings"
+                    "embeddings",
+                    "storage"
                   ],
                   "description": "Provider category (asr, tts, llm, embeddings)"
                 },
@@ -7867,6 +8194,18 @@
                         "subscriptionKey"
                       ],
                       "description": "ASR provider configuration"
+                    },
+                    {
+                      "$ref": "#/components/schemas/S3StorageConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GcsStorageConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/LocalStorageConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -8279,12 +8618,45 @@
               ]
             },
             "description": "LLM providers"
+          },
+          "storage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                },
+                "features": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of supported features"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName"
+              ]
+            },
+            "description": "Storage providers"
           }
         },
         "required": [
           "asr",
           "tts",
-          "llm"
+          "llm",
+          "storage"
         ]
       },
       "AsrProvidersResponse": {
@@ -10165,6 +10537,33 @@
                     "default": true,
                     "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
                   },
+                  "storageConfig": {
+                    "type": "object",
+                    "properties": {
+                      "storageProviderId": {
+                        "type": "string",
+                        "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                      },
+                      "settings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/S3StorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GcsStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/LocalStorageSettings"
+                          }
+                        ],
+                        "description": "Storage-specific settings including bucket, prefix, etc."
+                      }
+                    },
+                    "description": "Optional storage configuration for conversation artifacts"
+                  },
                   "constants": {
                     "type": "object",
                     "additionalProperties": {
@@ -10271,6 +10670,34 @@
                     "generateVoice": {
                       "type": "boolean",
                       "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                    },
+                    "storageConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "storageProviderId": {
+                          "type": "string",
+                          "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/S3StorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/GcsStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/LocalStorageSettings"
+                            }
+                          ],
+                          "description": "Storage-specific settings including bucket, prefix, etc."
+                        }
+                      },
+                      "description": "Storage configuration for conversation artifacts"
                     },
                     "constants": {
                       "type": "object",
@@ -10555,6 +10982,34 @@
                             "type": "boolean",
                             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
                           },
+                          "storageConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "storageProviderId": {
+                                "type": "string",
+                                "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                              },
+                              "settings": {
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/components/schemas/S3StorageSettings"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/GcsStorageSettings"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/LocalStorageSettings"
+                                  }
+                                ],
+                                "description": "Storage-specific settings including bucket, prefix, etc."
+                              }
+                            },
+                            "description": "Storage configuration for conversation artifacts"
+                          },
                           "constants": {
                             "type": "object",
                             "nullable": true,
@@ -10723,6 +11178,34 @@
                       "type": "boolean",
                       "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
                     },
+                    "storageConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "storageProviderId": {
+                          "type": "string",
+                          "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/S3StorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/GcsStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/LocalStorageSettings"
+                            }
+                          ],
+                          "description": "Storage-specific settings including bucket, prefix, etc."
+                        }
+                      },
+                      "description": "Storage configuration for conversation artifacts"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -10828,6 +11311,9 @@
                   "generateVoice": {
                     "type": "boolean",
                     "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                  },
+                  "storageConfig": {
+                    "$ref": "#/components/schemas/StorageConfig"
                   },
                   "constants": {
                     "type": "object",
@@ -10939,6 +11425,34 @@
                     "generateVoice": {
                       "type": "boolean",
                       "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                    },
+                    "storageConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "storageProviderId": {
+                          "type": "string",
+                          "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/S3StorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/GcsStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/LocalStorageSettings"
+                            }
+                          ],
+                          "description": "Storage-specific settings including bucket, prefix, etc."
+                        }
+                      },
+                      "description": "Storage configuration for conversation artifacts"
                     },
                     "constants": {
                       "type": "object",
@@ -17540,7 +18054,8 @@
                       "asr",
                       "tts",
                       "llm",
-                      "embeddings"
+                      "embeddings",
+                      "storage"
                     ],
                     "description": "Provider category: asr, tts, llm, or embeddings"
                   },
@@ -17659,6 +18174,18 @@
                           "subscriptionKey"
                         ],
                         "description": "ASR provider configuration"
+                      },
+                      {
+                        "$ref": "#/components/schemas/S3StorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/GcsStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/LocalStorageConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -17712,7 +18239,8 @@
                         "asr",
                         "tts",
                         "llm",
-                        "embeddings"
+                        "embeddings",
+                        "storage"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -17831,6 +18359,18 @@
                             "subscriptionKey"
                           ],
                           "description": "ASR provider configuration"
+                        },
+                        {
+                          "$ref": "#/components/schemas/S3StorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GcsStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/LocalStorageConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -18058,7 +18598,8 @@
                               "asr",
                               "tts",
                               "llm",
-                              "embeddings"
+                              "embeddings",
+                              "storage"
                             ],
                             "description": "Provider category (asr, tts, llm, embeddings)"
                           },
@@ -18177,6 +18718,18 @@
                                   "subscriptionKey"
                                 ],
                                 "description": "ASR provider configuration"
+                              },
+                              {
+                                "$ref": "#/components/schemas/S3StorageConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/GcsStorageConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/LocalStorageConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -18307,7 +18860,8 @@
                         "asr",
                         "tts",
                         "llm",
-                        "embeddings"
+                        "embeddings",
+                        "storage"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -18426,6 +18980,18 @@
                             "subscriptionKey"
                           ],
                           "description": "ASR provider configuration"
+                        },
+                        {
+                          "$ref": "#/components/schemas/S3StorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GcsStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/LocalStorageConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -18527,7 +19093,8 @@
                       "asr",
                       "tts",
                       "llm",
-                      "embeddings"
+                      "embeddings",
+                      "storage"
                     ],
                     "description": "Updated provider category"
                   },
@@ -18646,6 +19213,18 @@
                           "subscriptionKey"
                         ],
                         "description": "ASR provider configuration"
+                      },
+                      {
+                        "$ref": "#/components/schemas/S3StorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/GcsStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/LocalStorageConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -18692,7 +19271,8 @@
                         "asr",
                         "tts",
                         "llm",
-                        "embeddings"
+                        "embeddings",
+                        "storage"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -18811,6 +19391,18 @@
                             "subscriptionKey"
                           ],
                           "description": "ASR provider configuration"
+                        },
+                        {
+                          "$ref": "#/components/schemas/S3StorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AzureBlobStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GcsStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/LocalStorageConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -19093,12 +19685,45 @@
                         ]
                       },
                       "description": "LLM providers"
+                    },
+                    "storage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "List of supported features"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName"
+                        ]
+                      },
+                      "description": "Storage providers"
                     }
                   },
                   "required": [
                     "asr",
                     "tts",
-                    "llm"
+                    "llm",
+                    "storage"
                   ]
                 }
               }
@@ -19308,6 +19933,64 @@
         }
       }
     },
+    "/api/provider-catalog/storage": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get storage providers",
+        "description": "Returns information about all available storage providers including S3, Azure Blob, Google Cloud Storage, and local filesystem",
+        "responses": {
+          "200": {
+            "description": "List of storage providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "List of supported features"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName"
+                        ]
+                      },
+                      "description": "List of storage providers"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/provider-catalog/{type}/{apiType}": {
       "get": {
         "tags": [
@@ -19322,22 +20005,23 @@
               "enum": [
                 "asr",
                 "tts",
-                "llm"
+                "llm",
+                "storage"
               ],
-              "description": "Provider type (asr, tts, or llm)"
+              "description": "Provider type (asr, tts, llm, or storage)"
             },
             "required": true,
-            "description": "Provider type (asr, tts, or llm)",
+            "description": "Provider type (asr, tts, llm, or storage)",
             "name": "type",
             "in": "path"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic)"
+              "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic, s3, azure-blob, gcs, local)"
             },
             "required": true,
-            "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic)",
+            "description": "Provider API type (e.g., azure, elevenlabs, openai, anthropic, s3, azure-blob, gcs, local)",
             "name": "apiType",
             "in": "path"
           }
@@ -19458,6 +20142,34 @@
                         "apiType",
                         "displayName",
                         "models"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiType": {
+                          "type": "string",
+                          "description": "Provider API type"
+                        },
+                        "displayName": {
+                          "type": "string",
+                          "description": "Human-readable provider name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Additional information"
+                        },
+                        "features": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of supported features"
+                        }
+                      },
+                      "required": [
+                        "apiType",
+                        "displayName"
                       ]
                     }
                   ]

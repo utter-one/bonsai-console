@@ -398,6 +398,74 @@ export interface AsrConfig {
   voiceActivityDetection?: boolean;
 }
 
+export interface S3StorageConfig {
+  /** AWS access key ID */
+  accessKeyId: string;
+  /** AWS secret access key */
+  secretAccessKey: string;
+  /** AWS region (e.g., us-east-1) */
+  region: string;
+  /** Custom endpoint for S3-compatible services (e.g., MinIO) */
+  endpoint?: string;
+}
+
+export interface S3StorageSettings {
+  /** S3 bucket name */
+  bucket: string;
+  /** Key prefix for all operations (e.g., "projects/123/") */
+  prefix?: string;
+  /** Access control list for uploaded objects */
+  acl?: "private" | "public-read" | "public-read-write" | "authenticated-read";
+  /** Server-side encryption method */
+  serverSideEncryption?: "AES256" | "aws:kms";
+}
+
+export interface AzureBlobStorageConfig {
+  /** Azure storage account name */
+  accountName: string;
+  /** Azure storage account key */
+  accountKey: string;
+  /** Custom endpoint for Azure Blob Storage */
+  endpoint?: string;
+}
+
+export interface AzureBlobStorageSettings {
+  /** Azure Blob Storage container name */
+  containerName: string;
+  /** Blob prefix for all operations (e.g., "projects/123/") */
+  prefix?: string;
+  /** Access tier for uploaded blobs */
+  tier?: "Hot" | "Cool" | "Archive";
+}
+
+export interface GcsStorageConfig {
+  /** Google Cloud project ID */
+  projectId: string;
+  /** Service account key file content as JSON string */
+  keyFileJson: string;
+}
+
+export interface GcsStorageSettings {
+  /** Google Cloud Storage bucket name */
+  bucketName: string;
+  /** Object prefix for all operations (e.g., "projects/123/") */
+  prefix?: string;
+  /** Storage class for uploaded objects */
+  storageClass?: "STANDARD" | "NEARLINE" | "COLDLINE" | "ARCHIVE";
+}
+
+export interface LocalStorageConfig {
+  /** Base directory path for local storage */
+  basePath: string;
+  /** Base URL for generating file URLs (if files are served via HTTP) */
+  baseUrl?: string;
+}
+
+export interface LocalStorageSettings {
+  /** Subdirectory within basePath for this project */
+  subPath?: string;
+}
+
 export interface EndConversationEffect {
   /** Effect type */
   type: "end_conversation";
@@ -900,6 +968,17 @@ export interface CreateProjectRequest {
    * @default true
    */
   generateVoice?: boolean;
+  /** Optional storage configuration for conversation artifacts */
+  storageConfig?: {
+    /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+    storageProviderId?: string;
+    /** Storage-specific settings including bucket, prefix, etc. */
+    settings?:
+      | S3StorageSettings
+      | AzureBlobStorageSettings
+      | GcsStorageSettings
+      | LocalStorageSettings;
+  };
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, any>;
   /** Additional metadata for the project */
@@ -921,12 +1000,26 @@ export interface UpdateProjectRequest {
   acceptVoice?: boolean;
   /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
   generateVoice?: boolean;
+  /** Updated storage configuration settings */
+  storageConfig?: StorageConfig;
   /** Updated constants key-value store */
   constants?: Record<string, any>;
   /** Updated metadata for the project */
   metadata?: Record<string, any>;
   /** The current version number for optimistic locking */
   version: number;
+}
+
+/** Updated storage configuration settings */
+export interface StorageConfig {
+  /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+  storageProviderId?: string;
+  /** Storage-specific settings including bucket, prefix, etc. */
+  settings?:
+    | S3StorageSettings
+    | AzureBlobStorageSettings
+    | GcsStorageSettings
+    | LocalStorageSettings;
 }
 
 export interface ProjectResponse {
@@ -972,6 +1065,17 @@ export interface ProjectResponse {
   acceptVoice: boolean;
   /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
   generateVoice: boolean;
+  /** Storage configuration for conversation artifacts */
+  storageConfig?: {
+    /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+    storageProviderId?: string;
+    /** Storage-specific settings including bucket, prefix, etc. */
+    settings?:
+      | S3StorageSettings
+      | AzureBlobStorageSettings
+      | GcsStorageSettings
+      | LocalStorageSettings;
+  } | null;
   /** Key-value store of constants used in templating and conversation logic */
   constants: Record<string, any>;
   /** Additional metadata for the project */
@@ -1035,6 +1139,17 @@ export interface ProjectListResponse {
     acceptVoice: boolean;
     /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
     generateVoice: boolean;
+    /** Storage configuration for conversation artifacts */
+    storageConfig?: {
+      /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+      storageProviderId?: string;
+      /** Storage-specific settings including bucket, prefix, etc. */
+      settings?:
+        | S3StorageSettings
+        | AzureBlobStorageSettings
+        | GcsStorageSettings
+        | LocalStorageSettings;
+    } | null;
     /** Key-value store of constants used in templating and conversation logic */
     constants: Record<string, any>;
     /** Additional metadata for the project */
@@ -3386,7 +3501,7 @@ export interface CreateProviderRequest {
   /** Detailed description of provider purpose and use case */
   description?: string;
   /** Provider category: asr, tts, llm, or embeddings */
-  providerType: "asr" | "tts" | "llm" | "embeddings";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
   /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
   apiType: string;
   /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -3422,7 +3537,11 @@ export interface CreateProviderRequest {
         region: string;
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
-      };
+      }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig;
   /** Admin user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -3444,7 +3563,7 @@ export interface UpdateProviderRequest {
   /** Updated description of provider purpose */
   description?: string;
   /** Updated provider category */
-  providerType?: "asr" | "tts" | "llm" | "embeddings";
+  providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
   /** Updated specific provider implementation */
   apiType?: string;
   /** Updated provider-specific configuration */
@@ -3480,7 +3599,11 @@ export interface UpdateProviderRequest {
         region: string;
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
-      };
+      }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig;
   /** Updated searchable tags */
   tags?: string[];
 }
@@ -3502,7 +3625,7 @@ export interface ProviderResponse {
   /** Description of provider purpose and use case */
   description: string | null;
   /** Provider category (asr, tts, llm, embeddings) */
-  providerType: "asr" | "tts" | "llm" | "embeddings";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
   /** Specific provider implementation */
   apiType: string;
   /** Provider-specific configuration object */
@@ -3538,7 +3661,11 @@ export interface ProviderResponse {
         region: string;
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
-      };
+      }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig;
   /** Admin user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -3567,7 +3694,7 @@ export interface ProviderListResponse {
     /** Description of provider purpose and use case */
     description: string | null;
     /** Provider category (asr, tts, llm, embeddings) */
-    providerType: "asr" | "tts" | "llm" | "embeddings";
+    providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
     /** Specific provider implementation */
     apiType: string;
     /** Provider-specific configuration object */
@@ -3603,7 +3730,11 @@ export interface ProviderListResponse {
           region: string;
           /** The subscription key to use for the speech recognition service */
           subscriptionKey: string;
-        };
+        }
+      | S3StorageConfig
+      | AzureBlobStorageConfig
+      | GcsStorageConfig
+      | LocalStorageConfig;
     /** Admin user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -3765,6 +3896,17 @@ export interface ProviderCatalog {
     models: LlmModelInfo[];
     /** Additional information */
     description?: string;
+  }[];
+  /** Storage providers */
+  storage: {
+    /** Provider API type */
+    apiType: string;
+    /** Human-readable provider name */
+    displayName: string;
+    /** Additional information */
+    description?: string;
+    /** List of supported features */
+    features?: string[];
   }[];
 }
 
