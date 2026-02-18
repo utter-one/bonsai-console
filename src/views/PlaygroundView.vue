@@ -702,7 +702,7 @@
       @close="showJumpToStageDialog = false" @select="handleJumpToStage" />
 
     <RunActionModal v-if="showRunActionDialog" :global-actions="globalActions" :current-stage="currentStage"
-      @close="showRunActionDialog = false" @run="handleRunAction" />
+      @close="showRunActionDialog = false" @call="handleRunAction" />
 
     <CallToolModal v-if="showCallToolDialog" :project-id="projectId"
       @close="showCallToolDialog = false" @call="handleCallTool" />
