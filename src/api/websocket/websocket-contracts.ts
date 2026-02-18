@@ -1548,9 +1548,11 @@ export interface RunActionRequest {
    */
   actionName: string;
   /**
-   * Array of parameters to pass to the action
+   * Map of parameter names to their values
    */
-  parameters: ParameterValue[];
+  parameters: {
+    [k: string]: ParameterValue;
+  };
 }
 
 export interface RunActionResponse {
