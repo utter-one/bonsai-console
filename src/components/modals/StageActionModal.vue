@@ -24,6 +24,8 @@
           @update:operations="operations = $event"
           :active-tab="activeTab"
           @update:active-tab="activeTab = $event as TabType"
+          :parameters="parameters"
+          @update:parameters="parameters = $event"
           :available-classifiers="projectClassifiers"
           :available-stages="projectStages"
           :available-tools="projectTools"
