@@ -88,6 +88,11 @@ const emit = defineEmits<{
   'update:actionKey': [value: string]
 }>()
 
+// Safe deep clone using JSON serialization
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 const localForm = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
@@ -125,25 +130,25 @@ function removeParameter(index: number) {
 }
 
 function addVariableModification() {
-  const newOps = structuredClone(localOperations.value)
+  const newOps = deepClone(localOperations.value)
   newOps.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
 function removeVariableModification(index: number) {
-  const newOps = structuredClone(localOperations.value)
+  const newOps = deepClone(localOperations.value)
   newOps.modifyVariables.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
 
 function addProfileModification() {
-  const newOps = structuredClone(localOperations.value)
+  const newOps = deepClone(localOperations.value)
   newOps.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
 function removeProfileModification(index: number) {
-  const newOps = structuredClone(localOperations.value)
+  const newOps = deepClone(localOperations.value)
   newOps.modifyUserProfile.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
