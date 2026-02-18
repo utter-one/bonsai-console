@@ -8,7 +8,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
-import VariableDescriptorModal from '@/components/modals/VariableDescriptorModal.vue'
+import VariableTreeNode from '@/components/VariableTreeNode.vue'
 
 // Lifecycle action constants
 const LIFECYCLE_ACTIONS = {
@@ -324,45 +324,97 @@ const lifecycleActions = computed(() => {
   }))
 })
 
-// Variable descriptor management
-const showVariableDescriptorModal = ref(false)
-const editingVariableIndex = ref<number | null>(null)
-const editingVariableDescriptor = ref<any>(null)
+// Variable descriptor management with inline tree editing
+const expandedNodes = ref<Set<string>>(new Set())
 
-function addVariableDescriptor() {
-  editingVariableIndex.value = null
-  editingVariableDescriptor.value = null
-  showVariableDescriptorModal.value = true
+function getDescriptorByPath(path: number[]): any {
+  let current: any = { objectSchema: form.value.variableDescriptors }
+  for (const index of path) {
+    current = current.objectSchema[index]
+    if (!current) return null
+  }
+  return current
 }
 
-function editVariableDescriptor(index: number) {
-  const descriptor = form.value.variableDescriptors[index]
-  if (!descriptor) return
+function addRootVariable() {
+  const newDescriptor = {
+    name: 'new_variable',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  }
+  form.value.variableDescriptors.push(newDescriptor)
+}
+
+function addNestedVariable(path: number[]) {
+  const parent = getDescriptorByPath(path)
+  if (!parent) return
   
-  editingVariableIndex.value = index
-  editingVariableDescriptor.value = descriptor
-  showVariableDescriptorModal.value = true
+  if (!parent.objectSchema) {
+    parent.objectSchema = []
+  }
+  
+  const newDescriptor = {
+    name: 'new_field',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  }
+  
+  parent.objectSchema.push(newDescriptor)
+  
+  // Auto-expand parent
+  expandedNodes.value.add(path.join('-'))
 }
 
-function handleVariableDescriptorSave(descriptor: any) {
-  if (editingVariableIndex.value !== null) {
-    // Update existing
-    form.value.variableDescriptors[editingVariableIndex.value] = descriptor
+function updateVariableName(data: { path: number[]; name: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.name = data.name
+  }
+}
+
+function updateVariableType(data: { path: number[]; type: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.type = data.type
+    descriptor.isArray = data.type.endsWith('[]')
+    
+    // Clear objectSchema if changing away from object type
+    const isObject = data.type === 'object' || data.type === 'object[]'
+    if (!isObject && descriptor.objectSchema) {
+      descriptor.objectSchema = []
+    }
+  }
+}
+
+function deleteVariable(path: number[]) {
+  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
+  
+  if (path.length === 1) {
+    const index = path[0]
+    if (index !== undefined) {
+      form.value.variableDescriptors.splice(index, 1)
+    }
   } else {
-    // Add new
-    form.value.variableDescriptors.push(descriptor)
+    const parentPath = path.slice(0, -1)
+    const index = path[path.length - 1]
+    const parent = getDescriptorByPath(parentPath)
+    if (parent?.objectSchema && index !== undefined) {
+      parent.objectSchema.splice(index, 1)
+    }
   }
-  
-  showVariableDescriptorModal.value = false
-  editingVariableIndex.value = null
-  editingVariableDescriptor.value = null
 }
 
-function deleteVariableDescriptor(index: number) {
-  if (confirm('Are you sure you want to delete this variable descriptor?')) {
-    form.value.variableDescriptors.splice(index, 1)
+function toggleNode(path: number[]) {
+  const key = path.join('-')
+  if (expandedNodes.value.has(key)) {
+    expandedNodes.value.delete(key)
+  } else {
+    expandedNodes.value.add(key)
   }
 }
+
 
 </script>
 
@@ -693,16 +745,16 @@ function deleteVariableDescriptor(index: number) {
 
           <!-- Variables Tab -->
           <div v-show="activeTab === 'variables'" class="tab-content">
-            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Variable Descriptors</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Define the expected structure of stage variables. This helps document what variables are available in this stage context.
+                  Click field names to edit, change types inline
                 </p>
               </div>
               <button
                 type="button"
-                @click="addVariableDescriptor"
+                @click="addRootVariable"
                 class="btn-primary"
                 :disabled="isLoading"
               >
@@ -712,64 +764,28 @@ function deleteVariableDescriptor(index: number) {
             </div>
 
             <!-- Empty State -->
-            <div v-if="form.variableDescriptors.length === 0" class="text-center py-12">
+            <div v-if="form.variableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
               <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
               <p class="text-sm text-gray-400 dark:text-gray-500">
-                Variable descriptors help document the stage's context structure
+                Click "Add Variable" to define your first variable
               </p>
             </div>
 
-            <!-- Variables Table -->
-            <div v-else class="table-container">
-              <div class="table-wrapper">
-                <table class="table">
-                  <thead class="table-header">
-                    <tr>
-                      <th class="table-header-cell">Variable Name</th>
-                      <th class="table-header-cell">Type</th>
-                      <th class="table-header-cell">Is Array</th>
-                      <th class="table-header-cell-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody class="table-body">
-                    <tr v-for="(descriptor, index) in form.variableDescriptors" :key="index" class="table-row">
-                      <td class="table-cell">
-                        <code class="text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded font-mono">
-                          {{ descriptor.name }}
-                        </code>
-                      </td>
-                      <td class="table-cell">
-                        <span class="badge-primary text-xs">
-                          {{ descriptor.type }}
-                        </span>
-                      </td>
-                      <td class="table-cell">
-                        <span v-if="descriptor.isArray" class="text-green-600 dark:text-green-400 text-sm">Yes</span>
-                        <span v-else class="text-gray-400 text-sm">No</span>
-                      </td>
-                      <td class="table-cell-right">
-                        <div class="flex-end">
-                          <button
-                            type="button"
-                            @click="editVariableDescriptor(index)"
-                            class="btn-secondary btn-sm"
-                            :disabled="isLoading"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            @click="deleteVariableDescriptor(index)"
-                            class="btn-danger btn-sm"
-                            :disabled="isLoading"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <!-- Tree View -->
+            <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <template v-for="(descriptor, index) in form.variableDescriptors" :key="index">
+                  <VariableTreeNode
+                    :descriptor="descriptor"
+                    :path="[index]"
+                    :expanded-nodes="expandedNodes"
+                    @toggle="toggleNode"
+                    @update-name="updateVariableName"
+                    @update-type="updateVariableType"
+                    @delete="deleteVariable"
+                    @add-nested="addNestedVariable"
+                  />
+                </template>
               </div>
             </div>
           </div>
@@ -962,15 +978,6 @@ function deleteVariableDescriptor(index: number) {
       :is-lifecycle-action="isLifecycleActionKey"
       @close="showActionModal = false"
       @save="handleActionSave"
-    />
-
-    <!-- Variable Descriptor Modal -->
-    <VariableDescriptorModal
-      v-if="showVariableDescriptorModal"
-      :descriptor="editingVariableDescriptor"
-      :editing-index="editingVariableIndex"
-      @close="showVariableDescriptorModal = false"
-      @save="handleVariableDescriptorSave"
     />
   </div>
 </template>
