@@ -2037,7 +2037,7 @@ async function sendMessage() {
   }
 }
 
-async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }) {
+async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any>; parameterOrder: string[] }) {
   if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
       type: 'Error',
@@ -2057,9 +2057,8 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
       details: `Parameters: ${JSON.stringify(data.parameters)}`
     })
 
-    // Convert parameters object to array format expected by the API
-    const paramsArray = Object.values(data.parameters)
-    const result = await wsClient.value.client.value.runAction(data.actionKey, paramsArray)
+    // Pass parameters as record with order information
+    const result = await wsClient.value.client.value.runAction(data.actionKey, data.parameters, data.parameterOrder)
 
     addEvent({
       type: 'System',

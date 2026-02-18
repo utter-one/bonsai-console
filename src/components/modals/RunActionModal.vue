@@ -169,7 +169,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  call: [data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any> }]
+  call: [data: { type: 'global' | 'stage'; actionKey: string; parameters: Record<string, any>; parameterOrder: string[] }]
 }>()
 
 // State
@@ -303,11 +303,17 @@ function handleSubmit() {
     }
   }
   
+  // Get parameter order from action definition
+  const parameterOrder = selectedAction.value 
+    ? selectedAction.value.parameters.map(p => p.name)
+    : []
+  
   isSubmitting.value = true
   emit('call', {
     type: actionType.value as 'global' | 'stage',
     actionKey: selectedActionKey.value,
-    parameters: processedParams
+    parameters: processedParams,
+    parameterOrder
   })
   
   // Reset submitting state after a short delay (in case the parent doesn't close the modal immediately)
