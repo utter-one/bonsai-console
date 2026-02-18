@@ -48,17 +48,17 @@ interface ActionOperations {
 
 const props = withDefaults(
   defineProps<{
-    modelValue: ActionFormData
+    form: ActionFormData
     operations: ActionOperations
     parameters?: ActionParameter[]
-    activeTab: string
+    activeTab: { value: string }
     availableClassifiers?: Array<{ id: string; name: string }>
     availableStages?: Array<{ id: string; name: string }>
     availableTools?: ToolResponse[]
     showParameters?: boolean
     showTrigger?: boolean
     showKeyField?: boolean
-    actionKey?: string
+    actionKey?: { value: string }
     isKeyDisabled?: boolean
     showTabs?: boolean
     showMetadata?: boolean
@@ -72,7 +72,6 @@ const props = withDefaults(
     showParameters: false,
     showTrigger: true,
     showKeyField: false,
-    actionKey: '',
     isKeyDisabled: false,
     showTabs: true,
     showMetadata: false,
@@ -80,84 +79,40 @@ const props = withDefaults(
   }
 )
 
-const emit = defineEmits<{
-  'update:modelValue': [value: ActionFormData]
-  'update:operations': [value: ActionOperations]
-  'update:parameters': [value: ActionParameter[]]
-  'update:activeTab': [value: string]
-  'update:actionKey': [value: string]
-}>()
-
-const localForm = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
-})
-
-const localOperations = computed({
-  get: () => props.operations,
-  set: (val) => emit('update:operations', val)
-})
-
-const localParameters = computed({
-  get: () => props.parameters,
-  set: (val) => emit('update:parameters', val)
-})
-
-const localActiveTab = computed({
-  get: () => props.activeTab,
-  set: (val) => emit('update:activeTab', val)
-})
-
-const localKey = computed({
-  get: () => props.actionKey,
-  set: (val) => emit('update:actionKey', val)
-})
-
 function addParameter() {
-  const newParams = [...localParameters.value, { name: '', type: 'string' as const, description: '', required: false }]
-  emit('update:parameters', newParams)
+  props.parameters.push({ name: '', type: 'string' as const, description: '', required: false })
 }
 
 function removeParameter(index: number) {
-  const newParams = [...localParameters.value]
-  newParams.splice(index, 1)
-  emit('update:parameters', newParams)
+  props.parameters.splice(index, 1)
 }
 
 function addVariableModification() {
-  const newOps = { ...localOperations.value }
-  newOps.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
-  emit('update:operations', newOps)
+  props.operations.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
 }
 
 function removeVariableModification(index: number) {
-  const newOps = { ...localOperations.value }
-  newOps.modifyVariables.modifications.splice(index, 1)
-  emit('update:operations', newOps)
+  props.operations.modifyVariables.modifications.splice(index, 1)
 }
 
 function addProfileModification() {
-  const newOps = { ...localOperations.value }
-  newOps.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
-  emit('update:operations', newOps)
+  props.operations.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
 }
 
 function removeProfileModification(index: number) {
-  const newOps = { ...localOperations.value }
-  newOps.modifyUserProfile.modifications.splice(index, 1)
-  emit('update:operations', newOps)
+  props.operations.modifyUserProfile.modifications.splice(index, 1)
 }
 
 // Tool parameter helpers
 const selectedTool = computed(() => {
-  if (!localOperations.value.callTool.toolId) return null
-  return props.availableTools.find(tool => tool.id === localOperations.value.callTool.toolId) || null
+  if (!props.operations.callTool.toolId) return null
+  return props.availableTools.find(tool => tool.id === props.operations.callTool.toolId) || null
 })
 
 const toolParameters = ref<Record<string, any>>({})
 
 // Initialize tool parameters when tool changes or when loading existing data
-watch(() => [localOperations.value.callTool.toolId, props.availableTools.length] as const, ([newToolId]) => {
+watch(() => [props.operations.callTool.toolId, props.availableTools.length] as const, ([newToolId]) => {
   if (!newToolId) {
     toolParameters.value = {}
     return
@@ -167,7 +122,7 @@ watch(() => [localOperations.value.callTool.toolId, props.availableTools.length]
   if (!tool) return
   
   // Check if we already have parameters from loaded data
-  const existingParams = localOperations.value.callTool.parameters
+  const existingParams = props.operations.callTool.parameters
   const hasExistingParams = existingParams && Object.keys(existingParams).length > 0
   
   // Initialize parameters for new tool or load existing ones
@@ -223,9 +178,7 @@ watch(() => [localOperations.value.callTool.toolId, props.availableTools.length]
 
 // Watch toolParameters and sync to operations
 watch(toolParameters, (newParams) => {
-  const newOps = { ...localOperations.value }
-  newOps.callTool.parameters = { ...newParams }
-  emit('update:operations', newOps)
+  props.operations.callTool.parameters = { ...newParams }
 }, { deep: true })
 
 function getArrayValue(paramName: string): any[] {
@@ -399,9 +352,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       <nav class="-mb-px flex space-x-8 overflow-x-auto">
         <button
           type="button"
-          @click="localActiveTab = 'basic'"
+          @click="activeTab.value = 'basic'"
           :class="[
-            localActiveTab === 'basic'
+            activeTab.value === 'basic'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -412,9 +365,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <button
           v-if="showTrigger"
           type="button"
-          @click="localActiveTab = 'trigger'"
+          @click="activeTab.value = 'trigger'"
           :class="[
-            localActiveTab === 'trigger'
+            activeTab.value === 'trigger'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -425,9 +378,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <button
           v-if="showParameters"
           type="button"
-          @click="localActiveTab = 'parameters'"
+          @click="activeTab.value = 'parameters'"
           :class="[
-            localActiveTab === 'parameters'
+            activeTab.value === 'parameters'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -437,9 +390,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         </button>
         <button
           type="button"
-          @click="localActiveTab = 'effects'"
+          @click="activeTab.value = 'effects'"
           :class="[
-            localActiveTab === 'effects'
+            activeTab.value === 'effects'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -448,11 +401,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Effects
         </button>
         <button
-          v-if="localOperations.goToStage.enabled"
+          v-if="operations.goToStage.enabled"
           type="button"
-          @click="localActiveTab = 'goToStage'"
+          @click="activeTab.value = 'goToStage'"
           :class="[
-            localActiveTab === 'goToStage'
+            activeTab.value === 'goToStage'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -461,11 +414,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Go To Stage
         </button>
         <button
-          v-if="localOperations.runScript.enabled"
+          v-if="operations.runScript.enabled"
           type="button"
-          @click="localActiveTab = 'runScript'"
+          @click="activeTab.value = 'runScript'"
           :class="[
-            localActiveTab === 'runScript'
+            activeTab.value === 'runScript'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -474,11 +427,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Run Script
         </button>
         <button
-          v-if="localOperations.modifyUserInput.enabled"
+          v-if="operations.modifyUserInput.enabled"
           type="button"
-          @click="localActiveTab = 'modifyUserInput'"
+          @click="activeTab.value = 'modifyUserInput'"
           :class="[
-            localActiveTab === 'modifyUserInput'
+            activeTab.value === 'modifyUserInput'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -487,11 +440,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Modify User Input
         </button>
         <button
-          v-if="localOperations.modifyVariables.enabled"
+          v-if="operations.modifyVariables.enabled"
           type="button"
-          @click="localActiveTab = 'modifyVariables'"
+          @click="activeTab.value = 'modifyVariables'"
           :class="[
-            localActiveTab === 'modifyVariables'
+            activeTab.value === 'modifyVariables'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -500,11 +453,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Modify Variables
         </button>
         <button
-          v-if="localOperations.modifyUserProfile.enabled"
+          v-if="operations.modifyUserProfile.enabled"
           type="button"
-          @click="localActiveTab = 'modifyUserProfile'"
+          @click="activeTab.value = 'modifyUserProfile'"
           :class="[
-            localActiveTab === 'modifyUserProfile'
+            activeTab.value === 'modifyUserProfile'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -513,11 +466,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Modify User Profile
         </button>
         <button
-          v-if="localOperations.callTool.enabled"
+          v-if="operations.callTool.enabled"
           type="button"
-          @click="localActiveTab = 'callTool'"
+          @click="activeTab.value = 'callTool'"
           :class="[
-            localActiveTab === 'callTool'
+            activeTab.value === 'callTool'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -526,11 +479,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Call Tool
         </button>
         <button
-          v-if="localOperations.callWebhook.enabled"
+          v-if="operations.callWebhook.enabled"
           type="button"
-          @click="localActiveTab = 'callWebhook'"
+          @click="activeTab.value = 'callWebhook'"
           :class="[
-            localActiveTab === 'callWebhook'
+            activeTab.value === 'callWebhook'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -541,9 +494,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <button
           v-if="showMetadata"
           type="button"
-          @click="localActiveTab = 'metadata'"
+          @click="activeTab.value = 'metadata'"
           :class="[
-            localActiveTab === 'metadata'
+            activeTab.value === 'metadata'
               ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
@@ -556,13 +509,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
     <div class="space-y-6">
     <!-- Basic Tab -->
-    <div v-show="localActiveTab === 'basic'" class="space-y-6">
-      <div v-if="showKeyField" class="form-group">
+    <div v-show="activeTab.value === 'basic'" class="space-y-6">
+      <div v-if="showKeyField && actionKey" class="form-group">
         <label class="form-label">
           Action Key <span class="required">*</span>
         </label>
         <input
-          v-model="localKey"
+          v-model="actionKey.value"
           type="text"
           required
           placeholder="transfer_to_agent"
@@ -579,7 +532,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Display Name <span class="required">*</span>
         </label>
         <input
-          v-model="localForm.name"
+          v-model="form.name"
           type="text"
           required
           placeholder="Transfer to Human Agent"
@@ -595,7 +548,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Examples <span class="text-gray-500">(optional, one per line)</span>
         </label>
         <textarea
-          v-model="localForm.examples"
+          v-model="form.examples"
           rows="4"
           class="form-textarea"
           placeholder="I want to speak with someone&#10;Can I talk to an agent?&#10;Transfer me to a human"
@@ -607,13 +560,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Trigger Tab -->
-    <div v-show="localActiveTab === 'trigger'" class="space-y-6">
+    <div v-show="activeTab.value === 'trigger'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">Trigger Options <span class="required">*</span></label>
         <div class="space-y-2">
           <label class="flex items-center cursor-pointer">
             <input
-              v-model="localForm.triggerOnUserInput"
+              v-model="form.triggerOnUserInput"
               type="checkbox"
               class="form-checkbox"
             />
@@ -623,7 +576,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           </label>
           <label class="flex items-center cursor-pointer">
             <input
-              v-model="localForm.triggerOnClientCommand"
+              v-model="form.triggerOnClientCommand"
               type="checkbox"
               class="form-checkbox"
             />
@@ -642,7 +595,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Classification Trigger <span class="text-gray-500">(optional)</span>
         </label>
         <input
-          v-model="localForm.classificationTrigger"
+          v-model="form.classificationTrigger"
           type="text"
           placeholder="transfer_request"
           class="form-input"
@@ -657,7 +610,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Override Classifier ID <span class="text-gray-500">(optional)</span>
         </label>
         <select
-          v-model="localForm.overrideClassifierId"
+          v-model="form.overrideClassifierId"
           class="form-select-auto"
         >
           <option value="">No override (use stage default classifier)</option>
@@ -675,7 +628,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Condition <span class="text-gray-500">(optional)</span>
         </label>
         <input
-          v-model="localForm.condition"
+          v-model="form.condition"
           type="text"
           placeholder="context.variables.agent_available === true"
           class="form-input font-mono text-sm"
@@ -687,7 +640,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Parameters Tab -->
-    <div v-if="showParameters" v-show="localActiveTab === 'parameters'" class="space-y-6">
+    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">Action Parameters</label>
         <p class="form-help-text mb-3">
@@ -695,7 +648,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         </p>
         <div class="space-y-4">
           <div
-            v-for="(param, index) in localParameters"
+            v-for="(param, index) in parameters"
             :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
@@ -784,7 +737,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Effects Tab -->
-    <div v-show="localActiveTab === 'effects'" class="space-y-6">
+    <div v-show="activeTab.value === 'effects'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">Select Effects</label>
         <p class="form-help-text mb-3">
@@ -793,7 +746,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-3">
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.generateResponse.enabled"
+              v-model="operations.generateResponse.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -805,7 +758,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.endConversation.enabled"
+              v-model="operations.endConversation.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -817,7 +770,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.abortConversation.enabled"
+              v-model="operations.abortConversation.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -829,7 +782,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.goToStage.enabled"
+              v-model="operations.goToStage.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -841,7 +794,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.runScript.enabled"
+              v-model="operations.runScript.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -853,7 +806,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.modifyUserInput.enabled"
+              v-model="operations.modifyUserInput.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -865,7 +818,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.modifyVariables.enabled"
+              v-model="operations.modifyVariables.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -877,7 +830,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.modifyUserProfile.enabled"
+              v-model="operations.modifyUserProfile.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -889,7 +842,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.callTool.enabled"
+              v-model="operations.callTool.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -901,7 +854,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="localOperations.callWebhook.enabled"
+              v-model="operations.callWebhook.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
             />
@@ -915,14 +868,14 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Go To Stage Tab -->
-    <div v-show="localActiveTab === 'goToStage'" class="space-y-6">
+    <div v-show="activeTab.value === 'goToStage'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">
           Target Stage <span class="required">*</span>
         </label>
         <select
-          v-model="localOperations.goToStage.stageId"
-          :required="localOperations.goToStage.enabled"
+          v-model="operations.goToStage.stageId"
+          :required="operations.goToStage.enabled"
           class="form-select-auto"
         >
           <option value="">Select a stage...</option>
@@ -937,15 +890,15 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Run Script Tab -->
-    <div v-show="localActiveTab === 'runScript'" class="space-y-6">
+    <div v-show="activeTab.value === 'runScript'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">
           JavaScript Code <span class="required">*</span>
         </label>
         <textarea
-          v-model="localOperations.runScript.code"
+          v-model="operations.runScript.code"
           rows="10"
-          :required="localOperations.runScript.enabled"
+          :required="operations.runScript.enabled"
           class="form-textarea font-mono text-sm"
           placeholder="// Available: context, user, conversation&#10;const result = context.variables.count + 1;&#10;return { count: result };"
         ></textarea>
@@ -956,15 +909,15 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify User Input Tab -->
-    <div v-show="localActiveTab === 'modifyUserInput'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyUserInput'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">
           Template <span class="required">*</span>
         </label>
         <textarea
-          v-model="localOperations.modifyUserInput.template"
+          v-model="operations.modifyUserInput.template"
           rows="4"
-          :required="localOperations.modifyUserInput.enabled"
+          :required="operations.modifyUserInput.enabled"
           class="form-textarea"
           placeholder="User wants to {{user.input}}"
         ></textarea>
@@ -975,12 +928,12 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify Variables Tab -->
-    <div v-show="localActiveTab === 'modifyVariables'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyVariables'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">Variable Modifications</label>
         <div class="space-y-4">
           <div
-            v-for="(mod, index) in localOperations.modifyVariables.modifications"
+            v-for="(mod, index) in operations.modifyVariables.modifications"
             :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
@@ -1038,12 +991,12 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify User Profile Tab -->
-    <div v-show="localActiveTab === 'modifyUserProfile'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyUserProfile'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">Profile Modifications</label>
         <div class="space-y-4">
           <div
-            v-for="(mod, index) in localOperations.modifyUserProfile.modifications"
+            v-for="(mod, index) in operations.modifyUserProfile.modifications"
             :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
@@ -1101,14 +1054,14 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Call Tool Tab -->
-    <div v-show="localActiveTab === 'callTool'" class="space-y-6">
+    <div v-show="activeTab.value === 'callTool'" class="space-y-6">
       <!-- Tool Dropdown -->
       <div class="form-group">
         <label class="form-label">Tool <span class="required">*</span></label>
         <select 
-          v-model="localOperations.callTool.toolId" 
+          v-model="operations.callTool.toolId" 
           class="form-select-auto"
-          :required="localOperations.callTool.enabled"
+          :required="operations.callTool.enabled"
         >
           <option :value="''">Select a tool...</option>
           <option v-for="tool in availableTools" :key="tool.id" :value="tool.id">
@@ -1332,15 +1285,15 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Call Webhook Tab -->
-    <div v-show="localActiveTab === 'callWebhook'" class="space-y-6">
+    <div v-show="activeTab.value === 'callWebhook'" class="space-y-6">
       <div class="form-group">
         <label class="form-label">
           URL <span class="required">*</span>
         </label>
         <input
-          v-model="localOperations.callWebhook.url"
+          v-model="operations.callWebhook.url"
           type="url"
-          :required="localOperations.callWebhook.enabled"
+          :required="operations.callWebhook.enabled"
           placeholder="https://api.example.com/webhook"
           class="form-input font-mono"
         />
@@ -1353,7 +1306,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <label class="form-label">
           HTTP Method <span class="required">*</span>
         </label>
-        <select v-model="localOperations.callWebhook.method" class="form-select-auto" :required="localOperations.callWebhook.enabled">
+        <select v-model="operations.callWebhook.method" class="form-select-auto" :required="operations.callWebhook.enabled">
           <option value="GET">GET</option>
           <option value="POST">POST</option>
           <option value="PUT">PUT</option>
@@ -1367,7 +1320,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Headers <span class="text-gray-500">(optional, JSON)</span>
         </label>
         <textarea
-          v-model="localOperations.callWebhook.headers"
+          v-model="operations.callWebhook.headers"
           rows="4"
           class="form-textarea font-mono text-sm"
           placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer token"\n}'
@@ -1382,7 +1335,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Body <span class="text-gray-500">(optional, JSON)</span>
         </label>
         <textarea
-          v-model="localOperations.callWebhook.body"
+          v-model="operations.callWebhook.body"
           rows="6"
           class="form-textarea font-mono text-sm"
           placeholder='{\n  "userId": "{{user.id}}",\n  "message": "{{user.input}}"\n}'
@@ -1397,9 +1350,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Result Key <span class="required">*</span>
         </label>
         <input
-          v-model="localOperations.callWebhook.resultKey"
+          v-model="operations.callWebhook.resultKey"
           type="text"
-          :required="localOperations.callWebhook.enabled"
+          :required="operations.callWebhook.enabled"
           placeholder="webhookResult"
           class="form-input font-mono"
         />
@@ -1410,7 +1363,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Metadata Tab -->
-    <div v-show="localActiveTab === 'metadata'" class="space-y-6">
+    <div v-show="activeTab.value === 'metadata'" class="space-y-6">
       <MetadataTab
         v-if="showMetadata && metadataFields.length > 0"
         :fields="metadataFields"

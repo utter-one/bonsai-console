@@ -18,20 +18,15 @@
       <form @submit.prevent="handleSubmit" class="flex flex-col" style="height: calc(100% - 80px);">
         <!-- Use shared ActionForm component -->
         <ActionForm
-          :model-value="form"
-          @update:model-value="form = $event"
+          :form="form"
           :operations="operations"
-          @update:operations="operations = $event"
           :active-tab="activeTab"
-          @update:active-tab="activeTab = $event as TabType"
           :parameters="parameters"
-          @update:parameters="parameters = $event"
           :available-classifiers="projectClassifiers"
           :available-stages="projectStages"
           :available-tools="projectTools"
           :show-key-field="!isLifecycleAction"
           :action-key="actionKey"
-          @update:action-key="actionKey = $event"
           :is-key-disabled="!!editingKey"
           :show-parameters="!isLifecycleAction"
           :show-trigger="!isLifecycleAction"
@@ -52,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
@@ -124,10 +119,10 @@ const emit = defineEmits<{
 
 type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
 
-const activeTab = ref<TabType>('basic')
+const activeTab = reactive({ value: 'basic' as TabType })
 
 // Action key is separate since ActionForm doesn't include it
-const actionKey = ref('')
+const actionKey = reactive({ value: '' })
 
 const form = ref({
   name: '',

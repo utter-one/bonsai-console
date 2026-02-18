@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save } from 'lucide-vue-next'
@@ -20,7 +20,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook' | 'metadata'
-const activeTab = ref<TabType>('basic')
+const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
 const actionId = ref('')
@@ -237,7 +237,7 @@ const metadataFields = computed(() => {
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <!-- Action ID Field (only for create mode) -->
-          <div v-show="activeTab === 'basic' && !isEditMode" class="form-group">
+          <div v-show="activeTab.value === 'basic' && !isEditMode" class="form-group">
             <label class="form-label">
               Action ID <span class="text-gray-500">(optional, auto-generated)</span>
             </label>
@@ -254,12 +254,9 @@ const metadataFields = computed(() => {
 
           <!-- Use shared ActionForm component with all tabs including metadata -->
           <ActionForm
-            :model-value="form"
-            @update:model-value="form = $event"
+            :form="form"
             :operations="operations"
-            @update:operations="operations = $event"
             :active-tab="activeTab"
-            @update:active-tab="activeTab = $event as TabType"
             :available-classifiers="projectClassifiers"
             :available-stages="projectStages"
             :available-tools="projectTools"
