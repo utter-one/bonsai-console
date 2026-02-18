@@ -949,6 +949,49 @@
           }
         }
       },
+      "FieldDescriptor": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Local name of the field"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "string[]",
+              "number[]",
+              "boolean[]",
+              "object[]",
+              "image",
+              "image[]",
+              "audio",
+              "audio[]"
+            ],
+            "description": "Type of the field value"
+          },
+          "isArray": {
+            "type": "boolean",
+            "description": "Whether this field holds an array of values"
+          },
+          "objectSchema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Nested field definitions for object types"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "isArray"
+        ]
+      },
       "EndConversationEffect": {
         "type": "object",
         "properties": {
@@ -5450,12 +5493,13 @@
             "default": [],
             "description": "List of global action IDs available in this stage"
           },
-          "variables": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
+          "variableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
             },
-            "description": "Variable definitions for this stage"
+            "default": [],
+            "description": "Variable descriptor definitions for this stage"
           },
           "actions": {
             "type": "object",
@@ -5569,12 +5613,12 @@
             },
             "description": "Updated global action IDs"
           },
-          "variables": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
+          "variableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
             },
-            "description": "Updated variable definitions"
+            "description": "Updated variable descriptor definitions"
           },
           "actions": {
             "type": "object",
@@ -5708,12 +5752,12 @@
             },
             "description": "Global action IDs available in this stage"
           },
-          "variables": {
-            "type": "object",
-            "additionalProperties": {
-              "nullable": true
+          "variableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
             },
-            "description": "Variable definitions"
+            "description": "Variable descriptor definitions"
           },
           "actions": {
             "type": "object",
@@ -5772,7 +5816,7 @@
           "knowledgeSections",
           "useGlobalActions",
           "globalActions",
-          "variables",
+          "variableDescriptors",
           "actions",
           "defaultClassifierId",
           "transformerIds",
@@ -5870,12 +5914,12 @@
                   },
                   "description": "Global action IDs available in this stage"
                 },
-                "variables": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "nullable": true
+                "variableDescriptors": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldDescriptor"
                   },
-                  "description": "Variable definitions"
+                  "description": "Variable descriptor definitions"
                 },
                 "actions": {
                   "type": "object",
@@ -5934,7 +5978,7 @@
                 "knowledgeSections",
                 "useGlobalActions",
                 "globalActions",
-                "variables",
+                "variableDescriptors",
                 "actions",
                 "defaultClassifierId",
                 "transformerIds",
@@ -23139,12 +23183,13 @@
                     "default": [],
                     "description": "List of global action IDs available in this stage"
                   },
-                  "variables": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
+                  "variableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
                     },
-                    "description": "Variable definitions for this stage"
+                    "default": [],
+                    "description": "Variable descriptor definitions for this stage"
                   },
                   "actions": {
                     "type": "object",
@@ -23272,12 +23317,12 @@
                       },
                       "description": "Global action IDs available in this stage"
                     },
-                    "variables": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                    "variableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
                       },
-                      "description": "Variable definitions"
+                      "description": "Variable descriptor definitions"
                     },
                     "actions": {
                       "type": "object",
@@ -23336,7 +23381,7 @@
                     "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
-                    "variables",
+                    "variableDescriptors",
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
@@ -23586,12 +23631,12 @@
                             },
                             "description": "Global action IDs available in this stage"
                           },
-                          "variables": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "nullable": true
+                          "variableDescriptors": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FieldDescriptor"
                             },
-                            "description": "Variable definitions"
+                            "description": "Variable descriptor definitions"
                           },
                           "actions": {
                             "type": "object",
@@ -23650,7 +23695,7 @@
                           "knowledgeSections",
                           "useGlobalActions",
                           "globalActions",
-                          "variables",
+                          "variableDescriptors",
                           "actions",
                           "defaultClassifierId",
                           "transformerIds",
@@ -23804,12 +23849,12 @@
                       },
                       "description": "Global action IDs available in this stage"
                     },
-                    "variables": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                    "variableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
                       },
-                      "description": "Variable definitions"
+                      "description": "Variable descriptor definitions"
                     },
                     "actions": {
                       "type": "object",
@@ -23868,7 +23913,7 @@
                     "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
-                    "variables",
+                    "variableDescriptors",
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
@@ -23985,12 +24030,12 @@
                     },
                     "description": "Updated global action IDs"
                   },
-                  "variables": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
+                  "variableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
                     },
-                    "description": "Updated variable definitions"
+                    "description": "Updated variable descriptor definitions"
                   },
                   "actions": {
                     "type": "object",
@@ -24119,12 +24164,12 @@
                       },
                       "description": "Global action IDs available in this stage"
                     },
-                    "variables": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "nullable": true
+                    "variableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
                       },
-                      "description": "Variable definitions"
+                      "description": "Variable descriptor definitions"
                     },
                     "actions": {
                       "type": "object",
@@ -24183,7 +24228,7 @@
                     "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
-                    "variables",
+                    "variableDescriptors",
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",

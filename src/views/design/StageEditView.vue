@@ -8,6 +8,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
+import VariableTreeNode from '@/components/VariableTreeNode.vue'
 
 // Lifecycle action constants
 const LIFECYCLE_ACTIONS = {
@@ -51,7 +52,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'actions' | 'lifecycle' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const editingActionKey = ref<string | null>(null)
@@ -70,7 +71,12 @@ const form = ref({
   knowledgeSections: [] as string[],
   useGlobalActions: false,
   globalActions: [] as string[],
-  variables: {},
+  variableDescriptors: [] as Array<{
+    name: string
+    type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
+    isArray: boolean
+    objectSchema?: Array<any>
+  }>,
   actions: {} as Record<string, StageAction>,
   defaultClassifierId: '',
   transformerIds: [] as string[],
@@ -138,7 +144,7 @@ async function loadStage() {
         knowledgeSections: currentStage.value.knowledgeSections || [],
         useGlobalActions: currentStage.value.useGlobalActions,
         globalActions: currentStage.value.globalActions || [],
-        variables: currentStage.value.variables || {},
+        variableDescriptors: currentStage.value.variableDescriptors || [],
         actions: currentStage.value.actions || {},
         defaultClassifierId: currentStage.value.defaultClassifierId || '',
         transformerIds: currentStage.value.transformerIds || [],
@@ -172,7 +178,7 @@ async function handleSubmit() {
         knowledgeSections: form.value.knowledgeSections,
         useGlobalActions: form.value.useGlobalActions,
         globalActions: form.value.globalActions,
-        variables: form.value.variables,
+        variableDescriptors: form.value.variableDescriptors,
         actions: form.value.actions,
         defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
@@ -192,7 +198,7 @@ async function handleSubmit() {
         knowledgeSections: form.value.knowledgeSections,
         useGlobalActions: form.value.useGlobalActions,
         globalActions: form.value.globalActions,
-        variables: form.value.variables,
+        variableDescriptors: form.value.variableDescriptors,
         actions: form.value.actions,
         defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
@@ -317,6 +323,99 @@ const lifecycleActions = computed(() => {
     isConfigured: isLifecycleActionConfigured(key),
   }))
 })
+
+// Variable descriptor management with inline tree editing
+const expandedNodes = ref<Set<string>>(new Set())
+
+function getDescriptorByPath(path: number[]): any {
+  let current: any = { objectSchema: form.value.variableDescriptors }
+  for (const index of path) {
+    current = current.objectSchema[index]
+    if (!current) return null
+  }
+  return current
+}
+
+function addRootVariable() {
+  const newDescriptor = {
+    name: 'new_variable',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  }
+  form.value.variableDescriptors.push(newDescriptor)
+}
+
+function addNestedVariable(path: number[]) {
+  const parent = getDescriptorByPath(path)
+  if (!parent) return
+  
+  if (!parent.objectSchema) {
+    parent.objectSchema = []
+  }
+  
+  const newDescriptor = {
+    name: 'new_field',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  }
+  
+  parent.objectSchema.push(newDescriptor)
+  
+  // Auto-expand parent
+  expandedNodes.value.add(path.join('-'))
+}
+
+function updateVariableName(data: { path: number[]; name: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.name = data.name
+  }
+}
+
+function updateVariableType(data: { path: number[]; type: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.type = data.type
+    descriptor.isArray = data.type.endsWith('[]')
+    
+    // Clear objectSchema if changing away from object type
+    const isObject = data.type === 'object' || data.type === 'object[]'
+    if (!isObject && descriptor.objectSchema) {
+      descriptor.objectSchema = []
+    }
+  }
+}
+
+function deleteVariable(path: number[]) {
+  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
+  
+  if (path.length === 1) {
+    const index = path[0]
+    if (index !== undefined) {
+      form.value.variableDescriptors.splice(index, 1)
+    }
+  } else {
+    const parentPath = path.slice(0, -1)
+    const index = path[path.length - 1]
+    const parent = getDescriptorByPath(parentPath)
+    if (parent?.objectSchema && index !== undefined) {
+      parent.objectSchema.splice(index, 1)
+    }
+  }
+}
+
+function toggleNode(path: number[]) {
+  const key = path.join('-')
+  if (expandedNodes.value.has(key)) {
+    expandedNodes.value.delete(key)
+  } else {
+    expandedNodes.value.add(key)
+  }
+}
+
+
 </script>
 
 <template>
@@ -368,6 +467,13 @@ const lifecycleActions = computed(() => {
           type="button"
         >
           Features & Integrations
+        </button>
+        <button
+          @click="activeTab = 'variables'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'variables' }]"
+          type="button"
+        >
+          Variables
         </button>
         <button
           @click="activeTab = 'actions'"
@@ -633,6 +739,53 @@ const lifecycleActions = computed(() => {
                     No transformers available for this project
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Variables Tab -->
+          <div v-show="activeTab === 'variables'" class="tab-content">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Variable Descriptors</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Click field names to edit, change types inline
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="addRootVariable"
+                class="btn-primary"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Variable
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="form.variableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+              <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500">
+                Click "Add Variable" to define your first variable
+              </p>
+            </div>
+
+            <!-- Tree View -->
+            <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <template v-for="(descriptor, index) in form.variableDescriptors" :key="index">
+                  <VariableTreeNode
+                    :descriptor="descriptor"
+                    :path="[index]"
+                    :expanded-nodes="expandedNodes"
+                    @toggle="toggleNode"
+                    @update-name="updateVariableName"
+                    @update-type="updateVariableType"
+                    @delete="deleteVariable"
+                    @add-nested="addNestedVariable"
+                  />
+                </template>
               </div>
             </div>
           </div>

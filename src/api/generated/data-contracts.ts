@@ -504,6 +504,29 @@ export interface LocalStorageSettings {
   subPath?: string;
 }
 
+export interface FieldDescriptor {
+  /** Local name of the field */
+  name: string;
+  /** Type of the field value */
+  type:
+    | "string"
+    | "number"
+    | "boolean"
+    | "object"
+    | "string[]"
+    | "number[]"
+    | "boolean[]"
+    | "object[]"
+    | "image"
+    | "image[]"
+    | "audio"
+    | "audio[]";
+  /** Whether this field holds an array of values */
+  isArray: boolean;
+  /** Nested field definitions for object types */
+  objectSchema?: FieldDescriptor[];
+}
+
 export interface EndConversationEffect {
   /** Effect type */
   type: "end_conversation";
@@ -2570,8 +2593,11 @@ export interface CreateStageRequest {
    * @default []
    */
   globalActions?: string[];
-  /** Variable definitions for this stage */
-  variables?: Record<string, any>;
+  /**
+   * Variable descriptor definitions for this stage
+   * @default []
+   */
+  variableDescriptors?: FieldDescriptor[];
   /** Action definitions for this stage */
   actions?: Record<string, StageAction>;
   /** ID of the default classifier to use for this stage (can be overridden per action) */
@@ -2621,8 +2647,8 @@ export interface UpdateStageRequest {
   useGlobalActions?: boolean;
   /** Updated global action IDs */
   globalActions?: string[];
-  /** Updated variable definitions */
-  variables?: Record<string, any>;
+  /** Updated variable descriptor definitions */
+  variableDescriptors?: FieldDescriptor[];
   /** Updated action definitions */
   actions?: Record<string, StageAction>;
   /** Updated default classifier ID */
@@ -2677,8 +2703,8 @@ export interface StageResponse {
   useGlobalActions: boolean;
   /** Global action IDs available in this stage */
   globalActions: string[];
-  /** Variable definitions */
-  variables: Record<string, any>;
+  /** Variable descriptor definitions */
+  variableDescriptors: FieldDescriptor[];
   /** Action definitions */
   actions: Record<string, StageAction>;
   /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
@@ -2734,8 +2760,8 @@ export interface StageListResponse {
     useGlobalActions: boolean;
     /** Global action IDs available in this stage */
     globalActions: string[];
-    /** Variable definitions */
-    variables: Record<string, any>;
+    /** Variable descriptor definitions */
+    variableDescriptors: FieldDescriptor[];
     /** Action definitions */
     actions: Record<string, StageAction>;
     /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
