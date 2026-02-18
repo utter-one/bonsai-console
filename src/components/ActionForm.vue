@@ -4,6 +4,7 @@ import MetadataTab from './MetadataTab.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
+  _id?: string
   name: string
   type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
   description: string
@@ -29,11 +30,11 @@ interface ActionOperations {
   modifyUserInput: { enabled: boolean; template: string }
   modifyVariables: {
     enabled: boolean
-    modifications: Array<{ variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    modifications: Array<{ _id?: string; variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   modifyUserProfile: {
     enabled: boolean
-    modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    modifications: Array<{ _id?: string; fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
   callWebhook: {
@@ -113,8 +114,11 @@ const localKey = computed({
   set: (val) => emit('update:actionKey', val)
 })
 
+// Counter for generating unique IDs for modifications
+let modificationIdCounter = 0
+
 function addParameter() {
-  const newParams = [...localParameters.value, { name: '', type: 'string' as const, description: '', required: false }]
+  const newParams = [...localParameters.value, { _id: `param_${++modificationIdCounter}`, name: '', type: 'string' as const, description: '', required: false }]
   emit('update:parameters', newParams)
 }
 
@@ -126,7 +130,7 @@ function removeParameter(index: number) {
 
 function addVariableModification() {
   const newOps = { ...localOperations.value }
-  newOps.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
+  newOps.modifyVariables.modifications.push({ _id: `mod_${++modificationIdCounter}`, variableName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
@@ -138,7 +142,7 @@ function removeVariableModification(index: number) {
 
 function addProfileModification() {
   const newOps = { ...localOperations.value }
-  newOps.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
+  newOps.modifyUserProfile.modifications.push({ _id: `prof_${++modificationIdCounter}`, fieldName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
@@ -147,6 +151,47 @@ function removeProfileModification(index: number) {
   newOps.modifyUserProfile.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
+
+// Ensure existing modifications have unique IDs (for loaded data)
+watch(() => props.operations, (newOps) => {
+  let needsUpdate = false
+  
+  // Check and assign IDs to variable modifications
+  for (const mod of newOps.modifyVariables.modifications) {
+    if (!mod._id) {
+      mod._id = `mod_${++modificationIdCounter}`
+      needsUpdate = true
+    }
+  }
+  
+  // Check and assign IDs to profile modifications
+  for (const mod of newOps.modifyUserProfile.modifications) {
+    if (!mod._id) {
+      mod._id = `prof_${++modificationIdCounter}`
+      needsUpdate = true
+    }
+  }
+  
+  if (needsUpdate) {
+    emit('update:operations', { ...newOps })
+  }
+}, { immediate: true, deep: true })
+
+// Ensure existing parameters have unique IDs (for loaded data)
+watch(() => props.parameters, (newParams) => {
+  let needsUpdate = false
+  
+  for (const param of newParams) {
+    if (!param._id) {
+      param._id = `param_${++modificationIdCounter}`
+      needsUpdate = true
+    }
+  }
+  
+  if (needsUpdate) {
+    emit('update:parameters', [...newParams])
+  }
+}, { immediate: true, deep: true })
 
 // Tool parameter helpers
 const selectedTool = computed(() => {
@@ -696,7 +741,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(param, index) in localParameters"
-            :key="index"
+            :key="param._id || index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -981,7 +1026,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(mod, index) in localOperations.modifyVariables.modifications"
-            :key="index"
+            :key="mod._id || index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -1044,7 +1089,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(mod, index) in localOperations.modifyUserProfile.modifications"
-            :key="index"
+            :key="mod._id || index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -1224,7 +1269,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
             <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
               <div 
                 v-for="(_item, index) in getArrayValue(param.name)" 
-                :key="index"
+                :key="`${param.name}-${index}`"
                 class="flex gap-2"
               >
                 <input 
