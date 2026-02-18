@@ -4,9 +4,8 @@ import MetadataTab from './MetadataTab.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
-  _id?: string
   name: string
-  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]'
   description: string
   required: boolean
 }
@@ -30,11 +29,11 @@ interface ActionOperations {
   modifyUserInput: { enabled: boolean; template: string }
   modifyVariables: {
     enabled: boolean
-    modifications: Array<{ _id?: string; variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    modifications: Array<{ variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   modifyUserProfile: {
     enabled: boolean
-    modifications: Array<{ _id?: string; fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
   callWebhook: {
@@ -114,11 +113,8 @@ const localKey = computed({
   set: (val) => emit('update:actionKey', val)
 })
 
-// Counter for generating unique IDs for modifications
-let modificationIdCounter = 0
-
 function addParameter() {
-  const newParams = [...localParameters.value, { _id: `param_${++modificationIdCounter}`, name: '', type: 'string' as const, description: '', required: false }]
+  const newParams = [...localParameters.value, { name: '', type: 'string' as const, description: '', required: false }]
   emit('update:parameters', newParams)
 }
 
@@ -130,7 +126,7 @@ function removeParameter(index: number) {
 
 function addVariableModification() {
   const newOps = { ...localOperations.value }
-  newOps.modifyVariables.modifications.push({ _id: `mod_${++modificationIdCounter}`, variableName: '', operation: 'set', value: '' })
+  newOps.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
@@ -142,7 +138,7 @@ function removeVariableModification(index: number) {
 
 function addProfileModification() {
   const newOps = { ...localOperations.value }
-  newOps.modifyUserProfile.modifications.push({ _id: `prof_${++modificationIdCounter}`, fieldName: '', operation: 'set', value: '' })
+  newOps.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
@@ -151,47 +147,6 @@ function removeProfileModification(index: number) {
   newOps.modifyUserProfile.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
-
-// Ensure existing modifications have unique IDs (for loaded data)
-watch(() => props.operations, (newOps) => {
-  let needsUpdate = false
-  
-  // Check and assign IDs to variable modifications
-  for (const mod of newOps.modifyVariables.modifications) {
-    if (!mod._id) {
-      mod._id = `mod_${++modificationIdCounter}`
-      needsUpdate = true
-    }
-  }
-  
-  // Check and assign IDs to profile modifications
-  for (const mod of newOps.modifyUserProfile.modifications) {
-    if (!mod._id) {
-      mod._id = `prof_${++modificationIdCounter}`
-      needsUpdate = true
-    }
-  }
-  
-  if (needsUpdate) {
-    emit('update:operations', { ...newOps })
-  }
-}, { immediate: true, deep: true })
-
-// Ensure existing parameters have unique IDs (for loaded data)
-watch(() => props.parameters, (newParams) => {
-  let needsUpdate = false
-  
-  for (const param of newParams) {
-    if (!param._id) {
-      param._id = `param_${++modificationIdCounter}`
-      needsUpdate = true
-    }
-  }
-  
-  if (needsUpdate) {
-    emit('update:parameters', [...newParams])
-  }
-}, { immediate: true, deep: true })
 
 // Tool parameter helpers
 const selectedTool = computed(() => {
@@ -293,10 +248,6 @@ function addArrayItem(paramName: string, paramType: string) {
     toolParameters.value[paramName].push(false)
   } else if (paramType === 'object[]') {
     toolParameters.value[paramName].push('{}')
-  } else if (paramType === 'image[]') {
-    toolParameters.value[paramName].push(null)
-  } else if (paramType === 'audio[]') {
-    toolParameters.value[paramName].push(null)
   }
 }
 
@@ -304,136 +255,6 @@ function removeArrayItem(paramName: string, index: number) {
   if (Array.isArray(toolParameters.value[paramName])) {
     toolParameters.value[paramName].splice(index, 1)
   }
-}
-
-function handleImageUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    // Create image to get dimensions
-    const img = new Image()
-    img.onload = () => {
-      toolParameters.value[paramName] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
-}
-
-function handleAudioUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    
-    // Determine format from MIME type
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    
-    toolParameters.value[paramName] = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
-  }
-  reader.readAsDataURL(file)
-}
-
-function handleImageArrayUpload(event: Event, paramName: string, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    const img = new Image()
-    img.onload = () => {
-      if (!Array.isArray(toolParameters.value[paramName])) {
-        toolParameters.value[paramName] = []
-      }
-      toolParameters.value[paramName][index] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
-}
-
-function handleAudioArrayUpload(event: Event, paramName: string, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    
-    if (!Array.isArray(toolParameters.value[paramName])) {
-      toolParameters.value[paramName] = []
-    }
-    toolParameters.value[paramName][index] = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
-  }
-  reader.readAsDataURL(file)
 }
 </script>
 
@@ -741,7 +562,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(param, index) in localParameters"
-            :key="param._id || index"
+            :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -778,10 +599,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                   <option value="number[]">number[]</option>
                   <option value="boolean[]">boolean[]</option>
                   <option value="object[]">object[]</option>
-                  <option value="image">image</option>
-                  <option value="image[]">image[]</option>
-                  <option value="audio">audio</option>
-                  <option value="audio[]">audio[]</option>
                 </select>
               </div>
             </div>
@@ -1026,7 +843,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(mod, index) in localOperations.modifyVariables.modifications"
-            :key="mod._id || index"
+            :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -1089,7 +906,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div class="space-y-4">
           <div
             v-for="(mod, index) in localOperations.modifyUserProfile.modifications"
-            :key="mod._id || index"
+            :key="index"
             class="p-4 border border-gray-200 rounded-lg space-y-3 bg-white dark:bg-gray-900 dark:border-gray-700"
           >
             <div class="flex justify-between items-center">
@@ -1225,51 +1042,11 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
               <p class="text-xs text-gray-500">Enter a valid JSON object or use Handlebars syntax (e.g., <code>&#123;&#123;variable&#125;&#125;</code>)</p>
             </div>
             
-            <!-- Image input -->
-            <div v-else-if="param.type === 'image'" class="space-y-2">
-              <input
-                type="file"
-                accept="image/*"
-                @change="handleImageUpload($event, param.name)"
-                class="form-input text-sm"
-                :required="param.required"
-              />
-              <div v-if="toolParameters[param.name]" class="mt-2">
-                <img
-                  :src="`data:${toolParameters[param.name].mimeType};base64,${toolParameters[param.name].data}`"
-                  class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
-                  alt="Preview"
-                />
-              </div>
-              <p class="text-xs text-gray-500">{{ param.description }}</p>
-            </div>
-            
-            <!-- Audio input -->
-            <div v-else-if="param.type === 'audio'" class="space-y-2">
-              <input
-                type="file"
-                accept="audio/*"
-                @change="handleAudioUpload($event, param.name)"
-                class="form-input text-sm"
-                :required="param.required"
-              />
-              <div v-if="toolParameters[param.name]" class="mt-2">
-                <audio
-                  controls
-                  :src="`data:${toolParameters[param.name].mimeType};base64,${toolParameters[param.name].data}`"
-                  class="w-full max-w-md"
-                >
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
-              <p class="text-xs text-gray-500">{{ param.description }}</p>
-            </div>
-            
-            <!-- Array inputs (string[], number[], boolean[], object[], image[], audio[]) -->
+            <!-- Array inputs (string[], number[], boolean[], object[]) -->
             <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
               <div 
                 v-for="(_item, index) in getArrayValue(param.name)" 
-                :key="`${param.name}-${index}`"
+                :key="index"
                 class="flex gap-2"
               >
                 <input 
@@ -1303,38 +1080,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                   class="form-textarea text-sm font-mono flex-1"
                   rows="3"
                 />
-                <div v-else-if="param.type === 'image[]'" class="flex-1 space-y-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    @change="handleImageArrayUpload($event, param.name, index)"
-                    class="form-input text-sm"
-                  />
-                  <div v-if="toolParameters[param.name][index]" class="mt-2">
-                    <img
-                      :src="`data:${toolParameters[param.name][index].mimeType};base64,${toolParameters[param.name][index].data}`"
-                      class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
-                      alt="Preview"
-                    />
-                  </div>
-                </div>
-                <div v-else-if="param.type === 'audio[]'" class="flex-1 space-y-2">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    @change="handleAudioArrayUpload($event, param.name, index)"
-                    class="form-input text-sm"
-                  />
-                  <div v-if="toolParameters[param.name][index]" class="mt-2">
-                    <audio
-                      controls
-                      :src="`data:${toolParameters[param.name][index].mimeType};base64,${toolParameters[param.name][index].data}`"
-                      class="w-full max-w-md"
-                    >
-                      Your browser does not support the audio element.
-                    </audio>
-                  </div>
-                </div>
                 <button 
                   type="button"
                   @click="removeArrayItem(param.name, index)"

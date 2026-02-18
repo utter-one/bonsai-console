@@ -22,8 +22,6 @@
           @update:model-value="form = $event"
           :operations="operations"
           @update:operations="operations = $event"
-          :parameters="parameters"
-          @update:parameters="parameters = $event"
           :active-tab="activeTab"
           @update:active-tab="activeTab = $event as TabType"
           :available-classifiers="projectClassifiers"
