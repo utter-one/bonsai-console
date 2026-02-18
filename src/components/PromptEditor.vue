@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
-import { EditorView, placeholder as placeholderExt } from '@codemirror/view'
+import { EditorView, placeholder as placeholderExt, tooltips } from '@codemirror/view'
 import { EditorState, Compartment } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
 import { autocompletion } from '@codemirror/autocomplete'
@@ -165,6 +165,7 @@ onMounted(() => {
       basicSetup,
       EditorView.lineWrapping,
       liquid(),
+      tooltips({ parent: document.body }),
       autocompletionCompartment.of(
         autocompletion({ override: [completionSource] })
       ),
@@ -254,3 +255,14 @@ watch(
     <div ref="editorRoot" class="h-full" />
   </div>
 </template>
+
+<style>
+/* Ensure CodeMirror autocomplete tooltips appear above modal content */
+.cm-tooltip-autocomplete {
+  z-index: 10000 !important;
+}
+
+.cm-tooltip {
+  z-index: 10000 !important;
+}
+</style>

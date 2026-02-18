@@ -232,4 +232,5 @@ function handleSubmit() {
   display: flex;
   flex-direction: column;
 }
-</style>
+
+.no-overflow {
