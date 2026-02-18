@@ -125,25 +125,25 @@ function removeParameter(index: number) {
 }
 
 function addVariableModification() {
-  const newOps = { ...localOperations.value }
+  const newOps = structuredClone(localOperations.value)
   newOps.modifyVariables.modifications.push({ variableName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
 function removeVariableModification(index: number) {
-  const newOps = { ...localOperations.value }
+  const newOps = structuredClone(localOperations.value)
   newOps.modifyVariables.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
 
 function addProfileModification() {
-  const newOps = { ...localOperations.value }
+  const newOps = structuredClone(localOperations.value)
   newOps.modifyUserProfile.modifications.push({ fieldName: '', operation: 'set', value: '' })
   emit('update:operations', newOps)
 }
 
 function removeProfileModification(index: number) {
-  const newOps = { ...localOperations.value }
+  const newOps = structuredClone(localOperations.value)
   newOps.modifyUserProfile.modifications.splice(index, 1)
   emit('update:operations', newOps)
 }
