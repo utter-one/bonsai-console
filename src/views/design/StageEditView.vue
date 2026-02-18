@@ -994,6 +994,8 @@ function toggleNode(path: number[]) {
       :action="editingAction"
       :editing-key="editingActionKey"
       :is-lifecycle-action="isLifecycleActionKey"
+      :stage-variables="stageVariablesForCompletion"
+      :action-parameters="actionParametersForCompletion"
       @close="showActionModal = false"
       @save="handleActionSave"
     />

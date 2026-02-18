@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import MetadataTab from './MetadataTab.vue'
+import PromptEditor from './PromptEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
@@ -63,6 +64,8 @@ const props = withDefaults(
     showTabs?: boolean
     showMetadata?: boolean
     metadataFields?: Array<{ label: string; value: any; format?: 'mono' | 'date' | 'default' }>
+    stageVariables?: any[]
+    actionParameters?: Record<string, any[]>
   }>(),
   {
     parameters: () => [],
@@ -75,7 +78,9 @@ const props = withDefaults(
     isKeyDisabled: false,
     showTabs: true,
     showMetadata: false,
-    metadataFields: () => []
+    metadataFields: () => [],
+    stageVariables: () => [],
+    actionParameters: () => ({})
   }
 )
 
@@ -914,13 +919,15 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <label class="form-label">
           Template <span class="required">*</span>
         </label>
-        <textarea
+        <PromptEditor
           v-model="operations.modifyUserInput.template"
-          rows="4"
-          :required="operations.modifyUserInput.enabled"
-          class="form-textarea"
+          :disabled="!operations.modifyUserInput.enabled"
+          :stage-variables="stageVariables"
+          :action-parameters="actionParameters"
           placeholder="User wants to {{user.input}}"
-        ></textarea>
+          min-height="6rem"
+          aria-label="Modify user input template"
+        />
         <p class="form-help-text">
           Template to transform the user input. Use <code>&#123;&#123;user.input&#125;&#125;</code> to reference original input
         </p>
@@ -970,11 +977,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
             <div v-if="mod.operation !== 'reset'">
               <label class="form-label text-sm">Value</label>
-              <input
+              <PromptEditor
                 v-model="mod.value"
-                type="text"
-                placeholder="42"
-                class="form-input text-sm"
+                :stage-variables="stageVariables"
+                :action-parameters="actionParameters"
+                placeholder="42 or {{user.name}}"
+                min-height="3rem"
+                aria-label="Variable value"
               />
             </div>
           </div>
@@ -1033,11 +1042,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
             <div v-if="mod.operation !== 'reset'">
               <label class="form-label text-sm">Value</label>
-              <input
+              <PromptEditor
                 v-model="mod.value"
-                type="text"
-                placeholder="user@example.com"
-                class="form-input text-sm"
+                :stage-variables="stageVariables"
+                :action-parameters="actionParameters"
+                placeholder="user@example.com or {{user.email}}"
+                min-height="3rem"
+                aria-label="Profile field value"
               />
             </div>
           </div>
@@ -1290,15 +1301,17 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <label class="form-label">
           URL <span class="required">*</span>
         </label>
-        <input
+        <PromptEditor
           v-model="operations.callWebhook.url"
-          type="url"
-          :required="operations.callWebhook.enabled"
+          :disabled="!operations.callWebhook.enabled"
+          :stage-variables="stageVariables"
+          :action-parameters="actionParameters"
           placeholder="https://api.example.com/webhook"
-          class="form-input font-mono"
+          min-height="3rem"
+          aria-label="Webhook URL"
         />
         <p class="form-help-text">
-          The webhook endpoint URL
+          The webhook endpoint URL (supports template variables)
         </p>
       </div>
 
@@ -1319,14 +1332,17 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <label class="form-label">
           Headers <span class="text-gray-500">(optional, JSON)</span>
         </label>
-        <textarea
+        <PromptEditor
           v-model="operations.callWebhook.headers"
-          rows="4"
-          class="form-textarea font-mono text-sm"
-          placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer token"\n}'
-        ></textarea>
+          :disabled="!operations.callWebhook.enabled"
+          :stage-variables="stageVariables"
+          :action-parameters="actionParameters"
+          placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer {{token}}"\n}'
+          min-height="6rem"
+          aria-label="Webhook headers"
+        />
         <p class="form-help-text">
-          JSON object with HTTP headers
+          JSON object with HTTP headers (supports template variables)
         </p>
       </div>
 
@@ -1334,12 +1350,15 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <label class="form-label">
           Body <span class="text-gray-500">(optional, JSON)</span>
         </label>
-        <textarea
+        <PromptEditor
           v-model="operations.callWebhook.body"
-          rows="6"
-          class="form-textarea font-mono text-sm"
+          :disabled="!operations.callWebhook.enabled"
+          :stage-variables="stageVariables"
+          :action-parameters="actionParameters"
           placeholder='{\n  "userId": "{{user.id}}",\n  "message": "{{user.input}}"\n}'
-        ></textarea>
+          min-height="9rem"
+          aria-label="Webhook body"
+        />
         <p class="form-help-text">
           JSON body for the request. Supports template variables.
         </p>
