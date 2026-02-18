@@ -243,6 +243,22 @@ const metadataFields = computed(() => {
   ]
 })
 
+// Computed properties for prompt editor auto-completion
+const stageVariablesForCompletion = computed(() => form.value.variableDescriptors)
+
+const actionParametersForCompletion = computed(() => {
+  const result: Record<string, any[]> = {}
+  
+  // Extract parameters from all actions (excluding lifecycle actions)
+  for (const [key, action] of Object.entries(form.value.actions)) {
+    if (!isLifecycleAction(key) && action.parameters && action.parameters.length > 0) {
+      result[key] = action.parameters
+    }
+  }
+  
+  return result
+})
+
 function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
@@ -636,6 +652,8 @@ function toggleNode(path: number[]) {
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading"
+                :stage-variables="stageVariablesForCompletion"
+                :action-parameters="actionParametersForCompletion"
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
                 min-height="28rem"
