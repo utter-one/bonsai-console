@@ -20,6 +20,7 @@ import {
   DeepgramTtsSettings,
   Effect,
   ElevenLabsTtsSettings,
+  FieldDescriptor,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
@@ -6116,8 +6117,11 @@ export class Api<
        * @default []
        */
       globalActions?: string[];
-      /** Variable definitions for this stage */
-      variables?: Record<string, any>;
+      /**
+       * Variable descriptor definitions for this stage
+       * @default []
+       */
+      variableDescriptors?: FieldDescriptor[];
       /** Action definitions for this stage */
       actions?: Record<string, StageAction>;
       /** ID of the default classifier to use for this stage (can be overridden per action) */
@@ -6164,8 +6168,8 @@ export class Api<
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
         globalActions: string[];
-        /** Variable definitions */
-        variables: Record<string, any>;
+        /** Variable descriptor definitions */
+        variableDescriptors: FieldDescriptor[];
         /** Action definitions */
         actions: Record<string, StageAction>;
         /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
@@ -6274,8 +6278,8 @@ export class Api<
           useGlobalActions: boolean;
           /** Global action IDs available in this stage */
           globalActions: string[];
-          /** Variable definitions */
-          variables: Record<string, any>;
+          /** Variable descriptor definitions */
+          variableDescriptors: FieldDescriptor[];
           /** Action definitions */
           actions: Record<string, StageAction>;
           /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
@@ -6365,8 +6369,8 @@ export class Api<
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
         globalActions: string[];
-        /** Variable definitions */
-        variables: Record<string, any>;
+        /** Variable descriptor definitions */
+        variableDescriptors: FieldDescriptor[];
         /** Action definitions */
         actions: Record<string, StageAction>;
         /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
@@ -6443,8 +6447,8 @@ export class Api<
       useGlobalActions?: boolean;
       /** Updated global action IDs */
       globalActions?: string[];
-      /** Updated variable definitions */
-      variables?: Record<string, any>;
+      /** Updated variable descriptor definitions */
+      variableDescriptors?: FieldDescriptor[];
       /** Updated action definitions */
       actions?: Record<string, StageAction>;
       /** Updated default classifier ID */
@@ -6493,8 +6497,8 @@ export class Api<
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
         globalActions: string[];
-        /** Variable definitions */
-        variables: Record<string, any>;
+        /** Variable descriptor definitions */
+        variableDescriptors: FieldDescriptor[];
         /** Action definitions */
         actions: Record<string, StageAction>;
         /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */

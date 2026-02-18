@@ -8,6 +8,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
+import VariableDescriptorModal from '@/components/modals/VariableDescriptorModal.vue'
 
 // Lifecycle action constants
 const LIFECYCLE_ACTIONS = {
@@ -51,7 +52,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'actions' | 'lifecycle' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const editingActionKey = ref<string | null>(null)
@@ -70,7 +71,12 @@ const form = ref({
   knowledgeSections: [] as string[],
   useGlobalActions: false,
   globalActions: [] as string[],
-  variables: {},
+  variableDescriptors: [] as Array<{
+    name: string
+    type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
+    isArray: boolean
+    objectSchema?: Array<any>
+  }>,
   actions: {} as Record<string, StageAction>,
   defaultClassifierId: '',
   transformerIds: [] as string[],
@@ -138,7 +144,7 @@ async function loadStage() {
         knowledgeSections: currentStage.value.knowledgeSections || [],
         useGlobalActions: currentStage.value.useGlobalActions,
         globalActions: currentStage.value.globalActions || [],
-        variables: currentStage.value.variables || {},
+        variableDescriptors: currentStage.value.variableDescriptors || [],
         actions: currentStage.value.actions || {},
         defaultClassifierId: currentStage.value.defaultClassifierId || '',
         transformerIds: currentStage.value.transformerIds || [],
@@ -172,7 +178,7 @@ async function handleSubmit() {
         knowledgeSections: form.value.knowledgeSections,
         useGlobalActions: form.value.useGlobalActions,
         globalActions: form.value.globalActions,
-        variables: form.value.variables,
+        variableDescriptors: form.value.variableDescriptors,
         actions: form.value.actions,
         defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
@@ -192,7 +198,7 @@ async function handleSubmit() {
         knowledgeSections: form.value.knowledgeSections,
         useGlobalActions: form.value.useGlobalActions,
         globalActions: form.value.globalActions,
-        variables: form.value.variables,
+        variableDescriptors: form.value.variableDescriptors,
         actions: form.value.actions,
         defaultClassifierId: form.value.defaultClassifierId || null,
         transformerIds: form.value.transformerIds,
@@ -317,6 +323,47 @@ const lifecycleActions = computed(() => {
     isConfigured: isLifecycleActionConfigured(key),
   }))
 })
+
+// Variable descriptor management
+const showVariableDescriptorModal = ref(false)
+const editingVariableIndex = ref<number | null>(null)
+const editingVariableDescriptor = ref<any>(null)
+
+function addVariableDescriptor() {
+  editingVariableIndex.value = null
+  editingVariableDescriptor.value = null
+  showVariableDescriptorModal.value = true
+}
+
+function editVariableDescriptor(index: number) {
+  const descriptor = form.value.variableDescriptors[index]
+  if (!descriptor) return
+  
+  editingVariableIndex.value = index
+  editingVariableDescriptor.value = descriptor
+  showVariableDescriptorModal.value = true
+}
+
+function handleVariableDescriptorSave(descriptor: any) {
+  if (editingVariableIndex.value !== null) {
+    // Update existing
+    form.value.variableDescriptors[editingVariableIndex.value] = descriptor
+  } else {
+    // Add new
+    form.value.variableDescriptors.push(descriptor)
+  }
+  
+  showVariableDescriptorModal.value = false
+  editingVariableIndex.value = null
+  editingVariableDescriptor.value = null
+}
+
+function deleteVariableDescriptor(index: number) {
+  if (confirm('Are you sure you want to delete this variable descriptor?')) {
+    form.value.variableDescriptors.splice(index, 1)
+  }
+}
+
 </script>
 
 <template>
@@ -368,6 +415,13 @@ const lifecycleActions = computed(() => {
           type="button"
         >
           Features & Integrations
+        </button>
+        <button
+          @click="activeTab = 'variables'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'variables' }]"
+          type="button"
+        >
+          Variables
         </button>
         <button
           @click="activeTab = 'actions'"
@@ -637,6 +691,89 @@ const lifecycleActions = computed(() => {
             </div>
           </div>
 
+          <!-- Variables Tab -->
+          <div v-show="activeTab === 'variables'" class="tab-content">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Variable Descriptors</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Define the expected structure of stage variables. This helps document what variables are available in this stage context.
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="addVariableDescriptor"
+                class="btn-primary"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Variable
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="form.variableDescriptors.length === 0" class="text-center py-12">
+              <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500">
+                Variable descriptors help document the stage's context structure
+              </p>
+            </div>
+
+            <!-- Variables Table -->
+            <div v-else class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Variable Name</th>
+                      <th class="table-header-cell">Type</th>
+                      <th class="table-header-cell">Is Array</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="(descriptor, index) in form.variableDescriptors" :key="index" class="table-row">
+                      <td class="table-cell">
+                        <code class="text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded font-mono">
+                          {{ descriptor.name }}
+                        </code>
+                      </td>
+                      <td class="table-cell">
+                        <span class="badge-primary text-xs">
+                          {{ descriptor.type }}
+                        </span>
+                      </td>
+                      <td class="table-cell">
+                        <span v-if="descriptor.isArray" class="text-green-600 dark:text-green-400 text-sm">Yes</span>
+                        <span v-else class="text-gray-400 text-sm">No</span>
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex-end">
+                          <button
+                            type="button"
+                            @click="editVariableDescriptor(index)"
+                            class="btn-secondary btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            @click="deleteVariableDescriptor(index)"
+                            class="btn-danger btn-sm"
+                            :disabled="isLoading"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- Actions Tab -->
           <div v-show="activeTab === 'actions'" class="tab-content">
             <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
@@ -825,6 +962,15 @@ const lifecycleActions = computed(() => {
       :is-lifecycle-action="isLifecycleActionKey"
       @close="showActionModal = false"
       @save="handleActionSave"
+    />
+
+    <!-- Variable Descriptor Modal -->
+    <VariableDescriptorModal
+      v-if="showVariableDescriptorModal"
+      :descriptor="editingVariableDescriptor"
+      :editing-index="editingVariableIndex"
+      @close="showVariableDescriptorModal = false"
+      @save="handleVariableDescriptorSave"
     />
   </div>
 </template>
