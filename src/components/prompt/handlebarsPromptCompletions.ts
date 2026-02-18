@@ -4,23 +4,79 @@ import type {
   CompletionResult,
 } from '@codemirror/autocomplete'
 import { snippetCompletion } from '@codemirror/autocomplete'
+import type { FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
 
-const variableCompletions: Completion[] = [
+/**
+ * Context data for generating dynamic completions
+ */
+export interface CompletionContextData {
+  /** Stage variable descriptors */
+  stageVariables?: FieldDescriptor[]
+  /** Action parameters indexed by action key */
+  actionParameters?: Record<string, StageActionParameter[]>
+}
+
+/**
+ * Generate variable completions from stage variable descriptors
+ */
+function generateVariableCompletions(descriptors: FieldDescriptor[], prefix = 'vars'): Completion[] {
+  const completions: Completion[] = []
+  
+  for (const descriptor of descriptors) {
+    const fullPath = `${prefix}.${descriptor.name}`
+    
+    // Add completion for the variable itself
+    completions.push({
+      label: fullPath,
+      type: 'property',
+      detail: `${descriptor.type}${descriptor.isArray ? ' (array)' : ''}`,
+    })
+    
+    // If it's an object type with nested schema, recursively add nested properties
+    if ((descriptor.type === 'object' || descriptor.type === 'object[]') && descriptor.objectSchema) {
+      completions.push(...generateVariableCompletions(descriptor.objectSchema, fullPath))
+    }
+  }
+  
+  return completions
+}
+
+/**
+ * Generate action parameter completions
+ */
+function generateActionParameterCompletions(
+  actionParameters: Record<string, StageActionParameter[]>
+): Completion[] {
+  const completions: Completion[] = []
+  
+  for (const [actionKey, parameters] of Object.entries(actionParameters)) {
+    for (const param of parameters) {
+      const fullPath = `actions.${actionKey}.parameters.${param.name}`
+      completions.push({
+        label: fullPath,
+        type: 'property',
+        detail: `${param.type}${param.required ? ' (required)' : ' (optional)'} - ${param.description}`,
+      })
+    }
+  }
+  
+  return completions
+}
+
+const baseVariableCompletions: Completion[] = [
   { label: 'conversationId', type: 'variable', detail: 'ConversationContext' },
   { label: 'projectId', type: 'variable', detail: 'ConversationContext' },
   { label: 'stageId', type: 'variable', detail: 'ConversationContext' },
 
   { label: 'vars', type: 'variable', detail: 'Stage variables (object)' },
-  { label: 'vars.customerName', type: 'property', detail: 'Example var' },
-  { label: 'vars.orderNumber', type: 'property', detail: 'Example var' },
-  { label: 'vars.language', type: 'property', detail: 'Example var' },
-  { label: 'vars.currentStep', type: 'property', detail: 'Example var' },
 
   { label: 'userProfile', type: 'variable', detail: 'User profile (object)' },
-  { label: 'userProfile.name', type: 'property', detail: 'Example profile field' },
-  { label: 'userProfile.email', type: 'property', detail: 'Example profile field' },
-  { label: 'userProfile.roles', type: 'property', detail: 'Example profile field' },
-  { label: 'userProfile.tags', type: 'property', detail: 'Example profile field' },
+  { label: 'userProfile.name', type: 'property', detail: 'User display name' },
+  { label: 'userProfile.email', type: 'property', detail: 'User email address' },
+  { label: 'userProfile.phoneNumber', type: 'property', detail: 'User phone number' },
+  { label: 'userProfile.language', type: 'property', detail: 'User preferred language' },
+  { label: 'userProfile.timezone', type: 'property', detail: 'User timezone' },
+  { label: 'userProfile.metadata', type: 'property', detail: 'Custom user metadata' },
 
   { label: 'history', type: 'variable', detail: 'Conversation message history (array)' },
   { label: 'history.length', type: 'property', detail: 'Array length' },
@@ -30,24 +86,10 @@ const variableCompletions: Completion[] = [
   { label: 'originalUserInput', type: 'variable', detail: 'Unmodified user input (optional)' },
 
   { label: 'actions', type: 'variable', detail: 'Detected/called actions (object)' },
-  { label: 'actions.transfer_call', type: 'property', detail: 'Example action' },
-  {
-    label: 'actions.transfer_call.parameters.department',
-    type: 'property',
-    detail: 'Example action parameter',
-  },
 
   { label: 'results', type: 'variable', detail: 'Tool/webhook results (object)' },
-  {
-    label: 'results.webhooks.customer_data.account_balance',
-    type: 'property',
-    detail: 'Example webhook result',
-  },
-  {
-    label: 'results.tools.sentiment_analysis.score',
-    type: 'property',
-    detail: 'Example tool result',
-  },
+  { label: 'results.webhooks', type: 'property', detail: 'Webhook results' },
+  { label: 'results.tools', type: 'property', detail: 'Tool results' },
 
   { label: 'stage', type: 'variable', detail: 'Stage configuration (optional object)' },
   { label: 'stage.name', type: 'property', detail: 'Stage display name' },
@@ -171,54 +213,85 @@ const blockHelperCompletions: Completion[] = [
   }),
 ]
 
-const allCompletions: Completion[] = [
-  ...variableCompletions,
-  ...inlineHelperCompletions,
-  ...blockHelperCompletions,
-]
+/**
+ * Create a completion source function with the provided context data
+ */
+export function createHandlebarsPromptCompletionSource(
+  contextData?: CompletionContextData
+) {
+  // Build dynamic completions from context data
+  const dynamicVariableCompletions: Completion[] = []
+  const dynamicActionCompletions: Completion[] = []
 
-const inlineOnlyCompletions: Completion[] = [
-  ...variableCompletions,
-  ...inlineHelperCompletions,
-]
+  if (contextData?.stageVariables && contextData.stageVariables.length > 0) {
+    dynamicVariableCompletions.push(...generateVariableCompletions(contextData.stageVariables))
+  }
 
-function isLikelyInsideHandlebars(context: CompletionContext): boolean {
-  const lookback = 200
-  const from = Math.max(0, context.pos - lookback)
-  const before = context.state.sliceDoc(from, context.pos)
+  if (contextData?.actionParameters && Object.keys(contextData.actionParameters).length > 0) {
+    dynamicActionCompletions.push(...generateActionParameterCompletions(contextData.actionParameters))
+  }
 
-  const open = before.lastIndexOf('{{')
-  if (open < 0) return false
+  const allVariableCompletions = [
+    ...baseVariableCompletions,
+    ...dynamicVariableCompletions,
+    ...dynamicActionCompletions,
+  ]
 
-  // If we have a closing braces after that opening in the lookback window, treat as outside.
-  const close = before.lastIndexOf('}}')
-  return close < open
+  const allCompletions: Completion[] = [
+    ...allVariableCompletions,
+    ...inlineHelperCompletions,
+    ...blockHelperCompletions,
+  ]
+
+  const inlineOnlyCompletions: Completion[] = [
+    ...allVariableCompletions,
+    ...inlineHelperCompletions,
+  ]
+
+  function isLikelyInsideHandlebars(context: CompletionContext): boolean {
+    const lookback = 200
+    const from = Math.max(0, context.pos - lookback)
+    const before = context.state.sliceDoc(from, context.pos)
+
+    const open = before.lastIndexOf('{{')
+    if (open < 0) return false
+
+    // If we have a closing braces after that opening in the lookback window, treat as outside.
+    const close = before.lastIndexOf('}}')
+    return close < open
+  }
+
+  return function handlebarsPromptCompletionSource(
+    context: CompletionContext
+  ): CompletionResult | null {
+    if (!context.explicit && !isLikelyInsideHandlebars(context)) return null
+
+    const open = context.matchBefore(/\{\{[#/]?[\w.]*$/)
+    if (!open) {
+      return context.explicit ? { from: context.pos, options: inlineOnlyCompletions } : null
+    }
+
+    const isBlock = open.text.startsWith('{{#') || open.text.startsWith('{{/')
+    const options = isBlock ? allCompletions : inlineOnlyCompletions
+
+    const token = context.matchBefore(/[#/]?[\w.]*$/)
+    if (!token) return null
+
+    let from = token.from
+    if (token.text.startsWith('#') || token.text.startsWith('/')) {
+      from = Math.min(token.from + 1, context.pos)
+    }
+
+    return {
+      from,
+      options,
+      validFor: /[\w.]*$/,
+    }
+  }
 }
 
-export function handlebarsPromptCompletionSource(
-  context: CompletionContext
-): CompletionResult | null {
-  if (!context.explicit && !isLikelyInsideHandlebars(context)) return null
-
-  const open = context.matchBefore(/\{\{[#/]?[\w.]*$/)
-  if (!open) {
-    return context.explicit ? { from: context.pos, options: inlineOnlyCompletions } : null
-  }
-
-  const isBlock = open.text.startsWith('{{#') || open.text.startsWith('{{/')
-  const options = isBlock ? allCompletions : inlineOnlyCompletions
-
-  const token = context.matchBefore(/[#/]?[\w.]*$/)
-  if (!token) return null
-
-  let from = token.from
-  if (token.text.startsWith('#') || token.text.startsWith('/')) {
-    from = Math.min(token.from + 1, context.pos)
-  }
-
-  return {
-    from,
-    options,
-    validFor: /[\w.]*$/,
-  }
-}
+/**
+ * Default completion source with no dynamic context
+ * @deprecated Use createHandlebarsPromptCompletionSource() instead for dynamic completions
+ */
+export const handlebarsPromptCompletionSource = createHandlebarsPromptCompletionSource()

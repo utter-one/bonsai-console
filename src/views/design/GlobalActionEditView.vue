@@ -260,6 +260,8 @@ const metadataFields = computed(() => {
             :available-classifiers="projectClassifiers"
             :available-stages="projectStages"
             :available-tools="projectTools"
+            :stage-variables="[]"
+            :action-parameters="{}"
             :show-tabs="true"
             :show-key-field="false"
             :show-parameters="false"

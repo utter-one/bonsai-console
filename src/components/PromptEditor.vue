@@ -5,8 +5,12 @@ import { EditorState, Compartment } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
 import { autocompletion } from '@codemirror/autocomplete'
 import { liquid } from '@codemirror/lang-liquid'
-import { handlebarsPromptCompletionSource } from '@/components/prompt/handlebarsPromptCompletions'
+import { 
+  createHandlebarsPromptCompletionSource,
+  type CompletionContextData 
+} from '@/components/prompt/handlebarsPromptCompletions'
 import { useThemeStore } from '@/stores/theme'
+import type { FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
 
 const props = withDefaults(
   defineProps<{
@@ -16,6 +20,8 @@ const props = withDefaults(
     minHeight?: string
     ariaLabel?: string
     monospace?: boolean
+    stageVariables?: FieldDescriptor[]
+    actionParameters?: Record<string, StageActionParameter[]>
   }>(),
   {
     disabled: false,
@@ -23,6 +29,8 @@ const props = withDefaults(
     minHeight: '20rem',
     ariaLabel: 'Prompt editor',
     monospace: true,
+    stageVariables: () => [],
+    actionParameters: () => ({}),
   }
 )
 
@@ -40,6 +48,13 @@ let view: EditorView | null = null
 const editableCompartment = new Compartment()
 const placeholderCompartment = new Compartment()
 const themeCompartment = new Compartment()
+const autocompletionCompartment = new Compartment()
+
+// Computed completion context based on props
+const completionContext = computed<CompletionContextData>(() => ({
+  stageVariables: props.stageVariables,
+  actionParameters: props.actionParameters,
+}))
 
 function buildTheme() {
   const monoFont =
@@ -128,8 +143,21 @@ function reconfigureTheme() {
   })
 }
 
+function reconfigureAutocompletion() {
+  if (!view) return
+
+  const completionSource = createHandlebarsPromptCompletionSource(completionContext.value)
+  view.dispatch({
+    effects: autocompletionCompartment.reconfigure(
+      autocompletion({ override: [completionSource] })
+    ),
+  })
+}
+
 onMounted(() => {
   if (!editorRoot.value) return
+
+  const completionSource = createHandlebarsPromptCompletionSource(completionContext.value)
 
   const state = EditorState.create({
     doc: props.modelValue ?? '',
@@ -137,7 +165,9 @@ onMounted(() => {
       basicSetup,
       EditorView.lineWrapping,
       liquid(),
-      autocompletion({ override: [handlebarsPromptCompletionSource] }),
+      autocompletionCompartment.of(
+        autocompletion({ override: [completionSource] })
+      ),
       EditorView.domEventHandlers({
         blur: () => {
           emit('blur')
@@ -204,6 +234,14 @@ watch(
   () => {
     reconfigureTheme()
   }
+)
+
+watch(
+  completionContext,
+  () => {
+    reconfigureAutocompletion()
+  },
+  { deep: true }
 )
 </script>
 
