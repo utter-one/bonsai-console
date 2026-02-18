@@ -537,7 +537,7 @@ export class NexusWebSocketClient {
    * @returns The result returned by the action
    * @throws {Error} If action execution fails or no active conversation
    */
-  async runAction(actionName: string, parameters: Record<string, any> = {}, parameterOrder: string[] = []): Promise<any> {
+  async runAction(actionName: string, parameters: Record<string, any> = {}): Promise<any> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
     
