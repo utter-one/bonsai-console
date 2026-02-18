@@ -2058,7 +2058,7 @@ async function handleRunAction(data: { type: 'global' | 'stage'; actionKey: stri
     })
 
     // Pass parameters as record with order information
-    const result = await wsClient.value.client.value.runAction(data.actionKey, data.parameters, data.parameterOrder)
+    const result = await wsClient.value.client.value.runAction(data.actionKey, data.parameters)
 
     addEvent({
       type: 'System',
