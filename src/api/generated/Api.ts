@@ -16,6 +16,7 @@ import {
   AsrModelInfo,
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
+  AzureTtsSettings,
   CartesiaTtsSettings,
   DeepgramTtsSettings,
   Effect,
@@ -3668,7 +3669,8 @@ export class Api<
         | ElevenLabsTtsSettings
         | OpenAiTtsSettings
         | DeepgramTtsSettings
-        | CartesiaTtsSettings;
+        | CartesiaTtsSettings
+        | AzureTtsSettings;
       /** Additional persona-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -3693,7 +3695,8 @@ export class Api<
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
           | DeepgramTtsSettings
-          | CartesiaTtsSettings;
+          | CartesiaTtsSettings
+          | AzureTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3783,7 +3786,8 @@ export class Api<
             | ElevenLabsTtsSettings
             | OpenAiTtsSettings
             | DeepgramTtsSettings
-            | CartesiaTtsSettings;
+            | CartesiaTtsSettings
+            | AzureTtsSettings;
           /** Additional persona-specific metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -3854,7 +3858,8 @@ export class Api<
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
           | DeepgramTtsSettings
-          | CartesiaTtsSettings;
+          | CartesiaTtsSettings
+          | AzureTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3909,7 +3914,8 @@ export class Api<
         | ElevenLabsTtsSettings
         | OpenAiTtsSettings
         | DeepgramTtsSettings
-        | CartesiaTtsSettings;
+        | CartesiaTtsSettings
+        | AzureTtsSettings;
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -3939,7 +3945,8 @@ export class Api<
           | ElevenLabsTtsSettings
           | OpenAiTtsSettings
           | DeepgramTtsSettings
-          | CartesiaTtsSettings;
+          | CartesiaTtsSettings
+          | AzureTtsSettings;
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -4073,6 +4080,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+            region: string;
+            /** The subscription key to use for the speech service */
+            subscriptionKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4136,6 +4149,12 @@ export class Api<
           | {
               /** API key for authenticating with Cartesia */
               apiKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
             }
           | {
               /** The Azure region to use for the speech recognition service */
@@ -4268,6 +4287,12 @@ export class Api<
                 apiKey: string;
               }
             | {
+                /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+                region: string;
+                /** The subscription key to use for the speech service */
+                subscriptionKey: string;
+              }
+            | {
                 /** The Azure region to use for the speech recognition service */
                 region: string;
                 /** The subscription key to use for the speech recognition service */
@@ -4379,6 +4404,12 @@ export class Api<
               apiKey: string;
             }
           | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -4479,6 +4510,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+            region: string;
+            /** The subscription key to use for the speech service */
+            subscriptionKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4540,6 +4577,12 @@ export class Api<
           | {
               /** API key for authenticating with Cartesia */
               apiKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
             }
           | {
               /** The Azure region to use for the speech recognition service */

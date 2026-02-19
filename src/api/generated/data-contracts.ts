@@ -256,6 +256,8 @@ export type LlmSettings =
   | GeminiLlmSettings;
 
 export interface ElevenLabsTtsSettings {
+  /** TTS provider type identifier */
+  provider: "elevenlabs";
   /** Model ID to use for speech synthesis (e.g., "eleven_flash_v2_5", "eleven_multilingual_v2") */
   model?: string;
   /** Voice UUID to use for speech synthesis */
@@ -308,6 +310,8 @@ export interface ElevenLabsTtsSettings {
 }
 
 export interface OpenAiTtsSettings {
+  /** TTS provider type identifier */
+  provider: "openai";
   /** Model ID to use for speech synthesis: "gpt-4o-mini-tts" (promptable), "tts-1" (low latency), or "tts-1-hd" (high quality) */
   model?: string;
   /** Voice ID to use (alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse, marin, cedar) */
@@ -334,6 +338,8 @@ export interface OpenAiTtsSettings {
 }
 
 export interface DeepgramTtsSettings {
+  /** TTS provider type identifier */
+  provider: "deepgram";
   /** Model version to use ("aura-1" or "aura-2") */
   model?: "aura-1" | "aura-2";
   /** Voice ID to use for speech synthesis (e.g., "thalia-en", "andromeda-en"). Combined with model to form full model string (e.g., "aura-2-thalia-en") */
@@ -366,6 +372,8 @@ export interface DeepgramTtsSettings {
 }
 
 export interface CartesiaTtsSettings {
+  /** TTS provider type identifier */
+  provider: "cartesia";
   /** Model ID to use for speech synthesis (e.g., "sonic-3", "sonic-3-latest", "sonic-3-2026-01-12"). Defaults to "sonic-3-latest" */
   model?: string;
   /** Voice ID to use for speech synthesis (e.g., "f786b574-daa5-4673-aa0c-cbe3e8534c02" for Katie). See Cartesia voice catalog */
@@ -393,6 +401,39 @@ export interface CartesiaTtsSettings {
    */
   maxBufferDelayMs?: number;
   /** Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead) */
+  useSentenceSplitter?: boolean;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+}
+
+export interface AzureTtsSettings {
+  /** TTS provider type identifier */
+  provider: "azure";
+  /** Azure TTS model to use. Currently only "neural" is supported for high-quality neural text-to-speech */
+  model?: "neural";
+  /** Voice name to use for speech synthesis (e.g., "en-US-AriaNeural", "en-US-GuyNeural") */
+  voiceId?: string;
+  /** Preferred audio output format for synthesized speech. Defaults to "pcm_24000" */
+  audioFormat?:
+    | "pcm_16000"
+    | "pcm_24000"
+    | "pcm_48000"
+    | "opus"
+    | "mp3"
+    | "mulaw"
+    | "alaw";
+  /** Speaking style for voices that support it (e.g., "cheerful", "sad", "angry", "friendly") */
+  style?: string;
+  /** Speaking rate adjustment (e.g., "+10%", "-5%", "1.2"). Range: 0.5 to 2.0 or percentage */
+  rate?: string;
+  /** Pitch adjustment (e.g., "+5%", "-10%", "high", "low"). Range typically -50% to +50% */
+  pitch?: string;
+  /** Whether to use sentence splitter for text processing. Defaults to true */
   useSentenceSplitter?: boolean;
   /** Markers to identify sections of text that should not be spoken */
   noSpeechMarkers?: {
@@ -1319,7 +1360,8 @@ export interface CreatePersonaRequest {
     | ElevenLabsTtsSettings
     | OpenAiTtsSettings
     | DeepgramTtsSettings
-    | CartesiaTtsSettings;
+    | CartesiaTtsSettings
+    | AzureTtsSettings;
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -1344,7 +1386,8 @@ export interface UpdatePersonaRequest {
     | ElevenLabsTtsSettings
     | OpenAiTtsSettings
     | DeepgramTtsSettings
-    | CartesiaTtsSettings;
+    | CartesiaTtsSettings
+    | AzureTtsSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1380,7 +1423,8 @@ export interface PersonaResponse {
     | ElevenLabsTtsSettings
     | OpenAiTtsSettings
     | DeepgramTtsSettings
-    | CartesiaTtsSettings;
+    | CartesiaTtsSettings
+    | AzureTtsSettings;
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1417,7 +1461,8 @@ export interface PersonaListResponse {
       | ElevenLabsTtsSettings
       | OpenAiTtsSettings
       | DeepgramTtsSettings
-      | CartesiaTtsSettings;
+      | CartesiaTtsSettings
+      | AzureTtsSettings;
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -3675,6 +3720,12 @@ export interface CreateProviderRequest {
         apiKey: string;
       }
     | {
+        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+        region: string;
+        /** The subscription key to use for the speech service */
+        subscriptionKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3745,6 +3796,12 @@ export interface UpdateProviderRequest {
         apiKey: string;
       }
     | {
+        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+        region: string;
+        /** The subscription key to use for the speech service */
+        subscriptionKey: string;
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -3813,6 +3870,12 @@ export interface ProviderResponse {
     | {
         /** API key for authenticating with Cartesia */
         apiKey: string;
+      }
+    | {
+        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+        region: string;
+        /** The subscription key to use for the speech service */
+        subscriptionKey: string;
       }
     | {
         /** The Azure region to use for the speech recognition service */
@@ -3890,6 +3953,12 @@ export interface ProviderListResponse {
       | {
           /** API key for authenticating with Cartesia */
           apiKey: string;
+        }
+      | {
+          /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+          region: string;
+          /** The subscription key to use for the speech service */
+          subscriptionKey: string;
         }
       | {
           /** The Azure region to use for the speech recognition service */
