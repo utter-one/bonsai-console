@@ -2,11 +2,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore } from '@/stores'
-import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText } from 'lucide-vue-next'
+import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
+import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 
 
@@ -22,6 +23,8 @@ const error = ref<string | null>(null)
 const activeTab = ref<'events' | 'metadata'>('events')
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showVariablesPreviewModal = ref(false)
+const selectedVariables = ref<Record<string, any>>({})
 
 onMounted(async () => {
   await loadConversationData()
@@ -112,6 +115,15 @@ function openPromptPreview(prompt: string) {
 
 function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
+}
+
+function openVariablesPreview(variables: Record<string, any>) {
+  selectedVariables.value = variables
+  showVariablesPreviewModal.value = true
+}
+
+function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
 }
 
 // Type guard to check if event data is a message event
@@ -314,13 +326,22 @@ const metadataFields = computed(() => {
                           </span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
                       <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
@@ -356,13 +377,22 @@ const metadataFields = computed(() => {
                           <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -428,13 +458,22 @@ const metadataFields = computed(() => {
                           <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -492,13 +531,22 @@ const metadataFields = computed(() => {
                           <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -552,13 +600,22 @@ const metadataFields = computed(() => {
                           </span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -624,13 +681,22 @@ const metadataFields = computed(() => {
                           <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.eventData.metadata)"
-                          @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -903,6 +969,12 @@ const metadataFields = computed(() => {
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+    
+    <!-- Variables Preview Modal -->
+    <VariablesPreviewModal
+      v-if="showVariablesPreviewModal"
+      :variables="selectedVariables"
+      @close="showVariablesPreviewModal = false" />
   </MonitorSectionLayout>
 </template>
 
