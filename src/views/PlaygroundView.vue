@@ -209,17 +209,30 @@
                         <span class="font-semibold text-sm">{{ event.type }}</span>
                         <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <button
-                        v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                        @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                        class="btn-icon p-1"
-                        :class="{
-                          'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
-                          'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
-                        }"
-                        title="View system prompt">
-                        <FileText class="w-4 h-4" />
-                      </button>
+                      <div class="flex items-center gap-1">
+                        <button
+                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                          class="btn-icon p-1"
+                          :class="{
+                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
+                          }"
+                          title="View system prompt">
+                          <FileText class="w-4 h-4" />
+                        </button>
+                        <button
+                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                          @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                          class="btn-icon p-1"
+                          :class="{
+                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
+                          }"
+                          title="View stage variables">
+                          <Braces class="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <div class="text-sm">
                       <!-- Voice message with audio player -->
@@ -275,13 +288,22 @@
                           <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -334,13 +356,22 @@
                           <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -382,13 +413,22 @@
                           <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -430,13 +470,22 @@
                           </span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -474,13 +523,22 @@
                           <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
                           <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <button
-                          v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div class="space-y-2">
                         <div>
@@ -715,6 +773,11 @@
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+    
+    <VariablesPreviewModal
+      v-if="showVariablesPreviewModal"
+      :variables="selectedVariables"
+      @close="showVariablesPreviewModal = false" />
   </div>
 </template>
 
@@ -725,13 +788,14 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
+import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 import type { StageResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
@@ -1352,6 +1416,15 @@ function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
 }
 
+function openVariablesPreview(variables: Record<string, any>) {
+  selectedVariables.value = variables
+  showVariablesPreviewModal.value = true
+}
+
+function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
+}
+
 /**
  * Handle conversation event from WebSocket
  */
@@ -1774,6 +1847,8 @@ const showCallToolDialog = ref(false)
 const showAudioSettingsModal = ref(false)
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showVariablesPreviewModal = ref(false)
+const selectedVariables = ref<Record<string, any>>({})
 
 // Audio settings
 const audioSettings = ref<AudioSettings>(loadAudioSettings())
