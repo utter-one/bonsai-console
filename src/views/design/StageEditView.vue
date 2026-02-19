@@ -10,6 +10,7 @@ import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
 import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
 import ActionsPasteModal from '@/components/modals/ActionsPasteModal.vue'
+import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 
 // Lifecycle action constants
@@ -59,10 +60,12 @@ const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
 const showPasteModal = ref(false)
+const showVariablesPasteModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
 const clipboardActions = ref<Record<string, StageAction> | null>(null)
+const clipboardVariables = ref<Array<any> | null>(null)
 const isLifecycleActionKey = ref(false)
 const form = ref({
   id: '',
@@ -421,6 +424,93 @@ function handleActionsPaste(keys: string[]) {
     const message = overwrittenCount > 0
       ? `Successfully pasted ${pastedCount} action(s) (${overwrittenCount} overwritten)`
       : `Successfully pasted ${pastedCount} action(s)`
+    alert(message)
+  }
+}
+
+function copyAllVariables() {
+  if (form.value.variableDescriptors.length === 0) {
+    alert('No variables to copy')
+    return
+  }
+  
+  try {
+    // Deep clone variables to avoid reference issues
+    const jsonData = JSON.stringify(form.value.variableDescriptors, null, 2)
+    navigator.clipboard.writeText(jsonData)
+    
+    // Show success feedback
+    alert(`Copied ${form.value.variableDescriptors.length} variable(s) to clipboard`)
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err)
+    alert('Failed to copy variables to clipboard')
+  }
+}
+
+async function pasteVariables() {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    
+    if (!clipboardText) {
+      alert('Clipboard is empty')
+      return
+    }
+    
+    // Try to parse as JSON
+    let parsedVariables: Array<any>
+    try {
+      parsedVariables = JSON.parse(clipboardText)
+    } catch (err) {
+      alert('Clipboard does not contain valid JSON data')
+      return
+    }
+    
+    // Validate structure
+    if (!Array.isArray(parsedVariables)) {
+      alert('Clipboard does not contain valid variables data (must be an array)')
+      return
+    }
+    
+    // Store in state and show modal
+    clipboardVariables.value = parsedVariables
+    showVariablesPasteModal.value = true
+  } catch (err) {
+    console.error('Failed to read clipboard:', err)
+    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
+  }
+}
+
+function handleVariablesPaste(indices: number[]) {
+  if (!clipboardVariables.value) return
+  
+  let pastedCount = 0
+  let overwrittenCount = 0
+  
+  for (const index of indices) {
+    const variable = clipboardVariables.value[index]
+    if (!variable) continue
+    
+    // Check if variable with this name already exists
+    const existingIndex = form.value.variableDescriptors.findIndex(v => v.name === variable.name)
+    
+    if (existingIndex !== -1) {
+      // Overwrite existing variable
+      form.value.variableDescriptors[existingIndex] = JSON.parse(JSON.stringify(variable))
+      overwrittenCount++
+    } else {
+      // Add new variable
+      form.value.variableDescriptors.push(JSON.parse(JSON.stringify(variable)))
+    }
+    pastedCount++
+  }
+  
+  showVariablesPasteModal.value = false
+  clipboardVariables.value = null
+  
+  if (pastedCount > 0) {
+    const message = overwrittenCount > 0
+      ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
+      : `Successfully pasted ${pastedCount} variable(s)`
     alert(message)
   }
 }
@@ -899,15 +989,37 @@ function toggleNode(path: number[]) {
                   Click field names to edit, change types inline
                 </p>
               </div>
-              <button
-                type="button"
-                @click="addRootVariable"
-                class="btn-primary"
-                :disabled="isLoading"
-              >
-                <Plus class="inline-block mr-1 w-4 h-4" />
-                Add Variable
-              </button>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  @click="copyAllVariables"
+                  class="btn-secondary"
+                  :disabled="isLoading || form.variableDescriptors.length === 0"
+                  title="Copy all variables to clipboard"
+                >
+                  <Clipboard class="inline-block mr-1 w-4 h-4" />
+                  Copy
+                </button>
+                <button
+                  type="button"
+                  @click="pasteVariables"
+                  class="btn-secondary"
+                  :disabled="isLoading"
+                  title="Paste variables from clipboard"
+                >
+                  <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
+                  Paste
+                </button>
+                <button
+                  type="button"
+                  @click="addRootVariable"
+                  class="btn-primary"
+                  :disabled="isLoading"
+                >
+                  <Plus class="inline-block mr-1 w-4 h-4" />
+                  Add Variable
+                </button>
+              </div>
             </div>
 
             <!-- Empty State -->
@@ -1178,6 +1290,15 @@ function toggleNode(path: number[]) {
       :existing-keys="Object.keys(form.actions).filter(k => !isLifecycleAction(k))"
       @close="showPasteModal = false"
       @save="handleActionsPaste"
+    />
+
+    <!-- Variables Paste Modal -->
+    <VariablesPasteModal
+      v-if="showVariablesPasteModal && clipboardVariables"
+      :clipboard-variables="clipboardVariables"
+      :existing-names="form.variableDescriptors.map(v => v.name)"
+      @close="showVariablesPasteModal = false"
+      @save="handleVariablesPaste"
     />
   </div>
 </template>
