@@ -119,6 +119,10 @@ const imageVariables = computed(() => {
   return props.stageVariables.filter(v => v.type === 'image' && !v.isArray)
 })
 
+const imageArrayVariables = computed(() => {
+  return props.stageVariables.filter(v => v.type === 'image[]')
+})
+
 const toolParameters = ref<Record<string, any>>({})
 
 // Initialize tool parameters when tool changes or when loading existing data
@@ -166,8 +170,11 @@ watch(() => [props.operations.callTool.toolId, props.availableTools.length] as c
         newParams[param.name] = existingValue.map((item: any) => 
           typeof item === 'object' && item !== null ? JSON.stringify(item, null, 2) : item
         )
-      } else if ((param.type === 'image' || param.type === 'audio') && typeof existingValue === 'object' && existingValue !== null) {
-        // For image/audio types, if it's an object (old format), convert to empty string
+      } else if (param.type === 'image[]' && (typeof existingValue === 'object' || Array.isArray(existingValue))) {
+        // For image[] with object/array (old format), convert to empty string
+        newParams[param.name] = typeof existingValue === 'string' ? existingValue : ''
+      } else if ((param.type === 'image' || param.type === 'audio') && typeof existingValue === 'object' && existingValue !== null && !Array.isArray(existingValue)) {
+        // For image/audio types, if it's an object (old file upload format), convert to empty string
         newParams[param.name] = ''
       } else {
         // For other types, use as is
@@ -179,6 +186,9 @@ watch(() => [props.operations.callTool.toolId, props.availableTools.length] as c
         newParams[param.name] = false
       } else if (param.type === 'object') {
         newParams[param.name] = '{}'
+      } else if (param.type === 'image[]') {
+        // image[] uses variable reference, not array of items
+        newParams[param.name] = ''
       } else if (param.type.endsWith('[]')) {
         newParams[param.name] = []
       } else {
@@ -214,8 +224,6 @@ function addArrayItem(paramName: string, paramType: string) {
     toolParameters.value[paramName].push(false)
   } else if (paramType === 'object[]') {
     toolParameters.value[paramName].push('{}')
-  } else if (paramType === 'image[]') {
-    toolParameters.value[paramName].push('')
   } else if (paramType === 'audio[]') {
     toolParameters.value[paramName].push(null)
   }
@@ -1126,7 +1134,26 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
               <p class="text-xs text-gray-500">{{ param.description }}</p>
             </div>
             
-            <!-- Array inputs (string[], number[], boolean[], object[], image[], audio[]) -->
+            <!-- Image array input (variable reference to image[] array) -->
+            <div v-else-if="param.type === 'image[]'" class="space-y-2">
+              <select
+                v-model="toolParameters[param.name]"
+                class="form-select text-sm"
+                :required="param.required"
+              >
+                <option value="">Select image array variable...</option>
+                <option 
+                  v-for="variable in imageArrayVariables" 
+                  :key="variable.name"
+                  :value="`{{vars.${variable.name}}}`"
+                >
+                  {{ variable.name }}
+                </option>
+              </select>
+              <p class="text-xs text-gray-500">{{ param.description }} - Select a stage variable of type image[]</p>
+            </div>
+            
+            <!-- Array inputs (string[], number[], boolean[], object[], audio[]) -->
             <div v-else-if="param.type.endsWith('[]')" class="space-y-2">
               <div 
                 v-for="(_item, index) in getArrayValue(param.name)" 
@@ -1164,21 +1191,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                   class="form-textarea text-sm font-mono flex-1"
                   rows="3"
                 />
-                <div v-else-if="param.type === 'image[]'" class="flex-1">
-                  <select
-                    v-model="toolParameters[param.name][index]"
-                    class="form-select text-sm"
-                  >
-                    <option value="">Select image variable...</option>
-                    <option 
-                      v-for="variable in imageVariables" 
-                      :key="variable.name"
-                      :value="`{{vars.${variable.name}}}`"
-                    >
-                      {{ variable.name }}
-                    </option>
-                  </select>
-                </div>
                 <div v-else-if="param.type === 'audio[]'" class="flex-1 space-y-2">
                   <input
                     type="file"
