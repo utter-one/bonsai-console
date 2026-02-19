@@ -66,7 +66,7 @@ function buildTheme() {
     {
       '&': {
         height: '100%',
-        backgroundColor: dark ? '#1f2937' : '#ffffff', // gray-800 : white
+        backgroundColor: dark ? '#111827' : '#ffffff', // gray-900 : white
         color: dark ? '#e5e7eb' : '#1f2937', // gray-200 : gray-800
       },
       '.cm-scroller': {
@@ -87,13 +87,13 @@ function buildTheme() {
         borderLeftColor: dark ? '#e5e7eb' : '#000000',
       },
       '.cm-activeLine': {
-        backgroundColor: dark ? '#374151' : '#f3f4f6', // gray-700 : gray-100
+        backgroundColor: 'transparent !important',
       },
       '.cm-selectionBackground': {
-        backgroundColor: dark ? '#4b5563' : '#e5e7eb', // gray-600 : gray-200
+        backgroundColor: dark ? '#2563eb' : '#bfdbfe', // blue-600 : blue-200
       },
       '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-        backgroundColor: dark ? '#4b5563' : '#e5e7eb',
+        backgroundColor: dark ? '#2563eb' : '#bfdbfe',
       },
     },
     { dark }
