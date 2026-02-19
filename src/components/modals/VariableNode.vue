@@ -19,8 +19,46 @@
 
     <!-- Non-root nodes -->
     <template v-else>
+      <!-- Image data (check before generic object) -->
+      <template v-if="isImageData(data)">
+        <div class="flex items-start gap-2">
+          <div class="w-5 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0 space-y-2">
+            <div class="font-semibold text-gray-900 dark:text-white">{{ propertyName }}</div>
+            <img 
+              :src="getMediaDataUrl(data)" 
+              :alt="propertyName"
+              class="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+              style="max-height: 400px;"
+              @error="handleImageError"
+            />
+            <div v-if="data.metadata" class="text-xs text-gray-500 font-mono">
+              {{ data.metadata.width }} × {{ data.metadata.height }}
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Audio data (check before generic object) -->
+      <template v-else-if="isAudioData(data)">
+        <div class="flex items-start gap-2">
+          <div class="w-5 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0 space-y-2">
+            <div class="font-semibold text-gray-900 dark:text-white">{{ propertyName }}</div>
+            <audio 
+              controls 
+              :src="getMediaDataUrl(data)"
+              class="w-full max-w-md"
+              preload="metadata"
+            >
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        </div>
+      </template>
+
       <!-- Object or Array with expandable content -->
-      <template v-if="isObject(data) || Array.isArray(data)">
+      <template v-else-if="isObject(data) || Array.isArray(data)">
         <div class="flex items-start gap-2">
           <button
             @click="isExpanded = !isExpanded"
@@ -110,6 +148,52 @@ function getValueClass(value: any): string {
     return 'text-purple-700 dark:text-purple-400'
   }
   return 'text-gray-700 dark:text-gray-300'
+}
+
+/**
+ * Check if value is image data (object with data and mimeType fields)
+ */
+function isImageData(value: any): boolean {
+  if (typeof value !== 'object' || value === null) return false
+  
+  // Check for object with data and mimeType fields
+  if ('data' in value && 'mimeType' in value && typeof value.mimeType === 'string') {
+    return value.mimeType.startsWith('image/')
+  }
+  
+  return false
+}
+
+/**
+ * Check if value is audio data (object with data and mimeType fields)
+ */
+function isAudioData(value: any): boolean {
+  if (typeof value !== 'object' || value === null) return false
+  
+  // Check for object with data and mimeType fields
+  if ('data' in value && 'mimeType' in value && typeof value.mimeType === 'string') {
+    return value.mimeType.startsWith('audio/')
+  }
+  
+  return false
+}
+
+/**
+ * Convert media object (with data and mimeType) to data URL
+ */
+function getMediaDataUrl(value: any): string {
+  if (typeof value !== 'object' || !value.data || !value.mimeType) {
+    return ''
+  }
+  return `data:${value.mimeType};base64,${value.data}`
+}
+
+/**
+ * Handle image loading errors
+ */
+function handleImageError(event: Event) {
+  const img = event.target as HTMLImageElement
+  console.error('Failed to load image:', img.src)
 }
 </script>
 
