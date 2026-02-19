@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
-import { ArrowLeft, Save } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -140,6 +140,7 @@ const providerPresets: ProviderPreset[] = [
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'config' | 'metadata'>('basic')
 const form = ref({
   id: '',
@@ -462,7 +463,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentProvider.value) {
       // Update existing provider
-      await providersStore.update(currentProvider.value.id, {
+      const updated = await providersStore.update(currentProvider.value.id, {
         version: currentProvider.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -470,6 +471,9 @@ async function handleSubmit() {
         apiType: form.value.apiType,
         config: config
       })
+      
+      // Update currentProvider with the response to get the new version
+      currentProvider.value = updated
     } else {
       // Create new provider
       const createData: any = {
@@ -494,11 +498,23 @@ async function handleSubmit() {
         createData.createdBy = form.value.createdBy
       }
 
-      await providersStore.create(createData)
+      const created = await providersStore.create(createData)
+      
+      // Update currentProvider with the created provider
+      currentProvider.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'administration.providers.edit',
+        params: { providerId: created.id }
+      })
     }
 
-    // Navigate back to providers list
-    router.push({ name: 'administration.providers' })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} provider`
   } finally {
@@ -542,9 +558,10 @@ const metadataFields = computed(() => {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Provider') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Provider')) }}
         </button>
       </div>
     </div>

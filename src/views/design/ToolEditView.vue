@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
+import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -17,6 +17,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'parameters' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
@@ -89,7 +90,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentTool.value) {
       // Update existing tool
-      await toolsStore.update(currentTool.value.id, {
+      const updated = await toolsStore.update(currentTool.value.id, {
         version: currentTool.value.version,
         name: form.value.name,
         description: form.value.description || null,
@@ -101,6 +102,9 @@ async function handleSubmit() {
         parameters: form.value.parameters,
         metadata: form.value.metadata
       })
+      
+      // Update currentTool with the response to get the new version
+      currentTool.value = updated
     } else {
       // Create new tool
       const createData: any = {
@@ -125,11 +129,23 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      await toolsStore.create(createData)
+      const created = await toolsStore.create(createData)
+      
+      // Update currentTool with the created tool
+      currentTool.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'design.tools.edit',
+        params: { projectId: projectId.value, toolId: created.id }
+      })
     }
 
-    // Navigate back to tools list
-    router.push({ name: 'design.tools', params: { projectId: projectId.value } })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} tool`
   } finally {
@@ -190,9 +206,10 @@ const metadataFields = computed(() => {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Tool') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Tool')) }}
         </button>
       </div>
     </div>

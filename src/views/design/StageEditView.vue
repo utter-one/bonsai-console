@@ -55,6 +55,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
@@ -174,7 +175,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentStage.value) {
       // Update existing stage
-      await stagesStore.update(currentStage.value.id, {
+      const updated = await stagesStore.update(currentStage.value.id, {
         version: currentStage.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -193,6 +194,9 @@ async function handleSubmit() {
         transformerIds: form.value.transformerIds,
         metadata: form.value.metadata
       })
+      
+      // Update currentStage with the response to get the new version
+      currentStage.value = updated
     } else {
       // Create new stage
       const createData: any = {
@@ -224,11 +228,23 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      await stagesStore.create(createData)
+      const created = await stagesStore.create(createData)
+      
+      // Update currentStage with the created stage
+      currentStage.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'design.stages.edit',
+        params: { projectId: projectId.value, stageId: created.id }
+      })
     }
 
-    // Navigate back to stages list
-    router.push({ name: 'design.stages', params: { projectId: projectId.value } })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} stage`
   } finally {
@@ -672,9 +688,10 @@ function toggleNode(path: number[]) {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Stage') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Stage')) }}
         </button>
       </div>
     </div>
