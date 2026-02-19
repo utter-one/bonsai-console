@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { MoreHorizontal } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
 import PromptEditor from './PromptEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
@@ -98,6 +99,59 @@ function addVariableModification() {
 
 function removeVariableModification(index: number) {
   props.operations.modifyVariables.modifications.splice(index, 1)
+}
+
+// Track which variable modification dropdown is open
+const openVariableDropdown = ref<number | null>(null)
+
+function toggleVariableDropdown(index: number) {
+  if (openVariableDropdown.value === index) {
+    openVariableDropdown.value = null
+  } else {
+    openVariableDropdown.value = index
+  }
+}
+
+function selectStageVariable(index: number, variableName: string) {
+  props.operations.modifyVariables.modifications[index]!.variableName = variableName
+  openVariableDropdown.value = null // Close dropdown after selection
+}
+
+// Computed property to format stage variables for dropdown
+const stageVariablesWithTypes = computed(() => {
+  return props.stageVariables.map(v => ({
+    name: v.name,
+    type: v.type,
+    displayType: getTypeDisplayName(v.type)
+  }))
+})
+
+function getTypeDisplayName(type: string): string {
+  const typeMap: Record<string, string> = {
+    'string': 'String',
+    'number': 'Number',
+    'boolean': 'Boolean',
+    'object': 'Object',
+    'string[]': 'String[]',
+    'number[]': 'Number[]',
+    'boolean[]': 'Boolean[]',
+    'object[]': 'Object[]',
+    'image': 'Image',
+    'image[]': 'Image[]',
+    'audio': 'Audio',
+    'audio[]': 'Audio[]'
+  }
+  return typeMap[type] || type
+}
+
+function getTypeBadgeColor(type: string): string {
+  if (type.includes('[]')) return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+  if (type === 'string') return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+  if (type === 'number') return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+  if (type === 'boolean') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+  if (type === 'object') return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+  if (type === 'image' || type === 'audio') return 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300'
+  return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
 }
 
 function addProfileModification() {
@@ -905,14 +959,73 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
               </button>
             </div>
             
-            <div>
+            <div class="space-y-2">
               <label class="form-label text-sm">Variable Name</label>
-              <input
-                v-model="mod.variableName"
-                type="text"
-                placeholder="cart_total"
-                class="form-input font-mono text-sm"
-              />
+              
+              <div class="flex items-start gap-2">
+                <!-- Manual input field -->
+                <input
+                  v-model="mod.variableName"
+                  type="text"
+                  placeholder="cart_total"
+                  class="form-input font-mono text-sm flex-1"
+                />
+                
+                <!-- Button to select from defined stage variables -->
+                <div v-if="stageVariables.length > 0" class="relative">
+                  <button
+                    type="button"
+                    @click.stop="toggleVariableDropdown(index)"
+                    class="btn-secondary mt-0.5"
+                    title="Select from defined variables"
+                  >
+                    <MoreHorizontal :size="16" />
+                  </button>
+                  
+                  <!-- Backdrop to close dropdown -->
+                  <div
+                    v-if="openVariableDropdown === index"
+                    class="fixed inset-0 z-40"
+                    @click="openVariableDropdown = null"
+                  ></div>
+                  
+                  <!-- Dropdown menu -->
+                  <div
+                    v-if="openVariableDropdown === index"
+                    @click.stop
+                    class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
+                  >
+                    <button
+                      v-for="variable in stageVariablesWithTypes"
+                      :key="variable.name"
+                      type="button"
+                      @click="selectStageVariable(index, variable.name)"
+                      class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                    >
+                      <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
+                      <span 
+                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                        :class="getTypeBadgeColor(variable.type)"
+                      >
+                        {{ variable.displayType }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Type indicator if variable is defined -->
+              <div v-if="mod.variableName && stageVariables.length > 0" class="flex items-center gap-2">
+                <template v-for="variable in stageVariables" :key="variable.name">
+                  <span 
+                    v-if="variable.name === mod.variableName"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    :class="getTypeBadgeColor(variable.type)"
+                  >
+                    {{ getTypeDisplayName(variable.type) }}
+                  </span>
+                </template>
+              </div>
             </div>
 
             <div>

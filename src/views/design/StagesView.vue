@@ -180,7 +180,7 @@ function clearSearch() {
                     <span v-if="stage.useKnowledge" class="badge-info">Knowledge</span>
                     <span v-if="stage.useGlobalActions" class="badge-info">Global Actions</span>
                     <span v-if="stage.defaultClassifierId" class="badge-info whitespace-nowrap">
-                      Default Classifier
+                      Classifier
                     </span>
                     <span v-if="stage.transformerIds?.length" class="badge-info whitespace-nowrap">
                       {{ stage.transformerIds.length }} Transformer(s)
