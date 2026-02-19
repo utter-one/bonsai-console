@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePersonasStore, useProjectSelectionStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useTableSort } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -15,6 +15,9 @@ const projectSelectionStore = useProjectSelectionStore()
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Sorting
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-personas')
 
 // Pagination
 const pagination = usePagination({
@@ -44,6 +47,11 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for sort changes and reload data
+watch([sortKey, sortOrder], () => {
+  loadPersonas()
+})
+
 // Watch for projectId changes
 watch(projectId, () => {
   searchQuery.value = ''
@@ -60,8 +68,9 @@ onMounted(async () => {
 // Methods
 async function loadPersonas() {
   try {
+    const orderBy = getOrderBy()
     await personasStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value } })
+      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load personas:', error)
@@ -152,8 +161,18 @@ function clearSearch() {
         <table class="table">
           <thead class="table-header">
             <tr>
-              <th class="table-header-cell">Name</th>
-              <th class="table-header-cell">Updated</th>
+              <th class="table-header-cell-sortable" @click="toggleSort('name')">
+                <div class="flex items-center gap-1">
+                  Name
+                  <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
+              <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
+                <div class="flex items-center gap-1">
+                  Updated
+                  <component :is="getSortIcon('updatedAt')" class="w-4 h-4" :class="sortKey === 'updatedAt' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
               <th class="table-header-cell-right">Actions</th>
             </tr>
           </thead>

@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores'
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-vue-next'
 
 export * from './useActionForm'
 export * from './useWebSocketClient'
@@ -177,5 +178,109 @@ export function useConfirm() {
   return {
     confirm,
     confirmDelete,
+  }
+}
+
+/**
+ * Composable for table sorting with localStorage persistence
+ * 
+ * @param storageKey - Unique key for localStorage (e.g., 'sort-admins')
+ * 
+ * @example
+ * const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-admins')
+ * 
+ * // In template:
+ * <th @click="toggleSort('name')">
+ *   <div class="flex items-center gap-1">
+ *     Name
+ *     <component :is="getSortIcon('name')" class="w-4 h-4" />
+ *   </div>
+ * </th>
+ * 
+ * // In loadData:
+ * await store.fetchAll(pagination.getParams({ orderBy: getOrderBy() }))
+ */
+export function useTableSort(storageKey: string) {
+  // Load initial state from localStorage
+  const loadFromStorage = () => {
+    try {
+      const stored = localStorage.getItem(storageKey)
+      if (stored) {
+        return JSON.parse(stored)
+      }
+    } catch (err) {
+      console.error('Failed to load sort state from localStorage:', err)
+    }
+    return { sortKey: null, sortOrder: null }
+  }
+
+  const initialState = loadFromStorage()
+  const sortKey = ref<string | null>(initialState.sortKey)
+  const sortOrder = ref<'asc' | 'desc' | null>(initialState.sortOrder)
+
+  // Save to localStorage whenever state changes
+  const saveToStorage = () => {
+    try {
+      if (sortKey.value && sortOrder.value) {
+        localStorage.setItem(storageKey, JSON.stringify({
+          sortKey: sortKey.value,
+          sortOrder: sortOrder.value
+        }))
+      } else {
+        localStorage.removeItem(storageKey)
+      }
+    } catch (err) {
+      console.error('Failed to save sort state to localStorage:', err)
+    }
+  }
+
+  /**
+   * Toggle sorting for a field
+   * - Same field: cycle through asc → desc → none
+   * - Different field: reset previous and set new to asc
+   */
+  function toggleSort(field: string) {
+    if (sortKey.value === field) {
+      // Cycle through states
+      if (sortOrder.value === 'asc') {
+        sortOrder.value = 'desc'
+      } else if (sortOrder.value === 'desc') {
+        sortKey.value = null
+        sortOrder.value = null
+      } else {
+        sortOrder.value = 'asc'
+      }
+    } else {
+      // New field - start with ascending
+      sortKey.value = field
+      sortOrder.value = 'asc'
+    }
+    saveToStorage()
+  }
+
+  /**
+   * Get the orderBy parameter for API calls
+   * Returns: null (no sort), "field" (asc), or "-field" (desc)
+   */
+  function getOrderBy(): string | null {
+    if (!sortKey.value || !sortOrder.value) return null
+    return sortOrder.value === 'asc' ? sortKey.value : `-${sortKey.value}`
+  }
+
+  /**
+   * Get the appropriate icon component for a field
+   * Returns: ArrowUpDown (inactive), ArrowUp (asc), or ArrowDown (desc)
+   */
+  function getSortIcon(field: string) {
+    if (sortKey.value !== field) return ArrowUpDown
+    return sortOrder.value === 'asc' ? ArrowUp : ArrowDown
+  }
+
+  return {
+    sortKey,
+    sortOrder,
+    toggleSort,
+    getOrderBy,
+    getSortIcon
   }
 }

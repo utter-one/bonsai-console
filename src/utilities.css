@@ -155,6 +155,10 @@
   @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-gray-300;
 }
 
+.table-header-cell-sortable {
+  @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors select-none;
+}
+
 .table-header-cell-right {
   @apply px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-gray-300;
 }

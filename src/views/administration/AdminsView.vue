@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
-import { formatEnum, usePagination } from '@/composables'
+import { formatEnum, usePagination, useTableSort } from '@/composables'
 import { User, Search, X } from 'lucide-vue-next'
 import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -15,6 +15,9 @@ const adminsStore = useAdminsStore()
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Sorting
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-admins')
 
 // Pagination
 const pagination = usePagination({
@@ -44,6 +47,11 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for sort changes and reload data
+watch([sortKey, sortOrder], () => {
+  loadAdmins()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadAdmins()
@@ -52,7 +60,8 @@ onMounted(async () => {
 // Methods
 async function loadAdmins() {
   try {
-    await adminsStore.fetchAll(pagination.getParams())
+    const orderBy = getOrderBy()
+    await adminsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
     console.error('Failed to load admins:', error)
   }
@@ -142,11 +151,31 @@ function clearSearch() {
         <table class="table">
           <thead class="table-header">
             <tr>
-              <th class="table-header-cell">Email</th>
-              <th class="table-header-cell">Name</th>
+              <th class="table-header-cell-sortable" @click="toggleSort('email')">
+                <div class="flex items-center gap-1">
+                  Email
+                  <component :is="getSortIcon('email')" class="w-4 h-4" :class="sortKey === 'email' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
+              <th class="table-header-cell-sortable" @click="toggleSort('name')">
+                <div class="flex items-center gap-1">
+                  Name
+                  <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
               <th class="table-header-cell">Roles</th>
-              <th class="table-header-cell">Created</th>
-              <th class="table-header-cell">Updated</th>
+              <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
+                <div class="flex items-center gap-1">
+                  Created
+                  <component :is="getSortIcon('createdAt')" class="w-4 h-4" :class="sortKey === 'createdAt' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
+              <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
+                <div class="flex items-center gap-1">
+                  Updated
+                  <component :is="getSortIcon('updatedAt')" class="w-4 h-4" :class="sortKey === 'updatedAt' ? 'text-primary-600' : 'text-gray-400'" />
+                </div>
+              </th>
               <th class="table-header-cell-right">Actions</th>
             </tr>
           </thead>
