@@ -2,12 +2,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
+import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 
 // Lifecycle action constants
@@ -55,8 +56,10 @@ const error = ref<string | null>(null)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
+const showDuplicateModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
+const duplicatingActionKey = ref<string | null>(null)
 const isLifecycleActionKey = ref(false)
 const form = ref({
   id: '',
@@ -294,6 +297,39 @@ function deleteAction(key: string) {
     delete newActions[key]
     form.value.actions = newActions
   }
+}
+
+function duplicateAction(key: string) {
+  const action = form.value.actions[key]
+  if (!action) return
+  
+  duplicatingActionKey.value = key
+  showDuplicateModal.value = true
+}
+
+function handleActionDuplicate(data: { key: string; name: string }) {
+  if (!duplicatingActionKey.value) return
+  
+  const originalAction = form.value.actions[duplicatingActionKey.value]
+  if (!originalAction) return
+  
+  // Check if key already exists
+  if (form.value.actions[data.key]) {
+    alert(`Action with key "${data.key}" already exists. Please choose a different key.`)
+    return
+  }
+  
+  // Clone the action with new key and name
+  const newActions = { ...form.value.actions }
+  newActions[data.key] = {
+    ...originalAction,
+    name: data.name
+  }
+  form.value.actions = newActions
+  
+  // Reset state and close modal
+  duplicatingActionKey.value = null
+  showDuplicateModal.value = false
 }
 
 function configureLifecycleAction(key: string) {
@@ -877,16 +913,27 @@ function toggleNode(path: number[]) {
                             @click="editAction(action.key)"
                             class="btn-secondary btn-sm"
                             :disabled="isLoading"
+                            title="Edit action"
                           >
-                            Edit
+                            <Pencil class="inline-block w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            @click="duplicateAction(action.key)"
+                            class="btn-secondary btn-sm"
+                            :disabled="isLoading"
+                            title="Duplicate action"
+                          >
+                            <Copy class="inline-block w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             @click="deleteAction(action.key)"
                             class="btn-danger btn-sm"
                             :disabled="isLoading"
+                            title="Delete action"
                           >
-                            Delete
+                            <Trash2 class="inline-block w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -998,6 +1045,15 @@ function toggleNode(path: number[]) {
       :action-parameters="actionParametersForCompletion"
       @close="showActionModal = false"
       @save="handleActionSave"
+    />
+
+    <!-- Action Duplicate Modal -->
+    <ActionDuplicateModal
+      v-if="showDuplicateModal && duplicatingActionKey"
+      :original-key="duplicatingActionKey"
+      :original-name="form.actions[duplicatingActionKey]?.name || ''"
+      @close="showDuplicateModal = false"
+      @save="handleActionDuplicate"
     />
   </div>
 </template>
