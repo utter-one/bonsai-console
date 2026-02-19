@@ -241,6 +241,9 @@ const showCartesiaFields = computed(() =>
 const showAzureASRFields = computed(() => 
   form.value.apiType === 'azure' && form.value.providerType === 'asr'
 )
+const showAzureTtsFields = computed(() => 
+  form.value.apiType === 'azure' && form.value.providerType === 'tts'
+)
 
 // Storage provider config fields
 const showS3Fields = computed(() => 
@@ -377,6 +380,11 @@ async function handleSubmit() {
       region: form.value.config.region,
       subscriptionKey: form.value.config.subscriptionKey
     }
+  } else if (showAzureTtsFields.value) {
+    config = {
+      region: form.value.config.region,
+      subscriptionKey: form.value.config.subscriptionKey
+    }
   } else if (showS3Fields.value) {
     config = {
       accessKeyId: form.value.config.accessKeyId,
@@ -413,6 +421,11 @@ async function handleSubmit() {
 
   // Validate required fields
   if (showAzureASRFields.value) {
+    if (!config.region || !config.subscriptionKey) {
+      error.value = 'Region and Subscription Key are required for Azure Speech'
+      return
+    }
+  } else if (showAzureTtsFields.value) {
     if (!config.region || !config.subscriptionKey) {
       error.value = 'Region and Subscription Key are required for Azure Speech'
       return
@@ -879,6 +892,45 @@ const metadataFields = computed(() => {
 
           <!-- Azure ASR Configuration -->
           <template v-if="showAzureASRFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Speech Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Region <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.region"
+                type="text"
+                required
+                placeholder="eastus"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Azure region for the Speech service (e.g., eastus, westeurope)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Subscription Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.subscriptionKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Azure Speech service subscription key
+              </p>
+            </div>
+          </template>
+
+          <!-- Azure TTS Configuration -->
+          <template v-if="showAzureTtsFields">
             <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Speech Configuration</h3>
             
             <div class="form-group">

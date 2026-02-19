@@ -3,9 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
-import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings } from '@/api/types'
+import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -26,7 +26,7 @@ const form = ref<{
   description: string
   prompt: string
   ttsProviderId: string
-  ttsSettings: Partial<TtsSettings>
+  ttsSettings: TtsSettings
   metadata: Record<string, any>
 }>({
   id: '',
@@ -34,7 +34,7 @@ const form = ref<{
   description: '',
   prompt: '',
   ttsProviderId: '',
-  ttsSettings: {},
+  ttsSettings: {} as TtsSettings,
   metadata: {}
 })
 
@@ -67,6 +67,7 @@ const isElevenLabs = computed(() => selectedProviderApiType.value === 'elevenlab
 const isOpenAI = computed(() => selectedProviderApiType.value === 'openai')
 const isDeepgram = computed(() => selectedProviderApiType.value === 'deepgram')
 const isCartesia = computed(() => selectedProviderApiType.value === 'cartesia')
+const isAzure = computed(() => selectedProviderApiType.value === 'azure')
 
 const isModelSelected = computed(() => !!form.value.ttsSettings.model)
 
@@ -78,7 +79,7 @@ const availableVoices = computed(() => {
   if (!selectedProviderCatalogInfo.value) return []
   
   // If a model is selected, check for model-specific voices first
-  const modelId = form.value.ttsSettings.model
+  const modelId = (form.value.ttsSettings as any).model
   if (modelId) {
     const selectedModel = selectedProviderCatalogInfo.value.models.find(
       m => m.id === modelId
@@ -102,7 +103,7 @@ const availableAudioFormats = computed(() => {
   if (!selectedProviderCatalogInfo.value) return []
   
   // Get formats from the selected model
-  const modelId = form.value.ttsSettings.model
+  const modelId = (form.value.ttsSettings as any).model
   if (modelId) {
     const selectedModel = selectedProviderCatalogInfo.value.models.find(
       m => m.id === modelId
@@ -119,11 +120,9 @@ const availableAudioFormats = computed(() => {
 })
 
 // Computed properties for select bindings to handle undefined values
-const modelValue = computed({
-  get: () => form.value.ttsSettings.model ?? '',
+const modelValue = computed({  get: () => (form.value.ttsSettings as any).model ?? '',
   set: (value) => {
-    const settings = form.value.ttsSettings as any
-    settings.model = value || undefined
+    form.value.ttsSettings.model = value
   }
 })
 
@@ -165,12 +164,13 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
   if (oldProviderId && oldProviderId !== newProviderId) {
     if (!newProviderId) {
       // Switching to "None" - reset all settings
-      form.value.ttsSettings = {}
+      form.value.ttsSettings = {} as TtsSettings
     } else {
       // Switching between providers - initialize provider-specific structure
       const newApiType = selectedProvider.value?.apiType
       if (newApiType === 'elevenlabs') {
         form.value.ttsSettings = {
+          provider: 'elevenlabs',
           model: '',
           voiceId: '',
           noSpeechMarkers: [],
@@ -186,6 +186,7 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
         } as ElevenLabsTtsSettings
       } else if (newApiType === 'openai') {
         form.value.ttsSettings = {
+          provider: 'openai',
           model:'',
           voiceId: '',
           speed: 1.0,
@@ -196,6 +197,7 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
         } as OpenAiTtsSettings
       } else if (newApiType === 'deepgram') {
         form.value.ttsSettings = {
+          provider: 'deepgram',
           model: undefined,
           voiceId: '',
           audioFormat: 'linear16',
@@ -207,6 +209,7 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
         } as DeepgramTtsSettings
       } else if (newApiType === 'cartesia') {
         form.value.ttsSettings = {
+          provider: 'cartesia',
           model: '',
           voiceId: '',
           language: 'en',
@@ -218,16 +221,29 @@ watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
           noSpeechMarkers: [],
           removeExclamationMarks: false
         } as CartesiaTtsSettings
+      } else if (newApiType === 'azure') {
+        form.value.ttsSettings = {
+          provider: 'azure',
+          model: 'neural',
+          voiceId: '',
+          audioFormat: 'pcm_24000',
+          style: '',
+          rate: '1.0',
+          pitch: '0%',
+          useSentenceSplitter: true,
+          noSpeechMarkers: [],
+          removeExclamationMarks: false
+        } as AzureTtsSettings
       } else {
         // Other/custom provider
-        form.value.ttsSettings = {}
+        form.value.ttsSettings = {} as TtsSettings
       }
     }
   }
 })
 
 // Watch for model changes to reset voice selection if it's not valid for new model
-watch(() => form.value.ttsSettings.model, (newModel, oldModel) => {
+watch(() => (form.value.ttsSettings as any).model, (newModel, oldModel) => {
   // Only reset if actually changing models (not initial load)
   if (oldModel && newModel !== oldModel) {
     // Check if current voice is valid for the new model
@@ -272,7 +288,7 @@ async function loadPersona() {
         description: currentPersona.value.description || '',
         prompt: currentPersona.value.prompt,
         ttsProviderId: currentPersona.value.ttsProviderId || '',
-        ttsSettings: currentPersona.value.ttsSettings || {},
+        ttsSettings: currentPersona.value.ttsSettings || {} as TtsSettings,
         metadata: currentPersona.value.metadata || {}
       }
     }
@@ -921,6 +937,79 @@ function removeNoSpeechMarker(index: number) {
             </div>
           </div>
 
+          <!-- Voice Settings Section (Azure) -->
+          <div v-if="form.ttsProviderId && isAzure" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Azure Speech)</h3>
+
+            <!-- Style -->
+            <div class="form-group">
+              <label class="form-label">
+                Style
+              </label>
+              <input
+                v-model="(form.ttsSettings as AzureTtsSettings).style"
+                type="text"
+                placeholder="cheerful, sad, angry, friendly, etc."
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Speaking style for voices that support it (e.g., "cheerful", "sad", "angry", "friendly"). Optional.
+              </p>
+            </div>
+
+            <!-- Rate -->
+            <div class="form-group">
+              <label class="form-label">
+                Rate
+              </label>
+              <input
+                v-model="(form.ttsSettings as AzureTtsSettings).rate"
+                type="text"
+                placeholder="1.0 or +10% or -5%"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Speaking rate adjustment. Can be decimal (0.5 to 2.0) or percentage ("+10%", "-5%"). Defaults to 1.0 (normal speed).
+              </p>
+            </div>
+
+            <!-- Pitch -->
+            <div class="form-group">
+              <label class="form-label">
+                Pitch
+              </label>
+              <input
+                v-model="(form.ttsSettings as AzureTtsSettings).pitch"
+                type="text"
+                placeholder="0% or +5% or -10%"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Pitch adjustment. Can be percentage ("+5%", "-10%") or descriptive ("high", "low"). Range typically -50% to +50%.
+              </p>
+            </div>
+
+            <!-- Inactivity Timeout (ElevenLabs only) -->
+            <div v-if="isElevenLabs" class="form-group">
+              <label class="form-label">
+                Inactivity Timeout (seconds)
+              </label>
+              <input
+                v-model.number="(form.ttsSettings as ElevenLabsTtsSettings).inactivityTimeout"
+                type="number"
+                min="1"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                WebSocket inactivity timeout in seconds (defaults to 180)
+              </p>
+            </div>
+          </div>
+
           <!-- Boolean Settings Section -->
           <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Settings</h3>
@@ -997,23 +1086,6 @@ function removeNoSpeechMarker(index: number) {
               </p>
               <p v-else class="form-help-text mt-1">
                 Send only full sentences to TTS (can introduce small latency)
-              </p>
-            </div>
-
-            <!-- Inactivity Timeout (ElevenLabs only) -->
-            <div v-if="isElevenLabs" class="form-group">
-              <label class="form-label">
-                Inactivity Timeout (seconds)
-              </label>
-              <input
-                v-model.number="(form.ttsSettings as ElevenLabsTtsSettings).inactivityTimeout"
-                type="number"
-                min="1"
-                class="form-input"
-                :disabled="isLoading"
-              />
-              <p class="form-help-text">
-                WebSocket inactivity timeout in seconds (defaults to 180)
               </p>
             </div>
           </div>
