@@ -150,97 +150,84 @@ const emotionTagsInput = computed({
   }
 })
 
-// Watch for provider changes to reset fields (different providers have different models/voices)
-watch(() => form.value.ttsProviderId, async (newProviderId, oldProviderId) => {
-  if (newProviderId && selectedProvider.value) {
-    // Fetch TTS provider catalog if not already loaded
-    if (!providerCatalogStore.catalog) {
-      await providerCatalogStore.fetchTtsProviders()
-    }
-  }
-  
-  // Reset voice config when switching to "None" or between different providers
-  // Only reset if there was an actual previous provider (not initial load with empty string)
-  if (oldProviderId && oldProviderId !== newProviderId) {
-    if (!newProviderId) {
-      // Switching to "None" - reset all settings
-      form.value.ttsSettings = {} as TtsSettings
-    } else {
-      // Switching between providers - initialize provider-specific structure
-      const newApiType = selectedProvider.value?.apiType
-      if (newApiType === 'elevenlabs') {
-        form.value.ttsSettings = {
-          provider: 'elevenlabs',
-          model: '',
-          voiceId: '',
-          noSpeechMarkers: [],
-          removeExclamationMarks: false,
-          stability: 0.5,
-          similarityBoost: 0.75,
-          style: 0,
-          useSpeakerBoost: true,
-          speed: 1.0,
-          useGlobalPreview: false,
-          inactivityTimeout: 180,
-          useSentenceSplitter: true
-        } as ElevenLabsTtsSettings
-      } else if (newApiType === 'openai') {
-        form.value.ttsSettings = {
-          provider: 'openai',
-          model:'',
-          voiceId: '',
-          speed: 1.0,
-          instructions: '',
-          noSpeechMarkers: [],
-          removeExclamationMarks: false,
-          useSentenceSplitter: true
-        } as OpenAiTtsSettings
-      } else if (newApiType === 'deepgram') {
-        form.value.ttsSettings = {
-          provider: 'deepgram',
-          model: undefined,
-          voiceId: '',
-          audioFormat: 'linear16',
-          sampleRate: 24000,
-          container: 'none',
-          noSpeechMarkers: [],
-          removeExclamationMarks: false,
-          useSentenceSplitter: true
-        } as DeepgramTtsSettings
-      } else if (newApiType === 'cartesia') {
-        form.value.ttsSettings = {
-          provider: 'cartesia',
-          model: '',
-          voiceId: '',
-          language: 'en',
-          audioFormat: 'pcm_24000',
-          speed: 'normal',
-          emotion: [],
-          maxBufferDelayMs: 3000,
-          useSentenceSplitter: false,
-          noSpeechMarkers: [],
-          removeExclamationMarks: false
-        } as CartesiaTtsSettings
-      } else if (newApiType === 'azure') {
-        form.value.ttsSettings = {
-          provider: 'azure',
-          model: 'neural',
-          voiceId: '',
-          audioFormat: 'pcm_24000',
-          style: '',
-          rate: '1.0',
-          pitch: '0%',
-          useSentenceSplitter: true,
-          noSpeechMarkers: [],
-          removeExclamationMarks: false
-        } as AzureTtsSettings
-      } else {
-        // Other/custom provider
-        form.value.ttsSettings = {} as TtsSettings
+function handleTtsProviderChange() {
+  const newApiType = selectedProvider.value?.apiType
+  switch (newApiType) {
+    case 'elevenlabs':
+      form.value.ttsSettings = {
+        provider: 'elevenlabs',
+        model: '',
+        voiceId: '',
+        noSpeechMarkers: [],
+        removeExclamationMarks: false,
+        stability: 0.5,
+        similarityBoost: 0.75,
+        style: 0,
+        useSpeakerBoost: true,
+        speed: 1.0,
+        useGlobalPreview: false,
+        inactivityTimeout: 180,
+        useSentenceSplitter: true
       }
-    }
+      break;
+    case 'openai':
+      form.value.ttsSettings = {
+        provider: 'openai',
+        model: '',
+        voiceId: '',
+        speed: 1.0,
+        instructions: '',
+        noSpeechMarkers: [],
+        removeExclamationMarks: false,
+        useSentenceSplitter: true
+      }
+      break;
+    case 'deepgram':
+      form.value.ttsSettings = {
+        provider: 'deepgram',
+        model: undefined,
+        voiceId: '',
+        audioFormat: 'linear16',
+        sampleRate: 24000,
+        container: 'none',
+        noSpeechMarkers: [],
+        removeExclamationMarks: false,
+        useSentenceSplitter: true
+      }
+      break;
+    case 'cartesia':
+      form.value.ttsSettings = {
+        provider: 'cartesia',
+        model: '',
+        voiceId: '',
+        language: 'en',
+        audioFormat: 'pcm_24000',
+        speed: 'normal',
+        emotion: [],
+        maxBufferDelayMs: 3000,
+        useSentenceSplitter: false,
+        noSpeechMarkers: [],
+        removeExclamationMarks: false
+      }
+      break;
+    case 'azure':
+      form.value.ttsSettings = {
+        provider: 'azure',
+        model: 'neural',
+        voiceId: '',
+        audioFormat: 'pcm_24000',
+        style: '',
+        rate: '1.0',
+        pitch: '0%',
+        useSentenceSplitter: true,
+        noSpeechMarkers: [],
+        removeExclamationMarks: false
+      }
+      break;
+    default:
+      form.value.ttsSettings = {} as TtsSettings
   }
-})
+}
 
 // Watch for model changes to reset voice selection if it's not valid for new model
 watch(() => (form.value.ttsSettings as any).model, (newModel, oldModel) => {
@@ -266,6 +253,9 @@ onMounted(async () => {
   
   // Load complete provider catalog
   await providerCatalogStore.fetchCatalog()
+
+  // Load TTS providers
+  await providerCatalogStore.fetchTtsProviders()
   
   if (isEditMode.value) {
     await loadPersona()
@@ -549,6 +539,7 @@ function removeNoSpeechMarker(index: number) {
               v-model="form.ttsProviderId"
               class="form-select"
               :disabled="isLoading"
+              @change="handleTtsProviderChange"
             >
               <option value="">None</option>
               <option v-for="provider in ttsProviders" :key="provider.id" :value="provider.id">
