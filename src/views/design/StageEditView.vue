@@ -2,13 +2,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
 import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
+import ActionsPasteModal from '@/components/modals/ActionsPasteModal.vue'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 
 // Lifecycle action constants
@@ -57,9 +58,11 @@ const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' 
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
+const showPasteModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
+const clipboardActions = ref<Record<string, StageAction> | null>(null)
 const isLifecycleActionKey = ref(false)
 const form = ref({
   id: '',
@@ -330,6 +333,88 @@ function handleActionDuplicate(data: { key: string; name: string }) {
   // Reset state and close modal
   duplicatingActionKey.value = null
   showDuplicateModal.value = false
+}
+
+function copyAllActions() {
+  // Filter out lifecycle actions when copying
+  const regularActions: Record<string, StageAction> = {}
+  for (const [key, action] of Object.entries(form.value.actions)) {
+    if (!isLifecycleAction(key)) {
+      regularActions[key] = action
+    }
+  }
+  
+  if (Object.keys(regularActions).length === 0) {
+    alert('No actions to copy')
+    return
+  }
+  
+  try {
+    // Copy to clipboard as JSON
+    const jsonData = JSON.stringify(regularActions, null, 2)
+    navigator.clipboard.writeText(jsonData)
+    
+    // Show success feedback
+    alert(`Copied ${Object.keys(regularActions).length} action(s) to clipboard`)
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err)
+    alert('Failed to copy actions to clipboard')
+  }
+}
+
+async function pasteActions() {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    
+    if (!clipboardText) {
+      alert('Clipboard is empty')
+      return
+    }
+    
+    // Try to parse as JSON
+    let parsedActions: Record<string, StageAction>
+    try {
+      parsedActions = JSON.parse(clipboardText)
+    } catch (err) {
+      alert('Clipboard does not contain valid JSON data')
+      return
+    }
+    
+    // Validate structure
+    if (!parsedActions || typeof parsedActions !== 'object') {
+      alert('Clipboard does not contain valid actions data')
+      return
+    }
+    
+    // Store in state and show modal
+    clipboardActions.value = parsedActions
+    showPasteModal.value = true
+  } catch (err) {
+    console.error('Failed to read clipboard:', err)
+    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
+  }
+}
+
+function handleActionsPaste(keys: string[]) {
+  if (!clipboardActions.value) return
+  
+  const newActions = { ...form.value.actions }
+  let pastedCount = 0
+  
+  for (const key of keys) {
+    if (clipboardActions.value[key] && !newActions[key]) {
+      newActions[key] = clipboardActions.value[key]
+      pastedCount++
+    }
+  }
+  
+  form.value.actions = newActions
+  showPasteModal.value = false
+  clipboardActions.value = null
+  
+  if (pastedCount > 0) {
+    alert(`Successfully pasted ${pastedCount} action(s)`)
+  }
 }
 
 function configureLifecycleAction(key: string) {
@@ -853,15 +938,37 @@ function toggleNode(path: number[]) {
                   Define custom actions that can be triggered during conversations
                 </p>
               </div>
-              <button
-                type="button"
-                @click="addAction"
-                class="btn-primary"
-                :disabled="isLoading"
-              >
-                <Plus class="inline-block mr-1 w-4 h-4" />
-                Add Action
-              </button>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  @click="copyAllActions"
+                  class="btn-secondary"
+                  :disabled="isLoading || actionsList.length === 0"
+                  title="Copy all actions to clipboard"
+                >
+                  <Clipboard class="inline-block mr-1 w-4 h-4" />
+                  Copy
+                </button>
+                <button
+                  type="button"
+                  @click="pasteActions"
+                  class="btn-secondary"
+                  :disabled="isLoading"
+                  title="Paste actions from clipboard"
+                >
+                  <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
+                  Paste
+                </button>
+                <button
+                  type="button"
+                  @click="addAction"
+                  class="btn-primary"
+                  :disabled="isLoading"
+                >
+                  <Plus class="inline-block mr-1 w-4 h-4" />
+                  Add Action
+                </button>
+              </div>
             </div>
 
             <!-- Empty State -->
@@ -1054,6 +1161,15 @@ function toggleNode(path: number[]) {
       :original-name="form.actions[duplicatingActionKey]?.name || ''"
       @close="showDuplicateModal = false"
       @save="handleActionDuplicate"
+    />
+
+    <!-- Actions Paste Modal -->
+    <ActionsPasteModal
+      v-if="showPasteModal && clipboardActions"
+      :clipboard-actions="clipboardActions"
+      :existing-keys="Object.keys(form.actions).filter(k => !isLifecycleAction(k))"
+      @close="showPasteModal = false"
+      @save="handleActionsPaste"
     />
   </div>
 </template>
