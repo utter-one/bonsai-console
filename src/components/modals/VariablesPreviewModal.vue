@@ -12,7 +12,10 @@
       <!-- Body -->
       <div class="flex-1 overflow-y-auto px-6 py-6">
         <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-          <VariableNode :data="variables" :path="[]" :is-root="true" />
+          <div v-if="isEmpty" class="text-center text-gray-500 dark:text-gray-400 italic">
+            No variables
+          </div>
+          <VariableNode v-else :data="variables" :path="[]" :is-root="true" />
         </div>
       </div>
 
@@ -31,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { X, Copy } from 'lucide-vue-next'
 import VariableNode from './VariableNode.vue'
 
@@ -44,6 +47,10 @@ const emit = defineEmits<{
 }>()
 
 const copied = ref(false)
+
+const isEmpty = computed(() => {
+  return !props.variables || Object.keys(props.variables).length === 0
+})
 
 async function copyToClipboard() {
   try {
