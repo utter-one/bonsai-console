@@ -114,6 +114,11 @@ const selectedTool = computed(() => {
   return props.availableTools.find(tool => tool.id === props.operations.callTool.toolId) || null
 })
 
+// Filter stage variables by type for reference selection
+const imageVariables = computed(() => {
+  return props.stageVariables.filter(v => v.type === 'image' && !v.isArray)
+})
+
 const toolParameters = ref<Record<string, any>>({})
 
 // Initialize tool parameters when tool changes or when loading existing data
@@ -161,6 +166,9 @@ watch(() => [props.operations.callTool.toolId, props.availableTools.length] as c
         newParams[param.name] = existingValue.map((item: any) => 
           typeof item === 'object' && item !== null ? JSON.stringify(item, null, 2) : item
         )
+      } else if ((param.type === 'image' || param.type === 'audio') && typeof existingValue === 'object' && existingValue !== null) {
+        // For image/audio types, if it's an object (old format), convert to empty string
+        newParams[param.name] = ''
       } else {
         // For other types, use as is
         newParams[param.name] = existingValue
@@ -207,7 +215,7 @@ function addArrayItem(paramName: string, paramType: string) {
   } else if (paramType === 'object[]') {
     toolParameters.value[paramName].push('{}')
   } else if (paramType === 'image[]') {
-    toolParameters.value[paramName].push(null)
+    toolParameters.value[paramName].push('')
   } else if (paramType === 'audio[]') {
     toolParameters.value[paramName].push(null)
   }
@@ -217,38 +225,6 @@ function removeArrayItem(paramName: string, index: number) {
   if (Array.isArray(toolParameters.value[paramName])) {
     toolParameters.value[paramName].splice(index, 1)
   }
-}
-
-function handleImageUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    // Create image to get dimensions
-    const img = new Image()
-    img.onload = () => {
-      toolParameters.value[paramName] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
 }
 
 function handleAudioUpload(event: Event, paramName: string) {
@@ -278,40 +254,6 @@ function handleAudioUpload(event: Event, paramName: string) {
       mimeType,
       metadata: {}
     }
-  }
-  reader.readAsDataURL(file)
-}
-
-function handleImageArrayUpload(event: Event, paramName: string, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    const img = new Image()
-    img.onload = () => {
-      if (!Array.isArray(toolParameters.value[paramName])) {
-        toolParameters.value[paramName] = []
-      }
-      toolParameters.value[paramName][index] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
   }
   reader.readAsDataURL(file)
 }
@@ -1144,23 +1086,23 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
               <p class="text-xs text-gray-500">Enter a valid JSON object or use Handlebars syntax (e.g., <code>&#123;&#123;variable&#125;&#125;</code>)</p>
             </div>
             
-            <!-- Image input -->
+            <!-- Image input (variable reference) -->
             <div v-else-if="param.type === 'image'" class="space-y-2">
-              <input
-                type="file"
-                accept="image/*"
-                @change="handleImageUpload($event, param.name)"
-                class="form-input text-sm"
+              <select
+                v-model="toolParameters[param.name]"
+                class="form-select text-sm"
                 :required="param.required"
-              />
-              <div v-if="toolParameters[param.name]" class="mt-2">
-                <img
-                  :src="`data:${toolParameters[param.name].mimeType};base64,${toolParameters[param.name].data}`"
-                  class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
-                  alt="Preview"
-                />
-              </div>
-              <p class="text-xs text-gray-500">{{ param.description }}</p>
+              >
+                <option value="">Select image variable...</option>
+                <option 
+                  v-for="variable in imageVariables" 
+                  :key="variable.name"
+                  :value="`{{vars.${variable.name}}}`"
+                >
+                  {{ variable.name }}
+                </option>
+              </select>
+              <p class="text-xs text-gray-500">{{ param.description }} - Select a stage variable of type image</p>
             </div>
             
             <!-- Audio input -->
@@ -1222,20 +1164,20 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                   class="form-textarea text-sm font-mono flex-1"
                   rows="3"
                 />
-                <div v-else-if="param.type === 'image[]'" class="flex-1 space-y-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    @change="handleImageArrayUpload($event, param.name, index)"
-                    class="form-input text-sm"
-                  />
-                  <div v-if="toolParameters[param.name][index]" class="mt-2">
-                    <img
-                      :src="`data:${toolParameters[param.name][index].mimeType};base64,${toolParameters[param.name][index].data}`"
-                      class="max-w-xs rounded border border-gray-300 dark:border-gray-600"
-                      alt="Preview"
-                    />
-                  </div>
+                <div v-else-if="param.type === 'image[]'" class="flex-1">
+                  <select
+                    v-model="toolParameters[param.name][index]"
+                    class="form-select text-sm"
+                  >
+                    <option value="">Select image variable...</option>
+                    <option 
+                      v-for="variable in imageVariables" 
+                      :key="variable.name"
+                      :value="`{{vars.${variable.name}}}`"
+                    >
+                      {{ variable.name }}
+                    </option>
+                  </select>
                 </div>
                 <div v-else-if="param.type === 'audio[]'" class="flex-1 space-y-2">
                   <input
