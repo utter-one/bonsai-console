@@ -148,6 +148,12 @@
             <Wrench :size="18" />
             <span class="hidden md:inline">Call Tool</span>
           </button>
+
+          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canSetVariable"
+            @click="showSetVariableDialog = true">
+            <Braces :size="18" />
+            <span class="hidden md:inline">Set Variable</span>
+          </button>
         </div>
       </div>
     </div>
@@ -765,6 +771,9 @@
     <CallToolModal v-if="showCallToolDialog" :project-id="projectId"
       @close="showCallToolDialog = false" @call="handleCallTool" />
 
+    <SetVariableModal v-if="showSetVariableDialog" :current-stage="currentStage"
+      @close="showSetVariableDialog = false" @set="handleSetVariable" />
+
     <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
       :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
       @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
@@ -792,6 +801,7 @@ import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
+import SetVariableModal from '@/components/modals/SetVariableModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
@@ -1502,6 +1512,10 @@ const canCallTool = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isCallingTool.value
 })
 
+const canSetVariable = computed(() => {
+  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && currentStage.value !== null
+})
+
 const canSendMessage = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
 })
@@ -1844,6 +1858,7 @@ const showStartConversationModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
+const showSetVariableDialog = ref(false)
 const showAudioSettingsModal = ref(false)
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
@@ -2048,6 +2063,55 @@ async function handleCallTool(toolId: string, parameters: Record<string, any>) {
     })
   } finally {
     isCallingTool.value = false
+  }
+}
+
+async function handleSetVariable(data: { variableName: string; variableValue: any }) {
+  if (!wsClient.value || !wsClient.value.client.value) {
+    addEvent({
+      type: 'Error',
+      message: 'No active WebSocket connection',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  if (!currentStage.value) {
+    addEvent({
+      type: 'Error',
+      message: 'No active stage',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  try {
+    addEvent({
+      type: 'System',
+      message: `Setting variable "${data.variableName}" in stage "${currentStage.value.name}"`,
+      timestamp: new Date(),
+      details: `Value: ${JSON.stringify(data.variableValue)}`
+    })
+
+    await wsClient.value.client.value.setVariable(
+      currentStage.value.id,
+      data.variableName,
+      data.variableValue
+    )
+
+    addEvent({
+      type: 'System',
+      message: `Variable "${data.variableName}" set successfully`,
+      timestamp: new Date()
+    })
+
+    showSetVariableDialog.value = false
+  } catch (error) {
+    addEvent({
+      type: 'Error',
+      message: `Failed to set variable: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
   }
 }
 
