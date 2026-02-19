@@ -6,23 +6,17 @@
       </h2>
       
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        <div v-if="conflictingKeys.length > 0" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 mb-4">
-          <p class="text-sm text-yellow-800 dark:text-yellow-300">
-            <strong>Warning:</strong> {{ conflictingKeys.length }} action key(s) already exist and will be skipped: <code class="font-mono">{{ conflictingKeys.join(', ') }}</code>
-          </p>
-        </div>
-
         <div class="form-group">
           <label class="form-label">
             Select Actions to Paste
           </label>
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-            Choose which actions to paste into this stage. Actions with duplicate keys will be skipped.
+            Choose which actions to paste into this stage. Actions with duplicate keys will overwrite existing ones.
           </p>
           
           <div class="border border-gray-300 dark:border-gray-600 rounded-lg max-h-96 overflow-y-auto">
             <div v-if="availableActions.length === 0" class="text-center py-8 text-gray-500">
-              No actions available to paste (all keys conflict with existing actions)
+              No actions in clipboard
             </div>
             
             <div v-else class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -41,6 +35,9 @@
                   <div class="flex items-center gap-2 mb-1">
                     <code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono">{{ action.key }}</code>
                     <span class="font-medium text-gray-900 dark:text-white">{{ action.action.name }}</span>
+                    <span v-if="action.willOverwrite" class="text-yellow-600 dark:text-yellow-400" title="This will overwrite an existing action">
+                      ⚠️
+                    </span>
                   </div>
                   <div class="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
                     <span v-if="action.action.triggerOnUserInput" class="badge-primary">User Input</span>
@@ -97,16 +94,14 @@ const selectedKeys = ref<string[]>([])
 
 const availableActions = computed(() => {
   return Object.entries(props.clipboardActions)
-    .filter(([key]) => !props.existingKeys.includes(key))
-    .map(([key, action]) => ({ key, action }))
+    .map(([key, action]) => ({ 
+      key, 
+      action,
+      willOverwrite: props.existingKeys.includes(key)
+    }))
 })
 
-const conflictingKeys = computed(() => {
-  return Object.keys(props.clipboardActions)
-    .filter(key => props.existingKeys.includes(key))
-})
-
-// Auto-select all available actions by default
+// Auto-select all actions by default
 if (availableActions.value.length > 0) {
   selectedKeys.value = availableActions.value.map(a => a.key)
 }

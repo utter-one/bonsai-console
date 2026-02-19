@@ -400,11 +400,16 @@ function handleActionsPaste(keys: string[]) {
   
   const newActions = { ...form.value.actions }
   let pastedCount = 0
+  let overwrittenCount = 0
   
   for (const key of keys) {
-    if (clipboardActions.value[key] && !newActions[key]) {
+    if (clipboardActions.value[key]) {
+      const isOverwrite = !!newActions[key] && !isLifecycleAction(key)
       newActions[key] = clipboardActions.value[key]
       pastedCount++
+      if (isOverwrite) {
+        overwrittenCount++
+      }
     }
   }
   
@@ -413,7 +418,10 @@ function handleActionsPaste(keys: string[]) {
   clipboardActions.value = null
   
   if (pastedCount > 0) {
-    alert(`Successfully pasted ${pastedCount} action(s)`)
+    const message = overwrittenCount > 0
+      ? `Successfully pasted ${pastedCount} action(s) (${overwrittenCount} overwritten)`
+      : `Successfully pasted ${pastedCount} action(s)`
+    alert(message)
   }
 }
 
