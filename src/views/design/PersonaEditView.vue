@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, X } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, X, Check } from 'lucide-vue-next'
 import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
@@ -19,6 +19,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'voice' | 'metadata'>('basic')
 const form = ref<{
   id: string
@@ -318,7 +319,7 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentPersona.value) {
       // Update existing persona
-      await personasStore.update(currentPersona.value.id, {
+      const updatedPersona = await personasStore.update(currentPersona.value.id, {
         version: currentPersona.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -327,6 +328,9 @@ async function handleSubmit() {
         ...(ttsSettings && { ttsSettings }),
         metadata: form.value.metadata
       })
+      
+      // Update currentPersona with the response to get the new version
+      currentPersona.value = updatedPersona
     } else {
       // Create new persona
       const createData: any = {
@@ -356,11 +360,23 @@ async function handleSubmit() {
         createData.ttsSettings = ttsSettings
       }
 
-      await personasStore.create(createData)
+      const createdPersona = await personasStore.create(createData)
+      
+      // Update currentPersona with the created persona (includes version and server-generated fields)
+      currentPersona.value = createdPersona
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'design.personas.edit',
+        params: { projectId: projectId.value, personaId: createdPersona.id }
+      })
     }
 
-    // Navigate back to personas list
-    router.push({ name: 'design.personas', params: { projectId: projectId.value } })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} persona`
   } finally {
@@ -419,9 +435,10 @@ function removeNoSpeechMarker(index: number) {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Persona') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Persona')) }}
         </button>
       </div>
     </div>

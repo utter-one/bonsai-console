@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
@@ -18,6 +18,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook' | 'metadata'
 const activeTab = reactive({ value: 'basic' as TabType })
@@ -116,7 +117,7 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentGlobalAction.value) {
       // Update existing global action
-      await globalActionsStore.update(currentGlobalAction.value.id, {
+      const updated = await globalActionsStore.update(currentGlobalAction.value.id, {
         version: currentGlobalAction.value.version,
         name: form.value.name,
         condition: form.value.condition || null,
@@ -128,6 +129,9 @@ async function handleSubmit() {
         examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : [],
         metadata: actionMetadata.value
       })
+      
+      // Update currentGlobalAction with the response to get the new version
+      currentGlobalAction.value = updated
     } else {
       // Create new global action
       const createData: any = {
@@ -162,11 +166,23 @@ async function handleSubmit() {
         createData.examples = form.value.examples.split('\n').filter((e: string) => e.trim())
       }
 
-      await globalActionsStore.create(createData)
+      const created = await globalActionsStore.create(createData)
+      
+      // Update currentGlobalAction with the created action
+      currentGlobalAction.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'design.globalActions.edit',
+        params: { projectId: projectId.value, globalActionId: created.id }
+      })
     }
 
-    // Navigate back to global actions list
-    router.push({ name: 'design.globalActions', params: { projectId: projectId.value } })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} global action`
   } finally {
@@ -210,11 +226,12 @@ const metadataFields = computed(() => {
       </div>
       <button 
         @click="handleSubmit" 
-        :disabled="isLoading"
+        :disabled="isLoading || showSuccess"
         class="btn-primary"
       >
-        <Save class="inline-block mr-2 w-4 h-4" />
-        {{ isEditMode ? 'Save Changes' : 'Create Action' }}
+        <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+        <Save v-else class="inline-block mr-2 w-4 h-4" />
+        {{ showSuccess ? 'Saved!' : (isEditMode ? 'Save Changes' : 'Create Action') }}
       </button>
     </div>
 

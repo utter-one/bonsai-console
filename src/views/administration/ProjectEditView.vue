@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -18,6 +18,7 @@ const providersStore = useProvidersStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata'>('basic')
 const form = ref({
   name: '',
@@ -164,6 +165,8 @@ async function handleSubmit() {
   error.value = null
   isLoading.value = true
 
+  console.log(route.params.projectId, form.value, isEditMode.value, currentProject.value)
+
   try {
     // Build ASR config only if provider is selected
     const asrConfig: AsrConfig | undefined = form.value.asrConfig.asrProviderId ? {
@@ -187,7 +190,7 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentProject.value) {
       // Update existing project
-      await projectsStore.update(currentProject.value.id, {
+      const updated = await projectsStore.update(currentProject.value.id, {
         version: currentProject.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -196,6 +199,9 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
       })
+      
+      // Update currentProject with the response to get the new version
+      currentProject.value = updated
     } else {
       // Create new project
       const newProject = await projectsStore.create({
@@ -206,6 +212,9 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
       })
+
+      // Set currentProject to the newly created project
+      currentProject.value = newProject
 
       // Create Playground API key if checkbox is checked
       if (createPlaygroundApiKey.value && newProject) {
@@ -223,10 +232,19 @@ async function handleSubmit() {
           console.error('Failed to create Playground API key:', err)
         }
       }
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'administration.projects.edit',
+        params: { projectId: newProject.id }
+      })
     }
 
-    // Navigate back to projects list
-    router.push({ name: 'administration.projects' })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} project`
   } finally {
@@ -367,9 +385,10 @@ function handleStorageSettingsClose() {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Project') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Project')) }}
         </button>
       </div>
     </div>

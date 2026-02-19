@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
 import { formatEnum } from '@/composables'
-import { ArrowLeft, Save } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -15,6 +15,7 @@ const adminsStore = useAdminsStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'roles' | 'metadata'>('basic')
 const form = ref({
   id: '',
@@ -89,7 +90,10 @@ async function handleSubmit() {
         updateData.password = form.value.password
       }
 
-      await adminsStore.update(currentAdmin.value.id, updateData)
+      const updated = await adminsStore.update(currentAdmin.value.id, updateData)
+      
+      // Update currentAdmin with the response to get the new version
+      currentAdmin.value = updated
     } else {
       // Create new admin
       if (!form.value.password) {
@@ -110,17 +114,29 @@ async function handleSubmit() {
         return
       }
 
-      await adminsStore.create({
+      const created = await adminsStore.create({
         id: form.value.id,
         name: form.value.name,
         roles: form.value.roles as ("super_admin" | "content_manager" | "support" | "developer" | "viewer")[],
         password: form.value.password,
         metadata: form.value.metadata
       })
+      
+      // Update currentAdmin with the created admin
+      currentAdmin.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'administration.admins.edit',
+        params: { adminId: created.id }
+      })
     }
 
-    // Navigate back to admins list
-    router.push({ name: 'administration.admins' })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} administrator`
   } finally {
@@ -183,9 +199,10 @@ const metadataFields = computed(() => {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Administrator') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Administrator')) }}
         </button>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -17,6 +17,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
@@ -82,7 +83,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentClassifier.value) {
       // Update existing classifier
-      await classifiersStore.update(currentClassifier.value.id, {
+      const updated = await classifiersStore.update(currentClassifier.value.id, {
         version: currentClassifier.value.version,
         name: form.value.name,
         description: form.value.description || null,
@@ -91,6 +92,9 @@ async function handleSubmit() {
         llmSettings: form.value.llmSettings || undefined,
         metadata: form.value.metadata
       })
+      
+      // Update currentClassifier with the response to get the new version
+      currentClassifier.value = updated
     } else {
       // Create new classifier
       const createData: any = {
@@ -120,11 +124,23 @@ async function handleSubmit() {
         createData.llmSettings = form.value.llmSettings
       }
 
-      await classifiersStore.create(createData)
+      const created = await classifiersStore.create(createData)
+      
+      // Update currentClassifier with the created classifier
+      currentClassifier.value = created
+      
+      // Navigate to edit mode
+      await router.push({
+        name: 'design.classifiers.edit',
+        params: { projectId: projectId.value, classifierId: created.id }
+      })
     }
 
-    // Navigate back to classifiers list
-    router.push({ name: 'design.classifiers', params: { projectId: projectId.value } })
+    // Show success feedback
+    showSuccess.value = true
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
   } catch (err: any) {
     error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} classifier`
   } finally {
@@ -172,9 +188,10 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading">
-          <Save class="inline-block mr-2 w-4 h-4" />
-          {{ isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Classifier') }}
+        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Classifier')) }}
         </button>
       </div>
     </div>
