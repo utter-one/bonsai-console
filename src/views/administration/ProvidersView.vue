@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useTableSort } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Bot, Search, X, Plus } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
@@ -15,6 +15,9 @@ const providersStore = useProvidersStore()
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Sorting
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-providers')
 
 // Pagination
 const pagination = usePagination({
@@ -46,6 +49,11 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for sort changes and reload data
+watch([sortKey, sortOrder], () => {
+  loadProviders()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadProviders()
@@ -54,7 +62,8 @@ onMounted(async () => {
 // Methods
 async function loadProviders() {
   try {
-    await providersStore.fetchAll(pagination.getParams())
+    const orderBy = getOrderBy()
+    await providersStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
     console.error('Failed to load providers:', error)
   }
@@ -155,12 +164,42 @@ function getProviderTypeBadgeClass(type: string) {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">Name</th>
-                <th class="table-header-cell">ID</th>
-                <th class="table-header-cell">Type</th>
-                <th class="table-header-cell">API Type</th>
-                <th class="table-header-cell">Description</th>
-                <th class="table-header-cell">Updated</th>
+                <th class="table-header-cell-sortable" @click="toggleSort('name')">
+                  <div class="flex items-center gap-1">
+                    Name
+                    <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('id')">
+                  <div class="flex items-center gap-1">
+                    ID
+                    <component :is="getSortIcon('id')" class="w-4 h-4" :class="sortKey === 'id' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('providerType')">
+                  <div class="flex items-center gap-1">
+                    Type
+                    <component :is="getSortIcon('providerType')" class="w-4 h-4" :class="sortKey === 'providerType' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('apiType')">
+                  <div class="flex items-center gap-1">
+                    API Type
+                    <component :is="getSortIcon('apiType')" class="w-4 h-4" :class="sortKey === 'apiType' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('description')">
+                  <div class="flex items-center gap-1">
+                    Description
+                    <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
+                  <div class="flex items-center gap-1">
+                    Updated
+                    <component :is="getSortIcon('updatedAt')" class="w-4 h-4" :class="sortKey === 'updatedAt' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
             </thead>

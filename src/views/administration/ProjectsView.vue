@@ -1,16 +1,48 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { DraftingCompass, FlaskConical } from 'lucide-vue-next'
+import { DraftingCompass, FlaskConical, Search, X } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
 
-const sortedProjects = computed(() => {
-  return [...projectsStore.items].sort((a, b) => a.name.localeCompare(b.name))
+// Search state
+const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Watch for search query changes with debounce
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 300)
 })
+
+// Filtered and sorted projects
+const filteredProjects = computed(() => {
+  let items = [...projectsStore.items]
+  
+  // Apply search filter
+  if (debouncedSearchQuery.value) {
+    const query = debouncedSearchQuery.value.toLowerCase()
+    items = items.filter(project =>
+      project.name.toLowerCase().includes(query) ||
+      project.description?.toLowerCase().includes(query)
+    )
+  }
+  
+  // Apply alphabetical sorting
+  return items.sort((a, b) => a.name.localeCompare(b.name))
+})
+
+function clearSearch() {
+  searchQuery.value = ''
+}
 
 onMounted(async () => {
   await projectsStore.fetchAll({ offset: 0, limit: 20 })
@@ -51,16 +83,31 @@ function openPlayground(projectId: string) {
       </button>
     </div>
 
+    <!-- Search Bar -->
+    <div class="search-container">
+      <Search class="input-icon-left" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search by name or description..."
+        class="search-input"
+      />
+      <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+        <X class="w-5 h-5" />
+      </button>
+    </div>
+
     <div v-if="projectsStore.isLoading" class="loading-state">Loading projects...</div>
     
     <div v-else-if="projectsStore.error" class="error-state">{{ projectsStore.error }}</div>
     
-    <div v-else-if="projectsStore.items.length === 0" class="empty-state">
-      <p>No projects yet. Create your first project!</p>
+    <div v-else-if="filteredProjects.length === 0" class="empty-state">
+      <p v-if="searchQuery">No projects found matching "{{ searchQuery }}"</p>
+      <p v-else>No projects yet. Create your first project!</p>
     </div>
     
     <div v-else class="grid-cards">
-      <div v-for="project in sortedProjects" :key="project.id" class="project-card">
+      <div v-for="project in filteredProjects" :key="project.id" class="project-card">
         <div class="project-card-header">
           <h3 class="project-card-title">{{ project.name }}</h3>
           <div class="flex gap-2">

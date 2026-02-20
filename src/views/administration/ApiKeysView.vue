@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useProjectsStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useTableSort } from '@/composables'
 import { Key, Search, X } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -18,6 +18,9 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const showModal = ref(false)
 const editingApiKey = ref<ApiKeyResponse | null>(null)
 const selectedProjectId = ref<string>('')
+
+// Sorting
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-api-keys')
 
 // Pagination
 const pagination = usePagination({
@@ -57,6 +60,11 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for sort changes and reload data
+watch([sortKey, sortOrder], () => {
+  loadApiKeys()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadProjects()
@@ -74,7 +82,8 @@ async function loadProjects() {
 
 async function loadApiKeys() {
   try {
-    await apiKeysStore.fetchAll(pagination.getParams())
+    const orderBy = getOrderBy()
+    await apiKeysStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
     console.error('Failed to load API keys:', error)
   }
@@ -233,12 +242,37 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">Name</th>
-                <th class="table-header-cell">Project</th>
+                <th class="table-header-cell-sortable" @click="toggleSort('name')">
+                  <div class="flex items-center gap-1">
+                    Name
+                    <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('projectId')">
+                  <div class="flex items-center gap-1">
+                    Project
+                    <component :is="getSortIcon('projectId')" class="w-4 h-4" :class="sortKey === 'projectId' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
                 <th class="table-header-cell">Key Preview</th>
-                <th class="table-header-cell">Is Active</th>
-                <th class="table-header-cell">Last Used</th>
-                <th class="table-header-cell">Created</th>
+                <th class="table-header-cell-sortable" @click="toggleSort('isActive')">
+                  <div class="flex items-center gap-1">
+                    Is Active
+                    <component :is="getSortIcon('isActive')" class="w-4 h-4" :class="sortKey === 'isActive' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('lastUsedAt')">
+                  <div class="flex items-center gap-1">
+                    Last Used
+                    <component :is="getSortIcon('lastUsedAt')" class="w-4 h-4" :class="sortKey === 'lastUsedAt' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
+                  <div class="flex items-center gap-1">
+                    Created
+                    <component :is="getSortIcon('createdAt')" class="w-4 h-4" :class="sortKey === 'createdAt' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
             </thead>

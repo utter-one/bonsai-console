@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
-import { formatEnum, usePagination } from '@/composables'
+import { formatEnum, usePagination, useTableSort } from '@/composables'
 import { RefreshCw, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -15,6 +15,9 @@ const projectSelectionStore = useProjectSelectionStore()
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Sorting
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-stages')
 
 // Pagination
 const pagination = usePagination({
@@ -46,6 +49,11 @@ watch(searchQuery, (newValue) => {
   }, 300)
 })
 
+// Watch for sort changes and reload data
+watch([sortKey, sortOrder], () => {
+  loadStages()
+})
+
 // Watch for projectId changes
 watch(projectId, () => {
   searchQuery.value = ''
@@ -62,8 +70,9 @@ onMounted(async () => {
 // Methods
 async function loadStages() {
   try {
+    const orderBy = getOrderBy()
     await stagesStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value } })
+      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load stages:', error)
@@ -159,10 +168,25 @@ function clearSearch() {
           <table class="table">
             <thead class="table-header">
               <tr>
-                <th class="table-header-cell">Stage Name</th>
-                <th class="table-header-cell">Enter Behavior</th>
+                <th class="table-header-cell-sortable" @click="toggleSort('name')">
+                  <div class="flex items-center gap-1">
+                    Stage Name
+                    <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
+                <th class="table-header-cell-sortable" @click="toggleSort('enterBehavior')">
+                  <div class="flex items-center gap-1">
+                    Enter Behavior
+                    <component :is="getSortIcon('enterBehavior')" class="w-4 h-4" :class="sortKey === 'enterBehavior' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
                 <th class="table-header-cell">Features</th>
-                <th class="table-header-cell">Updated</th>
+                <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
+                  <div class="flex items-center gap-1">
+                    Updated
+                    <component :is="getSortIcon('updatedAt')" class="w-4 h-4" :class="sortKey === 'updatedAt' ? 'text-primary-600' : 'text-gray-400'" />
+                  </div>
+                </th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
             </thead>
