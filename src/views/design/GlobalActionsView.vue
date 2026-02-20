@@ -167,7 +167,9 @@ function editGlobalAction(action: GlobalActionResponse) {
             </thead>
             <tbody class="table-body">
               <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
-                <td class="table-cell-medium">{{ action.name }}</td>
+                <td class="table-clickable-cell" @click="editGlobalAction(action)">
+                  {{ action.name }}
+                </td>
                 <td class="table-cell">
                   <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
                 </td>

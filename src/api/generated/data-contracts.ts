@@ -3399,6 +3399,8 @@ export interface CreateGlobalActionRequest {
   classificationTrigger?: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
   overrideClassifierId?: string | null;
+  /** Optional array of parameters to extract from user input */
+  parameters?: StageActionParameter[];
   /** Array of effects to execute when action is triggered */
   effects?: Effect[];
   /** Example phrases that trigger this action */
@@ -3423,6 +3425,8 @@ export interface UpdateGlobalActionRequest {
   classificationTrigger?: string | null;
   /** Updated override classifier ID */
   overrideClassifierId?: string | null;
+  /** Updated parameters array */
+  parameters?: StageActionParameter[];
   /** Updated effects array */
   effects?: Effect[];
   /** Updated example phrases */
@@ -3461,6 +3465,8 @@ export interface GlobalActionResponse {
   classificationTrigger: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
   overrideClassifierId: string | null;
+  /** Array of parameters to extract from user input */
+  parameters: StageActionParameter[];
   /** Array of effects to execute */
   effects: Effect[];
   /** Example phrases that trigger this action */
@@ -3500,6 +3506,8 @@ export interface GlobalActionListResponse {
     classificationTrigger: string | null;
     /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
     overrideClassifierId: string | null;
+    /** Array of parameters to extract from user input */
+    parameters: StageActionParameter[];
     /** Array of effects to execute */
     effects: Effect[];
     /** Example phrases that trigger this action */
