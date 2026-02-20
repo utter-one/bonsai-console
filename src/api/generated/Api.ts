@@ -2751,244 +2751,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates a new knowledge section that can contain multiple categories
-   *
-   * @tags Knowledge
-   * @name KnowledgeSectionsCreate
-   * @summary Create a new knowledge section
-   * @request POST:/api/knowledge/sections
-   * @secure
-   */
-  knowledgeSectionsCreate = (
-    data: {
-      /**
-       * Unique identifier for the knowledge section (auto-generated if not provided)
-       * @minLength 1
-       */
-      id?: string;
-      /**
-       * Name of the knowledge section
-       * @minLength 1
-       */
-      name: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<
-      {
-        /** Unique identifier for the knowledge section */
-        id: string;
-        /** Name of the knowledge section */
-        name: string;
-        /**
-         * Timestamp when the section was created
-         * @format date-time
-         */
-        createdAt: string | null;
-        /**
-         * Timestamp when the section was last updated
-         * @format date-time
-         */
-        updatedAt: string | null;
-      },
-      void
-    >({
-      path: `/api/knowledge/sections`,
-      method: "POST",
-      body: data,
-      secure: true,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Retrieves a paginated list of knowledge sections with optional filtering and sorting
-   *
-   * @tags Knowledge
-   * @name KnowledgeSectionsList
-   * @summary List knowledge sections
-   * @request GET:/api/knowledge/sections
-   * @secure
-   */
-  knowledgeSectionsList = (
-    query?: {
-      /**
-       * Starting index for pagination (default: 0)
-       * @min 0
-       * @default 0
-       */
-      offset?: number | null;
-      /**
-       * Maximum number of items to return (optional, null for no limit)
-       * @min 0
-       * @exclusiveMin true
-       */
-      limit?: number | null;
-      /** Full-text search query string (optional) */
-      textSearch?: string | null;
-      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
-      orderBy?: string | string[];
-      /** Field(s) to group results by (optional) */
-      groupBy?: string | string[];
-      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
-      filters?: Record<
-        string,
-        | string
-        | number
-        | boolean
-        | string[]
-        | number[]
-        | boolean[]
-        | ListFilterOperation
-      >;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<
-      {
-        /** Array of knowledge sections in the current page */
-        items: {
-          /** Unique identifier for the knowledge section */
-          id: string;
-          /** Name of the knowledge section */
-          name: string;
-          /**
-           * Timestamp when the section was created
-           * @format date-time
-           */
-          createdAt: string | null;
-          /**
-           * Timestamp when the section was last updated
-           * @format date-time
-           */
-          updatedAt: string | null;
-        }[];
-        /**
-         * Total number of sections matching the query
-         * @min 0
-         */
-        total: number;
-        /**
-         * Starting index of the current page
-         * @min 0
-         */
-        offset: number;
-        /**
-         * Maximum number of items per page (null if no limit)
-         * @min 0
-         * @exclusiveMin true
-         */
-        limit: number | null;
-      },
-      void
-    >({
-      path: `/api/knowledge/sections`,
-      method: "GET",
-      query: query,
-      secure: true,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Retrieves a single knowledge section by its unique identifier
-   *
-   * @tags Knowledge
-   * @name KnowledgeSectionsDetail
-   * @summary Get knowledge section by ID
-   * @request GET:/api/knowledge/sections/{id}
-   * @secure
-   */
-  knowledgeSectionsDetail = (id: string, params: RequestParams = {}) =>
-    this.request<
-      {
-        /** Unique identifier for the knowledge section */
-        id: string;
-        /** Name of the knowledge section */
-        name: string;
-        /**
-         * Timestamp when the section was created
-         * @format date-time
-         */
-        createdAt: string | null;
-        /**
-         * Timestamp when the section was last updated
-         * @format date-time
-         */
-        updatedAt: string | null;
-      },
-      void
-    >({
-      path: `/api/knowledge/sections/${id}`,
-      method: "GET",
-      secure: true,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Updates an existing knowledge section
-   *
-   * @tags Knowledge
-   * @name KnowledgeSectionsUpdate
-   * @summary Update knowledge section
-   * @request PUT:/api/knowledge/sections/{id}
-   * @secure
-   */
-  knowledgeSectionsUpdate = (
-    id: string,
-    data: {
-      /**
-       * Updated name of the knowledge section
-       * @minLength 1
-       */
-      name: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<
-      {
-        /** Unique identifier for the knowledge section */
-        id: string;
-        /** Name of the knowledge section */
-        name: string;
-        /**
-         * Timestamp when the section was created
-         * @format date-time
-         */
-        createdAt: string | null;
-        /**
-         * Timestamp when the section was last updated
-         * @format date-time
-         */
-        updatedAt: string | null;
-      },
-      void
-    >({
-      path: `/api/knowledge/sections/${id}`,
-      method: "PUT",
-      body: data,
-      secure: true,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Deletes a knowledge section
-   *
-   * @tags Knowledge
-   * @name KnowledgeSectionsDelete
-   * @summary Delete knowledge section
-   * @request DELETE:/api/knowledge/sections/{id}
-   * @secure
-   */
-  knowledgeSectionsDelete = (id: string, params: RequestParams = {}) =>
-    this.request<void, void>({
-      path: `/api/knowledge/sections/${id}`,
-      method: "DELETE",
-      secure: true,
-      ...params,
-    });
-  /**
-   * @description Creates a new knowledge category with trigger phrase and associated sections
+   * @description Creates a new knowledge category with trigger phrase and associated tags
    *
    * @tags Knowledge
    * @name KnowledgeCategoriesCreate
@@ -3018,8 +2781,8 @@ export class Api<
        * @minLength 1
        */
       promptTrigger: string;
-      /** Array of knowledge section IDs this category belongs to */
-      knowledgeSections?: string[];
+      /** Array of knowledge tags this category belongs to */
+      tags?: string[];
       /**
        * Display order for the category (default: 0)
        * @min 0
@@ -3038,8 +2801,8 @@ export class Api<
         name: string;
         /** Trigger phrase that activates this category */
         promptTrigger: string;
-        /** Array of knowledge section IDs */
-        knowledgeSections: string[];
+        /** Array of knowledge tags */
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */
@@ -3145,8 +2908,8 @@ export class Api<
           name: string;
           /** Trigger phrase that activates this category */
           promptTrigger: string;
-          /** Array of knowledge section IDs */
-          knowledgeSections: string[];
+          /** Array of knowledge tags */
+          tags: string[];
           /** Display order for the category */
           order: number;
           /** Knowledge items within this category */
@@ -3233,8 +2996,8 @@ export class Api<
         name: string;
         /** Trigger phrase that activates this category */
         promptTrigger: string;
-        /** Array of knowledge section IDs */
-        knowledgeSections: string[];
+        /** Array of knowledge tags */
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */
@@ -3305,8 +3068,8 @@ export class Api<
        * @minLength 1
        */
       promptTrigger?: string;
-      /** Updated array of knowledge section IDs */
-      knowledgeSections?: string[];
+      /** Updated array of knowledge tags */
+      tags?: string[];
       /**
        * Updated display order
        * @min 0
@@ -3330,8 +3093,8 @@ export class Api<
         name: string;
         /** Trigger phrase that activates this category */
         promptTrigger: string;
-        /** Array of knowledge section IDs */
-        knowledgeSections: string[];
+        /** Array of knowledge tags */
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */
@@ -6446,10 +6209,10 @@ export class Api<
        */
       useKnowledge?: boolean;
       /**
-       * List of knowledge section IDs to include
+       * List of knowledge tags to include
        * @default []
        */
-      knowledgeSections?: string[];
+      knowledgeTags?: string[];
       /**
        * Whether to enable global actions in this stage
        * @default true
@@ -6505,8 +6268,8 @@ export class Api<
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
         useKnowledge: boolean;
-        /** Knowledge section IDs included in this stage */
-        knowledgeSections: string[];
+        /** Knowledge tags included in this stage */
+        knowledgeTags: string[];
         /** Whether global actions are enabled */
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
@@ -6615,8 +6378,8 @@ export class Api<
           enterBehavior: "generate_response" | "await_user_input";
           /** Whether knowledge base is enabled */
           useKnowledge: boolean;
-          /** Knowledge section IDs included in this stage */
-          knowledgeSections: string[];
+          /** Knowledge tags included in this stage */
+          knowledgeTags: string[];
           /** Whether global actions are enabled */
           useGlobalActions: boolean;
           /** Global action IDs available in this stage */
@@ -6706,8 +6469,8 @@ export class Api<
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
         useKnowledge: boolean;
-        /** Knowledge section IDs included in this stage */
-        knowledgeSections: string[];
+        /** Knowledge tags included in this stage */
+        knowledgeTags: string[];
         /** Whether global actions are enabled */
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
@@ -6784,8 +6547,8 @@ export class Api<
       enterBehavior?: "generate_response" | "await_user_input";
       /** Updated knowledge usage flag */
       useKnowledge?: boolean;
-      /** Updated knowledge section IDs */
-      knowledgeSections?: string[];
+      /** Updated knowledge tags */
+      knowledgeTags?: string[];
       /** Updated global actions flag */
       useGlobalActions?: boolean;
       /** Updated global action IDs */
@@ -6834,8 +6597,8 @@ export class Api<
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
         useKnowledge: boolean;
-        /** Knowledge section IDs included in this stage */
-        knowledgeSections: string[];
+        /** Knowledge tags included in this stage */
+        knowledgeTags: string[];
         /** Whether global actions are enabled */
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */
@@ -6968,8 +6731,8 @@ export class Api<
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
         useKnowledge: boolean;
-        /** Knowledge section IDs included in this stage */
-        knowledgeSections: string[];
+        /** Knowledge tags included in this stage */
+        knowledgeTags: string[];
         /** Whether global actions are enabled */
         useGlobalActions: boolean;
         /** Global action IDs available in this stage */

@@ -313,7 +313,7 @@
 
 @media (min-width: 768px) {
   .grid-stats {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
@@ -340,7 +340,7 @@
 
 /* Stats Card */
 .stat-card {
-  @apply bg-white rounded-xl p-3 md:p-6 flex flex-row items-center justify-center gap-3 md:gap-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-800 dark:shadow-black/40;
+  @apply bg-white rounded-xl p-3 md:p-6 flex flex-row items-center justify-center gap-3 md:gap-4 transition-all dark:bg-gray-800;
 }
 
 .stat-value {
@@ -353,15 +353,7 @@
 
 /* Action Card (for dashboard quick actions) */
 .action-card {
-  @apply flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left hover:border-primary-500 hover:-translate-y-0.5 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-500;
-}
-
-.action-card:hover {
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
-}
-
-.dark .action-card:hover {
-  box-shadow: none;
+  @apply flex flex-col items-start gap-2 p-5 border-2 border-gray-200 rounded-lg bg-white cursor-pointer transition-all text-left dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-500;
 }
 
 .action-card-title {
