@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -170,6 +170,20 @@ async function loadStage() {
 
 async function handleSubmit() {
   error.value = null
+
+  // Validate required fields
+  if (!form.value.llmProviderId) {
+    error.value = 'LLM Provider is required. Please select an LLM provider.'
+    activeTab.value = 'prompt'
+    return
+  }
+
+  if (duplicateVariableNames.value.length > 0) {
+    error.value = `Duplicate variable names detected: ${duplicateVariableNames.value.join(', ')}. Variable names must be unique within each level.`
+    activeTab.value = 'variables'
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -575,6 +589,28 @@ const lifecycleActions = computed(() => {
   }))
 })
 
+// Duplicate variable name detection (checked at each tree level)
+const duplicateVariableNames = computed(() => {
+  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
+    const seen = new Set<string>()
+    const dupes: string[] = []
+    for (const d of descriptors) {
+      if (seen.has(d.name)) {
+        if (!dupes.includes(d.name)) dupes.push(d.name)
+      } else {
+        seen.add(d.name)
+      }
+    }
+    for (const d of descriptors) {
+      if (d.objectSchema && d.objectSchema.length > 0) {
+        dupes.push(...findDuplicates(d.objectSchema))
+      }
+    }
+    return dupes
+  }
+  return findDuplicates(form.value.variableDescriptors)
+})
+
 // Variable descriptor management with inline tree editing
 const expandedNodes = ref<Set<string>>(new Set())
 
@@ -902,7 +938,6 @@ function toggleNode(path: number[]) {
 
           <!-- Features & Integrations Tab -->
           <div v-show="activeTab === 'features'" class="tab-content">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Knowledge Integration</h3>
             
             <div class="form-group">
               <label class="flex items-center cursor-pointer">
@@ -938,9 +973,7 @@ function toggleNode(path: number[]) {
               </p>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Classifiers</h3>
-              
+            <div class="mt-6">
               <div class="form-group">
                 <label class="form-label">
                   Default Classifier <span class="text-gray-500">(required for actions)</span>
@@ -959,15 +992,21 @@ function toggleNode(path: number[]) {
                     {{ classifier.name }}
                   </option>
                 </select>
+                <div
+                  v-if="!form.defaultClassifierId"
+                  class="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/40 px-3 py-2 text-sm text-amber-800 dark:text-amber-300"
+                >
+                  <AlertTriangle class="mt-0.5 w-4 h-4 shrink-0" />
+                  <span>Actions triggered by user input classification won't work without a Default Classifier assigned.</span>
+                </div>
+
                 <p class="form-help-text">
                   Default classifier for this stage. Individual actions can override this using "Override Classifier ID" in action settings.
                 </p>
               </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Context Transformers</h3>
-              
+            <div class="mt-6">
               <div class="form-group">
                 <label class="form-label">
                   Attached Transformers <span class="text-gray-500">(optional)</span>
@@ -999,6 +1038,10 @@ function toggleNode(path: number[]) {
 
           <!-- Variables Tab -->
           <div v-show="activeTab === 'variables'" class="tab-content">
+            <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
+              <AlertTriangle class="inline-block mr-2 w-4 h-4" />
+              Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
+            </div>
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Variable Descriptors</h3>
