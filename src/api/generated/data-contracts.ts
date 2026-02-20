@@ -1603,80 +1603,6 @@ export interface InitialAdminSetupResponse {
   expiresIn: number;
 }
 
-export interface CreateKnowledgeSectionRequest {
-  /**
-   * Unique identifier for the knowledge section (auto-generated if not provided)
-   * @minLength 1
-   */
-  id?: string;
-  /**
-   * Name of the knowledge section
-   * @minLength 1
-   */
-  name: string;
-}
-
-export interface UpdateKnowledgeSectionRequest {
-  /**
-   * Updated name of the knowledge section
-   * @minLength 1
-   */
-  name: string;
-}
-
-export interface KnowledgeSectionResponse {
-  /** Unique identifier for the knowledge section */
-  id: string;
-  /** Name of the knowledge section */
-  name: string;
-  /**
-   * Timestamp when the section was created
-   * @format date-time
-   */
-  createdAt: string | null;
-  /**
-   * Timestamp when the section was last updated
-   * @format date-time
-   */
-  updatedAt: string | null;
-}
-
-export interface KnowledgeSectionListResponse {
-  /** Array of knowledge sections in the current page */
-  items: {
-    /** Unique identifier for the knowledge section */
-    id: string;
-    /** Name of the knowledge section */
-    name: string;
-    /**
-     * Timestamp when the section was created
-     * @format date-time
-     */
-    createdAt: string | null;
-    /**
-     * Timestamp when the section was last updated
-     * @format date-time
-     */
-    updatedAt: string | null;
-  }[];
-  /**
-   * Total number of sections matching the query
-   * @min 0
-   */
-  total: number;
-  /**
-   * Starting index of the current page
-   * @min 0
-   */
-  offset: number;
-  /**
-   * Maximum number of items per page (null if no limit)
-   * @min 0
-   * @exclusiveMin true
-   */
-  limit: number | null;
-}
-
 export interface CreateKnowledgeCategoryRequest {
   /**
    * Unique identifier for the knowledge category (auto-generated if not provided)
@@ -1698,8 +1624,8 @@ export interface CreateKnowledgeCategoryRequest {
    * @minLength 1
    */
   promptTrigger: string;
-  /** Array of knowledge section IDs this category belongs to */
-  knowledgeSections?: string[];
+  /** Array of knowledge tags this category belongs to */
+  knowledgeTags?: string[];
   /**
    * Display order for the category (default: 0)
    * @min 0
@@ -1718,8 +1644,8 @@ export interface UpdateKnowledgeCategoryRequest {
    * @minLength 1
    */
   promptTrigger?: string;
-  /** Updated array of knowledge section IDs */
-  knowledgeSections?: string[];
+  /** Updated array of knowledge tags */
+  knowledgeTags?: string[];
   /**
    * Updated display order
    * @min 0
@@ -1749,8 +1675,8 @@ export interface KnowledgeCategoryResponse {
   name: string;
   /** Trigger phrase that activates this category */
   promptTrigger: string;
-  /** Array of knowledge section IDs */
-  knowledgeSections: string[];
+  /** Array of knowledge tags */
+  knowledgeTags: string[];
   /** Display order for the category */
   order: number;
   /** Knowledge items within this category */
@@ -1803,8 +1729,8 @@ export interface KnowledgeCategoryListResponse {
     name: string;
     /** Trigger phrase that activates this category */
     promptTrigger: string;
-    /** Array of knowledge section IDs */
-    knowledgeSections: string[];
+    /** Array of knowledge tags */
+    knowledgeTags: string[];
     /** Display order for the category */
     order: number;
     /** Knowledge items within this category */
@@ -2624,10 +2550,10 @@ export interface CreateStageRequest {
    */
   useKnowledge?: boolean;
   /**
-   * List of knowledge section IDs to include
+   * List of knowledge tags to include
    * @default []
    */
-  knowledgeSections?: string[];
+  knowledgeTags?: string[];
   /**
    * Whether to enable global actions in this stage
    * @default true
@@ -2686,8 +2612,8 @@ export interface UpdateStageRequest {
   enterBehavior?: "generate_response" | "await_user_input";
   /** Updated knowledge usage flag */
   useKnowledge?: boolean;
-  /** Updated knowledge section IDs */
-  knowledgeSections?: string[];
+  /** Updated knowledge tags */
+  knowledgeTags?: string[];
   /** Updated global actions flag */
   useGlobalActions?: boolean;
   /** Updated global action IDs */
@@ -2742,8 +2668,8 @@ export interface StageResponse {
   enterBehavior: "generate_response" | "await_user_input";
   /** Whether knowledge base is enabled */
   useKnowledge: boolean;
-  /** Knowledge section IDs included in this stage */
-  knowledgeSections: string[];
+  /** Knowledge tags included in this stage */
+  knowledgeTags: string[];
   /** Whether global actions are enabled */
   useGlobalActions: boolean;
   /** Global action IDs available in this stage */
@@ -2799,8 +2725,8 @@ export interface StageListResponse {
     enterBehavior: "generate_response" | "await_user_input";
     /** Whether knowledge base is enabled */
     useKnowledge: boolean;
-    /** Knowledge section IDs included in this stage */
-    knowledgeSections: string[];
+    /** Knowledge tags included in this stage */
+    knowledgeTags: string[];
     /** Whether global actions are enabled */
     useGlobalActions: boolean;
     /** Global action IDs available in this stage */

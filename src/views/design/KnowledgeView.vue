@@ -1,102 +1,192 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
-import { usePagination } from '@/composables'
-import { BookOpen, Search, X, Plus, ChevronDown, ChevronRight } from 'lucide-vue-next'
-import type { KnowledgeCategoryResponse } from '@/api/types'
-import PaginationControls from '@/components/PaginationControls.vue'
+import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag } from 'lucide-vue-next'
+import type { KnowledgeCategoryResponse, KnowledgeItemResponse } from '@/api/types'
+import KnowledgeCategoryModal from '@/components/modals/KnowledgeCategoryModal.vue'
+import KnowledgeItemModal from '@/components/modals/KnowledgeItemModal.vue'
 
 const knowledgeStore = useKnowledgeStore()
 const projectSelectionStore = useProjectSelectionStore()
 
-// UI State
+// UI state 
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
 const expandedCategories = ref<Set<string>>(new Set())
 
-// Pagination
-const pagination = usePagination({
-  store: { 
-    items: computed(() => knowledgeStore.categories),
-    isLoading: computed(() => knowledgeStore.isLoading),
-    error: computed(() => knowledgeStore.error),
-    pagination: {
-      get total() { return knowledgeStore.categories.length }
-    }
-  },
-  pageSize: 20,
-  onPageChange: loadCategories
-})
+// Modal state 
+const showCategoryModal = ref(false)
+const editingCategory = ref<KnowledgeCategoryResponse | null>(null)
 
-// Computed
+const showItemModal = ref(false)
+const editingItem = ref<KnowledgeItemResponse | null>(null)
+const itemModalCategoryId = ref<string>('')
+
+// Computed 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const filteredCategories = computed(() => {
   if (!debouncedSearchQuery.value) return knowledgeStore.categories
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return knowledgeStore.categories.filter(category => 
-    category.name.toLowerCase().includes(query) ||
-    category.promptTrigger.toLowerCase().includes(query)
+  const q = debouncedSearchQuery.value.toLowerCase()
+  return knowledgeStore.categories.filter(
+    (cat: KnowledgeCategoryResponse) =>
+      cat.name.toLowerCase().includes(q) ||
+      cat.promptTrigger.toLowerCase().includes(q) ||
+      cat.knowledgeTags.some((t: string) => t.toLowerCase().includes(q)) ||
+      cat.items?.some(
+        (item: KnowledgeItemResponse) =>
+          item.question.toLowerCase().includes(q) ||
+          item.answer.toLowerCase().includes(q),
+      ),
   )
 })
 
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
+// Watchers 
+watch(searchQuery, (value) => {
+  if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
+    debouncedSearchQuery.value = value
   }, 300)
 })
 
-// Watch for projectId changes
 watch(projectId, () => {
   searchQuery.value = ''
   debouncedSearchQuery.value = ''
-  expandedCategories.value.clear()
-  pagination.reset()
+  expandedCategories.value = new Set()
   loadCategories()
 })
 
-// Lifecycle
-onMounted(async () => {
-  await loadCategories()
-})
+// Lifecycle 
+onMounted(() => loadCategories())
 
-// Methods
+// Data loading 
 async function loadCategories() {
+  if (!projectId.value) return
   try {
-    await knowledgeStore.fetchCategories({ filters: { projectId: projectId.value } })
-  } catch (error) {
-    console.error('Failed to load knowledge categories:', error)
+    await knowledgeStore.fetchCategories({
+      filters: { projectId: projectId.value },
+      orderBy: 'order',
+    })
+  } catch {
+    // error is handled in the store
   }
 }
 
-async function deleteCategory(category: KnowledgeCategoryResponse) {
-  if (!confirm(`Delete knowledge category "${category.name}" (${category.id})?\n\nThis will also delete all items in this category.\nThis action cannot be undone.`)) return
-
-  try {
-    await knowledgeStore.deleteCategory(category.id)
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to delete knowledge category')
-  }
-}
-
-function toggleCategory(categoryId: string) {
+// Tree expand / collapse 
+function toggleExpand(categoryId: string) {
   if (expandedCategories.value.has(categoryId)) {
     expandedCategories.value.delete(categoryId)
   } else {
     expandedCategories.value.add(categoryId)
   }
+  // trigger reactivity
+  expandedCategories.value = new Set(expandedCategories.value)
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
+function isExpanded(categoryId: string) {
+  return expandedCategories.value.has(categoryId)
 }
 
+// Category CRUD 
+function openCreateCategory() {
+  editingCategory.value = null
+  showCategoryModal.value = true
+}
+
+function openEditCategory(category: KnowledgeCategoryResponse, event: MouseEvent) {
+  event.stopPropagation()
+  editingCategory.value = category
+  showCategoryModal.value = true
+}
+
+async function handleCategorySubmit(data: {
+  name: string
+  promptTrigger: string
+  knowledgeTags: string[]
+  order: number
+}) {
+  try {
+    if (editingCategory.value) {
+      await knowledgeStore.updateCategory(editingCategory.value.id, {
+        ...data,
+        version: editingCategory.value.version,
+      })
+    } else {
+      const result = await knowledgeStore.createCategory({
+        ...data,
+        projectId: projectId.value,
+      })
+      // Auto-expand newly created category
+      expandedCategories.value = new Set([...expandedCategories.value, result.id])
+    }
+    showCategoryModal.value = false
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to save category')
+  }
+}
+
+async function deleteCategory(category: KnowledgeCategoryResponse, event: MouseEvent) {
+  event.stopPropagation()
+  const itemCount = (category.items ?? []).length
+  const itemWarning = itemCount > 0 ? `\n\nThis will also delete ${itemCount} item(s) within this category.` : ''
+  if (!confirm(`Delete category "${category.name}"?${itemWarning}\n\nThis action cannot be undone.`)) return
+  try {
+    await knowledgeStore.deleteCategory(category.id, category.version)
+    expandedCategories.value.delete(category.id)
+    expandedCategories.value = new Set(expandedCategories.value)
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to delete category')
+  }
+}
+
+// Item CRUD 
+
+function openCreateItem(categoryId: string, event: MouseEvent) {
+  event.stopPropagation()
+  editingItem.value = null
+  itemModalCategoryId.value = categoryId
+  showItemModal.value = true
+  // Auto-expand so items are visible after creation
+  expandedCategories.value = new Set([...expandedCategories.value, categoryId])
+}
+
+function openEditItem(item: KnowledgeItemResponse, categoryId: string) {
+  editingItem.value = item
+  itemModalCategoryId.value = categoryId
+  showItemModal.value = true
+}
+
+async function handleItemSubmit(data: { question: string; answer: string; order: number }) {
+  try {
+    if (editingItem.value) {
+      await knowledgeStore.updateItem(editingItem.value.id, itemModalCategoryId.value, {
+        ...data,
+        version: editingItem.value.version,
+      })
+    } else {
+      await knowledgeStore.createItem({
+        ...data,
+        categoryId: itemModalCategoryId.value,
+      })
+    }
+    showItemModal.value = false
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to save item')
+  }
+}
+
+async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
+  if (!confirm(`Delete item?\n\n"${item.question}"\n\nThis action cannot be undone.`)) return
+  try {
+    await knowledgeStore.deleteItem(item.id, categoryId, item.version)
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to delete item')
+  }
+}
+
+// Helpers 
 function clearSearch() {
   searchQuery.value = ''
 }
@@ -104,162 +194,165 @@ function clearSearch() {
 
 <template>
   <div class="container-constrained">
-      <!-- Header -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Knowledge Base</h1>
-          <p class="page-subtitle">Manage knowledge categories and items for this project</p>
-        </div>
-        <button class="btn-primary" disabled>
-          <Plus class="inline-block mr-2 w-4 h-4" />
-          New Category
-        </button>
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Knowledge</h1>
+        <p class="page-subtitle">Manage knowledge categories and Q&amp;A items</p>
       </div>
+      <button @click="openCreateCategory" class="btn-primary">
+        <Plus class="inline-block mr-2 w-4 h-4" />
+        New Category
+      </button>
+    </div>
 
-      <!-- Search Bar -->
-      <div class="search-container">
-        <Search class="input-icon-left" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by name or prompt trigger..."
-          class="search-input"
-        />
-        <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
-          <X class="w-5 h-5" />
-        </button>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="knowledgeStore.isLoading" class="loading-state">
-        Loading knowledge categories...
-      </div>
-
-      <!-- Error State -->
-      <div v-else-if="knowledgeStore.error" class="error-state">
-        {{ knowledgeStore.error }}
-      </div>
-
-      <!-- Empty State -->
-      <div v-else-if="filteredCategories.length === 0" class="empty-state">
-        <BookOpen class="empty-state-icon" />
-        <p class="empty-state-title">No knowledge categories found</p>
-        <p v-if="searchQuery">Try adjusting your search criteria</p>
-        <p v-else>Create your first knowledge category to get started</p>
-      </div>
-
-      <!-- Table -->
-      <div v-else class="table-container">
-        <div class="table-wrapper">
-          <table class="table">
-            <thead class="table-header">
-              <tr>
-                <th class="table-header-cell w-8"></th>
-                <th class="table-header-cell">Name</th>
-                <th class="table-header-cell">Prompt Trigger</th>
-                <th class="table-header-cell">Knowledge Sections</th>
-                <th class="table-header-cell">Order</th>
-                <th class="table-header-cell">Items</th>
-                <th class="table-header-cell">Updated</th>
-                <th class="table-header-cell-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="table-body">
-              <template v-for="category in filteredCategories" :key="category.id">
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <button 
-                      @click="toggleCategory(category.id)"
-                      class="btn-icon"
-                      :title="expandedCategories.has(category.id) ? 'Collapse' : 'Expand'"
-                    >
-                      <ChevronDown v-if="expandedCategories.has(category.id)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                  </td>
-                  <td class="table-cell-medium">{{ category.name }}</td>
-                  <td class="table-cell">
-                    <span class="truncate max-w-md">{{ category.promptTrigger }}</span>
-                  </td>
-                  <td class="table-cell">
-                    <div v-if="category.knowledgeSections?.length" class="flex gap-1 flex-wrap">
-                      <span v-for="section in category.knowledgeSections" :key="section" class="badge-info text-xs">
-                        {{ section }}
-                      </span>
-                    </div>
-                    <span v-else class="text-gray-400">—</span>
-                  </td>
-                  <td class="table-cell">
-                    <span class="badge-secondary">{{ category.order }}</span>
-                  </td>
-                  <td class="table-cell">
-                    <span v-if="category.items?.length" class="badge-info">
-                      {{ category.items.length }} item(s)
-                    </span>
-                    <span v-else class="text-gray-400">0</span>
-                  </td>
-                  <td class="table-cell-muted">{{ formatDate(category.updatedAt) }}</td>
-                  <td class="table-cell-right">
-                    <div class="flex-end">
-                      <button class="btn-secondary btn-sm" disabled>
-                        Edit
-                      </button>
-                      <button @click="deleteCategory(category)" class="btn-danger btn-sm">
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <!-- Expanded Items Row -->
-                <tr v-if="expandedCategories.has(category.id) && category.items?.length" class="bg-gray-50">
-                  <td colspan="8" class="px-4 py-3">
-                    <div class="ml-8">
-                      <h4 class="text-sm font-semibold text-gray-700 mb-2">Knowledge Items</h4>
-                      <div class="space-y-2">
-                        <div 
-                          v-for="item in category.items" 
-                          :key="item.id"
-                          class="bg-white border border-gray-200 rounded p-3"
-                        >
-                          <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-mono text-gray-500">{{ item.id }}</span>
-                            <span class="badge-secondary text-xs">Order: {{ item.order }}</span>
-                          </div>
-                          <div class="mb-1">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Q:</span>
-                            <span class="text-sm text-gray-900 dark:text-gray-200 ml-2">{{ item.question }}</span>
-                          </div>
-                          <div>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">A:</span>
-                            <span class="text-sm text-gray-600 ml-2">{{ item.answer }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else-if="expandedCategories.has(category.id)" class="bg-gray-50">
-                  <td colspan="8" class="px-4 py-3">
-                    <div class="ml-8 text-sm text-gray-500 italic">
-                      No items in this category
-                    </div>
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-
-      <!-- Pagination Controls -->
-      <PaginationControls
-        :pagination="pagination"
-        :displayed-count="filteredCategories.length"
-        resource-name="knowledge categories"
+    <!-- Search Bar -->
+    <div class="search-container">
+      <Search class="input-icon-left" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search categories and items..."
+        class="search-input"
       />
+      <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+        <X class="w-5 h-5" />
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="knowledgeStore.isLoading" class="loading-state">
+      Loading knowledge...
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="knowledgeStore.error" class="error-state">
+      {{ knowledgeStore.error }}
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="filteredCategories.length === 0" class="empty-state">
+      <BookOpen class="empty-state-icon" />
+      <p class="empty-state-title">No knowledge categories found</p>
+      <p v-if="searchQuery" class="text-sm text-gray-500">Try adjusting your search query</p>
+      <p v-else class="text-sm text-gray-500">Create your first category to get started</p>
+    </div>
+
+    <!-- Knowledge Tree -->
+    <div v-else class="space-y-2">
+      <div
+        v-for="category in filteredCategories"
+        :key="category.id"
+        class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+      >
+        <!-- Category row -->
+        <div
+          class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer select-none"
+          @click="toggleExpand(category.id)"
+        >
+          <!-- Expand toggle -->
+          <span class="flex-shrink-0 text-gray-400">
+            <ChevronDown v-if="isExpanded(category.id)" class="w-4 h-4" />
+            <ChevronRight v-else class="w-4 h-4" />
+          </span>
+
+          <!-- Category info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-medium text-gray-900 dark:text-gray-100">{{ category.name }}</span>
+              <span class="text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                {{ (category.items ?? []).length }} item{{ (category.items ?? []).length === 1 ? '' : 's' }}
+              </span>
+              <span
+                v-for="tag in category.knowledgeTags"
+                :key="tag"
+                class="inline-flex items-center gap-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full"
+              >
+                <Tag class="w-3 h-3" />
+                {{ tag }}
+              </span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+              Trigger: <span class="italic">{{ category.promptTrigger }}</span>
+            </p>
+          </div>
+
+          <!-- Category actions -->
+          <div class="flex-shrink-0 flex items-center gap-2" @click.stop>
+            <button
+              @click="openCreateItem(category.id, $event)"
+              class="btn-secondary btn-sm"
+              title="Add item to this category"
+            >
+              <Plus class="w-3 h-3 mr-1" />
+              Add Item
+            </button>
+            <button @click="openEditCategory(category, $event)" class="btn-secondary btn-sm">
+              Edit
+            </button>
+            <button @click="deleteCategory(category, $event)" class="btn-danger btn-sm">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Items list (expandable) -->
+        <div
+          v-if="isExpanded(category.id)"
+          class="border-t border-gray-200 dark:border-gray-700"
+        >
+          <!-- Empty items placeholder -->
+          <div
+            v-if="!category.items || category.items.length === 0"
+            class="px-12 py-5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-850 italic"
+          >
+            No items yet — click <strong>Add Item</strong> to create the first Q&amp;A pair.
+          </div>
+
+          <!-- Item rows -->
+          <div
+            v-for="item in category.items"
+            :key="item.id"
+            class="flex items-start gap-3 px-4 py-3 pl-11 bg-gray-50 dark:bg-gray-850 border-b border-gray-100 dark:border-gray-700/50 last:border-b-0 hover:bg-gray-100 dark:hover:bg-gray-800 group"
+          >
+            <!-- Item content -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ item.question }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                {{ item.answer }}
+              </p>
+            </div>
+
+            <!-- Item actions -->
+            <div class="flex-shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button @click="openEditItem(item, category.id)" class="btn-secondary btn-sm">
+                Edit
+              </button>
+              <button @click="deleteItem(item, category.id)" class="btn-danger btn-sm">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Category Modal -->
+    <KnowledgeCategoryModal
+      v-if="showCategoryModal"
+      :category="editingCategory"
+      @close="showCategoryModal = false"
+      @save="handleCategorySubmit"
+    />
+
+    <!-- Item Modal -->
+    <KnowledgeItemModal
+      v-if="showItemModal"
+      :item="editingItem"
+      @close="showItemModal = false"
+      @save="handleItemSubmit"
+    />
   </div>
 </template>
-
-<style scoped>
-/* Additional custom styles if needed */
-</style>
