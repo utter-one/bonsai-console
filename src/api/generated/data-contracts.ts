@@ -12,35 +12,35 @@
 
 export type Effect =
   | ({
-      type: "end_conversation";
-    } & EndConversationEffect)
+    type: "end_conversation";
+  } & EndConversationEffect)
   | ({
-      type: "abort_conversation";
-    } & AbortConversationEffect)
+    type: "abort_conversation";
+  } & AbortConversationEffect)
   | ({
-      type: "go_to_stage";
-    } & GoToStageEffect)
+    type: "go_to_stage";
+  } & GoToStageEffect)
   | ({
-      type: "run_script";
-    } & RunScriptEffect)
+    type: "run_script";
+  } & RunScriptEffect)
   | ({
-      type: "modify_user_input";
-    } & ModifyUserInputEffect)
+    type: "modify_user_input";
+  } & ModifyUserInputEffect)
   | ({
-      type: "modify_variables";
-    } & ModifyVariablesEffect)
+    type: "modify_variables";
+  } & ModifyVariablesEffect)
   | ({
-      type: "modify_user_profile";
-    } & ModifyUserProfileEffect)
+    type: "modify_user_profile";
+  } & ModifyUserProfileEffect)
   | ({
-      type: "call_tool";
-    } & CallToolEffect)
+    type: "call_tool";
+  } & CallToolEffect)
   | ({
-      type: "call_webhook";
-    } & CallWebhookEffect)
+    type: "call_webhook";
+  } & CallWebhookEffect)
   | ({
-      type: "generate_response";
-    } & GenerateResponseEffect);
+    type: "generate_response";
+  } & GenerateResponseEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -79,16 +79,16 @@ export interface ListParams {
 export interface ListFilterOperation {
   /** Filter operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), like (pattern match), in (value in array), nin (not in array), between (range) */
   op:
-    | "like"
-    | "eq"
-    | "ne"
-    | "gt"
-    | "gte"
-    | "lt"
-    | "lte"
-    | "in"
-    | "nin"
-    | "between";
+  | "like"
+  | "eq"
+  | "ne"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "in"
+  | "nin"
+  | "between";
   /** Filter value to compare against. For "in", "nin", and "between" operations, use an array */
   value: string | number | boolean | string[] | number[] | boolean[];
 }
@@ -382,14 +382,14 @@ export interface CartesiaTtsSettings {
   language?: string;
   /** Preferred audio output format for synthesized speech. Defaults to "pcm_24000" */
   audioFormat?:
-    | "pcm_16000"
-    | "pcm_22050"
-    | "pcm_24000"
-    | "pcm_44100"
-    | "pcm_48000"
-    | "opus"
-    | "mulaw"
-    | "alaw";
+  | "pcm_16000"
+  | "pcm_22050"
+  | "pcm_24000"
+  | "pcm_44100"
+  | "pcm_48000"
+  | "opus"
+  | "mulaw"
+  | "alaw";
   /** Speech speed control. Defaults to "normal" */
   speed?: "slowest" | "slow" | "normal" | "fast" | "fastest";
   /** Emotion tags for expressive speech (e.g., ["positivity:high", "curiosity"]). See Cartesia emotion documentation */
@@ -420,13 +420,13 @@ export interface AzureTtsSettings {
   voiceId?: string;
   /** Preferred audio output format for synthesized speech. Defaults to "pcm_24000" */
   audioFormat?:
-    | "pcm_16000"
-    | "pcm_24000"
-    | "pcm_48000"
-    | "opus"
-    | "mp3"
-    | "mulaw"
-    | "alaw";
+  | "pcm_16000"
+  | "pcm_24000"
+  | "pcm_48000"
+  | "opus"
+  | "mp3"
+  | "mulaw"
+  | "alaw";
   /** Speaking style for voices that support it (e.g., "cheerful", "sad", "angry", "friendly") */
   style?: string;
   /** Speaking rate adjustment (e.g., "+10%", "-5%", "1.2"). Range: 0.5 to 2.0 or percentage */
@@ -444,6 +444,28 @@ export interface AzureTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface GeminiTtsSettings {
+  /** TTS provider type identifier */
+  provider: "gemini";
+  /** Model ID to use for speech synthesis: "gemini-2.5-flash-preview-tts" (default) or "gemini-2.5-pro-preview-tts" */
+  model?: string;
+  /** Voice ID to use (e.g., Kore, Puck, Zephyr, Leda, Aoede, etc.) */
+  voiceId?: string;
+  /** Audio output format (Gemini TTS only supports PCM at 24kHz) */
+  audioFormat?: "pcm_24000";
+  /** Custom prompt template for controlling voice style, accent, pace, etc. Use {text} as placeholder for the text to be spoken. If not provided, text is sent directly without additional prompting. */
+  prompt?: string;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Whether to use sentence splitter for text processing, defaults to false for Gemini (optimal with full context) */
+  useSentenceSplitter?: boolean;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -456,20 +478,20 @@ export interface AsrConfig {
     dictionaryPhrases?: string[];
     /** Audio input format for speech recognition (e.g., "pcm_16000") */
     audioFormat?:
-      | "mp3"
-      | "opus"
-      | "aac"
-      | "flac"
-      | "wav"
-      | "pcm_8000"
-      | "pcm_16000"
-      | "pcm_22050"
-      | "pcm_24000"
-      | "pcm_44100"
-      | "pcm_48000"
-      | "mulaw"
-      | "alaw"
-      | "linear16";
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw"
+    | "linear16";
   };
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
@@ -550,18 +572,18 @@ export interface FieldDescriptor {
   name: string;
   /** Type of the field value */
   type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "object"
-    | "string[]"
-    | "number[]"
-    | "boolean[]"
-    | "object[]"
-    | "image"
-    | "image[]"
-    | "audio"
-    | "audio[]";
+  | "string"
+  | "number"
+  | "boolean"
+  | "object"
+  | "string[]"
+  | "number[]"
+  | "boolean[]"
+  | "object[]"
+  | "image"
+  | "image[]"
+  | "audio"
+  | "audio[]";
   /** Whether this field holds an array of values */
   isArray: boolean;
   /** Nested field definitions for object types */
@@ -705,18 +727,18 @@ export interface StageActionParameter {
   name: string;
   /** Expected type of the parameter value */
   type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "object"
-    | "string[]"
-    | "number[]"
-    | "boolean[]"
-    | "object[]"
-    | "image"
-    | "image[]"
-    | "audio"
-    | "audio[]";
+  | "string"
+  | "number"
+  | "boolean"
+  | "object"
+  | "string[]"
+  | "number[]"
+  | "boolean[]"
+  | "object[]"
+  | "image"
+  | "image[]"
+  | "audio"
+  | "audio[]";
   /**
    * Description of what the parameter represents (helps with extraction)
    * @minLength 1
@@ -734,18 +756,18 @@ export interface ToolParameter {
   name: string;
   /** Expected type of the parameter value */
   type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "object"
-    | "string[]"
-    | "number[]"
-    | "boolean[]"
-    | "object[]"
-    | "image"
-    | "image[]"
-    | "audio"
-    | "audio[]";
+  | "string"
+  | "number"
+  | "boolean"
+  | "object"
+  | "string[]"
+  | "number[]"
+  | "boolean[]"
+  | "object[]"
+  | "image"
+  | "image[]"
+  | "audio"
+  | "audio[]";
   /**
    * Description of what the parameter represents
    * @minLength 1
@@ -1048,20 +1070,20 @@ export interface CreateProjectRequest {
       dictionaryPhrases?: string[];
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
       audioFormat?:
-        | "mp3"
-        | "opus"
-        | "aac"
-        | "flac"
-        | "wav"
-        | "pcm_8000"
-        | "pcm_16000"
-        | "pcm_22050"
-        | "pcm_24000"
-        | "pcm_44100"
-        | "pcm_48000"
-        | "mulaw"
-        | "alaw"
-        | "linear16";
+      | "mp3"
+      | "opus"
+      | "aac"
+      | "flac"
+      | "wav"
+      | "pcm_8000"
+      | "pcm_16000"
+      | "pcm_22050"
+      | "pcm_24000"
+      | "pcm_44100"
+      | "pcm_48000"
+      | "mulaw"
+      | "alaw"
+      | "linear16";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -1084,10 +1106,10 @@ export interface CreateProjectRequest {
     storageProviderId?: string;
     /** Storage-specific settings including bucket, prefix, etc. */
     settings?:
-      | S3StorageSettings
-      | AzureBlobStorageSettings
-      | GcsStorageSettings
-      | LocalStorageSettings;
+    | S3StorageSettings
+    | AzureBlobStorageSettings
+    | GcsStorageSettings
+    | LocalStorageSettings;
   };
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;
@@ -1175,10 +1197,10 @@ export interface StorageConfig {
   storageProviderId?: string;
   /** Storage-specific settings including bucket, prefix, etc. */
   settings?:
-    | S3StorageSettings
-    | AzureBlobStorageSettings
-    | GcsStorageSettings
-    | LocalStorageSettings;
+  | S3StorageSettings
+  | AzureBlobStorageSettings
+  | GcsStorageSettings
+  | LocalStorageSettings;
 }
 
 export interface ProjectResponse {
@@ -1200,20 +1222,20 @@ export interface ProjectResponse {
       dictionaryPhrases?: string[];
       /** Audio input format for speech recognition (e.g., "pcm_16000") */
       audioFormat?:
-        | "mp3"
-        | "opus"
-        | "aac"
-        | "flac"
-        | "wav"
-        | "pcm_8000"
-        | "pcm_16000"
-        | "pcm_22050"
-        | "pcm_24000"
-        | "pcm_44100"
-        | "pcm_48000"
-        | "mulaw"
-        | "alaw"
-        | "linear16";
+      | "mp3"
+      | "opus"
+      | "aac"
+      | "flac"
+      | "wav"
+      | "pcm_8000"
+      | "pcm_16000"
+      | "pcm_22050"
+      | "pcm_24000"
+      | "pcm_44100"
+      | "pcm_48000"
+      | "mulaw"
+      | "alaw"
+      | "linear16";
     };
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
@@ -1230,10 +1252,10 @@ export interface ProjectResponse {
     storageProviderId?: string;
     /** Storage-specific settings including bucket, prefix, etc. */
     settings?:
-      | S3StorageSettings
-      | AzureBlobStorageSettings
-      | GcsStorageSettings
-      | LocalStorageSettings;
+    | S3StorageSettings
+    | AzureBlobStorageSettings
+    | GcsStorageSettings
+    | LocalStorageSettings;
   } | null;
   /** Key-value store of constants used in templating and conversation logic */
   constants: Record<string, ParameterValue>;
@@ -1274,20 +1296,20 @@ export interface ProjectListResponse {
         dictionaryPhrases?: string[];
         /** Audio input format for speech recognition (e.g., "pcm_16000") */
         audioFormat?:
-          | "mp3"
-          | "opus"
-          | "aac"
-          | "flac"
-          | "wav"
-          | "pcm_8000"
-          | "pcm_16000"
-          | "pcm_22050"
-          | "pcm_24000"
-          | "pcm_44100"
-          | "pcm_48000"
-          | "mulaw"
-          | "alaw"
-          | "linear16";
+        | "mp3"
+        | "opus"
+        | "aac"
+        | "flac"
+        | "wav"
+        | "pcm_8000"
+        | "pcm_16000"
+        | "pcm_22050"
+        | "pcm_24000"
+        | "pcm_44100"
+        | "pcm_48000"
+        | "mulaw"
+        | "alaw"
+        | "linear16";
       };
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
@@ -1304,10 +1326,10 @@ export interface ProjectListResponse {
       storageProviderId?: string;
       /** Storage-specific settings including bucket, prefix, etc. */
       settings?:
-        | S3StorageSettings
-        | AzureBlobStorageSettings
-        | GcsStorageSettings
-        | LocalStorageSettings;
+      | S3StorageSettings
+      | AzureBlobStorageSettings
+      | GcsStorageSettings
+      | LocalStorageSettings;
     } | null;
     /** Key-value store of constants used in templating and conversation logic */
     constants: Record<string, ParameterValue>;
@@ -1357,11 +1379,12 @@ export interface CreatePersonaRequest {
   ttsProviderId?: string;
   /** TTS provider-specific settings */
   ttsSettings?:
-    | ElevenLabsTtsSettings
-    | OpenAiTtsSettings
-    | DeepgramTtsSettings
-    | CartesiaTtsSettings
-    | AzureTtsSettings;
+  | ElevenLabsTtsSettings
+  | OpenAiTtsSettings
+  | DeepgramTtsSettings
+  | CartesiaTtsSettings
+  | AzureTtsSettings
+  | GeminiTtsSettings;
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -1383,11 +1406,12 @@ export interface UpdatePersonaRequest {
   ttsProviderId?: string;
   /** Updated TTS provider-specific settings */
   ttsSettings?:
-    | ElevenLabsTtsSettings
-    | OpenAiTtsSettings
-    | DeepgramTtsSettings
-    | CartesiaTtsSettings
-    | AzureTtsSettings;
+  | ElevenLabsTtsSettings
+  | OpenAiTtsSettings
+  | DeepgramTtsSettings
+  | CartesiaTtsSettings
+  | AzureTtsSettings
+  | GeminiTtsSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1420,11 +1444,12 @@ export interface PersonaResponse {
   ttsProviderId: string | null;
   /** TTS provider-specific settings */
   ttsSettings?:
-    | ElevenLabsTtsSettings
-    | OpenAiTtsSettings
-    | DeepgramTtsSettings
-    | CartesiaTtsSettings
-    | AzureTtsSettings;
+  | ElevenLabsTtsSettings
+  | OpenAiTtsSettings
+  | DeepgramTtsSettings
+  | CartesiaTtsSettings
+  | AzureTtsSettings
+  | GeminiTtsSettings;
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1458,11 +1483,12 @@ export interface PersonaListResponse {
     ttsProviderId: string | null;
     /** TTS provider-specific settings */
     ttsSettings?:
-      | ElevenLabsTtsSettings
-      | OpenAiTtsSettings
-      | DeepgramTtsSettings
-      | CartesiaTtsSettings
-      | AzureTtsSettings;
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings
+    | AzureTtsSettings
+    | GeminiTtsSettings;
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -2289,128 +2315,128 @@ export interface ConversationEventResponse {
   conversationId: string;
   /** Type of the conversation event */
   eventType:
-    | "message"
-    | "classification"
-    | "action"
-    | "command"
-    | "tool_call"
-    | "conversation_start"
-    | "conversation_resume"
-    | "conversation_end"
-    | "conversation_aborted"
-    | "conversation_failed"
-    | "jump_to_stage";
+  | "message"
+  | "classification"
+  | "action"
+  | "command"
+  | "tool_call"
+  | "conversation_start"
+  | "conversation_resume"
+  | "conversation_end"
+  | "conversation_aborted"
+  | "conversation_failed"
+  | "jump_to_stage";
   /** Event data payload */
   eventData:
-    | {
-        role: "user" | "assistant";
-        text: string;
-        originalText: string;
-        metadata?: Record<string, any>;
-      }
-    | {
-        classifierId: string;
-        input: string;
-        actions: {
-          classifierId: string;
-          classifierName: string;
-          actions: {
-            name: string;
-            parameters: Record<string, ParameterValue>;
-          }[];
-        }[];
-        metadata?: Record<string, any>;
-      }
-    | {
-        actionName: string;
-        stageId: string;
-        effects: Effect[];
-        metadata?: Record<string, any>;
-      }
-    | {
-        command: string;
-        parameters?: Record<string, ParameterValue>;
-        metadata?: Record<string, any>;
-      }
-    | {
-        toolId: string;
-        toolName: string;
+  | {
+    role: "user" | "assistant";
+    text: string;
+    originalText: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    classifierId: string;
+    input: string;
+    actions: {
+      classifierId: string;
+      classifierName: string;
+      actions: {
+        name: string;
         parameters: Record<string, ParameterValue>;
-        success: boolean;
-        result?: (
-          | {
-              contentType: "text";
-              text: string;
-            }
-          | {
-              contentType: "image";
-              /** Base64-encoded image data */
-              data: string;
-              /** MIME type (e.g., image/png, image/jpeg) */
-              mimeType: string;
-              metadata?: {
-                width?: number;
-                height?: number;
-                [key: string]: any;
-              };
-            }
-          | {
-              contentType: "audio";
-              /** Base64-encoded audio data */
-              data: string;
-              /** Audio format */
-              format: "pcm" | "mp3" | "wav" | "opus";
-              /** MIME type (e.g., audio/pcm, audio/mpeg) */
-              mimeType: string;
-              metadata?: {
-                sampleRate?: number;
-                channels?: number;
-                bitDepth?: number;
-                [key: string]: any;
-              };
-            }
-        )[];
-        error?: string;
-        metadata?: Record<string, any>;
+      }[];
+    }[];
+    metadata?: Record<string, any>;
+  }
+  | {
+    actionName: string;
+    stageId: string;
+    effects: Effect[];
+    metadata?: Record<string, any>;
+  }
+  | {
+    command: string;
+    parameters?: Record<string, ParameterValue>;
+    metadata?: Record<string, any>;
+  }
+  | {
+    toolId: string;
+    toolName: string;
+    parameters: Record<string, ParameterValue>;
+    success: boolean;
+    result?: (
+      | {
+        contentType: "text";
+        text: string;
       }
-    | {
-        stageId: string;
-        initialVariables?: Record<string, ParameterValue>;
-        metadata?: Record<string, any>;
+      | {
+        contentType: "image";
+        /** Base64-encoded image data */
+        data: string;
+        /** MIME type (e.g., image/png, image/jpeg) */
+        mimeType: string;
+        metadata?: {
+          width?: number;
+          height?: number;
+          [key: string]: any;
+        };
       }
-    | {
-        previousStatus:
-          | "initialized"
-          | "awaiting_user_input"
-          | "receiving_user_voice"
-          | "processing_user_input"
-          | "generating_response"
-          | "finished"
-          | "aborted"
-          | "failed";
-        stageId: string;
-        metadata?: Record<string, any>;
+      | {
+        contentType: "audio";
+        /** Base64-encoded audio data */
+        data: string;
+        /** Audio format */
+        format: "pcm" | "mp3" | "wav" | "opus";
+        /** MIME type (e.g., audio/pcm, audio/mpeg) */
+        mimeType: string;
+        metadata?: {
+          sampleRate?: number;
+          channels?: number;
+          bitDepth?: number;
+          [key: string]: any;
+        };
       }
-    | {
-        reason?: string;
-        stageId: string;
-        metadata?: Record<string, any>;
-      }
-    | {
-        reason: string;
-        stageId: string;
-        metadata?: Record<string, any>;
-      }
-    | {
-        reason: string;
-        stageId?: string;
-        metadata?: Record<string, any>;
-      }
-    | {
-        fromStageId: string;
-        toStageId: string;
-        metadata?: Record<string, any>;
-      };
+    )[];
+    error?: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    stageId: string;
+    initialVariables?: Record<string, ParameterValue>;
+    metadata?: Record<string, any>;
+  }
+  | {
+    previousStatus:
+    | "initialized"
+    | "awaiting_user_input"
+    | "receiving_user_voice"
+    | "processing_user_input"
+    | "generating_response"
+    | "finished"
+    | "aborted"
+    | "failed";
+    stageId: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    reason?: string;
+    stageId: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    reason: string;
+    stageId: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    reason: string;
+    stageId?: string;
+    metadata?: Record<string, any>;
+  }
+  | {
+    fromStageId: string;
+    toStageId: string;
+    metadata?: Record<string, any>;
+  };
   /**
    * Timestamp when the event occurred
    * @format date-time
@@ -2429,128 +2455,128 @@ export interface ConversationEventListResponse {
     conversationId: string;
     /** Type of the conversation event */
     eventType:
-      | "message"
-      | "classification"
-      | "action"
-      | "command"
-      | "tool_call"
-      | "conversation_start"
-      | "conversation_resume"
-      | "conversation_end"
-      | "conversation_aborted"
-      | "conversation_failed"
-      | "jump_to_stage";
+    | "message"
+    | "classification"
+    | "action"
+    | "command"
+    | "tool_call"
+    | "conversation_start"
+    | "conversation_resume"
+    | "conversation_end"
+    | "conversation_aborted"
+    | "conversation_failed"
+    | "jump_to_stage";
     /** Event data payload */
     eventData:
-      | {
-          role: "user" | "assistant";
-          text: string;
-          originalText: string;
-          metadata?: Record<string, any>;
-        }
-      | {
-          classifierId: string;
-          input: string;
-          actions: {
-            classifierId: string;
-            classifierName: string;
-            actions: {
-              name: string;
-              parameters: Record<string, ParameterValue>;
-            }[];
-          }[];
-          metadata?: Record<string, any>;
-        }
-      | {
-          actionName: string;
-          stageId: string;
-          effects: Effect[];
-          metadata?: Record<string, any>;
-        }
-      | {
-          command: string;
-          parameters?: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
-        }
-      | {
-          toolId: string;
-          toolName: string;
+    | {
+      role: "user" | "assistant";
+      text: string;
+      originalText: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      classifierId: string;
+      input: string;
+      actions: {
+        classifierId: string;
+        classifierName: string;
+        actions: {
+          name: string;
           parameters: Record<string, ParameterValue>;
-          success: boolean;
-          result?: (
-            | {
-                contentType: "text";
-                text: string;
-              }
-            | {
-                contentType: "image";
-                /** Base64-encoded image data */
-                data: string;
-                /** MIME type (e.g., image/png, image/jpeg) */
-                mimeType: string;
-                metadata?: {
-                  width?: number;
-                  height?: number;
-                  [key: string]: any;
-                };
-              }
-            | {
-                contentType: "audio";
-                /** Base64-encoded audio data */
-                data: string;
-                /** Audio format */
-                format: "pcm" | "mp3" | "wav" | "opus";
-                /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                mimeType: string;
-                metadata?: {
-                  sampleRate?: number;
-                  channels?: number;
-                  bitDepth?: number;
-                  [key: string]: any;
-                };
-              }
-          )[];
-          error?: string;
-          metadata?: Record<string, any>;
+        }[];
+      }[];
+      metadata?: Record<string, any>;
+    }
+    | {
+      actionName: string;
+      stageId: string;
+      effects: Effect[];
+      metadata?: Record<string, any>;
+    }
+    | {
+      command: string;
+      parameters?: Record<string, ParameterValue>;
+      metadata?: Record<string, any>;
+    }
+    | {
+      toolId: string;
+      toolName: string;
+      parameters: Record<string, ParameterValue>;
+      success: boolean;
+      result?: (
+        | {
+          contentType: "text";
+          text: string;
         }
-      | {
-          stageId: string;
-          initialVariables?: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
+        | {
+          contentType: "image";
+          /** Base64-encoded image data */
+          data: string;
+          /** MIME type (e.g., image/png, image/jpeg) */
+          mimeType: string;
+          metadata?: {
+            width?: number;
+            height?: number;
+            [key: string]: any;
+          };
         }
-      | {
-          previousStatus:
-            | "initialized"
-            | "awaiting_user_input"
-            | "receiving_user_voice"
-            | "processing_user_input"
-            | "generating_response"
-            | "finished"
-            | "aborted"
-            | "failed";
-          stageId: string;
-          metadata?: Record<string, any>;
+        | {
+          contentType: "audio";
+          /** Base64-encoded audio data */
+          data: string;
+          /** Audio format */
+          format: "pcm" | "mp3" | "wav" | "opus";
+          /** MIME type (e.g., audio/pcm, audio/mpeg) */
+          mimeType: string;
+          metadata?: {
+            sampleRate?: number;
+            channels?: number;
+            bitDepth?: number;
+            [key: string]: any;
+          };
         }
-      | {
-          reason?: string;
-          stageId: string;
-          metadata?: Record<string, any>;
-        }
-      | {
-          reason: string;
-          stageId: string;
-          metadata?: Record<string, any>;
-        }
-      | {
-          reason: string;
-          stageId?: string;
-          metadata?: Record<string, any>;
-        }
-      | {
-          fromStageId: string;
-          toStageId: string;
-          metadata?: Record<string, any>;
-        };
+      )[];
+      error?: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      stageId: string;
+      initialVariables?: Record<string, ParameterValue>;
+      metadata?: Record<string, any>;
+    }
+    | {
+      previousStatus:
+      | "initialized"
+      | "awaiting_user_input"
+      | "receiving_user_voice"
+      | "processing_user_input"
+      | "generating_response"
+      | "finished"
+      | "aborted"
+      | "failed";
+      stageId: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      reason?: string;
+      stageId: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      reason: string;
+      stageId: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      reason: string;
+      stageId?: string;
+      metadata?: Record<string, any>;
+    }
+    | {
+      fromStageId: string;
+      toStageId: string;
+      metadata?: Record<string, any>;
+    };
     /**
      * Timestamp when the event occurred
      * @format date-time
@@ -2604,10 +2630,10 @@ export interface CreateStageRequest {
   llmProviderId?: string | null;
   /** LLM provider-specific settings for this stage */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /**
    * ID of the persona associated with this stage
    * @minLength 1
@@ -2673,10 +2699,10 @@ export interface UpdateStageRequest {
   llmProviderId?: string | null;
   /** Updated LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /**
    * Updated persona ID
    * @minLength 1
@@ -2732,10 +2758,10 @@ export interface StageResponse {
   llmProviderId: string | null;
   /** LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** ID of the associated persona */
   personaId: string;
   /** What happens when entering the stage */
@@ -2789,10 +2815,10 @@ export interface StageListResponse {
     llmProviderId: string | null;
     /** LLM provider-specific settings */
     llmSettings?:
-      | OpenAILlmSettings
-      | OpenAILegacyLlmSettings
-      | AnthropicLlmSettings
-      | GeminiLlmSettings;
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
     /** ID of the associated persona */
     personaId: string;
     /** What happens when entering the stage */
@@ -2873,10 +2899,10 @@ export interface CreateClassifierRequest {
   llmProviderId?: string | null;
   /** LLM provider-specific settings for this classifier */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Additional classifier-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -2898,10 +2924,10 @@ export interface UpdateClassifierRequest {
   llmProviderId?: string | null;
   /** Updated LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -2934,10 +2960,10 @@ export interface ClassifierResponse {
   llmProviderId: string | null;
   /** LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Additional metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -2971,10 +2997,10 @@ export interface ClassifierListResponse {
     llmProviderId: string | null;
     /** LLM provider-specific settings */
     llmSettings?:
-      | OpenAILlmSettings
-      | OpenAILegacyLlmSettings
-      | AnthropicLlmSettings
-      | GeminiLlmSettings;
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
     /** Additional metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -3037,10 +3063,10 @@ export interface CreateContextTransformerRequest {
   llmProviderId?: string | null;
   /** LLM provider-specific settings for this transformer */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Additional transformer-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -3064,10 +3090,10 @@ export interface UpdateContextTransformerRequest {
   llmProviderId?: string | null;
   /** Updated LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -3102,10 +3128,10 @@ export interface ContextTransformerResponse {
   llmProviderId: string | null;
   /** LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Additional metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -3141,10 +3167,10 @@ export interface ContextTransformerListResponse {
     llmProviderId: string | null;
     /** LLM provider-specific settings */
     llmSettings?:
-      | OpenAILlmSettings
-      | OpenAILegacyLlmSettings
-      | AnthropicLlmSettings
-      | GeminiLlmSettings;
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
     /** Additional metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
@@ -3205,10 +3231,10 @@ export interface CreateToolRequest {
   llmProviderId?: string | null;
   /** LLM provider-specific settings for this tool */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -3239,10 +3265,10 @@ export interface UpdateToolRequest {
   llmProviderId?: string | null;
   /** Updated LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Updated input format */
   inputType?: "text" | "image" | "multi-modal";
   /** Updated output format */
@@ -3281,10 +3307,10 @@ export interface ToolResponse {
   llmProviderId: string | null;
   /** LLM provider-specific settings */
   llmSettings?:
-    | OpenAILlmSettings
-    | OpenAILegacyLlmSettings
-    | AnthropicLlmSettings
-    | GeminiLlmSettings;
+  | OpenAILlmSettings
+  | OpenAILegacyLlmSettings
+  | AnthropicLlmSettings
+  | GeminiLlmSettings;
   /** Expected input format */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format */
@@ -3324,10 +3350,10 @@ export interface ToolListResponse {
     llmProviderId: string | null;
     /** LLM provider-specific settings */
     llmSettings?:
-      | OpenAILlmSettings
-      | OpenAILegacyLlmSettings
-      | AnthropicLlmSettings
-      | GeminiLlmSettings;
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
     /** Expected input format */
     inputType: "text" | "image" | "multi-modal";
     /** Expected output format */
@@ -3693,56 +3719,60 @@ export interface CreateProviderRequest {
   apiType: string;
   /** Provider-specific configuration object (varies by providerType and apiType) */
   config:
-    | {
-        /** OpenAI API key */
-        apiKey: string;
-        /** Optional organization ID */
-        organizationId?: string;
-        /** Optional base URL for OpenAI-compatible APIs */
-        baseUrl?: string;
-      }
-    | {
-        /** Anthropic API key */
-        apiKey: string;
-        /** Optional base URL for custom endpoints */
-        baseUrl?: string;
-      }
-    | {
-        /** Google API key */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with ElevenLabs */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with OpenAI */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Deepgram */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Cartesia */
-        apiKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-        region: string;
-        /** The subscription key to use for the speech service */
-        subscriptionKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech recognition service */
-        region: string;
-        /** The subscription key to use for the speech recognition service */
-        subscriptionKey: string;
-      }
-    | S3StorageConfig
-    | AzureBlobStorageConfig
-    | GcsStorageConfig
-    | LocalStorageConfig;
+  | {
+    /** OpenAI API key */
+    apiKey: string;
+    /** Optional organization ID */
+    organizationId?: string;
+    /** Optional base URL for OpenAI-compatible APIs */
+    baseUrl?: string;
+  }
+  | {
+    /** Anthropic API key */
+    apiKey: string;
+    /** Optional base URL for custom endpoints */
+    baseUrl?: string;
+  }
+  | {
+    /** Google API key */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with ElevenLabs */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with OpenAI */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Deepgram */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Cartesia */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+    region: string;
+    /** The subscription key to use for the speech service */
+    subscriptionKey: string;
+  }
+  | {
+    /** API key for authenticating with Google Gemini API */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech recognition service */
+    region: string;
+    /** The subscription key to use for the speech recognition service */
+    subscriptionKey: string;
+  }
+  | S3StorageConfig
+  | AzureBlobStorageConfig
+  | GcsStorageConfig
+  | LocalStorageConfig;
   /** Admin user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -3769,56 +3799,60 @@ export interface UpdateProviderRequest {
   apiType?: string;
   /** Updated provider-specific configuration */
   config?:
-    | {
-        /** OpenAI API key */
-        apiKey: string;
-        /** Optional organization ID */
-        organizationId?: string;
-        /** Optional base URL for OpenAI-compatible APIs */
-        baseUrl?: string;
-      }
-    | {
-        /** Anthropic API key */
-        apiKey: string;
-        /** Optional base URL for custom endpoints */
-        baseUrl?: string;
-      }
-    | {
-        /** Google API key */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with ElevenLabs */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with OpenAI */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Deepgram */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Cartesia */
-        apiKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-        region: string;
-        /** The subscription key to use for the speech service */
-        subscriptionKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech recognition service */
-        region: string;
-        /** The subscription key to use for the speech recognition service */
-        subscriptionKey: string;
-      }
-    | S3StorageConfig
-    | AzureBlobStorageConfig
-    | GcsStorageConfig
-    | LocalStorageConfig;
+  | {
+    /** OpenAI API key */
+    apiKey: string;
+    /** Optional organization ID */
+    organizationId?: string;
+    /** Optional base URL for OpenAI-compatible APIs */
+    baseUrl?: string;
+  }
+  | {
+    /** Anthropic API key */
+    apiKey: string;
+    /** Optional base URL for custom endpoints */
+    baseUrl?: string;
+  }
+  | {
+    /** Google API key */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with ElevenLabs */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with OpenAI */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Deepgram */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Cartesia */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+    region: string;
+    /** The subscription key to use for the speech service */
+    subscriptionKey: string;
+  }
+  | {
+    /** API key for authenticating with Google Gemini API */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech recognition service */
+    region: string;
+    /** The subscription key to use for the speech recognition service */
+    subscriptionKey: string;
+  }
+  | S3StorageConfig
+  | AzureBlobStorageConfig
+  | GcsStorageConfig
+  | LocalStorageConfig;
   /** Updated searchable tags */
   tags?: string[];
 }
@@ -3845,56 +3879,60 @@ export interface ProviderResponse {
   apiType: string;
   /** Provider-specific configuration object */
   config:
-    | {
-        /** OpenAI API key */
-        apiKey: string;
-        /** Optional organization ID */
-        organizationId?: string;
-        /** Optional base URL for OpenAI-compatible APIs */
-        baseUrl?: string;
-      }
-    | {
-        /** Anthropic API key */
-        apiKey: string;
-        /** Optional base URL for custom endpoints */
-        baseUrl?: string;
-      }
-    | {
-        /** Google API key */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with ElevenLabs */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with OpenAI */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Deepgram */
-        apiKey: string;
-      }
-    | {
-        /** API key for authenticating with Cartesia */
-        apiKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-        region: string;
-        /** The subscription key to use for the speech service */
-        subscriptionKey: string;
-      }
-    | {
-        /** The Azure region to use for the speech recognition service */
-        region: string;
-        /** The subscription key to use for the speech recognition service */
-        subscriptionKey: string;
-      }
-    | S3StorageConfig
-    | AzureBlobStorageConfig
-    | GcsStorageConfig
-    | LocalStorageConfig;
+  | {
+    /** OpenAI API key */
+    apiKey: string;
+    /** Optional organization ID */
+    organizationId?: string;
+    /** Optional base URL for OpenAI-compatible APIs */
+    baseUrl?: string;
+  }
+  | {
+    /** Anthropic API key */
+    apiKey: string;
+    /** Optional base URL for custom endpoints */
+    baseUrl?: string;
+  }
+  | {
+    /** Google API key */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with ElevenLabs */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with OpenAI */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Deepgram */
+    apiKey: string;
+  }
+  | {
+    /** API key for authenticating with Cartesia */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+    region: string;
+    /** The subscription key to use for the speech service */
+    subscriptionKey: string;
+  }
+  | {
+    /** API key for authenticating with Google Gemini API */
+    apiKey: string;
+  }
+  | {
+    /** The Azure region to use for the speech recognition service */
+    region: string;
+    /** The subscription key to use for the speech recognition service */
+    subscriptionKey: string;
+  }
+  | S3StorageConfig
+  | AzureBlobStorageConfig
+  | GcsStorageConfig
+  | LocalStorageConfig;
   /** Admin user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -3928,56 +3966,60 @@ export interface ProviderListResponse {
     apiType: string;
     /** Provider-specific configuration object */
     config:
-      | {
-          /** OpenAI API key */
-          apiKey: string;
-          /** Optional organization ID */
-          organizationId?: string;
-          /** Optional base URL for OpenAI-compatible APIs */
-          baseUrl?: string;
-        }
-      | {
-          /** Anthropic API key */
-          apiKey: string;
-          /** Optional base URL for custom endpoints */
-          baseUrl?: string;
-        }
-      | {
-          /** Google API key */
-          apiKey: string;
-        }
-      | {
-          /** API key for authenticating with ElevenLabs */
-          apiKey: string;
-        }
-      | {
-          /** API key for authenticating with OpenAI */
-          apiKey: string;
-        }
-      | {
-          /** API key for authenticating with Deepgram */
-          apiKey: string;
-        }
-      | {
-          /** API key for authenticating with Cartesia */
-          apiKey: string;
-        }
-      | {
-          /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-          region: string;
-          /** The subscription key to use for the speech service */
-          subscriptionKey: string;
-        }
-      | {
-          /** The Azure region to use for the speech recognition service */
-          region: string;
-          /** The subscription key to use for the speech recognition service */
-          subscriptionKey: string;
-        }
-      | S3StorageConfig
-      | AzureBlobStorageConfig
-      | GcsStorageConfig
-      | LocalStorageConfig;
+    | {
+      /** OpenAI API key */
+      apiKey: string;
+      /** Optional organization ID */
+      organizationId?: string;
+      /** Optional base URL for OpenAI-compatible APIs */
+      baseUrl?: string;
+    }
+    | {
+      /** Anthropic API key */
+      apiKey: string;
+      /** Optional base URL for custom endpoints */
+      baseUrl?: string;
+    }
+    | {
+      /** Google API key */
+      apiKey: string;
+    }
+    | {
+      /** API key for authenticating with ElevenLabs */
+      apiKey: string;
+    }
+    | {
+      /** API key for authenticating with OpenAI */
+      apiKey: string;
+    }
+    | {
+      /** API key for authenticating with Deepgram */
+      apiKey: string;
+    }
+    | {
+      /** API key for authenticating with Cartesia */
+      apiKey: string;
+    }
+    | {
+      /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+      region: string;
+      /** The subscription key to use for the speech service */
+      subscriptionKey: string;
+    }
+    | {
+      /** API key for authenticating with Google Gemini API */
+      apiKey: string;
+    }
+    | {
+      /** The Azure region to use for the speech recognition service */
+      region: string;
+      /** The subscription key to use for the speech recognition service */
+      subscriptionKey: string;
+    }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig;
     /** Admin user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */

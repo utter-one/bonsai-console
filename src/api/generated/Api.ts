@@ -4300,6 +4300,10 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Google Gemini API */
+            apiKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4369,6 +4373,10 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with Google Gemini API */
+              apiKey: string;
             }
           | {
               /** The Azure region to use for the speech recognition service */
@@ -4507,6 +4515,10 @@ export class Api<
                 subscriptionKey: string;
               }
             | {
+                /** API key for authenticating with Google Gemini API */
+                apiKey: string;
+              }
+            | {
                 /** The Azure region to use for the speech recognition service */
                 region: string;
                 /** The subscription key to use for the speech recognition service */
@@ -4624,6 +4636,10 @@ export class Api<
               subscriptionKey: string;
             }
           | {
+              /** API key for authenticating with Google Gemini API */
+              apiKey: string;
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -4730,6 +4746,10 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Google Gemini API */
+            apiKey: string;
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -4797,6 +4817,10 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with Google Gemini API */
+              apiKey: string;
             }
           | {
               /** The Azure region to use for the speech recognition service */

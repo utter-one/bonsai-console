@@ -3,9 +3,9 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X, Check } from 'lucide-vue-next'
-import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
+import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, GeminiTtsSettings } from '@/api/types'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | GeminiTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 
@@ -69,6 +69,7 @@ const isOpenAI = computed(() => selectedProviderApiType.value === 'openai')
 const isDeepgram = computed(() => selectedProviderApiType.value === 'deepgram')
 const isCartesia = computed(() => selectedProviderApiType.value === 'cartesia')
 const isAzure = computed(() => selectedProviderApiType.value === 'azure')
+const isGemini = computed(() => selectedProviderApiType.value === 'gemini')
 
 const isModelSelected = computed(() => !!form.value.ttsSettings.model)
 
@@ -221,6 +222,18 @@ function handleTtsProviderChange() {
         rate: '1.0',
         pitch: '0%',
         useSentenceSplitter: true,
+        noSpeechMarkers: [],
+        removeExclamationMarks: false
+      }
+      break;
+    case 'gemini':
+      form.value.ttsSettings = {
+        provider: 'gemini',
+        model: 'gemini-2.5-flash-preview-tts',
+        voiceId: '',
+        audioFormat: 'pcm_24000',
+        prompt: '',
+        useSentenceSplitter: false,
         noSpeechMarkers: [],
         removeExclamationMarks: false
       }
@@ -1018,6 +1031,34 @@ function removeNoSpeechMarker(index: number) {
             </div>
           </div>
 
+          <!-- Voice Settings Section (Gemini) -->
+          <div v-if="form.ttsProviderId && isGemini" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Gemini TTS)</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Gemini TTS uses a custom prompt template to control voice characteristics. Use <code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">{text}</code> as a placeholder for the text to be spoken.
+            </p>
+
+            <!-- Prompt Template -->
+            <div class="form-group">
+              <label class="form-label">
+                Prompt Template <span class="text-gray-500">(optional)</span>
+              </label>
+              <textarea
+                v-model="(form.ttsSettings as GeminiTtsSettings).prompt"
+                rows="6"
+                class="form-textarea font-mono text-sm"
+                placeholder="Speak the following text in an enthusiastic, professional tone with a British accent: {text}"
+                :disabled="isLoading"
+              ></textarea>
+              <p class="form-help-text">
+                Custom prompt template for controlling voice style, accent, pace, etc. Must include <code class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">{text}</code> as a placeholder. If not provided, text is sent directly without additional prompting.
+              </p>
+              <p class="form-help-text mt-2 text-xs">
+                <strong>Example:</strong> "Read the following in a calm, soothing voice as if narrating a meditation: {text}"
+              </p>
+            </div>
+          </div>
+
           <!-- Boolean Settings Section -->
           <div v-if="form.ttsProviderId" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Settings</h3>
@@ -1091,6 +1132,9 @@ function removeNoSpeechMarker(index: number) {
               </label>
               <p v-if="isCartesia" class="form-help-text mt-1">
                 Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).
+              </p>
+              <p v-else-if="isGemini" class="form-help-text mt-1">
+                Whether to use sentence splitter for text processing. Defaults to false for Gemini (optimal with full context).
               </p>
               <p v-else class="form-help-text mt-1">
                 Send only full sentences to TTS (can introduce small latency)
