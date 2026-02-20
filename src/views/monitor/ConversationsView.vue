@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, Calendar, ChevronDown } from 'lucide-vue-next'
+import { RefreshCw, Calendar, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -313,7 +313,7 @@ async function refreshData() {
 
       <!-- Empty State -->
       <div v-else-if="filteredConversations.length === 0" class="empty-state">
-        <RefreshCw class="empty-state-icon" />
+        <MessageSquare class="empty-state-icon" />
         <p class="empty-state-title">No conversations found</p>
         <p>No conversations match the selected time filter</p>
       </div>

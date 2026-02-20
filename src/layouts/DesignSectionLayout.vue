@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectSelectionStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, RefreshCw, Target, Wrench, Hammer, Zap, BookOpen, BriefcaseBusiness } from 'lucide-vue-next'
+import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, BriefcaseBusiness } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectSelectionStore = useProjectSelectionStore()
@@ -11,10 +11,10 @@ const projectSelectionStore = useProjectSelectionStore()
 const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
 
 const menuItems = [
-  { name: 'design.stages', label: 'Stages', icon: RefreshCw },
+  { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.personas', label: 'Personas', icon: Drama },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
-  { name: 'design.contextTransformers', label: 'Context Transformers', icon: Wrench },
+  { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
   { name: 'design.tools', label: 'Tools', icon: Hammer },
   { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },

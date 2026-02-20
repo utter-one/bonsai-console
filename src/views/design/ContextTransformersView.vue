@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
-import { Wrench, Search, X, Plus } from 'lucide-vue-next'
+import { Microchip, Search, X, Plus } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -150,7 +150,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
 
       <!-- Empty State -->
       <div v-else-if="filteredTransformers.length === 0" class="empty-state">
-        <Wrench class="empty-state-icon" />
+        <Microchip class="empty-state-icon" />
         <p class="empty-state-title">No context transformers found</p>
         <p v-if="searchQuery">Try adjusting your search criteria</p>
         <p v-else>Create your first context transformer to get started</p>

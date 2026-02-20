@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { DraftingCompass, FlaskConical, Search, X } from 'lucide-vue-next'
+import { DraftingCompass, FlaskConical, Search, X, BriefcaseBusiness } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -102,6 +102,7 @@ function openPlayground(projectId: string) {
     <div v-else-if="projectsStore.error" class="error-state">{{ projectsStore.error }}</div>
     
     <div v-else-if="filteredProjects.length === 0" class="empty-state">
+      <BriefcaseBusiness class="empty-state-icon" />
       <p v-if="searchQuery">No projects found matching "{{ searchQuery }}"</p>
       <p v-else>No projects yet. Create your first project!</p>
     </div>
