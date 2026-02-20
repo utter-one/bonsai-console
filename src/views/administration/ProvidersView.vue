@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { Bot, Search, X, Plus } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -152,7 +152,7 @@ function getProviderTypeBadgeClass(type: string) {
 
       <!-- Empty State -->
       <div v-else-if="filteredProviders.length === 0" class="empty-state">
-        <Bot class="empty-state-icon" />
+        <CloudCog class="empty-state-icon" />
         <p class="empty-state-title">No providers found</p>
         <p v-if="searchQuery">Try adjusting your search criteria</p>
         <p v-else>Create your first provider to get started</p>
