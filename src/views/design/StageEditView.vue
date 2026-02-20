@@ -852,7 +852,7 @@ function toggleNode(path: number[]) {
               <select
                 v-model="form.personaId"
                 required
-                class="form-select-auto"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="">Select a persona</option>
@@ -872,7 +872,7 @@ function toggleNode(path: number[]) {
               <select
                 v-model="form.enterBehavior"
                 required
-                class="form-select-auto"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="generate_response">Generate Response</option>
