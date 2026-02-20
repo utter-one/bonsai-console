@@ -1878,6 +1878,9 @@ function handlePresetSelect(mode: ConversationMode) {
     message: `Conversation mode changed to: ${conversationPresets.find(p => p.id === mode)?.name}`,
     timestamp: new Date()
   })
+
+  // Auto-start conversation after selecting mode
+  startConversation()
 }
 
 // Methods

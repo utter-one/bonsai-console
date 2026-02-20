@@ -34,7 +34,13 @@ const form = ref({
   triggerOnClientCommand: false,
   classificationTrigger: '',
   overrideClassifierId: '',
-  examples: ''
+  examples: '',
+  parameters: [] as Array<{
+    name: string
+    type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
+    description: string
+    required: boolean
+  }>
 })
 
 const operations = ref<ActionOperations>(createDefaultOperations())
@@ -88,7 +94,8 @@ async function loadGlobalAction() {
         triggerOnClientCommand: currentGlobalAction.value.triggerOnClientCommand,
         classificationTrigger: currentGlobalAction.value.classificationTrigger || '',
         overrideClassifierId: currentGlobalAction.value.overrideClassifierId || '',
-        examples: currentGlobalAction.value.examples?.join('\n') || ''
+        examples: currentGlobalAction.value.examples?.join('\n') || '',
+        parameters: currentGlobalAction.value.parameters || []
       }
 
       // Load effects from action
@@ -125,6 +132,7 @@ async function handleSubmit() {
         triggerOnClientCommand: form.value.triggerOnClientCommand,
         classificationTrigger: form.value.classificationTrigger || null,
         overrideClassifierId: form.value.overrideClassifierId || null,
+        parameters: form.value.parameters,
         effects: effectsArray,
         examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : [],
         metadata: actionMetadata.value
@@ -164,6 +172,10 @@ async function handleSubmit() {
 
       if (form.value.examples) {
         createData.examples = form.value.examples.split('\n').filter((e: string) => e.trim())
+      }
+
+      if (form.value.parameters && form.value.parameters.length > 0) {
+        createData.parameters = form.value.parameters
       }
 
       const created = await globalActionsStore.create(createData)
@@ -272,6 +284,7 @@ const metadataFields = computed(() => {
           <!-- Use shared ActionForm component with all tabs including metadata -->
           <ActionForm
             :form="form"
+            :parameters="form.parameters"
             :operations="operations"
             :active-tab="activeTab"
             :available-classifiers="projectClassifiers"
@@ -281,7 +294,7 @@ const metadataFields = computed(() => {
             :action-parameters="{}"
             :show-tabs="true"
             :show-key-field="false"
-            :show-parameters="false"
+            :show-parameters="true"
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
           />

@@ -37,6 +37,7 @@ import {
   S3StorageConfig,
   S3StorageSettings,
   StageAction,
+  StageActionParameter,
   StorageConfig,
   ToolParameter,
   TtsModelInfo,
@@ -1662,6 +1663,76 @@ export class Api<
       ...params,
     });
   /**
+   * @description Creates a copy of an existing classifier with a new ID and optional name override
+   *
+   * @tags Classifiers
+   * @name ClassifiersCloneCreate
+   * @summary Clone classifier
+   * @request POST:/api/classifiers/{id}/clone
+   * @secure
+   */
+  classifiersCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned classifier (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned classifier (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the classifier */
+        id: string;
+        /** ID of the project this classifier belongs to */
+        projectId: string;
+        /** Display name of the classifier */
+        name: string;
+        /** Detailed description of the classifier */
+        description: string | null;
+        /** Prompt defining the classification logic */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the classifier was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the classifier was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/classifiers/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Creates a new context transformer with specified name, prompt, and configuration
    *
    * @tags Context Transformers
@@ -2052,6 +2123,78 @@ export class Api<
       path: `/api/context-transformers/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing context transformer with a new ID and optional name override
+   *
+   * @tags Context Transformers
+   * @name ContextTransformersCloneCreate
+   * @summary Clone context transformer
+   * @request POST:/api/context-transformers/{id}/clone
+   * @secure
+   */
+  contextTransformersCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned context transformer (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned context transformer (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the context transformer */
+        id: string;
+        /** ID of the project this context transformer belongs to */
+        projectId: string;
+        /** Display name of the context transformer */
+        name: string;
+        /** Detailed description of the transformer */
+        description: string | null;
+        /** Prompt defining the transformation logic */
+        prompt: string;
+        /** Context field names to be transformed */
+        contextFields: string[] | null;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the transformer was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the transformer was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/context-transformers/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -4017,6 +4160,77 @@ export class Api<
       ...params,
     });
   /**
+   * @description Creates a copy of an existing persona with a new ID and optional name override
+   *
+   * @tags Personas
+   * @name PersonasCloneCreate
+   * @summary Clone persona
+   * @request POST:/api/personas/{id}/clone
+   * @secure
+   */
+  personasCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned persona (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned persona (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the persona */
+        id: string;
+        /** ID of the project this persona belongs to */
+        projectId: string;
+        /** Display name of the persona */
+        name: string;
+        /** Detailed description of the persona purpose */
+        description: string | null;
+        /** Prompt defining the persona's characteristics and behavior */
+        prompt: string;
+        /** ID of the TTS provider */
+        ttsProviderId: string | null;
+        /** TTS provider-specific settings */
+        ttsSettings?:
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings
+          | AzureTtsSettings;
+        /** Additional persona-specific metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the persona was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the persona was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/personas/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Creates a new provider configuration for AI services (ASR, TTS, LLM, Embeddings)
    *
    * @tags Providers
@@ -5306,6 +5520,8 @@ export class Api<
       classificationTrigger?: string | null;
       /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
       overrideClassifierId?: string | null;
+      /** Optional array of parameters to extract from user input */
+      parameters?: StageActionParameter[];
       /** Array of effects to execute when action is triggered */
       effects?: Effect[];
       /** Example phrases that trigger this action */
@@ -5333,6 +5549,8 @@ export class Api<
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
+        /** Array of parameters to extract from user input */
+        parameters: StageActionParameter[];
         /** Array of effects to execute */
         effects: Effect[];
         /** Example phrases that trigger this action */
@@ -5425,6 +5643,8 @@ export class Api<
           classificationTrigger: string | null;
           /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
           overrideClassifierId: string | null;
+          /** Array of parameters to extract from user input */
+          parameters: StageActionParameter[];
           /** Array of effects to execute */
           effects: Effect[];
           /** Example phrases that trigger this action */
@@ -5498,6 +5718,8 @@ export class Api<
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
+        /** Array of parameters to extract from user input */
+        parameters: StageActionParameter[];
         /** Array of effects to execute */
         effects: Effect[];
         /** Example phrases that trigger this action */
@@ -5552,6 +5774,8 @@ export class Api<
       classificationTrigger?: string | null;
       /** Updated override classifier ID */
       overrideClassifierId?: string | null;
+      /** Updated parameters array */
+      parameters?: StageActionParameter[];
       /** Updated effects array */
       effects?: Effect[];
       /** Updated example phrases */
@@ -5584,6 +5808,8 @@ export class Api<
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
         overrideClassifierId: string | null;
+        /** Array of parameters to extract from user input */
+        parameters: StageActionParameter[];
         /** Array of effects to execute */
         effects: Effect[];
         /** Example phrases that trigger this action */
@@ -5655,6 +5881,80 @@ export class Api<
       path: `/api/global-actions/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing global action with a new ID and optional name override
+   *
+   * @tags Global Actions
+   * @name GlobalActionsCloneCreate
+   * @summary Clone global action
+   * @request POST:/api/global-actions/{id}/clone
+   * @secure
+   */
+  globalActionsCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned global action (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned global action (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the global action */
+        id: string;
+        /** ID of the project this global action belongs to */
+        projectId: string;
+        /** Display name of the global action */
+        name: string;
+        /** Condition expression for action activation */
+        condition: string | null;
+        /** Whether this action should be triggered on user input */
+        triggerOnUserInput: boolean;
+        /** Whether this action should be triggered on client commands */
+        triggerOnClientCommand: boolean;
+        /** Optional classification label that triggers this action */
+        classificationTrigger: string | null;
+        /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
+        overrideClassifierId: string | null;
+        /** Array of parameters to extract from user input */
+        parameters: StageActionParameter[];
+        /** Array of effects to execute */
+        effects: Effect[];
+        /** Example phrases that trigger this action */
+        examples: string[] | null;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the global action was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the global action was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/global-actions/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -6618,6 +6918,96 @@ export class Api<
       ...params,
     });
   /**
+   * @description Creates a copy of an existing stage with a new ID and optional name override
+   *
+   * @tags Stages
+   * @name StagesCloneCreate
+   * @summary Clone stage
+   * @request POST:/api/stages/{id}/clone
+   * @secure
+   */
+  stagesCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned stage (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned stage (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the stage */
+        id: string;
+        /** ID of the project this stage belongs to */
+        projectId: string;
+        /** Display name for the stage */
+        name: string;
+        /** Detailed description of the stage purpose */
+        description: string | null;
+        /** System prompt defining the stage behavior */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /** ID of the associated persona */
+        personaId: string;
+        /** What happens when entering the stage */
+        enterBehavior: "generate_response" | "await_user_input";
+        /** Whether knowledge base is enabled */
+        useKnowledge: boolean;
+        /** Knowledge section IDs included in this stage */
+        knowledgeSections: string[];
+        /** Whether global actions are enabled */
+        useGlobalActions: boolean;
+        /** Global action IDs available in this stage */
+        globalActions: string[];
+        /** Variable descriptor definitions */
+        variableDescriptors: FieldDescriptor[];
+        /** Action definitions */
+        actions: Record<string, StageAction>;
+        /** Default classifier ID used in this stage (actions can override with overrideClassifierId) */
+        defaultClassifierId: string | null;
+        /** Context transformer IDs used in this stage */
+        transformerIds: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the stage was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the stage was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/stages/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Creates a new tool with specified name, prompt, input/output types, and configuration
    *
    * @tags Tools
@@ -7035,6 +7425,82 @@ export class Api<
       path: `/api/tools/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing tool with a new ID and optional name override
+   *
+   * @tags Tools
+   * @name ToolsCloneCreate
+   * @summary Clone tool
+   * @request POST:/api/tools/{id}/clone
+   * @secure
+   */
+  toolsCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned tool (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned tool (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tool */
+        id: string;
+        /** ID of the project this tool belongs to */
+        projectId: string;
+        /** Display name of the tool */
+        name: string;
+        /** Detailed description of the tool */
+        description: string | null;
+        /** Handlebars template for tool invocation */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /** Expected input format */
+        inputType: "text" | "image" | "multi-modal";
+        /** Expected output format */
+        outputType: "text" | "image" | "multi-modal";
+        /** Parameters that this tool expects to receive */
+        parameters: ToolParameter[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tool was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tool was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/tools/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**

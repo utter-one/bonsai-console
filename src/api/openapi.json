@@ -7367,6 +7367,13 @@
             "nullable": true,
             "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageActionParameter"
+            },
+            "description": "Optional array of parameters to extract from user input"
+          },
           "effects": {
             "type": "array",
             "items": {
@@ -7424,6 +7431,13 @@
             "type": "string",
             "nullable": true,
             "description": "Updated override classifier ID"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageActionParameter"
+            },
+            "description": "Updated parameters array"
           },
           "effects": {
             "type": "array",
@@ -7507,6 +7521,13 @@
             "nullable": true,
             "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageActionParameter"
+            },
+            "description": "Array of parameters to extract from user input"
+          },
           "effects": {
             "type": "array",
             "items": {
@@ -7556,6 +7577,7 @@
           "triggerOnClientCommand",
           "classificationTrigger",
           "overrideClassifierId",
+          "parameters",
           "effects",
           "examples",
           "metadata",
@@ -7607,6 +7629,13 @@
                   "nullable": true,
                   "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                 },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StageActionParameter"
+                  },
+                  "description": "Array of parameters to extract from user input"
+                },
                 "effects": {
                   "type": "array",
                   "items": {
@@ -7656,6 +7685,7 @@
                 "triggerOnClientCommand",
                 "classificationTrigger",
                 "overrideClassifierId",
+                "parameters",
                 "effects",
                 "examples",
                 "metadata",
@@ -13214,6 +13244,150 @@
         }
       }
     },
+    "/api/classifiers/{id}/clone": {
+      "post": {
+        "tags": [
+          "Classifiers"
+        ],
+        "summary": "Clone classifier",
+        "description": "Creates a copy of an existing classifier with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Classifier ID"
+            },
+            "required": true,
+            "description": "Classifier ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned classifier (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned classifier (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Classifier cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the classifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this classifier belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the classifier"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the classifier"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt defining the classification logic"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the classifier was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the classifier was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Classifier not found"
+          }
+        }
+      }
+    },
     "/api/context-transformers": {
       "post": {
         "tags": [
@@ -14100,6 +14274,159 @@
         "responses": {
           "200": {
             "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Context transformer not found"
+          }
+        }
+      }
+    },
+    "/api/context-transformers/{id}/clone": {
+      "post": {
+        "tags": [
+          "Context Transformers"
+        ],
+        "summary": "Clone context transformer",
+        "description": "Creates a copy of an existing context transformer with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Context transformer ID"
+            },
+            "required": true,
+            "description": "Context transformer ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned context transformer (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned context transformer (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Context transformer cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the context transformer"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this context transformer belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the context transformer"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the transformer"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt defining the transformation logic"
+                    },
+                    "contextFields": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Context field names to be transformed"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the transformer was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the transformer was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "contextFields",
+                    "llmProviderId",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
           },
           "404": {
             "description": "Context transformer not found"
@@ -18637,6 +18964,153 @@
         }
       }
     },
+    "/api/personas/{id}/clone": {
+      "post": {
+        "tags": [
+          "Personas"
+        ],
+        "summary": "Clone persona",
+        "description": "Creates a copy of an existing persona with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Persona ID"
+            },
+            "required": true,
+            "description": "Persona ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned persona (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned persona (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persona cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the persona"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this persona belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the persona"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the persona purpose"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt defining the persona's characteristics and behavior"
+                    },
+                    "ttsProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the TTS provider"
+                    },
+                    "ttsSettings": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/ElevenLabsTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAiTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepgramTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CartesiaTtsSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AzureTtsSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "TTS provider-specific settings"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional persona-specific metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the persona was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the persona was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "ttsProviderId",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Persona not found"
+          }
+        }
+      }
+    },
     "/api/providers": {
       "post": {
         "tags": [
@@ -21719,6 +22193,13 @@
                     "nullable": true,
                     "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                   },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/StageActionParameter"
+                    },
+                    "description": "Optional array of parameters to extract from user input"
+                  },
                   "effects": {
                     "type": "array",
                     "items": {
@@ -21792,6 +22273,13 @@
                       "nullable": true,
                       "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageActionParameter"
+                      },
+                      "description": "Array of parameters to extract from user input"
+                    },
                     "effects": {
                       "type": "array",
                       "items": {
@@ -21841,6 +22329,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
+                    "parameters",
                     "effects",
                     "examples",
                     "metadata",
@@ -22044,6 +22533,13 @@
                             "nullable": true,
                             "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                           },
+                          "parameters": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/StageActionParameter"
+                            },
+                            "description": "Array of parameters to extract from user input"
+                          },
                           "effects": {
                             "type": "array",
                             "items": {
@@ -22093,6 +22589,7 @@
                           "triggerOnClientCommand",
                           "classificationTrigger",
                           "overrideClassifierId",
+                          "parameters",
                           "effects",
                           "examples",
                           "metadata",
@@ -22199,6 +22696,13 @@
                       "nullable": true,
                       "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageActionParameter"
+                      },
+                      "description": "Array of parameters to extract from user input"
+                    },
                     "effects": {
                       "type": "array",
                       "items": {
@@ -22248,6 +22752,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
+                    "parameters",
                     "effects",
                     "examples",
                     "metadata",
@@ -22315,6 +22820,13 @@
                     "type": "string",
                     "nullable": true,
                     "description": "Updated override classifier ID"
+                  },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/StageActionParameter"
+                    },
+                    "description": "Updated parameters array"
                   },
                   "effects": {
                     "type": "array",
@@ -22393,6 +22905,13 @@
                       "nullable": true,
                       "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
                     },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageActionParameter"
+                      },
+                      "description": "Array of parameters to extract from user input"
+                    },
                     "effects": {
                       "type": "array",
                       "items": {
@@ -22442,6 +22961,7 @@
                     "triggerOnClientCommand",
                     "classificationTrigger",
                     "overrideClassifierId",
+                    "parameters",
                     "effects",
                     "examples",
                     "metadata",
@@ -22539,6 +23059,166 @@
         "responses": {
           "200": {
             "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Global action not found"
+          }
+        }
+      }
+    },
+    "/api/global-actions/{id}/clone": {
+      "post": {
+        "tags": [
+          "Global Actions"
+        ],
+        "summary": "Clone global action",
+        "description": "Creates a copy of an existing global action with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Global Action ID"
+            },
+            "required": true,
+            "description": "Global Action ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned global action (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned global action (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Global action cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the global action"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this global action belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the global action"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Condition expression for action activation"
+                    },
+                    "triggerOnUserInput": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on user input"
+                    },
+                    "triggerOnClientCommand": {
+                      "type": "boolean",
+                      "description": "Whether this action should be triggered on client commands"
+                    },
+                    "classificationTrigger": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional classification label that triggers this action"
+                    },
+                    "overrideClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional classifier ID - if set, this action is only enumerated for that specific classifier"
+                    },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageActionParameter"
+                      },
+                      "description": "Array of parameters to extract from user input"
+                    },
+                    "effects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Effect"
+                      },
+                      "description": "Array of effects to execute"
+                    },
+                    "examples": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Example phrases that trigger this action"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the global action was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the global action was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "condition",
+                    "triggerOnUserInput",
+                    "triggerOnClientCommand",
+                    "classificationTrigger",
+                    "overrideClassifierId",
+                    "parameters",
+                    "effects",
+                    "examples",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
           },
           "404": {
             "description": "Global action not found"
@@ -24654,6 +25334,221 @@
         }
       }
     },
+    "/api/stages/{id}/clone": {
+      "post": {
+        "tags": [
+          "Stages"
+        ],
+        "summary": "Clone stage",
+        "description": "Creates a copy of an existing stage with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID"
+            },
+            "required": true,
+            "description": "Stage ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned stage (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned stage (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stage cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the stage"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this stage belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name for the stage"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the stage purpose"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "System prompt defining the stage behavior"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "personaId": {
+                      "type": "string",
+                      "description": "ID of the associated persona"
+                    },
+                    "enterBehavior": {
+                      "type": "string",
+                      "enum": [
+                        "generate_response",
+                        "await_user_input"
+                      ],
+                      "description": "What happens when entering the stage"
+                    },
+                    "useKnowledge": {
+                      "type": "boolean",
+                      "description": "Whether knowledge base is enabled"
+                    },
+                    "knowledgeSections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Knowledge section IDs included in this stage"
+                    },
+                    "useGlobalActions": {
+                      "type": "boolean",
+                      "description": "Whether global actions are enabled"
+                    },
+                    "globalActions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Global action IDs available in this stage"
+                    },
+                    "variableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Variable descriptor definitions"
+                    },
+                    "actions": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/components/schemas/StageAction"
+                      },
+                      "description": "Action definitions"
+                    },
+                    "defaultClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Default classifier ID used in this stage (actions can override with overrideClassifierId)"
+                    },
+                    "transformerIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Context transformer IDs used in this stage"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the stage was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the stage was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "personaId",
+                    "enterBehavior",
+                    "useKnowledge",
+                    "knowledgeSections",
+                    "useGlobalActions",
+                    "globalActions",
+                    "variableDescriptors",
+                    "actions",
+                    "defaultClassifierId",
+                    "transformerIds",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Stage not found"
+          }
+        }
+      }
+    },
     "/api/tools": {
       "post": {
         "tags": [
@@ -25659,6 +26554,179 @@
         "responses": {
           "200": {
             "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Tool not found"
+          }
+        }
+      }
+    },
+    "/api/tools/{id}/clone": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Clone tool",
+        "description": "Creates a copy of an existing tool with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Tool ID"
+            },
+            "required": true,
+            "description": "Tool ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned tool (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned tool (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tool cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the tool"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this tool belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the tool"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the tool"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Handlebars template for tool invocation"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "inputType": {
+                      "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
+                      "description": "Expected input format"
+                    },
+                    "outputType": {
+                      "type": "string",
+                      "enum": [
+                        "text",
+                        "image",
+                        "multi-modal"
+                      ],
+                      "description": "Expected output format"
+                    },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ToolParameter"
+                      },
+                      "description": "Parameters that this tool expects to receive"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tool was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tool was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "inputType",
+                    "outputType",
+                    "parameters",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
           },
           "404": {
             "description": "Tool not found"
