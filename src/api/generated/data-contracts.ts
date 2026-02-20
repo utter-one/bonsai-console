@@ -1625,7 +1625,7 @@ export interface CreateKnowledgeCategoryRequest {
    */
   promptTrigger: string;
   /** Array of knowledge tags this category belongs to */
-  knowledgeTags?: string[];
+  tags?: string[];
   /**
    * Display order for the category (default: 0)
    * @min 0
@@ -1645,7 +1645,7 @@ export interface UpdateKnowledgeCategoryRequest {
    */
   promptTrigger?: string;
   /** Updated array of knowledge tags */
-  knowledgeTags?: string[];
+  tags?: string[];
   /**
    * Updated display order
    * @min 0
@@ -1676,7 +1676,7 @@ export interface KnowledgeCategoryResponse {
   /** Trigger phrase that activates this category */
   promptTrigger: string;
   /** Array of knowledge tags */
-  knowledgeTags: string[];
+  tags: string[];
   /** Display order for the category */
   order: number;
   /** Knowledge items within this category */
@@ -1730,7 +1730,7 @@ export interface KnowledgeCategoryListResponse {
     /** Trigger phrase that activates this category */
     promptTrigger: string;
     /** Array of knowledge tags */
-    knowledgeTags: string[];
+    tags: string[];
     /** Display order for the category */
     order: number;
     /** Knowledge items within this category */

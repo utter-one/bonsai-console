@@ -2782,7 +2782,7 @@ export class Api<
        */
       promptTrigger: string;
       /** Array of knowledge tags this category belongs to */
-      knowledgeTags?: string[];
+      tags?: string[];
       /**
        * Display order for the category (default: 0)
        * @min 0
@@ -2802,7 +2802,7 @@ export class Api<
         /** Trigger phrase that activates this category */
         promptTrigger: string;
         /** Array of knowledge tags */
-        knowledgeTags: string[];
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */
@@ -2909,7 +2909,7 @@ export class Api<
           /** Trigger phrase that activates this category */
           promptTrigger: string;
           /** Array of knowledge tags */
-          knowledgeTags: string[];
+          tags: string[];
           /** Display order for the category */
           order: number;
           /** Knowledge items within this category */
@@ -2997,7 +2997,7 @@ export class Api<
         /** Trigger phrase that activates this category */
         promptTrigger: string;
         /** Array of knowledge tags */
-        knowledgeTags: string[];
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */
@@ -3069,7 +3069,7 @@ export class Api<
        */
       promptTrigger?: string;
       /** Updated array of knowledge tags */
-      knowledgeTags?: string[];
+      tags?: string[];
       /**
        * Updated display order
        * @min 0
@@ -3094,7 +3094,7 @@ export class Api<
         /** Trigger phrase that activates this category */
         promptTrigger: string;
         /** Array of knowledge tags */
-        knowledgeTags: string[];
+        tags: string[];
         /** Display order for the category */
         order: number;
         /** Knowledge items within this category */

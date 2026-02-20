@@ -34,7 +34,7 @@ const filteredCategories = computed(() => {
     (cat: KnowledgeCategoryResponse) =>
       cat.name.toLowerCase().includes(q) ||
       cat.promptTrigger.toLowerCase().includes(q) ||
-      cat.knowledgeTags.some((t: string) => t.toLowerCase().includes(q)) ||
+      cat.tags.some((t: string) => t.toLowerCase().includes(q)) ||
       cat.items?.some(
         (item: KnowledgeItemResponse) =>
           item.question.toLowerCase().includes(q) ||
@@ -104,7 +104,7 @@ function openEditCategory(category: KnowledgeCategoryResponse, event: MouseEvent
 async function handleCategorySubmit(data: {
   name: string
   promptTrigger: string
-  knowledgeTags: string[]
+  tags: string[]
   order: number
 }) {
   try {
@@ -247,7 +247,7 @@ function clearSearch() {
       >
         <!-- Category row -->
         <div
-          class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer select-none"
+          class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer select-none"
           @click="toggleExpand(category.id)"
         >
           <!-- Expand toggle -->
@@ -264,7 +264,7 @@ function clearSearch() {
                 {{ (category.items ?? []).length }} item{{ (category.items ?? []).length === 1 ? '' : 's' }}
               </span>
               <span
-                v-for="tag in category.knowledgeTags"
+                v-for="tag in category.tags"
                 :key="tag"
                 class="inline-flex items-center gap-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full"
               >
@@ -304,7 +304,7 @@ function clearSearch() {
           <!-- Empty items placeholder -->
           <div
             v-if="!category.items || category.items.length === 0"
-            class="px-12 py-5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-850 italic"
+            class="px-12 py-5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 italic"
           >
             No items yet — click <strong>Add Item</strong> to create the first Q&amp;A pair.
           </div>
@@ -313,7 +313,7 @@ function clearSearch() {
           <div
             v-for="item in category.items"
             :key="item.id"
-            class="flex items-start gap-3 px-4 py-3 pl-11 bg-gray-50 dark:bg-gray-850 border-b border-gray-100 dark:border-gray-700/50 last:border-b-0 hover:bg-gray-100 dark:hover:bg-gray-800 group"
+            class="flex items-start gap-3 px-4 py-3 pl-11 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700/50 last:border-b-0 hover:bg-gray-100 dark:hover:bg-gray-800 group"
           >
             <!-- Item content -->
             <div class="flex-1 min-w-0">

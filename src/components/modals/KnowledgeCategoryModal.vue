@@ -75,7 +75,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  save: [data: { name: string; promptTrigger: string; knowledgeTags: string[]; order: number }]
+  save: [data: { name: string; promptTrigger: string; tags: string[]; order: number }]
 }>()
 
 const form = ref({
@@ -102,7 +102,7 @@ watch(
         promptTrigger: cat.promptTrigger,
         order: cat.order,
       }
-      tagsInput.value = cat.knowledgeTags.join(', ')
+      tagsInput.value = cat.tags.join(', ')
     } else {
       form.value = { name: '', promptTrigger: '', order: 0 }
       tagsInput.value = ''
@@ -115,7 +115,7 @@ function handleSubmit() {
   emit('save', {
     name: form.value.name,
     promptTrigger: form.value.promptTrigger,
-    knowledgeTags: parsedTags.value,
+    tags: parsedTags.value,
     order: form.value.order,
   })
 }

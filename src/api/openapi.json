@@ -3316,7 +3316,7 @@
             "minLength": 1,
             "description": "Trigger phrase that activates this category in conversations"
           },
-          "knowledgeTags": {
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"
@@ -3348,7 +3348,7 @@
             "minLength": 1,
             "description": "Updated trigger phrase"
           },
-          "knowledgeTags": {
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"
@@ -3402,7 +3402,7 @@
             "type": "string",
             "description": "Trigger phrase that activates this category"
           },
-          "knowledgeTags": {
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"
@@ -3490,7 +3490,7 @@
           "projectId",
           "name",
           "promptTrigger",
-          "knowledgeTags",
+          "tags",
           "order",
           "version",
           "createdAt",
@@ -3521,7 +3521,7 @@
                   "type": "string",
                   "description": "Trigger phrase that activates this category"
                 },
-                "knowledgeTags": {
+                "tags": {
                   "type": "array",
                   "items": {
                     "type": "string"
@@ -3609,7 +3609,7 @@
                 "projectId",
                 "name",
                 "promptTrigger",
-                "knowledgeTags",
+                "tags",
                 "order",
                 "version",
                 "createdAt",
@@ -15979,7 +15979,7 @@
                     "minLength": 1,
                     "description": "Trigger phrase that activates this category in conversations"
                   },
-                  "knowledgeTags": {
+                  "tags": {
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -16025,7 +16025,7 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "knowledgeTags": {
+                    "tags": {
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -16113,7 +16113,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "knowledgeTags",
+                    "tags",
                     "order",
                     "version",
                     "createdAt",
@@ -16296,7 +16296,7 @@
                             "type": "string",
                             "description": "Trigger phrase that activates this category"
                           },
-                          "knowledgeTags": {
+                          "tags": {
                             "type": "array",
                             "items": {
                               "type": "string"
@@ -16384,7 +16384,7 @@
                           "projectId",
                           "name",
                           "promptTrigger",
-                          "knowledgeTags",
+                          "tags",
                           "order",
                           "version",
                           "createdAt",
@@ -16470,7 +16470,7 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "knowledgeTags": {
+                    "tags": {
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -16558,7 +16558,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "knowledgeTags",
+                    "tags",
                     "order",
                     "version",
                     "createdAt",
@@ -16607,7 +16607,7 @@
                     "minLength": 1,
                     "description": "Updated trigger phrase"
                   },
-                  "knowledgeTags": {
+                  "tags": {
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -16656,7 +16656,7 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "knowledgeTags": {
+                    "tags": {
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -16744,7 +16744,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "knowledgeTags",
+                    "tags",
                     "order",
                     "version",
                     "createdAt",
