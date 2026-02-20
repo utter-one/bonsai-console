@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum, usePagination, useTableSort } from '@/composables'
-import { RefreshCw, Search, X, Plus } from 'lucide-vue-next'
+import { Route, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -156,7 +156,7 @@ function clearSearch() {
 
       <!-- Empty State -->
       <div v-else-if="filteredStages.length === 0" class="empty-state">
-        <RefreshCw class="empty-state-icon" />
+        <Route class="empty-state-icon" />
         <p class="empty-state-title">No stages found</p>
         <p v-if="searchQuery">Try adjusting your search criteria</p>
         <p v-else>Create your first stage to get started</p>

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore, useUsersStore, useConversationsStore, useStagesStore, usePersonasStore, useProvidersStore } from '@/stores'
-import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, RefreshCw, Drama, CloudCog, DraftingCompass, FlaskConical } from 'lucide-vue-next'
+import { BriefcaseBusiness, User, MessageSquare, Settings, Zap, Route, Drama, CloudCog, DraftingCompass, FlaskConical } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -103,7 +103,7 @@ function navigateToPlayground(projectId: string) {
         </div>
 
         <div class="stat-card">
-          <RefreshCw class="text-primary-500 flex-shrink-0" :size="36" />
+          <Route class="text-primary-500 flex-shrink-0" :size="36" />
           <div class="flex-1">
             <div class="stat-value">{{ stats.stages }}</div>
             <div class="stat-label">Stages</div>
