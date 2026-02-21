@@ -21,6 +21,7 @@ import {
   DeepgramTtsSettings,
   Effect,
   ElevenLabsTtsSettings,
+  ExportBundle,
   FieldDescriptor,
   GcsStorageConfig,
   GcsStorageSettings,
@@ -30,6 +31,9 @@ import {
   LlmModelInfo,
   LocalStorageConfig,
   LocalStorageSettings,
+  MigrationJob,
+  MigrationPreview,
+  MigrationResult,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
@@ -7785,6 +7789,209 @@ export class Api<
       body: data,
       secure: true,
       type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual import. No data is written and the full entity records are never serialised.
+   *
+   * @tags Migration
+   * @name MigrationPreviewList
+   * @summary Preview migration scope
+   * @request GET:/api/migration/preview
+   * @secure
+   */
+  migrationPreviewList = (
+    query?: {
+      /** Specific project IDs to export (comma-separated or repeated). Omit for all projects. */
+      projectIds?: string | string[];
+      /** Specific stage IDs to export. */
+      stageIds?: string | string[];
+      /** Specific persona IDs to export. */
+      personaIds?: string | string[];
+      /** Specific classifier IDs to export. */
+      classifierIds?: string | string[];
+      /** Specific context transformer IDs to export. */
+      contextTransformerIds?: string | string[];
+      /** Specific tool IDs to export. */
+      toolIds?: string | string[];
+      /** Specific global action IDs to export. */
+      globalActionIds?: string | string[];
+      /** Specific knowledge category IDs to export. */
+      knowledgeCategoryIds?: string | string[];
+      /** Specific knowledge item IDs to export. */
+      knowledgeItemIds?: string | string[];
+      /** Specific provider IDs to export (added on top of transitively required ones). */
+      providerIds?: string | string[];
+      /** Specific API key IDs to export. */
+      apiKeyIds?: string | string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<MigrationPreview, void>({
+      path: `/api/migration/preview`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Produces a self-contained JSON bundle of all migratable config entities. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. The bundle embeds the current REST schema hash for compatibility checking on import. Provider config (API credentials) is stripped from exported records — credentials must be reconfigured on the target after import.
+   *
+   * @tags Migration
+   * @name MigrationExportList
+   * @summary Export config bundle
+   * @request GET:/api/migration/export
+   * @secure
+   */
+  migrationExportList = (
+    query?: {
+      /** Specific project IDs to export (comma-separated or repeated). Omit for all projects. */
+      projectIds?: string | string[];
+      /** Specific stage IDs to export. */
+      stageIds?: string | string[];
+      /** Specific persona IDs to export. */
+      personaIds?: string | string[];
+      /** Specific classifier IDs to export. */
+      classifierIds?: string | string[];
+      /** Specific context transformer IDs to export. */
+      contextTransformerIds?: string | string[];
+      /** Specific tool IDs to export. */
+      toolIds?: string | string[];
+      /** Specific global action IDs to export. */
+      globalActionIds?: string | string[];
+      /** Specific knowledge category IDs to export. */
+      knowledgeCategoryIds?: string | string[];
+      /** Specific knowledge item IDs to export. */
+      knowledgeItemIds?: string | string[];
+      /** Specific provider IDs to export (added on top of transitively required ones). */
+      providerIds?: string | string[];
+      /** Specific API key IDs to export. */
+      apiKeyIds?: string | string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<ExportBundle, void>({
+      path: `/api/migration/export`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Imports an export bundle into this instance. All entities are upserted in a single database transaction in FK-safe order. The import is blocked when the source and local REST schema hashes differ unless force=true. Use dryRun=true to validate without writing.
+   *
+   * @tags Migration
+   * @name MigrationImportCreate
+   * @summary Import config bundle
+   * @request POST:/api/migration/import
+   * @secure
+   */
+  migrationImportCreate = (
+    data: {
+      /** The export bundle to import */
+      bundle: ExportBundle;
+      /**
+       * If true, bypass the schema hash mismatch check and import anyway
+       * @default false
+       */
+      force?: boolean;
+      /**
+       * If true, validate and simulate the import without writing to the database
+       * @default false
+       */
+      dryRun?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<MigrationResult, void>({
+      path: `/api/migration/import`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Authenticates against a stored environment, checks schema compatibility via /version, fetches the export bundle, and imports it locally — all in a single server-side call. Returns a job immediately with status "pending"; poll GET /api/migration/jobs/:id for progress.
+   *
+   * @tags Migration
+   * @name MigrationPullCreate
+   * @summary Pull from remote environment
+   * @request POST:/api/migration/pull
+   * @secure
+   */
+  migrationPullCreate = (
+    data: {
+      /** ID of the stored environment to pull from — credentials are read from the local environments table */
+      environmentId: string;
+      /**
+       * Granular entity selection. Omit or pass {} to pull everything.
+       * @default {}
+       */
+      selection?: {
+        /** Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects. */
+        projectIds?: string[];
+        /** Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers. */
+        stageIds?: string[];
+        /** Specific persona IDs to include. Pulls in referenced TTS provider. */
+        personaIds?: string[];
+        /** Specific classifier IDs to include. Pulls in referenced LLM provider. */
+        classifierIds?: string[];
+        /** Specific context transformer IDs to include. Pulls in referenced LLM provider. */
+        contextTransformerIds?: string[];
+        /** Specific tool IDs to include. Pulls in referenced LLM provider. */
+        toolIds?: string[];
+        /** Specific global action IDs to include. */
+        globalActionIds?: string[];
+        /** Specific knowledge category IDs to include. Pulls all child knowledge items. */
+        knowledgeCategoryIds?: string[];
+        /** Specific knowledge item IDs to include. Pulls in parent category. */
+        knowledgeItemIds?: string[];
+        /** Specific provider IDs to include (in addition to any transitively required ones). */
+        providerIds?: string[];
+        /** Specific API key IDs to include. */
+        apiKeyIds?: string[];
+      };
+      /**
+       * If true, bypass schema hash mismatch check
+       * @default false
+       */
+      force?: boolean;
+      /**
+       * If true, simulate the pull without writing to the database
+       * @default false
+       */
+      dryRun?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<MigrationJob, void>({
+      path: `/api/migration/pull`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the current state of an async pull job. Jobs are held in process memory — a server restart clears all job history.
+   *
+   * @tags Migration
+   * @name MigrationJobsDetail
+   * @summary Get migration job status
+   * @request GET:/api/migration/jobs/{id}
+   * @secure
+   */
+  migrationJobsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<MigrationJob, void>({
+      path: `/api/migration/jobs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
       ...params,
     });
 }

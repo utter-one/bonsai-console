@@ -4,9 +4,10 @@ import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { Globe, Search, X, Plus } from 'lucide-vue-next'
+import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import MigrationModal from '@/components/modals/MigrationModal.vue'
 
 const router = useRouter()
 const environmentsStore = useEnvironmentsStore()
@@ -14,6 +15,8 @@ const environmentsStore = useEnvironmentsStore()
 // UI State
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
+const showMigrateModal = ref(false)
+const migratingEnvironment = ref<EnvironmentResponse | null>(null)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
@@ -95,6 +98,16 @@ function formatDate(date: string | null) {
 
 function clearSearch() {
   searchQuery.value = ''
+}
+
+function openMigrateModal(env: EnvironmentResponse) {
+  migratingEnvironment.value = env
+  showMigrateModal.value = true
+}
+
+function closeMigrateModal() {
+  showMigrateModal.value = false
+  migratingEnvironment.value = null
 }
 </script>
 
@@ -195,6 +208,10 @@ function clearSearch() {
                 <td class="table-cell-muted">{{ formatDate(env.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
+                    <button @click="openMigrateModal(env)" class="btn-secondary btn-sm" title="Pull data from this environment">
+                      <ArrowDownToLine class="inline-block mr-1 w-3.5 h-3.5" />
+                      Migrate
+                    </button>
                     <button @click="editEnvironment(env)" class="btn-secondary btn-sm">
                       Edit
                     </button>
@@ -217,6 +234,13 @@ function clearSearch() {
       </div>
     </div>
   </AdministrationSectionLayout>
+
+  <!-- Migration Modal -->
+  <MigrationModal
+    v-if="showMigrateModal && migratingEnvironment"
+    :environment="migratingEnvironment"
+    @close="closeMigrateModal"
+  />
 </template>
 
 <style scoped>
