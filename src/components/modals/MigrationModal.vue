@@ -20,19 +20,19 @@ interface EntityGroup {
   label: string
   previewKey: keyof Omit<MigrationPreview, 'totalCount'>
   selectionKey: string
+  projectScoped?: boolean
   description?: string
 }
 
 const ENTITY_GROUPS: EntityGroup[] = [
   { label: 'Projects',              previewKey: 'projects',             selectionKey: 'projectIds' },
-  { label: 'Stages',                previewKey: 'stages',               selectionKey: 'stageIds',             description: 'Pulls in persona, classifiers, context transformers, global actions & providers' },
-  { label: 'Personas',              previewKey: 'personas',             selectionKey: 'personaIds',           description: 'Pulls in referenced TTS provider' },
-  { label: 'Classifiers',           previewKey: 'classifiers',          selectionKey: 'classifierIds',        description: 'Pulls in referenced LLM provider' },
-  { label: 'Context Transformers',  previewKey: 'contextTransformers',  selectionKey: 'contextTransformerIds',description: 'Pulls in referenced LLM provider' },
-  { label: 'Tools',                 previewKey: 'tools',                selectionKey: 'toolIds',              description: 'Pulls in referenced LLM provider' },
-  { label: 'Global Actions',        previewKey: 'globalActions',        selectionKey: 'globalActionIds' },
-  { label: 'Knowledge Categories',  previewKey: 'knowledgeCategories',  selectionKey: 'knowledgeCategoryIds', description: 'Pulls all child knowledge items' },
-  { label: 'Knowledge Items',       previewKey: 'knowledgeItems',       selectionKey: 'knowledgeItemIds' },
+  { label: 'Stages',                previewKey: 'stages',               selectionKey: 'stageIds',             projectScoped: true, description: 'Pulls in persona, classifiers, context transformers, global actions & providers' },
+  { label: 'Personas',              previewKey: 'personas',             selectionKey: 'personaIds',           projectScoped: true, description: 'Pulls in referenced TTS provider' },
+  { label: 'Classifiers',           previewKey: 'classifiers',          selectionKey: 'classifierIds',        projectScoped: true, description: 'Pulls in referenced LLM provider' },
+  { label: 'Context Transformers',  previewKey: 'contextTransformers',  selectionKey: 'contextTransformerIds',projectScoped: true, description: 'Pulls in referenced LLM provider' },
+  { label: 'Tools',                 previewKey: 'tools',                selectionKey: 'toolIds',              projectScoped: true, description: 'Pulls in referenced LLM provider' },
+  { label: 'Global Actions',        previewKey: 'globalActions',        selectionKey: 'globalActionIds',      projectScoped: true },
+  { label: 'Knowledge Categories',  previewKey: 'knowledgeCategories',  selectionKey: 'knowledgeCategoryIds', projectScoped: true, description: 'Pulls all child knowledge items' },
   { label: 'Providers',             previewKey: 'providers',            selectionKey: 'providerIds' },
   { label: 'API Keys',              previewKey: 'apiKeys',              selectionKey: 'apiKeyIds' },
 ]
@@ -68,7 +68,6 @@ function toggleGroup(key: string) {
 }
 
 // Entity selection
-const selectionMode = ref<'all' | 'custom'>('all')
 // entitySelections: selectionKey → Set<id>
 const entitySelections = ref<Record<string, Set<string>>>({})
 
@@ -78,9 +77,25 @@ function initSelections() {
   entitySelections.value = sel
 }
 
+// Project filter for custom selection
+const selectedProjectFilter = ref<'all' | string>('all')
+
+const projectFilterOptions = computed(() => {
+  if (!preview.value) return []
+  return preview.value.projects
+})
+
+function onProjectFilterChange() {
+  initSelections()
+}
+
 function getGroupStubs(group: EntityGroup): EntityStub[] {
   if (!preview.value) return []
-  return preview.value[group.previewKey] as EntityStub[]
+  const all = preview.value[group.previewKey] as EntityStub[]
+  if (selectedProjectFilter.value === 'all') return all
+  if (group.previewKey === 'projects') return all.filter(s => s.id === selectedProjectFilter.value)
+  if (group.projectScoped) return all.filter(s => s.projectId === selectedProjectFilter.value)
+  return all
 }
 
 function isEntitySelected(selectionKey: string, id: string): boolean {
@@ -139,9 +154,7 @@ const nonEmptyGroups = computed(() => {
   return ENTITY_GROUPS.filter(g => (preview.value![g.previewKey] as EntityStub[]).length > 0)
 })
 
-const customSelectionValid = computed(() =>
-  selectionMode.value === 'all' || totalSelectedCount.value > 0
-)
+const customSelectionValid = computed(() => totalSelectedCount.value > 0)
 
 // Options 
 const dryRun = ref(false)
@@ -149,7 +162,6 @@ const force = ref(false)
 
 // Build selection payload 
 const selectionPayload = computed(() => {
-  if (selectionMode.value === 'all') return {}
   const result: Record<string, string[]> = {}
   ENTITY_GROUPS.forEach(g => {
     const ids = [...(entitySelections.value[g.selectionKey] ?? [])]
@@ -234,7 +246,7 @@ function reset() {
   pollError.value = null
   dryRun.value = false
   force.value = false
-  selectionMode.value = 'all'
+  selectedProjectFilter.value = 'all'
   initSelections()
 }
 
@@ -273,24 +285,8 @@ onUnmounted(stopPolling)
       <!--  Step 1: Config  -->
       <template v-if="step === 'config'">
 
-        <!-- Selection mode toggle -->
-        <div class="form-group">
-          <label class="form-label">What to pull</label>
-          <div class="flex gap-3">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="selectionMode" value="all" class="form-checkbox" />
-              <span class="text-sm text-gray-700 dark:text-gray-300">Everything</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="selectionMode" value="custom" class="form-checkbox" />
-              <span class="text-sm text-gray-700 dark:text-gray-300">Pick specific entities</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Custom entity picker -->
-        <template v-if="selectionMode === 'custom'">
-          <!-- Loading -->
+        <!-- Entity picker -->
+        <!-- Loading -->
           <div v-if="previewLoading" class="flex items-center justify-center gap-3 py-8 text-gray-500 dark:text-gray-400">
             <Loader class="w-5 h-5 animate-spin" />
             <span class="text-sm">Loading available entities…</span>
@@ -309,6 +305,15 @@ onUnmounted(stopPolling)
 
           <!-- Entity list -->
           <template v-else-if="preview">
+            <!-- Project filter -->
+            <div class="form-group" v-if="projectFilterOptions.length > 1">
+              <label class="form-label">Project</label>
+              <select v-model="selectedProjectFilter" class="form-select" @change="onProjectFilterChange">
+                <option value="all">All projects</option>
+                <option v-for="p in projectFilterOptions" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </select>
+            </div>
+
             <!-- Select / deselect all bar -->
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -384,7 +389,6 @@ onUnmounted(stopPolling)
               Select at least one entity to continue
             </p>
           </template>
-        </template>
 
         <!-- Options -->
         <div class="form-group">
