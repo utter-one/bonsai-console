@@ -2,32 +2,33 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary-50: #e3f2fd;
-  --color-primary-100: #bbdefb;
-  --color-primary-200: #90caf9;
-  --color-primary-300: #64b5f6;
-  --color-primary-400: #42a5f5;
-  --color-primary-500: #1976d2;
-  --color-primary-600: #1565c0;
-  --color-primary-700: #0d47a1;
-  --color-primary-800: #0a3d91;
-  --color-primary-900: #063272;
+  --color-primary-50: oklch(97.9% 0.021 166.113);
+  --color-primary-100: oklch(95% 0.052 163.051);
+  --color-primary-200: oklch(90.5% 0.093 164.15);
+  --color-primary-300: oklch(84.5% 0.143 164.978);
+  --color-primary-400: oklch(76.5% 0.177 163.223);
+  --color-primary-500: oklch(69.6% 0.17 162.48);
+  --color-primary-600: oklch(59.6% 0.145 163.225);
+  --color-primary-700: oklch(50.8% 0.118 165.612);
+  --color-primary-800: oklch(43.2% 0.095 166.913);
+  --color-primary-900: oklch(37.8% 0.077 168.94);
+  --color-primary-950: oklch(26.2% 0.051 172.552);
 
   --color-gradient-from: #667eea;
   --color-gradient-to: #764ba2;
 
-  /* Override gray with neutral/zinc */
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f4f4f5;
-  --color-gray-200: #e4e4e7;
-  --color-gray-300: #d4d4d8;
-  --color-gray-400: #a1a1aa;
-  --color-gray-500: #71717a;
-  --color-gray-600: #52525b;
-  --color-gray-700: #3f3f46;
-  --color-gray-800: #27272a;
-  --color-gray-900: #18181b;
-  --color-gray-950: #09090b;
+  /* Override gray with Tailwind mist */
+  --color-gray-50: oklch(98.7% 0.002 197.1);
+  --color-gray-100: oklch(96.3% 0.002 197.1);
+  --color-gray-200: oklch(92.5% 0.005 214.3);
+  --color-gray-300: oklch(87.2% 0.007 219.6);
+  --color-gray-400: oklch(72.3% 0.014 214.4);
+  --color-gray-500: oklch(56% 0.021 213.5);
+  --color-gray-600: oklch(45% 0.017 213.2);
+  --color-gray-700: oklch(37.8% 0.015 216);
+  --color-gray-800: oklch(27.5% 0.011 216.9);
+  --color-gray-900: oklch(21.8% 0.008 223.9);
+  --color-gray-950: oklch(14.8% 0.004 228.8);
 }
 
 @layer base {
