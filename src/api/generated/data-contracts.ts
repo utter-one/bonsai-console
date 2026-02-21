@@ -4323,3 +4323,157 @@ export interface ApiKeyListResponse {
   /** Total number of API keys matching the query */
   total: number;
 }
+
+export interface VersionResponse {
+  /** First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes. */
+  restSchemaHash: string;
+  /** First 12 hex chars of the SHA-256 hash of the WebSocket contracts schema. Changes only when a WebSocket contract changes. */
+  wsSchemaHash: string;
+  /** Short git commit SHA of the running build, injected via the GIT_COMMIT environment variable. Null when not set. */
+  gitCommit: string | null;
+}
+
+export interface EntityStub {
+  /** Entity ID */
+  id: string;
+  /** Entity name or display label */
+  name: string;
+}
+
+export interface MigrationEntityCount {
+  /** Entity type name (e.g. "providers", "stages") */
+  entity: string;
+  /** Number of records upserted, or counted in a dry run */
+  count: number;
+}
+
+export interface MigrationResult {
+  /** Per-entity-type counts in FK-safe dependency order */
+  upserted: MigrationEntityCount[];
+  /** REST schema hash embedded in the imported bundle */
+  sourceRestSchemaHash: string;
+  /** REST schema hash of this instance at import time */
+  localRestSchemaHash: string;
+  /** Whether the source and local REST schema hashes matched */
+  schemaHashMatch: boolean;
+  /** True if no data was written to the database */
+  dryRun: boolean;
+  /** Total migration duration in milliseconds */
+  durationMs: number;
+}
+
+export interface MigrationJob {
+  /** Unique job identifier */
+  id: string;
+  /** Current job status */
+  status: "pending" | "running" | "completed" | "failed";
+  /** Source environment ID */
+  environmentId: string;
+  /** Entity selection used for this pull */
+  selection: MigrationSelection;
+  /** Whether this is a dry run */
+  dryRun: boolean;
+  /**
+   * ISO timestamp when the job was queued
+   * @format date-time
+   */
+  startedAt: string;
+  /**
+   * ISO timestamp when the job finished (success or failure)
+   * @format date-time
+   */
+  completedAt?: string;
+  /** Migration result — available when status is "completed" */
+  result?: MigrationResult;
+  /** Error description — available when status is "failed" */
+  error?: string;
+}
+
+/** Entity selection used for this pull */
+export interface MigrationSelection {
+  /** Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects. */
+  projectIds?: string[];
+  /** Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers. */
+  stageIds?: string[];
+  /** Specific persona IDs to include. Pulls in referenced TTS provider. */
+  personaIds?: string[];
+  /** Specific classifier IDs to include. Pulls in referenced LLM provider. */
+  classifierIds?: string[];
+  /** Specific context transformer IDs to include. Pulls in referenced LLM provider. */
+  contextTransformerIds?: string[];
+  /** Specific tool IDs to include. Pulls in referenced LLM provider. */
+  toolIds?: string[];
+  /** Specific global action IDs to include. */
+  globalActionIds?: string[];
+  /** Specific knowledge category IDs to include. Pulls all child knowledge items. */
+  knowledgeCategoryIds?: string[];
+  /** Specific knowledge item IDs to include. Pulls in parent category. */
+  knowledgeItemIds?: string[];
+  /** Specific provider IDs to include (in addition to any transitively required ones). */
+  providerIds?: string[];
+  /** Specific API key IDs to include. */
+  apiKeyIds?: string[];
+}
+
+export interface MigrationPreview {
+  /** Total number of entities across all types */
+  totalCount: number;
+  /** Provider stubs that would be included */
+  providers: EntityStub[];
+  /** Project stubs that would be included */
+  projects: EntityStub[];
+  /** Persona stubs that would be included */
+  personas: EntityStub[];
+  /** Classifier stubs that would be included */
+  classifiers: EntityStub[];
+  /** Context transformer stubs that would be included */
+  contextTransformers: EntityStub[];
+  /** Tool stubs that would be included */
+  tools: EntityStub[];
+  /** Global action stubs that would be included */
+  globalActions: EntityStub[];
+  /** Knowledge category stubs that would be included */
+  knowledgeCategories: EntityStub[];
+  /** Knowledge item stubs that would be included — name is the question text */
+  knowledgeItems: EntityStub[];
+  /** Stage stubs that would be included */
+  stages: EntityStub[];
+  /** API key stubs that would be included */
+  apiKeys: EntityStub[];
+}
+
+export interface ExportBundle {
+  /**
+   * ISO timestamp when the bundle was generated
+   * @format date-time
+   */
+  exportedAt: string;
+  /** REST schema hash of the source instance at export time — used for compatibility checking on import */
+  restSchemaHash: string;
+  /** Base URL of the source instance (informational, not used for requests) */
+  sourceUrl?: string;
+  /** The selection criteria that produced this bundle */
+  selection: MigrationSelection;
+  /** Provider stub records — config (API credentials) is stripped on export; credentials must be reconfigured on the target after import */
+  providers: Record<string, any>[];
+  /** Project records */
+  projects: Record<string, any>[];
+  /** Persona records — depend on projects */
+  personas: Record<string, any>[];
+  /** Classifier records — depend on projects */
+  classifiers: Record<string, any>[];
+  /** Context transformer records — depend on projects */
+  contextTransformers: Record<string, any>[];
+  /** Tool records — depend on projects */
+  tools: Record<string, any>[];
+  /** Global action records — depend on projects */
+  globalActions: Record<string, any>[];
+  /** Knowledge category records — depend on projects */
+  knowledgeCategories: Record<string, any>[];
+  /** Knowledge item records — depend on knowledgeCategories */
+  knowledgeItems: Record<string, any>[];
+  /** Stage records — depend on projects, personas, and classifiers */
+  stages: Record<string, any>[];
+  /** API key records — depend on projects */
+  apiKeys: Record<string, any>[];
+}

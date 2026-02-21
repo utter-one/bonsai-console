@@ -237,6 +237,16 @@ const routes: RouteRecordRaw[] = [
             name: 'administration.environments',
             component: () => import('@/views/administration/EnvironmentsView.vue'),
           },
+          {
+            path: 'environments/new',
+            name: 'administration.environments.create',
+            component: () => import('@/views/administration/EnvironmentEditView.vue'),
+          },
+          {
+            path: 'environments/:environmentId',
+            name: 'administration.environments.edit',
+            component: () => import('@/views/administration/EnvironmentEditView.vue'),
+          },
         ],
       },
     ],

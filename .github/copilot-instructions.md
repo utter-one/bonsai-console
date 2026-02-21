@@ -208,6 +208,7 @@ import { User, Search, X } from 'lucide-vue-next'
 - Try/catch/finally for error handling
 - `onMounted` for initial data loads
 - Path alias `@/` maps to `src/`
+- Don't use horizontal bars in comments (like ──) to divide sections of code
 
 ## Common Tasks
 
