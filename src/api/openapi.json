@@ -22155,6 +22155,455 @@
         }
       }
     },
+    "/api/environments/{id}/migration/scope": {
+      "get": {
+        "tags": [
+          "Environments"
+        ],
+        "summary": "Preview remote migration scope",
+        "description": "Authenticates against the stored environment and returns lightweight stubs (id + name) of all entities that would be pulled with the given selection — without writing any data. Same query params as GET /api/migration/preview on the source instance.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Environment ID"
+            },
+            "required": true,
+            "description": "Environment ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects."
+            },
+            "required": false,
+            "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects.",
+            "name": "projectIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific stage IDs to export."
+            },
+            "required": false,
+            "description": "Specific stage IDs to export.",
+            "name": "stageIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific persona IDs to export."
+            },
+            "required": false,
+            "description": "Specific persona IDs to export.",
+            "name": "personaIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific classifier IDs to export."
+            },
+            "required": false,
+            "description": "Specific classifier IDs to export.",
+            "name": "classifierIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific context transformer IDs to export."
+            },
+            "required": false,
+            "description": "Specific context transformer IDs to export.",
+            "name": "contextTransformerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific tool IDs to export."
+            },
+            "required": false,
+            "description": "Specific tool IDs to export.",
+            "name": "toolIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific global action IDs to export."
+            },
+            "required": false,
+            "description": "Specific global action IDs to export.",
+            "name": "globalActionIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific knowledge category IDs to export."
+            },
+            "required": false,
+            "description": "Specific knowledge category IDs to export.",
+            "name": "knowledgeCategoryIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific knowledge item IDs to export."
+            },
+            "required": false,
+            "description": "Specific knowledge item IDs to export.",
+            "name": "knowledgeItemIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific provider IDs to export (added on top of transitively required ones)."
+            },
+            "required": false,
+            "description": "Specific provider IDs to export (added on top of transitively required ones).",
+            "name": "providerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific API key IDs to export."
+            },
+            "required": false,
+            "description": "Specific API key IDs to export.",
+            "name": "apiKeyIds",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entity stubs grouped by type from the remote environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "404": {
+            "description": "Environment not found"
+          }
+        }
+      }
+    },
+    "/api/environments/{id}/migration/pull": {
+      "post": {
+        "tags": [
+          "Environments"
+        ],
+        "summary": "Pull data from environment",
+        "description": "Authenticates against the stored environment, checks schema compatibility, fetches the remote export bundle, and imports it locally — all server-side. Returns a job immediately with status \"pending\"; poll GET /api/environments/{id}/migration/jobs/{jobId} for progress.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Environment ID"
+            },
+            "required": true,
+            "description": "Environment ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "selection": {
+                    "type": "object",
+                    "properties": {
+                      "projectIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
+                      },
+                      "stageIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
+                      },
+                      "personaIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
+                      },
+                      "classifierIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific classifier IDs to include. Pulls in referenced LLM provider."
+                      },
+                      "contextTransformerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific context transformer IDs to include. Pulls in referenced LLM provider."
+                      },
+                      "toolIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific tool IDs to include. Pulls in referenced LLM provider."
+                      },
+                      "globalActionIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific global action IDs to include."
+                      },
+                      "knowledgeCategoryIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific knowledge category IDs to include. Pulls all child knowledge items."
+                      },
+                      "knowledgeItemIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific knowledge item IDs to include. Pulls in parent category."
+                      },
+                      "providerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific provider IDs to include (in addition to any transitively required ones)."
+                      },
+                      "apiKeyIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific API key IDs to include."
+                      }
+                    },
+                    "default": {},
+                    "description": "Granular entity selection. Omit or pass {} to pull everything."
+                  },
+                  "force": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, bypass schema hash mismatch check"
+                  },
+                  "dryRun": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, simulate the pull without writing to the database"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Pull job started — poll the returned job ID for status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Environment not found"
+          }
+        }
+      }
+    },
+    "/api/environments/{id}/migration/jobs/{jobId}": {
+      "get": {
+        "tags": [
+          "Environments"
+        ],
+        "summary": "Get migration job status",
+        "description": "Returns the current state of an async pull job scoped to this environment. Jobs are held in process memory — a server restart clears all job history.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Environment ID"
+            },
+            "required": true,
+            "description": "Environment ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Migration job ID"
+            },
+            "required": true,
+            "description": "Migration job ID",
+            "name": "jobId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationJob"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found or does not belong to this environment"
+          }
+        }
+      }
+    },
     "/api/global-actions": {
       "post": {
         "tags": [
@@ -27911,7 +28360,7 @@
           "Migration"
         ],
         "summary": "Preview migration scope",
-        "description": "Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual import. No data is written and the full entity records are never serialised.",
+        "description": "Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual pull. No data is written and the full entity records are never serialised.",
         "parameters": [
           {
             "schema": {
@@ -28157,7 +28606,7 @@
           "Migration"
         ],
         "summary": "Export config bundle",
-        "description": "Produces a self-contained JSON bundle of all migratable config entities. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. The bundle embeds the current REST schema hash for compatibility checking on import. Provider config (API credentials) is stripped from exported records — credentials must be reconfigured on the target after import.",
+        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.",
         "parameters": [
           {
             "schema": {
@@ -28382,7 +28831,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export bundle ready for import on another instance",
+            "description": "Export bundle consumed by the pulling instance",
             "content": {
               "application/json": {
                 "schema": {
@@ -28393,239 +28842,6 @@
           },
           "400": {
             "description": "Invalid query parameters"
-          }
-        }
-      }
-    },
-    "/api/migration/import": {
-      "post": {
-        "tags": [
-          "Migration"
-        ],
-        "summary": "Import config bundle",
-        "description": "Imports an export bundle into this instance. All entities are upserted in a single database transaction in FK-safe order. The import is blocked when the source and local REST schema hashes differ unless force=true. Use dryRun=true to validate without writing.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "bundle": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/ExportBundle"
-                      },
-                      {
-                        "description": "The export bundle to import"
-                      }
-                    ]
-                  },
-                  "force": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, bypass the schema hash mismatch check and import anyway"
-                  },
-                  "dryRun": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, validate and simulate the import without writing to the database"
-                  }
-                },
-                "required": [
-                  "bundle"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Import completed (or dry-run result)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationResult"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Schema hash mismatch (use force=true to override) or invalid bundle"
-          }
-        }
-      }
-    },
-    "/api/migration/pull": {
-      "post": {
-        "tags": [
-          "Migration"
-        ],
-        "summary": "Pull from remote environment",
-        "description": "Authenticates against a stored environment, checks schema compatibility via /version, fetches the export bundle, and imports it locally — all in a single server-side call. Returns a job immediately with status \"pending\"; poll GET /api/migration/jobs/:id for progress.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "environmentId": {
-                    "type": "string",
-                    "description": "ID of the stored environment to pull from — credentials are read from the local environments table"
-                  },
-                  "selection": {
-                    "type": "object",
-                    "properties": {
-                      "projectIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
-                      },
-                      "stageIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
-                      },
-                      "personaIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
-                      },
-                      "classifierIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific classifier IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "contextTransformerIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific context transformer IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "toolIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific tool IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "globalActionIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific global action IDs to include."
-                      },
-                      "knowledgeCategoryIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific knowledge category IDs to include. Pulls all child knowledge items."
-                      },
-                      "knowledgeItemIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific knowledge item IDs to include. Pulls in parent category."
-                      },
-                      "providerIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific provider IDs to include (in addition to any transitively required ones)."
-                      },
-                      "apiKeyIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific API key IDs to include."
-                      }
-                    },
-                    "default": {},
-                    "description": "Granular entity selection. Omit or pass {} to pull everything."
-                  },
-                  "force": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, bypass schema hash mismatch check"
-                  },
-                  "dryRun": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, simulate the pull without writing to the database"
-                  }
-                },
-                "required": [
-                  "environmentId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Pull job started — poll the returned job ID for status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationJob"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "404": {
-            "description": "Environment not found"
-          }
-        }
-      }
-    },
-    "/api/migration/jobs/{id}": {
-      "get": {
-        "tags": [
-          "Migration"
-        ],
-        "summary": "Get migration job status",
-        "description": "Returns the current state of an async pull job. Jobs are held in process memory — a server restart clears all job history.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Migration job ID"
-            },
-            "required": true,
-            "description": "Migration job ID",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Job status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationJob"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Job not found"
           }
         }
       }
