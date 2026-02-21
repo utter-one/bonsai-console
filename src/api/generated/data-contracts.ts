@@ -4338,6 +4338,8 @@ export interface EntityStub {
   id: string;
   /** Entity name or display label */
   name: string;
+  /** ID of the owning project — present for all project-scoped entities */
+  projectId?: string;
 }
 
 export interface MigrationEntityCount {
@@ -4405,10 +4407,8 @@ export interface MigrationSelection {
   toolIds?: string[];
   /** Specific global action IDs to include. */
   globalActionIds?: string[];
-  /** Specific knowledge category IDs to include. Pulls all child knowledge items. */
+  /** Specific knowledge category IDs to include. All child knowledge items are always included. */
   knowledgeCategoryIds?: string[];
-  /** Specific knowledge item IDs to include. Pulls in parent category. */
-  knowledgeItemIds?: string[];
   /** Specific provider IDs to include (in addition to any transitively required ones). */
   providerIds?: string[];
   /** Specific API key IDs to include. */

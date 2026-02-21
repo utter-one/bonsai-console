@@ -9848,6 +9848,10 @@
           "name": {
             "type": "string",
             "description": "Entity name or display label"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the owning project — present for all project-scoped entities"
           }
         },
         "required": [
@@ -10031,14 +10035,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Specific knowledge category IDs to include. Pulls all child knowledge items."
-          },
-          "knowledgeItemIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific knowledge item IDs to include. Pulls in parent category."
+            "description": "Specific knowledge category IDs to include. All child knowledge items are always included."
           },
           "providerIds": {
             "type": "array",
@@ -22326,31 +22323,11 @@
                   }
                 }
               ],
-              "description": "Specific knowledge category IDs to export."
+              "description": "Specific knowledge category IDs to export. All child items are included."
             },
             "required": false,
-            "description": "Specific knowledge category IDs to export.",
+            "description": "Specific knowledge category IDs to export. All child items are included.",
             "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge item IDs to export."
-            },
-            "required": false,
-            "description": "Specific knowledge item IDs to export.",
-            "name": "knowledgeItemIds",
             "in": "query"
           },
           {
@@ -22496,14 +22473,7 @@
                         "items": {
                           "type": "string"
                         },
-                        "description": "Specific knowledge category IDs to include. Pulls all child knowledge items."
-                      },
-                      "knowledgeItemIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific knowledge item IDs to include. Pulls in parent category."
+                        "description": "Specific knowledge category IDs to include. All child knowledge items are always included."
                       },
                       "providerIds": {
                         "type": "array",
@@ -28515,31 +28485,11 @@
                   }
                 }
               ],
-              "description": "Specific knowledge category IDs to export."
+              "description": "Specific knowledge category IDs to export. All child items are included."
             },
             "required": false,
-            "description": "Specific knowledge category IDs to export.",
+            "description": "Specific knowledge category IDs to export. All child items are included.",
             "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge item IDs to export."
-            },
-            "required": false,
-            "description": "Specific knowledge item IDs to export.",
-            "name": "knowledgeItemIds",
             "in": "query"
           },
           {
@@ -28761,31 +28711,11 @@
                   }
                 }
               ],
-              "description": "Specific knowledge category IDs to export."
+              "description": "Specific knowledge category IDs to export. All child items are included."
             },
             "required": false,
-            "description": "Specific knowledge category IDs to export.",
+            "description": "Specific knowledge category IDs to export. All child items are included.",
             "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge item IDs to export."
-            },
-            "required": false,
-            "description": "Specific knowledge item IDs to export.",
-            "name": "knowledgeItemIds",
             "in": "query"
           },
           {

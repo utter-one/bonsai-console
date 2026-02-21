@@ -5270,10 +5270,8 @@ export class Api<
       toolIds?: string | string[];
       /** Specific global action IDs to export. */
       globalActionIds?: string | string[];
-      /** Specific knowledge category IDs to export. */
+      /** Specific knowledge category IDs to export. All child items are included. */
       knowledgeCategoryIds?: string | string[];
-      /** Specific knowledge item IDs to export. */
-      knowledgeItemIds?: string | string[];
       /** Specific provider IDs to export (added on top of transitively required ones). */
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
@@ -5320,10 +5318,8 @@ export class Api<
         toolIds?: string[];
         /** Specific global action IDs to include. */
         globalActionIds?: string[];
-        /** Specific knowledge category IDs to include. Pulls all child knowledge items. */
+        /** Specific knowledge category IDs to include. All child knowledge items are always included. */
         knowledgeCategoryIds?: string[];
-        /** Specific knowledge item IDs to include. Pulls in parent category. */
-        knowledgeItemIds?: string[];
         /** Specific provider IDs to include (in addition to any transitively required ones). */
         providerIds?: string[];
         /** Specific API key IDs to include. */
@@ -7943,10 +7939,8 @@ export class Api<
       toolIds?: string | string[];
       /** Specific global action IDs to export. */
       globalActionIds?: string | string[];
-      /** Specific knowledge category IDs to export. */
+      /** Specific knowledge category IDs to export. All child items are included. */
       knowledgeCategoryIds?: string | string[];
-      /** Specific knowledge item IDs to export. */
-      knowledgeItemIds?: string | string[];
       /** Specific provider IDs to export (added on top of transitively required ones). */
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
@@ -7987,10 +7981,8 @@ export class Api<
       toolIds?: string | string[];
       /** Specific global action IDs to export. */
       globalActionIds?: string | string[];
-      /** Specific knowledge category IDs to export. */
+      /** Specific knowledge category IDs to export. All child items are included. */
       knowledgeCategoryIds?: string | string[];
-      /** Specific knowledge item IDs to export. */
-      knowledgeItemIds?: string | string[];
       /** Specific provider IDs to export (added on top of transitively required ones). */
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
