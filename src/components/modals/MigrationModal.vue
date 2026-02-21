@@ -51,7 +51,7 @@ async function loadPreview() {
   previewLoading.value = true
   previewError.value = null
   try {
-    preview.value = await apiClient.migrationPreviewList()
+    preview.value = await apiClient.environmentsMigrationScopeList(props.environment.id)
   } catch (err: any) {
     previewError.value = err.response?.data?.message || 'Failed to load available entities'
   } finally {
@@ -185,8 +185,7 @@ async function startMigration() {
   pollError.value = null
   try {
     step.value = 'running'
-    const result = await apiClient.migrationPullCreate({
-      environmentId: props.environment.id,
+    const result = await apiClient.environmentsMigrationPullCreate(props.environment.id, {
       selection: selectionPayload.value,
       dryRun: dryRun.value,
       force: force.value,
@@ -207,7 +206,7 @@ function startPolling(jobId: string) {
   stopPolling()
   pollTimer.value = setInterval(async () => {
     try {
-      const result = await apiClient.migrationJobsDetail(jobId)
+      const result = await apiClient.environmentsMigrationJobsDetail(props.environment.id, jobId)
       job.value = result
       if (!isActive.value) {
         stopPolling()
