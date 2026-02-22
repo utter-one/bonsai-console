@@ -174,7 +174,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
                     <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell">Context Fields</th>
+                <th class="table-header-cell">Variables</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -192,11 +192,9 @@ function editTransformer(transformer: ContextTransformerResponse) {
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell">
-                  <div v-if="transformer.contextFields?.length" class="flex gap-1 flex-wrap">
-                    <span v-for="field in transformer.contextFields" :key="field" class="badge-info">
-                      {{ field }}
-                    </span>
-                  </div>
+                  <span v-if="transformer.contextFields?.length" class="badge-info">
+                    {{ transformer.contextFields.length }} variable{{ transformer.contextFields.length !== 1 ? 's' : '' }}
+                  </span>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(transformer.updatedAt) }}</td>
