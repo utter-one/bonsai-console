@@ -1,7 +1,12 @@
 import type { Effect } from '@/api/types'
 
 export interface ActionOperations {
-  generateResponse: { enabled: boolean }
+  generateResponse: {
+    enabled: boolean
+    responseMode: 'generated' | 'prescripted'
+    prescriptedSelectionStrategy: 'random' | 'round_robin'
+    prescriptedResponses: string[]
+  }
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
@@ -28,7 +33,7 @@ export interface ActionOperations {
 
 export function createDefaultOperations(): ActionOperations {
   return {
-    generateResponse: { enabled: true },
+    generateResponse: { enabled: true, responseMode: 'generated', prescriptedSelectionStrategy: 'random', prescriptedResponses: [] },
     endConversation: { enabled: false, reason: '' },
     abortConversation: { enabled: false, reason: '' },
     goToStage: { enabled: false, stageId: '' },
@@ -52,6 +57,9 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
     switch (effect.type) {
       case 'generate_response':
         operations.generateResponse.enabled = true
+        operations.generateResponse.responseMode = (effect as any).responseMode || 'generated'
+        operations.generateResponse.prescriptedSelectionStrategy = (effect as any).prescriptedSelectionStrategy || 'random'
+        operations.generateResponse.prescriptedResponses = (effect as any).prescriptedResponses || []
         break
       case 'end_conversation':
         operations.endConversation.enabled = true
@@ -111,9 +119,15 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
   let error: string | null = null
 
   if (operations.generateResponse.enabled) {
-    effectsArray.push({
-      type: 'generate_response'
-    })
+    const generateEffect: Record<string, any> = {
+      type: 'generate_response',
+      responseMode: operations.generateResponse.responseMode,
+    }
+    if (operations.generateResponse.responseMode === 'prescripted') {
+      generateEffect.prescriptedSelectionStrategy = operations.generateResponse.prescriptedSelectionStrategy
+      generateEffect.prescriptedResponses = operations.generateResponse.prescriptedResponses.filter(r => r.trim())
+    }
+    effectsArray.push(generateEffect as Effect)
   }
 
   if (operations.endConversation.enabled) {

@@ -23,7 +23,12 @@ interface ActionFormData {
 }
 
 interface ActionOperations {
-  generateResponse: { enabled: boolean }
+  generateResponse: {
+    enabled: boolean
+    responseMode: 'generated' | 'prescripted'
+    prescriptedSelectionStrategy: 'random' | 'round_robin'
+    prescriptedResponses: string[]
+  }
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
@@ -84,6 +89,14 @@ const props = withDefaults(
     actionParameters: () => ({})
   }
 )
+
+function addPrescriptedResponse() {
+  props.operations.generateResponse.prescriptedResponses.push('')
+}
+
+function removePrescriptedResponse(index: number) {
+  props.operations.generateResponse.prescriptedResponses.splice(index, 1)
+}
 
 function addParameter() {
   props.parameters.push({ name: '', type: 'string' as const, description: '', required: false })
@@ -408,6 +421,19 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           ]"
         >
           Effects
+        </button>
+        <button
+          v-if="operations.generateResponse.enabled"
+          type="button"
+          @click="activeTab.value = 'generateResponse'"
+          :class="[
+            activeTab.value === 'generateResponse'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
+            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+          ]"
+        >
+          Generate Response
         </button>
         <button
           v-if="operations.goToStage.enabled"
@@ -761,7 +787,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
             />
             <div class="ml-3">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Generate Response</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Generate an AI response for this action</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Generate an AI response for this action (adds tab for configuration)</p>
             </div>
           </label>
 
@@ -874,6 +900,61 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           </label>
         </div>
       </div>
+    </div>
+
+    <!-- Generate Response Tab -->
+    <div v-show="activeTab.value === 'generateResponse'" class="space-y-6">
+      <div class="form-group">
+        <label class="form-label">Response Mode</label>
+        <select v-model="operations.generateResponse.responseMode" class="form-select-auto">
+          <option value="generated">Generated (AI-generated)</option>
+          <option value="prescripted">Prescripted (predefined responses)</option>
+        </select>
+        <p class="form-help-text">
+          How the response should be produced
+        </p>
+      </div>
+
+      <template v-if="operations.generateResponse.responseMode === 'prescripted'">
+        <div class="form-group">
+          <label class="form-label">Selection Strategy</label>
+          <select v-model="operations.generateResponse.prescriptedSelectionStrategy" class="form-select-auto">
+            <option value="random">Random</option>
+            <option value="round_robin">Round Robin</option>
+          </select>
+          <p class="form-help-text">
+            How to pick a response when multiple prescripted responses are provided
+          </p>
+        </div>
+
+        <div class="form-group">
+          <div class="flex items-center justify-between mb-2">
+            <label class="form-label mb-0">Prescripted Responses</label>
+            <button type="button" class="btn-secondary" @click="addPrescriptedResponse()">+ Add Response</button>
+          </div>
+          <p class="form-help-text mb-3">
+            Define the predefined responses to choose from
+          </p>
+          <div v-if="operations.generateResponse.prescriptedResponses.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic py-2">
+            No prescripted responses yet. Click "Add Response" to add one.
+          </div>
+          <div class="space-y-3">
+            <div
+              v-for="(_, index) in operations.generateResponse.prescriptedResponses"
+              :key="index"
+              class="flex gap-2 items-start"
+            >
+              <textarea
+                v-model="operations.generateResponse.prescriptedResponses[index]"
+                rows="2"
+                class="form-textarea flex-1 text-sm"
+                :placeholder="`Response ${index + 1}...`"
+              ></textarea>
+              <button type="button" class="btn-danger" @click="removePrescriptedResponse(index)">Remove</button>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Go To Stage Tab -->

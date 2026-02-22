@@ -695,6 +695,18 @@ export interface CallWebhookEffect {
 export interface GenerateResponseEffect {
   /** Effect type */
   type: "generate_response";
+  /**
+   * Type of response to generate: generated (AI-generated), prescripted (predefined response), best_match (choose the best match from predefined responses)
+   * @default "generated"
+   */
+  responseMode?: "generated" | "prescripted";
+  /**
+   * Strategy to select prescripted response when multiple are provided
+   * @default "random"
+   */
+  prescriptedSelectionStrategy?: "random" | "round_robin";
+  /** Optional array of prescripted responses to use */
+  prescriptedResponses?: string[];
 }
 
 export interface StageActionParameter {
