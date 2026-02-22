@@ -253,23 +253,23 @@ async function refreshData() {
       <div class="mb-6 flex items-center gap-3">
         <!-- Time Filter -->
         <div class="relative">
-          <button 
+          <button
             @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+            class="time-filter-button filter-btn"
           >
             <Calendar class="w-4 h-4 mr-2" />
             <span>{{ currentTimeFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
-          
+
           <!-- Time Dropdown -->
-          <div v-if="showTimeDropdown" class="time-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700">
+          <div v-if="showTimeDropdown" class="time-filter-dropdown filter-dropdown-panel min-w-[200px]">
             <button
               v-for="option in timeFilterOptions"
               :key="option.value"
               @click="selectTimeFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-200': timeFilter === option.value }"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
             >
               {{ option.label }}
             </button>
@@ -278,22 +278,22 @@ async function refreshData() {
 
         <!-- Status Filter -->
         <div class="relative">
-          <button 
+          <button
             @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+            class="status-filter-button filter-btn"
           >
             <span>{{ currentStatusFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
-          
+
           <!-- Status Dropdown -->
-          <div v-if="showStatusDropdown" class="status-filter-dropdown absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[180px] py-1 dark:bg-gray-800 dark:border-gray-700">
+          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-[180px]">
             <button
               v-for="option in statusFilterOptions"
               :key="option.value"
               @click="selectStatusFilter(option.value)"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700"
-              :class="{ 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-200': statusFilter === option.value }"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
             >
               {{ option.label }}
             </button>

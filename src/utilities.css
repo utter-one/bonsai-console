@@ -29,6 +29,27 @@
   @apply px-3 py-1.5 text-xs;
 }
 
+/* Filter Dropdowns */
+.filter-btn {
+  @apply flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700;
+}
+
+.filter-btn-icon {
+  @apply flex items-center justify-center p-2 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700;
+}
+
+.filter-dropdown-panel {
+  @apply absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg py-1 dark:bg-gray-800 dark:border-gray-700;
+}
+
+.filter-dropdown-item {
+  @apply w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700;
+}
+
+.filter-dropdown-item-active {
+  @apply bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400;
+}
+
 /* Form Elements */
 .form-label {
   @apply block mb-1.5 font-medium text-gray-900 dark:text-gray-200;
@@ -89,7 +110,7 @@
 
 /* Checkbox/Radio */
 .form-checkbox {
-  @apply mr-2 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50;
+  @apply mr-2 w-4 h-4 accent-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .checkbox-label {
@@ -366,7 +387,7 @@
 
 /* Lifecycle Action Cards */
 .lifecycle-action-card {
-  @apply bg-white border-2 border-blue-200 rounded-lg p-4 transition-all hover:border-blue-400 dark:bg-gray-800 dark:border-blue-800 dark:hover:border-blue-600;
+  @apply bg-white border-2 border-primary-200 rounded-lg p-4 transition-all hover:border-primary-400 dark:bg-gray-800 dark:border-primary-800 dark:hover:border-primary-600;
 }
 
 .badge-configured {
@@ -470,7 +491,7 @@
 
 /* Icon Button (for stat cards) */
 .btn-icon {
-  @apply px-4 py-2 border-none bg-blue-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-50 dark:bg-gray-700 dark:text-primary-400 dark:hover:bg-gray-600;
+  @apply px-4 py-2 border-none bg-primary-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-50 dark:bg-gray-700 dark:text-primary-400 dark:hover:bg-gray-600;
 }
 
 /* Textarea */
