@@ -370,17 +370,12 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 <template>
   <div>
     <!-- Tab Navigation -->
-    <div v-if="showTabs" class="border-b border-gray-200 mb-6 dark:border-gray-700">
-      <nav class="-mb-px flex space-x-8 overflow-x-auto">
+    <div v-if="showTabs" class="tabs-container mb-6">
+      <nav class="tabs-nav">
         <button
           type="button"
           @click="activeTab.value = 'basic'"
-          :class="[
-            activeTab.value === 'basic'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'basic' ? 'tab-button-active' : '']"
         >
           Basic
         </button>
@@ -388,12 +383,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="showTrigger"
           type="button"
           @click="activeTab.value = 'trigger'"
-          :class="[
-            activeTab.value === 'trigger'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'trigger' ? 'tab-button-active' : '']"
         >
           Trigger
         </button>
@@ -401,24 +391,14 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="showParameters"
           type="button"
           @click="activeTab.value = 'parameters'"
-          :class="[
-            activeTab.value === 'parameters'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'parameters' ? 'tab-button-active' : '']"
         >
           Parameters
         </button>
         <button
           type="button"
           @click="activeTab.value = 'effects'"
-          :class="[
-            activeTab.value === 'effects'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'effects' ? 'tab-button-active' : '']"
         >
           Effects
         </button>
@@ -426,12 +406,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.generateResponse.enabled"
           type="button"
           @click="activeTab.value = 'generateResponse'"
-          :class="[
-            activeTab.value === 'generateResponse'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'generateResponse' ? 'tab-button-active' : '']"
         >
           Generate Response
         </button>
@@ -439,12 +414,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.goToStage.enabled"
           type="button"
           @click="activeTab.value = 'goToStage'"
-          :class="[
-            activeTab.value === 'goToStage'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'goToStage' ? 'tab-button-active' : '']"
         >
           Go To Stage
         </button>
@@ -452,12 +422,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.runScript.enabled"
           type="button"
           @click="activeTab.value = 'runScript'"
-          :class="[
-            activeTab.value === 'runScript'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'runScript' ? 'tab-button-active' : '']"
         >
           Run Script
         </button>
@@ -465,12 +430,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.modifyUserInput.enabled"
           type="button"
           @click="activeTab.value = 'modifyUserInput'"
-          :class="[
-            activeTab.value === 'modifyUserInput'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'modifyUserInput' ? 'tab-button-active' : '']"
         >
           Modify User Input
         </button>
@@ -478,12 +438,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.modifyVariables.enabled"
           type="button"
           @click="activeTab.value = 'modifyVariables'"
-          :class="[
-            activeTab.value === 'modifyVariables'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'modifyVariables' ? 'tab-button-active' : '']"
         >
           Modify Variables
         </button>
@@ -491,12 +446,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.modifyUserProfile.enabled"
           type="button"
           @click="activeTab.value = 'modifyUserProfile'"
-          :class="[
-            activeTab.value === 'modifyUserProfile'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'modifyUserProfile' ? 'tab-button-active' : '']"
         >
           Modify User Profile
         </button>
@@ -504,12 +454,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.callTool.enabled"
           type="button"
           @click="activeTab.value = 'callTool'"
-          :class="[
-            activeTab.value === 'callTool'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'callTool' ? 'tab-button-active' : '']"
         >
           Call Tool
         </button>
@@ -517,12 +462,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="operations.callWebhook.enabled"
           type="button"
           @click="activeTab.value = 'callWebhook'"
-          :class="[
-            activeTab.value === 'callWebhook'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'callWebhook' ? 'tab-button-active' : '']"
         >
           Call Webhook
         </button>
@@ -530,19 +470,14 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           v-if="showMetadata"
           type="button"
           @click="activeTab.value = 'metadata'"
-          :class="[
-            activeTab.value === 'metadata'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
-          ]"
+          :class="['tab-button', activeTab.value === 'metadata' ? 'tab-button-active' : '']"
         >
           Metadata
         </button>
       </nav>
     </div>
 
-    <div class="space-y-6">
+    <div class="space-y-6 mt-4">
     <!-- Basic Tab -->
     <div v-show="activeTab.value === 'basic'" class="space-y-6">
       <div v-if="showKeyField && actionKey" class="form-group">
