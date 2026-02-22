@@ -430,11 +430,7 @@
 
 /* Auth specific button */
 .btn-auth {
-  @apply px-4 py-3.5 border-none rounded-md bg-gradient-from text-white text-base font-semibold cursor-pointer transition-all hover:bg-[#5568d3] hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none;
-}
-
-.btn-auth:hover {
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  @apply px-4 py-3.5 border-none rounded-md bg-primary-500 text-white text-base font-semibold cursor-pointer transition-all hover:bg-primary-600 hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none;
 }
 
 .btn-auth:disabled:hover {
@@ -443,7 +439,7 @@
 
 /* Spinner */
 .spinner {
-  @apply w-10 h-10 border-4 border-gray-200 border-t-gradient-from rounded-full animate-spin;
+  @apply w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin;
 }
 
 .spinner-container {
