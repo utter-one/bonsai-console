@@ -19,6 +19,7 @@
       <!-- Checkbox (hidden for non-selectable nodes inside arrays) -->
       <input
         v-if="!insideArray"
+        ref="checkboxRef"
         type="checkbox"
         :id="checkboxId"
         :checked="isSelected"
@@ -79,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { FieldDescriptor } from '@/api/types'
 
@@ -111,7 +112,23 @@ const isExpandable = computed(() =>
   !!props.descriptor.objectSchema?.length
 )
 
-const isSelected = computed(() => props.selectedPaths.includes(props.path))
+const isSelected = computed(() =>
+  props.selectedPaths.includes(props.path) ||
+  props.selectedPaths.some(sp => props.path.startsWith(sp + '.'))
+)
+
+const checkboxRef = ref<HTMLInputElement | null>(null)
+
+const isIndeterminate = computed(() =>
+  !isSelected.value &&
+  props.selectedPaths.some(sp => sp.startsWith(props.path + '.'))
+)
+
+watchEffect(() => {
+  if (checkboxRef.value) {
+    checkboxRef.value.indeterminate = isIndeterminate.value
+  }
+})
 
 const typeClass = computed(() => {
   const t = props.descriptor.type
