@@ -57,7 +57,7 @@ function navigateToPlayground(projectId: string) {
   <div class="container-constrained mx-auto">
     <div class="mb-8">
       <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-      <p class="m-0 text-base text-gray-600">Welcome to Nexus Admin - Your AI Platform Management Console</p>
+      <p class="m-0 text-base text-gray-600">Welcome to Bonsai Console - Your AI Platform Management Console</p>
     </div>
 
     <!-- Loading State -->
