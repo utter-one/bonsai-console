@@ -25,11 +25,7 @@ const form = ref({
   description: '',
   asrConfig: {
     asrProviderId: '',
-    settings: {
-      language: '',
-      dictionaryPhrases: [] as string[],
-      audioFormat: '' as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100'
-    },
+    settings: {} as any,
     unintelligiblePlaceholder: '',
     voiceActivityDetection: false
   },
@@ -68,6 +64,21 @@ const selectedStorageProvider = computed(() => {
   return storageProviders.value.find(p => p.id === form.value.storageConfig.storageProviderId) || null
 })
 
+const selectedAsrProvider = computed(() => {
+  if (!form.value.asrConfig.asrProviderId) return null
+  return asrProviders.value.find(p => p.id === form.value.asrConfig.asrProviderId) || null
+})
+
+const isAzureAsrProvider = computed(() => {
+  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
+  return apiType === 'azure-speech' || apiType === 'azure'
+})
+
+const isElevenLabsAsrProvider = computed(() => {
+  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
+  return apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs'
+})
+
 const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
   return apiKeysStore.items.filter(key => key.projectId === currentProject.value!.id)
@@ -100,6 +111,51 @@ watch(activeTab, (newTab) => {
   }
 })
 
+// Watch ASR provider changes to initialize settings structure
+watch(() => form.value.asrConfig.asrProviderId, (newProviderId, oldProviderId) => {
+  // Only initialize when provider changes (not on initial load)
+  if (newProviderId && newProviderId !== oldProviderId) {
+    // Check if settings are already populated (from loaded project)
+    const hasExistingSettings = Object.keys(form.value.asrConfig.settings || {}).length > 0
+    
+    if (!hasExistingSettings) {
+      // Initialize empty settings structure based on provider type
+      const provider = asrProviders.value.find(p => p.id === newProviderId)
+      const apiType = provider?.apiType?.toLowerCase()
+      
+      if (apiType === 'azure-speech' || apiType === 'azure') {
+        // Azure ASR - initialize with empty Azure structure
+        form.value.asrConfig.settings = {
+          language: undefined,
+          dictionaryPhrases: [],
+          audioFormat: undefined
+        }
+      } else if (apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs') {
+        // ElevenLabs ASR - initialize with empty ElevenLabs structure
+        form.value.asrConfig.settings = {
+          modelId: undefined,
+          audioFormat: undefined,
+          languageCode: undefined,
+          includeTimestamps: false,
+          includeLanguageDetection: false,
+          commitStrategy: undefined,
+          vadSilenceThresholdSecs: undefined,
+          vadThreshold: undefined,
+          minSpeechDurationMs: undefined,
+          minSilenceDurationMs: undefined,
+          enableLogging: true
+        }
+      } else {
+        // Unknown provider - generic empty structure
+        form.value.asrConfig.settings = {}
+      }
+    }
+  } else if (!newProviderId) {
+    // Provider cleared - reset settings
+    form.value.asrConfig.settings = {}
+  }
+})
+
 // Methods
 async function loadProject() {
   if (!projectId.value) return
@@ -115,11 +171,7 @@ async function loadProject() {
         description: currentProject.value.description ?? '',
         asrConfig: {
           asrProviderId: currentProject.value.asrConfig?.asrProviderId || '',
-          settings: {
-            language: currentProject.value.asrConfig?.settings?.language || '',
-            dictionaryPhrases: currentProject.value.asrConfig?.settings?.dictionaryPhrases || [],
-            audioFormat: (currentProject.value.asrConfig?.settings?.audioFormat || '') as '' | 'pcm_16000' | 'pcm_22050' | 'pcm_44100'
-          },
+          settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false
         },
@@ -171,11 +223,9 @@ async function handleSubmit() {
     // Build ASR config only if provider is selected
     const asrConfig: AsrConfig | undefined = form.value.asrConfig.asrProviderId ? {
       asrProviderId: form.value.asrConfig.asrProviderId,
-      settings: {
-        ...(form.value.asrConfig.settings.language && { language: form.value.asrConfig.settings.language }),
-        ...(form.value.asrConfig.settings.dictionaryPhrases.length > 0 && { dictionaryPhrases: form.value.asrConfig.settings.dictionaryPhrases }),
-        ...(form.value.asrConfig.settings.audioFormat && { audioFormat: form.value.asrConfig.settings.audioFormat })
-      },
+      ...(Object.keys(form.value.asrConfig.settings || {}).length > 0 && {
+        settings: form.value.asrConfig.settings
+      }),
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
       voiceActivityDetection: form.value.asrConfig.voiceActivityDetection
     } : undefined
@@ -261,16 +311,22 @@ function formatDate(dateString: string | null) {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Dictionary phrases management
+// Dictionary phrases management (Azure ASR)
 function addDictionaryPhrase() {
-  if (newPhrase.value.trim()) {
-    form.value.asrConfig.settings.dictionaryPhrases.push(newPhrase.value.trim())
-    newPhrase.value = ''
+  if (!newPhrase.value.trim()) return
+  
+  if (!form.value.asrConfig.settings.dictionaryPhrases) {
+    form.value.asrConfig.settings.dictionaryPhrases = []
   }
+  
+  form.value.asrConfig.settings.dictionaryPhrases.push(newPhrase.value.trim())
+  newPhrase.value = ''
 }
 
-function removeDictionaryPhrase(index: number) {
-  form.value.asrConfig.settings.dictionaryPhrases.splice(index, 1)
+function removeDictionaryPhrase(index: number | string) {
+  if (form.value.asrConfig.settings.dictionaryPhrases) {
+    form.value.asrConfig.settings.dictionaryPhrases.splice(Number(index), 1)
+  }
 }
 
 // API Key management
@@ -610,8 +666,8 @@ function handleStorageSettingsClose() {
                 </p>
               </div>
 
-              <!-- ASR Provider Settings (shown when provider is selected) -->
-              <div v-if="form.asrConfig.asrProviderId" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+              <!-- Azure ASR Settings -->
+              <div v-if="form.asrConfig.asrProviderId && isAzureAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
                 <div class="form-group">
                   <label class="form-label">
                     Language <span class="text-gray-500">(optional)</span>
@@ -637,10 +693,21 @@ function handleStorageSettingsClose() {
                     class="form-select"
                     :disabled="isLoading"
                   >
-                    <option value="">Default</option>
+                    <option :value="undefined">Default</option>
+                    <option value="mp3">MP3</option>
+                    <option value="opus">Opus</option>
+                    <option value="aac">AAC</option>
+                    <option value="flac">FLAC</option>
+                    <option value="wav">WAV</option>
+                    <option value="pcm_8000">PCM 8kHz</option>
                     <option value="pcm_16000">PCM 16kHz</option>
                     <option value="pcm_22050">PCM 22.05kHz</option>
+                    <option value="pcm_24000">PCM 24kHz</option>
                     <option value="pcm_44100">PCM 44.1kHz</option>
+                    <option value="pcm_48000">PCM 48kHz</option>
+                    <option value="mulaw">μ-law</option>
+                    <option value="alaw">A-law</option>
+                    <option value="linear16">Linear16</option>
                   </select>
                   <p class="form-help-text">
                     Audio input format for speech recognition
@@ -670,7 +737,7 @@ function handleStorageSettingsClose() {
                       Add
                     </button>
                   </div>
-                  <div v-if="form.asrConfig.settings.dictionaryPhrases.length > 0" class="space-y-1">
+                  <div v-if="form.asrConfig.settings.dictionaryPhrases && form.asrConfig.settings.dictionaryPhrases.length > 0" class="space-y-2">
                     <div
                       v-for="(phrase, index) in form.asrConfig.settings.dictionaryPhrases"
                       :key="index"
@@ -680,7 +747,7 @@ function handleStorageSettingsClose() {
                       <button
                         type="button"
                         @click="removeDictionaryPhrase(index)"
-                        class="btn-icon text-red-600 hover:bg-red-50"
+                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
                         title="Remove phrase"
                         :disabled="isLoading"
                       >
@@ -688,8 +755,214 @@ function handleStorageSettingsClose() {
                       </button>
                     </div>
                   </div>
-                  <p class="form-help-text">
+                  <p class="form-help-text mt-2">
                     Custom phrases to improve recognition accuracy for domain-specific terms
+                  </p>
+                </div>
+              </div>
+
+              <!-- ElevenLabs ASR Settings -->
+              <div v-if="form.asrConfig.asrProviderId && isElevenLabsAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+                <div class="form-group">
+                  <label class="form-label">
+                    Model ID <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model="form.asrConfig.settings.modelId"
+                    type="text"
+                    placeholder="e.g., scribe_v2_realtime"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Model to use for transcription (defaults to scribe_v2_realtime)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Audio Format <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <select
+                    v-model="form.asrConfig.settings.audioFormat"
+                    class="form-select"
+                    :disabled="isLoading"
+                  >
+                    <option :value="undefined">Default (PCM 16kHz)</option>
+                    <option value="pcm_8000">PCM 8kHz</option>
+                    <option value="pcm_16000">PCM 16kHz</option>
+                    <option value="pcm_22050">PCM 22.05kHz</option>
+                    <option value="pcm_24000">PCM 24kHz</option>
+                    <option value="pcm_44100">PCM 44.1kHz</option>
+                  </select>
+                  <p class="form-help-text">
+                    Audio encoding format for speech-to-text
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Language Code <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model="form.asrConfig.settings.languageCode"
+                    type="text"
+                    placeholder="e.g., en, es, fr"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es")
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.includeTimestamps"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Include Timestamps
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Receive word-level timestamps in transcription results
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.includeLanguageDetection"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Include Language Detection
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Include detected language code in transcription results
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Commit Strategy <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <select
+                    v-model="form.asrConfig.settings.commitStrategy"
+                    class="form-select"
+                    :disabled="isLoading"
+                  >
+                    <option :value="undefined">Default (Manual)</option>
+                    <option value="manual">Manual</option>
+                    <option value="vad">Voice Activity Detection (VAD)</option>
+                  </select>
+                  <p class="form-help-text">
+                    Strategy for committing transcriptions
+                  </p>
+                </div>
+
+                <!-- VAD Settings (shown when commit strategy is VAD) -->
+                <div v-if="form.asrConfig.settings.commitStrategy === 'vad'" class="pl-4 border-l-2 border-green-200 bg-green-50 p-4 rounded-r space-y-4 dark:bg-green-900/20 dark:border-green-800">
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Voice Activity Detection Settings</h4>
+                  
+                  <div class="form-group">
+                    <label class="form-label">
+                      Silence Threshold (seconds)
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.settings.vadSilenceThresholdSecs"
+                      type="number"
+                      min="0.3"
+                      max="3"
+                      step="0.1"
+                      class="form-input"
+                      placeholder="1.5"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Silence duration before committing (0.3-3 seconds, default: 1.5)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      VAD Threshold
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.settings.vadThreshold"
+                      type="number"
+                      min="0.1"
+                      max="0.9"
+                      step="0.05"
+                      class="form-input"
+                      placeholder="0.4"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Detection sensitivity (0.1-0.9, default: 0.4)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Minimum Speech Duration (ms)
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.settings.minSpeechDurationMs"
+                      type="number"
+                      min="50"
+                      max="2000"
+                      step="10"
+                      class="form-input"
+                      placeholder="100"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Minimum speech duration (50-2000ms, default: 100)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Minimum Silence Duration (ms)
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.settings.minSilenceDurationMs"
+                      type="number"
+                      min="50"
+                      max="2000"
+                      step="10"
+                      class="form-input"
+                      placeholder="100"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Minimum silence duration (50-2000ms, default: 100)
+                    </p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.enableLogging"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Enable Logging
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    When disabled, zero retention mode is used (enterprise only)
                   </p>
                 </div>
               </div>

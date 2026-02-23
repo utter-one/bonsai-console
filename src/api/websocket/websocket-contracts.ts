@@ -381,34 +381,7 @@ export interface AuthResponse {
       /**
        * ASR-specific settings including model, language preferences, etc.
        */
-      settings?: {
-        /**
-         * The language code for speech recognition (e.g., "en-US")
-         */
-        language?: string;
-        /**
-         * The phrases to add to the speech recognition dictionary
-         */
-        dictionaryPhrases?: string[];
-        /**
-         * Audio input format for speech recognition (e.g., "pcm_16000")
-         */
-        audioFormat?:
-          | 'mp3'
-          | 'opus'
-          | 'aac'
-          | 'flac'
-          | 'wav'
-          | 'pcm_8000'
-          | 'pcm_16000'
-          | 'pcm_22050'
-          | 'pcm_24000'
-          | 'pcm_44100'
-          | 'pcm_48000'
-          | 'mulaw'
-          | 'alaw'
-          | 'linear16';
-      };
+      settings?: AzureAsrSettings | ElevenLabsAsrSettings;
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -449,34 +422,7 @@ export interface ProjectSettings {
     /**
      * ASR-specific settings including model, language preferences, etc.
      */
-    settings?: {
-      /**
-       * The language code for speech recognition (e.g., "en-US")
-       */
-      language?: string;
-      /**
-       * The phrases to add to the speech recognition dictionary
-       */
-      dictionaryPhrases?: string[];
-      /**
-       * Audio input format for speech recognition (e.g., "pcm_16000")
-       */
-      audioFormat?:
-        | 'mp3'
-        | 'opus'
-        | 'aac'
-        | 'flac'
-        | 'wav'
-        | 'pcm_8000'
-        | 'pcm_16000'
-        | 'pcm_22050'
-        | 'pcm_24000'
-        | 'pcm_44100'
-        | 'pcm_48000'
-        | 'mulaw'
-        | 'alaw'
-        | 'linear16';
-    };
+    settings?: AzureAsrSettings | ElevenLabsAsrSettings;
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
      */
