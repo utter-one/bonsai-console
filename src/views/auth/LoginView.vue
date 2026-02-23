@@ -63,7 +63,7 @@ async function handleLogin() {
 
       <div v-else class="auth-card">
         <div class="auth-header">
-          <h1 class="auth-title">Nexus Admin</h1>
+          <h1 class="auth-title">Bonsai Console</h1>
           <p class="auth-subtitle">Sign in to manage your AI platform</p>
         </div>
 

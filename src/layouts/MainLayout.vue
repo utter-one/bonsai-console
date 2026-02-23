@@ -7,6 +7,7 @@ import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOu
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
+import logoUrl from '@/assets/logo.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -161,7 +162,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
 
         <!-- Logo & Brand -->
         <div class="md:mr-12">
-          <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Nexus Admin</h1>
+          <div class="flex items-center gap-2">
+            <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8 dark:invert" />
+            <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai Console</h1>
+          </div>
         </div>
 
         <!-- Main Navigation -->
@@ -283,7 +287,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
           class="fixed inset-y-0 left-0 z-[210] w-full max-w-xs bg-white p-6 overflow-y-auto flex flex-col dark:bg-gray-800"
         >
           <div class="flex items-center justify-between mb-8">
-            <h2 class="text-xl font-semibold text-gray-900 m-0 dark:text-white">Nexus Admin</h2>
+            <div class="flex items-center gap-2">
+              <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8 dark:invert" />
+              <h2 class="text-xl font-semibold text-gray-900 m-0 dark:text-white">Bonsai Console</h2>
+            </div>
             <button 
               class="p-2 -mr-2 bg-transparent border-none text-gray-500 cursor-pointer hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
               @click="showMobileMenu = false"

@@ -1,7 +1,7 @@
-# Nexus Admin - Copilot Instructions
+# Bonsai Console - Copilot Instructions
 
 ## Project Overview
-Vue 3 + TypeScript admin panel for managing a conversational AI platform (Nexus). Uses Vite, Pinia, Vue Router, and Tailwind CSS 4.
+Vue 3 + TypeScript admin panel for managing a conversational AI platform (Bonsai). Uses Vite, Pinia, Vue Router, and Tailwind CSS 4.
 
 ## Architecture Patterns
 
