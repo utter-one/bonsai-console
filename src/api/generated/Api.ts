@@ -2320,6 +2320,7 @@ export class Api<
           eventType:
             | "message"
             | "classification"
+            | "transformation"
             | "action"
             | "command"
             | "tool_call"
@@ -2348,6 +2349,12 @@ export class Api<
                     parameters: Record<string, ParameterValue>;
                   }[];
                 }[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                transformerId: string;
+                input: string;
+                appliedFields: string[];
                 metadata?: Record<string, any>;
               }
             | {
@@ -2498,6 +2505,7 @@ export class Api<
         eventType:
           | "message"
           | "classification"
+          | "transformation"
           | "action"
           | "command"
           | "tool_call"
@@ -2526,6 +2534,12 @@ export class Api<
                   parameters: Record<string, ParameterValue>;
                 }[];
               }[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              transformerId: string;
+              input: string;
+              appliedFields: string[];
               metadata?: Record<string, any>;
             }
           | {

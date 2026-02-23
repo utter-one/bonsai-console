@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore } from '@/stores'
-import { ArrowLeft, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
+import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -78,6 +78,8 @@ function getEventTypeColor(eventType: string): string {
       return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
     case 'classification':
       return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
+    case 'transformation':
+      return 'bg-violet-50 border-violet-200 dark:bg-violet-900/10 dark:border-violet-800'
     case 'action':
       return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
     case 'command':
@@ -149,6 +151,19 @@ function isClassificationEvent(event: ConversationEventResponse): event is Conve
   }
 } {
   return event.eventType === 'classification'
+}
+
+// Type guard to check if event data is a transformation event
+function isTransformationEvent(event: ConversationEventResponse): event is ConversationEventResponse & {
+  eventType: 'transformation'
+  eventData: {
+    transformerId: string
+    input: string
+    appliedFields: string[]
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'transformation'
 }
 
 // Type guard to check if event data is an action event
@@ -429,6 +444,68 @@ const metadataFields = computed(() => {
                                 </div>
                               </div>
                             </div>
+                          </div>
+                        </div>
+                        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary
+                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre
+                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Transformation Event -->
+                <div v-else-if="isTransformationEvent(event)">
+                  <div class="flex items-start gap-3">
+                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-violet-900 dark:text-violet-100">Transformation</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.eventData.metadata)"
+                            @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.eventData.metadata)"
+                            @click="openVariablesPreview(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.transformerId }}</div>
+                        </div>
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.input }}</div>
+                        </div>
+                        <div v-if="event.eventData.appliedFields && event.eventData.appliedFields.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Applied Fields ({{ event.eventData.appliedFields.length }}):</span>
+                          <div class="mt-1 flex flex-wrap gap-1.5">
+                            <span v-for="field in event.eventData.appliedFields" :key="field"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
+                              {{ field }}
+                            </span>
                           </div>
                         </div>
                         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">

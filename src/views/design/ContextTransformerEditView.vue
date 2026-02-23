@@ -7,6 +7,7 @@ import type { ContextTransformerResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,7 +19,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
@@ -176,20 +177,7 @@ const metadataFields = computed(() => {
   ]
 })
 
-// Context fields management
-const newContextField = ref('')
 
-function addContextField() {
-  const trimmed = newContextField.value.trim()
-  if (trimmed && !form.value.contextFields.includes(trimmed)) {
-    form.value.contextFields.push(trimmed)
-    newContextField.value = ''
-  }
-}
-
-function removeContextField(index: number) {
-  form.value.contextFields.splice(index, 1)
-}
 </script>
 
 <template>
@@ -228,6 +216,19 @@ function removeContextField(index: number) {
           type="button"
         >
           Basic Information
+        </button>
+        <button
+          @click="activeTab = 'variables'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'variables' }]"
+          type="button"
+        >
+          Variables
+          <span
+            v-if="form.contextFields.length > 0"
+            class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+          >
+            {{ form.contextFields.length }}
+          </span>
         </button>
         <button
           @click="activeTab = 'prompt'"
@@ -322,48 +323,21 @@ function removeContextField(index: number) {
               </p>
             </div>
 
+
+          </div>
+
+          <!-- Variables Tab -->
+          <div v-show="activeTab === 'variables'" class="tab-content">
             <div class="form-group">
-              <label class="form-label">
-                Context Fields <span class="text-gray-500">(optional)</span>
-              </label>
-              <div class="flex gap-2 mb-2">
-                <input
-                  v-model="newContextField"
-                  type="text"
-                  placeholder="e.g., user.name, session.id"
-                  class="form-input flex-1"
-                  :disabled="isLoading"
-                  @keyup.enter="addContextField"
-                />
-                <button
-                  type="button"
-                  @click="addContextField"
-                  class="btn-secondary whitespace-nowrap"
-                  :disabled="isLoading || !newContextField.trim()"
-                >
-                  Add Field
-                </button>
-              </div>
-              <div v-if="form.contextFields.length > 0" class="flex flex-wrap gap-2 mb-2">
-                <span
-                  v-for="(field, index) in form.contextFields"
-                  :key="index"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-md text-sm"
-                >
-                  {{ field }}
-                  <button
-                    type="button"
-                    @click="removeContextField(index)"
-                    class="hover:text-blue-600 transition-colors"
-                    :disabled="isLoading"
-                  >
-                    ×
-                  </button>
-                </span>
-              </div>
-              <p class="form-help-text">
-                List of context field names that this transformer operates on (e.g., user.name, conversation.history)
+              <label class="form-label">Context Fields</label>
+              <p class="form-help-text mb-4">
+                Select which stage variables this transformer should have access to. Selecting a variable makes its value
+                available in the transformation context. Arrays are selected as a whole with their full structure.
               </p>
+              <ContextFieldsSelector
+                v-model="form.contextFields"
+                :project-id="projectId"
+              />
             </div>
           </div>
 

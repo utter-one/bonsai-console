@@ -133,6 +133,8 @@ const form = ref({
   condition: '',
   triggerOnUserInput: true,
   triggerOnClientCommand: false,
+  triggerOnTransformation: false,
+  watchedVariables: [] as Array<{ path: string; changeType: 'new' | 'changed' | 'removed' }>,
   classificationTrigger: '',
   overrideClassifierId: '',
   examples: ''
@@ -156,6 +158,10 @@ watch(() => props.action, (action) => {
       condition: action.condition || '',
       triggerOnUserInput: action.triggerOnUserInput,
       triggerOnClientCommand: action.triggerOnClientCommand,
+      triggerOnTransformation: action.triggerOnTransformation ?? false,
+      watchedVariables: action.watchedVariables
+        ? Object.entries(action.watchedVariables).map(([path, changeType]) => ({ path, changeType }))
+        : [],
       classificationTrigger: action.classificationTrigger || '',
       overrideClassifierId: action.overrideClassifierId || '',
       examples: action.examples?.join('\n') || ''
@@ -178,6 +184,8 @@ watch(() => props.action, (action) => {
       // Lifecycle actions don't use triggers
       triggerOnUserInput: props.isLifecycleAction ? false : true,
       triggerOnClientCommand: false,
+      triggerOnTransformation: false,
+      watchedVariables: [],
       classificationTrigger: '',
       overrideClassifierId: '',
       examples: ''
@@ -209,6 +217,10 @@ function handleSubmit() {
     condition: form.value.condition || null,
     triggerOnUserInput: form.value.triggerOnUserInput,
     triggerOnClientCommand: form.value.triggerOnClientCommand,
+    triggerOnTransformation: form.value.triggerOnTransformation || undefined,
+    watchedVariables: form.value.triggerOnTransformation && form.value.watchedVariables.length > 0
+      ? Object.fromEntries(form.value.watchedVariables.filter(v => v.path).map(v => [v.path, v.changeType]))
+      : undefined,
     classificationTrigger: form.value.classificationTrigger || null,
     overrideClassifierId: form.value.overrideClassifierId || null,
     parameters: parameters.value.length > 0 ? parameters.value : [],

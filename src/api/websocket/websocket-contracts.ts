@@ -428,6 +428,7 @@ export interface AzureAsrSettings {
     | 'mulaw'
     | 'alaw'
     | 'linear16';
+
 }
 
 /**
@@ -478,6 +479,7 @@ export interface ElevenLabsAsrSettings {
    * When false, zero retention mode is used (enterprise only), defaults to true
    */
   enableLogging?: boolean;
+
 }
 
 export interface ProjectSettings {
@@ -694,6 +696,7 @@ export interface ConversationEvent {
   eventType:
     | 'message'
     | 'classification'
+    | 'transformation'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -726,6 +729,12 @@ export interface ConversationEvent {
             };
           }[];
         }[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        transformerId: string;
+        input: string;
+        appliedFields: string[];
         metadata?: Record<string, unknown>;
       }
     | {

@@ -397,6 +397,9 @@
           "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
         }
       },
+      "additionalProperties": {
+        "nullable": true
+      },
       "description": "Azure Speech Recognition settings"
     },
     "ElevenLabsAsrSettings": {
@@ -475,6 +478,9 @@
           "default": true,
           "description": "When false, zero retention mode is used (enterprise only), defaults to true"
         }
+      },
+      "additionalProperties": {
+        "nullable": true
       },
       "description": "ElevenLabs Scribe settings"
     },
@@ -771,6 +777,7 @@
           "enum": [
             "message",
             "classification",
+            "transformation",
             "action",
             "command",
             "tool_call",
@@ -874,6 +881,34 @@
                 "classifierId",
                 "input",
                 "actions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "transformerId": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "string"
+                },
+                "appliedFields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "nullable": true
+                  }
+                }
+              },
+              "required": [
+                "transformerId",
+                "input",
+                "appliedFields"
               ]
             },
             {
