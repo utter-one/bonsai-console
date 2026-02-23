@@ -352,6 +352,56 @@
                   </div>
                 </div>
 
+                <!-- Transformation Event -->
+                <div v-else-if="isTransformationEvent(event.wsEvent)">
+                  <div class="flex items-start gap-3">
+                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="font-semibold text-violet-900 dark:text-violet-100">Transformation</span>
+                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <button
+                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
+                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
+                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                            title="View system prompt">
+                            <FileText class="w-4 h-4" />
+                          </button>
+                          <button
+                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
+                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
+                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                            title="View stage variables">
+                            <Braces class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
+                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.transformerId }}</div>
+                        </div>
+                        <div>
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.input }}</div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.appliedFields && event.wsEvent.eventData.appliedFields.length > 0">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Applied Fields ({{ event.wsEvent.eventData.appliedFields.length }}):</span>
+                          <div class="mt-1 flex flex-wrap gap-1.5">
+                            <span v-for="field in event.wsEvent.eventData.appliedFields" :key="field"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
+                              {{ field }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Action Event -->
                 <div v-else-if="isActionEvent(event.wsEvent)">
                   <div class="flex items-start gap-3">
@@ -797,7 +847,7 @@ import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAu
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -1306,6 +1356,18 @@ function isClassificationEvent(event: WSConversationEvent): event is WSConversat
   return event.eventType === 'classification'
 }
 
+function isTransformationEvent(event: WSConversationEvent): event is WSConversationEvent & {
+  eventType: 'transformation'
+  eventData: {
+    transformerId: string
+    input: string
+    appliedFields: string[]
+    metadata?: Record<string, any>
+  }
+} {
+  return event.eventType === 'transformation'
+}
+
 function isActionEvent(event: WSConversationEvent): event is WSConversationEvent & {
   eventType: 'action'
   eventData: { actionName: string; stageId: string; effects: any[]; metadata?: Record<string, any> }
@@ -1394,6 +1456,8 @@ function getEventTypeColor(eventType: string): string {
       return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
     case 'classification':
       return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
+    case 'transformation':
+      return 'bg-violet-50 border-violet-200 dark:bg-violet-900/10 dark:border-violet-800'
     case 'action':
       return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
     case 'command':

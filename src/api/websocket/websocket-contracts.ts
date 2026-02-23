@@ -381,7 +381,34 @@ export interface AuthResponse {
       /**
        * ASR-specific settings including model, language preferences, etc.
        */
-      settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+      settings?: {
+        /**
+         * The language code for speech recognition (e.g., "en-US")
+         */
+        language?: string;
+        /**
+         * The phrases to add to the speech recognition dictionary
+         */
+        dictionaryPhrases?: string[];
+        /**
+         * Audio input format for speech recognition (e.g., "pcm_16000")
+         */
+        audioFormat?:
+          | 'mp3'
+          | 'opus'
+          | 'aac'
+          | 'flac'
+          | 'wav'
+          | 'pcm_8000'
+          | 'pcm_16000'
+          | 'pcm_22050'
+          | 'pcm_24000'
+          | 'pcm_44100'
+          | 'pcm_48000'
+          | 'mulaw'
+          | 'alaw'
+          | 'linear16';
+      };
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -396,88 +423,6 @@ export interface AuthResponse {
    * Error message if authentication failed
    */
   error?: string;
-}
-
-/**
- * Azure Speech Recognition settings
- */
-export interface AzureAsrSettings {
-  /**
-   * The language code for speech recognition (e.g., 'en-US')
-   */
-  language?: string;
-  /**
-   * The phrases to add to the speech recognition dictionary
-   */
-  dictionaryPhrases?: string[];
-  /**
-   * Audio input format for speech recognition (e.g., "pcm_16000")
-   */
-  audioFormat?:
-    | 'mp3'
-    | 'opus'
-    | 'aac'
-    | 'flac'
-    | 'wav'
-    | 'pcm_8000'
-    | 'pcm_16000'
-    | 'pcm_22050'
-    | 'pcm_24000'
-    | 'pcm_44100'
-    | 'pcm_48000'
-    | 'mulaw'
-    | 'alaw'
-    | 'linear16';
-}
-
-/**
- * ElevenLabs Scribe settings
- */
-export interface ElevenLabsAsrSettings {
-  /**
-   * Model ID to use for transcription (e.g., "scribe_v2_realtime"), defaults to scribe_v2_realtime
-   */
-  modelId?: string;
-  /**
-   * Audio encoding format for speech-to-text, defaults to pcm_16000
-   */
-  audioFormat?: 'pcm_16000' | 'pcm_8000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
-  /**
-   * Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es")
-   */
-  languageCode?: string;
-  /**
-   * Whether to receive word-level timestamps in transcription results, defaults to false
-   */
-  includeTimestamps?: boolean;
-  /**
-   * Whether to include detected language code in transcription results, defaults to false
-   */
-  includeLanguageDetection?: boolean;
-  /**
-   * Strategy for committing transcriptions - manual or voice activity detection, defaults to manual
-   */
-  commitStrategy?: 'manual' | 'vad';
-  /**
-   * Silence threshold in seconds for VAD (0.3-3), defaults to 1.5
-   */
-  vadSilenceThresholdSecs?: number;
-  /**
-   * Threshold for voice activity detection (0.1-0.9), defaults to 0.4
-   */
-  vadThreshold?: number;
-  /**
-   * Minimum speech duration in milliseconds (50-2000), defaults to 100
-   */
-  minSpeechDurationMs?: number;
-  /**
-   * Minimum silence duration in milliseconds (50-2000), defaults to 100
-   */
-  minSilenceDurationMs?: number;
-  /**
-   * When false, zero retention mode is used (enterprise only), defaults to true
-   */
-  enableLogging?: boolean;
 }
 
 export interface ProjectSettings {
@@ -504,7 +449,34 @@ export interface ProjectSettings {
     /**
      * ASR-specific settings including model, language preferences, etc.
      */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+    settings?: {
+      /**
+       * The language code for speech recognition (e.g., "en-US")
+       */
+      language?: string;
+      /**
+       * The phrases to add to the speech recognition dictionary
+       */
+      dictionaryPhrases?: string[];
+      /**
+       * Audio input format for speech recognition (e.g., "pcm_16000")
+       */
+      audioFormat?:
+        | 'mp3'
+        | 'opus'
+        | 'aac'
+        | 'flac'
+        | 'wav'
+        | 'pcm_8000'
+        | 'pcm_16000'
+        | 'pcm_22050'
+        | 'pcm_24000'
+        | 'pcm_44100'
+        | 'pcm_48000'
+        | 'mulaw'
+        | 'alaw'
+        | 'linear16';
+    };
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
      */
@@ -694,6 +666,7 @@ export interface ConversationEvent {
   eventType:
     | 'message'
     | 'classification'
+    | 'transformation'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -726,6 +699,12 @@ export interface ConversationEvent {
             };
           }[];
         }[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        transformerId: string;
+        input: string;
+        appliedFields: string[];
         metadata?: Record<string, unknown>;
       }
     | {

@@ -2216,6 +2216,7 @@ export interface ConversationEventResponse {
   eventType:
     | "message"
     | "classification"
+    | "transformation"
     | "action"
     | "command"
     | "tool_call"
@@ -2244,6 +2245,12 @@ export interface ConversationEventResponse {
             parameters: Record<string, ParameterValue>;
           }[];
         }[];
+        metadata?: Record<string, any>;
+      }
+    | {
+        transformerId: string;
+        input: string;
+        appliedFields: string[];
         metadata?: Record<string, any>;
       }
     | {
