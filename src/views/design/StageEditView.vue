@@ -1182,6 +1182,7 @@ function toggleNode(path: number[]) {
                         <div class="flex flex-col gap-1">
                           <span v-if="action.triggerOnUserInput" class="badge-primary text-xs whitespace-nowrap">User Input</span>
                           <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
+                          <span v-if="action.triggerOnTransformation" class="badge-primary text-xs whitespace-nowrap">Transformation</span>
                         </div>
                       </td>
                       <td class="table-cell">

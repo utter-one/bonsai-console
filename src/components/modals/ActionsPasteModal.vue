@@ -42,6 +42,7 @@
                   <div class="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
                     <span v-if="action.action.triggerOnUserInput" class="badge-primary">User Input</span>
                     <span v-if="action.action.triggerOnClientCommand" class="badge-primary">Client Command</span>
+                    <span v-if="action.action.triggerOnTransformation" class="badge-primary">Transformation</span>
                     <span v-if="action.action.classificationTrigger" class="text-gray-500">
                       Classification: <code class="font-mono">{{ action.action.classificationTrigger }}</code>
                     </span>

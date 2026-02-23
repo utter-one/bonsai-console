@@ -12,11 +12,18 @@ interface ActionParameter {
   required: boolean
 }
 
+interface WatchedVariable {
+  path: string
+  changeType: 'new' | 'changed' | 'removed'
+}
+
 interface ActionFormData {
   name: string
   condition: string
   triggerOnUserInput: boolean
   triggerOnClientCommand: boolean
+  triggerOnTransformation: boolean
+  watchedVariables: WatchedVariable[]
   classificationTrigger: string
   overrideClassifierId: string
   examples: string
@@ -104,6 +111,29 @@ function addParameter() {
 
 function removeParameter(index: number) {
   props.parameters.splice(index, 1)
+}
+
+function addWatchedVariable() {
+  props.form.watchedVariables.push({ path: '', changeType: 'changed' })
+}
+
+function removeWatchedVariable(index: number) {
+  props.form.watchedVariables.splice(index, 1)
+}
+
+const openWatchedVariableDropdown = ref<number | null>(null)
+
+function toggleWatchedVariableDropdown(index: number) {
+  if (openWatchedVariableDropdown.value === index) {
+    openWatchedVariableDropdown.value = null
+  } else {
+    openWatchedVariableDropdown.value = index
+  }
+}
+
+function selectWatchedVariable(index: number, variableName: string) {
+  props.form.watchedVariables[index]!.path = variableName
+  openWatchedVariableDropdown.value = null
 }
 
 function addVariableModification() {
@@ -554,10 +584,110 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
               Trigger on Client Command
             </span>
           </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              v-model="form.triggerOnTransformation"
+              type="checkbox"
+              class="form-checkbox"
+            />
+            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+              Trigger on Variable Transformation
+            </span>
+          </label>
         </div>
         <p class="form-help-text">
           Select when this action can be triggered
         </p>
+      </div>
+
+      <!-- Watched Variables (shown when triggerOnTransformation is enabled) -->
+      <div v-if="form.triggerOnTransformation" class="form-group">
+        <label class="form-label">Watched Variables</label>
+        <p class="form-help-text mb-3">
+          Define which variable changes trigger this action. Leave empty to trigger on any transformation.
+        </p>
+        <div class="space-y-3">
+          <div
+            v-for="(watched, index) in form.watchedVariables"
+            :key="index"
+            class="p-3 border border-gray-200 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700"
+          >
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Variable {{ index + 1 }}</span>
+              <button
+                type="button"
+                @click="removeWatchedVariable(index)"
+                class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
+              >
+                Remove
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label text-sm">Variable Path <span class="required">*</span></label>
+                <div class="flex items-start gap-2">
+                  <input
+                    v-model="watched.path"
+                    type="text"
+                    placeholder="cart_total"
+                    class="form-input font-mono text-sm flex-1"
+                  />
+                  <div v-if="stageVariables.length > 0" class="relative">
+                    <button
+                      type="button"
+                      @click.stop="toggleWatchedVariableDropdown(index)"
+                      class="btn-secondary mt-0.5"
+                      title="Select from defined variables"
+                    >
+                      <MoreHorizontal :size="16" />
+                    </button>
+                    <div
+                      v-if="openWatchedVariableDropdown === index"
+                      class="fixed inset-0 z-40"
+                      @click="openWatchedVariableDropdown = null"
+                    ></div>
+                    <div
+                      v-if="openWatchedVariableDropdown === index"
+                      @click.stop
+                      class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
+                    >
+                      <button
+                        v-for="variable in stageVariablesWithTypes"
+                        :key="variable.name"
+                        type="button"
+                        @click="selectWatchedVariable(index, variable.name)"
+                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                      >
+                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                          :class="getTypeBadgeColor(variable.type)"
+                        >
+                          {{ variable.displayType }}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="form-label text-sm">Change Type <span class="required">*</span></label>
+                <select v-model="watched.changeType" class="form-select-auto text-sm">
+                  <option value="new">New (variable created)</option>
+                  <option value="changed">Changed (value updated)</option>
+                  <option value="removed">Removed (variable cleared)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          @click="addWatchedVariable()"
+          class="btn-secondary mt-3"
+        >
+          + Add Watched Variable
+        </button>
       </div>
 
       <div class="form-group">
