@@ -306,7 +306,7 @@ const metadataFields = computed(() => {
 
             <div v-else class="space-y-4">
               <div v-for="event in events" :key="event.id"
-                class="border rounded-lg p-4 shadow-sm transition-shadow hover:shadow-md"
+                class="border rounded-lg p-4 transition-shadow hover:shadow-md"
                 :class="[
                   getEventTypeColor(event.eventType),
                   { 'ml-8': !isMessageEvent(event) }
@@ -898,9 +898,9 @@ const metadataFields = computed(() => {
                               class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
                               Metadata ({{ Object.keys(event.eventData.metadata).length }})
                             </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                            <div class="mt-1 bg-white dark:bg-gray-700 bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto">
                               <pre
-                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                                class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
                             </div>
                           </details>
                         </div>
@@ -936,7 +936,7 @@ const metadataFields = computed(() => {
                       </summary>
                       <div class="mt-2 bg-white bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
                         <pre
-                          class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData, null, 2) }}</pre>
+                          class="">{{ JSON.stringify(event.eventData, null, 2) }}</pre>
                       </div>
                     </details>
                   </div>
@@ -949,8 +949,8 @@ const metadataFields = computed(() => {
                       Metadata
                       <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
                     </summary>
-                    <div class="mt-2 bg-white bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
-                      <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.metadata, null, 2) }}</pre>
+                    <div class="mt-2 bg-white dark:bg-gray-700 bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
+                      <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.metadata, null, 2) }}</pre>
                     </div>
                   </details>
                 </div>
