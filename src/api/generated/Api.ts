@@ -14,12 +14,14 @@ import {
   AnthropicLlmSettings,
   AsrConfig,
   AsrModelInfo,
+  AzureAsrSettings,
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
   AzureTtsSettings,
   CartesiaTtsSettings,
   DeepgramTtsSettings,
   Effect,
+  ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
   ExportBundle,
   FieldDescriptor,
@@ -698,28 +700,7 @@ export class Api<
         /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
         asrProviderId?: string;
         /** ASR-specific settings including model, language preferences, etc. */
-        settings?: {
-          /** The language code for speech recognition (e.g., "en-US") */
-          language?: string;
-          /** The phrases to add to the speech recognition dictionary */
-          dictionaryPhrases?: string[];
-          /** Audio input format for speech recognition (e.g., "pcm_16000") */
-          audioFormat?:
-            | "mp3"
-            | "opus"
-            | "aac"
-            | "flac"
-            | "wav"
-            | "pcm_8000"
-            | "pcm_16000"
-            | "pcm_22050"
-            | "pcm_24000"
-            | "pcm_44100"
-            | "pcm_48000"
-            | "mulaw"
-            | "alaw"
-            | "linear16";
-        };
+        settings?: AzureAsrSettings | ElevenLabsAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -766,28 +747,7 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: {
-            /** The language code for speech recognition (e.g., "en-US") */
-            language?: string;
-            /** The phrases to add to the speech recognition dictionary */
-            dictionaryPhrases?: string[];
-            /** Audio input format for speech recognition (e.g., "pcm_16000") */
-            audioFormat?:
-              | "mp3"
-              | "opus"
-              | "aac"
-              | "flac"
-              | "wav"
-              | "pcm_8000"
-              | "pcm_16000"
-              | "pcm_22050"
-              | "pcm_24000"
-              | "pcm_44100"
-              | "pcm_48000"
-              | "mulaw"
-              | "alaw"
-              | "linear16";
-          };
+          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -893,28 +853,7 @@ export class Api<
             /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
             asrProviderId?: string;
             /** ASR-specific settings including model, language preferences, etc. */
-            settings?: {
-              /** The language code for speech recognition (e.g., "en-US") */
-              language?: string;
-              /** The phrases to add to the speech recognition dictionary */
-              dictionaryPhrases?: string[];
-              /** Audio input format for speech recognition (e.g., "pcm_16000") */
-              audioFormat?:
-                | "mp3"
-                | "opus"
-                | "aac"
-                | "flac"
-                | "wav"
-                | "pcm_8000"
-                | "pcm_16000"
-                | "pcm_22050"
-                | "pcm_24000"
-                | "pcm_44100"
-                | "pcm_48000"
-                | "mulaw"
-                | "alaw"
-                | "linear16";
-            };
+            settings?: AzureAsrSettings | ElevenLabsAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -987,28 +926,7 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: {
-            /** The language code for speech recognition (e.g., "en-US") */
-            language?: string;
-            /** The phrases to add to the speech recognition dictionary */
-            dictionaryPhrases?: string[];
-            /** Audio input format for speech recognition (e.g., "pcm_16000") */
-            audioFormat?:
-              | "mp3"
-              | "opus"
-              | "aac"
-              | "flac"
-              | "wav"
-              | "pcm_8000"
-              | "pcm_16000"
-              | "pcm_22050"
-              | "pcm_24000"
-              | "pcm_44100"
-              | "pcm_48000"
-              | "mulaw"
-              | "alaw"
-              | "linear16";
-          };
+          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1104,28 +1022,7 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: {
-            /** The language code for speech recognition (e.g., "en-US") */
-            language?: string;
-            /** The phrases to add to the speech recognition dictionary */
-            dictionaryPhrases?: string[];
-            /** Audio input format for speech recognition (e.g., "pcm_16000") */
-            audioFormat?:
-              | "mp3"
-              | "opus"
-              | "aac"
-              | "flac"
-              | "wav"
-              | "pcm_8000"
-              | "pcm_16000"
-              | "pcm_22050"
-              | "pcm_24000"
-              | "pcm_44100"
-              | "pcm_48000"
-              | "mulaw"
-              | "alaw"
-              | "linear16";
-          };
+          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */

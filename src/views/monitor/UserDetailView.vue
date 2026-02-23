@@ -201,8 +201,8 @@ const profileEntries = computed(() => {
                           {{ entry.key }}
                         </td>
                         <td class="table-cell">
-                          <div v-if="entry.isComplex" class="bg-gray-50 rounded p-3 font-mono text-xs overflow-x-auto max-w-2xl">
-                            <pre class="whitespace-pre-wrap break-words">{{ entry.displayValue }}</pre>
+                          <div v-if="entry.isComplex" class="bg-gray-100 dark:bg-gray-700 rounded p-3 font-mono text-xs overflow-x-auto max-w-2xl">
+                            <pre class="whitespace-pre-wrap break-words text-black dark:text-gray-200">{{ entry.displayValue }}</pre>
                           </div>
                           <div v-else class="text-gray-900 dark:text-gray-200">
                             {{ entry.displayValue }}
