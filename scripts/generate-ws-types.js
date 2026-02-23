@@ -40,7 +40,7 @@ async function generateTypes() {
   // Shared types that are referenced by other types
   const sharedTypes = [
     'ImageParameterValue',
-    'AudioParameterValue', 
+    'AudioParameterValue',
     'ParameterValue',
     'Effect',
     'EndConversationEffect',
@@ -67,7 +67,7 @@ async function generateTypes() {
       'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
       'GenerateResponseEffect'
     ],
-    auth: ['auth-request', 'auth-response', 'project-settings'],
+    auth: ['auth-request', 'auth-response', 'AzureAsrSettings', 'ElevenLabsAsrSettings', 'project-settings'],
     session: [
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',
@@ -196,7 +196,7 @@ export type AudioFormat = ${audioFormatUnion}`
         // or  [k: string]: unknown;
         // that appear within metadata objects
         cleaned = cleaned.replace(/^\s*\[k: string\]:\s*(\{[^}]+\}|unknown);?\s*$/gm, '')
-        
+
         // Clean up empty metadata objects or trailing commas
         cleaned = cleaned.replace(/metadata\?: \{\s*\};?/g, 'metadata?: Record<string, unknown>;')
         cleaned = cleaned.replace(/,(\s*\})/g, '$1') // Remove trailing commas before closing braces
