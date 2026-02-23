@@ -478,13 +478,20 @@ export interface AzureAsrSettings {
     | "mulaw"
     | "alaw"
     | "linear16";
+  [key: string]: any;
 }
 
 /** ElevenLabs Scribe settings */
 export interface ElevenLabsAsrSettings {
-  /** Model ID to use for transcription (e.g., "scribe_v2_realtime"), defaults to scribe_v2_realtime */
+  /**
+   * Model ID to use for transcription (e.g., "scribe_v2_realtime"), defaults to scribe_v2_realtime
+   * @default "scribe_v2_realtime"
+   */
   modelId?: string;
-  /** Audio encoding format for speech-to-text, defaults to pcm_16000 */
+  /**
+   * Audio encoding format for speech-to-text, defaults to pcm_16000
+   * @default "pcm_16000"
+   */
   audioFormat?:
     | "pcm_16000"
     | "pcm_8000"
@@ -493,38 +500,55 @@ export interface ElevenLabsAsrSettings {
     | "pcm_44100";
   /** Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es") */
   languageCode?: string;
-  /** Whether to receive word-level timestamps in transcription results, defaults to false */
+  /**
+   * Whether to receive word-level timestamps in transcription results, defaults to false
+   * @default false
+   */
   includeTimestamps?: boolean;
-  /** Whether to include detected language code in transcription results, defaults to false */
+  /**
+   * Whether to include detected language code in transcription results, defaults to false
+   * @default false
+   */
   includeLanguageDetection?: boolean;
-  /** Strategy for committing transcriptions - manual or voice activity detection, defaults to manual */
+  /**
+   * Strategy for committing transcriptions - manual or voice activity detection, defaults to manual
+   * @default "manual"
+   */
   commitStrategy?: "manual" | "vad";
   /**
    * Silence threshold in seconds for VAD (0.3-3), defaults to 1.5
    * @min 0.3
    * @max 3
+   * @default 1.5
    */
   vadSilenceThresholdSecs?: number;
   /**
    * Threshold for voice activity detection (0.1-0.9), defaults to 0.4
    * @min 0.1
    * @max 0.9
+   * @default 0.4
    */
   vadThreshold?: number;
   /**
    * Minimum speech duration in milliseconds (50-2000), defaults to 100
    * @min 50
    * @max 2000
+   * @default 100
    */
   minSpeechDurationMs?: number;
   /**
    * Minimum silence duration in milliseconds (50-2000), defaults to 100
    * @min 50
    * @max 2000
+   * @default 100
    */
   minSilenceDurationMs?: number;
-  /** When false, zero retention mode is used (enterprise only), defaults to true */
+  /**
+   * When false, zero retention mode is used (enterprise only), defaults to true
+   * @default true
+   */
   enableLogging?: boolean;
+  [key: string]: any;
 }
 
 export interface S3StorageConfig {
@@ -839,6 +863,13 @@ export interface StageAction {
   effects: Effect[];
   /** Example phrases that trigger this action */
   examples?: string[] | null;
+  /**
+   * Whether this action should be triggered on variable transformations
+   * @default false
+   */
+  triggerOnTransformation?: boolean;
+  /** Optional map of variable paths to watch for changes that trigger this action */
+  watchedVariables?: Record<string, "new" | "changed" | "removed">;
   /** Additional action-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -2363,6 +2394,7 @@ export interface ConversationEventListResponse {
     eventType:
       | "message"
       | "classification"
+      | "transformation"
       | "action"
       | "command"
       | "tool_call"
@@ -2391,6 +2423,12 @@ export interface ConversationEventListResponse {
               parameters: Record<string, ParameterValue>;
             }[];
           }[];
+          metadata?: Record<string, any>;
+        }
+      | {
+          transformerId: string;
+          input: string;
+          appliedFields: string[];
           metadata?: Record<string, any>;
         }
       | {
