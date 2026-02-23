@@ -255,7 +255,7 @@ async function refreshData() {
         <div class="relative">
           <button
             @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button filter-btn"
+            class="time-filter-button filter-btn !shadow-none"
           >
             <Calendar class="w-4 h-4 mr-2" />
             <span>{{ currentTimeFilterLabel }}</span>
@@ -268,7 +268,7 @@ async function refreshData() {
               v-for="option in timeFilterOptions"
               :key="option.value"
               @click="selectTimeFilter(option.value)"
-              class="filter-dropdown-item"
+              class="filter-dropdown-item !shadow-none"
               :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
             >
               {{ option.label }}
@@ -280,7 +280,7 @@ async function refreshData() {
         <div class="relative">
           <button
             @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button filter-btn"
+            class="status-filter-button filter-btn  !shadow-none"
           >
             <span>{{ currentStatusFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />

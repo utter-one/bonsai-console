@@ -246,7 +246,7 @@ function selectActionFilter(value: typeof actionFilter.value) {
           <div class="relative">
             <button
               @click="showTimeDropdown = !showTimeDropdown"
-              class="time-filter-button filter-btn">
+              class="time-filter-button filter-btn !shadow-none">
               <Calendar class="w-4 h-4 mr-2" />
               <span>{{ currentTimeFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
@@ -269,7 +269,7 @@ function selectActionFilter(value: typeof actionFilter.value) {
           <div class="relative">
             <button
               @click="showActionDropdown = !showActionDropdown"
-              class="action-filter-button filter-btn">
+              class="action-filter-button filter-btn !shadow-none">
               <span>{{ currentActionFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
             </button>
