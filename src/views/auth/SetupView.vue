@@ -78,7 +78,7 @@ async function handleSetup() {
           <div class="flex justify-center text-gradient-from mb-4">
             <Rocket :size="40" />
           </div>
-          <h1 class="auth-title">Welcome to Nexus Admin</h1>
+          <h1 class="auth-title">Welcome to Bonsai Console</h1>
           <p class="auth-subtitle">Let's set up your initial administrator account</p>
         </div>
 

@@ -818,7 +818,7 @@ interface AudioSettings {
   autoGainControl: boolean
 }
 
-const AUDIO_SETTINGS_KEY = 'nexus_audio_settings'
+const AUDIO_SETTINGS_KEY = 'bonsai_audio_settings'
 
 function loadAudioSettings(): AudioSettings {
   try {
@@ -876,7 +876,7 @@ interface PlaygroundPreferencesStorage {
   [projectId: string]: PlaygroundPreferences
 }
 
-const PLAYGROUND_PREFS_KEY = 'nexus_playground_prefs'
+const PLAYGROUND_PREFS_KEY = 'bonsai_playground_prefs'
 
 const conversationPresets: ConversationPreset[] = [
   {

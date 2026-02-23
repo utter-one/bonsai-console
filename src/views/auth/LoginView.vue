@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores'
+import logoUrl from '@/assets/logo.svg'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -63,7 +64,8 @@ async function handleLogin() {
 
       <div v-else class="auth-card">
         <div class="auth-header">
-          <h1 class="auth-title">Nexus Admin</h1>
+          <img :src="logoUrl" alt="Bonsai Console" class="mx-auto mb-4 h-20 w-20 dark:invert" />
+          <h1 class="auth-title">Bonsai Console</h1>
           <p class="auth-subtitle">Sign in to manage your AI platform</p>
         </div>
 

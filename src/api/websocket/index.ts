@@ -1,5 +1,5 @@
 /**
- * WebSocket client exports for Nexus conversations.
+ * WebSocket client exports for Bonsai conversations.
  */
 
 export {
