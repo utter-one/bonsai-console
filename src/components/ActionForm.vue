@@ -560,169 +560,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Trigger Tab -->
-    <div v-show="activeTab.value === 'trigger'" class="space-y-6">
-      <div class="form-group">
-        <label class="form-label">Trigger Options <span class="required">*</span></label>
-        <div class="space-y-2">
-          <label class="flex items-center cursor-pointer">
-            <input
-              v-model="form.triggerOnUserInput"
-              type="checkbox"
-              class="form-checkbox"
-            />
-            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-              Trigger on User Input
-            </span>
-          </label>
-          <label class="flex items-center cursor-pointer">
-            <input
-              v-model="form.triggerOnClientCommand"
-              type="checkbox"
-              class="form-checkbox"
-            />
-            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-              Trigger on Client Command
-            </span>
-          </label>
-          <label class="flex items-center cursor-pointer">
-            <input
-              v-model="form.triggerOnTransformation"
-              type="checkbox"
-              class="form-checkbox"
-            />
-            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-              Trigger on Variable Transformation
-            </span>
-          </label>
-        </div>
-        <p class="form-help-text">
-          Select when this action can be triggered
-        </p>
-      </div>
+    <div v-show="activeTab.value === 'trigger'" class="space-y-4">
 
-      <!-- Watched Variables (shown when triggerOnTransformation is enabled) -->
-      <div v-if="form.triggerOnTransformation" class="form-group">
-        <label class="form-label">Watched Variables</label>
-        <p class="form-help-text mb-3">
-          Define which variable changes trigger this action. Leave empty to trigger on any transformation.
-        </p>
-        <div class="space-y-3">
-          <div
-            v-for="(watched, index) in form.watchedVariables"
-            :key="index"
-            class="p-3 border border-gray-200 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700"
-          >
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Variable {{ index + 1 }}</span>
-              <button
-                type="button"
-                @click="removeWatchedVariable(index)"
-                class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
-              >
-                Remove
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="form-label text-sm">Variable Path <span class="required">*</span></label>
-                <div class="flex items-start gap-2">
-                  <input
-                    v-model="watched.path"
-                    type="text"
-                    placeholder="cart_total"
-                    class="form-input font-mono text-sm flex-1"
-                  />
-                  <div v-if="stageVariables.length > 0" class="relative">
-                    <button
-                      type="button"
-                      @click.stop="toggleWatchedVariableDropdown(index)"
-                      class="btn-secondary mt-0.5"
-                      title="Select from defined variables"
-                    >
-                      <MoreHorizontal :size="16" />
-                    </button>
-                    <div
-                      v-if="openWatchedVariableDropdown === index"
-                      class="fixed inset-0 z-40"
-                      @click="openWatchedVariableDropdown = null"
-                    ></div>
-                    <div
-                      v-if="openWatchedVariableDropdown === index"
-                      @click.stop
-                      class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
-                    >
-                      <button
-                        v-for="variable in stageVariablesWithTypes"
-                        :key="variable.name"
-                        type="button"
-                        @click="selectWatchedVariable(index, variable.name)"
-                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
-                      >
-                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
-                        <span
-                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                          :class="getTypeBadgeColor(variable.type)"
-                        >
-                          {{ variable.displayType }}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label class="form-label text-sm">Change Type <span class="required">*</span></label>
-                <select v-model="watched.changeType" class="form-select-auto text-sm">
-                  <option value="new">New (variable created)</option>
-                  <option value="changed">Changed (value updated)</option>
-                  <option value="removed">Removed (variable cleared)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          @click="addWatchedVariable()"
-          class="btn-secondary mt-3"
-        >
-          + Add Watched Variable
-        </button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Classification Trigger <span class="text-gray-500">(optional)</span>
-        </label>
-        <input
-          v-model="form.classificationTrigger"
-          type="text"
-          placeholder="transfer_request"
-          class="form-input"
-        />
-        <p class="form-help-text">
-          Classification label that triggers this action
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Override Classifier ID <span class="text-gray-500">(optional)</span>
-        </label>
-        <select
-          v-model="form.overrideClassifierId"
-          class="form-select-auto"
-        >
-          <option value="">No override (use stage default classifier)</option>
-          <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
-            {{ classifier.name }}
-          </option>
-        </select>
-        <p class="form-help-text">
-          Override the stage's default classifier for this specific action
-        </p>
-      </div>
-
+      <!-- Condition (always visible) -->
       <div class="form-group">
         <label class="form-label">
           Condition <span class="text-gray-500">(optional)</span>
@@ -736,6 +576,168 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <p class="form-help-text">
           Optional JavaScript condition expression for action activation
         </p>
+      </div>
+
+      <!-- Trigger on User Input -->
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+          <input
+            v-model="form.triggerOnUserInput"
+            type="checkbox"
+            class="form-checkbox"
+          />
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+            Trigger on User Input
+          </span>
+        </label>
+        <div v-if="form.triggerOnUserInput" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="form-group mb-0">
+            <label class="form-label">
+              Classification Trigger <span class="text-gray-500">(optional)</span>
+            </label>
+            <input
+              v-model="form.classificationTrigger"
+              type="text"
+              placeholder="transfer_request"
+              class="form-input"
+            />
+            <p class="form-help-text">
+              Classification label that triggers this action
+            </p>
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label">
+              Override Classifier ID <span class="text-gray-500">(optional)</span>
+            </label>
+            <select
+              v-model="form.overrideClassifierId"
+              class="form-select-auto"
+            >
+              <option value="">No override (use stage default classifier)</option>
+              <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
+                {{ classifier.name }}
+              </option>
+            </select>
+            <p class="form-help-text">
+              Override the stage's default classifier for this specific action
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trigger on Client Command -->
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+        <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+          <input
+            v-model="form.triggerOnClientCommand"
+            type="checkbox"
+            class="form-checkbox"
+          />
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+            Trigger on Client Command
+          </span>
+        </label>
+      </div>
+
+      <!-- Trigger on Variable Transformation -->
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+          <input
+            v-model="form.triggerOnTransformation"
+            type="checkbox"
+            class="form-checkbox"
+          />
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+            Trigger on Variable Transformation
+          </span>
+        </label>
+        <div v-if="form.triggerOnTransformation" class="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+          <p class="form-help-text mb-3">
+            Define which variable changes trigger this action. Leave empty to trigger on any transformation.
+          </p>
+          <div class="space-y-3">
+            <div
+              v-for="(watched, index) in form.watchedVariables"
+              :key="index"
+              class="p-3 border border-gray-200 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Variable {{ index + 1 }}</span>
+                <button
+                  type="button"
+                  @click="removeWatchedVariable(index)"
+                  class="text-red-600 hover:text-red-700 text-sm dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Remove
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="form-label text-sm">Variable Path <span class="required">*</span></label>
+                  <div class="flex items-start gap-2">
+                    <input
+                      v-model="watched.path"
+                      type="text"
+                      placeholder="cart_total"
+                      class="form-input font-mono text-sm flex-1"
+                    />
+                    <div v-if="stageVariables.length > 0" class="relative">
+                      <button
+                        type="button"
+                        @click.stop="toggleWatchedVariableDropdown(index)"
+                        class="btn-secondary mt-0.5"
+                        title="Select from defined variables"
+                      >
+                        <MoreHorizontal :size="16" />
+                      </button>
+                      <div
+                        v-if="openWatchedVariableDropdown === index"
+                        class="fixed inset-0 z-40"
+                        @click="openWatchedVariableDropdown = null"
+                      ></div>
+                      <div
+                        v-if="openWatchedVariableDropdown === index"
+                        @click.stop
+                        class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
+                      >
+                        <button
+                          v-for="variable in stageVariablesWithTypes"
+                          :key="variable.name"
+                          type="button"
+                          @click="selectWatchedVariable(index, variable.name)"
+                          class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                        >
+                          <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
+                          <span
+                            class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                            :class="getTypeBadgeColor(variable.type)"
+                          >
+                            {{ variable.displayType }}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label text-sm">Change Type <span class="required">*</span></label>
+                  <select v-model="watched.changeType" class="form-select-auto text-sm">
+                    <option value="new">New (variable created)</option>
+                    <option value="changed">Changed (value updated)</option>
+                    <option value="removed">Removed (variable cleared)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="addWatchedVariable()"
+            class="btn-secondary mt-3"
+          >
+            + Add Watched Variable
+          </button>
+        </div>
       </div>
     </div>
 
