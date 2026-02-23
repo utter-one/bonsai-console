@@ -1015,7 +1015,7 @@ function toggleNode(path: number[]) {
                   <label
                     v-for="transformer in projectTransformers"
                     :key="transformer.id"
-                    class="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded"
+                    class="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded"
                   >
                     <input
                       v-model="form.transformerIds"
@@ -1024,7 +1024,7 @@ function toggleNode(path: number[]) {
                       class="form-checkbox"
                       :disabled="isLoading"
                     />
-                    <span class="ml-2 text-sm text-gray-700">
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                       {{ transformer.name }}
                     </span>
                   </label>
