@@ -846,40 +846,14 @@
             "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
           },
           "settings": {
-            "type": "object",
-            "properties": {
-              "language": {
-                "type": "string",
-                "description": "The language code for speech recognition (e.g., \"en-US\")"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AzureAsrSettings"
               },
-              "dictionaryPhrases": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "The phrases to add to the speech recognition dictionary"
-              },
-              "audioFormat": {
-                "type": "string",
-                "enum": [
-                  "mp3",
-                  "opus",
-                  "aac",
-                  "flac",
-                  "wav",
-                  "pcm_8000",
-                  "pcm_16000",
-                  "pcm_22050",
-                  "pcm_24000",
-                  "pcm_44100",
-                  "pcm_48000",
-                  "mulaw",
-                  "alaw",
-                  "linear16"
-                ],
-                "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+              {
+                "$ref": "#/components/schemas/ElevenLabsAsrSettings"
               }
-            },
+            ],
             "description": "ASR-specific settings including model, language preferences, etc."
           },
           "unintelligiblePlaceholder": {
@@ -892,6 +866,112 @@
           }
         },
         "description": "ASR configuration settings"
+      },
+      "AzureAsrSettings": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "The language code for speech recognition (e.g., 'en-US')"
+          },
+          "dictionaryPhrases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The phrases to add to the speech recognition dictionary"
+          },
+          "audioFormat": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm_8000",
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100",
+              "pcm_48000",
+              "mulaw",
+              "alaw",
+              "linear16"
+            ],
+            "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+          }
+        },
+        "description": "Azure Speech Recognition settings"
+      },
+      "ElevenLabsAsrSettings": {
+        "type": "object",
+        "properties": {
+          "modelId": {
+            "type": "string",
+            "description": "Model ID to use for transcription (e.g., \"scribe_v2_realtime\"), defaults to scribe_v2_realtime"
+          },
+          "audioFormat": {
+            "type": "string",
+            "enum": [
+              "pcm_16000",
+              "pcm_8000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100"
+            ],
+            "description": "Audio encoding format for speech-to-text, defaults to pcm_16000"
+          },
+          "languageCode": {
+            "type": "string",
+            "description": "Language code in ISO 639-1 or ISO 639-3 format (e.g., \"en\", \"es\")"
+          },
+          "includeTimestamps": {
+            "type": "boolean",
+            "description": "Whether to receive word-level timestamps in transcription results, defaults to false"
+          },
+          "includeLanguageDetection": {
+            "type": "boolean",
+            "description": "Whether to include detected language code in transcription results, defaults to false"
+          },
+          "commitStrategy": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "vad"
+            ],
+            "description": "Strategy for committing transcriptions - manual or voice activity detection, defaults to manual"
+          },
+          "vadSilenceThresholdSecs": {
+            "type": "number",
+            "minimum": 0.3,
+            "maximum": 3,
+            "description": "Silence threshold in seconds for VAD (0.3-3), defaults to 1.5"
+          },
+          "vadThreshold": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 0.9,
+            "description": "Threshold for voice activity detection (0.1-0.9), defaults to 0.4"
+          },
+          "minSpeechDurationMs": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 2000,
+            "description": "Minimum speech duration in milliseconds (50-2000), defaults to 100"
+          },
+          "minSilenceDurationMs": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 2000,
+            "description": "Minimum silence duration in milliseconds (50-2000), defaults to 100"
+          },
+          "enableLogging": {
+            "type": "boolean",
+            "description": "When false, zero retention mode is used (enterprise only), defaults to true"
+          }
+        },
+        "description": "ElevenLabs Scribe settings"
       },
       "S3StorageConfig": {
         "type": "object",
@@ -1403,31 +1483,6 @@
               "generate_response"
             ],
             "description": "Effect type"
-          },
-          "responseMode": {
-            "type": "string",
-            "enum": [
-              "generated",
-              "prescripted"
-            ],
-            "default": "generated",
-            "description": "Type of response to generate: generated (AI-generated), prescripted (predefined response), best_match (choose the best match from predefined responses)"
-          },
-          "prescriptedSelectionStrategy": {
-            "type": "string",
-            "enum": [
-              "random",
-              "round_robin"
-            ],
-            "default": "random",
-            "description": "Strategy to select prescripted response when multiple are provided"
-          },
-          "prescriptedResponses": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Optional array of prescripted responses to use"
           }
         },
         "required": [
@@ -2105,40 +2160,14 @@
                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
               "settings": {
-                "type": "object",
-                "properties": {
-                  "language": {
-                    "type": "string",
-                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AzureAsrSettings"
                   },
-                  "dictionaryPhrases": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "The phrases to add to the speech recognition dictionary"
-                  },
-                  "audioFormat": {
-                    "type": "string",
-                    "enum": [
-                      "mp3",
-                      "opus",
-                      "aac",
-                      "flac",
-                      "wav",
-                      "pcm_8000",
-                      "pcm_16000",
-                      "pcm_22050",
-                      "pcm_24000",
-                      "pcm_44100",
-                      "pcm_48000",
-                      "mulaw",
-                      "alaw",
-                      "linear16"
-                    ],
-                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                  {
+                    "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                   }
-                },
+                ],
                 "description": "ASR-specific settings including model, language preferences, etc."
               },
               "unintelligiblePlaceholder": {
@@ -2457,40 +2486,14 @@
                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
               "settings": {
-                "type": "object",
-                "properties": {
-                  "language": {
-                    "type": "string",
-                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AzureAsrSettings"
                   },
-                  "dictionaryPhrases": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "The phrases to add to the speech recognition dictionary"
-                  },
-                  "audioFormat": {
-                    "type": "string",
-                    "enum": [
-                      "mp3",
-                      "opus",
-                      "aac",
-                      "flac",
-                      "wav",
-                      "pcm_8000",
-                      "pcm_16000",
-                      "pcm_22050",
-                      "pcm_24000",
-                      "pcm_44100",
-                      "pcm_48000",
-                      "mulaw",
-                      "alaw",
-                      "linear16"
-                    ],
-                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                  {
+                    "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                   }
-                },
+                ],
                 "description": "ASR-specific settings including model, language preferences, etc."
               },
               "unintelligiblePlaceholder": {
@@ -2616,40 +2619,14 @@
                       "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                     },
                     "settings": {
-                      "type": "object",
-                      "properties": {
-                        "language": {
-                          "type": "string",
-                          "description": "The language code for speech recognition (e.g., \"en-US\")"
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/AzureAsrSettings"
                         },
-                        "dictionaryPhrases": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "The phrases to add to the speech recognition dictionary"
-                        },
-                        "audioFormat": {
-                          "type": "string",
-                          "enum": [
-                            "mp3",
-                            "opus",
-                            "aac",
-                            "flac",
-                            "wav",
-                            "pcm_8000",
-                            "pcm_16000",
-                            "pcm_22050",
-                            "pcm_24000",
-                            "pcm_44100",
-                            "pcm_48000",
-                            "mulaw",
-                            "alaw",
-                            "linear16"
-                          ],
-                          "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                        {
+                          "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                         }
-                      },
+                      ],
                       "description": "ASR-specific settings including model, language preferences, etc."
                     },
                     "unintelligiblePlaceholder": {
@@ -3318,6 +3295,131 @@
           "expiresIn"
         ]
       },
+      "CreateKnowledgeSectionRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the knowledge section (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the knowledge section"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateKnowledgeSectionRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated name of the knowledge section"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "KnowledgeSectionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the knowledge section"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the knowledge section"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the section was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the section was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "KnowledgeSectionListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the knowledge section"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the knowledge section"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the section was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the section was last updated"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of knowledge sections in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of sections matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Maximum number of items per page (null if no limit)"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ]
+      },
       "CreateKnowledgeCategoryRequest": {
         "type": "object",
         "properties": {
@@ -3341,12 +3443,12 @@
             "minLength": 1,
             "description": "Trigger phrase that activates this category in conversations"
           },
-          "tags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Array of knowledge tags this category belongs to"
+            "description": "Array of knowledge section IDs this category belongs to"
           },
           "order": {
             "type": "integer",
@@ -3373,12 +3475,12 @@
             "minLength": 1,
             "description": "Updated trigger phrase"
           },
-          "tags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Updated array of knowledge tags"
+            "description": "Updated array of knowledge section IDs"
           },
           "order": {
             "type": "integer",
@@ -3427,12 +3529,12 @@
             "type": "string",
             "description": "Trigger phrase that activates this category"
           },
-          "tags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Array of knowledge tags"
+            "description": "Array of knowledge section IDs"
           },
           "order": {
             "type": "integer",
@@ -3515,7 +3617,7 @@
           "projectId",
           "name",
           "promptTrigger",
-          "tags",
+          "knowledgeSections",
           "order",
           "version",
           "createdAt",
@@ -3546,12 +3648,12 @@
                   "type": "string",
                   "description": "Trigger phrase that activates this category"
                 },
-                "tags": {
+                "knowledgeSections": {
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "description": "Array of knowledge tags"
+                  "description": "Array of knowledge section IDs"
                 },
                 "order": {
                   "type": "integer",
@@ -3634,7 +3736,7 @@
                 "projectId",
                 "name",
                 "promptTrigger",
-                "tags",
+                "knowledgeSections",
                 "order",
                 "version",
                 "createdAt",
@@ -5502,13 +5604,13 @@
             "default": false,
             "description": "Whether to use knowledge base in this stage"
           },
-          "knowledgeTags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "default": [],
-            "description": "List of knowledge tags to include"
+            "description": "List of knowledge section IDs to include"
           },
           "useGlobalActions": {
             "type": "boolean",
@@ -5625,12 +5727,12 @@
             "type": "boolean",
             "description": "Updated knowledge usage flag"
           },
-          "knowledgeTags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Updated knowledge tags"
+            "description": "Updated knowledge section IDs"
           },
           "useGlobalActions": {
             "type": "boolean",
@@ -5764,12 +5866,12 @@
             "type": "boolean",
             "description": "Whether knowledge base is enabled"
           },
-          "knowledgeTags": {
+          "knowledgeSections": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Knowledge tags included in this stage"
+            "description": "Knowledge section IDs included in this stage"
           },
           "useGlobalActions": {
             "type": "boolean",
@@ -5843,7 +5945,7 @@
           "personaId",
           "enterBehavior",
           "useKnowledge",
-          "knowledgeTags",
+          "knowledgeSections",
           "useGlobalActions",
           "globalActions",
           "variableDescriptors",
@@ -5926,12 +6028,12 @@
                   "type": "boolean",
                   "description": "Whether knowledge base is enabled"
                 },
-                "knowledgeTags": {
+                "knowledgeSections": {
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "description": "Knowledge tags included in this stage"
+                  "description": "Knowledge section IDs included in this stage"
                 },
                 "useGlobalActions": {
                   "type": "boolean",
@@ -6005,7 +6107,7 @@
                 "personaId",
                 "enterBehavior",
                 "useKnowledge",
-                "knowledgeTags",
+                "knowledgeSections",
                 "useGlobalActions",
                 "globalActions",
                 "variableDescriptors",
@@ -9839,499 +9941,6 @@
           "items",
           "total"
         ]
-      },
-      "VersionResponse": {
-        "type": "object",
-        "properties": {
-          "restSchemaHash": {
-            "type": "string",
-            "description": "First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes."
-          },
-          "wsSchemaHash": {
-            "type": "string",
-            "description": "First 12 hex chars of the SHA-256 hash of the WebSocket contracts schema. Changes only when a WebSocket contract changes."
-          },
-          "gitCommit": {
-            "type": "string",
-            "nullable": true,
-            "description": "Short git commit SHA of the running build, injected via the GIT_COMMIT environment variable. Null when not set."
-          }
-        },
-        "required": [
-          "restSchemaHash",
-          "wsSchemaHash",
-          "gitCommit"
-        ]
-      },
-      "EntityStub": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Entity ID"
-          },
-          "name": {
-            "type": "string",
-            "description": "Entity name or display label"
-          },
-          "projectId": {
-            "type": "string",
-            "description": "ID of the owning project — present for all project-scoped entities"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "MigrationEntityCount": {
-        "type": "object",
-        "properties": {
-          "entity": {
-            "type": "string",
-            "description": "Entity type name (e.g. \"providers\", \"stages\")"
-          },
-          "count": {
-            "type": "integer",
-            "description": "Number of records upserted, or counted in a dry run"
-          }
-        },
-        "required": [
-          "entity",
-          "count"
-        ]
-      },
-      "MigrationResult": {
-        "type": "object",
-        "properties": {
-          "upserted": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MigrationEntityCount"
-            },
-            "description": "Per-entity-type counts in FK-safe dependency order"
-          },
-          "sourceRestSchemaHash": {
-            "type": "string",
-            "description": "REST schema hash embedded in the imported bundle"
-          },
-          "localRestSchemaHash": {
-            "type": "string",
-            "description": "REST schema hash of this instance at import time"
-          },
-          "schemaHashMatch": {
-            "type": "boolean",
-            "description": "Whether the source and local REST schema hashes matched"
-          },
-          "dryRun": {
-            "type": "boolean",
-            "description": "True if no data was written to the database"
-          },
-          "durationMs": {
-            "type": "integer",
-            "description": "Total migration duration in milliseconds"
-          }
-        },
-        "required": [
-          "upserted",
-          "sourceRestSchemaHash",
-          "localRestSchemaHash",
-          "schemaHashMatch",
-          "dryRun",
-          "durationMs"
-        ]
-      },
-      "MigrationJob": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique job identifier"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "running",
-              "completed",
-              "failed"
-            ],
-            "description": "Current job status"
-          },
-          "environmentId": {
-            "type": "string",
-            "description": "Source environment ID"
-          },
-          "selection": {
-            "$ref": "#/components/schemas/MigrationSelection"
-          },
-          "dryRun": {
-            "type": "boolean",
-            "description": "Whether this is a dry run"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "ISO timestamp when the job was queued"
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "ISO timestamp when the job finished (success or failure)"
-          },
-          "result": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MigrationResult"
-              },
-              {
-                "description": "Migration result — available when status is \"completed\""
-              }
-            ]
-          },
-          "error": {
-            "type": "string",
-            "description": "Error description — available when status is \"failed\""
-          }
-        },
-        "required": [
-          "id",
-          "status",
-          "environmentId",
-          "selection",
-          "dryRun",
-          "startedAt"
-        ]
-      },
-      "MigrationSelection": {
-        "type": "object",
-        "properties": {
-          "projectIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
-          },
-          "stageIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
-          },
-          "personaIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
-          },
-          "classifierIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific classifier IDs to include. Pulls in referenced LLM provider."
-          },
-          "contextTransformerIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific context transformer IDs to include. Pulls in referenced LLM provider."
-          },
-          "toolIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific tool IDs to include. Pulls in referenced LLM provider."
-          },
-          "globalActionIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific global action IDs to include."
-          },
-          "knowledgeCategoryIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific knowledge category IDs to include. All child knowledge items are always included."
-          },
-          "providerIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific provider IDs to include (in addition to any transitively required ones)."
-          },
-          "apiKeyIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Specific API key IDs to include."
-          }
-        },
-        "description": "Entity selection used for this pull"
-      },
-      "MigrationPreview": {
-        "type": "object",
-        "properties": {
-          "totalCount": {
-            "type": "integer",
-            "description": "Total number of entities across all types"
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Provider stubs that would be included"
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Project stubs that would be included"
-          },
-          "personas": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Persona stubs that would be included"
-          },
-          "classifiers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Classifier stubs that would be included"
-          },
-          "contextTransformers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Context transformer stubs that would be included"
-          },
-          "tools": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Tool stubs that would be included"
-          },
-          "globalActions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Global action stubs that would be included"
-          },
-          "knowledgeCategories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Knowledge category stubs that would be included"
-          },
-          "knowledgeItems": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Knowledge item stubs that would be included — name is the question text"
-          },
-          "stages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "Stage stubs that would be included"
-          },
-          "apiKeys": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityStub"
-            },
-            "description": "API key stubs that would be included"
-          }
-        },
-        "required": [
-          "totalCount",
-          "providers",
-          "projects",
-          "personas",
-          "classifiers",
-          "contextTransformers",
-          "tools",
-          "globalActions",
-          "knowledgeCategories",
-          "knowledgeItems",
-          "stages",
-          "apiKeys"
-        ]
-      },
-      "ExportBundle": {
-        "type": "object",
-        "properties": {
-          "exportedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "ISO timestamp when the bundle was generated"
-          },
-          "restSchemaHash": {
-            "type": "string",
-            "description": "REST schema hash of the source instance at export time — used for compatibility checking on import"
-          },
-          "sourceUrl": {
-            "type": "string",
-            "description": "Base URL of the source instance (informational, not used for requests)"
-          },
-          "selection": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MigrationSelection"
-              },
-              {
-                "description": "The selection criteria that produced this bundle"
-              }
-            ]
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Provider stub records — config (API credentials) is stripped on export; credentials must be reconfigured on the target after import"
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Project records"
-          },
-          "personas": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Persona records — depend on projects"
-          },
-          "classifiers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Classifier records — depend on projects"
-          },
-          "contextTransformers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Context transformer records — depend on projects"
-          },
-          "tools": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Tool records — depend on projects"
-          },
-          "globalActions": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Global action records — depend on projects"
-          },
-          "knowledgeCategories": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Knowledge category records — depend on projects"
-          },
-          "knowledgeItems": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Knowledge item records — depend on knowledgeCategories"
-          },
-          "stages": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "Stage records — depend on projects, personas, and classifiers"
-          },
-          "apiKeys": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "nullable": true
-              }
-            },
-            "description": "API key records — depend on projects"
-          }
-        },
-        "required": [
-          "exportedAt",
-          "restSchemaHash",
-          "selection",
-          "providers",
-          "projects",
-          "personas",
-          "classifiers",
-          "contextTransformers",
-          "tools",
-          "globalActions",
-          "knowledgeCategories",
-          "knowledgeItems",
-          "stages",
-          "apiKeys"
-        ]
       }
     },
     "parameters": {},
@@ -11527,40 +11136,14 @@
                         "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                       },
                       "settings": {
-                        "type": "object",
-                        "properties": {
-                          "language": {
-                            "type": "string",
-                            "description": "The language code for speech recognition (e.g., \"en-US\")"
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/AzureAsrSettings"
                           },
-                          "dictionaryPhrases": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "The phrases to add to the speech recognition dictionary"
-                          },
-                          "audioFormat": {
-                            "type": "string",
-                            "enum": [
-                              "mp3",
-                              "opus",
-                              "aac",
-                              "flac",
-                              "wav",
-                              "pcm_8000",
-                              "pcm_16000",
-                              "pcm_22050",
-                              "pcm_24000",
-                              "pcm_44100",
-                              "pcm_48000",
-                              "mulaw",
-                              "alaw",
-                              "linear16"
-                            ],
-                            "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                          {
+                            "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                           }
-                        },
+                        ],
                         "description": "ASR-specific settings including model, language preferences, etc."
                       },
                       "unintelligiblePlaceholder": {
@@ -11663,40 +11246,14 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "type": "object",
-                          "properties": {
-                            "language": {
-                              "type": "string",
-                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/AzureAsrSettings"
                             },
-                            "dictionaryPhrases": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              },
-                              "description": "The phrases to add to the speech recognition dictionary"
-                            },
-                            "audioFormat": {
-                              "type": "string",
-                              "enum": [
-                                "mp3",
-                                "opus",
-                                "aac",
-                                "flac",
-                                "wav",
-                                "pcm_8000",
-                                "pcm_16000",
-                                "pcm_22050",
-                                "pcm_24000",
-                                "pcm_44100",
-                                "pcm_48000",
-                                "mulaw",
-                                "alaw",
-                                "linear16"
-                              ],
-                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            {
+                              "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                             }
-                          },
+                          ],
                           "description": "ASR-specific settings including model, language preferences, etc."
                         },
                         "unintelligiblePlaceholder": {
@@ -11974,40 +11531,14 @@
                                 "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                               },
                               "settings": {
-                                "type": "object",
-                                "properties": {
-                                  "language": {
-                                    "type": "string",
-                                    "description": "The language code for speech recognition (e.g., \"en-US\")"
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/components/schemas/AzureAsrSettings"
                                   },
-                                  "dictionaryPhrases": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "string"
-                                    },
-                                    "description": "The phrases to add to the speech recognition dictionary"
-                                  },
-                                  "audioFormat": {
-                                    "type": "string",
-                                    "enum": [
-                                      "mp3",
-                                      "opus",
-                                      "aac",
-                                      "flac",
-                                      "wav",
-                                      "pcm_8000",
-                                      "pcm_16000",
-                                      "pcm_22050",
-                                      "pcm_24000",
-                                      "pcm_44100",
-                                      "pcm_48000",
-                                      "mulaw",
-                                      "alaw",
-                                      "linear16"
-                                    ],
-                                    "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                                  {
+                                    "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                                   }
-                                },
+                                ],
                                 "description": "ASR-specific settings including model, language preferences, etc."
                               },
                               "unintelligiblePlaceholder": {
@@ -12170,40 +11701,14 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "type": "object",
-                          "properties": {
-                            "language": {
-                              "type": "string",
-                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/AzureAsrSettings"
                             },
-                            "dictionaryPhrases": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              },
-                              "description": "The phrases to add to the speech recognition dictionary"
-                            },
-                            "audioFormat": {
-                              "type": "string",
-                              "enum": [
-                                "mp3",
-                                "opus",
-                                "aac",
-                                "flac",
-                                "wav",
-                                "pcm_8000",
-                                "pcm_16000",
-                                "pcm_22050",
-                                "pcm_24000",
-                                "pcm_44100",
-                                "pcm_48000",
-                                "mulaw",
-                                "alaw",
-                                "linear16"
-                              ],
-                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            {
+                              "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                             }
-                          },
+                          ],
                           "description": "ASR-specific settings including model, language preferences, etc."
                         },
                         "unintelligiblePlaceholder": {
@@ -12418,40 +11923,14 @@
                           "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                         },
                         "settings": {
-                          "type": "object",
-                          "properties": {
-                            "language": {
-                              "type": "string",
-                              "description": "The language code for speech recognition (e.g., \"en-US\")"
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/AzureAsrSettings"
                             },
-                            "dictionaryPhrases": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              },
-                              "description": "The phrases to add to the speech recognition dictionary"
-                            },
-                            "audioFormat": {
-                              "type": "string",
-                              "enum": [
-                                "mp3",
-                                "opus",
-                                "aac",
-                                "flac",
-                                "wav",
-                                "pcm_8000",
-                                "pcm_16000",
-                                "pcm_22050",
-                                "pcm_24000",
-                                "pcm_44100",
-                                "pcm_48000",
-                                "mulaw",
-                                "alaw",
-                                "linear16"
-                              ],
-                              "description": "Audio input format for speech recognition (e.g., \"pcm_16000\")"
+                            {
+                              "$ref": "#/components/schemas/ElevenLabsAsrSettings"
                             }
-                          },
+                          ],
                           "description": "ASR-specific settings including model, language preferences, etc."
                         },
                         "unintelligiblePlaceholder": {
@@ -16508,13 +15987,479 @@
         }
       }
     },
+    "/api/knowledge/sections": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Create a new knowledge section",
+        "description": "Creates a new knowledge section that can contain multiple categories",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the knowledge section (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name of the knowledge section"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Knowledge section created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the knowledge section"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the knowledge section"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "409": {
+            "description": "Knowledge section already exists"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List knowledge sections",
+        "description": "Retrieves a paginated list of knowledge sections with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "description": "Maximum number of items to return (optional, null for no limit)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (optional, null for no limit)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of knowledge sections retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the knowledge section"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Name of the knowledge section"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the section was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the section was last updated"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of knowledge sections in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of sections matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "description": "Maximum number of items per page (null if no limit)"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset",
+                    "limit"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/knowledge/sections/{id}": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get knowledge section by ID",
+        "description": "Retrieves a single knowledge section by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge section ID"
+            },
+            "required": true,
+            "description": "Knowledge section ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Knowledge section retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the knowledge section"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the knowledge section"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Knowledge section not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Update knowledge section",
+        "description": "Updates an existing knowledge section",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge section ID"
+            },
+            "required": true,
+            "description": "Knowledge section ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated name of the knowledge section"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Knowledge section updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the knowledge section"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the knowledge section"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the section was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Knowledge section not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Delete knowledge section",
+        "description": "Deletes a knowledge section",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge section ID"
+            },
+            "required": true,
+            "description": "Knowledge section ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Knowledge section deleted successfully"
+          },
+          "404": {
+            "description": "Knowledge section not found"
+          }
+        }
+      }
+    },
     "/api/knowledge/categories": {
       "post": {
         "tags": [
           "Knowledge"
         ],
         "summary": "Create a new knowledge category",
-        "description": "Creates a new knowledge category with trigger phrase and associated tags",
+        "description": "Creates a new knowledge category with trigger phrase and associated sections",
         "requestBody": {
           "content": {
             "application/json": {
@@ -16541,12 +16486,12 @@
                     "minLength": 1,
                     "description": "Trigger phrase that activates this category in conversations"
                   },
-                  "tags": {
+                  "knowledgeSections": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     },
-                    "description": "Array of knowledge tags this category belongs to"
+                    "description": "Array of knowledge section IDs this category belongs to"
                   },
                   "order": {
                     "type": "integer",
@@ -16587,12 +16532,12 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "tags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of knowledge tags"
+                      "description": "Array of knowledge section IDs"
                     },
                     "order": {
                       "type": "integer",
@@ -16675,7 +16620,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "tags",
+                    "knowledgeSections",
                     "order",
                     "version",
                     "createdAt",
@@ -16858,12 +16803,12 @@
                             "type": "string",
                             "description": "Trigger phrase that activates this category"
                           },
-                          "tags": {
+                          "knowledgeSections": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             },
-                            "description": "Array of knowledge tags"
+                            "description": "Array of knowledge section IDs"
                           },
                           "order": {
                             "type": "integer",
@@ -16946,7 +16891,7 @@
                           "projectId",
                           "name",
                           "promptTrigger",
-                          "tags",
+                          "knowledgeSections",
                           "order",
                           "version",
                           "createdAt",
@@ -17032,12 +16977,12 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "tags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of knowledge tags"
+                      "description": "Array of knowledge section IDs"
                     },
                     "order": {
                       "type": "integer",
@@ -17120,7 +17065,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "tags",
+                    "knowledgeSections",
                     "order",
                     "version",
                     "createdAt",
@@ -17169,12 +17114,12 @@
                     "minLength": 1,
                     "description": "Updated trigger phrase"
                   },
-                  "tags": {
+                  "knowledgeSections": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     },
-                    "description": "Updated array of knowledge tags"
+                    "description": "Updated array of knowledge section IDs"
                   },
                   "order": {
                     "type": "integer",
@@ -17218,12 +17163,12 @@
                       "type": "string",
                       "description": "Trigger phrase that activates this category"
                     },
-                    "tags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of knowledge tags"
+                      "description": "Array of knowledge section IDs"
                     },
                     "order": {
                       "type": "integer",
@@ -17306,7 +17251,7 @@
                     "projectId",
                     "name",
                     "promptTrigger",
-                    "tags",
+                    "knowledgeSections",
                     "order",
                     "version",
                     "createdAt",
@@ -22177,428 +22122,6 @@
         }
       }
     },
-    "/api/environments/{id}/migration/scope": {
-      "get": {
-        "tags": [
-          "Environments"
-        ],
-        "summary": "Preview remote migration scope",
-        "description": "Authenticates against the stored environment and returns lightweight stubs (id + name) of all entities that would be pulled with the given selection — without writing any data. Same query params as GET /api/migration/preview on the source instance.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Environment ID"
-            },
-            "required": true,
-            "description": "Environment ID",
-            "name": "id",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects."
-            },
-            "required": false,
-            "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects.",
-            "name": "projectIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific stage IDs to export."
-            },
-            "required": false,
-            "description": "Specific stage IDs to export.",
-            "name": "stageIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific persona IDs to export."
-            },
-            "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific classifier IDs to export."
-            },
-            "required": false,
-            "description": "Specific classifier IDs to export.",
-            "name": "classifierIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific context transformer IDs to export."
-            },
-            "required": false,
-            "description": "Specific context transformer IDs to export.",
-            "name": "contextTransformerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific tool IDs to export."
-            },
-            "required": false,
-            "description": "Specific tool IDs to export.",
-            "name": "toolIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific global action IDs to export."
-            },
-            "required": false,
-            "description": "Specific global action IDs to export.",
-            "name": "globalActionIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge category IDs to export. All child items are included."
-            },
-            "required": false,
-            "description": "Specific knowledge category IDs to export. All child items are included.",
-            "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific provider IDs to export (added on top of transitively required ones)."
-            },
-            "required": false,
-            "description": "Specific provider IDs to export (added on top of transitively required ones).",
-            "name": "providerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific API key IDs to export."
-            },
-            "required": false,
-            "description": "Specific API key IDs to export.",
-            "name": "apiKeyIds",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Entity stubs grouped by type from the remote environment",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationPreview"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters"
-          },
-          "404": {
-            "description": "Environment not found"
-          }
-        }
-      }
-    },
-    "/api/environments/{id}/migration/pull": {
-      "post": {
-        "tags": [
-          "Environments"
-        ],
-        "summary": "Pull data from environment",
-        "description": "Authenticates against the stored environment, checks schema compatibility, fetches the remote export bundle, and imports it locally — all server-side. Returns a job immediately with status \"pending\"; poll GET /api/environments/{id}/migration/jobs/{jobId} for progress.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Environment ID"
-            },
-            "required": true,
-            "description": "Environment ID",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "selection": {
-                    "type": "object",
-                    "properties": {
-                      "projectIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
-                      },
-                      "stageIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
-                      },
-                      "personaIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
-                      },
-                      "classifierIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific classifier IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "contextTransformerIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific context transformer IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "toolIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific tool IDs to include. Pulls in referenced LLM provider."
-                      },
-                      "globalActionIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific global action IDs to include."
-                      },
-                      "knowledgeCategoryIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific knowledge category IDs to include. All child knowledge items are always included."
-                      },
-                      "providerIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific provider IDs to include (in addition to any transitively required ones)."
-                      },
-                      "apiKeyIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        },
-                        "description": "Specific API key IDs to include."
-                      }
-                    },
-                    "default": {},
-                    "description": "Granular entity selection. Omit or pass {} to pull everything."
-                  },
-                  "force": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, bypass schema hash mismatch check"
-                  },
-                  "dryRun": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true, simulate the pull without writing to the database"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Pull job started — poll the returned job ID for status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationJob"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "404": {
-            "description": "Environment not found"
-          }
-        }
-      }
-    },
-    "/api/environments/{id}/migration/jobs/{jobId}": {
-      "get": {
-        "tags": [
-          "Environments"
-        ],
-        "summary": "Get migration job status",
-        "description": "Returns the current state of an async pull job scoped to this environment. Jobs are held in process memory — a server restart clears all job history.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Environment ID"
-            },
-            "required": true,
-            "description": "Environment ID",
-            "name": "id",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "description": "Migration job ID"
-            },
-            "required": true,
-            "description": "Migration job ID",
-            "name": "jobId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Job status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationJob"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Job not found or does not belong to this environment"
-          }
-        }
-      }
-    },
     "/api/global-actions": {
       "post": {
         "tags": [
@@ -24619,13 +24142,13 @@
                     "default": false,
                     "description": "Whether to use knowledge base in this stage"
                   },
-                  "knowledgeTags": {
+                  "knowledgeSections": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     },
                     "default": [],
-                    "description": "List of knowledge tags to include"
+                    "description": "List of knowledge section IDs to include"
                   },
                   "useGlobalActions": {
                     "type": "boolean",
@@ -24756,12 +24279,12 @@
                       "type": "boolean",
                       "description": "Whether knowledge base is enabled"
                     },
-                    "knowledgeTags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Knowledge tags included in this stage"
+                      "description": "Knowledge section IDs included in this stage"
                     },
                     "useGlobalActions": {
                       "type": "boolean",
@@ -24835,7 +24358,7 @@
                     "personaId",
                     "enterBehavior",
                     "useKnowledge",
-                    "knowledgeTags",
+                    "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
                     "variableDescriptors",
@@ -25070,12 +24593,12 @@
                             "type": "boolean",
                             "description": "Whether knowledge base is enabled"
                           },
-                          "knowledgeTags": {
+                          "knowledgeSections": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             },
-                            "description": "Knowledge tags included in this stage"
+                            "description": "Knowledge section IDs included in this stage"
                           },
                           "useGlobalActions": {
                             "type": "boolean",
@@ -25149,7 +24672,7 @@
                           "personaId",
                           "enterBehavior",
                           "useKnowledge",
-                          "knowledgeTags",
+                          "knowledgeSections",
                           "useGlobalActions",
                           "globalActions",
                           "variableDescriptors",
@@ -25288,12 +24811,12 @@
                       "type": "boolean",
                       "description": "Whether knowledge base is enabled"
                     },
-                    "knowledgeTags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Knowledge tags included in this stage"
+                      "description": "Knowledge section IDs included in this stage"
                     },
                     "useGlobalActions": {
                       "type": "boolean",
@@ -25367,7 +24890,7 @@
                     "personaId",
                     "enterBehavior",
                     "useKnowledge",
-                    "knowledgeTags",
+                    "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
                     "variableDescriptors",
@@ -25469,12 +24992,12 @@
                     "type": "boolean",
                     "description": "Updated knowledge usage flag"
                   },
-                  "knowledgeTags": {
+                  "knowledgeSections": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     },
-                    "description": "Updated knowledge tags"
+                    "description": "Updated knowledge section IDs"
                   },
                   "useGlobalActions": {
                     "type": "boolean",
@@ -25603,12 +25126,12 @@
                       "type": "boolean",
                       "description": "Whether knowledge base is enabled"
                     },
-                    "knowledgeTags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Knowledge tags included in this stage"
+                      "description": "Knowledge section IDs included in this stage"
                     },
                     "useGlobalActions": {
                       "type": "boolean",
@@ -25682,7 +25205,7 @@
                     "personaId",
                     "enterBehavior",
                     "useKnowledge",
-                    "knowledgeTags",
+                    "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
                     "variableDescriptors",
@@ -25904,12 +25427,12 @@
                       "type": "boolean",
                       "description": "Whether knowledge base is enabled"
                     },
-                    "knowledgeTags": {
+                    "knowledgeSections": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Knowledge tags included in this stage"
+                      "description": "Knowledge section IDs included in this stage"
                     },
                     "useGlobalActions": {
                       "type": "boolean",
@@ -25983,7 +25506,7 @@
                     "personaId",
                     "enterBehavior",
                     "useKnowledge",
-                    "knowledgeTags",
+                    "knowledgeSections",
                     "useGlobalActions",
                     "globalActions",
                     "variableDescriptors",
@@ -28323,480 +27846,6 @@
           },
           "409": {
             "description": "Version conflict - API key was modified by another request"
-          }
-        }
-      }
-    },
-    "/version": {
-      "get": {
-        "tags": [
-          "System"
-        ],
-        "summary": "Get API schema version hashes",
-        "description": "Returns content-addressed SHA-256 hashes of the REST and WebSocket API schemas. Hashes change only when the corresponding contract files change — not on every commit. Use these hashes to detect breaking or additive changes between server deployments. No authentication required.",
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "Schema version hashes and optional git commit reference",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VersionResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/migration/preview": {
-      "get": {
-        "tags": [
-          "Migration"
-        ],
-        "summary": "Preview migration scope",
-        "description": "Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual pull. No data is written and the full entity records are never serialised.",
-        "parameters": [
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects."
-            },
-            "required": false,
-            "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects.",
-            "name": "projectIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific stage IDs to export."
-            },
-            "required": false,
-            "description": "Specific stage IDs to export.",
-            "name": "stageIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific persona IDs to export."
-            },
-            "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific classifier IDs to export."
-            },
-            "required": false,
-            "description": "Specific classifier IDs to export.",
-            "name": "classifierIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific context transformer IDs to export."
-            },
-            "required": false,
-            "description": "Specific context transformer IDs to export.",
-            "name": "contextTransformerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific tool IDs to export."
-            },
-            "required": false,
-            "description": "Specific tool IDs to export.",
-            "name": "toolIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific global action IDs to export."
-            },
-            "required": false,
-            "description": "Specific global action IDs to export.",
-            "name": "globalActionIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge category IDs to export. All child items are included."
-            },
-            "required": false,
-            "description": "Specific knowledge category IDs to export. All child items are included.",
-            "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific provider IDs to export (added on top of transitively required ones)."
-            },
-            "required": false,
-            "description": "Specific provider IDs to export (added on top of transitively required ones).",
-            "name": "providerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific API key IDs to export."
-            },
-            "required": false,
-            "description": "Specific API key IDs to export.",
-            "name": "apiKeyIds",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Entity stubs grouped by type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MigrationPreview"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters"
-          }
-        }
-      }
-    },
-    "/api/migration/export": {
-      "get": {
-        "tags": [
-          "Migration"
-        ],
-        "summary": "Export config bundle",
-        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.",
-        "parameters": [
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects."
-            },
-            "required": false,
-            "description": "Specific project IDs to export (comma-separated or repeated). Omit for all projects.",
-            "name": "projectIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific stage IDs to export."
-            },
-            "required": false,
-            "description": "Specific stage IDs to export.",
-            "name": "stageIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific persona IDs to export."
-            },
-            "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific classifier IDs to export."
-            },
-            "required": false,
-            "description": "Specific classifier IDs to export.",
-            "name": "classifierIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific context transformer IDs to export."
-            },
-            "required": false,
-            "description": "Specific context transformer IDs to export.",
-            "name": "contextTransformerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific tool IDs to export."
-            },
-            "required": false,
-            "description": "Specific tool IDs to export.",
-            "name": "toolIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific global action IDs to export."
-            },
-            "required": false,
-            "description": "Specific global action IDs to export.",
-            "name": "globalActionIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific knowledge category IDs to export. All child items are included."
-            },
-            "required": false,
-            "description": "Specific knowledge category IDs to export. All child items are included.",
-            "name": "knowledgeCategoryIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific provider IDs to export (added on top of transitively required ones)."
-            },
-            "required": false,
-            "description": "Specific provider IDs to export (added on top of transitively required ones).",
-            "name": "providerIds",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "description": "Specific API key IDs to export."
-            },
-            "required": false,
-            "description": "Specific API key IDs to export.",
-            "name": "apiKeyIds",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Export bundle consumed by the pulling instance",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExportBundle"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters"
           }
         }
       }
