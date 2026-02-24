@@ -41,7 +41,7 @@ function navigateTo(routeName: string) {
 </script>
 
 <template>
-  <div class="md:flex gap-6 h-full ">
+  <div class="md:flex gap-6 h-full items-start">
     <!-- Sidebar Navigation -->
     <aside class="w-64 flex-shrink-0 hidden md:block">
       <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24 dark:bg-gray-800 dark:border-gray-700">
