@@ -67,7 +67,7 @@ async function generateTypes() {
       'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
       'GenerateResponseEffect'
     ],
-    auth: ['auth-request', 'auth-response', 'AzureAsrSettings', 'ElevenLabsAsrSettings', 'project-settings'],
+    auth: ['auth-request', 'auth-response', 'AzureAsrSettings', 'ElevenLabsAsrSettings', 'DeepgramAsrSettings', 'project-settings'],
     session: [
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',

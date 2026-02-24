@@ -381,7 +381,7 @@ export interface AuthResponse {
       /**
        * ASR-specific settings including model, language preferences, etc.
        */
-      settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+      settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -482,6 +482,53 @@ export interface ElevenLabsAsrSettings {
 
 }
 
+/**
+ * Deepgram speech-to-text settings
+ */
+export interface DeepgramAsrSettings {
+  /**
+   * Model ID to use for transcription (e.g., "nova-3", "nova-2", "base", "enhanced"), defaults to nova-3
+   */
+  modelId?: string;
+  /**
+   * Audio encoding format for speech-to-text, defaults to pcm_16000
+   */
+  audioFormat?: 'pcm_16000' | 'pcm_8000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
+  /**
+   * BCP-47 language tag (e.g., "en-US", "es", "fr")
+   */
+  language?: string;
+  /**
+   * Enable interim (partial) transcription results during streaming, defaults to false
+   */
+  interimResults?: boolean;
+  /**
+   * Milliseconds of silence to wait before finalizing speech (10+) or false to disable, defaults to 300
+   */
+  endpointing?: number | boolean;
+  /**
+   * Apply formatting (punctuation, capitalization, currency, etc.) to improve readability, defaults to true
+   */
+  smartFormat?: boolean;
+  /**
+   * Add punctuation and capitalization to transcript, defaults to true
+   */
+  punctuate?: boolean;
+  /**
+   * Recognize and label different speakers in the audio, defaults to false
+   */
+  diarize?: boolean;
+  /**
+   * Milliseconds to wait before sending UtteranceEnd event (use with interim_results)
+   */
+  utteranceEndMs?: number;
+  /**
+   * Send SpeechStarted events when speech is detected, defaults to false
+   */
+  vadEvents?: boolean;
+
+}
+
 export interface ProjectSettings {
   /**
    * Unique identifier of the project
@@ -506,7 +553,7 @@ export interface ProjectSettings {
     /**
      * ASR-specific settings including model, language preferences, etc.
      */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
      */
