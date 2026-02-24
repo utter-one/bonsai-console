@@ -1185,23 +1185,19 @@ export class Api<
    * @description Creates a new classifier with specified name, prompt, and configuration
    *
    * @tags Classifiers
-   * @name ClassifiersCreate
+   * @name ProjectsClassifiersCreate
    * @summary Create a new classifier
-   * @request POST:/api/classifiers
+   * @request POST:/api/projects/{projectId}/classifiers
    * @secure
    */
-  classifiersCreate = (
+  projectsClassifiersCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the classifier (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this classifier belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name of the classifier
        * @minLength 1
@@ -1264,7 +1260,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/classifiers`,
+      path: `/api/projects/${projectId}/classifiers`,
       method: "POST",
       body: data,
       secure: true,
@@ -1276,12 +1272,13 @@ export class Api<
    * @description Retrieves a paginated list of classifiers with optional filtering and sorting
    *
    * @tags Classifiers
-   * @name ClassifiersList
+   * @name ProjectsClassifiersList
    * @summary List classifiers
-   * @request GET:/api/classifiers
+   * @request GET:/api/projects/{projectId}/classifiers
    * @secure
    */
-  classifiersList = (
+  projectsClassifiersList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -1371,7 +1368,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/classifiers`,
+      path: `/api/projects/${projectId}/classifiers`,
       method: "GET",
       query: query,
       secure: true,
@@ -1382,12 +1379,16 @@ export class Api<
    * @description Retrieves a single classifier by its unique identifier
    *
    * @tags Classifiers
-   * @name ClassifiersDetail
+   * @name ProjectsClassifiersDetail
    * @summary Get classifier by ID
-   * @request GET:/api/classifiers/{id}
+   * @request GET:/api/projects/{projectId}/classifiers/{id}
    * @secure
    */
-  classifiersDetail = (id: string, params: RequestParams = {}) =>
+  projectsClassifiersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the classifier */
@@ -1425,7 +1426,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/classifiers/${id}`,
+      path: `/api/projects/${projectId}/classifiers/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -1435,12 +1436,13 @@ export class Api<
    * @description Updates an existing classifier with optimistic locking
    *
    * @tags Classifiers
-   * @name ClassifiersUpdate
+   * @name ProjectsClassifiersUpdate
    * @summary Update classifier
-   * @request PUT:/api/classifiers/{id}
+   * @request PUT:/api/projects/{projectId}/classifiers/{id}
    * @secure
    */
-  classifiersUpdate = (
+  projectsClassifiersUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -1510,7 +1512,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/classifiers/${id}`,
+      path: `/api/projects/${projectId}/classifiers/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -1522,12 +1524,13 @@ export class Api<
    * @description Deletes a classifier with optimistic locking
    *
    * @tags Classifiers
-   * @name ClassifiersDelete
+   * @name ProjectsClassifiersDelete
    * @summary Delete classifier
-   * @request DELETE:/api/classifiers/{id}
+   * @request DELETE:/api/projects/{projectId}/classifiers/{id}
    * @secure
    */
-  classifiersDelete = (
+  projectsClassifiersDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -1539,7 +1542,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/classifiers/${id}`,
+      path: `/api/projects/${projectId}/classifiers/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -1550,14 +1553,18 @@ export class Api<
    * @description Retrieves audit logs for a specific classifier
    *
    * @tags Classifiers
-   * @name ClassifiersAuditLogsList
+   * @name ProjectsClassifiersAuditLogsList
    * @summary Get classifier audit logs
-   * @request GET:/api/classifiers/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/classifiers/{id}/audit-logs
    * @secure
    */
-  classifiersAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsClassifiersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/classifiers/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/classifiers/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -1566,12 +1573,13 @@ export class Api<
    * @description Creates a copy of an existing classifier with a new ID and optional name override
    *
    * @tags Classifiers
-   * @name ClassifiersCloneCreate
+   * @name ProjectsClassifiersCloneCreate
    * @summary Clone classifier
-   * @request POST:/api/classifiers/{id}/clone
+   * @request POST:/api/projects/{projectId}/classifiers/{id}/clone
    * @secure
    */
-  classifiersCloneCreate = (
+  projectsClassifiersCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -1624,7 +1632,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/classifiers/${id}/clone`,
+      path: `/api/projects/${projectId}/classifiers/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -1636,23 +1644,19 @@ export class Api<
    * @description Creates a new context transformer with specified name, prompt, and configuration
    *
    * @tags Context Transformers
-   * @name ContextTransformersCreate
+   * @name ProjectsContextTransformersCreate
    * @summary Create a new context transformer
-   * @request POST:/api/context-transformers
+   * @request POST:/api/projects/{projectId}/context-transformers
    * @secure
    */
-  contextTransformersCreate = (
+  projectsContextTransformersCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the context transformer (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this context transformer belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name of the context transformer
        * @minLength 1
@@ -1719,7 +1723,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/context-transformers`,
+      path: `/api/projects/${projectId}/context-transformers`,
       method: "POST",
       body: data,
       secure: true,
@@ -1731,12 +1735,13 @@ export class Api<
    * @description Retrieves a paginated list of context transformers with optional filtering and sorting
    *
    * @tags Context Transformers
-   * @name ContextTransformersList
+   * @name ProjectsContextTransformersList
    * @summary List context transformers
-   * @request GET:/api/context-transformers
+   * @request GET:/api/projects/{projectId}/context-transformers
    * @secure
    */
-  contextTransformersList = (
+  projectsContextTransformersList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -1828,7 +1833,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/context-transformers`,
+      path: `/api/projects/${projectId}/context-transformers`,
       method: "GET",
       query: query,
       secure: true,
@@ -1839,12 +1844,16 @@ export class Api<
    * @description Retrieves a single context transformer by its unique identifier
    *
    * @tags Context Transformers
-   * @name ContextTransformersDetail
+   * @name ProjectsContextTransformersDetail
    * @summary Get context transformer by ID
-   * @request GET:/api/context-transformers/{id}
+   * @request GET:/api/projects/{projectId}/context-transformers/{id}
    * @secure
    */
-  contextTransformersDetail = (id: string, params: RequestParams = {}) =>
+  projectsContextTransformersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the context transformer */
@@ -1884,7 +1893,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/context-transformers/${id}`,
+      path: `/api/projects/${projectId}/context-transformers/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -1894,12 +1903,13 @@ export class Api<
    * @description Updates an existing context transformer with optimistic locking
    *
    * @tags Context Transformers
-   * @name ContextTransformersUpdate
+   * @name ProjectsContextTransformersUpdate
    * @summary Update context transformer
-   * @request PUT:/api/context-transformers/{id}
+   * @request PUT:/api/projects/{projectId}/context-transformers/{id}
    * @secure
    */
-  contextTransformersUpdate = (
+  projectsContextTransformersUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -1973,7 +1983,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/context-transformers/${id}`,
+      path: `/api/projects/${projectId}/context-transformers/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -1985,12 +1995,13 @@ export class Api<
    * @description Deletes a context transformer with optimistic locking
    *
    * @tags Context Transformers
-   * @name ContextTransformersDelete
+   * @name ProjectsContextTransformersDelete
    * @summary Delete context transformer
-   * @request DELETE:/api/context-transformers/{id}
+   * @request DELETE:/api/projects/{projectId}/context-transformers/{id}
    * @secure
    */
-  contextTransformersDelete = (
+  projectsContextTransformersDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -2002,7 +2013,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/context-transformers/${id}`,
+      path: `/api/projects/${projectId}/context-transformers/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -2013,14 +2024,18 @@ export class Api<
    * @description Retrieves audit logs for a specific context transformer
    *
    * @tags Context Transformers
-   * @name ContextTransformersAuditLogsList
+   * @name ProjectsContextTransformersAuditLogsList
    * @summary Get context transformer audit logs
-   * @request GET:/api/context-transformers/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/context-transformers/{id}/audit-logs
    * @secure
    */
-  contextTransformersAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsContextTransformersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/context-transformers/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/context-transformers/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -2029,12 +2044,13 @@ export class Api<
    * @description Creates a copy of an existing context transformer with a new ID and optional name override
    *
    * @tags Context Transformers
-   * @name ContextTransformersCloneCreate
+   * @name ProjectsContextTransformersCloneCreate
    * @summary Clone context transformer
-   * @request POST:/api/context-transformers/{id}/clone
+   * @request POST:/api/projects/{projectId}/context-transformers/{id}/clone
    * @secure
    */
-  contextTransformersCloneCreate = (
+  projectsContextTransformersCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -2089,7 +2105,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/context-transformers/${id}/clone`,
+      path: `/api/projects/${projectId}/context-transformers/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -2101,12 +2117,16 @@ export class Api<
    * @description Retrieves a single conversation by its unique identifier
    *
    * @tags Conversations
-   * @name ConversationsDetail
+   * @name ProjectsConversationsDetail
    * @summary Get conversation by ID
-   * @request GET:/api/conversations/{id}
+   * @request GET:/api/projects/{projectId}/conversations/{id}
    * @secure
    */
-  conversationsDetail = (id: string, params: RequestParams = {}) =>
+  projectsConversationsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the conversation */
@@ -2140,7 +2160,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/conversations/${id}`,
+      path: `/api/projects/${projectId}/conversations/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -2150,14 +2170,18 @@ export class Api<
    * @description Deletes a conversation and all its associated events (via cascade delete)
    *
    * @tags Conversations
-   * @name ConversationsDelete
+   * @name ProjectsConversationsDelete
    * @summary Delete conversation
-   * @request DELETE:/api/conversations/{id}
+   * @request DELETE:/api/projects/{projectId}/conversations/{id}
    * @secure
    */
-  conversationsDelete = (id: string, params: RequestParams = {}) =>
+  projectsConversationsDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/conversations/${id}`,
+      path: `/api/projects/${projectId}/conversations/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
@@ -2166,12 +2190,13 @@ export class Api<
    * @description Retrieves a paginated list of conversations with optional filtering, sorting, and search. Supports filtering by userId, clientId, stageId, status, and timestamps.
    *
    * @tags Conversations
-   * @name ConversationsList
+   * @name ProjectsConversationsList
    * @summary List conversations
-   * @request GET:/api/conversations
+   * @request GET:/api/projects/{projectId}/conversations
    * @secure
    */
-  conversationsList = (
+  projectsConversationsList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -2257,7 +2282,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/conversations`,
+      path: `/api/projects/${projectId}/conversations`,
       method: "GET",
       query: query,
       secure: true,
@@ -2268,12 +2293,13 @@ export class Api<
    * @description Retrieves a paginated list of events for a specific conversation with optional filtering and sorting
    *
    * @tags Conversations
-   * @name ConversationsEventsList
+   * @name ProjectsConversationsEventsList
    * @summary List conversation events
-   * @request GET:/api/conversations/{id}/events
+   * @request GET:/api/projects/{projectId}/conversations/{id}/events
    * @secure
    */
-  conversationsEventsList = (
+  projectsConversationsEventsList = (
+    projectId: string,
     id: string,
     query?: {
       /**
@@ -2314,6 +2340,8 @@ export class Api<
         items: {
           /** Unique identifier for the conversation event */
           id: string;
+          /** ID of the project this event belongs to */
+          projectId: string;
           /** Identifier of the conversation this event belongs to */
           conversationId: string;
           /** Type of the conversation event */
@@ -2474,7 +2502,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/conversations/${id}/events`,
+      path: `/api/projects/${projectId}/conversations/${id}/events`,
       method: "GET",
       query: query,
       secure: true,
@@ -2485,12 +2513,13 @@ export class Api<
    * @description Retrieves a specific event for a conversation by its unique identifier
    *
    * @tags Conversations
-   * @name ConversationsEventsDetail
+   * @name ProjectsConversationsEventsDetail
    * @summary Get conversation event by ID
-   * @request GET:/api/conversations/{id}/events/{eventId}
+   * @request GET:/api/projects/{projectId}/conversations/{id}/events/{eventId}
    * @secure
    */
-  conversationsEventsDetail = (
+  projectsConversationsEventsDetail = (
+    projectId: string,
     id: string,
     eventId: string,
     params: RequestParams = {},
@@ -2499,6 +2528,8 @@ export class Api<
       {
         /** Unique identifier for the conversation event */
         id: string;
+        /** ID of the project this event belongs to */
+        projectId: string;
         /** Identifier of the conversation this event belongs to */
         conversationId: string;
         /** Type of the conversation event */
@@ -2642,7 +2673,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/conversations/${id}/events/${eventId}`,
+      path: `/api/projects/${projectId}/conversations/${id}/events/${eventId}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -2652,14 +2683,18 @@ export class Api<
    * @description Retrieves audit logs for a specific conversation
    *
    * @tags Conversations
-   * @name ConversationsAuditLogsList
+   * @name ProjectsConversationsAuditLogsList
    * @summary Get conversation audit logs
-   * @request GET:/api/conversations/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/conversations/{id}/audit-logs
    * @secure
    */
-  conversationsAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsConversationsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/conversations/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/conversations/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -2668,23 +2703,19 @@ export class Api<
    * @description Creates a new knowledge category with trigger phrase and associated tags
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesCreate
+   * @name ProjectsKnowledgeCategoriesCreate
    * @summary Create a new knowledge category
-   * @request POST:/api/knowledge/categories
+   * @request POST:/api/projects/{projectId}/knowledge/categories
    * @secure
    */
-  knowledgeCategoriesCreate = (
+  projectsKnowledgeCategoriesCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the knowledge category (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this knowledge category belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Name of the knowledge category
        * @minLength 1
@@ -2723,6 +2754,8 @@ export class Api<
         items?: {
           /** Unique identifier for the knowledge item */
           id: string;
+          /** ID of the project this item belongs to */
+          projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
           /** Question text for this knowledge item */
@@ -2759,7 +2792,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/categories`,
+      path: `/api/projects/${projectId}/knowledge/categories`,
       method: "POST",
       body: data,
       secure: true,
@@ -2771,12 +2804,13 @@ export class Api<
    * @description Retrieves a paginated list of knowledge categories with their items. Supports filtering, sorting, and text search
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesList
+   * @name ProjectsKnowledgeCategoriesList
    * @summary List knowledge categories
-   * @request GET:/api/knowledge/categories
+   * @request GET:/api/projects/{projectId}/knowledge/categories
    * @secure
    */
-  knowledgeCategoriesList = (
+  projectsKnowledgeCategoriesList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -2830,6 +2864,8 @@ export class Api<
           items?: {
             /** Unique identifier for the knowledge item */
             id: string;
+            /** ID of the project this item belongs to */
+            projectId: string;
             /** ID of the category this item belongs to */
             categoryId: string;
             /** Question text for this knowledge item */
@@ -2883,7 +2919,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/categories`,
+      path: `/api/projects/${projectId}/knowledge/categories`,
       method: "GET",
       query: query,
       secure: true,
@@ -2894,12 +2930,16 @@ export class Api<
    * @description Retrieves a single knowledge category with all its items by unique identifier
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesDetail
+   * @name ProjectsKnowledgeCategoriesDetail
    * @summary Get knowledge category by ID
-   * @request GET:/api/knowledge/categories/{id}
+   * @request GET:/api/projects/{projectId}/knowledge/categories/{id}
    * @secure
    */
-  knowledgeCategoriesDetail = (id: string, params: RequestParams = {}) =>
+  projectsKnowledgeCategoriesDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the knowledge category */
@@ -2918,6 +2958,8 @@ export class Api<
         items?: {
           /** Unique identifier for the knowledge item */
           id: string;
+          /** ID of the project this item belongs to */
+          projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
           /** Question text for this knowledge item */
@@ -2954,7 +2996,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/categories/${id}`,
+      path: `/api/projects/${projectId}/knowledge/categories/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -2964,12 +3006,13 @@ export class Api<
    * @description Updates an existing knowledge category with optimistic locking
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesUpdate
+   * @name ProjectsKnowledgeCategoriesUpdate
    * @summary Update knowledge category
-   * @request PUT:/api/knowledge/categories/{id}
+   * @request PUT:/api/projects/{projectId}/knowledge/categories/{id}
    * @secure
    */
-  knowledgeCategoriesUpdate = (
+  projectsKnowledgeCategoriesUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3015,6 +3058,8 @@ export class Api<
         items?: {
           /** Unique identifier for the knowledge item */
           id: string;
+          /** ID of the project this item belongs to */
+          projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
           /** Question text for this knowledge item */
@@ -3051,7 +3096,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/categories/${id}`,
+      path: `/api/projects/${projectId}/knowledge/categories/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -3063,12 +3108,13 @@ export class Api<
    * @description Deletes a knowledge category with optimistic locking. This will also delete all items in the category
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesDelete
+   * @name ProjectsKnowledgeCategoriesDelete
    * @summary Delete knowledge category
-   * @request DELETE:/api/knowledge/categories/{id}
+   * @request DELETE:/api/projects/{projectId}/knowledge/categories/{id}
    * @secure
    */
-  knowledgeCategoriesDelete = (
+  projectsKnowledgeCategoriesDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3080,7 +3126,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/knowledge/categories/${id}`,
+      path: `/api/projects/${projectId}/knowledge/categories/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -3091,12 +3137,13 @@ export class Api<
    * @description Creates a new knowledge item (Q&A pair) within a specific category
    *
    * @tags Knowledge
-   * @name KnowledgeItemsCreate
+   * @name ProjectsKnowledgeItemsCreate
    * @summary Create a new knowledge item
-   * @request POST:/api/knowledge/items
+   * @request POST:/api/projects/{projectId}/knowledge/items
    * @secure
    */
-  knowledgeItemsCreate = (
+  projectsKnowledgeItemsCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the knowledge item (auto-generated if not provided)
@@ -3130,6 +3177,8 @@ export class Api<
       {
         /** Unique identifier for the knowledge item */
         id: string;
+        /** ID of the project this item belongs to */
+        projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
         /** Question text for this knowledge item */
@@ -3153,7 +3202,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/items`,
+      path: `/api/projects/${projectId}/knowledge/items`,
       method: "POST",
       body: data,
       secure: true,
@@ -3165,12 +3214,13 @@ export class Api<
    * @description Retrieves a paginated list of knowledge items. Supports filtering by categoryId, text search, sorting, and pagination
    *
    * @tags Knowledge
-   * @name KnowledgeItemsList
+   * @name ProjectsKnowledgeItemsList
    * @summary List knowledge items
-   * @request GET:/api/knowledge/items
+   * @request GET:/api/projects/{projectId}/knowledge/items
    * @secure
    */
-  knowledgeItemsList = (
+  projectsKnowledgeItemsList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -3210,6 +3260,8 @@ export class Api<
         items: {
           /** Unique identifier for the knowledge item */
           id: string;
+          /** ID of the project this item belongs to */
+          projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
           /** Question text for this knowledge item */
@@ -3250,7 +3302,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/items`,
+      path: `/api/projects/${projectId}/knowledge/items`,
       method: "GET",
       query: query,
       secure: true,
@@ -3261,16 +3313,22 @@ export class Api<
    * @description Retrieves a single knowledge item by its unique identifier
    *
    * @tags Knowledge
-   * @name KnowledgeItemsDetail
+   * @name ProjectsKnowledgeItemsDetail
    * @summary Get knowledge item by ID
-   * @request GET:/api/knowledge/items/{id}
+   * @request GET:/api/projects/{projectId}/knowledge/items/{id}
    * @secure
    */
-  knowledgeItemsDetail = (id: string, params: RequestParams = {}) =>
+  projectsKnowledgeItemsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the knowledge item */
         id: string;
+        /** ID of the project this item belongs to */
+        projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
         /** Question text for this knowledge item */
@@ -3294,7 +3352,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/items/${id}`,
+      path: `/api/projects/${projectId}/knowledge/items/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -3304,12 +3362,13 @@ export class Api<
    * @description Updates an existing knowledge item with optimistic locking
    *
    * @tags Knowledge
-   * @name KnowledgeItemsUpdate
+   * @name ProjectsKnowledgeItemsUpdate
    * @summary Update knowledge item
-   * @request PUT:/api/knowledge/items/{id}
+   * @request PUT:/api/projects/{projectId}/knowledge/items/{id}
    * @secure
    */
-  knowledgeItemsUpdate = (
+  projectsKnowledgeItemsUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3344,6 +3403,8 @@ export class Api<
       {
         /** Unique identifier for the knowledge item */
         id: string;
+        /** ID of the project this item belongs to */
+        projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
         /** Question text for this knowledge item */
@@ -3367,7 +3428,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/knowledge/items/${id}`,
+      path: `/api/projects/${projectId}/knowledge/items/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -3379,12 +3440,13 @@ export class Api<
    * @description Deletes a knowledge item with optimistic locking
    *
    * @tags Knowledge
-   * @name KnowledgeItemsDelete
+   * @name ProjectsKnowledgeItemsDelete
    * @summary Delete knowledge item
-   * @request DELETE:/api/knowledge/items/{id}
+   * @request DELETE:/api/projects/{projectId}/knowledge/items/{id}
    * @secure
    */
-  knowledgeItemsDelete = (
+  projectsKnowledgeItemsDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3396,7 +3458,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/knowledge/items/${id}`,
+      path: `/api/projects/${projectId}/knowledge/items/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -3407,12 +3469,13 @@ export class Api<
    * @description Retrieves all knowledge items belonging to a specific category, ordered by their display order
    *
    * @tags Knowledge
-   * @name KnowledgeCategoriesItemsList
+   * @name ProjectsKnowledgeCategoriesItemsList
    * @summary Get items by category
-   * @request GET:/api/knowledge/categories/{categoryId}/items
+   * @request GET:/api/projects/{projectId}/knowledge/categories/{categoryId}/items
    * @secure
    */
-  knowledgeCategoriesItemsList = (
+  projectsKnowledgeCategoriesItemsList = (
+    projectId: string,
     categoryId: string,
     params: RequestParams = {},
   ) =>
@@ -3420,6 +3483,8 @@ export class Api<
       {
         /** Unique identifier for the knowledge item */
         id: string;
+        /** ID of the project this item belongs to */
+        projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
         /** Question text for this knowledge item */
@@ -3443,7 +3508,7 @@ export class Api<
       }[],
       void
     >({
-      path: `/api/knowledge/categories/${categoryId}/items`,
+      path: `/api/projects/${projectId}/knowledge/categories/${categoryId}/items`,
       method: "GET",
       secure: true,
       format: "json",
@@ -3453,23 +3518,19 @@ export class Api<
    * @description Creates a new AI persona with specified characteristics and voice configuration
    *
    * @tags Personas
-   * @name PersonasCreate
+   * @name ProjectsPersonasCreate
    * @summary Create a new persona
-   * @request POST:/api/personas
+   * @request POST:/api/projects/{projectId}/personas
    * @secure
    */
-  personasCreate = (
+  projectsPersonasCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the persona (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this persona belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name of the persona
        * @minLength 1
@@ -3534,7 +3595,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/personas`,
+      path: `/api/projects/${projectId}/personas`,
       method: "POST",
       body: data,
       secure: true,
@@ -3546,12 +3607,13 @@ export class Api<
    * @description Retrieves a paginated list of personas with optional filtering
    *
    * @tags Personas
-   * @name PersonasList
+   * @name ProjectsPersonasList
    * @summary List personas
-   * @request GET:/api/personas
+   * @request GET:/api/projects/{projectId}/personas
    * @secure
    */
-  personasList = (
+  projectsPersonasList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -3642,7 +3704,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/personas`,
+      path: `/api/projects/${projectId}/personas`,
       method: "GET",
       query: query,
       secure: true,
@@ -3653,12 +3715,16 @@ export class Api<
    * @description Retrieves a single persona by their unique identifier
    *
    * @tags Personas
-   * @name PersonasDetail
+   * @name ProjectsPersonasDetail
    * @summary Get persona by ID
-   * @request GET:/api/personas/{id}
+   * @request GET:/api/projects/{projectId}/personas/{id}
    * @secure
    */
-  personasDetail = (id: string, params: RequestParams = {}) =>
+  projectsPersonasDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the persona */
@@ -3697,7 +3763,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/personas/${id}`,
+      path: `/api/projects/${projectId}/personas/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -3707,12 +3773,13 @@ export class Api<
    * @description Updates an existing persona with optimistic locking
    *
    * @tags Personas
-   * @name PersonasUpdate
+   * @name ProjectsPersonasUpdate
    * @summary Update persona
-   * @request PUT:/api/personas/{id}
+   * @request PUT:/api/projects/{projectId}/personas/{id}
    * @secure
    */
-  personasUpdate = (
+  projectsPersonasUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3784,7 +3851,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/personas/${id}`,
+      path: `/api/projects/${projectId}/personas/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -3796,12 +3863,13 @@ export class Api<
    * @description Deletes a persona with optimistic locking
    *
    * @tags Personas
-   * @name PersonasDelete
+   * @name ProjectsPersonasDelete
    * @summary Delete persona
-   * @request DELETE:/api/personas/{id}
+   * @request DELETE:/api/projects/{projectId}/personas/{id}
    * @secure
    */
-  personasDelete = (
+  projectsPersonasDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3813,7 +3881,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/personas/${id}`,
+      path: `/api/projects/${projectId}/personas/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -3824,14 +3892,18 @@ export class Api<
    * @description Retrieves audit logs for a specific persona
    *
    * @tags Personas
-   * @name PersonasAuditLogsList
+   * @name ProjectsPersonasAuditLogsList
    * @summary Get persona audit logs
-   * @request GET:/api/personas/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/personas/{id}/audit-logs
    * @secure
    */
-  personasAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsPersonasAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/personas/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/personas/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -3840,12 +3912,13 @@ export class Api<
    * @description Creates a copy of an existing persona with a new ID and optional name override
    *
    * @tags Personas
-   * @name PersonasCloneCreate
+   * @name ProjectsPersonasCloneCreate
    * @summary Clone persona
-   * @request POST:/api/personas/{id}/clone
+   * @request POST:/api/projects/{projectId}/personas/{id}/clone
    * @secure
    */
-  personasCloneCreate = (
+  projectsPersonasCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -3899,7 +3972,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/personas/${id}/clone`,
+      path: `/api/projects/${projectId}/personas/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -5283,23 +5356,19 @@ export class Api<
    * @description Creates a new global action with specified name, prompt trigger, operations, and configuration
    *
    * @tags Global Actions
-   * @name GlobalActionsCreate
+   * @name ProjectsGlobalActionsCreate
    * @summary Create a new global action
-   * @request POST:/api/global-actions
+   * @request POST:/api/projects/{projectId}/global-actions
    * @secure
    */
-  globalActionsCreate = (
+  projectsGlobalActionsCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the global action (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this global action belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name of the global action
        * @minLength 1
@@ -5373,7 +5442,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/global-actions`,
+      path: `/api/projects/${projectId}/global-actions`,
       method: "POST",
       body: data,
       secure: true,
@@ -5385,12 +5454,13 @@ export class Api<
    * @description Retrieves a paginated list of global actions with optional filtering and sorting
    *
    * @tags Global Actions
-   * @name GlobalActionsList
+   * @name ProjectsGlobalActionsList
    * @summary List global actions
-   * @request GET:/api/global-actions
+   * @request GET:/api/projects/{projectId}/global-actions
    * @secure
    */
-  globalActionsList = (
+  projectsGlobalActionsList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -5484,7 +5554,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/global-actions`,
+      path: `/api/projects/${projectId}/global-actions`,
       method: "GET",
       query: query,
       secure: true,
@@ -5495,12 +5565,16 @@ export class Api<
    * @description Retrieves a single global action by its unique identifier
    *
    * @tags Global Actions
-   * @name GlobalActionsDetail
+   * @name ProjectsGlobalActionsDetail
    * @summary Get global action by ID
-   * @request GET:/api/global-actions/{id}
+   * @request GET:/api/projects/{projectId}/global-actions/{id}
    * @secure
    */
-  globalActionsDetail = (id: string, params: RequestParams = {}) =>
+  projectsGlobalActionsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the global action */
@@ -5542,7 +5616,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/global-actions/${id}`,
+      path: `/api/projects/${projectId}/global-actions/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -5552,12 +5626,13 @@ export class Api<
    * @description Updates an existing global action with optimistic locking
    *
    * @tags Global Actions
-   * @name GlobalActionsUpdate
+   * @name ProjectsGlobalActionsUpdate
    * @summary Update global action
-   * @request PUT:/api/global-actions/{id}
+   * @request PUT:/api/projects/{projectId}/global-actions/{id}
    * @secure
    */
-  globalActionsUpdate = (
+  projectsGlobalActionsUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -5632,7 +5707,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/global-actions/${id}`,
+      path: `/api/projects/${projectId}/global-actions/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -5644,12 +5719,13 @@ export class Api<
    * @description Deletes a global action with optimistic locking
    *
    * @tags Global Actions
-   * @name GlobalActionsDelete
+   * @name ProjectsGlobalActionsDelete
    * @summary Delete global action
-   * @request DELETE:/api/global-actions/{id}
+   * @request DELETE:/api/projects/{projectId}/global-actions/{id}
    * @secure
    */
-  globalActionsDelete = (
+  projectsGlobalActionsDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -5661,7 +5737,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/global-actions/${id}`,
+      path: `/api/projects/${projectId}/global-actions/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -5672,14 +5748,18 @@ export class Api<
    * @description Retrieves audit logs for a specific global action
    *
    * @tags Global Actions
-   * @name GlobalActionsAuditLogsList
+   * @name ProjectsGlobalActionsAuditLogsList
    * @summary Get global action audit logs
-   * @request GET:/api/global-actions/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/global-actions/{id}/audit-logs
    * @secure
    */
-  globalActionsAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsGlobalActionsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/global-actions/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/global-actions/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -5688,12 +5768,13 @@ export class Api<
    * @description Creates a copy of an existing global action with a new ID and optional name override
    *
    * @tags Global Actions
-   * @name GlobalActionsCloneCreate
+   * @name ProjectsGlobalActionsCloneCreate
    * @summary Clone global action
-   * @request POST:/api/global-actions/{id}/clone
+   * @request POST:/api/projects/{projectId}/global-actions/{id}/clone
    * @secure
    */
-  globalActionsCloneCreate = (
+  projectsGlobalActionsCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -5750,7 +5831,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/global-actions/${id}/clone`,
+      path: `/api/projects/${projectId}/global-actions/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -5762,18 +5843,14 @@ export class Api<
    * @description Creates a new issue report with bug details, environment, and severity information
    *
    * @tags Issues
-   * @name IssuesCreate
+   * @name ProjectsIssuesCreate
    * @summary Create a new issue
-   * @request POST:/api/issues
+   * @request POST:/api/projects/{projectId}/issues
    * @secure
    */
-  issuesCreate = (
+  projectsIssuesCreate = (
+    projectId: string,
     data: {
-      /**
-       * ID of the project this issue belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Environment where issue occurred (e.g., production, staging, development)
        * @minLength 1
@@ -5868,7 +5945,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/issues`,
+      path: `/api/projects/${projectId}/issues`,
       method: "POST",
       body: data,
       secure: true,
@@ -5880,12 +5957,13 @@ export class Api<
    * @description Retrieves a paginated list of issues with optional filtering by status, severity, environment, and text search in bug descriptions
    *
    * @tags Issues
-   * @name IssuesList
+   * @name ProjectsIssuesList
    * @summary List issues
-   * @request GET:/api/issues
+   * @request GET:/api/projects/{projectId}/issues
    * @secure
    */
-  issuesList = (
+  projectsIssuesList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -5981,7 +6059,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/issues`,
+      path: `/api/projects/${projectId}/issues`,
       method: "GET",
       query: query,
       secure: true,
@@ -5992,12 +6070,16 @@ export class Api<
    * @description Retrieves a single issue by its unique identifier
    *
    * @tags Issues
-   * @name IssuesDetail
+   * @name ProjectsIssuesDetail
    * @summary Get issue by ID
-   * @request GET:/api/issues/{id}
+   * @request GET:/api/projects/{projectId}/issues/{id}
    * @secure
    */
-  issuesDetail = (id: string, params: RequestParams = {}) =>
+  projectsIssuesDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique auto-incrementing identifier for the issue */
@@ -6041,7 +6123,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/issues/${id}`,
+      path: `/api/projects/${projectId}/issues/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -6051,12 +6133,13 @@ export class Api<
    * @description Updates an existing issue with new information, typically used to change status, add comments, or update severity
    *
    * @tags Issues
-   * @name IssuesUpdate
+   * @name ProjectsIssuesUpdate
    * @summary Update issue
-   * @request PUT:/api/issues/{id}
+   * @request PUT:/api/projects/{projectId}/issues/{id}
    * @secure
    */
-  issuesUpdate = (
+  projectsIssuesUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -6150,7 +6233,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/issues/${id}`,
+      path: `/api/projects/${projectId}/issues/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -6162,14 +6245,18 @@ export class Api<
    * @description Deletes an issue from the system
    *
    * @tags Issues
-   * @name IssuesDelete
+   * @name ProjectsIssuesDelete
    * @summary Delete issue
-   * @request DELETE:/api/issues/{id}
+   * @request DELETE:/api/projects/{projectId}/issues/{id}
    * @secure
    */
-  issuesDelete = (id: string, params: RequestParams = {}) =>
+  projectsIssuesDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/issues/${id}`,
+      path: `/api/projects/${projectId}/issues/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
@@ -6178,14 +6265,18 @@ export class Api<
    * @description Retrieves audit logs for a specific issue showing its change history
    *
    * @tags Issues
-   * @name IssuesAuditLogsList
+   * @name ProjectsIssuesAuditLogsList
    * @summary Get issue audit logs
-   * @request GET:/api/issues/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/issues/{id}/audit-logs
    * @secure
    */
-  issuesAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsIssuesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/issues/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/issues/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -6194,23 +6285,19 @@ export class Api<
    * @description Creates a new stage with specified behavior, prompts, and configuration
    *
    * @tags Stages
-   * @name StagesCreate
+   * @name ProjectsStagesCreate
    * @summary Create a new stage
-   * @request POST:/api/stages
+   * @request POST:/api/projects/{projectId}/stages
    * @secure
    */
-  stagesCreate = (
+  projectsStagesCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the stage (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this stage belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name for the stage
        * @minLength 1
@@ -6337,7 +6424,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/stages`,
+      path: `/api/projects/${projectId}/stages`,
       method: "POST",
       body: data,
       secure: true,
@@ -6349,12 +6436,13 @@ export class Api<
    * @description Retrieves a paginated list of stages with optional filtering and sorting
    *
    * @tags Stages
-   * @name StagesList
+   * @name ProjectsStagesList
    * @summary List stages
-   * @request GET:/api/stages
+   * @request GET:/api/projects/{projectId}/stages
    * @secure
    */
-  stagesList = (
+  projectsStagesList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -6464,7 +6552,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/stages`,
+      path: `/api/projects/${projectId}/stages`,
       method: "GET",
       query: query,
       secure: true,
@@ -6475,12 +6563,16 @@ export class Api<
    * @description Retrieves a single stage by its unique identifier
    *
    * @tags Stages
-   * @name StagesDetail
+   * @name ProjectsStagesDetail
    * @summary Get stage by ID
-   * @request GET:/api/stages/{id}
+   * @request GET:/api/projects/{projectId}/stages/{id}
    * @secure
    */
-  stagesDetail = (id: string, params: RequestParams = {}) =>
+  projectsStagesDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the stage */
@@ -6538,7 +6630,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/stages/${id}`,
+      path: `/api/projects/${projectId}/stages/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -6548,12 +6640,13 @@ export class Api<
    * @description Updates an existing stage with optimistic locking
    *
    * @tags Stages
-   * @name StagesUpdate
+   * @name ProjectsStagesUpdate
    * @summary Update stage
-   * @request PUT:/api/stages/{id}
+   * @request PUT:/api/projects/{projectId}/stages/{id}
    * @secure
    */
-  stagesUpdate = (
+  projectsStagesUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -6666,7 +6759,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/stages/${id}`,
+      path: `/api/projects/${projectId}/stages/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -6678,12 +6771,13 @@ export class Api<
    * @description Deletes a stage with optimistic locking
    *
    * @tags Stages
-   * @name StagesDelete
+   * @name ProjectsStagesDelete
    * @summary Delete stage
-   * @request DELETE:/api/stages/{id}
+   * @request DELETE:/api/projects/{projectId}/stages/{id}
    * @secure
    */
-  stagesDelete = (
+  projectsStagesDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -6695,7 +6789,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/stages/${id}`,
+      path: `/api/projects/${projectId}/stages/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -6706,14 +6800,18 @@ export class Api<
    * @description Retrieves audit logs for a specific stage
    *
    * @tags Stages
-   * @name StagesAuditLogsList
+   * @name ProjectsStagesAuditLogsList
    * @summary Get stage audit logs
-   * @request GET:/api/stages/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/stages/{id}/audit-logs
    * @secure
    */
-  stagesAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsStagesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/stages/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/stages/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -6722,12 +6820,13 @@ export class Api<
    * @description Creates a copy of an existing stage with a new ID and optional name override
    *
    * @tags Stages
-   * @name StagesCloneCreate
+   * @name ProjectsStagesCloneCreate
    * @summary Clone stage
-   * @request POST:/api/stages/{id}/clone
+   * @request POST:/api/projects/{projectId}/stages/{id}/clone
    * @secure
    */
-  stagesCloneCreate = (
+  projectsStagesCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -6800,7 +6899,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/stages/${id}/clone`,
+      path: `/api/projects/${projectId}/stages/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -6812,23 +6911,19 @@ export class Api<
    * @description Creates a new tool with specified name, prompt, input/output types, and configuration
    *
    * @tags Tools
-   * @name ToolsCreate
+   * @name ProjectsToolsCreate
    * @summary Create a new tool
-   * @request POST:/api/tools
+   * @request POST:/api/projects/{projectId}/tools
    * @secure
    */
-  toolsCreate = (
+  projectsToolsCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the tool (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
-      /**
-       * ID of the project this tool belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * Display name of the tool
        * @minLength 1
@@ -6906,7 +7001,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/tools`,
+      path: `/api/projects/${projectId}/tools`,
       method: "POST",
       body: data,
       secure: true,
@@ -6918,12 +7013,13 @@ export class Api<
    * @description Retrieves a paginated list of tools with optional filtering and sorting
    *
    * @tags Tools
-   * @name ToolsList
+   * @name ProjectsToolsList
    * @summary List tools
-   * @request GET:/api/tools
+   * @request GET:/api/projects/{projectId}/tools
    * @secure
    */
-  toolsList = (
+  projectsToolsList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -7019,7 +7115,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/tools`,
+      path: `/api/projects/${projectId}/tools`,
       method: "GET",
       query: query,
       secure: true,
@@ -7030,12 +7126,16 @@ export class Api<
    * @description Retrieves a single tool by its unique identifier
    *
    * @tags Tools
-   * @name ToolsDetail
+   * @name ProjectsToolsDetail
    * @summary Get tool by ID
-   * @request GET:/api/tools/{id}
+   * @request GET:/api/projects/{projectId}/tools/{id}
    * @secure
    */
-  toolsDetail = (id: string, params: RequestParams = {}) =>
+  projectsToolsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the tool */
@@ -7079,7 +7179,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/tools/${id}`,
+      path: `/api/projects/${projectId}/tools/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -7089,12 +7189,13 @@ export class Api<
    * @description Updates an existing tool with optimistic locking
    *
    * @tags Tools
-   * @name ToolsUpdate
+   * @name ProjectsToolsUpdate
    * @summary Update tool
-   * @request PUT:/api/tools/{id}
+   * @request PUT:/api/projects/{projectId}/tools/{id}
    * @secure
    */
-  toolsUpdate = (
+  projectsToolsUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -7176,7 +7277,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/tools/${id}`,
+      path: `/api/projects/${projectId}/tools/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -7188,12 +7289,13 @@ export class Api<
    * @description Deletes a tool with optimistic locking
    *
    * @tags Tools
-   * @name ToolsDelete
+   * @name ProjectsToolsDelete
    * @summary Delete tool
-   * @request DELETE:/api/tools/{id}
+   * @request DELETE:/api/projects/{projectId}/tools/{id}
    * @secure
    */
-  toolsDelete = (
+  projectsToolsDelete = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -7205,7 +7307,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/tools/${id}`,
+      path: `/api/projects/${projectId}/tools/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -7216,14 +7318,18 @@ export class Api<
    * @description Retrieves audit logs for a specific tool
    *
    * @tags Tools
-   * @name ToolsAuditLogsList
+   * @name ProjectsToolsAuditLogsList
    * @summary Get tool audit logs
-   * @request GET:/api/tools/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/tools/{id}/audit-logs
    * @secure
    */
-  toolsAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsToolsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/tools/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/tools/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
@@ -7232,12 +7338,13 @@ export class Api<
    * @description Creates a copy of an existing tool with a new ID and optional name override
    *
    * @tags Tools
-   * @name ToolsCloneCreate
+   * @name ProjectsToolsCloneCreate
    * @summary Clone tool
-   * @request POST:/api/tools/{id}/clone
+   * @request POST:/api/projects/{projectId}/tools/{id}/clone
    * @secure
    */
-  toolsCloneCreate = (
+  projectsToolsCloneCreate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -7296,7 +7403,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/tools/${id}/clone`,
+      path: `/api/projects/${projectId}/tools/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -7555,18 +7662,14 @@ export class Api<
    * @description Creates a new API key for WebSocket authentication. The secret key is only returned in the response to this creation request.
    *
    * @tags API Keys
-   * @name ApiKeysCreate
+   * @name ProjectsApiKeysCreate
    * @summary Create a new API key
-   * @request POST:/api/api-keys
+   * @request POST:/api/projects/{projectId}/api-keys
    * @secure
    */
-  apiKeysCreate = (
+  projectsApiKeysCreate = (
+    projectId: string,
     data: {
-      /**
-       * The ID of the project this API key belongs to
-       * @minLength 1
-       */
-      projectId: string;
       /**
        * A descriptive name for the API key
        * @minLength 1
@@ -7605,7 +7708,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/api-keys`,
+      path: `/api/projects/${projectId}/api-keys`,
       method: "POST",
       body: data,
       secure: true,
@@ -7617,12 +7720,13 @@ export class Api<
    * @description Retrieves a list of API keys with optional filtering, sorting, and pagination. Filter by projectId to get keys for a specific project.
    *
    * @tags API Keys
-   * @name ApiKeysList
+   * @name ProjectsApiKeysList
    * @summary List API keys
-   * @request GET:/api/api-keys
+   * @request GET:/api/projects/{projectId}/api-keys
    * @secure
    */
-  apiKeysList = (
+  projectsApiKeysList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -7688,7 +7792,7 @@ export class Api<
       },
       any
     >({
-      path: `/api/api-keys`,
+      path: `/api/projects/${projectId}/api-keys`,
       method: "GET",
       query: query,
       secure: true,
@@ -7699,12 +7803,16 @@ export class Api<
    * @description Retrieves a single API key by its unique identifier. The full secret key is never returned, only a preview.
    *
    * @tags API Keys
-   * @name ApiKeysDetail
+   * @name ProjectsApiKeysDetail
    * @summary Get API key by ID
-   * @request GET:/api/api-keys/{id}
+   * @request GET:/api/projects/{projectId}/api-keys/{id}
    * @secure
    */
-  apiKeysDetail = (id: string, params: RequestParams = {}) =>
+  projectsApiKeysDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the API key */
@@ -7732,7 +7840,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/api-keys/${id}`,
+      path: `/api/projects/${projectId}/api-keys/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -7742,12 +7850,13 @@ export class Api<
    * @description Updates an existing API key with optimistic locking support. Can update name, active status, and metadata.
    *
    * @tags API Keys
-   * @name ApiKeysUpdate
+   * @name ProjectsApiKeysUpdate
    * @summary Update API key
-   * @request PUT:/api/api-keys/{id}
+   * @request PUT:/api/projects/{projectId}/api-keys/{id}
    * @secure
    */
-  apiKeysUpdate = (
+  projectsApiKeysUpdate = (
+    projectId: string,
     id: string,
     data: {
       /**
@@ -7792,7 +7901,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/api-keys/${id}`,
+      path: `/api/projects/${projectId}/api-keys/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -7804,12 +7913,13 @@ export class Api<
    * @description Permanently deletes an API key. This action cannot be undone and will immediately invalidate the key.
    *
    * @tags API Keys
-   * @name ApiKeysDelete
+   * @name ProjectsApiKeysDelete
    * @summary Delete API key
-   * @request DELETE:/api/api-keys/{id}
+   * @request DELETE:/api/projects/{projectId}/api-keys/{id}
    * @secure
    */
-  apiKeysDelete = (
+  projectsApiKeysDelete = (
+    projectId: string,
     id: string,
     data: {
       /** The current version number for optimistic locking */
@@ -7818,7 +7928,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/api-keys/${id}`,
+      path: `/api/projects/${projectId}/api-keys/${id}`,
       method: "DELETE",
       body: data,
       secure: true,

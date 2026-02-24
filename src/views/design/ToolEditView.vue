@@ -61,7 +61,7 @@ async function loadTool() {
   error.value = null
   
   try {
-    currentTool.value = await toolsStore.fetchById(toolId.value)
+    currentTool.value = await toolsStore.fetchById(projectId.value, toolId.value)
     if (currentTool.value) {
       form.value = {
         id: currentTool.value.id,
@@ -90,7 +90,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentTool.value) {
       // Update existing tool
-      const updated = await toolsStore.update(currentTool.value.id, {
+      const updated = await toolsStore.update(projectId.value, currentTool.value.id, {
         version: currentTool.value.version,
         name: form.value.name,
         description: form.value.description || null,
@@ -108,7 +108,6 @@ async function handleSubmit() {
     } else {
       // Create new tool
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
@@ -129,7 +128,7 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      const created = await toolsStore.create(createData)
+      const created = await toolsStore.create(projectId.value, createData)
       
       // Update currentTool with the created tool
       currentTool.value = created

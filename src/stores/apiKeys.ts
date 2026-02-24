@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
-import { createResourceStore } from './utils/resource'
+import { createProjectResourceStore } from './utils/resource'
 
 export const useApiKeysStore = defineStore('apiKeys', () => {
-  return createResourceStore<ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest>({
+  return createProjectResourceStore<ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest>({
     endpoint: '/api-keys',
     resourceName: 'API key',
     apiResourceName: 'apiKeys',

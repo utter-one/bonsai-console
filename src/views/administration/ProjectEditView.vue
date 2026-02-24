@@ -81,7 +81,7 @@ const isElevenLabsAsrProvider = computed(() => {
 
 const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
-  return apiKeysStore.items.filter(key => key.projectId === currentProject.value!.id)
+  return apiKeysStore.items
 })
 
 const metadataFields = computed(() => {
@@ -201,11 +201,7 @@ async function loadApiKeys() {
   apiKeysError.value = null
   
   try {
-    await apiKeysStore.fetchAll({
-      filters: {
-        projectId: currentProject.value.id
-      }
-    })
+    await apiKeysStore.fetchAll(currentProject.value.id)
   } catch (err: any) {
     apiKeysError.value = err.response?.data?.message || 'Failed to load API keys'
   } finally {
@@ -269,8 +265,7 @@ async function handleSubmit() {
       // Create Playground API key if checkbox is checked
       if (createPlaygroundApiKey.value && newProject) {
         try {
-          await apiKeysStore.create({
-            projectId: newProject.id,
+          await apiKeysStore.create(newProject.id, {
             name: 'Playground',
             metadata: {
               autoCreated: true,
@@ -346,11 +341,10 @@ async function handleApiKeySave(data: any) {
   try {
     if (selectedApiKey.value) {
       // Update existing key
-      await apiKeysStore.update(selectedApiKey.value.id, data)
+      await apiKeysStore.update(selectedApiKey.value.projectId, selectedApiKey.value.id, data)
     } else {
       // Create new key
-      const newKey = await apiKeysStore.create({
-        projectId: data.projectId,
+      const newKey = await apiKeysStore.create(currentProject.value!.id, {
         name: data.name,
         metadata: data.metadata
       })
@@ -381,7 +375,7 @@ async function handleToggleApiKey(apiKey: ApiKeyResponse) {
   apiKeysError.value = null
   
   try {
-    await apiKeysStore.update(apiKey.id, {
+    await apiKeysStore.update(apiKey.projectId, apiKey.id, {
       isActive: !apiKey.isActive,
       version: apiKey.version
     })
@@ -399,7 +393,7 @@ async function handleDeleteApiKey(apiKey: ApiKeyResponse) {
   apiKeysError.value = null
   
   try {
-    await apiKeysStore.remove(apiKey.id, apiKey.version)
+    await apiKeysStore.remove(apiKey.projectId, apiKey.id, apiKey.version)
     await loadApiKeys()
   } catch (err: any) {
     apiKeysError.value = err.response?.data?.message || 'Failed to delete API key'

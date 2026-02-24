@@ -70,7 +70,8 @@ async function loadPersonas() {
   try {
     const orderBy = getOrderBy()
     await personasStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load personas:', error)
@@ -98,7 +99,7 @@ async function deletePersona(persona: PersonaResponse) {
   if (!confirm(`Delete persona "${persona.name}" (${persona.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await personasStore.remove(persona.id, persona.version)
+    await personasStore.remove(projectId.value, persona.id, persona.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete persona')
   }

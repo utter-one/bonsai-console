@@ -50,13 +50,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, reactive } from 'vue'
-import { useRoute } from 'vue-router'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
 import type { StageAction } from '@/api/types'
 
-const route = useRoute()
 const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
 const toolsStore = useToolsStore()
@@ -86,18 +84,15 @@ const props = defineProps<{
 }>()
 
 const projectClassifiers = computed(() => {
-  const projectId = route.params.projectId as string
-  return classifiersStore.items.filter(c => c.projectId === projectId)
+  return classifiersStore.items
 })
 
 const projectStages = computed(() => {
-  const projectId = route.params.projectId as string
-  return stagesStore.items.filter(s => s.projectId === projectId)
+  return stagesStore.items
 })
 
 const projectTools = computed(() => {
-  const projectId = route.params.projectId as string
-  return toolsStore.items.filter(t => t.projectId === projectId)
+  return toolsStore.items
 })
 
 const modalTitle = computed(() => {

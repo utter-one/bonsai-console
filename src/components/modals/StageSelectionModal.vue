@@ -70,7 +70,6 @@ const error = computed(() => stagesStore.error)
 // Sort stages alphabetically by name
 const sortedStages = computed(() => {
   return [...stagesStore.items]
-    .filter(stage => stage.projectId === props.projectId)
     .sort((a, b) => a.name.localeCompare(b.name))
 })
 
@@ -82,7 +81,7 @@ function selectStage(stage: StageResponse) {
 // Load stages on mount
 onMounted(async () => {
   if (!stagesStore.items.length) {
-    await stagesStore.fetchAll({ filters: { projectId: props.projectId } })
+    await stagesStore.fetchAll(props.projectId)
   }
 })
 </script>

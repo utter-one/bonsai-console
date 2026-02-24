@@ -285,7 +285,6 @@ const error = computed(() => toolsStore.error)
 // Filter tools for the current project and sort alphabetically
 const availableTools = computed(() => {
   return [...toolsStore.items]
-    .filter(tool => tool.projectId === props.projectId)
     .sort((a, b) => a.name.localeCompare(b.name))
 })
 
@@ -563,7 +562,7 @@ function handleCallTool() {
 // Load tools on mount
 onMounted(async () => {
   if (!toolsStore.items.length) {
-    await toolsStore.fetchAll({ filters: { projectId: props.projectId } })
+    await toolsStore.fetchAll(props.projectId)
   }
 })
 </script>

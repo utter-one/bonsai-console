@@ -63,15 +63,7 @@ async function loadIssues() {
   try {
     const filters: any = {}
     
-    // Add project filter if a project is selected
-    if (projectSelectionStore.selectedProjectId) {
-      filters.projectId = {
-        op: 'eq',
-        value: projectSelectionStore.selectedProjectId
-      }
-    }
-    
-    await issuesStore.fetchAll(pagination.getParams({ filters }))
+    await issuesStore.fetchAll(projectSelectionStore.selectedProjectId || '', pagination.getParams({ filters }))
   } catch (error) {
     console.error('Failed to load issues:', error)
   }

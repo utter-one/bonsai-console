@@ -2801,11 +2801,6 @@
             "minLength": 1,
             "description": "Unique identifier for the persona (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this persona belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -2856,7 +2851,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "prompt"
         ]
@@ -3362,11 +3356,6 @@
             "minLength": 1,
             "description": "Unique identifier for the knowledge category (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this knowledge category belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -3391,7 +3380,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "promptTrigger"
         ]
@@ -3483,6 +3471,10 @@
                   "type": "string",
                   "description": "Unique identifier for the knowledge item"
                 },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this item belongs to"
+                },
                 "categoryId": {
                   "type": "string",
                   "description": "ID of the category this item belongs to"
@@ -3518,6 +3510,7 @@
               },
               "required": [
                 "id",
+                "projectId",
                 "categoryId",
                 "question",
                 "answer",
@@ -3602,6 +3595,10 @@
                         "type": "string",
                         "description": "Unique identifier for the knowledge item"
                       },
+                      "projectId": {
+                        "type": "string",
+                        "description": "ID of the project this item belongs to"
+                      },
                       "categoryId": {
                         "type": "string",
                         "description": "ID of the category this item belongs to"
@@ -3637,6 +3634,7 @@
                     },
                     "required": [
                       "id",
+                      "projectId",
                       "categoryId",
                       "question",
                       "answer",
@@ -3792,6 +3790,10 @@
             "type": "string",
             "description": "Unique identifier for the knowledge item"
           },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this item belongs to"
+          },
           "categoryId": {
             "type": "string",
             "description": "ID of the category this item belongs to"
@@ -3827,6 +3829,7 @@
         },
         "required": [
           "id",
+          "projectId",
           "categoryId",
           "question",
           "answer",
@@ -3847,6 +3850,10 @@
                 "id": {
                   "type": "string",
                   "description": "Unique identifier for the knowledge item"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this item belongs to"
                 },
                 "categoryId": {
                   "type": "string",
@@ -3883,6 +3890,7 @@
               },
               "required": [
                 "id",
+                "projectId",
                 "categoryId",
                 "question",
                 "answer",
@@ -3922,11 +3930,6 @@
       "CreateIssueRequest": {
         "type": "object",
         "properties": {
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this issue belongs to"
-          },
           "environment": {
             "type": "string",
             "minLength": 1,
@@ -3985,7 +3988,6 @@
           }
         },
         "required": [
-          "projectId",
           "environment",
           "buildVersion",
           "severity",
@@ -4471,6 +4473,10 @@
           "id": {
             "type": "string",
             "description": "Unique identifier for the conversation event"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this event belongs to"
           },
           "conversationId": {
             "type": "string",
@@ -4972,6 +4978,7 @@
         },
         "required": [
           "id",
+          "projectId",
           "conversationId",
           "eventType",
           "eventData",
@@ -4990,6 +4997,10 @@
                 "id": {
                   "type": "string",
                   "description": "Unique identifier for the conversation event"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this event belongs to"
                 },
                 "conversationId": {
                   "type": "string",
@@ -5491,6 +5502,7 @@
               },
               "required": [
                 "id",
+                "projectId",
                 "conversationId",
                 "eventType",
                 "eventData",
@@ -5532,11 +5544,6 @@
             "type": "string",
             "minLength": 1,
             "description": "Unique identifier for the stage (auto-generated if not provided)"
-          },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this stage belongs to"
           },
           "name": {
             "type": "string",
@@ -5654,7 +5661,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "prompt",
           "personaId"
@@ -6147,11 +6153,6 @@
             "minLength": 1,
             "description": "Unique identifier for the classifier (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this classifier belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -6201,7 +6202,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "prompt"
         ]
@@ -6493,11 +6493,6 @@
             "minLength": 1,
             "description": "Unique identifier for the context transformer (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this context transformer belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -6554,7 +6549,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "prompt"
         ]
@@ -6871,11 +6865,6 @@
             "minLength": 1,
             "description": "Unique identifier for the tool (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this tool belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -6951,7 +6940,6 @@
           }
         },
         "required": [
-          "projectId",
           "name",
           "prompt",
           "inputType",
@@ -7326,11 +7314,6 @@
             "minLength": 1,
             "description": "Unique identifier for the global action (auto-generated if not provided)"
           },
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "ID of the project this global action belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -7391,7 +7374,6 @@
           }
         },
         "required": [
-          "projectId",
           "name"
         ]
       },
@@ -9726,11 +9708,6 @@
       "CreateApiKeyRequest": {
         "type": "object",
         "properties": {
-          "projectId": {
-            "type": "string",
-            "minLength": 1,
-            "description": "The ID of the project this API key belongs to"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -9746,7 +9723,6 @@
           }
         },
         "required": [
-          "projectId",
           "name"
         ]
       },
@@ -12802,7 +12778,7 @@
         }
       }
     },
-    "/api/classifiers": {
+    "/api/projects/{projectId}/classifiers": {
       "post": {
         "tags": [
           "Classifiers"
@@ -12819,11 +12795,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the classifier (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this classifier belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -12874,7 +12845,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "prompt"
                 ]
@@ -13254,7 +13224,7 @@
         }
       }
     },
-    "/api/classifiers/{id}": {
+    "/api/projects/{projectId}/classifiers/{id}": {
       "get": {
         "tags": [
           "Classifiers"
@@ -13262,6 +13232,17 @@
         "summary": "Get classifier by ID",
         "description": "Retrieves a single classifier by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -13380,6 +13361,17 @@
         "summary": "Update classifier",
         "description": "Updates an existing classifier with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -13573,6 +13565,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Classifier ID"
             },
             "required": true,
@@ -13616,7 +13619,7 @@
         }
       }
     },
-    "/api/classifiers/{id}/audit-logs": {
+    "/api/projects/{projectId}/classifiers/{id}/audit-logs": {
       "get": {
         "tags": [
           "Classifiers"
@@ -13624,6 +13627,17 @@
         "summary": "Get classifier audit logs",
         "description": "Retrieves audit logs for a specific classifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -13645,7 +13659,7 @@
         }
       }
     },
-    "/api/classifiers/{id}/clone": {
+    "/api/projects/{projectId}/classifiers/{id}/clone": {
       "post": {
         "tags": [
           "Classifiers"
@@ -13653,6 +13667,17 @@
         "summary": "Clone classifier",
         "description": "Creates a copy of an existing classifier with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -13789,7 +13814,7 @@
         }
       }
     },
-    "/api/context-transformers": {
+    "/api/projects/{projectId}/context-transformers": {
       "post": {
         "tags": [
           "Context Transformers"
@@ -13806,11 +13831,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the context transformer (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this context transformer belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -13868,7 +13888,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "prompt"
                 ]
@@ -14266,7 +14285,7 @@
         }
       }
     },
-    "/api/context-transformers/{id}": {
+    "/api/projects/{projectId}/context-transformers/{id}": {
       "get": {
         "tags": [
           "Context Transformers"
@@ -14274,6 +14293,17 @@
         "summary": "Get context transformer by ID",
         "description": "Retrieves a single context transformer by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -14401,6 +14431,17 @@
         "summary": "Update context transformer",
         "description": "Updates an existing context transformer with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -14610,6 +14651,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Context transformer ID"
             },
             "required": true,
@@ -14653,7 +14705,7 @@
         }
       }
     },
-    "/api/context-transformers/{id}/audit-logs": {
+    "/api/projects/{projectId}/context-transformers/{id}/audit-logs": {
       "get": {
         "tags": [
           "Context Transformers"
@@ -14661,6 +14713,17 @@
         "summary": "Get context transformer audit logs",
         "description": "Retrieves audit logs for a specific context transformer",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -14682,7 +14745,7 @@
         }
       }
     },
-    "/api/context-transformers/{id}/clone": {
+    "/api/projects/{projectId}/context-transformers/{id}/clone": {
       "post": {
         "tags": [
           "Context Transformers"
@@ -14690,6 +14753,17 @@
         "summary": "Clone context transformer",
         "description": "Creates a copy of an existing context transformer with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -14835,7 +14909,7 @@
         }
       }
     },
-    "/api/conversations/{id}": {
+    "/api/projects/{projectId}/conversations/{id}": {
       "get": {
         "tags": [
           "Conversations"
@@ -14843,6 +14917,17 @@
         "summary": "Get conversation by ID",
         "description": "Retrieves a single conversation by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -14955,6 +15040,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Conversation ID"
             },
             "required": true,
@@ -14973,7 +15069,7 @@
         }
       }
     },
-    "/api/conversations": {
+    "/api/projects/{projectId}/conversations": {
       "get": {
         "tags": [
           "Conversations"
@@ -15234,7 +15330,7 @@
         }
       }
     },
-    "/api/conversations/{id}/events": {
+    "/api/projects/{projectId}/conversations/{id}/events": {
       "get": {
         "tags": [
           "Conversations"
@@ -15242,6 +15338,17 @@
         "summary": "List conversation events",
         "description": "Retrieves a paginated list of events for a specific conversation with optional filtering and sorting",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -15397,6 +15504,10 @@
                           "id": {
                             "type": "string",
                             "description": "Unique identifier for the conversation event"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this event belongs to"
                           },
                           "conversationId": {
                             "type": "string",
@@ -15898,6 +16009,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "conversationId",
                           "eventType",
                           "eventData",
@@ -15944,7 +16056,7 @@
         }
       }
     },
-    "/api/conversations/{id}/events/{eventId}": {
+    "/api/projects/{projectId}/conversations/{id}/events/{eventId}": {
       "get": {
         "tags": [
           "Conversations"
@@ -15952,6 +16064,17 @@
         "summary": "Get conversation event by ID",
         "description": "Retrieves a specific event for a conversation by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -15984,6 +16107,10 @@
                     "id": {
                       "type": "string",
                       "description": "Unique identifier for the conversation event"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this event belongs to"
                     },
                     "conversationId": {
                       "type": "string",
@@ -16485,6 +16612,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "conversationId",
                     "eventType",
                     "eventData",
@@ -16501,7 +16629,7 @@
         }
       }
     },
-    "/api/conversations/{id}/audit-logs": {
+    "/api/projects/{projectId}/conversations/{id}/audit-logs": {
       "get": {
         "tags": [
           "Conversations"
@@ -16509,6 +16637,17 @@
         "summary": "Get conversation audit logs",
         "description": "Retrieves audit logs for a specific conversation",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -16530,7 +16669,7 @@
         }
       }
     },
-    "/api/knowledge/categories": {
+    "/api/projects/{projectId}/knowledge/categories": {
       "post": {
         "tags": [
           "Knowledge"
@@ -16547,11 +16686,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the knowledge category (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this knowledge category belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -16577,7 +16711,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "promptTrigger"
                 ]
@@ -16629,6 +16762,10 @@
                             "type": "string",
                             "description": "Unique identifier for the knowledge item"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this item belongs to"
+                          },
                           "categoryId": {
                             "type": "string",
                             "description": "ID of the category this item belongs to"
@@ -16664,6 +16801,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "categoryId",
                           "question",
                           "answer",
@@ -16900,6 +17038,10 @@
                                   "type": "string",
                                   "description": "Unique identifier for the knowledge item"
                                 },
+                                "projectId": {
+                                  "type": "string",
+                                  "description": "ID of the project this item belongs to"
+                                },
                                 "categoryId": {
                                   "type": "string",
                                   "description": "ID of the category this item belongs to"
@@ -16935,6 +17077,7 @@
                               },
                               "required": [
                                 "id",
+                                "projectId",
                                 "categoryId",
                                 "question",
                                 "answer",
@@ -17011,7 +17154,7 @@
         }
       }
     },
-    "/api/knowledge/categories/{id}": {
+    "/api/projects/{projectId}/knowledge/categories/{id}": {
       "get": {
         "tags": [
           "Knowledge"
@@ -17019,6 +17162,17 @@
         "summary": "Get knowledge category by ID",
         "description": "Retrieves a single knowledge category with all its items by unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -17074,6 +17228,10 @@
                             "type": "string",
                             "description": "Unique identifier for the knowledge item"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this item belongs to"
+                          },
                           "categoryId": {
                             "type": "string",
                             "description": "ID of the category this item belongs to"
@@ -17109,6 +17267,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "categoryId",
                           "question",
                           "answer",
@@ -17164,6 +17323,17 @@
         "summary": "Update knowledge category",
         "description": "Updates an existing knowledge category with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -17260,6 +17430,10 @@
                             "type": "string",
                             "description": "Unique identifier for the knowledge item"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this item belongs to"
+                          },
                           "categoryId": {
                             "type": "string",
                             "description": "ID of the category this item belongs to"
@@ -17295,6 +17469,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "categoryId",
                           "question",
                           "answer",
@@ -17359,6 +17534,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Knowledge category ID"
             },
             "required": true,
@@ -17402,7 +17588,7 @@
         }
       }
     },
-    "/api/knowledge/items": {
+    "/api/projects/{projectId}/knowledge/items": {
       "post": {
         "tags": [
           "Knowledge"
@@ -17462,6 +17648,10 @@
                       "type": "string",
                       "description": "Unique identifier for the knowledge item"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this item belongs to"
+                    },
                     "categoryId": {
                       "type": "string",
                       "description": "ID of the category this item belongs to"
@@ -17497,6 +17687,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "categoryId",
                     "question",
                     "answer",
@@ -17670,6 +17861,10 @@
                             "type": "string",
                             "description": "Unique identifier for the knowledge item"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this item belongs to"
+                          },
                           "categoryId": {
                             "type": "string",
                             "description": "ID of the category this item belongs to"
@@ -17705,6 +17900,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "categoryId",
                           "question",
                           "answer",
@@ -17750,7 +17946,7 @@
         }
       }
     },
-    "/api/knowledge/items/{id}": {
+    "/api/projects/{projectId}/knowledge/items/{id}": {
       "get": {
         "tags": [
           "Knowledge"
@@ -17758,6 +17954,17 @@
         "summary": "Get knowledge item by ID",
         "description": "Retrieves a single knowledge item by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -17780,6 +17987,10 @@
                     "id": {
                       "type": "string",
                       "description": "Unique identifier for the knowledge item"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this item belongs to"
                     },
                     "categoryId": {
                       "type": "string",
@@ -17816,6 +18027,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "categoryId",
                     "question",
                     "answer",
@@ -17840,6 +18052,17 @@
         "summary": "Update knowledge item",
         "description": "Updates an existing knowledge item with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -17902,6 +18125,10 @@
                       "type": "string",
                       "description": "Unique identifier for the knowledge item"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this item belongs to"
+                    },
                     "categoryId": {
                       "type": "string",
                       "description": "ID of the category this item belongs to"
@@ -17937,6 +18164,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "categoryId",
                     "question",
                     "answer",
@@ -17967,6 +18195,17 @@
         "summary": "Delete knowledge item",
         "description": "Deletes a knowledge item with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -18013,7 +18252,7 @@
         }
       }
     },
-    "/api/knowledge/categories/{categoryId}/items": {
+    "/api/projects/{projectId}/knowledge/categories/{categoryId}/items": {
       "get": {
         "tags": [
           "Knowledge"
@@ -18021,6 +18260,17 @@
         "summary": "Get items by category",
         "description": "Retrieves all knowledge items belonging to a specific category, ordered by their display order",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -18045,6 +18295,10 @@
                       "id": {
                         "type": "string",
                         "description": "Unique identifier for the knowledge item"
+                      },
+                      "projectId": {
+                        "type": "string",
+                        "description": "ID of the project this item belongs to"
                       },
                       "categoryId": {
                         "type": "string",
@@ -18081,6 +18335,7 @@
                     },
                     "required": [
                       "id",
+                      "projectId",
                       "categoryId",
                       "question",
                       "answer",
@@ -18100,7 +18355,7 @@
         }
       }
     },
-    "/api/personas": {
+    "/api/projects/{projectId}/personas": {
       "post": {
         "tags": [
           "Personas"
@@ -18117,11 +18372,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the persona (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this persona belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -18173,7 +18423,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "prompt"
                 ]
@@ -18559,7 +18808,7 @@
         }
       }
     },
-    "/api/personas/{id}": {
+    "/api/projects/{projectId}/personas/{id}": {
       "get": {
         "tags": [
           "Personas"
@@ -18567,6 +18816,17 @@
         "summary": "Get persona by ID",
         "description": "Retrieves a single persona by their unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -18688,6 +18948,17 @@
         "summary": "Update persona",
         "description": "Updates an existing persona with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -18885,6 +19156,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Persona ID"
             },
             "required": true,
@@ -18928,7 +19210,7 @@
         }
       }
     },
-    "/api/personas/{id}/audit-logs": {
+    "/api/projects/{projectId}/personas/{id}/audit-logs": {
       "get": {
         "tags": [
           "Personas"
@@ -18936,6 +19218,17 @@
         "summary": "Get persona audit logs",
         "description": "Retrieves audit logs for a specific persona",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -18957,7 +19250,7 @@
         }
       }
     },
-    "/api/personas/{id}/clone": {
+    "/api/projects/{projectId}/personas/{id}/clone": {
       "post": {
         "tags": [
           "Personas"
@@ -18965,6 +19258,17 @@
         "summary": "Clone persona",
         "description": "Creates a copy of an existing persona with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -22621,7 +22925,7 @@
         }
       }
     },
-    "/api/global-actions": {
+    "/api/projects/{projectId}/global-actions": {
       "post": {
         "tags": [
           "Global Actions"
@@ -22638,11 +22942,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the global action (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this global action belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -22704,7 +23003,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name"
                 ]
               }
@@ -23115,7 +23413,7 @@
         }
       }
     },
-    "/api/global-actions/{id}": {
+    "/api/projects/{projectId}/global-actions/{id}": {
       "get": {
         "tags": [
           "Global Actions"
@@ -23123,6 +23421,17 @@
         "summary": "Get global action by ID",
         "description": "Retrieves a single global action by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -23257,6 +23566,17 @@
         "summary": "Update global action",
         "description": "Updates an existing global action with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -23475,6 +23795,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Global Action ID"
             },
             "required": true,
@@ -23518,7 +23849,7 @@
         }
       }
     },
-    "/api/global-actions/{id}/audit-logs": {
+    "/api/projects/{projectId}/global-actions/{id}/audit-logs": {
       "get": {
         "tags": [
           "Global Actions"
@@ -23526,6 +23857,17 @@
         "summary": "Get global action audit logs",
         "description": "Retrieves audit logs for a specific global action",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -23547,7 +23889,7 @@
         }
       }
     },
-    "/api/global-actions/{id}/clone": {
+    "/api/projects/{projectId}/global-actions/{id}/clone": {
       "post": {
         "tags": [
           "Global Actions"
@@ -23555,6 +23897,17 @@
         "summary": "Clone global action",
         "description": "Creates a copy of an existing global action with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -23707,7 +24060,7 @@
         }
       }
     },
-    "/api/issues": {
+    "/api/projects/{projectId}/issues": {
       "post": {
         "tags": [
           "Issues"
@@ -23720,11 +24073,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this issue belongs to"
-                  },
                   "environment": {
                     "type": "string",
                     "minLength": 1,
@@ -23783,7 +24131,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "environment",
                   "buildVersion",
                   "severity",
@@ -24181,7 +24528,7 @@
         }
       }
     },
-    "/api/issues/{id}": {
+    "/api/projects/{projectId}/issues/{id}": {
       "get": {
         "tags": [
           "Issues"
@@ -24189,6 +24536,17 @@
         "summary": "Get issue by ID",
         "description": "Retrieves a single issue by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -24315,6 +24673,17 @@
         "summary": "Update issue",
         "description": "Updates an existing issue with new information, typically used to change status, add comments, or update severity",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -24513,6 +24882,17 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
               "description": "Issue ID"
             },
             "required": true,
@@ -24531,7 +24911,7 @@
         }
       }
     },
-    "/api/issues/{id}/audit-logs": {
+    "/api/projects/{projectId}/issues/{id}/audit-logs": {
       "get": {
         "tags": [
           "Issues"
@@ -24539,6 +24919,17 @@
         "summary": "Get issue audit logs",
         "description": "Retrieves audit logs for a specific issue showing its change history",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -24560,7 +24951,7 @@
         }
       }
     },
-    "/api/stages": {
+    "/api/projects/{projectId}/stages": {
       "post": {
         "tags": [
           "Stages"
@@ -24577,11 +24968,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the stage (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this stage belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -24699,7 +25085,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "prompt",
                   "personaId"
@@ -25220,7 +25605,7 @@
         }
       }
     },
-    "/api/stages/{id}": {
+    "/api/projects/{projectId}/stages/{id}": {
       "get": {
         "tags": [
           "Stages"
@@ -25228,6 +25613,17 @@
         "summary": "Get stage by ID",
         "description": "Retrieves a single stage by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -25417,6 +25813,17 @@
         "summary": "Update stage",
         "description": "Updates an existing stage with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -25742,6 +26149,17 @@
             "schema": {
               "type": "string",
               "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
               "description": "Stage ID"
             },
             "required": true,
@@ -25785,7 +26203,7 @@
         }
       }
     },
-    "/api/stages/{id}/audit-logs": {
+    "/api/projects/{projectId}/stages/{id}/audit-logs": {
       "get": {
         "tags": [
           "Stages"
@@ -25793,6 +26211,17 @@
         "summary": "Get stage audit logs",
         "description": "Retrieves audit logs for a specific stage",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -25815,7 +26244,7 @@
         }
       }
     },
-    "/api/stages/{id}/clone": {
+    "/api/projects/{projectId}/stages/{id}/clone": {
       "post": {
         "tags": [
           "Stages"
@@ -25823,6 +26252,17 @@
         "summary": "Clone stage",
         "description": "Creates a copy of an existing stage with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -26030,7 +26470,7 @@
         }
       }
     },
-    "/api/tools": {
+    "/api/projects/{projectId}/tools": {
       "post": {
         "tags": [
           "Tools"
@@ -26047,11 +26487,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Unique identifier for the tool (auto-generated if not provided)"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "ID of the project this tool belongs to"
                   },
                   "name": {
                     "type": "string",
@@ -26128,7 +26563,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name",
                   "prompt",
                   "inputType",
@@ -26566,7 +27000,7 @@
         }
       }
     },
-    "/api/tools/{id}": {
+    "/api/projects/{projectId}/tools/{id}": {
       "get": {
         "tags": [
           "Tools"
@@ -26574,6 +27008,17 @@
         "summary": "Get tool by ID",
         "description": "Retrieves a single tool by its unique identifier",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -26721,6 +27166,17 @@
         "summary": "Update tool",
         "description": "Updates an existing tool with optimistic locking",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -26969,6 +27425,17 @@
             "schema": {
               "type": "string",
               "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
               "description": "Tool ID"
             },
             "required": true,
@@ -27012,7 +27479,7 @@
         }
       }
     },
-    "/api/tools/{id}/audit-logs": {
+    "/api/projects/{projectId}/tools/{id}/audit-logs": {
       "get": {
         "tags": [
           "Tools"
@@ -27020,6 +27487,17 @@
         "summary": "Get tool audit logs",
         "description": "Retrieves audit logs for a specific tool",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -27042,7 +27520,7 @@
         }
       }
     },
-    "/api/tools/{id}/clone": {
+    "/api/projects/{projectId}/tools/{id}/clone": {
       "post": {
         "tags": [
           "Tools"
@@ -27050,6 +27528,17 @@
         "summary": "Clone tool",
         "description": "Creates a copy of an existing tool with a new ID and optional name override",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -27727,7 +28216,7 @@
         }
       }
     },
-    "/api/api-keys": {
+    "/api/projects/{projectId}/api-keys": {
       "post": {
         "tags": [
           "API Keys"
@@ -27740,11 +28229,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "projectId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "The ID of the project this API key belongs to"
-                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -27760,7 +28244,6 @@
                   }
                 },
                 "required": [
-                  "projectId",
                   "name"
                 ]
               }
@@ -28073,7 +28556,7 @@
         }
       }
     },
-    "/api/api-keys/{id}": {
+    "/api/projects/{projectId}/api-keys/{id}": {
       "get": {
         "tags": [
           "API Keys"
@@ -28081,6 +28564,17 @@
         "summary": "Get API key by ID",
         "description": "Retrieves a single API key by its unique identifier. The full secret key is never returned, only a preview.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -28175,6 +28669,17 @@
         "summary": "Update API key",
         "description": "Updates an existing API key with optimistic locking support. Can update name, active status, and metadata.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -28307,6 +28812,17 @@
         "summary": "Delete API key",
         "description": "Permanently deletes an API key. This action cannot be undone and will immediately invalidate the key.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",

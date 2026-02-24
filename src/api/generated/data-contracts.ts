@@ -1367,11 +1367,6 @@ export interface CreatePersonaRequest {
    */
   id?: string;
   /**
-   * ID of the project this persona belongs to
-   * @minLength 1
-   */
-  projectId: string;
-  /**
    * Display name of the persona
    * @minLength 1
    */
@@ -1640,11 +1635,6 @@ export interface CreateKnowledgeCategoryRequest {
    */
   id?: string;
   /**
-   * ID of the project this knowledge category belongs to
-   * @minLength 1
-   */
-  projectId: string;
-  /**
    * Name of the knowledge category
    * @minLength 1
    */
@@ -1713,6 +1703,8 @@ export interface KnowledgeCategoryResponse {
   items?: {
     /** Unique identifier for the knowledge item */
     id: string;
+    /** ID of the project this item belongs to */
+    projectId: string;
     /** ID of the category this item belongs to */
     categoryId: string;
     /** Question text for this knowledge item */
@@ -1767,6 +1759,8 @@ export interface KnowledgeCategoryListResponse {
     items?: {
       /** Unique identifier for the knowledge item */
       id: string;
+      /** ID of the project this item belongs to */
+      projectId: string;
       /** ID of the category this item belongs to */
       categoryId: string;
       /** Question text for this knowledge item */
@@ -1886,6 +1880,8 @@ export interface DeleteKnowledgeItemRequest {
 export interface KnowledgeItemResponse {
   /** Unique identifier for the knowledge item */
   id: string;
+  /** ID of the project this item belongs to */
+  projectId: string;
   /** ID of the category this item belongs to */
   categoryId: string;
   /** Question text for this knowledge item */
@@ -1913,6 +1909,8 @@ export interface KnowledgeItemListResponse {
   items: {
     /** Unique identifier for the knowledge item */
     id: string;
+    /** ID of the project this item belongs to */
+    projectId: string;
     /** ID of the category this item belongs to */
     categoryId: string;
     /** Question text for this knowledge item */
@@ -1953,11 +1951,6 @@ export interface KnowledgeItemListResponse {
 }
 
 export interface CreateIssueRequest {
-  /**
-   * ID of the project this issue belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * Environment where issue occurred (e.g., production, staging, development)
    * @minLength 1
@@ -2241,6 +2234,8 @@ export interface ConversationListResponse {
 export interface ConversationEventResponse {
   /** Unique identifier for the conversation event */
   id: string;
+  /** ID of the project this event belongs to */
+  projectId: string;
   /** Identifier of the conversation this event belongs to */
   conversationId: string;
   /** Type of the conversation event */
@@ -2388,6 +2383,8 @@ export interface ConversationEventListResponse {
   items: {
     /** Unique identifier for the conversation event */
     id: string;
+    /** ID of the project this event belongs to */
+    projectId: string;
     /** Identifier of the conversation this event belongs to */
     conversationId: string;
     /** Type of the conversation event */
@@ -2553,11 +2550,6 @@ export interface CreateStageRequest {
    * @minLength 1
    */
   id?: string;
-  /**
-   * ID of the project this stage belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * Display name for the stage
    * @minLength 1
@@ -2823,11 +2815,6 @@ export interface CreateClassifierRequest {
    */
   id?: string;
   /**
-   * ID of the project this classifier belongs to
-   * @minLength 1
-   */
-  projectId: string;
-  /**
    * Display name of the classifier
    * @minLength 1
    */
@@ -2984,11 +2971,6 @@ export interface CreateContextTransformerRequest {
    * @minLength 1
    */
   id?: string;
-  /**
-   * ID of the project this context transformer belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * Display name of the context transformer
    * @minLength 1
@@ -3154,11 +3136,6 @@ export interface CreateToolRequest {
    * @minLength 1
    */
   id?: string;
-  /**
-   * ID of the project this tool belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * Display name of the tool
    * @minLength 1
@@ -3343,11 +3320,6 @@ export interface CreateGlobalActionRequest {
    * @minLength 1
    */
   id?: string;
-  /**
-   * ID of the project this global action belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * Display name of the global action
    * @minLength 1
@@ -4278,11 +4250,6 @@ export interface AuditLogListResponse {
 }
 
 export interface CreateApiKeyRequest {
-  /**
-   * The ID of the project this API key belongs to
-   * @minLength 1
-   */
-  projectId: string;
   /**
    * A descriptive name for the API key
    * @minLength 1

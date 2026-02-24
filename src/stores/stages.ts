@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createResourceStore } from './utils/resource'
+import { createProjectResourceStore } from './utils/resource'
 import type {
   StageResponse,
   CreateStageRequest,
@@ -7,7 +7,7 @@ import type {
 } from '@/api/types'
 
 export const useStagesStore = defineStore('stages', () => {
-  const store = createResourceStore<StageResponse, CreateStageRequest, UpdateStageRequest>({
+  const store = createProjectResourceStore<StageResponse, CreateStageRequest, UpdateStageRequest>({
     endpoint: '/stages',
     resourceName: 'stage',
     apiResourceName: 'stages',
