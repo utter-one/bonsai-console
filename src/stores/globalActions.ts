@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createResourceStore } from './utils/resource'
+import { createProjectResourceStore } from './utils/resource'
 import type {
   GlobalActionResponse,
   CreateGlobalActionRequest,
@@ -7,7 +7,7 @@ import type {
 } from '@/api/types'
 
 export const useGlobalActionsStore = defineStore('globalActions', () => {
-  const store = createResourceStore<GlobalActionResponse, CreateGlobalActionRequest, UpdateGlobalActionRequest>({
+  const store = createProjectResourceStore<GlobalActionResponse, CreateGlobalActionRequest, UpdateGlobalActionRequest>({
     endpoint: '/global-actions',
     resourceName: 'global action',
     apiResourceName: 'globalActions',

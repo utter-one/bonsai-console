@@ -57,7 +57,7 @@ async function loadClassifier() {
   error.value = null
   
   try {
-    currentClassifier.value = await classifiersStore.fetchById(classifierId.value)
+    currentClassifier.value = await classifiersStore.fetchById(projectId.value, classifierId.value)
     if (currentClassifier.value) {
       form.value = {
         id: currentClassifier.value.id,
@@ -83,7 +83,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentClassifier.value) {
       // Update existing classifier
-      const updated = await classifiersStore.update(currentClassifier.value.id, {
+      const updated = await classifiersStore.update(projectId.value, currentClassifier.value.id, {
         version: currentClassifier.value.version,
         name: form.value.name,
         description: form.value.description || null,
@@ -98,7 +98,6 @@ async function handleSubmit() {
     } else {
       // Create new classifier
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         prompt: form.value.prompt,
         metadata: form.value.metadata
@@ -124,7 +123,7 @@ async function handleSubmit() {
         createData.llmSettings = form.value.llmSettings
       }
 
-      const created = await classifiersStore.create(createData)
+      const created = await classifiersStore.create(projectId.value, createData)
       
       // Update currentClassifier with the created classifier
       currentClassifier.value = created

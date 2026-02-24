@@ -72,7 +72,8 @@ async function loadTools() {
   try {
     const orderBy = getOrderBy()
     await toolsStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load tools:', error)
@@ -83,7 +84,7 @@ async function deleteTool(tool: ToolResponse) {
   if (!confirm(`Delete tool "${tool.name}" (${tool.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await toolsStore.remove(tool.id, tool.version)
+    await toolsStore.remove(projectId.value, tool.id, tool.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete tool')
   }

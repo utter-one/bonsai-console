@@ -271,7 +271,7 @@ async function loadPersona() {
   error.value = null
   
   try {
-    currentPersona.value = await personasStore.fetchById(personaId.value)
+    currentPersona.value = await personasStore.fetchById(projectId.value, personaId.value)
     if (currentPersona.value) {
       form.value = {
         id: currentPersona.value.id,
@@ -319,7 +319,7 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentPersona.value) {
       // Update existing persona
-      const updatedPersona = await personasStore.update(currentPersona.value.id, {
+      const updatedPersona = await personasStore.update(projectId.value, currentPersona.value.id, {
         version: currentPersona.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -334,7 +334,6 @@ async function handleSubmit() {
     } else {
       // Create new persona
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         prompt: form.value.prompt,
         metadata: form.value.metadata
@@ -360,7 +359,7 @@ async function handleSubmit() {
         createData.ttsSettings = ttsSettings
       }
 
-      const createdPersona = await personasStore.create(createData)
+      const createdPersona = await personasStore.create(projectId.value, createData)
       
       // Update currentPersona with the created persona (includes version and server-generated fields)
       currentPersona.value = createdPersona

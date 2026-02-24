@@ -65,8 +65,8 @@ onMounted(() => loadCategories())
 async function loadCategories() {
   if (!projectId.value) return
   try {
-    await knowledgeStore.fetchCategories({
-      filters: { projectId: projectId.value },
+    await knowledgeStore.fetchCategories(projectId.value, {
+      filters: {},
       orderBy: 'order',
     })
   } catch {
@@ -109,14 +109,13 @@ async function handleCategorySubmit(data: {
 }) {
   try {
     if (editingCategory.value) {
-      await knowledgeStore.updateCategory(editingCategory.value.id, {
+      await knowledgeStore.updateCategory(projectId.value, editingCategory.value.id, {
         ...data,
         version: editingCategory.value.version,
       })
     } else {
-      const result = await knowledgeStore.createCategory({
+      const result = await knowledgeStore.createCategory(projectId.value, {
         ...data,
-        projectId: projectId.value,
       })
       // Auto-expand newly created category
       expandedCategories.value = new Set([...expandedCategories.value, result.id])
@@ -133,7 +132,7 @@ async function deleteCategory(category: KnowledgeCategoryResponse, event: MouseE
   const itemWarning = itemCount > 0 ? `\n\nThis will also delete ${itemCount} item(s) within this category.` : ''
   if (!confirm(`Delete category "${category.name}"?${itemWarning}\n\nThis action cannot be undone.`)) return
   try {
-    await knowledgeStore.deleteCategory(category.id, category.version)
+    await knowledgeStore.deleteCategory(projectId.value, category.id, category.version)
     expandedCategories.value.delete(category.id)
     expandedCategories.value = new Set(expandedCategories.value)
   } catch (err: any) {
@@ -161,12 +160,12 @@ function openEditItem(item: KnowledgeItemResponse, categoryId: string) {
 async function handleItemSubmit(data: { question: string; answer: string; order: number }) {
   try {
     if (editingItem.value) {
-      await knowledgeStore.updateItem(editingItem.value.id, itemModalCategoryId.value, {
+      await knowledgeStore.updateItem(projectId.value, editingItem.value.id, itemModalCategoryId.value, {
         ...data,
         version: editingItem.value.version,
       })
     } else {
-      await knowledgeStore.createItem({
+      await knowledgeStore.createItem(projectId.value, {
         ...data,
         categoryId: itemModalCategoryId.value,
       })
@@ -180,7 +179,7 @@ async function handleItemSubmit(data: { question: string; answer: string; order:
 async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
   if (!confirm(`Delete item?\n\n"${item.question}"\n\nThis action cannot be undone.`)) return
   try {
-    await knowledgeStore.deleteItem(item.id, categoryId, item.version)
+    await knowledgeStore.deleteItem(projectId.value, item.id, categoryId, item.version)
   } catch (err: any) {
     alert(err.response?.data?.message || 'Failed to delete item')
   }

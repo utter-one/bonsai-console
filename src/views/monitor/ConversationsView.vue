@@ -153,13 +153,11 @@ async function loadConversations() {
     
     // Add project filter if a project is selected
     if (projectSelectionStore.selectedProjectId) {
-      filters.projectId = {
-        op: 'eq',
-        value: projectSelectionStore.selectedProjectId
-      }
+      // projectId is now in the URL, remove from filters
     }
     
     await conversationsStore.fetchAll(
+      projectSelectionStore.selectedProjectId || '',
       pagination.getParams({ 
         filters,
         orderBy: '-updatedAt'
@@ -181,7 +179,7 @@ async function deleteConversation(conversation: ConversationResponse) {
   if (!confirm(`Delete conversation ${conversation.id}?\n\nThis action cannot be undone.`)) return
 
   try {
-    await conversationsStore.remove(conversation.id)
+    await conversationsStore.remove(projectSelectionStore.selectedProjectId || '', conversation.id)
     await loadConversations()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete conversation')

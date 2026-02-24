@@ -20,13 +20,16 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     limit: null as number | null,
   })
 
-  // ── Categories ───────────────────────────────────────────────────────────
-
-  async function fetchCategories(params?: Record<string, any>) {
+  async function fetchCategories(projectId: string, params?: Record<string, any>) {
+    if (!projectId) {
+      categories.value = []
+      pagination.value = { total: 0, offset: 0, limit: null }
+      return
+    }
     isLoading.value = true
     error.value = null
     try {
-      const response = await apiClient.knowledgeCategoriesList(params as any) as any
+      const response = await apiClient.projectsKnowledgeCategoriesList(projectId, params as any) as any
       categories.value = response.items
       pagination.value = {
         total: response.total,
@@ -42,11 +45,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function createCategory(data: CreateKnowledgeCategoryRequest) {
+  async function createCategory(projectId: string, data: CreateKnowledgeCategoryRequest) {
     isLoading.value = true
     error.value = null
     try {
-      const result = await apiClient.knowledgeCategoriesCreate(data) as KnowledgeCategoryResponse
+      const result = await apiClient.projectsKnowledgeCategoriesCreate(projectId, data) as KnowledgeCategoryResponse
       result.items = result.items ?? []
       categories.value = [result, ...categories.value]
       return result
@@ -58,11 +61,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function updateCategory(id: string, data: UpdateKnowledgeCategoryRequest) {
+  async function updateCategory(projectId: string, id: string, data: UpdateKnowledgeCategoryRequest) {
     isLoading.value = true
     error.value = null
     try {
-      const result = await apiClient.knowledgeCategoriesUpdate(id, data) as KnowledgeCategoryResponse
+      const result = await apiClient.projectsKnowledgeCategoriesUpdate(projectId, id, data) as KnowledgeCategoryResponse
       const index = categories.value.findIndex((c) => c.id === id)
       if (index !== -1) {
         // Preserve locally-held items since the update response may omit them
@@ -79,11 +82,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function deleteCategory(id: string, version: number) {
+  async function deleteCategory(projectId: string, id: string, version: number) {
     isLoading.value = true
     error.value = null
     try {
-      await apiClient.knowledgeCategoriesDelete(id, { version })
+      await apiClient.projectsKnowledgeCategoriesDelete(projectId, id, { version })
       categories.value = categories.value.filter((c) => c.id !== id)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete knowledge category'
@@ -93,13 +96,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  // ── Items ────────────────────────────────────────────────────────────────
-
-  async function createItem(data: CreateKnowledgeItemRequest) {
+  async function createItem(projectId: string, data: CreateKnowledgeItemRequest) {
     isLoading.value = true
     error.value = null
     try {
-      const result = await apiClient.knowledgeItemsCreate(data) as KnowledgeItemResponse
+      const result = await apiClient.projectsKnowledgeItemsCreate(projectId, data) as KnowledgeItemResponse
       const category = categories.value.find((c) => c.id === data.categoryId)
       if (category) {
         category.items = [...(category.items ?? []), result]
@@ -113,11 +114,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function updateItem(id: string, categoryId: string, data: UpdateKnowledgeItemRequest) {
+  async function updateItem(projectId: string, id: string, categoryId: string, data: UpdateKnowledgeItemRequest) {
     isLoading.value = true
     error.value = null
     try {
-      const result = await apiClient.knowledgeItemsUpdate(id, data) as KnowledgeItemResponse
+      const result = await apiClient.projectsKnowledgeItemsUpdate(projectId, id, data) as KnowledgeItemResponse
       const category = categories.value.find((c) => c.id === categoryId)
       if (category?.items) {
         const idx = category.items.findIndex((i) => i.id === id)
@@ -134,11 +135,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  async function deleteItem(id: string, categoryId: string, version: number) {
+  async function deleteItem(projectId: string, id: string, categoryId: string, version: number) {
     isLoading.value = true
     error.value = null
     try {
-      await apiClient.knowledgeItemsDelete(id, { version })
+      await apiClient.projectsKnowledgeItemsDelete(projectId, id, { version })
       const category = categories.value.find((c) => c.id === categoryId)
       if (category?.items) {
         category.items = category.items.filter((i) => i.id !== id)

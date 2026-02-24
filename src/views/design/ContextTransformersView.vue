@@ -72,7 +72,8 @@ async function loadTransformers() {
   try {
     const orderBy = getOrderBy()
     await transformersStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load context transformers:', error)
@@ -83,7 +84,7 @@ async function deleteTransformer(transformer: ContextTransformerResponse) {
   if (!confirm(`Delete context transformer "${transformer.name}" (${transformer.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await transformersStore.remove(transformer.id, transformer.version)
+    await transformersStore.remove(projectId.value, transformer.id, transformer.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete context transformer')
   }

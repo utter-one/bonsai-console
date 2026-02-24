@@ -72,7 +72,8 @@ async function loadGlobalActions() {
   try {
     const orderBy = getOrderBy()
     await globalActionsStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load global actions:', error)
@@ -83,7 +84,7 @@ async function deleteGlobalAction(action: GlobalActionResponse) {
   if (!confirm(`Delete global action "${action.name}" (${action.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await globalActionsStore.remove(action.id, action.version)
+    await globalActionsStore.remove(projectId.value, action.id, action.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete global action')
   }
