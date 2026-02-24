@@ -45,6 +45,8 @@ const apiKeysError = ref<string | null>(null)
 const newPhrase = ref('')
 const createPlaygroundApiKey = ref(true)
 const showStorageSettingsModal = ref(false)
+const deepgramEndpointingEnabled = ref(true)
+const deepgramEndpointingValue = ref(300)
 
 // Computed
 const projectId = computed(() => route.params.projectId as string | undefined)
@@ -77,6 +79,46 @@ const isAzureAsrProvider = computed(() => {
 const isElevenLabsAsrProvider = computed(() => {
   const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
   return apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs'
+})
+
+const isDeepgramAsrProvider = computed(() => {
+  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
+  return apiType === 'deepgram'
+})
+
+// Sync endpointing checkbox/input state from form settings
+watch(() => form.value.asrConfig.settings.endpointing, (value) => {
+  if (isDeepgramAsrProvider.value) {
+    if (value === false) {
+      deepgramEndpointingEnabled.value = false
+      deepgramEndpointingValue.value = 300
+    } else if (typeof value === 'number') {
+      deepgramEndpointingEnabled.value = true
+      deepgramEndpointingValue.value = value
+    } else {
+      // undefined or other - default to enabled with 300ms
+      deepgramEndpointingEnabled.value = true
+      deepgramEndpointingValue.value = 300
+    }
+  }
+}, { immediate: true })
+
+// Update form settings when checkbox changes
+watch(deepgramEndpointingEnabled, (enabled) => {
+  if (isDeepgramAsrProvider.value) {
+    if (enabled) {
+      form.value.asrConfig.settings.endpointing = deepgramEndpointingValue.value
+    } else {
+      form.value.asrConfig.settings.endpointing = false
+    }
+  }
+})
+
+// Update form settings when input value changes
+watch(deepgramEndpointingValue, (value) => {
+  if (isDeepgramAsrProvider.value && deepgramEndpointingEnabled.value) {
+    form.value.asrConfig.settings.endpointing = value
+  }
 })
 
 const filteredApiKeys = computed(() => {
@@ -143,6 +185,21 @@ watch(() => form.value.asrConfig.asrProviderId, (newProviderId, oldProviderId) =
           vadThreshold: undefined,
           minSpeechDurationMs: undefined,
           minSilenceDurationMs: undefined,
+          enableLogging: true
+        }
+      } else if (apiType === 'deepgram') {
+        // Deepgram ASR - initialize with empty Deepgram structure
+        form.value.asrConfig.settings = {
+          modelId: undefined,
+          audioFormat: undefined,
+          language: undefined,
+          interimResults: false,
+          endpointing: 300,
+          smartFormat: true,
+          punctuate: true,
+          diarize: false,
+          utteranceEndMs: undefined,
+          vadEvents: false,
           enableLogging: true
         }
       } else {
@@ -963,6 +1020,228 @@ function handleStorageSettingsClose() {
                   </label>
                   <p class="form-help-text mt-1">
                     When disabled, zero retention mode is used (enterprise only)
+                  </p>
+                </div>
+              </div>
+
+              <!-- Deepgram ASR Settings -->
+              <div v-if="form.asrConfig.asrProviderId && isDeepgramAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+                <div class="form-group">
+                  <label class="form-label">
+                    Model ID <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <select
+                    v-model="form.asrConfig.settings.modelId"
+                    class="form-select"
+                    :disabled="isLoading"
+                  >
+                    <option :value="undefined">Default (nova-3)</option>
+                    <option value="nova-3">nova-3</option>
+                    <option value="nova-3-general">nova-3-general</option>
+                    <option value="nova-3-medical">nova-3-medical</option>
+                    <option value="nova-2">nova-2</option>
+                    <option value="nova-2-general">nova-2-general</option>
+                    <option value="nova-2-meeting">nova-2-meeting</option>
+                    <option value="nova-2-finance">nova-2-finance</option>
+                    <option value="nova-2-conversationalai">nova-2-conversationalai</option>
+                    <option value="nova-2-voicemail">nova-2-voicemail</option>
+                    <option value="nova-2-video">nova-2-video</option>
+                    <option value="nova-2-medical">nova-2-medical</option>
+                    <option value="nova-2-drivethru">nova-2-drivethru</option>
+                    <option value="nova-2-automotive">nova-2-automotive</option>
+                    <option value="nova">nova</option>
+                    <option value="nova-general">nova-general</option>
+                    <option value="nova-phonecall">nova-phonecall</option>
+                    <option value="nova-medical">nova-medical</option>
+                    <option value="enhanced">enhanced</option>
+                    <option value="enhanced-general">enhanced-general</option>
+                    <option value="enhanced-meeting">enhanced-meeting</option>
+                    <option value="enhanced-phonecall">enhanced-phonecall</option>
+                    <option value="enhanced-finance">enhanced-finance</option>
+                    <option value="base">base</option>
+                    <option value="meeting">meeting</option>
+                    <option value="phonecall">phonecall</option>
+                    <option value="finance">finance</option>
+                    <option value="conversationalai">conversationalai</option>
+                    <option value="voicemail">voicemail</option>
+                    <option value="video">video</option>
+                    <option value="custom">custom</option>
+                  </select>
+                  <p class="form-help-text">
+                    Model to use for transcription (defaults to nova-3)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Audio Format <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <select
+                    v-model="form.asrConfig.settings.audioFormat"
+                    class="form-select"
+                    :disabled="isLoading"
+                  >
+                    <option :value="undefined">Default (PCM 16kHz)</option>
+                    <option value="pcm_8000">PCM 8kHz</option>
+                    <option value="pcm_16000">PCM 16kHz</option>
+                    <option value="pcm_22050">PCM 22.05kHz</option>
+                    <option value="pcm_24000">PCM 24kHz</option>
+                    <option value="pcm_44100">PCM 44.1kHz</option>
+                  </select>
+                  <p class="form-help-text">
+                    Audio encoding format for speech-to-text
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Language <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model="form.asrConfig.settings.language"
+                    type="text"
+                    placeholder="e.g., en-US, es, fr"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    BCP-47 language tag (e.g., "en-US", "es", "fr")
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.interimResults"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Enable Interim Results
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Enable interim (partial) transcription results during streaming
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="deepgramEndpointingEnabled"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Enable Endpointing
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Automatically finalize speech after a period of silence
+                  </p>
+                  <div v-if="deepgramEndpointingEnabled" class="mt-3">
+                    <label class="form-label text-sm">
+                      Silence Duration (ms)
+                    </label>
+                    <input
+                      v-model.number="deepgramEndpointingValue"
+                      type="number"
+                      min="10"
+                      required
+                      placeholder="300"
+                      class="form-input"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Milliseconds of silence to wait before finalizing speech (minimum: 10)
+                    </p>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.smartFormat"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Smart Format
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Apply formatting (punctuation, capitalization, currency, etc.) to improve readability
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.punctuate"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Punctuate
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Add punctuation and capitalization to transcript
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.diarize"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Diarize
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Recognize and label different speakers in the audio
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Utterance End (ms) <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.utteranceEndMs"
+                    type="number"
+                    min="10"
+                    placeholder="Leave empty for default"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Milliseconds to wait before sending UtteranceEnd event (use with interim results)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.vadEvents"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      VAD Events
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Send SpeechStarted events when speech is detected
                   </p>
                 </div>
               </div>

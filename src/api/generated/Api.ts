@@ -19,6 +19,7 @@ import {
   AzureBlobStorageSettings,
   AzureTtsSettings,
   CartesiaTtsSettings,
+  DeepgramAsrSettings,
   DeepgramTtsSettings,
   Effect,
   ElevenLabsAsrSettings,
@@ -700,7 +701,10 @@ export class Api<
         /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
         asrProviderId?: string;
         /** ASR-specific settings including model, language preferences, etc. */
-        settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+        settings?:
+          | AzureAsrSettings
+          | ElevenLabsAsrSettings
+          | DeepgramAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -747,7 +751,10 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+          settings?:
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -853,7 +860,10 @@ export class Api<
             /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
             asrProviderId?: string;
             /** ASR-specific settings including model, language preferences, etc. */
-            settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+            settings?:
+              | AzureAsrSettings
+              | ElevenLabsAsrSettings
+              | DeepgramAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -926,7 +936,10 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+          settings?:
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1022,7 +1035,10 @@ export class Api<
           /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
-          settings?: AzureAsrSettings | ElevenLabsAsrSettings;
+          settings?:
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
