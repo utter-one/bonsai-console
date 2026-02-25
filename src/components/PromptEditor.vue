@@ -208,7 +208,7 @@ function buildHandlebarsLintExtension() {
       }
       return diagnostics
     },
-    { delay: 1500 }
+    { delay: 500 }
   )
 }
 
