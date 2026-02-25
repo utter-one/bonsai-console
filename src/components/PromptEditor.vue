@@ -7,7 +7,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -105,6 +105,14 @@ const allToolbarVariables = computed<ToolbarVariable[]>(() => [
 
 const arrayToolbarVariables = computed<ToolbarVariable[]>(() =>
   allToolbarVariables.value.filter(v => v.isArray)
+)
+
+const arrayStageVariables = computed<ToolbarVariable[]>(() =>
+  flattenedStageVariables.value.filter(v => v.isArray)
+)
+
+const arrayContextVariables = computed<ToolbarVariable[]>(() =>
+  contextVariables.filter(v => v.isArray)
 )
 
 function toggleDropdown(name: string) {
@@ -422,29 +430,21 @@ watch(
       ref="toolbarRef"
       class="flex items-center gap-0.5 px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 flex-shrink-0 flex-wrap"
     >
+      <div class="text-xs p-2">Insert:</div>
       <!-- Insert Variable -->
       <div class="relative">
         <button
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert variable"
           @click.stop="toggleDropdown('var')"
         >
-          <span class="font-mono" v-text="'{{ var }}'"></span>
-          <ChevronDown :size="12" />
+          <Braces :size="13" />
+          <span>Variable</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'var'" class="toolbar-dropdown">
-          <div class="toolbar-dropdown-section">Context</div>
-          <button
-            v-for="v in contextVariables"
-            :key="v.path"
-            type="button"
-            class="toolbar-dropdown-item"
-            @click.stop="insertVariable(v.path)"
-          >
-            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
-            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
-          </button>
           <template v-if="flattenedStageVariables.length > 0">
             <div class="toolbar-dropdown-section">Stage Variables</div>
             <button
@@ -458,6 +458,17 @@ watch(
               <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
             </button>
           </template>
+          <div class="toolbar-dropdown-section">Context</div>
+          <button
+            v-for="v in contextVariables"
+            :key="v.path"
+            type="button"
+            class="toolbar-dropdown-item"
+            @click.stop="insertVariable(v.path)"
+          >
+            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
+            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+          </button>
         </div>
       </div>
 
@@ -467,10 +478,12 @@ watch(
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert user profile field"
           @click.stop="toggleDropdown('userProfile')"
         >
-          <span class="font-mono">userProfile.*</span>
-          <ChevronDown :size="12" />
+          <UserRound :size="13" />
+          <span>Profile</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'userProfile'" class="toolbar-dropdown">
           <button
@@ -488,27 +501,45 @@ watch(
 
       <div class="h-4 w-px bg-gray-200 dark:bg-gray-600 mx-1 flex-shrink-0" />
 
+      <div class="text-xs p-2">Add Block:</div>
+
       <!-- Insert #if block -->
       <div class="relative">
         <button
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert #if block"
           @click.stop="toggleDropdown('if')"
         >
-          <span class="font-mono" v-text="'{{#if}}'"></span>
-          <ChevronDown :size="12" />
+          <GitBranch :size="13" />
+          <span>#if</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'if'" class="toolbar-dropdown">
           <div v-if="allToolbarVariables.length === 0" class="toolbar-dropdown-empty">No variables available</div>
+          <template v-if="flattenedStageVariables.length > 0">
+            <div class="toolbar-dropdown-section">Stage Variables</div>
+            <button
+              v-for="v in flattenedStageVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('if', v.path)"
+            >
+              <span class="font-mono text-purple-600 dark:text-purple-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
+          <div class="toolbar-dropdown-section">Context</div>
           <button
-            v-for="v in allToolbarVariables"
+            v-for="v in contextVariables"
             :key="v.path"
             type="button"
             class="toolbar-dropdown-item"
             @click.stop="insertBlock('if', v.path)"
           >
-            <span class="font-mono text-orange-600 dark:text-orange-400 truncate">{{ v.path }}</span>
+            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
           </button>
         </div>
@@ -520,21 +551,37 @@ watch(
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert #exists block"
           @click.stop="toggleDropdown('exists')"
         >
-          <span class="font-mono" v-text="'{{#exists}}'"></span>
-          <ChevronDown :size="12" />
+          <Eye :size="13" />
+          <span>#exists</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'exists'" class="toolbar-dropdown">
           <div v-if="allToolbarVariables.length === 0" class="toolbar-dropdown-empty">No variables available</div>
+          <template v-if="flattenedStageVariables.length > 0">
+            <div class="toolbar-dropdown-section">Stage Variables</div>
+            <button
+              v-for="v in flattenedStageVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('exists', v.path)"
+            >
+              <span class="font-mono text-purple-600 dark:text-purple-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
+          <div class="toolbar-dropdown-section">Context</div>
           <button
-            v-for="v in allToolbarVariables"
+            v-for="v in contextVariables"
             :key="v.path"
             type="button"
             class="toolbar-dropdown-item"
             @click.stop="insertBlock('exists', v.path)"
           >
-            <span class="font-mono text-orange-600 dark:text-orange-400 truncate">{{ v.path }}</span>
+            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
           </button>
         </div>
@@ -546,23 +593,41 @@ watch(
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert #each loop block"
           @click.stop="toggleDropdown('each')"
         >
-          <span class="font-mono" v-text="'{{#each}}'"></span>
-          <ChevronDown :size="12" />
+          <Repeat2 :size="13" />
+          <span>#each</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'each'" class="toolbar-dropdown">
           <div v-if="arrayToolbarVariables.length === 0" class="toolbar-dropdown-empty">No array variables</div>
-          <button
-            v-for="v in arrayToolbarVariables"
-            :key="v.path"
-            type="button"
-            class="toolbar-dropdown-item"
-            @click.stop="insertBlock('each', v.path)"
-          >
-            <span class="font-mono text-green-600 dark:text-green-400 truncate">{{ v.path }}</span>
-            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
-          </button>
+          <template v-if="arrayStageVariables.length > 0">
+            <div class="toolbar-dropdown-section">Stage Variables</div>
+            <button
+              v-for="v in arrayStageVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('each', v.path)"
+            >
+              <span class="font-mono text-purple-600 dark:text-purple-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
+          <template v-if="arrayContextVariables.length > 0">
+            <div class="toolbar-dropdown-section">Context</div>
+            <button
+              v-for="v in arrayContextVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('each', v.path)"
+            >
+              <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
         </div>
       </div>
 
@@ -572,23 +637,41 @@ watch(
           type="button"
           :disabled="disabled"
           class="toolbar-btn"
+          title="Insert #hasItems block"
           @click.stop="toggleDropdown('hasItems')"
         >
-          <span class="font-mono" v-text="'{{#hasItems}}'"></span>
-          <ChevronDown :size="12" />
+          <ListChecks :size="13" />
+          <span>#hasItems</span>
+          <ChevronDown :size="11" />
         </button>
         <div v-if="openDropdown === 'hasItems'" class="toolbar-dropdown">
           <div v-if="arrayToolbarVariables.length === 0" class="toolbar-dropdown-empty">No array variables</div>
-          <button
-            v-for="v in arrayToolbarVariables"
-            :key="v.path"
-            type="button"
-            class="toolbar-dropdown-item"
-            @click.stop="insertBlock('hasItems', v.path)"
-          >
-            <span class="font-mono text-green-600 dark:text-green-400 truncate">{{ v.path }}</span>
-            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
-          </button>
+          <template v-if="arrayStageVariables.length > 0">
+            <div class="toolbar-dropdown-section">Stage Variables</div>
+            <button
+              v-for="v in arrayStageVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('hasItems', v.path)"
+            >
+              <span class="font-mono text-purple-600 dark:text-purple-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
+          <template v-if="arrayContextVariables.length > 0">
+            <div class="toolbar-dropdown-section">Context</div>
+            <button
+              v-for="v in arrayContextVariables"
+              :key="v.path"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertBlock('hasItems', v.path)"
+            >
+              <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ v.path }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
         </div>
       </div>
     </div>
