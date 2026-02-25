@@ -213,6 +213,66 @@ function buildHandlebarsLintExtension() {
   )
 }
 
+function buildHandlebarsBlockBackgroundExtension() {
+  function findBlockRanges(text: string): { from: number; to: number }[] {
+    const tokenRe = /\{\{(#|\/)(\w+)[^}]*\}\}/g
+    const stack: { name: string; from: number }[] = []
+    const ranges: { from: number; to: number }[] = []
+    let match: RegExpExecArray | null
+    while ((match = tokenRe.exec(text)) !== null) {
+      const type = match[1]
+      const name = match[2]
+      if (!type || !name) continue
+      if (type === '#') {
+        stack.push({ name, from: match.index })
+      } else if (type === '/') {
+        for (let i = stack.length - 1; i >= 0; i--) {
+          const entry = stack[i]
+          if (entry && entry.name === name) {
+            ranges.push({ from: entry.from, to: match.index + match[0].length })
+            stack.splice(i, 1)
+            break
+          }
+        }
+      }
+    }
+    return ranges
+  }
+
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet
+      constructor(view: EditorView) {
+        this.decorations = this.build(view)
+      }
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = this.build(update.view)
+        }
+      }
+      build(view: EditorView): DecorationSet {
+        const text = view.state.doc.toString()
+        const ranges = findBlockRanges(text)
+        const linePositions = new Set<number>()
+        for (const { from, to } of ranges) {
+          let pos = from
+          while (pos <= to) {
+            const line = view.state.doc.lineAt(pos)
+            linePositions.add(line.from)
+            if (line.to >= to) break
+            pos = line.to + 1
+          }
+        }
+        const deco = [...linePositions]
+          .sort((a, b) => a - b)
+          .map((from) => Decoration.line({ class: 'cm-hbs-block-bg' }).range(from))
+        return Decoration.set(deco)
+      }
+    },
+    { decorations: (v) => v.decorations }
+  )
+}
+
 function buildHandlebarsHighlightExtension() {
   // Block control flow: {{#if}}, {{#each}}, {{/if}}, {{/each}}, {{else}}, {{else if ...}}
   const blockMatcher = new MatchDecorator({
@@ -390,6 +450,7 @@ onMounted(() => {
       themeCompartment.of(buildTheme()),
       lintGutter(),
       buildHandlebarsLintExtension(),
+      buildHandlebarsBlockBackgroundExtension(),
       ...buildHandlebarsHighlightExtension(),
     ],
   })
@@ -725,6 +786,17 @@ watch(
 </template>
 
 <style>
+/* Handlebars block background highlighting */
+.cm-hbs-block-bg {
+  background-color: rgba(234, 92, 12, 0.06);
+  border-left: 2px solid rgba(234, 92, 12, 0.35) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg {
+  background-color: rgba(251, 146, 60, 0.08);
+  border-left: 2px solid rgba(251, 146, 60, 0.35) !important;
+}
+
 /* Handlebars syntax highlighting */
 .cm-hbs-block {
   color: #ea580c;
