@@ -8,12 +8,13 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks, Highlighter } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
 } from '@/components/prompt/handlebarsPromptCompletions'
 import { useThemeStore } from '@/stores/theme'
+import { useEditorSettingsStore } from '@/stores/editorSettings'
 import type { FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
 
 const props = withDefaults(
@@ -47,6 +48,7 @@ const emit = defineEmits<{
 
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.isDark)
+const editorSettingsStore = useEditorSettingsStore()
 
 // Toolbar state
 const toolbarRef = ref<HTMLDivElement | null>(null)
@@ -164,6 +166,7 @@ const editableCompartment = new Compartment()
 const placeholderCompartment = new Compartment()
 const themeCompartment = new Compartment()
 const autocompletionCompartment = new Compartment()
+const blockBgCompartment = new Compartment()
 
 interface HandlebarsError {
   message?: string
@@ -416,6 +419,10 @@ function reconfigureAutocompletion() {
   })
 }
 
+function toggleBlockHighlight() {
+  editorSettingsStore.toggleBlockHighlight()
+}
+
 onMounted(() => {
   if (!editorRoot.value) return
 
@@ -448,7 +455,7 @@ onMounted(() => {
       themeCompartment.of(buildTheme()),
       lintGutter(),
       buildHandlebarsLintExtension(),
-      buildHandlebarsBlockBackgroundExtension(),
+      blockBgCompartment.of(editorSettingsStore.showBlockHighlight ? buildHandlebarsBlockBackgroundExtension() : []),
       ...buildHandlebarsHighlightExtension(),
     ],
   })
@@ -474,6 +481,18 @@ onBeforeUnmount(() => {
   view = null
   document.removeEventListener('click', handleToolbarClickOutside)
 })
+
+watch(
+  () => editorSettingsStore.showBlockHighlight,
+  (enabled) => {
+    if (!view) return
+    view.dispatch({
+      effects: blockBgCompartment.reconfigure(
+        enabled ? buildHandlebarsBlockBackgroundExtension() : []
+      ),
+    })
+  }
+)
 
 watch(
   () => props.modelValue,
@@ -776,6 +795,17 @@ watch(
           </template>
         </div>
       </div>
+
+      <!-- Block highlight toggle -->
+      <button
+        type="button"
+        class="toolbar-btn ml-auto"
+        :class="{ 'toolbar-btn-active': editorSettingsStore.showBlockHighlight }"
+        title="Toggle block background highlighting"
+        @click.stop="toggleBlockHighlight"
+      >
+        <Highlighter :size="13" />
+      </button>
     </div>
 
     <!-- CodeMirror Editor -->
@@ -862,6 +892,14 @@ watch(
 .toolbar-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.toolbar-btn-active {
+  background-color: #e5e7eb;
+  color: #ea580c;
+}
+.dark .toolbar-btn-active {
+  background-color: #374151;
+  color: #fb923c;
 }
 
 .toolbar-dropdown {
