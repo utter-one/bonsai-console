@@ -534,6 +534,7 @@ function removeNoSpeechMarker(index: number) {
             <PromptEditor
               v-model="form.prompt"
               :disabled="isLoading"
+              show-toolbar
               placeholder="You are a helpful assistant..."
               aria-label="Persona system prompt"
               min-height="28rem"

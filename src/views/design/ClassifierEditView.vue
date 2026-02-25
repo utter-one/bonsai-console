@@ -318,6 +318,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
             <PromptEditor
               v-model="form.prompt"
               :disabled="isLoading"
+              show-toolbar
               placeholder="Classify the user's intent based on their message..."
               aria-label="Classifier prompt"
               min-height="28rem"
