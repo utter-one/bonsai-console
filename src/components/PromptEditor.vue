@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
-import { EditorView, placeholder as placeholderExt, tooltips } from '@codemirror/view'
+import { EditorView, placeholder as placeholderExt, tooltips, MatchDecorator, ViewPlugin, Decoration, type DecorationSet } from '@codemirror/view'
+import type { ViewUpdate } from '@codemirror/view'
 import { EditorState, Compartment } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
 import { autocompletion } from '@codemirror/autocomplete'
@@ -212,6 +213,47 @@ function buildHandlebarsLintExtension() {
   )
 }
 
+function buildHandlebarsHighlightExtension() {
+  // Block control flow: {{#if}}, {{#each}}, {{/if}}, {{/each}}, {{else}}, {{else if ...}}
+  const blockMatcher = new MatchDecorator({
+    regexp: /\{\{(?:#[^}]*|\/[^}]*|else(?:\s[^}]*)?)\}\}/g,
+    decoration: Decoration.mark({ class: 'cm-hbs-block' }),
+  })
+
+  // Template variables: {{variable}}, {{variable.path}} — excludes block/closing/comment/partial tags
+  const varMatcher = new MatchDecorator({
+    regexp: /\{\{(?![#/!>~])([^}]+)\}\}/g,
+    decoration: Decoration.mark({ class: 'cm-hbs-variable' }),
+  })
+
+  return [
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet
+        constructor(view: EditorView) {
+          this.decorations = blockMatcher.createDeco(view)
+        }
+        update(update: ViewUpdate) {
+          this.decorations = blockMatcher.updateDeco(update, this.decorations)
+        }
+      },
+      { decorations: (v) => v.decorations }
+    ),
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet
+        constructor(view: EditorView) {
+          this.decorations = varMatcher.createDeco(view)
+        }
+        update(update: ViewUpdate) {
+          this.decorations = varMatcher.updateDeco(update, this.decorations)
+        }
+      },
+      { decorations: (v) => v.decorations }
+    ),
+  ]
+}
+
 // Computed completion context based on props
 const completionContext = computed<CompletionContextData>(() => ({
   stageVariables: props.stageVariables,
@@ -348,6 +390,7 @@ onMounted(() => {
       themeCompartment.of(buildTheme()),
       lintGutter(),
       buildHandlebarsLintExtension(),
+      ...buildHandlebarsHighlightExtension(),
     ],
   })
 
@@ -682,6 +725,20 @@ watch(
 </template>
 
 <style>
+/* Handlebars syntax highlighting */
+.cm-hbs-block {
+  color: #ea580c;
+}
+.dark .cm-hbs-block {
+  color: #fb923c;
+}
+.cm-hbs-variable {
+  color: #0891b2;
+}
+.dark .cm-hbs-variable {
+  color: #22d3ee;
+}
+
 /* Ensure CodeMirror autocomplete tooltips appear above modal content */
 .cm-tooltip-autocomplete {
   z-index: 10000 !important;
