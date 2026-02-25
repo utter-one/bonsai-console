@@ -189,24 +189,24 @@ const inlineHelperCompletions: Completion[] = [
 ]
 
 const blockHelperCompletions: Completion[] = [
-  snippetCompletion('exists ${1:value}}\n${2:...}\n{{/exists}}', {
+  snippetCompletion('exists ${1:value}}}\n${2:...}\n{{/exists', {
     label: '#exists … /exists',
     type: 'keyword',
     detail: 'Block: value exists',
   }),
-  snippetCompletion('hasItems ${1:array}}\n${2:...}\n{{/hasItems}}', {
+  snippetCompletion('hasItems ${1:array}}}\n${2:...}\n{{/hasItems', {
     label: '#hasItems … /hasItems',
     type: 'keyword',
     detail: 'Block: array has items',
   }),
 
   // Core Handlebars blocks used heavily in guide examples
-  snippetCompletion('if ${1:condition}}\n${2:...}\n{{/if}}', {
+  snippetCompletion('if ${1:condition}}}\n${2:...}\n{{/if', {
     label: '#if … /if',
     type: 'keyword',
     detail: 'Conditional block',
   }),
-  snippetCompletion('each ${1:array}}\n${2:...}\n{{/each}}', {
+  snippetCompletion('each ${1:array}}}\n${2:...}\n{{/each', {
     label: '#each … /each',
     type: 'keyword',
     detail: 'Loop block',
