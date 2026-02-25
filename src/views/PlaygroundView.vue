@@ -1083,7 +1083,7 @@ const globalActions = computed(() => {
 
 const activeApiKeys = computed(() => {
   if (!projectId.value) return []
-  return apiKeysStore.items.filter(key => key.isActive)
+  return apiKeysStore.items.filter(key => key.isActive && key.projectId === projectId.value)
 })
 
 const apiKeysLoading = computed(() => apiKeysStore.isLoading)
