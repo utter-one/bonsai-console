@@ -150,7 +150,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Top Navigation Bar -->
-    <header class="bg-white  shadow-sm sticky top-0 z-[100] dark:bg-gray-800 ">
+    <header class="bg-white sticky top-0 z-[100] dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/80">
       <div class="flex items-center px-6 h-16 max-w-[1920px] mx-auto">
         <!-- Mobile Menu Toggle -->
         <button 
