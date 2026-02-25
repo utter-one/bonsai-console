@@ -214,29 +214,35 @@ function buildHandlebarsLintExtension() {
 }
 
 function buildHandlebarsBlockBackgroundExtension() {
-  function findBlockRanges(text: string): { from: number; to: number }[] {
-    const tokenRe = /\{\{(#|\/)(\w+)[^}]*\}\}/g
-    const stack: { name: string; from: number }[] = []
-    const ranges: { from: number; to: number }[] = []
+  function findLineDepths(doc: EditorView['state']['doc']): Map<number, number> {
+    const text = doc.toString()
+    const tokenRe = /\{\{(#|\/)\w+[^}]*\}\}/g
+    const lineTokens = new Map<number, { opens: number; closes: number }>()
     let match: RegExpExecArray | null
     while ((match = tokenRe.exec(text)) !== null) {
       const type = match[1]
-      const name = match[2]
-      if (!type || !name) continue
-      if (type === '#') {
-        stack.push({ name, from: match.index })
-      } else if (type === '/') {
-        for (let i = stack.length - 1; i >= 0; i--) {
-          const entry = stack[i]
-          if (entry && entry.name === name) {
-            ranges.push({ from: entry.from, to: match.index + match[0].length })
-            stack.splice(i, 1)
-            break
-          }
-        }
+      if (!type) continue
+      const lineFrom = doc.lineAt(match.index).from
+      if (!lineTokens.has(lineFrom)) lineTokens.set(lineFrom, { opens: 0, closes: 0 })
+      const entry = lineTokens.get(lineFrom)!
+      if (type === '#') entry.opens++
+      else entry.closes++
+    }
+
+    const result = new Map<number, number>()
+    let depth = 0
+    for (let n = 1; n <= doc.lines; n++) {
+      const line = doc.line(n)
+      const entry = lineTokens.get(line.from)
+      if (entry) {
+        depth += entry.opens
+        if (depth > 0) result.set(line.from, depth)
+        depth = Math.max(0, depth - entry.closes)
+      } else {
+        if (depth > 0) result.set(line.from, depth)
       }
     }
-    return ranges
+    return result
   }
 
   return ViewPlugin.fromClass(
@@ -251,21 +257,13 @@ function buildHandlebarsBlockBackgroundExtension() {
         }
       }
       build(view: EditorView): DecorationSet {
-        const text = view.state.doc.toString()
-        const ranges = findBlockRanges(text)
-        const linePositions = new Set<number>()
-        for (const { from, to } of ranges) {
-          let pos = from
-          while (pos <= to) {
-            const line = view.state.doc.lineAt(pos)
-            linePositions.add(line.from)
-            if (line.to >= to) break
-            pos = line.to + 1
-          }
-        }
-        const deco = [...linePositions]
-          .sort((a, b) => a - b)
-          .map((from) => Decoration.line({ class: 'cm-hbs-block-bg' }).range(from))
+        const depths = findLineDepths(view.state.doc)
+        const deco = [...depths.entries()]
+          .sort(([a], [b]) => a - b)
+          .map(([from, depth]) => {
+            const level = Math.min(depth, 3)
+            return Decoration.line({ class: `cm-hbs-block-bg-${level}` }).range(from)
+          })
         return Decoration.set(deco)
       }
     },
@@ -786,15 +784,33 @@ watch(
 </template>
 
 <style>
-/* Handlebars block background highlighting */
-.cm-hbs-block-bg {
-  background-color: rgba(234, 92, 12, 0.06);
-  border-left: 2px solid rgba(234, 92, 12, 0.35) !important;
+/* Handlebars block background highlighting (depth levels 1–3) */
+.cm-hbs-block-bg-1 {
+  background-color: rgba(234, 92, 12, 0.05);
+  border-left: 2px solid rgba(234, 92, 12, 0.25) !important;
   padding-left: 6px !important;
 }
-.dark .cm-hbs-block-bg {
-  background-color: rgba(251, 146, 60, 0.08);
-  border-left: 2px solid rgba(251, 146, 60, 0.35) !important;
+.dark .cm-hbs-block-bg-1 {
+  background-color: rgba(251, 146, 60, 0.07);
+  border-left: 2px solid rgba(251, 146, 60, 0.25) !important;
+}
+.cm-hbs-block-bg-2 {
+  background-color: rgba(234, 92, 12, 0.11);
+  border-left: 2px solid rgba(234, 92, 12, 0.45) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg-2 {
+  background-color: rgba(251, 146, 60, 0.14);
+  border-left: 2px solid rgba(251, 146, 60, 0.45) !important;
+}
+.cm-hbs-block-bg-3 {
+  background-color: rgba(234, 92, 12, 0.19);
+  border-left: 2px solid rgba(234, 92, 12, 0.65) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg-3 {
+  background-color: rgba(251, 146, 60, 0.22);
+  border-left: 2px solid rgba(251, 146, 60, 0.65) !important;
 }
 
 /* Handlebars syntax highlighting */
