@@ -8,12 +8,13 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks, Highlighter } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
 } from '@/components/prompt/handlebarsPromptCompletions'
 import { useThemeStore } from '@/stores/theme'
+import { useEditorSettingsStore } from '@/stores/editorSettings'
 import type { FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
 
 const props = withDefaults(
@@ -47,6 +48,7 @@ const emit = defineEmits<{
 
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.isDark)
+const editorSettingsStore = useEditorSettingsStore()
 
 // Toolbar state
 const toolbarRef = ref<HTMLDivElement | null>(null)
@@ -164,6 +166,7 @@ const editableCompartment = new Compartment()
 const placeholderCompartment = new Compartment()
 const themeCompartment = new Compartment()
 const autocompletionCompartment = new Compartment()
+const blockBgCompartment = new Compartment()
 
 interface HandlebarsError {
   message?: string
@@ -210,6 +213,64 @@ function buildHandlebarsLintExtension() {
       return diagnostics
     },
     { delay: 500 }
+  )
+}
+
+function buildHandlebarsBlockBackgroundExtension() {
+  function findLineDepths(doc: EditorView['state']['doc']): Map<number, number> {
+    const text = doc.toString()
+    const tokenRe = /\{\{(#|\/)\w+[^}]*\}\}/g
+    const lineTokens = new Map<number, { opens: number; closes: number }>()
+    let match: RegExpExecArray | null
+    while ((match = tokenRe.exec(text)) !== null) {
+      const type = match[1]
+      if (!type) continue
+      const lineFrom = doc.lineAt(match.index).from
+      if (!lineTokens.has(lineFrom)) lineTokens.set(lineFrom, { opens: 0, closes: 0 })
+      const entry = lineTokens.get(lineFrom)!
+      if (type === '#') entry.opens++
+      else entry.closes++
+    }
+
+    const result = new Map<number, number>()
+    let depth = 0
+    for (let n = 1; n <= doc.lines; n++) {
+      const line = doc.line(n)
+      const entry = lineTokens.get(line.from)
+      if (entry) {
+        depth += entry.opens
+        if (depth > 0) result.set(line.from, depth)
+        depth = Math.max(0, depth - entry.closes)
+      } else {
+        if (depth > 0) result.set(line.from, depth)
+      }
+    }
+    return result
+  }
+
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet
+      constructor(view: EditorView) {
+        this.decorations = this.build(view)
+      }
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = this.build(update.view)
+        }
+      }
+      build(view: EditorView): DecorationSet {
+        const depths = findLineDepths(view.state.doc)
+        const deco = [...depths.entries()]
+          .sort(([a], [b]) => a - b)
+          .map(([from, depth]) => {
+            const level = Math.min(depth, 3)
+            return Decoration.line({ class: `cm-hbs-block-bg-${level}` }).range(from)
+          })
+        return Decoration.set(deco)
+      }
+    },
+    { decorations: (v) => v.decorations }
   )
 }
 
@@ -358,6 +419,10 @@ function reconfigureAutocompletion() {
   })
 }
 
+function toggleBlockHighlight() {
+  editorSettingsStore.toggleBlockHighlight()
+}
+
 onMounted(() => {
   if (!editorRoot.value) return
 
@@ -390,6 +455,7 @@ onMounted(() => {
       themeCompartment.of(buildTheme()),
       lintGutter(),
       buildHandlebarsLintExtension(),
+      blockBgCompartment.of(editorSettingsStore.showBlockHighlight ? buildHandlebarsBlockBackgroundExtension() : []),
       ...buildHandlebarsHighlightExtension(),
     ],
   })
@@ -415,6 +481,18 @@ onBeforeUnmount(() => {
   view = null
   document.removeEventListener('click', handleToolbarClickOutside)
 })
+
+watch(
+  () => editorSettingsStore.showBlockHighlight,
+  (enabled) => {
+    if (!view) return
+    view.dispatch({
+      effects: blockBgCompartment.reconfigure(
+        enabled ? buildHandlebarsBlockBackgroundExtension() : []
+      ),
+    })
+  }
+)
 
 watch(
   () => props.modelValue,
@@ -717,6 +795,17 @@ watch(
           </template>
         </div>
       </div>
+
+      <!-- Block highlight toggle -->
+      <button
+        type="button"
+        class="toolbar-btn ml-auto"
+        :class="{ 'toolbar-btn-active': editorSettingsStore.showBlockHighlight }"
+        title="Toggle block background highlighting"
+        @click.stop="toggleBlockHighlight"
+      >
+        <Highlighter :size="13" />
+      </button>
     </div>
 
     <!-- CodeMirror Editor -->
@@ -725,6 +814,35 @@ watch(
 </template>
 
 <style>
+/* Handlebars block background highlighting (depth levels 1–3) */
+.cm-hbs-block-bg-1 {
+  background-color: rgba(234, 92, 12, 0.05);
+  border-left: 2px solid rgba(234, 92, 12, 0.25) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg-1 {
+  background-color: rgba(251, 146, 60, 0.07);
+  border-left: 2px solid rgba(251, 146, 60, 0.25) !important;
+}
+.cm-hbs-block-bg-2 {
+  background-color: rgba(234, 92, 12, 0.11);
+  border-left: 2px solid rgba(234, 92, 12, 0.45) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg-2 {
+  background-color: rgba(251, 146, 60, 0.14);
+  border-left: 2px solid rgba(251, 146, 60, 0.45) !important;
+}
+.cm-hbs-block-bg-3 {
+  background-color: rgba(234, 92, 12, 0.19);
+  border-left: 2px solid rgba(234, 92, 12, 0.65) !important;
+  padding-left: 6px !important;
+}
+.dark .cm-hbs-block-bg-3 {
+  background-color: rgba(251, 146, 60, 0.22);
+  border-left: 2px solid rgba(251, 146, 60, 0.65) !important;
+}
+
 /* Handlebars syntax highlighting */
 .cm-hbs-block {
   color: #ea580c;
@@ -774,6 +892,14 @@ watch(
 .toolbar-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.toolbar-btn-active {
+  background-color: #e5e7eb;
+  color: #ea580c;
+}
+.dark .toolbar-btn-active {
+  background-color: #374151;
+  color: #fb923c;
 }
 
 .toolbar-dropdown {
