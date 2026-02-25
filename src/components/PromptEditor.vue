@@ -4,7 +4,9 @@ import { EditorView, placeholder as placeholderExt, tooltips } from '@codemirror
 import { EditorState, Compartment } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
 import { autocompletion } from '@codemirror/autocomplete'
+import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
+import Handlebars from 'handlebars'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -49,6 +51,54 @@ const editableCompartment = new Compartment()
 const placeholderCompartment = new Compartment()
 const themeCompartment = new Compartment()
 const autocompletionCompartment = new Compartment()
+
+interface HandlebarsError {
+  message?: string
+  lineNumber?: number
+  column?: number
+  endLineNumber?: number
+  endColumn?: number
+}
+
+function buildHandlebarsLintExtension() {
+  return linter(
+    (view) => {
+      const content = view.state.doc.toString()
+      const diagnostics: Diagnostic[] = []
+      try {
+        Handlebars.parse(content)
+      } catch (e: unknown) {
+        const err = e as HandlebarsError
+        const message = err.message ?? 'Handlebars syntax error'
+
+        let from = 0
+        let to = Math.max(content.length, 1)
+
+        if (err.lineNumber != null) {
+          const lineCount = view.state.doc.lines
+          const lineNum = Math.min(Math.max(1, err.lineNumber), lineCount)
+          const line = view.state.doc.line(lineNum)
+          const col = err.column ?? 0
+          from = Math.min(line.from + col, line.to)
+
+          if (err.endLineNumber != null && err.endColumn != null) {
+            const endLineNum = Math.min(Math.max(1, err.endLineNumber), lineCount)
+            const endLine = view.state.doc.line(endLineNum)
+            to = Math.min(endLine.from + err.endColumn, endLine.to)
+          } else {
+            to = line.to
+          }
+
+          if (to <= from) to = Math.min(from + 1, content.length)
+        }
+
+        diagnostics.push({ from, to, severity: 'error', message })
+      }
+      return diagnostics
+    },
+    { delay: 1500 }
+  )
+}
 
 // Computed completion context based on props
 const completionContext = computed<CompletionContextData>(() => ({
@@ -184,6 +234,8 @@ onMounted(() => {
       ]),
       placeholderCompartment.of(props.placeholder ? placeholderExt(props.placeholder) : []),
       themeCompartment.of(buildTheme()),
+      lintGutter(),
+      buildHandlebarsLintExtension(),
     ],
   })
 
