@@ -379,6 +379,7 @@ const metadataFields = computed(() => {
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading"
+                show-toolbar
                 placeholder="You are a context transformer that enriches user data..."
                 aria-label="Context transformer prompt"
                 min-height="28rem"

@@ -925,6 +925,7 @@ function toggleNode(path: number[]) {
                 :disabled="isLoading"
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
+                show-toolbar
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
                 min-height="28rem"

@@ -470,6 +470,7 @@ const metadataFields = computed(() => {
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading"
+                show-toolbar
                 placeholder="You are a tool that analyzes data and provides insights..."
                 aria-label="Tool prompt"
                 min-height="28rem"
