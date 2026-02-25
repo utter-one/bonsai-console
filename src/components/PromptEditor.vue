@@ -420,7 +420,7 @@ watch(
 
 <template>
   <div
-    class="w-full border border-gray-300 rounded-md text-sm focus-within:outline-none focus-within:border-primary-500 bg-white flex flex-col relative dark:bg-gray-900 dark:border-gray-700"
+    class="w-full border border-gray-300 rounded-md text-sm focus-within:outline-none focus-within:border-primary-500 bg-white flex flex-col relative dark:bg-gray-900 dark:border-gray-700 max-h-[85vh]"
     :class="{ 'opacity-60 pointer-events-none bg-gray-100 dark:bg-gray-800': disabled }"
     :style="{ minHeight }"
   >
@@ -677,7 +677,7 @@ watch(
     </div>
 
     <!-- CodeMirror Editor -->
-    <div ref="editorRoot" class="flex-1 overflow-hidden min-h-0" />
+    <div ref="editorRoot" class="flex-1 overflow-y-auto min-h-0" />
   </div>
 </template>
 
