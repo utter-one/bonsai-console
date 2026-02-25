@@ -113,7 +113,7 @@ const profileEntries = computed(() => {
 
 <template>
   <MonitorSectionLayout>
-    <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
+    <div class="flex flex-col h-full md:border md:border-gray-200 md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
       <!-- Header -->
       <div class="flex items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
         <div class="md:flex items-center gap-4 flex-1">
