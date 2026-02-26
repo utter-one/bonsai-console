@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
+import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +26,7 @@ const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
 const actionId = ref('')
+const actionTags = ref<string[]>([])
 const actionMetadata = ref<any>({})
 
 const form = ref({
@@ -88,6 +90,7 @@ async function loadGlobalAction() {
     currentGlobalAction.value = await globalActionsStore.fetchById(projectId.value, globalActionId.value)
     if (currentGlobalAction.value) {
       actionId.value = currentGlobalAction.value.id
+      actionTags.value = currentGlobalAction.value.tags || []
       actionMetadata.value = currentGlobalAction.value.metadata || {}
       form.value = {
         name: currentGlobalAction.value.name,
@@ -139,6 +142,7 @@ async function handleSubmit() {
         parameters: form.value.parameters,
         effects: effectsArray,
         examples: form.value.examples ? form.value.examples.split('\n').filter(e => e.trim()) : [],
+        tags: actionTags.value,
         metadata: actionMetadata.value
       })
       
@@ -179,6 +183,10 @@ async function handleSubmit() {
 
       if (form.value.parameters && form.value.parameters.length > 0) {
         createData.parameters = form.value.parameters
+      }
+
+      if (actionTags.value.length > 0) {
+        createData.tags = actionTags.value
       }
 
       const created = await globalActionsStore.create(projectId.value, createData)
@@ -282,6 +290,11 @@ const metadataFields = computed(() => {
             <p class="form-help-text">
               Custom ID for the global action. Leave empty to auto-generate.
             </p>
+          </div>
+
+          <!-- Tags Field -->
+          <div v-show="activeTab.value === 'basic'">
+            <TagsEditor v-model="actionTags" />
           </div>
 
           <!-- Use shared ActionForm component with all tabs including metadata -->

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToolsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-tools')
@@ -29,25 +24,14 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredTools = computed(() => {
-  if (!debouncedSearchQuery.value) return toolsStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return toolsStore.items.filter(tool => 
+// Search
+const { searchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
+  () => toolsStore.items,
+  (tool, query) =>
     tool.name.toLowerCase().includes(query) ||
     tool.description?.toLowerCase().includes(query) ||
     tool.prompt.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -56,8 +40,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadTools()
 })
@@ -95,9 +78,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 
 function createTool() {
   router.push({ name: 'design.tools.create', params: { projectId: projectId.value } })
@@ -182,6 +163,7 @@ function getTypeIcon(type: string) {
                   </div>
                 </th>
                 <th class="table-header-cell">Input/Output Types</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -206,6 +188,12 @@ function getTypeIcon(type: string) {
                       <component :is="getTypeIcon(tool.outputType)" class="w-4 h-4" />
                     </div>
                   </div>
+                </td>
+                <td class="table-cell">
+                  <div v-if="tool.tags?.length" class="tag-list">
+                    <span v-for="tag in tool.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
+                  <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(tool.updatedAt) }}</td>
                 <td class="table-cell-right">

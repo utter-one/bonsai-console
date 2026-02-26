@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -146,6 +147,7 @@ const form = ref({
   id: '',
   name: '',
   description: '',
+  tags: [] as string[],
   providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings' | 'storage',
   apiType: '',
   config: {
@@ -329,6 +331,7 @@ async function loadProvider() {
         id: currentProvider.value.id,
         name: currentProvider.value.name,
         description: currentProvider.value.description || '',
+        tags: currentProvider.value.tags || [],
         providerType: currentProvider.value.providerType,
         apiType: currentProvider.value.apiType,
         config: {
@@ -502,6 +505,7 @@ async function handleSubmit() {
         version: currentProvider.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
+        tags: form.value.tags.length > 0 ? form.value.tags : undefined,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
         config: config
@@ -528,7 +532,10 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      // Only include createdBy if it's not empty
+      // Only include tags if not empty
+      if (form.value.tags.length > 0) {
+        createData.tags = form.value.tags
+      }
       if (form.value.createdBy) {
         createData.createdBy = form.value.createdBy
       }
@@ -683,10 +690,8 @@ const metadataFields = computed(() => {
               Optional description to help identify the purpose of this provider
             </p>
           </div>
-        </div>
 
-        <!-- Configuration Tab -->
-        <div v-show="activeTab === 'config'" class="tab-content">
+          <TagsEditor v-model="form.tags" :disabled="isLoading" />
           <div class="form-group">
             <label class="form-label">
               Provider Type <span class="required">*</span>

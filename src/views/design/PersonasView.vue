@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePersonasStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
 import type { PersonaResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const personasStore = usePersonasStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-personas')
@@ -29,23 +24,11 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredPersonas = computed(() => {
-  if (!debouncedSearchQuery.value) return personasStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return personasStore.items.filter(persona =>
-    persona.name.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+// Search
+const { searchQuery, filteredItems: filteredPersonas, clearSearch } = useSearch(
+  () => personasStore.items,
+  (persona, query) => persona.name.toLowerCase().includes(query)
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -54,8 +37,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadPersonas()
 })
@@ -110,9 +92,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 </script>
 
 <template>
@@ -168,6 +148,7 @@ function clearSearch() {
                   <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                 </div>
               </th>
+              <th class="table-header-cell">Tags</th>
               <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                 <div class="flex items-center gap-1">
                   Updated
@@ -182,6 +163,12 @@ function clearSearch() {
               <td class="table-clickable-cell"
                 @click="editPersona(persona)">
                 {{ persona.name }}
+              </td>
+              <td class="table-cell">
+                <div v-if="persona.tags?.length" class="tag-list">
+                  <span v-for="tag in persona.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                </div>
+                <span v-else class="text-gray-400">—</span>
               </td>
               <td class="table-cell-muted">{{ formatDate(persona.updatedAt) }}</td>
               <td class="table-cell-right">

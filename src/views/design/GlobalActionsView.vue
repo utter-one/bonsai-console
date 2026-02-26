@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Zap, Search, X, Plus } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const globalActionsStore = useGlobalActionsStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-global-actions')
@@ -29,25 +24,14 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredGlobalActions = computed(() => {
-  if (!debouncedSearchQuery.value) return globalActionsStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return globalActionsStore.items.filter(action => 
+// Search
+const { searchQuery, filteredItems: filteredGlobalActions, clearSearch } = useSearch(
+  () => globalActionsStore.items,
+  (action, query) =>
     action.name.toLowerCase().includes(query) ||
     action.classificationTrigger?.toLowerCase().includes(query) ||
     action.condition?.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -56,8 +40,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadGlobalActions()
 })
@@ -95,9 +78,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 
 function createGlobalAction() {
   router.push({ 
@@ -176,6 +157,7 @@ function editGlobalAction(action: GlobalActionResponse) {
                 <th class="table-header-cell">Condition</th>
                 <th class="table-header-cell">Effects</th>
                 <th class="table-header-cell">Examples</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -207,6 +189,12 @@ function editGlobalAction(action: GlobalActionResponse) {
                   <span v-if="action.examples?.length" class="badge-secondary">
                     {{ action.examples.length }} example(s)
                   </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <div v-if="action.tags?.length" class="tag-list">
+                    <span v-for="tag in action.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(action.updatedAt) }}</td>

@@ -7,6 +7,7 @@ import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,6 +25,7 @@ const form = ref({
   id: '',
   name: '',
   description: '',
+  tags: [] as string[],
   prompt: '',
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
@@ -67,6 +69,7 @@ async function loadTool() {
         id: currentTool.value.id,
         name: currentTool.value.name,
         description: currentTool.value.description || '',
+        tags: currentTool.value.tags || [],
         prompt: currentTool.value.prompt,
         llmProviderId: currentTool.value.llmProviderId || '',
         llmSettings: currentTool.value.llmSettings || null,
@@ -94,6 +97,7 @@ async function handleSubmit() {
         version: currentTool.value.version,
         name: form.value.name,
         description: form.value.description || null,
+        tags: form.value.tags,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
         llmSettings: form.value.llmSettings || undefined,
@@ -126,6 +130,11 @@ async function handleSubmit() {
       // Only include description if it's not empty
       if (form.value.description) {
         createData.description = form.value.description
+      }
+
+      // Only include tags if not empty
+      if (form.value.tags.length > 0) {
+        createData.tags = form.value.tags
       }
 
       const created = await toolsStore.create(projectId.value, createData)
@@ -322,6 +331,8 @@ const metadataFields = computed(() => {
                 Optional description of the tool's purpose and functionality
               </p>
             </div>
+
+            <TagsEditor v-model="form.tags" :disabled="isLoading" />
 
             <div class="form-group">
               <label class="form-label">

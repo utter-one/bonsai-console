@@ -8,6 +8,7 @@ import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, Deepgra
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
+import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +26,7 @@ const form = ref<{
   id: string
   name: string
   description: string
+  tags: string[]
   prompt: string
   ttsProviderId: string
   ttsSettings: TtsSettings
@@ -33,6 +35,7 @@ const form = ref<{
   id: '',
   name: '',
   description: '',
+  tags: [],
   prompt: '',
   ttsProviderId: '',
   ttsSettings: {} as TtsSettings,
@@ -277,6 +280,7 @@ async function loadPersona() {
         id: currentPersona.value.id,
         name: currentPersona.value.name,
         description: currentPersona.value.description || '',
+        tags: currentPersona.value.tags || [],
         prompt: currentPersona.value.prompt,
         ttsProviderId: currentPersona.value.ttsProviderId || '',
         ttsSettings: currentPersona.value.ttsSettings || {} as TtsSettings,
@@ -324,6 +328,7 @@ async function handleSubmit() {
         name: form.value.name,
         description: form.value.description || undefined,
         prompt: form.value.prompt,
+        tags: form.value.tags.length > 0 ? form.value.tags : undefined,
         ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
         ...(ttsSettings && { ttsSettings }),
         metadata: form.value.metadata
@@ -347,6 +352,11 @@ async function handleSubmit() {
       // Only include description if it's not empty
       if (form.value.description) {
         createData.description = form.value.description
+      }
+
+      // Only include tags if not empty
+      if (form.value.tags.length > 0) {
+        createData.tags = form.value.tags
       }
 
       // Only include ttsProviderId if it's not empty
@@ -523,6 +533,8 @@ function removeNoSpeechMarker(index: number) {
               Optional description of what this persona is used for
             </p>
           </div>
+
+          <TagsEditor v-model="form.tags" :disabled="isLoading" />
         </div>
 
         <!-- Prompt Configuration Tab -->

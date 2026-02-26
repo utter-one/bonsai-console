@@ -8,6 +8,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
+import TagsEditor from '@/components/TagsEditor.vue'
 import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
 import ActionsPasteModal from '@/components/modals/ActionsPasteModal.vue'
 import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
@@ -72,6 +73,7 @@ const form = ref({
   id: '',
   name: '',
   description: '',
+  tags: [] as string[],
   personaId: '',
   prompt: '',
   llmProviderId: '',
@@ -145,6 +147,7 @@ async function loadStage() {
         id: currentStage.value.id,
         name: currentStage.value.name,
         description: currentStage.value.description || '',
+        tags: currentStage.value.tags || [],
         personaId: currentStage.value.personaId,
         prompt: currentStage.value.prompt,
         llmProviderId: currentStage.value.llmProviderId || '',
@@ -193,6 +196,7 @@ async function handleSubmit() {
         version: currentStage.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
+        tags: form.value.tags,
         personaId: form.value.personaId,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
@@ -239,6 +243,11 @@ async function handleSubmit() {
       // Only include description if it's not empty
       if (form.value.description) {
         createData.description = form.value.description
+      }
+
+      // Only include tags if not empty
+      if (form.value.tags.length > 0) {
+        createData.tags = form.value.tags
       }
 
       const created = await stagesStore.create(projectId.value, createData)
@@ -843,6 +852,8 @@ function toggleNode(path: number[]) {
                 Optional description of what this stage does
               </p>
             </div>
+
+            <TagsEditor v-model="form.tags" :disabled="isLoading" />
 
             <div class="form-group">
               <label class="form-label">

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClassifiersStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Target, Search, X, Plus } from 'lucide-vue-next'
 import type { ClassifierResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const classifiersStore = useClassifiersStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-classifiers')
@@ -29,25 +24,14 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredClassifiers = computed(() => {
-  if (!debouncedSearchQuery.value) return classifiersStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return classifiersStore.items.filter(classifier => 
+// Search
+const { searchQuery, filteredItems: filteredClassifiers, clearSearch } = useSearch(
+  () => classifiersStore.items,
+  (classifier, query) =>
     classifier.name.toLowerCase().includes(query) ||
     classifier.description?.toLowerCase().includes(query) ||
     classifier.prompt.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -56,8 +40,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadClassifiers()
 })
@@ -106,9 +89,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 </script>
 
 <template>
@@ -175,6 +156,7 @@ function clearSearch() {
                     <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -192,6 +174,12 @@ function clearSearch() {
                 </td>
                 <td class="table-cell">
                   <span v-if="classifier.description" class="truncate">{{ classifier.description.length > 30 ? classifier.description.substring(0, 30) + '...' : classifier.description }}</span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <div v-if="classifier.tags?.length" class="tag-list">
+                    <span v-for="tag in classifier.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(classifier.updatedAt) }}</td>

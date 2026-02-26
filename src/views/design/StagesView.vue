@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
-import { formatEnum, usePagination, useTableSort } from '@/composables'
+import { formatEnum, usePagination, useTableSort, useSearch } from '@/composables'
 import { Route, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const stagesStore = useStagesStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-stages')
@@ -29,25 +24,14 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredStages = computed(() => {
-  if (!debouncedSearchQuery.value) return stagesStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return stagesStore.items.filter(stage => 
+// Search
+const { searchQuery, filteredItems: filteredStages, clearSearch } = useSearch(
+  () => stagesStore.items,
+  (stage, query) =>
     stage.name.toLowerCase().includes(query) ||
     stage.prompt.toLowerCase().includes(query) ||
     stage.id.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -56,8 +40,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadStages()
 })
@@ -112,9 +95,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 </script>
 
 <template>
@@ -182,6 +163,7 @@ function clearSearch() {
                   </div>
                 </th>
                 <th class="table-header-cell">Features</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -211,6 +193,12 @@ function clearSearch() {
                       {{ stage.transformerIds.length }} Transformer(s)
                     </span>
                   </div>
+                </td>
+                <td class="table-cell">
+                  <div v-if="stage.tags?.length" class="tag-list">
+                    <span v-for="tag in stage.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
+                  <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(stage.updatedAt) }}</td>
                 <td class="table-cell-right">
