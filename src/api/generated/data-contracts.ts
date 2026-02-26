@@ -453,7 +453,8 @@ export interface AsrConfig {
     | AzureAsrSettings
     | ElevenLabsAsrSettings
     | DeepgramAsrSettings
-    | AssemblyAiAsrSettings;
+    | AssemblyAiAsrSettings
+    | SpeechmaticsAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -665,6 +666,46 @@ export interface AssemblyAiAsrSettings {
    * @max 3600
    */
   inactivityTimeout?: number;
+  [key: string]: any;
+}
+
+/** Speechmatics speech-to-text settings */
+export interface SpeechmaticsAsrSettings {
+  /** Language code for speech recognition (e.g., "en", "en-US", "es", "fr") */
+  language?: string;
+  /**
+   * Audio input format for speech recognition, defaults to pcm_16000
+   * @default "pcm_16000"
+   */
+  audioFormat?: "pcm_16000" | "pcm_8000" | "pcm_44100";
+  /**
+   * Transcription mode: "standard" for faster processing or "enhanced" for higher accuracy, defaults to standard
+   * @default "standard"
+   */
+  transcriptionMode?: "standard" | "enhanced";
+  /**
+   * Enable automatic punctuation in transcripts, defaults to true
+   * @default true
+   */
+  enablePunctuation?: boolean;
+  /**
+   * Enable automatic formatting (numbers, dates, currency, etc.), defaults to true
+   * @default true
+   */
+  enableFormatting?: boolean;
+  /** Custom vocabulary words or phrases to improve recognition accuracy */
+  additionalVocab?: string[];
+  /**
+   * Enable speaker diarization to detect different speakers, defaults to false
+   * @default false
+   */
+  enableDiarization?: boolean;
+  /**
+   * Maximum delay in seconds for transcription results (0-10), lower values reduce latency
+   * @min 0
+   * @max 10
+   */
+  maxDelay?: number;
   [key: string]: any;
 }
 
@@ -1255,7 +1296,8 @@ export interface CreateProjectRequest {
       | AzureAsrSettings
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
-      | AssemblyAiAsrSettings;
+      | AssemblyAiAsrSettings
+      | SpeechmaticsAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1390,7 +1432,8 @@ export interface ProjectResponse {
       | AzureAsrSettings
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
-      | AssemblyAiAsrSettings;
+      | AssemblyAiAsrSettings
+      | SpeechmaticsAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1447,7 +1490,8 @@ export interface ProjectListResponse {
         | AzureAsrSettings
         | ElevenLabsAsrSettings
         | DeepgramAsrSettings
-        | AssemblyAiAsrSettings;
+        | AssemblyAiAsrSettings
+        | SpeechmaticsAsrSettings;
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -3819,6 +3863,15 @@ export interface CreateProviderRequest {
          */
         region?: "us" | "eu";
       }
+    | {
+        /** API key for authenticating with Speechmatics */
+        apiKey: string;
+        /**
+         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * @default "us"
+         */
+        region?: "us" | "eu" | "apac";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -3904,6 +3957,15 @@ export interface UpdateProviderRequest {
          */
         region?: "us" | "eu";
       }
+    | {
+        /** API key for authenticating with Speechmatics */
+        apiKey: string;
+        /**
+         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * @default "us"
+         */
+        region?: "us" | "eu" | "apac";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -3988,6 +4050,15 @@ export interface ProviderResponse {
          * @default "us"
          */
         region?: "us" | "eu";
+      }
+    | {
+        /** API key for authenticating with Speechmatics */
+        apiKey: string;
+        /**
+         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * @default "us"
+         */
+        region?: "us" | "eu" | "apac";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -4080,6 +4151,15 @@ export interface ProviderListResponse {
            * @default "us"
            */
           region?: "us" | "eu";
+        }
+      | {
+          /** API key for authenticating with Speechmatics */
+          apiKey: string;
+          /**
+           * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+           * @default "us"
+           */
+          region?: "us" | "eu" | "apac";
         }
       | S3StorageConfig
       | AzureBlobStorageConfig

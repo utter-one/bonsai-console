@@ -43,6 +43,7 @@ import {
   ParameterValue,
   S3StorageConfig,
   S3StorageSettings,
+  SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
   StorageConfig,
@@ -706,7 +707,8 @@ export class Api<
           | AzureAsrSettings
           | ElevenLabsAsrSettings
           | DeepgramAsrSettings
-          | AssemblyAiAsrSettings;
+          | AssemblyAiAsrSettings
+          | SpeechmaticsAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -757,7 +759,8 @@ export class Api<
             | AzureAsrSettings
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
-            | AssemblyAiAsrSettings;
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -867,7 +870,8 @@ export class Api<
               | AzureAsrSettings
               | ElevenLabsAsrSettings
               | DeepgramAsrSettings
-              | AssemblyAiAsrSettings;
+              | AssemblyAiAsrSettings
+              | SpeechmaticsAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -944,7 +948,8 @@ export class Api<
             | AzureAsrSettings
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
-            | AssemblyAiAsrSettings;
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1044,7 +1049,8 @@ export class Api<
             | AzureAsrSettings
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
-            | AssemblyAiAsrSettings;
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -4086,6 +4092,15 @@ export class Api<
              */
             region?: "us" | "eu";
           }
+        | {
+            /** API key for authenticating with Speechmatics */
+            apiKey: string;
+            /**
+             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * @default "us"
+             */
+            region?: "us" | "eu" | "apac";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -4165,6 +4180,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu";
+            }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -4311,6 +4335,15 @@ export class Api<
                  */
                 region?: "us" | "eu";
               }
+            | {
+                /** API key for authenticating with Speechmatics */
+                apiKey: string;
+                /**
+                 * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "apac";
+              }
             | S3StorageConfig
             | AzureBlobStorageConfig
             | GcsStorageConfig
@@ -4437,6 +4470,15 @@ export class Api<
                */
               region?: "us" | "eu";
             }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
+            }
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
@@ -4552,6 +4594,15 @@ export class Api<
              */
             region?: "us" | "eu";
           }
+        | {
+            /** API key for authenticating with Speechmatics */
+            apiKey: string;
+            /**
+             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * @default "us"
+             */
+            region?: "us" | "eu" | "apac";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -4629,6 +4680,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu";
+            }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig

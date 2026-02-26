@@ -242,6 +242,9 @@ const showCartesiaFields = computed(() =>
 const showAssemblyAiFields = computed(() => 
   form.value.apiType === 'assemblyai'
 )
+const showSpeechmaticsFields = computed(() => 
+  form.value.apiType === 'speechmatics' && form.value.providerType === 'asr'
+)
 const showAzureASRFields = computed(() => 
   form.value.apiType === 'azure' && form.value.providerType === 'asr'
 )
@@ -262,6 +265,20 @@ const showGcsFields = computed(() =>
 const showLocalStorageFields = computed(() => 
   form.value.apiType === 'local' && form.value.providerType === 'storage'
 )
+
+// Handle API type change to initialize defaults
+function handleApiTypeChange() {
+  // Initialize region defaults for providers that require it
+  if (form.value.apiType === 'speechmatics') {
+    form.value.config.region = 'us'
+  } else if (form.value.apiType === 'assemblyai') {
+    form.value.config.region = form.value.config.region || 'us'
+  } else if (form.value.apiType === 'azure' && form.value.providerType === 'asr') {
+    // Azure ASR doesn't need default (region is required input)
+  } else if (form.value.apiType === 'azure' && form.value.providerType === 'tts') {
+    // Azure TTS doesn't need default (region is required input)
+  }
+}
 
 // Detect which provider preset is currently selected based on baseUrl
 const detectedProvider = computed(() => {
@@ -383,6 +400,11 @@ async function handleSubmit() {
     config = {
       apiKey: form.value.config.apiKey,
       region: form.value.config.region || 'eu'
+    }
+  } else if (showSpeechmaticsFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey,
+      region: form.value.config.region
     }
   } else if (showAzureASRFields.value) {
     config = {
@@ -696,6 +718,7 @@ const metadataFields = computed(() => {
               required
               class="form-select"
               :disabled="isLoading || providerCatalogStore.isLoading"
+              @change="handleApiTypeChange"
             >
               <option value="" disabled>
                 {{ providerCatalogStore.isLoading ? 'Loading providers...' : 'Select API type...' }}
@@ -778,7 +801,7 @@ const metadataFields = computed(() => {
                 <div class="relative">
                   <select
                     @change="(e) => { const preset = providerPresets.find(p => p.name === (e.target as HTMLSelectElement).value); if (preset) { selectProviderPreset(preset); (e.target as HTMLSelectElement).value = ''; } }"
-                    class="form-select min-w-[160px]"
+                    class="form-select min-w-40"
                     :disabled="isLoading"
                   >
                     <option value="">{{ detectedProvider ? detectedProvider.displayName : 'Quick Select...' }}</option>
@@ -995,6 +1018,47 @@ const metadataFields = computed(() => {
               />
               <p class="form-help-text">
                 Your Azure Speech service subscription key
+              </p>
+            </div>
+          </template>
+
+          <!-- Speechmatics Configuration -->
+          <template v-if="showSpeechmaticsFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Speechmatics Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Speechmatics API key for authentication
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Region <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.config.region"
+                class="form-select"
+                required
+                :disabled="isLoading"
+              >
+                <option value="us">US (neu.rt.speechmatics.com)</option>
+                <option value="eu">EU (eu2.rt.speechmatics.com)</option>
+                <option value="apac">APAC (au.rt.speechmatics.com)</option>
+              </select>
+              <p class="form-help-text">
+                Speechmatics region endpoint (default: US)
               </p>
             </div>
           </template>
