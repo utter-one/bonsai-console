@@ -381,7 +381,7 @@ export interface AuthResponse {
       /**
        * ASR-specific settings including model, language preferences, etc.
        */
-      settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
+      settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings;
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -396,6 +396,42 @@ export interface AuthResponse {
    * Error message if authentication failed
    */
   error?: string;
+}
+
+export interface ProjectSettings {
+  /**
+   * Unique identifier of the project
+   */
+  projectId: string;
+  /**
+   * Whether conversations can accept voice input
+   */
+  acceptVoice: boolean;
+  /**
+   * Whether conversations generate voice output
+   */
+  generateVoice: boolean;
+  /**
+   * ASR configuration settings with full ASR settings
+   */
+  asrConfig?: {
+    /**
+     * ID of the ASR provider (e.g., "azure-speech", "openai-whisper")
+     */
+    asrProviderId?: string;
+    /**
+     * ASR-specific settings including model, language preferences, etc.
+     */
+    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings;
+    /**
+     * Placeholder text to use when speech is unintelligible or cannot be transcribed
+     */
+    unintelligiblePlaceholder?: string;
+    /**
+     * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
+     */
+    voiceActivityDetection?: boolean;
+  };
 }
 
 /**
@@ -529,40 +565,47 @@ export interface DeepgramAsrSettings {
 
 }
 
-export interface ProjectSettings {
+/**
+ * AssemblyAI speech-to-text settings
+ */
+export interface AssemblyAiAsrSettings {
   /**
-   * Unique identifier of the project
+   * Audio sample rate in Hz (8000, 16000, 22050, 24000, 44100), defaults to 16000
    */
-  projectId: string;
+  sampleRate?: number;
   /**
-   * Whether conversations can accept voice input
+   * Enable formatted transcripts with capitalization and punctuation (adds latency, not recommended for voice agents), defaults to false
    */
-  acceptVoice: boolean;
+  formatTurns?: boolean;
   /**
-   * Whether conversations generate voice output
+   * Speech model to use: English-only or multilingual (supports English, Spanish, French, German, Italian, Portuguese), defaults to universal-streaming-english
    */
-  generateVoice: boolean;
+  speechModel?: 'universal-streaming-english' | 'universal-streaming-multilingual';
   /**
-   * ASR configuration settings with full ASR settings
+   * List of custom words or phrases to improve recognition accuracy
    */
-  asrConfig?: {
-    /**
-     * ID of the ASR provider (e.g., "azure-speech", "openai-whisper")
-     */
-    asrProviderId?: string;
-    /**
-     * ASR-specific settings including model, language preferences, etc.
-     */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
-    /**
-     * Placeholder text to use when speech is unintelligible or cannot be transcribed
-     */
-    unintelligiblePlaceholder?: string;
-    /**
-     * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
-     */
-    voiceActivityDetection?: boolean;
-  };
+  keytermsPrompt?: string[];
+  /**
+   * Voice activity detection confidence threshold (0.0 to 1.0) for classifying audio frames as silence, defaults to 0.4
+   */
+  vadThreshold?: number;
+  /**
+   * Confidence threshold (0.0 to 1.0) for determining end of turn, defaults to 0.4
+   */
+  endOfTurnConfidenceThreshold?: number;
+  /**
+   * Minimum silence in milliseconds required to detect end of turn when confident, defaults to 400
+   */
+  minEndOfTurnSilenceWhenConfident?: number;
+  /**
+   * Maximum silence in milliseconds allowed in a turn before triggering end of turn, defaults to 1280
+   */
+  maxTurnSilence?: number;
+  /**
+   * Time in seconds of inactivity before session is terminated (5-3600), no timeout if not set
+   */
+  inactivityTimeout?: number;
+
 }
 
 

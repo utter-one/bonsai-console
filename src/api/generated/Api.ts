@@ -14,6 +14,7 @@ import {
   AnthropicLlmSettings,
   AsrConfig,
   AsrModelInfo,
+  AssemblyAiAsrSettings,
   AzureAsrSettings,
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
@@ -704,7 +705,8 @@ export class Api<
         settings?:
           | AzureAsrSettings
           | ElevenLabsAsrSettings
-          | DeepgramAsrSettings;
+          | DeepgramAsrSettings
+          | AssemblyAiAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -754,7 +756,8 @@ export class Api<
           settings?:
             | AzureAsrSettings
             | ElevenLabsAsrSettings
-            | DeepgramAsrSettings;
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -863,7 +866,8 @@ export class Api<
             settings?:
               | AzureAsrSettings
               | ElevenLabsAsrSettings
-              | DeepgramAsrSettings;
+              | DeepgramAsrSettings
+              | AssemblyAiAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -939,7 +943,8 @@ export class Api<
           settings?:
             | AzureAsrSettings
             | ElevenLabsAsrSettings
-            | DeepgramAsrSettings;
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1038,7 +1043,8 @@ export class Api<
           settings?:
             | AzureAsrSettings
             | ElevenLabsAsrSettings
-            | DeepgramAsrSettings;
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -4071,6 +4077,15 @@ export class Api<
             /** The subscription key to use for the speech recognition service */
             subscriptionKey: string;
           }
+        | {
+            /** API key for authenticating with AssemblyAI */
+            apiKey: string;
+            /**
+             * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+             * @default "us"
+             */
+            region?: "us" | "eu";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -4141,6 +4156,15 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -4278,6 +4302,15 @@ export class Api<
                 /** The subscription key to use for the speech recognition service */
                 subscriptionKey: string;
               }
+            | {
+                /** API key for authenticating with AssemblyAI */
+                apiKey: string;
+                /**
+                 * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+                 * @default "us"
+                 */
+                region?: "us" | "eu";
+              }
             | S3StorageConfig
             | AzureBlobStorageConfig
             | GcsStorageConfig
@@ -4395,6 +4428,15 @@ export class Api<
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
             }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
+            }
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
@@ -4501,6 +4543,15 @@ export class Api<
             /** The subscription key to use for the speech recognition service */
             subscriptionKey: string;
           }
+        | {
+            /** API key for authenticating with AssemblyAI */
+            apiKey: string;
+            /**
+             * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+             * @default "us"
+             */
+            region?: "us" | "eu";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -4569,6 +4620,15 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech recognition service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig

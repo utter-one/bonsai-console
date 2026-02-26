@@ -23,7 +23,7 @@ export interface AudioRecordingOptions {
 export function useAudioRecording(options: AudioRecordingOptions = {}) {
   const {
     sampleRate = 16000,
-    chunkDurationMs = 2000,
+    chunkDurationMs = 750,
     deviceId,
     echoCancellation = true,
     noiseSuppression = true,
@@ -140,13 +140,13 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
 
       processorNode.onaudioprocess = (event) => {
         const inputData = event.inputBuffer.getChannelData(0)
-        
+
         // Create a copy of the samples (Float32Array)
         const samples = new Float32Array(inputData)
-        
+
         // Calculate and update audio level for visualization
         audioLevel.value = calculateAudioLevel(samples)
-        
+
         // Add to chunk buffer
         audioChunks.push(samples)
       }
@@ -165,11 +165,11 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
       const err = error as Error
       errorMessage.value = err.message || 'Failed to access microphone'
       recordingState.value = 'error'
-      
+
       if (onError) {
         onError(err)
       }
-      
+
       cleanup()
     }
   }

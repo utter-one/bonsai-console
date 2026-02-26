@@ -26,6 +26,10 @@ async function generateTypes() {
 
   console.log(`✨ Found ${definitionNames.length} type definitions`)
 
+  // Auto-discover ASR settings types (any type ending in "AsrSettings")
+  const asrSettingsTypes = definitionNames.filter(name => name.endsWith('AsrSettings'))
+  console.log(`🔍 Auto-discovered ${asrSettingsTypes.length} ASR settings types:`, asrSettingsTypes)
+
   // Header comment
   let output = `/**
  * WebSocket Message Contracts
@@ -67,7 +71,7 @@ async function generateTypes() {
       'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
       'GenerateResponseEffect'
     ],
-    auth: ['auth-request', 'auth-response', 'AzureAsrSettings', 'ElevenLabsAsrSettings', 'DeepgramAsrSettings', 'project-settings'],
+    auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',
@@ -121,6 +125,19 @@ export type AudioFormat = ${audioFormatUnion}`
 
   // Track generated types to avoid duplicates
   const generatedTypes = new Set()
+
+  // Check for uncategorized types
+  const allCategorizedTypes = new Set()
+  Object.values(categories).forEach(categoryTypes => {
+    categoryTypes.forEach(type => allCategorizedTypes.add(type))
+  })
+
+  const uncategorizedTypes = definitionNames.filter(name => !allCategorizedTypes.has(name))
+  if (uncategorizedTypes.length > 0) {
+    console.warn(`\n⚠️  Found ${uncategorizedTypes.length} uncategorized types:`)
+    uncategorizedTypes.forEach(type => console.warn(`   - ${type}`))
+    console.warn('   These types exist in the schema but are not in any category and will not be generated.\n')
+  }
 
   for (const [category, names] of Object.entries(categories)) {
     output += `\n// ============================================================================

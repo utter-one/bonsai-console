@@ -239,6 +239,9 @@ const showDeepgramFields = computed(() =>
 const showCartesiaFields = computed(() => 
   form.value.apiType === 'cartesia'
 )
+const showAssemblyAiFields = computed(() => 
+  form.value.apiType === 'assemblyai'
+)
 const showAzureASRFields = computed(() => 
   form.value.apiType === 'azure' && form.value.providerType === 'asr'
 )
@@ -376,6 +379,11 @@ async function handleSubmit() {
     config = {
       apiKey: form.value.config.apiKey
     }
+  } else if (showAssemblyAiFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey,
+      region: form.value.config.region || 'eu'
+    }
   } else if (showAzureASRFields.value) {
     config = {
       region: form.value.config.region,
@@ -421,7 +429,12 @@ async function handleSubmit() {
   }
 
   // Validate required fields
-  if (showAzureASRFields.value) {
+  if (showAssemblyAiFields.value) {
+    if (!config.apiKey) {
+      error.value = 'API Key is required for AssemblyAI'
+      return
+    }
+  } else if (showAzureASRFields.value) {
     if (!config.region || !config.subscriptionKey) {
       error.value = 'Region and Subscription Key are required for Azure Speech'
       return
@@ -903,6 +916,46 @@ const metadataFields = computed(() => {
               />
               <p class="form-help-text">
                 Your Cartesia API key
+              </p>
+            </div>
+          </template>
+
+          <!-- AssemblyAI Configuration -->
+          <template v-if="showAssemblyAiFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">AssemblyAI Configuration</h3>
+            
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your AssemblyAI API key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Region <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.config.region"
+                class="form-select"
+                required
+                :disabled="isLoading"
+              >
+                <option value="eu">EU (streaming.eu.assemblyai.com)</option>
+                <option value="us">US (streaming.assemblyai.com)</option>
+              </select>
+              <p class="form-help-text">
+                AssemblyAI region endpoint (default: EU)
               </p>
             </div>
           </template>

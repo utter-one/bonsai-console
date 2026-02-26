@@ -855,6 +855,9 @@
               },
               {
                 "$ref": "#/components/schemas/DeepgramAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AssemblyAiAsrSettings"
               }
             ],
             "description": "ASR-specific settings including model, language preferences, etc."
@@ -1065,6 +1068,73 @@
         },
         "description": "Deepgram speech-to-text settings"
       },
+      "AssemblyAiAsrSettings": {
+        "type": "object",
+        "properties": {
+          "sampleRate": {
+            "type": "integer",
+            "default": 16000,
+            "description": "Audio sample rate in Hz (8000, 16000, 22050, 24000, 44100), defaults to 16000"
+          },
+          "formatTurns": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable formatted transcripts with capitalization and punctuation (adds latency, not recommended for voice agents), defaults to false"
+          },
+          "speechModel": {
+            "type": "string",
+            "enum": [
+              "universal-streaming-english",
+              "universal-streaming-multilingual"
+            ],
+            "default": "universal-streaming-english",
+            "description": "Speech model to use: English-only or multilingual (supports English, Spanish, French, German, Italian, Portuguese), defaults to universal-streaming-english"
+          },
+          "keytermsPrompt": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of custom words or phrases to improve recognition accuracy"
+          },
+          "vadThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.4,
+            "description": "Voice activity detection confidence threshold (0.0 to 1.0) for classifying audio frames as silence, defaults to 0.4"
+          },
+          "endOfTurnConfidenceThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.4,
+            "description": "Confidence threshold (0.0 to 1.0) for determining end of turn, defaults to 0.4"
+          },
+          "minEndOfTurnSilenceWhenConfident": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 400,
+            "description": "Minimum silence in milliseconds required to detect end of turn when confident, defaults to 400"
+          },
+          "maxTurnSilence": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 1280,
+            "description": "Maximum silence in milliseconds allowed in a turn before triggering end of turn, defaults to 1280"
+          },
+          "inactivityTimeout": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 3600,
+            "description": "Time in seconds of inactivity before session is terminated (5-3600), no timeout if not set"
+          }
+        },
+        "additionalProperties": {
+          "nullable": true
+        },
+        "description": "AssemblyAI speech-to-text settings"
+      },
       "S3StorageConfig": {
         "type": "object",
         "properties": {
@@ -1089,7 +1159,8 @@
           "accessKeyId",
           "secretAccessKey",
           "region"
-        ]
+        ],
+        "additionalProperties": false
       },
       "S3StorageSettings": {
         "type": "object",
@@ -1144,7 +1215,8 @@
         "required": [
           "accountName",
           "accountKey"
-        ]
+        ],
+        "additionalProperties": false
       },
       "AzureBlobStorageSettings": {
         "type": "object",
@@ -1186,7 +1258,8 @@
         "required": [
           "projectId",
           "keyFileJson"
-        ]
+        ],
+        "additionalProperties": false
       },
       "GcsStorageSettings": {
         "type": "object",
@@ -1228,7 +1301,8 @@
         },
         "required": [
           "basePath"
-        ]
+        ],
+        "additionalProperties": false
       },
       "LocalStorageSettings": {
         "type": "object",
@@ -2304,6 +2378,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/DeepgramAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                   }
                 ],
                 "description": "ASR-specific settings including model, language preferences, etc."
@@ -2633,6 +2710,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/DeepgramAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                   }
                 ],
                 "description": "ASR-specific settings including model, language preferences, etc."
@@ -2769,6 +2849,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/DeepgramAsrSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                         }
                       ],
                       "description": "ASR-specific settings including model, language preferences, etc."
@@ -8040,7 +8123,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8060,7 +8144,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8076,7 +8161,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8088,7 +8174,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8100,7 +8187,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8112,7 +8200,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8124,7 +8213,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8136,7 +8226,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8153,7 +8244,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8170,7 +8262,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8182,7 +8275,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8194,7 +8288,30 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with AssemblyAI"
+                  },
+                  "region": {
+                    "type": "string",
+                    "enum": [
+                      "us",
+                      "eu"
+                    ],
+                    "default": "us",
+                    "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
               },
               {
                 "$ref": "#/components/schemas/S3StorageConfig"
@@ -8283,7 +8400,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8303,7 +8421,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8319,7 +8438,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8331,7 +8451,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8343,7 +8464,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8355,7 +8477,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8367,7 +8490,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8379,7 +8503,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8396,7 +8521,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8413,7 +8539,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8425,7 +8552,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8437,7 +8565,30 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with AssemblyAI"
+                  },
+                  "region": {
+                    "type": "string",
+                    "enum": [
+                      "us",
+                      "eu"
+                    ],
+                    "default": "us",
+                    "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
               },
               {
                 "$ref": "#/components/schemas/S3StorageConfig"
@@ -8531,7 +8682,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8551,7 +8703,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8567,7 +8720,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8579,7 +8733,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8591,7 +8746,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8603,7 +8759,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8615,7 +8772,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8627,7 +8785,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8644,7 +8803,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8661,7 +8821,8 @@
                 "required": [
                   "region",
                   "subscriptionKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8673,7 +8834,8 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -8685,7 +8847,30 @@
                 },
                 "required": [
                   "apiKey"
-                ]
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key for authenticating with AssemblyAI"
+                  },
+                  "region": {
+                    "type": "string",
+                    "enum": [
+                      "us",
+                      "eu"
+                    ],
+                    "default": "us",
+                    "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
               },
               {
                 "$ref": "#/components/schemas/S3StorageConfig"
@@ -8802,7 +8987,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8822,7 +9008,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8838,7 +9025,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8850,7 +9038,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8862,7 +9051,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8874,7 +9064,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8886,7 +9077,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8898,7 +9090,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8915,7 +9108,8 @@
                       "required": [
                         "region",
                         "subscriptionKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8932,7 +9126,8 @@
                       "required": [
                         "region",
                         "subscriptionKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8944,7 +9139,8 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -8956,7 +9152,30 @@
                       },
                       "required": [
                         "apiKey"
-                      ]
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "API key for authenticating with AssemblyAI"
+                        },
+                        "region": {
+                          "type": "string",
+                          "enum": [
+                            "us",
+                            "eu"
+                          ],
+                          "default": "us",
+                          "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "$ref": "#/components/schemas/S3StorageConfig"
@@ -11739,6 +11958,9 @@
                           },
                           {
                             "$ref": "#/components/schemas/DeepgramAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                           }
                         ],
                         "description": "ASR-specific settings including model, language preferences, etc."
@@ -11852,6 +12074,9 @@
                             },
                             {
                               "$ref": "#/components/schemas/DeepgramAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                             }
                           ],
                           "description": "ASR-specific settings including model, language preferences, etc."
@@ -12140,6 +12365,9 @@
                                   },
                                   {
                                     "$ref": "#/components/schemas/DeepgramAsrSettings"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                                   }
                                 ],
                                 "description": "ASR-specific settings including model, language preferences, etc."
@@ -12313,6 +12541,9 @@
                             },
                             {
                               "$ref": "#/components/schemas/DeepgramAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                             }
                           ],
                           "description": "ASR-specific settings including model, language preferences, etc."
@@ -12538,6 +12769,9 @@
                             },
                             {
                               "$ref": "#/components/schemas/DeepgramAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AssemblyAiAsrSettings"
                             }
                           ],
                           "description": "ASR-specific settings including model, language preferences, etc."
@@ -19618,7 +19852,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19638,7 +19873,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19654,7 +19890,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19666,7 +19903,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19678,7 +19916,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19690,7 +19929,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19702,7 +19942,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19714,7 +19955,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19731,7 +19973,8 @@
                         "required": [
                           "region",
                           "subscriptionKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19748,7 +19991,8 @@
                         "required": [
                           "region",
                           "subscriptionKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19760,7 +20004,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -19772,7 +20017,30 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key for authenticating with AssemblyAI"
+                          },
+                          "region": {
+                            "type": "string",
+                            "enum": [
+                              "us",
+                              "eu"
+                            ],
+                            "default": "us",
+                            "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "$ref": "#/components/schemas/S3StorageConfig"
@@ -19867,7 +20135,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19887,7 +20156,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19903,7 +20173,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19915,7 +20186,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19927,7 +20199,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19939,7 +20212,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19951,7 +20225,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19963,7 +20238,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19980,7 +20256,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -19997,7 +20274,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20009,7 +20287,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20021,7 +20300,30 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with AssemblyAI"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": [
+                                "us",
+                                "eu"
+                              ],
+                              "default": "us",
+                              "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "$ref": "#/components/schemas/S3StorageConfig"
@@ -20290,7 +20592,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20310,7 +20613,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20326,7 +20630,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20338,7 +20643,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20350,7 +20656,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20362,7 +20669,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20374,7 +20682,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20386,7 +20695,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20403,7 +20713,8 @@
                                 "required": [
                                   "region",
                                   "subscriptionKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20420,7 +20731,8 @@
                                 "required": [
                                   "region",
                                   "subscriptionKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20432,7 +20744,8 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "type": "object",
@@ -20444,7 +20757,30 @@
                                 },
                                 "required": [
                                   "apiKey"
-                                ]
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "API key for authenticating with AssemblyAI"
+                                  },
+                                  "region": {
+                                    "type": "string",
+                                    "enum": [
+                                      "us",
+                                      "eu"
+                                    ],
+                                    "default": "us",
+                                    "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "additionalProperties": false
                               },
                               {
                                 "$ref": "#/components/schemas/S3StorageConfig"
@@ -20616,7 +20952,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20636,7 +20973,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20652,7 +20990,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20664,7 +21003,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20676,7 +21016,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20688,7 +21029,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20700,7 +21042,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20712,7 +21055,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20729,7 +21073,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20746,7 +21091,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20758,7 +21104,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -20770,7 +21117,30 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with AssemblyAI"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": [
+                                "us",
+                                "eu"
+                              ],
+                              "default": "us",
+                              "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "$ref": "#/components/schemas/S3StorageConfig"
@@ -20913,7 +21283,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20933,7 +21304,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20949,7 +21321,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20961,7 +21334,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20973,7 +21347,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20985,7 +21360,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -20997,7 +21373,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -21009,7 +21386,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -21026,7 +21404,8 @@
                         "required": [
                           "region",
                           "subscriptionKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -21043,7 +21422,8 @@
                         "required": [
                           "region",
                           "subscriptionKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -21055,7 +21435,8 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -21067,7 +21448,30 @@
                         },
                         "required": [
                           "apiKey"
-                        ]
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key for authenticating with AssemblyAI"
+                          },
+                          "region": {
+                            "type": "string",
+                            "enum": [
+                              "us",
+                              "eu"
+                            ],
+                            "default": "us",
+                            "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "$ref": "#/components/schemas/S3StorageConfig"
@@ -21155,7 +21559,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21175,7 +21580,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21191,7 +21597,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21203,7 +21610,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21215,7 +21623,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21227,7 +21636,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21239,7 +21649,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21251,7 +21662,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21268,7 +21680,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21285,7 +21698,8 @@
                           "required": [
                             "region",
                             "subscriptionKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21297,7 +21711,8 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -21309,7 +21724,30 @@
                           },
                           "required": [
                             "apiKey"
-                          ]
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key for authenticating with AssemblyAI"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": [
+                                "us",
+                                "eu"
+                              ],
+                              "default": "us",
+                              "description": "AssemblyAI region endpoint: \"us\" for streaming.assemblyai.com or \"eu\" for streaming.eu.assemblyai.com"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "$ref": "#/components/schemas/S3StorageConfig"

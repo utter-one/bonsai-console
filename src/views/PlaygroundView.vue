@@ -1620,7 +1620,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
   // Create new recording instance with correct sample rate and saved settings
   recording.value = useAudioRecording({
     sampleRate,
-    chunkDurationMs: 2000, // 2 seconds per chunk
+    chunkDurationMs: 750, // 0.75 second per chunk
     deviceId: audioSettings.value.deviceId ?? undefined,
     echoCancellation: audioSettings.value.echoCancellation,
     noiseSuppression: audioSettings.value.noiseSuppression,
@@ -1725,7 +1725,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 
     recording.value = useAudioRecording({
       sampleRate,
-      chunkDurationMs: 2000,
+      chunkDurationMs: 750,
       deviceId: settings.deviceId ?? undefined,
       echoCancellation: settings.echoCancellation,
       noiseSuppression: settings.noiseSuppression,
