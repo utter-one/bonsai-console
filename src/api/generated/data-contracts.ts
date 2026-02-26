@@ -449,7 +449,11 @@ export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
   asrProviderId?: string;
   /** ASR-specific settings including model, language preferences, etc. */
-  settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
+  settings?:
+    | AzureAsrSettings
+    | ElevenLabsAsrSettings
+    | DeepgramAsrSettings
+    | AssemblyAiAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -605,6 +609,62 @@ export interface DeepgramAsrSettings {
    * @default false
    */
   vadEvents?: boolean;
+  [key: string]: any;
+}
+
+/** AssemblyAI speech-to-text settings */
+export interface AssemblyAiAsrSettings {
+  /**
+   * Audio sample rate in Hz (8000, 16000, 22050, 24000, 44100), defaults to 16000
+   * @default 16000
+   */
+  sampleRate?: number;
+  /**
+   * Enable formatted transcripts with capitalization and punctuation (adds latency, not recommended for voice agents), defaults to false
+   * @default false
+   */
+  formatTurns?: boolean;
+  /**
+   * Speech model to use: English-only or multilingual (supports English, Spanish, French, German, Italian, Portuguese), defaults to universal-streaming-english
+   * @default "universal-streaming-english"
+   */
+  speechModel?:
+    | "universal-streaming-english"
+    | "universal-streaming-multilingual";
+  /** List of custom words or phrases to improve recognition accuracy */
+  keytermsPrompt?: string[];
+  /**
+   * Voice activity detection confidence threshold (0.0 to 1.0) for classifying audio frames as silence, defaults to 0.4
+   * @min 0
+   * @max 1
+   * @default 0.4
+   */
+  vadThreshold?: number;
+  /**
+   * Confidence threshold (0.0 to 1.0) for determining end of turn, defaults to 0.4
+   * @min 0
+   * @max 1
+   * @default 0.4
+   */
+  endOfTurnConfidenceThreshold?: number;
+  /**
+   * Minimum silence in milliseconds required to detect end of turn when confident, defaults to 400
+   * @min 0
+   * @default 400
+   */
+  minEndOfTurnSilenceWhenConfident?: number;
+  /**
+   * Maximum silence in milliseconds allowed in a turn before triggering end of turn, defaults to 1280
+   * @min 0
+   * @default 1280
+   */
+  maxTurnSilence?: number;
+  /**
+   * Time in seconds of inactivity before session is terminated (5-3600), no timeout if not set
+   * @min 5
+   * @max 3600
+   */
+  inactivityTimeout?: number;
   [key: string]: any;
 }
 
@@ -1191,7 +1251,11 @@ export interface CreateProjectRequest {
     /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
     asrProviderId?: string;
     /** ASR-specific settings including model, language preferences, etc. */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
+    settings?:
+      | AzureAsrSettings
+      | ElevenLabsAsrSettings
+      | DeepgramAsrSettings
+      | AssemblyAiAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1322,7 +1386,11 @@ export interface ProjectResponse {
     /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
     asrProviderId?: string;
     /** ASR-specific settings including model, language preferences, etc. */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
+    settings?:
+      | AzureAsrSettings
+      | ElevenLabsAsrSettings
+      | DeepgramAsrSettings
+      | AssemblyAiAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1375,7 +1443,11 @@ export interface ProjectListResponse {
       /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
       asrProviderId?: string;
       /** ASR-specific settings including model, language preferences, etc. */
-      settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings;
+      settings?:
+        | AzureAsrSettings
+        | ElevenLabsAsrSettings
+        | DeepgramAsrSettings
+        | AssemblyAiAsrSettings;
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -3738,6 +3810,15 @@ export interface CreateProviderRequest {
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
       }
+    | {
+        /** API key for authenticating with AssemblyAI */
+        apiKey: string;
+        /**
+         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+         * @default "us"
+         */
+        region?: "us" | "eu";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -3814,6 +3895,15 @@ export interface UpdateProviderRequest {
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
       }
+    | {
+        /** API key for authenticating with AssemblyAI */
+        apiKey: string;
+        /**
+         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+         * @default "us"
+         */
+        region?: "us" | "eu";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -3889,6 +3979,15 @@ export interface ProviderResponse {
         region: string;
         /** The subscription key to use for the speech recognition service */
         subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with AssemblyAI */
+        apiKey: string;
+        /**
+         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+         * @default "us"
+         */
+        region?: "us" | "eu";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -3972,6 +4071,15 @@ export interface ProviderListResponse {
           region: string;
           /** The subscription key to use for the speech recognition service */
           subscriptionKey: string;
+        }
+      | {
+          /** API key for authenticating with AssemblyAI */
+          apiKey: string;
+          /**
+           * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+           * @default "us"
+           */
+          region?: "us" | "eu";
         }
       | S3StorageConfig
       | AzureBlobStorageConfig

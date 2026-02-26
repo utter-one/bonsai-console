@@ -43,6 +43,7 @@ const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
 const newPhrase = ref('')
+const newKeyterm = ref('')
 const createPlaygroundApiKey = ref(true)
 const showStorageSettingsModal = ref(false)
 const deepgramEndpointingEnabled = ref(true)
@@ -84,6 +85,11 @@ const isElevenLabsAsrProvider = computed(() => {
 const isDeepgramAsrProvider = computed(() => {
   const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
   return apiType === 'deepgram'
+})
+
+const isAssemblyAiAsrProvider = computed(() => {
+  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
+  return apiType === 'assemblyai'
 })
 
 // Sync endpointing checkbox/input state from form settings
@@ -153,67 +159,77 @@ watch(activeTab, (newTab) => {
   }
 })
 
-// Watch ASR provider changes to initialize settings structure
-watch(() => form.value.asrConfig.asrProviderId, (newProviderId, oldProviderId) => {
-  // Only initialize when provider changes (not on initial load)
-  if (newProviderId && newProviderId !== oldProviderId) {
-    // Check if settings are already populated (from loaded project)
-    const hasExistingSettings = Object.keys(form.value.asrConfig.settings || {}).length > 0
-    
-    if (!hasExistingSettings) {
-      // Initialize empty settings structure based on provider type
-      const provider = asrProviders.value.find(p => p.id === newProviderId)
-      const apiType = provider?.apiType?.toLowerCase()
-      
-      if (apiType === 'azure-speech' || apiType === 'azure') {
-        // Azure ASR - initialize with empty Azure structure
-        form.value.asrConfig.settings = {
-          language: undefined,
-          dictionaryPhrases: [],
-          audioFormat: undefined
-        }
-      } else if (apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs') {
-        // ElevenLabs ASR - initialize with empty ElevenLabs structure
-        form.value.asrConfig.settings = {
-          modelId: undefined,
-          audioFormat: undefined,
-          languageCode: undefined,
-          includeTimestamps: false,
-          includeLanguageDetection: false,
-          commitStrategy: undefined,
-          vadSilenceThresholdSecs: undefined,
-          vadThreshold: undefined,
-          minSpeechDurationMs: undefined,
-          minSilenceDurationMs: undefined,
-          enableLogging: true
-        }
-      } else if (apiType === 'deepgram') {
-        // Deepgram ASR - initialize with empty Deepgram structure
-        form.value.asrConfig.settings = {
-          modelId: undefined,
-          audioFormat: undefined,
-          language: undefined,
-          interimResults: false,
-          endpointing: 300,
-          smartFormat: true,
-          punctuate: true,
-          diarize: false,
-          utteranceEndMs: undefined,
-          vadEvents: false,
-          enableLogging: true
-        }
-      } else {
-        // Unknown provider - generic empty structure
-        form.value.asrConfig.settings = {}
-      }
-    }
-  } else if (!newProviderId) {
+// Methods
+function handleAsrProviderChange() {
+  const providerId = form.value.asrConfig.asrProviderId
+  
+  if (!providerId) {
     // Provider cleared - reset settings
     form.value.asrConfig.settings = {}
+    return
   }
-})
+  
+  // Initialize settings structure based on provider type
+  const provider = asrProviders.value.find(p => p.id === providerId)
+  const apiType = provider?.apiType?.toLowerCase()
+  
+  if (apiType === 'azure-speech' || apiType === 'azure') {
+    // Azure ASR - initialize with empty Azure structure
+    form.value.asrConfig.settings = {
+      language: undefined,
+      dictionaryPhrases: [],
+      audioFormat: undefined
+    }
+  } else if (apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs') {
+    // ElevenLabs ASR - initialize with empty ElevenLabs structure
+    form.value.asrConfig.settings = {
+      modelId: undefined,
+      audioFormat: undefined,
+      languageCode: undefined,
+      includeTimestamps: false,
+      includeLanguageDetection: false,
+      commitStrategy: undefined,
+      vadSilenceThresholdSecs: undefined,
+      vadThreshold: undefined,
+      minSpeechDurationMs: undefined,
+      minSilenceDurationMs: undefined,
+      enableLogging: true
+    }
+  } else if (apiType === 'deepgram') {
+    // Deepgram ASR - initialize with empty Deepgram structure
+    form.value.asrConfig.settings = {
+      modelId: undefined,
+      audioFormat: undefined,
+      language: undefined,
+      interimResults: false,
+      endpointing: 300,
+      smartFormat: true,
+      punctuate: true,
+      diarize: false,
+      utteranceEndMs: undefined,
+      vadEvents: false,
+      enableLogging: true
+    }
+  } else if (apiType === 'assemblyai') {
+    // AssemblyAI ASR - initialize with defaults
+    form.value.asrConfig.settings = {
+      sampleRate: 16000,
+      formatTurns: false,
+      speechModel: 'universal-streaming-english',
+      language: undefined,
+      keytermsPrompt: [],
+      vadThreshold: 0.4,
+      endOfTurnConfidenceThreshold: 0.4,
+      minEndOfTurnSilenceWhenConfident: 400,
+      maxTurnSilence: 1280,
+      inactivityTimeout: undefined
+    }
+  } else {
+    // Unknown provider - generic empty structure
+    form.value.asrConfig.settings = {}
+  }
+}
 
-// Methods
 async function loadProject() {
   if (!projectId.value) return
   
@@ -378,6 +394,23 @@ function addDictionaryPhrase() {
 function removeDictionaryPhrase(index: number | string) {
   if (form.value.asrConfig.settings.dictionaryPhrases) {
     form.value.asrConfig.settings.dictionaryPhrases.splice(Number(index), 1)
+  }
+}
+
+function addKeyterm() {
+  if (!newKeyterm.value.trim()) return
+  
+  if (!form.value.asrConfig.settings.keytermsPrompt) {
+    form.value.asrConfig.settings.keytermsPrompt = []
+  }
+  
+  form.value.asrConfig.settings.keytermsPrompt.push(newKeyterm.value.trim())
+  newKeyterm.value = ''
+}
+
+function removeKeyterm(index: number | string) {
+  if (form.value.asrConfig.settings.keytermsPrompt) {
+    form.value.asrConfig.settings.keytermsPrompt.splice(Number(index), 1)
   }
 }
 
@@ -706,6 +739,7 @@ function handleStorageSettingsClose() {
                   class="form-select"
                   :disabled="isLoading"
                   :required="form.acceptVoice"
+                  @change="handleAsrProviderChange"
                 >
                   <option value="">None</option>
                   <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
@@ -1236,6 +1270,217 @@ function handleStorageSettingsClose() {
                   </label>
                   <p class="form-help-text mt-1">
                     Send SpeechStarted events when speech is detected
+                  </p>
+                </div>
+              </div>
+
+              <!-- AssemblyAI ASR Settings -->
+              <div v-if="form.asrConfig.asrProviderId && isAssemblyAiAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+                <div class="form-group">
+                  <label class="form-label">
+                    Sample Rate <span class="required">*</span>
+                  </label>
+                  <select
+                    v-model.number="form.asrConfig.settings.sampleRate"
+                    class="form-select"
+                    required
+                    :disabled="isLoading"
+                  >
+                    <option :value="8000">8000 Hz</option>
+                    <option :value="16000">16000 Hz (default)</option>
+                    <option :value="22050">22050 Hz</option>
+                    <option :value="24000">24000 Hz</option>
+                    <option :value="44100">44100 Hz</option>
+                  </select>
+                  <p class="form-help-text">
+                    Audio sample rate (default: 16000)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Speech Model <span class="required">*</span>
+                  </label>
+                  <select
+                    v-model="form.asrConfig.settings.speechModel"
+                    class="form-select"
+                    required
+                    :disabled="isLoading"
+                  >
+                    <option value="universal-streaming-english">Universal Streaming (English)</option>
+                    <option value="universal-streaming-multilingual">Universal Streaming (Multilingual)</option>
+                  </select>
+                  <p class="form-help-text">
+                    Model: English-only or multilingual support
+                  </p>
+                </div>
+
+                <div v-if="form.asrConfig.settings.speechModel === 'universal-streaming-multilingual'" class="form-group">
+                  <label class="form-label">
+                    Language Code
+                  </label>
+                  <input
+                    v-model="form.asrConfig.settings.language"
+                    type="text"
+                    placeholder="e.g., en, es, fr, de, it, pt"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Language for multilingual model (en, es, fr, de, it, pt)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="flex items-center cursor-pointer">
+                    <input
+                      v-model="form.asrConfig.settings.formatTurns"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Format Turns (Add Capitalization & Punctuation)
+                    </span>
+                  </label>
+                  <p class="form-help-text mt-1">
+                    Warning: Adds latency, not recommended for voice agents
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    VAD Threshold
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.vadThreshold"
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    placeholder="0.4"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Voice activity detection threshold (0.0-1.0, default: 0.4)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    End of Turn Confidence
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.endOfTurnConfidenceThreshold"
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    placeholder="0.4"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Confidence threshold for end of turn (0.0-1.0, default: 0.4)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Min Silence (Confident) (ms)
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.minEndOfTurnSilenceWhenConfident"
+                    type="number"
+                    min="0"
+                    placeholder="400"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Minimum silence when confident (default: 400ms)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Max Turn Silence (ms)
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.maxTurnSilence"
+                    type="number"
+                    min="0"
+                    placeholder="1280"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Maximum silence before end of turn (default: 1280ms)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Inactivity Timeout (seconds) <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model.number="form.asrConfig.settings.inactivityTimeout"
+                    type="number"
+                    min="5"
+                    max="3600"
+                    placeholder="No timeout"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Time before session termination (5-3600s, optional)
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    Custom Keywords <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <div class="flex gap-2 mb-2">
+                    <input
+                      v-model="newKeyterm"
+                      type="text"
+                      placeholder="Add a keyword"
+                      class="form-input"
+                      :disabled="isLoading"
+                      @keyup.enter="addKeyterm"
+                    />
+                    <button
+                      type="button"
+                      @click="addKeyterm"
+                      class="btn-secondary whitespace-nowrap"
+                      :disabled="isLoading"
+                    >
+                      <Plus class="inline-block w-4 h-4 mr-1" />
+                      Add
+                    </button>
+                  </div>
+                  <div v-if="form.asrConfig.settings.keytermsPrompt && form.asrConfig.settings.keytermsPrompt.length > 0" class="space-y-2">
+                    <div
+                      v-for="(keyterm, index) in form.asrConfig.settings.keytermsPrompt"
+                      :key="index"
+                      class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                    >
+                      <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ keyterm }}</span>
+                      <button
+                        type="button"
+                        @click="removeKeyterm(index)"
+                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                        title="Remove keyword"
+                        :disabled="isLoading"
+                      >
+                        <X class="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <p class="form-help-text mt-2">
+                    Custom words/phrases to improve recognition accuracy
                   </p>
                 </div>
               </div>
