@@ -8,6 +8,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
+import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +26,7 @@ const form = ref({
   id: '',
   name: '',
   description: '',
+  tags: [] as string[],
   prompt: '',
   contextFields: [] as string[],
   llmProviderId: '',
@@ -66,6 +68,7 @@ async function loadTransformer() {
         id: currentTransformer.value.id,
         name: currentTransformer.value.name,
         description: currentTransformer.value.description || '',
+        tags: currentTransformer.value.tags || [],
         prompt: currentTransformer.value.prompt,
         contextFields: currentTransformer.value.contextFields || [],
         llmProviderId: currentTransformer.value.llmProviderId || '',
@@ -91,6 +94,7 @@ async function handleSubmit() {
         version: currentTransformer.value.version,
         name: form.value.name,
         description: form.value.description || null,
+        tags: form.value.tags,
         prompt: form.value.prompt,
         contextFields: form.value.contextFields.length > 0 ? form.value.contextFields : undefined,
         llmProviderId: form.value.llmProviderId || null,
@@ -118,7 +122,10 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      // Only include contextFields if not empty
+      // Only include tags if not empty
+      if (form.value.tags.length > 0) {
+        createData.tags = form.value.tags
+      }
       if (form.value.contextFields.length > 0) {
         createData.contextFields = form.value.contextFields
       }
@@ -322,6 +329,7 @@ const metadataFields = computed(() => {
               </p>
             </div>
 
+            <TagsEditor v-model="form.tags" :disabled="isLoading" />
 
           </div>
 

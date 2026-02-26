@@ -1246,6 +1246,11 @@ export class Api<
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
+      /**
+       * Tags for categorizing and filtering this classifier
+       * @default []
+       */
+      tags?: string[];
       /** Additional classifier-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -1271,6 +1276,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this classifier */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1362,6 +1369,8 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings;
+          /** Tags for categorizing and filtering this classifier */
+          tags: string[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -1437,6 +1446,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this classifier */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1493,6 +1504,8 @@ export class Api<
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -1523,6 +1536,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this classifier */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1643,6 +1658,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this classifier */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1707,6 +1724,11 @@ export class Api<
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
+      /**
+       * Tags for categorizing and filtering this context transformer
+       * @default []
+       */
+      tags?: string[];
       /** Additional transformer-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -1734,6 +1756,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this context transformer */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1827,6 +1851,8 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings;
+          /** Tags for categorizing and filtering this context transformer */
+          tags: string[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -1904,6 +1930,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this context transformer */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -1962,6 +1990,8 @@ export class Api<
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -1994,6 +2024,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this context transformer */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -2116,6 +2148,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
+        /** Tags for categorizing and filtering this context transformer */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -5532,6 +5566,11 @@ export class Api<
       effects?: Effect[];
       /** Example phrases that trigger this action */
       examples?: string[];
+      /**
+       * Tags for categorizing and filtering this global action
+       * @default []
+       */
+      tags?: string[];
       /** Additional action-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -5561,6 +5600,8 @@ export class Api<
         effects: Effect[];
         /** Example phrases that trigger this action */
         examples: string[] | null;
+        /** Tags for categorizing and filtering this global action */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -5656,6 +5697,8 @@ export class Api<
           effects: Effect[];
           /** Example phrases that trigger this action */
           examples: string[] | null;
+          /** Tags for categorizing and filtering this global action */
+          tags: string[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -5735,6 +5778,8 @@ export class Api<
         effects: Effect[];
         /** Example phrases that trigger this action */
         examples: string[] | null;
+        /** Tags for categorizing and filtering this global action */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -5792,6 +5837,8 @@ export class Api<
       effects?: Effect[];
       /** Updated example phrases */
       examples?: string[];
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -5826,6 +5873,8 @@ export class Api<
         effects: Effect[];
         /** Example phrases that trigger this action */
         examples: string[] | null;
+        /** Tags for categorizing and filtering this global action */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -5950,6 +5999,8 @@ export class Api<
         effects: Effect[];
         /** Example phrases that trigger this action */
         examples: string[] | null;
+        /** Tags for categorizing and filtering this global action */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -6498,6 +6549,11 @@ export class Api<
        * @default []
        */
       transformerIds?: string[];
+      /**
+       * Tags for categorizing and filtering this stage
+       * @default []
+       */
+      tags?: string[];
       /** Additional stage-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -6543,6 +6599,8 @@ export class Api<
         defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
+        /** Tags for categorizing and filtering this stage */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -6654,6 +6712,8 @@ export class Api<
           defaultClassifierId: string | null;
           /** Context transformer IDs used in this stage */
           transformerIds: string[];
+          /** Tags for categorizing and filtering this stage */
+          tags: string[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -6749,6 +6809,8 @@ export class Api<
         defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
+        /** Tags for categorizing and filtering this stage */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -6828,6 +6890,8 @@ export class Api<
       defaultClassifierId?: string | null;
       /** Updated transformer IDs */
       transformerIds?: string[];
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -6878,6 +6942,8 @@ export class Api<
         defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
+        /** Tags for categorizing and filtering this stage */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -7018,6 +7084,8 @@ export class Api<
         defaultClassifierId: string | null;
         /** Context transformer IDs used in this stage */
         transformerIds: string[];
+        /** Tags for categorizing and filtering this stage */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -7089,6 +7157,11 @@ export class Api<
        * @default []
        */
       parameters?: ToolParameter[];
+      /**
+       * Tags for categorizing and filtering this tool
+       * @default []
+       */
+      tags?: string[];
       /** Additional tool-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -7120,6 +7193,8 @@ export class Api<
         outputType: "text" | "image" | "multi-modal";
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
+        /** Tags for categorizing and filtering this tool */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -7217,6 +7292,8 @@ export class Api<
           outputType: "text" | "image" | "multi-modal";
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
+          /** Tags for categorizing and filtering this tool */
+          tags: string[];
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -7298,6 +7375,8 @@ export class Api<
         outputType: "text" | "image" | "multi-modal";
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
+        /** Tags for categorizing and filtering this tool */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -7360,6 +7439,8 @@ export class Api<
       outputType?: "text" | "image" | "multi-modal";
       /** Updated parameters for the tool */
       parameters?: ToolParameter[];
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -7396,6 +7477,8 @@ export class Api<
         outputType: "text" | "image" | "multi-modal";
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
+        /** Tags for categorizing and filtering this tool */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -7522,6 +7605,8 @@ export class Api<
         outputType: "text" | "image" | "multi-modal";
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
+        /** Tags for categorizing and filtering this tool */
+        tags: string[];
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */

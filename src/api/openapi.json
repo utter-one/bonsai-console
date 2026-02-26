@@ -5892,6 +5892,14 @@
             "default": [],
             "description": "List of context transformer IDs to use in this stage"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this stage"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -6008,6 +6016,13 @@
               "type": "string"
             },
             "description": "Updated transformer IDs"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -6148,6 +6163,13 @@
             },
             "description": "Context transformer IDs used in this stage"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this stage"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -6190,6 +6212,7 @@
           "actions",
           "defaultClassifierId",
           "transformerIds",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -6310,6 +6333,13 @@
                   },
                   "description": "Context transformer IDs used in this stage"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this stage"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -6352,6 +6382,7 @@
                 "actions",
                 "defaultClassifierId",
                 "transformerIds",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -6433,6 +6464,14 @@
             ],
             "description": "LLM provider-specific settings for this classifier"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this classifier"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -6488,6 +6527,13 @@
               }
             ],
             "description": "Updated LLM provider-specific settings"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -6568,6 +6614,13 @@
             ],
             "description": "LLM provider-specific settings"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this classifier"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -6600,6 +6653,7 @@
           "description",
           "prompt",
           "llmProviderId",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -6660,6 +6714,13 @@
                   ],
                   "description": "LLM provider-specific settings"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this classifier"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -6692,6 +6753,7 @@
                 "description",
                 "prompt",
                 "llmProviderId",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -6780,6 +6842,14 @@
             ],
             "description": "LLM provider-specific settings for this transformer"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this context transformer"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -6842,6 +6912,13 @@
               }
             ],
             "description": "Updated LLM provider-specific settings"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -6930,6 +7007,13 @@
             ],
             "description": "LLM provider-specific settings"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this context transformer"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -6963,6 +7047,7 @@
           "prompt",
           "contextFields",
           "llmProviderId",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -7031,6 +7116,13 @@
                   ],
                   "description": "LLM provider-specific settings"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this context transformer"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -7064,6 +7156,7 @@
                 "prompt",
                 "contextFields",
                 "llmProviderId",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -7171,6 +7264,14 @@
             "default": [],
             "description": "Parameters that this tool expects to receive"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tool"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -7253,6 +7354,13 @@
               "$ref": "#/components/schemas/ToolParameter"
             },
             "description": "Updated parameters for the tool"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -7358,6 +7466,13 @@
             },
             "description": "Parameters that this tool expects to receive"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this tool"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -7393,6 +7508,7 @@
           "inputType",
           "outputType",
           "parameters",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -7478,6 +7594,13 @@
                   },
                   "description": "Parameters that this tool expects to receive"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this tool"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -7513,6 +7636,7 @@
                 "inputType",
                 "outputType",
                 "parameters",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -7605,6 +7729,14 @@
             },
             "description": "Example phrases that trigger this action"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this global action"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -7668,6 +7800,13 @@
               "type": "string"
             },
             "description": "Updated example phrases"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -7759,6 +7898,13 @@
             },
             "description": "Example phrases that trigger this action"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this global action"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -7796,6 +7942,7 @@
           "parameters",
           "effects",
           "examples",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -7867,6 +8014,13 @@
                   },
                   "description": "Example phrases that trigger this action"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this global action"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -7904,6 +8058,7 @@
                 "parameters",
                 "effects",
                 "examples",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -13397,6 +13552,14 @@
                     ],
                     "description": "LLM provider-specific settings for this classifier"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this classifier"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -13467,6 +13630,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this classifier"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -13499,6 +13669,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -13711,6 +13882,13 @@
                             ],
                             "description": "LLM provider-specific settings"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this classifier"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -13743,6 +13921,7 @@
                           "description",
                           "prompt",
                           "llmProviderId",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -13869,6 +14048,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this classifier"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -13901,6 +14087,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -13990,6 +14177,13 @@
                     ],
                     "description": "Updated LLM provider-specific settings"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -14064,6 +14258,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this classifier"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -14096,6 +14297,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -14325,6 +14527,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this classifier"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -14357,6 +14566,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -14440,6 +14650,14 @@
                     ],
                     "description": "LLM provider-specific settings for this transformer"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this context transformer"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -14518,6 +14736,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this context transformer"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -14551,6 +14776,7 @@
                     "prompt",
                     "contextFields",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -14771,6 +14997,13 @@
                             ],
                             "description": "LLM provider-specific settings"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this context transformer"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -14804,6 +15037,7 @@
                           "prompt",
                           "contextFields",
                           "llmProviderId",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -14938,6 +15172,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this context transformer"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -14971,6 +15212,7 @@
                     "prompt",
                     "contextFields",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -15067,6 +15309,13 @@
                     ],
                     "description": "Updated LLM provider-specific settings"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -15149,6 +15398,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this context transformer"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -15182,6 +15438,7 @@
                     "prompt",
                     "contextFields",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -15419,6 +15676,13 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this context transformer"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -15452,6 +15716,7 @@
                     "prompt",
                     "contextFields",
                     "llmProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -23969,6 +24234,14 @@
                     },
                     "description": "Example phrases that trigger this action"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this global action"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -24049,6 +24322,13 @@
                       },
                       "description": "Example phrases that trigger this action"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this global action"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -24086,6 +24366,7 @@
                     "parameters",
                     "effects",
                     "examples",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -24309,6 +24590,13 @@
                             },
                             "description": "Example phrases that trigger this action"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this global action"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -24346,6 +24634,7 @@
                           "parameters",
                           "effects",
                           "examples",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -24483,6 +24772,13 @@
                       },
                       "description": "Example phrases that trigger this action"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this global action"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -24520,6 +24816,7 @@
                     "parameters",
                     "effects",
                     "examples",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -24618,6 +24915,13 @@
                     },
                     "description": "Updated example phrases"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -24703,6 +25007,13 @@
                       },
                       "description": "Example phrases that trigger this action"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this global action"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -24740,6 +25051,7 @@
                     "parameters",
                     "effects",
                     "examples",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -24980,6 +25292,13 @@
                       },
                       "description": "Example phrases that trigger this action"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this global action"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -25017,6 +25336,7 @@
                     "parameters",
                     "effects",
                     "examples",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -26051,6 +26371,14 @@
                     "default": [],
                     "description": "List of context transformer IDs to use in this stage"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this stage"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -26182,6 +26510,13 @@
                       },
                       "description": "Context transformer IDs used in this stage"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this stage"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -26224,6 +26559,7 @@
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -26496,6 +26832,13 @@
                             },
                             "description": "Context transformer IDs used in this stage"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this stage"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -26538,6 +26881,7 @@
                           "actions",
                           "defaultClassifierId",
                           "transformerIds",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -26725,6 +27069,13 @@
                       },
                       "description": "Context transformer IDs used in this stage"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this stage"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -26767,6 +27118,7 @@
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -26917,6 +27269,13 @@
                     },
                     "description": "Updated transformer IDs"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -27051,6 +27410,13 @@
                       },
                       "description": "Context transformer IDs used in this stage"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this stage"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -27093,6 +27459,7 @@
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -27385,6 +27752,13 @@
                       },
                       "description": "Context transformer IDs used in this stage"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this stage"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -27427,6 +27801,7 @@
                     "actions",
                     "defaultClassifierId",
                     "transformerIds",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -27529,6 +27904,14 @@
                     "default": [],
                     "description": "Parameters that this tool expects to receive"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this tool"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -27626,6 +28009,13 @@
                       },
                       "description": "Parameters that this tool expects to receive"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tool"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -27661,6 +28051,7 @@
                     "inputType",
                     "outputType",
                     "parameters",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -27898,6 +28289,13 @@
                             },
                             "description": "Parameters that this tool expects to receive"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this tool"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -27933,6 +28331,7 @@
                           "inputType",
                           "outputType",
                           "parameters",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -28085,6 +28484,13 @@
                       },
                       "description": "Parameters that this tool expects to receive"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tool"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -28120,6 +28526,7 @@
                     "inputType",
                     "outputType",
                     "parameters",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -28235,6 +28642,13 @@
                     },
                     "description": "Updated parameters for the tool"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -28334,6 +28748,13 @@
                       },
                       "description": "Parameters that this tool expects to receive"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tool"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -28369,6 +28790,7 @@
                     "inputType",
                     "outputType",
                     "parameters",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -28626,6 +29048,13 @@
                       },
                       "description": "Parameters that this tool expects to receive"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tool"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -28661,6 +29090,7 @@
                     "inputType",
                     "outputType",
                     "parameters",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
