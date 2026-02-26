@@ -175,6 +175,7 @@ function clearSearch() {
                     <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -192,6 +193,12 @@ function clearSearch() {
                 </td>
                 <td class="table-cell">
                   <span v-if="classifier.description" class="truncate">{{ classifier.description.length > 30 ? classifier.description.substring(0, 30) + '...' : classifier.description }}</span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <div v-if="classifier.tags?.length" class="tag-list">
+                    <span v-for="tag in classifier.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(classifier.updatedAt) }}</td>

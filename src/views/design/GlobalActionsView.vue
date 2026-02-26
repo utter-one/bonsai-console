@@ -176,6 +176,7 @@ function editGlobalAction(action: GlobalActionResponse) {
                 <th class="table-header-cell">Condition</th>
                 <th class="table-header-cell">Effects</th>
                 <th class="table-header-cell">Examples</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -207,6 +208,12 @@ function editGlobalAction(action: GlobalActionResponse) {
                   <span v-if="action.examples?.length" class="badge-secondary">
                     {{ action.examples.length }} example(s)
                   </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <div v-if="action.tags?.length" class="tag-list">
+                    <span v-for="tag in action.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(action.updatedAt) }}</td>

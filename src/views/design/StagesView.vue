@@ -182,6 +182,7 @@ function clearSearch() {
                   </div>
                 </th>
                 <th class="table-header-cell">Features</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -211,6 +212,12 @@ function clearSearch() {
                       {{ stage.transformerIds.length }} Transformer(s)
                     </span>
                   </div>
+                </td>
+                <td class="table-cell">
+                  <div v-if="stage.tags?.length" class="tag-list">
+                    <span v-for="tag in stage.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
+                  <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(stage.updatedAt) }}</td>
                 <td class="table-cell-right">

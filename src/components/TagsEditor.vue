@@ -3,17 +3,17 @@
     <label class="form-label">
       Tags <span class="text-gray-500">(optional)</span>
     </label>
-    <div v-if="modelValue.length > 0" class="flex flex-wrap gap-2 mb-2">
+    <div v-if="modelValue.length > 0" class="tag-list mb-2">
       <span
         v-for="(tag, index) in modelValue"
         :key="index"
-        class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 text-sm font-medium"
+        class="tag-item"
       >
         {{ tag }}
         <button
           type="button"
           @click="removeTag(index)"
-          class="ml-0.5 hover:text-primary-600 dark:hover:text-primary-400"
+          class="ml-0.5 hover:text-violet-600 dark:hover:text-violet-400"
           :disabled="disabled"
         >
           <X class="w-3 h-3" />

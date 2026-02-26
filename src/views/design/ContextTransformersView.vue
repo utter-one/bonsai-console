@@ -176,6 +176,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
                   </div>
                 </th>
                 <th class="table-header-cell">Variables</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -196,6 +197,12 @@ function editTransformer(transformer: ContextTransformerResponse) {
                   <span v-if="transformer.contextFields?.length" class="badge-info">
                     {{ transformer.contextFields.length }} variable{{ transformer.contextFields.length !== 1 ? 's' : '' }}
                   </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
+                  <div v-if="transformer.tags?.length" class="tag-list">
+                    <span v-for="tag in transformer.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(transformer.updatedAt) }}</td>

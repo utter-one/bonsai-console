@@ -182,6 +182,7 @@ function getTypeIcon(type: string) {
                   </div>
                 </th>
                 <th class="table-header-cell">Input/Output Types</th>
+                <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -206,6 +207,12 @@ function getTypeIcon(type: string) {
                       <component :is="getTypeIcon(tool.outputType)" class="w-4 h-4" />
                     </div>
                   </div>
+                </td>
+                <td class="table-cell">
+                  <div v-if="tool.tags?.length" class="tag-list">
+                    <span v-for="tag in tool.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                  </div>
+                  <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(tool.updatedAt) }}</td>
                 <td class="table-cell-right">
