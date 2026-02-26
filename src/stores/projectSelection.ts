@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { ProjectResponse } from '@/api/types'
 
 const SELECTED_PROJECT_KEY = 'selectedProjectId'
+const SELECTED_FLOW_KEY = 'selectedFlowId'
 
 /**
  * Store for managing the currently selected project across the app
@@ -15,9 +16,15 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
   const savedProjectId = localStorage.getItem(SELECTED_PROJECT_KEY)
   const selectedProjectId = ref<string | null>(savedProjectId)
 
+  const savedFlowId = localStorage.getItem(SELECTED_FLOW_KEY)
+  const selectedFlowId = ref<string | null>(savedFlowId)
+
   function setSelectedProjectId(projectId: string | null) {
+    if (projectId !== selectedProjectId.value) {
+      clearSelectedFlow()
+    }
     selectedProjectId.value = projectId
-    
+
     // Save to localStorage
     if (projectId) {
       localStorage.setItem(SELECTED_PROJECT_KEY, projectId)
@@ -29,6 +36,20 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
   function clearSelectedProject() {
     selectedProjectId.value = null
     localStorage.removeItem(SELECTED_PROJECT_KEY)
+  }
+
+  function setSelectedFlowId(flowId: string | null) {
+    selectedFlowId.value = flowId
+    if (flowId) {
+      localStorage.setItem(SELECTED_FLOW_KEY, flowId)
+    } else {
+      localStorage.removeItem(SELECTED_FLOW_KEY)
+    }
+  }
+
+  function clearSelectedFlow() {
+    selectedFlowId.value = null
+    localStorage.removeItem(SELECTED_FLOW_KEY)
   }
 
   /**
@@ -46,13 +67,17 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
     if (!projectExists) {
       console.log(`Previously selected project ${selectedProjectId.value} no longer exists, clearing selection`)
       clearSelectedProject()
+      clearSelectedFlow()
     }
   }
 
   return {
     selectedProjectId,
+    selectedFlowId,
     setSelectedProjectId,
     clearSelectedProject,
+    setSelectedFlowId,
+    clearSelectedFlow,
     validateSelectedProject,
   }
 })

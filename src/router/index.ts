@@ -31,17 +31,17 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/design/DesignView.vue'),
         children: [
           {
-            path: 'projects/:projectId/stages',
+            path: 'projects/:projectId/flows/:flowId/stages',
             name: 'design.stages',
             component: () => import('@/views/design/StagesView.vue'),
           },
           {
-            path: 'projects/:projectId/stages/new',
+            path: 'projects/:projectId/flows/:flowId/stages/new',
             name: 'design.stages.create',
             component: () => import('@/views/design/StageEditView.vue'),
           },
           {
-            path: 'projects/:projectId/stages/:stageId',
+            path: 'projects/:projectId/flows/:flowId/stages/:stageId',
             name: 'design.stages.edit',
             component: () => import('@/views/design/StageEditView.vue'),
           },

@@ -54,6 +54,7 @@ import type { StageResponse } from '@/api/types'
 
 const props = defineProps<{
   projectId: string
+  flowId?: string
   title?: string
 }>()
 
@@ -80,8 +81,8 @@ function selectStage(stage: StageResponse) {
 
 // Load stages on mount
 onMounted(async () => {
-  if (!stagesStore.items.length) {
-    await stagesStore.fetchAll(props.projectId)
+  if (!stagesStore.items.length && props.flowId) {
+    await stagesStore.fetchAll(props.projectId, props.flowId)
   }
 })
 </script>

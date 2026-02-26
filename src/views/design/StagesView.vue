@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { formatEnum, usePagination, useTableSort } from '@/composables'
 import { Route, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
+const route = useRoute()
 const router = useRouter()
 const stagesStore = useStagesStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -28,6 +29,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const flowId = computed(() => route.params.flowId as string || '')
 
 const filteredStages = computed(() => {
   if (!debouncedSearchQuery.value) return stagesStore.items
@@ -54,8 +56,8 @@ watch([sortKey, sortOrder], () => {
   loadStages()
 })
 
-// Watch for projectId changes
-watch(projectId, () => {
+// Watch for projectId or flowId changes
+watch([projectId, flowId], () => {
   searchQuery.value = ''
   debouncedSearchQuery.value = ''
   pagination.reset()
@@ -73,6 +75,7 @@ async function loadStages() {
     const orderBy = getOrderBy()
     await stagesStore.fetchAll(
       projectId.value,
+      flowId.value,
       pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
@@ -83,7 +86,7 @@ async function loadStages() {
 function createStage() {
   router.push({
     name: 'design.stages.create',
-    params: { projectId: projectId.value }
+    params: { projectId: projectId.value, flowId: flowId.value }
   })
 }
 
@@ -92,6 +95,7 @@ function editStage(stage: StageResponse) {
     name: 'design.stages.edit',
     params: {
       projectId: projectId.value,
+      flowId: flowId.value,
       stageId: stage.id
     }
   })
@@ -101,7 +105,7 @@ async function deleteStage(stage: StageResponse) {
   if (!confirm(`Delete stage "${stage.name}" (${stage.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await stagesStore.remove(projectId.value, stage.id, stage.version)
+    await stagesStore.remove(projectId.value, flowId.value, stage.id, stage.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete stage')
   }

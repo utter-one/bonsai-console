@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
@@ -96,6 +96,7 @@ const form = ref({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const stageId = computed(() => route.params.stageId as string | undefined)
+const flowId = computed(() => route.params.flowId as string || '')
 const isEditMode = computed(() => !!stageId.value)
 const currentStage = ref<StageResponse | null>(null)
 
@@ -131,15 +132,24 @@ onMounted(async () => {
   }
 })
 
+watch(stageId, async (newId) => {
+  if (newId) {
+    await loadStage()
+  } else {
+    currentStage.value = null
+  }
+})
+
 // Methods
 async function loadStage() {
   if (!stageId.value) return
   
   isLoading.value = true
   error.value = null
+  currentStage.value = null
   
   try {
-    currentStage.value = await stagesStore.fetchById(projectId.value, stageId.value)
+    currentStage.value = await stagesStore.fetchById(projectId.value, flowId.value, stageId.value)
     if (currentStage.value) {
       form.value = {
         id: currentStage.value.id,
@@ -189,7 +199,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentStage.value) {
       // Update existing stage
-      const updated = await stagesStore.update(projectId.value, currentStage.value.id, {
+      const updated = await stagesStore.update(projectId.value, flowId.value, currentStage.value.id, {
         version: currentStage.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -241,7 +251,7 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      const created = await stagesStore.create(projectId.value, createData)
+      const created = await stagesStore.create(projectId.value, flowId.value, createData)
       
       // Update currentStage with the created stage
       currentStage.value = created
@@ -249,7 +259,7 @@ async function handleSubmit() {
       // Navigate to edit mode
       await router.push({
         name: 'design.stages.edit',
-        params: { projectId: projectId.value, stageId: created.id }
+        params: { projectId: projectId.value, flowId: flowId.value, stageId: created.id }
       })
     }
 
@@ -266,7 +276,7 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.push({ name: 'design.stages', params: { projectId: projectId.value } })
+  router.push({ name: 'design.stages', params: { projectId: projectId.value, flowId: flowId.value } })
 }
 
 const metadataFields = computed(() => {

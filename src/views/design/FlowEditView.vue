@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useFlowsStore, useToolsStore, useProjectSelectionStore, useClassifiersStore, useStagesStore } from '@/stores'
+import { useFlowsStore, useToolsStore, useProjectSelectionStore, useClassifiersStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Pencil, Trash2, Check, Hammer } from 'lucide-vue-next'
 import type { FlowResponse, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -14,7 +14,6 @@ const flowsStore = useFlowsStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const classifiersStore = useClassifiersStore()
-const stagesStore = useStagesStore()
 
 // State
 const isLoading = ref(false)
@@ -67,7 +66,6 @@ onMounted(async () => {
   await Promise.all([
     toolsStore.fetchAll(projectId.value),
     classifiersStore.fetchAll(projectId.value),
-    stagesStore.fetchAll(projectId.value),
   ])
 
   if (isEditMode.value) {

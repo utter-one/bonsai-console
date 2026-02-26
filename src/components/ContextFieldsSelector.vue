@@ -142,6 +142,7 @@ import ContextFieldNode from '@/components/ContextFieldNode.vue'
 const props = defineProps<{
   modelValue: string[]
   projectId: string
+  flowId?: string
 }>()
 
 const emit = defineEmits<{
@@ -162,10 +163,10 @@ const topLevelCount = computed(() =>
 )
 
 async function loadStages() {
-  if (!props.projectId) return
+  if (!props.projectId || !props.flowId) return
   isLoading.value = true
   try {
-    await stagesStore.fetchAll(props.projectId, {
+    await stagesStore.fetchAll(props.projectId, props.flowId, {
       limit: 200,
     } as ListParams)
     allStages.value = stagesStore.items.slice()

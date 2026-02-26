@@ -43,14 +43,24 @@ function navigateTo(item: MenuItem) {
 
 function isItemActive(item: MenuItem): boolean {
   if (currentRouteName.value === item.name) return true
+  if (currentRouteName.value?.startsWith(item.name + '.')) return true
   if (item.children?.some(child => isChildActive(child))) return true
   return false
 }
 
 function isChildActive(child: MenuItem): boolean {
-  if (currentRouteName.value !== child.name) return false
-  if (!child.params) return true
-  return Object.entries(child.params).every(([key, val]) => route.params[key] === val)
+  const routeMatch = currentRouteName.value === child.name || currentRouteName.value?.startsWith(child.name + '.')
+  const paramsMatch = !child.params || Object.entries(child.params).every(([key, val]) => route.params[key] === val)
+  if (routeMatch && paramsMatch) return true
+  // Keep active if a grandchild is currently active
+  if (child.children?.some(gc => isGrandchildActive(gc))) return true
+  return false
+}
+
+function isGrandchildActive(grandchild: MenuItem): boolean {
+  if (currentRouteName.value !== grandchild.name) return false
+  if (!grandchild.params) return true
+  return Object.entries(grandchild.params).every(([key, val]) => route.params[key] === val)
 }
 </script>
 
@@ -79,20 +89,41 @@ function isChildActive(child: MenuItem): boolean {
 
             <!-- Sub-items -->
             <div v-if="item.children && item.children.length > 0" class="ml-4 mt-0.5 mb-1">
-              <button
+              <template
                 v-for="child in item.children"
                 :key="child.name + JSON.stringify(child.params)"
-                :class="[
-                  'w-full flex items-center gap-2 px-3 py-2 border-none bg-transparent text-left text-xs font-medium rounded-md cursor-pointer transition-all border-l-2',
-                  isChildActive(child)
-                    ? 'border-primary-400 bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
-                ]"
-                @click.stop="navigateTo(child)"
               >
-                <component v-if="child.icon" :is="child.icon" :size="14" class="flex-shrink-0" />
-                <span class="truncate">{{ child.label }}</span>
-              </button>
+                <button
+                  :class="[
+                    'w-full flex items-center gap-2 px-3 py-2 border-none bg-transparent text-left text-xs font-medium rounded-md cursor-pointer transition-all border-l-2',
+                    isChildActive(child)
+                      ? 'border-primary-400 bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                  ]"
+                  @click.stop="navigateTo(child)"
+                >
+                  <component v-if="child.icon" :is="child.icon" :size="14" class="flex-shrink-0" />
+                  <span class="truncate">{{ child.label }}</span>
+                </button>
+
+                <!-- Grandchildren (shown when child has them) -->
+                <div v-if="child.children && child.children.length > 0" class="ml-3 mt-0.5 mb-1">
+                  <button
+                    v-for="grandchild in child.children"
+                    :key="grandchild.name + JSON.stringify(grandchild.params)"
+                    :class="[
+                      'w-full flex items-center gap-2 px-3 py-1.5 border-none bg-transparent text-left text-xs rounded-md cursor-pointer transition-all border-l-2',
+                      isGrandchildActive(grandchild)
+                        ? 'border-primary-300 bg-primary-50 text-primary-600 font-medium dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-600'
+                        : 'border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-700 font-normal dark:border-gray-700 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300'
+                    ]"
+                    @click.stop="navigateTo(grandchild)"
+                  >
+                    <component v-if="grandchild.icon" :is="grandchild.icon" :size="12" class="flex-shrink-0" />
+                    <span class="truncate">{{ grandchild.label }}</span>
+                  </button>
+                </div>
+              </template>
             </div>
           </template>
         </nav>

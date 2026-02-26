@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useProjectSelectionStore, useFlowsStore } from '@/stores'
+import { useRouter, useRoute } from 'vue-router'
+import { useProjectSelectionStore, useFlowsStore, useStagesStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, BriefcaseBusiness, GitFork } from 'lucide-vue-next'
+import { Drama, Target, Microchip, Hammer, Zap, BookOpen, BriefcaseBusiness, GitFork } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
 const flowsStore = useFlowsStore()
+const stagesStore = useStagesStore()
 
 const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const selectedFlowId = computed(() => projectSelectionStore.selectedFlowId || '')
 
 async function loadFlows() {
   if (!projectId.value) return
@@ -21,12 +24,34 @@ async function loadFlows() {
   }
 }
 
+async function loadStages() {
+  if (!projectId.value || !selectedFlowId.value) return
+  try {
+    await stagesStore.fetchAll(projectId.value, selectedFlowId.value, { limit: null })
+  } catch {
+    // ignore errors in sidebar
+  }
+}
+
 onMounted(() => {
   if (projectId.value) loadFlows()
+  if (projectId.value && selectedFlowId.value) loadStages()
 })
 
 watch(projectId, (newId) => {
   if (newId) loadFlows()
+})
+
+watch(selectedFlowId, (newId) => {
+  if (newId) loadStages()
+  else stagesStore.items.splice(0)
+})
+
+// Sync selectedFlowId from route when the route carries one
+watch(() => route.params.flowId, (newId) => {
+  if (newId && newId !== selectedFlowId.value) {
+    projectSelectionStore.setSelectedFlowId(newId as string)
+  }
 })
 
 const flowSubItems = computed(() =>
@@ -35,18 +60,30 @@ const flowSubItems = computed(() =>
     .map(flow => ({
       name: 'design.flows.edit',
       label: flow.name,
-      params: { projectId: projectId.value, flowId: flow.id }
+      params: { projectId: projectId.value, flowId: flow.id },
+      children: flow.id === selectedFlowId.value ? stageSubItems.value : []
     }))
+)
+
+const stageSubItems = computed(() =>
+  selectedFlowId.value
+    ? [...stagesStore.items]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(stage => ({
+          name: 'design.stages.edit',
+          label: stage.name,
+          params: { projectId: projectId.value, flowId: selectedFlowId.value, stageId: stage.id }
+        }))
+    : []
 )
 
 const menuItems = computed(() => [
   {
     name: 'design.flows',
-    label: 'Flows',
+    label: 'Flows & Stages',
     icon: GitFork,
     children: flowSubItems.value
   },
-  { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.personas', label: 'Personas', icon: Drama },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },

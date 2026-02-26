@@ -69,7 +69,6 @@ const projectTools = computed(() =>
 onMounted(async () => {
   // Load classifiers and stages for dropdowns
   await classifiersStore.fetchAll(projectId.value)
-  await stagesStore.fetchAll(projectId.value)
   await toolsStore.fetchAll(projectId.value)
   
   if (isEditMode.value) {

@@ -6170,6 +6170,114 @@ export class Api<
       ...params,
     });
   /**
+   * @tags Flow Stages
+   * @name ProjectsFlowsStagesList
+   * @summary List stages for a flow
+   * @request GET:/api/projects/{projectId}/flows/{flowId}/stages
+   * @secure
+   */
+  projectsFlowsStagesList = (
+    projectId: string,
+    flowId: string,
+    query?: Record<string, any>,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, void>({
+      path: `/api/projects/${projectId}/flows/${flowId}/stages`,
+      method: "GET",
+      query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @tags Flow Stages
+   * @name ProjectsFlowsStagesCreate
+   * @summary Create a stage in a flow
+   * @request POST:/api/projects/{projectId}/flows/{flowId}/stages
+   * @secure
+   */
+  projectsFlowsStagesCreate = (
+    projectId: string,
+    flowId: string,
+    data: Record<string, any>,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, void>({
+      path: `/api/projects/${projectId}/flows/${flowId}/stages`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @tags Flow Stages
+   * @name ProjectsFlowsStagesDetail
+   * @summary Get a single stage in a flow
+   * @request GET:/api/projects/{projectId}/flows/{flowId}/stages/{stageId}
+   * @secure
+   */
+  projectsFlowsStagesDetail = (
+    projectId: string,
+    flowId: string,
+    stageId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, void>({
+      path: `/api/projects/${projectId}/flows/${flowId}/stages/${stageId}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @tags Flow Stages
+   * @name ProjectsFlowsStagesUpdate
+   * @summary Update a stage in a flow
+   * @request PUT:/api/projects/{projectId}/flows/{flowId}/stages/{stageId}
+   * @secure
+   */
+  projectsFlowsStagesUpdate = (
+    projectId: string,
+    flowId: string,
+    stageId: string,
+    data: Record<string, any>,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, void>({
+      path: `/api/projects/${projectId}/flows/${flowId}/stages/${stageId}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @tags Flow Stages
+   * @name ProjectsFlowsStagesDelete
+   * @summary Delete a stage in a flow
+   * @request DELETE:/api/projects/{projectId}/flows/{flowId}/stages/{stageId}
+   * @secure
+   */
+  projectsFlowsStagesDelete = (
+    projectId: string,
+    flowId: string,
+    stageId: string,
+    data: { version: number },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/flows/${flowId}/stages/${stageId}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
    * @description Creates a new issue report with bug details, environment, and severity information
    *
    * @tags Issues
