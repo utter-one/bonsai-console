@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useFlowsStore, useToolsStore, useProjectSelectionStore, useClassifiersStore } from '@/stores'
-import { ArrowLeft, Save, Plus, Pencil, Trash2, Check, Hammer } from 'lucide-vue-next'
-import type { FlowResponse, StageAction } from '@/api/types'
+import { useFlowsStore, useToolsStore, useProjectSelectionStore, useClassifiersStore, useStagesStore } from '@/stores'
+import { ArrowLeft, Save, Plus, Pencil, Trash2, Check, Hammer, Route } from 'lucide-vue-next'
+import type { FlowResponse, StageAction, StageResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
 import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
@@ -14,17 +14,24 @@ const flowsStore = useFlowsStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const classifiersStore = useClassifiersStore()
+const stagesStore = useStagesStore()
 
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'actions' | 'tools' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'actions' | 'tools' | 'stages' | 'metadata'>('basic')
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
+
+// Stage modal state
+const showAddStageModal = ref(false)
+const stageModalLoading = ref(false)
+const stageModalError = ref<string | null>(null)
+const stageForm = ref({ name: '', id: '' })
 
 const form = ref({
   name: '',
@@ -70,6 +77,7 @@ onMounted(async () => {
 
   if (isEditMode.value) {
     await loadFlow()
+    await stagesStore.fetchAll(projectId.value, flowId.value!, { limit: null })
   }
 })
 
@@ -204,6 +212,52 @@ function toggleTool(toolId: string) {
 function isToolSelected(toolId: string) {
   return form.value.toolIds.includes(toolId)
 }
+
+// Stage management
+function openAddStageModal() {
+  stageForm.value = { name: '', id: '' }
+  stageModalError.value = null
+  showAddStageModal.value = true
+}
+
+async function handleAddStage() {
+  if (!stageForm.value.name.trim()) {
+    stageModalError.value = 'Name is required'
+    return
+  }
+  stageModalLoading.value = true
+  stageModalError.value = null
+  try {
+    const payload: Record<string, any> = {
+      name: stageForm.value.name.trim(),
+      personaId: '',
+      prompt: '',
+    }
+    if (stageForm.value.id.trim()) payload.id = stageForm.value.id.trim()
+    await stagesStore.create(projectId.value, flowId.value!, payload as any)
+    showAddStageModal.value = false
+  } catch (err: any) {
+    stageModalError.value = err.response?.data?.message || 'Failed to create stage'
+  } finally {
+    stageModalLoading.value = false
+  }
+}
+
+async function deleteStage(stage: StageResponse) {
+  if (!confirm(`Delete stage "${stage.name}"?\n\nThis action cannot be undone.`)) return
+  try {
+    await stagesStore.remove(projectId.value, flowId.value!, stage.id, stage.version)
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to delete stage')
+  }
+}
+
+function editStage(stage: StageResponse) {
+  router.push({
+    name: 'design.stages.edit',
+    params: { projectId: projectId.value, flowId: flowId.value, stageId: stage.id }
+  })
+}
 </script>
 
 <template>
@@ -254,6 +308,17 @@ function isToolSelected(toolId: string) {
           type="button"
         >
           Tools
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'stages'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'stages' }]"
+          type="button"
+        >
+          Stages
+          <span v-if="stagesStore.items.length" class="ml-1.5 text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">
+            {{ stagesStore.items.length }}
+          </span>
         </button>
         <button
           v-if="isEditMode"
@@ -459,6 +524,61 @@ function isToolSelected(toolId: string) {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+
+          <!-- Stages Tab -->
+          <div v-if="isEditMode" v-show="activeTab === 'stages'" class="tab-content">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Flow Stages</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage the stages that belong to this flow</p>
+              </div>
+              <button type="button" @click="openAddStageModal" class="btn-primary">
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Stage
+              </button>
+            </div>
+
+            <div v-if="stagesStore.isLoading" class="loading-state">Loading stages...</div>
+
+            <div v-else-if="stagesStore.items.length === 0" class="text-center py-12">
+              <Route class="mx-auto mb-3 text-gray-400 w-12 h-12" />
+              <p class="text-gray-500">No stages yet. Add the first stage to get started.</p>
+            </div>
+
+            <div v-else class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Name</th>
+                      <th class="table-header-cell">ID</th>
+                      <th class="table-header-cell">Updated</th>
+                      <th class="table-header-cell-right">Operations</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="stage in stagesStore.items" :key="stage.id" class="table-row">
+                      <td class="table-clickable-cell" @click="editStage(stage)">{{ stage.name }}</td>
+                      <td class="table-cell">
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">{{ stage.id }}</code>
+                      </td>
+                      <td class="table-cell-muted">{{ stage.updatedAt ? new Date(stage.updatedAt).toLocaleString() : 'N/A' }}</td>
+                      <td class="table-cell-right">
+                        <div class="flex-end">
+                          <button type="button" @click="editStage(stage)" class="btn-secondary btn-sm">
+                            <Pencil class="inline-block w-4 h-4" />
+                          </button>
+                          <button type="button" @click="deleteStage(stage)" class="btn-danger btn-sm">
+                            <Trash2 class="inline-block w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>
@@ -480,5 +600,45 @@ function isToolSelected(toolId: string) {
       @close="showDuplicateModal = false; duplicatingActionKey = null"
       @save="handleActionDuplicate"
     />
+
+    <!-- Add Stage Modal -->
+    <div v-if="showAddStageModal" class="modal-overlay" @click.self="showAddStageModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Add Stage</h2>
+        </div>
+        <div class="p-6 space-y-4">
+          <div v-if="stageModalError" class="alert-error">{{ stageModalError }}</div>
+          <div class="form-group">
+            <label class="form-label">Name <span class="text-red-500">*</span></label>
+            <input
+              v-model="stageForm.name"
+              type="text"
+              class="form-input"
+              placeholder="Stage name"
+              :disabled="stageModalLoading"
+              @keydown.enter.prevent="handleAddStage"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Custom ID <span class="text-gray-400 font-normal">(optional)</span></label>
+            <input
+              v-model="stageForm.id"
+              type="text"
+              class="form-input font-mono"
+              placeholder="auto-generated if empty"
+              :disabled="stageModalLoading"
+              @keydown.enter.prevent="handleAddStage"
+            />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 px-6 pb-6">
+          <button type="button" class="btn-secondary" @click="showAddStageModal = false" :disabled="stageModalLoading">Cancel</button>
+          <button type="button" class="btn-primary" @click="handleAddStage" :disabled="stageModalLoading || !stageForm.name.trim()">
+            {{ stageModalLoading ? 'Creating...' : 'Create Stage' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

@@ -276,7 +276,7 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.push({ name: 'design.stages', params: { projectId: projectId.value, flowId: flowId.value } })
+  router.push({ name: 'design.flows.edit', params: { projectId: projectId.value, flowId: flowId.value } })
 }
 
 const metadataFields = computed(() => {

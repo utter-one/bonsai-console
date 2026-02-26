@@ -103,6 +103,7 @@ function isGrandchildActive(grandchild: MenuItem): boolean {
                   @click.stop="navigateTo(child)"
                 >
                   <component v-if="child.icon" :is="child.icon" :size="14" class="flex-shrink-0" />
+                  <span v-else class="inline-block w-2 h-1.5 bg-current rounded-sm flex-shrink-0"></span>
                   <span class="truncate">{{ child.label }}</span>
                 </button>
 
@@ -120,6 +121,7 @@ function isGrandchildActive(grandchild: MenuItem): boolean {
                     @click.stop="navigateTo(grandchild)"
                   >
                     <component v-if="grandchild.icon" :is="grandchild.icon" :size="12" class="flex-shrink-0" />
+                    <span v-else class="inline-block w-2 h-2 border border-current rounded-full flex-shrink-0"></span>
                     <span class="truncate">{{ grandchild.label }}</span>
                   </button>
                 </div>
