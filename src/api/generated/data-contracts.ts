@@ -1560,6 +1560,11 @@ export interface CreatePersonaRequest {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings;
+  /**
+   * Tags for categorizing and filtering this persona
+   * @default []
+   */
+  tags?: string[];
   /** Additional persona-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -1586,6 +1591,8 @@ export interface UpdatePersonaRequest {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings;
+  /** Updated tags */
+  tags?: string[];
   /** Updated metadata */
   metadata?: Record<string, any>;
   /**
@@ -1623,6 +1630,8 @@ export interface PersonaResponse {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings;
+  /** Tags for categorizing and filtering this persona */
+  tags: string[];
   /** Additional persona-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -1661,6 +1670,8 @@ export interface PersonaListResponse {
       | DeepgramTtsSettings
       | CartesiaTtsSettings
       | AzureTtsSettings;
+    /** Tags for categorizing and filtering this persona */
+    tags: string[];
     /** Additional persona-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */

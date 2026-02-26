@@ -3614,6 +3614,11 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings;
+      /**
+       * Tags for categorizing and filtering this persona
+       * @default []
+       */
+      tags?: string[];
       /** Additional persona-specific metadata */
       metadata?: Record<string, any>;
     },
@@ -3640,6 +3645,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
+        /** Tags for categorizing and filtering this persona */
+        tags: string[];
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3732,6 +3739,8 @@ export class Api<
             | DeepgramTtsSettings
             | CartesiaTtsSettings
             | AzureTtsSettings;
+          /** Tags for categorizing and filtering this persona */
+          tags: string[];
           /** Additional persona-specific metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -3808,6 +3817,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
+        /** Tags for categorizing and filtering this persona */
+        tags: string[];
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -3865,6 +3876,8 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings;
+      /** Updated tags */
+      tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
       /**
@@ -3896,6 +3909,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
+        /** Tags for categorizing and filtering this persona */
+        tags: string[];
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -4017,6 +4032,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
+        /** Tags for categorizing and filtering this persona */
+        tags: string[];
         /** Additional persona-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */

@@ -3082,6 +3082,14 @@
             ],
             "description": "TTS provider-specific settings"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this persona"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": {
@@ -3138,6 +3146,13 @@
               }
             ],
             "description": "Updated TTS provider-specific settings"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
           },
           "metadata": {
             "type": "object",
@@ -3221,6 +3236,13 @@
             ],
             "description": "TTS provider-specific settings"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this persona"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -3253,6 +3275,7 @@
           "description",
           "prompt",
           "ttsProviderId",
+          "tags",
           "metadata",
           "version",
           "createdAt",
@@ -3316,6 +3339,13 @@
                   ],
                   "description": "TTS provider-specific settings"
                 },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this persona"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -3348,6 +3378,7 @@
                 "description",
                 "prompt",
                 "ttsProviderId",
+                "tags",
                 "metadata",
                 "version",
                 "createdAt",
@@ -19240,6 +19271,14 @@
                     ],
                     "description": "TTS provider-specific settings"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this persona"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -19313,6 +19352,13 @@
                       ],
                       "description": "TTS provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this persona"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -19345,6 +19391,7 @@
                     "description",
                     "prompt",
                     "ttsProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -19560,6 +19607,13 @@
                             ],
                             "description": "TTS provider-specific settings"
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this persona"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -19592,6 +19646,7 @@
                           "description",
                           "prompt",
                           "ttsProviderId",
+                          "tags",
                           "metadata",
                           "version",
                           "createdAt",
@@ -19721,6 +19776,13 @@
                       ],
                       "description": "TTS provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this persona"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -19753,6 +19815,7 @@
                     "description",
                     "prompt",
                     "ttsProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -19843,6 +19906,13 @@
                     ],
                     "description": "Updated TTS provider-specific settings"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -19920,6 +19990,13 @@
                       ],
                       "description": "TTS provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this persona"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -19952,6 +20029,7 @@
                     "description",
                     "prompt",
                     "ttsProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
@@ -20184,6 +20262,13 @@
                       ],
                       "description": "TTS provider-specific settings"
                     },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this persona"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -20216,6 +20301,7 @@
                     "description",
                     "prompt",
                     "ttsProviderId",
+                    "tags",
                     "metadata",
                     "version",
                     "createdAt",
