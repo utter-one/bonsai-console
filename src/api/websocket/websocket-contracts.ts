@@ -381,7 +381,12 @@ export interface AuthResponse {
       /**
        * ASR-specific settings including model, language preferences, etc.
        */
-      settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings;
+      settings?:
+        | AzureAsrSettings
+        | ElevenLabsAsrSettings
+        | DeepgramAsrSettings
+        | AssemblyAiAsrSettings
+        | SpeechmaticsAsrSettings;
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -422,7 +427,12 @@ export interface ProjectSettings {
     /**
      * ASR-specific settings including model, language preferences, etc.
      */
-    settings?: AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings;
+    settings?:
+      | AzureAsrSettings
+      | ElevenLabsAsrSettings
+      | DeepgramAsrSettings
+      | AssemblyAiAsrSettings
+      | SpeechmaticsAsrSettings;
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
      */
@@ -605,6 +615,45 @@ export interface AssemblyAiAsrSettings {
    * Time in seconds of inactivity before session is terminated (5-3600), no timeout if not set
    */
   inactivityTimeout?: number;
+
+}
+
+/**
+ * Speechmatics speech-to-text settings
+ */
+export interface SpeechmaticsAsrSettings {
+  /**
+   * Language code for speech recognition (e.g., "en", "en-US", "es", "fr")
+   */
+  language?: string;
+  /**
+   * Audio input format for speech recognition, defaults to pcm_16000
+   */
+  audioFormat?: 'pcm_16000' | 'pcm_8000' | 'pcm_44100';
+  /**
+   * Transcription mode: "standard" for faster processing or "enhanced" for higher accuracy, defaults to standard
+   */
+  transcriptionMode?: 'standard' | 'enhanced';
+  /**
+   * Enable automatic punctuation in transcripts, defaults to true
+   */
+  enablePunctuation?: boolean;
+  /**
+   * Enable automatic formatting (numbers, dates, currency, etc.), defaults to true
+   */
+  enableFormatting?: boolean;
+  /**
+   * Custom vocabulary words or phrases to improve recognition accuracy
+   */
+  additionalVocab?: string[];
+  /**
+   * Enable speaker diarization to detect different speakers, defaults to false
+   */
+  enableDiarization?: boolean;
+  /**
+   * Maximum delay in seconds for transcription results (0-10), lower values reduce latency
+   */
+  maxDelay?: number;
 
 }
 

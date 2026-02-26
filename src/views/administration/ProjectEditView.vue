@@ -44,6 +44,7 @@ const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
 const newPhrase = ref('')
 const newKeyterm = ref('')
+const newVocabWord = ref('')
 const createPlaygroundApiKey = ref(true)
 const showStorageSettingsModal = ref(false)
 const deepgramEndpointingEnabled = ref(true)
@@ -90,6 +91,11 @@ const isDeepgramAsrProvider = computed(() => {
 const isAssemblyAiAsrProvider = computed(() => {
   const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
   return apiType === 'assemblyai'
+})
+
+const isSpeechmaticsAsrProvider = computed(() => {
+  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
+  return apiType === 'speechmatics'
 })
 
 // Sync endpointing checkbox/input state from form settings
@@ -223,6 +229,18 @@ function handleAsrProviderChange() {
       minEndOfTurnSilenceWhenConfident: 400,
       maxTurnSilence: 1280,
       inactivityTimeout: undefined
+    }
+  } else if (apiType === 'speechmatics') {
+    // Speechmatics ASR - initialize with defaults
+    form.value.asrConfig.settings = {
+      audioFormat: 'pcm_16000',
+      transcriptionMode: 'standard',
+      enablePunctuation: true,
+      enableFormatting: true,
+      enableDiarization: false,
+      language: undefined,
+      additionalVocab: [],
+      maxDelay: undefined
     }
   } else {
     // Unknown provider - generic empty structure
@@ -411,6 +429,21 @@ function addKeyterm() {
 function removeKeyterm(index: number | string) {
   if (form.value.asrConfig.settings.keytermsPrompt) {
     form.value.asrConfig.settings.keytermsPrompt.splice(Number(index), 1)
+  }
+}
+
+function addSpeechmaticsVocab() {
+  if (!newVocabWord.value.trim()) return
+  if (!form.value.asrConfig.settings.additionalVocab) {
+    form.value.asrConfig.settings.additionalVocab = []
+  }
+  form.value.asrConfig.settings.additionalVocab.push(newVocabWord.value.trim())
+  newVocabWord.value = ''
+}
+
+function removeSpeechmaticsVocab(index: number | string) {
+  if (form.value.asrConfig.settings.additionalVocab) {
+    form.value.asrConfig.settings.additionalVocab.splice(Number(index), 1)
   }
 }
 
@@ -1483,6 +1516,200 @@ function handleStorageSettingsClose() {
                     Custom words/phrases to improve recognition accuracy
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Speechmatics Settings -->
+          <div 
+            v-if="form.asrConfig.asrProviderId && isSpeechmaticsAsrProvider" 
+            class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800"
+          >
+            <div>
+              <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">Speechmatics Settings</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Configure Speechmatics speech recognition settings for this project
+              </p>
+            </div>
+
+            <!-- Audio Format -->
+            <div class="form-group">
+              <label class="form-label">
+                Audio Format <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.asrConfig.settings.audioFormat"
+                class="form-select"
+                required
+                :disabled="isLoading"
+              >
+                <option value="pcm_16000">PCM 16kHz (Recommended)</option>
+                <option value="pcm_8000">PCM 8kHz</option>
+                <option value="pcm_44100">PCM 44.1kHz</option>
+              </select>
+              <p class="form-help-text">
+                Audio input format for speech recognition
+              </p>
+            </div>
+
+            <!-- Transcription Mode -->
+            <div class="form-group">
+              <label class="form-label">
+                Transcription Mode <span class="required">*</span>
+              </label>
+              <select
+                v-model="form.asrConfig.settings.transcriptionMode"
+                class="form-select"
+                required
+                :disabled="isLoading"
+              >
+                <option value="standard">Standard (Faster processing)</option>
+                <option value="enhanced">Enhanced (Higher accuracy)</option>
+              </select>
+              <p class="form-help-text">
+                Standard for faster processing or Enhanced for higher accuracy
+              </p>
+            </div>
+
+            <!-- Language -->
+            <div class="form-group">
+              <label class="form-label">
+                Language <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="form.asrConfig.settings.language"
+                type="text"
+                placeholder="e.g., en, en-US, es, fr"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Language code for speech recognition (BCP-47 format)
+              </p>
+            </div>
+
+            <!-- Max Delay -->
+            <div class="form-group">
+              <label class="form-label">
+                Max Delay (seconds) <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model.number="form.asrConfig.settings.maxDelay"
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="0-10"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Maximum delay for transcription results (0-10 seconds). Lower values reduce latency
+              </p>
+            </div>
+
+            <!-- Feature Toggles -->
+            <div class="space-y-4">
+              <h5 class="text-sm font-medium text-gray-900 dark:text-white">Features</h5>
+              
+              <!-- Enable Punctuation -->
+              <div class="flex items-start">
+                <input
+                  id="speechmatics-punctuation"
+                  v-model="form.asrConfig.settings.enablePunctuation"
+                  type="checkbox"
+                  class="form-checkbox mt-1"
+                  :disabled="isLoading"
+                />
+                <label for="speechmatics-punctuation" class="ml-3 flex-1">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Punctuation</span>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Add automatic punctuation to transcripts (default: enabled)
+                  </p>
+                </label>
+              </div>
+
+              <!-- Enable Formatting -->
+              <div class="flex items-start">
+                <input
+                  id="speechmatics-formatting"
+                  v-model="form.asrConfig.settings.enableFormatting"
+                  type="checkbox"
+                  class="form-checkbox mt-1"
+                  :disabled="isLoading"
+                />
+                <label for="speechmatics-formatting" class="ml-3 flex-1">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Formatting</span>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Format numbers, dates, currency, and other entities automatically
+                  </p>
+                </label>
+              </div>
+
+              <!-- Enable Diarization -->
+              <div class="flex items-start">
+                <input
+                  id="speechmatics-diarization"
+                  v-model="form.asrConfig.settings.enableDiarization"
+                  type="checkbox"
+                  class="form-checkbox mt-1"
+                  :disabled="isLoading"
+                />
+                <label for="speechmatics-diarization" class="ml-3 flex-1">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Speaker Diarization</span>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Detect and label different speakers in the audio
+                  </p>
+                </label>
+              </div>
+            </div>
+
+            <!-- Custom Vocabulary -->
+            <div class="form-group">
+              <label class="form-label">
+                Custom Vocabulary <span class="text-gray-500">(optional)</span>
+              </label>
+              <div class="space-y-3">
+                <div class="flex gap-2">
+                  <input
+                    v-model="newVocabWord"
+                    type="text"
+                    placeholder="Enter word or phrase"
+                    class="form-input flex-1"
+                    :disabled="isLoading"
+                    @keyup.enter="addSpeechmaticsVocab"
+                  />
+                  <button
+                    type="button"
+                    @click="addSpeechmaticsVocab"
+                    class="btn-secondary whitespace-nowrap"
+                    :disabled="isLoading"
+                  >
+                    <Plus class="inline-block w-4 h-4 mr-1" />
+                    Add
+                  </button>
+                </div>
+                <div v-if="form.asrConfig.settings.additionalVocab && form.asrConfig.settings.additionalVocab.length > 0" class="space-y-2">
+                  <div
+                    v-for="(word, index) in form.asrConfig.settings.additionalVocab"
+                    :key="index"
+                    class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ word }}</span>
+                    <button
+                      type="button"
+                      @click="removeSpeechmaticsVocab(index)"
+                      class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                      title="Remove vocabulary item"
+                      :disabled="isLoading"
+                    >
+                      <X class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <p class="form-help-text mt-2">
+                  Custom words or phrases to improve recognition accuracy
+                </p>
               </div>
             </div>
           </div>
