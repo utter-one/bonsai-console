@@ -29,7 +29,7 @@ const { searchQuery, filteredItems: filteredClassifiers, clearSearch } = useSear
   () => classifiersStore.items,
   (classifier, query) =>
     classifier.name.toLowerCase().includes(query) ||
-    classifier.description?.toLowerCase().includes(query) ||
+    !!classifier.description?.toLowerCase().includes(query) ||
     classifier.prompt.toLowerCase().includes(query)
 )
 

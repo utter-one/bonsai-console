@@ -29,7 +29,7 @@ const { searchQuery, filteredItems: filteredTransformers, clearSearch } = useSea
   () => transformersStore.items,
   (transformer, query) =>
     transformer.name.toLowerCase().includes(query) ||
-    transformer.description?.toLowerCase().includes(query) ||
+    !!transformer.description?.toLowerCase().includes(query) ||
     transformer.prompt.toLowerCase().includes(query)
 )
 
