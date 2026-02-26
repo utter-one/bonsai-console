@@ -29,7 +29,7 @@ const { searchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
   () => toolsStore.items,
   (tool, query) =>
     tool.name.toLowerCase().includes(query) ||
-    tool.description?.toLowerCase().includes(query) ||
+    !!tool.description?.toLowerCase().includes(query) ||
     tool.prompt.toLowerCase().includes(query)
 )
 

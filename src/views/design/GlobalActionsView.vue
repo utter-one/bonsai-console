@@ -29,8 +29,8 @@ const { searchQuery, filteredItems: filteredGlobalActions, clearSearch } = useSe
   () => globalActionsStore.items,
   (action, query) =>
     action.name.toLowerCase().includes(query) ||
-    action.classificationTrigger?.toLowerCase().includes(query) ||
-    action.condition?.toLowerCase().includes(query)
+    !!action.classificationTrigger?.toLowerCase().includes(query) ||
+    !!action.condition?.toLowerCase().includes(query)
 )
 
 // Watch for sort changes and reload data
