@@ -104,15 +104,15 @@ const llmProviders = computed(() =>
 )
 
 const projectPersonas = computed(() =>
-  personasStore.items.filter(p => p.projectId === projectId.value)
+  personasStore.items
 )
 
 const projectClassifiers = computed(() =>
-  classifiersStore.items.filter(c => c.projectId === projectId.value)
+  classifiersStore.items
 )
 
 const projectTransformers = computed(() =>
-  transformersStore.items.filter(t => t.projectId === projectId.value)
+  transformersStore.items
 )
 
 // Lifecycle
@@ -120,10 +120,10 @@ onMounted(async () => {
   // Load related data
   await Promise.all([
     providersStore.fetchAll(),
-    personasStore.fetchAll({ filters: { projectId: projectId.value } }),
-    classifiersStore.fetchAll({ filters: { projectId: projectId.value } }),
-    transformersStore.fetchAll({ filters: { projectId: projectId.value } }),
-    toolsStore.fetchAll({ filters: { projectId: projectId.value } })
+    personasStore.fetchAll(projectId.value),
+    classifiersStore.fetchAll(projectId.value),
+    transformersStore.fetchAll(projectId.value),
+    toolsStore.fetchAll(projectId.value)
   ])
   
   if (isEditMode.value) {
@@ -139,7 +139,7 @@ async function loadStage() {
   error.value = null
   
   try {
-    currentStage.value = await stagesStore.fetchById(stageId.value)
+    currentStage.value = await stagesStore.fetchById(projectId.value, stageId.value)
     if (currentStage.value) {
       form.value = {
         id: currentStage.value.id,
@@ -189,7 +189,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentStage.value) {
       // Update existing stage
-      const updated = await stagesStore.update(currentStage.value.id, {
+      const updated = await stagesStore.update(projectId.value, currentStage.value.id, {
         version: currentStage.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
@@ -214,7 +214,6 @@ async function handleSubmit() {
     } else {
       // Create new stage
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         personaId: form.value.personaId,
         prompt: form.value.prompt,
@@ -242,7 +241,7 @@ async function handleSubmit() {
         createData.description = form.value.description
       }
 
-      const created = await stagesStore.create(createData)
+      const created = await stagesStore.create(projectId.value, createData)
       
       // Update currentStage with the created stage
       currentStage.value = created
@@ -926,6 +925,7 @@ function toggleNode(path: number[]) {
                 :disabled="isLoading"
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
+                show-toolbar
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
                 min-height="28rem"

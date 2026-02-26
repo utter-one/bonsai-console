@@ -109,6 +109,7 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', data: CreateApiKeyRequest | UpdateApiKeyRequest): void
   (e: 'created', key: string): void
+  (e: 'project-selected', projectId: string): void
 }>()
 
 const form = ref({
@@ -131,6 +132,13 @@ const showNewKeyAlert = ref(false)
 const copied = ref(false)
 
 watch(
+  () => form.value.projectId,
+  (newProjectId) => {
+    if (newProjectId) emit('project-selected', newProjectId)
+  }
+)
+
+watch(
   () => props.apiKey,
   (newApiKey) => {
     if (newApiKey) {
@@ -141,6 +149,7 @@ watch(
         version: newApiKey.version,
         projectId: newApiKey.projectId || props.projectId || '',
       }
+      emit('project-selected', form.value.projectId)
       // Show the key if it was just created
       if (newApiKey.key) {
         newKeyValue.value = newApiKey.key
@@ -169,7 +178,6 @@ function handleSubmit() {
   }
   if (!props.apiKey) {
     // Creating new key
-    data.projectId = form.value.projectId
     data.metadata = form.value.metadata
   } else {
     // Editing existing key

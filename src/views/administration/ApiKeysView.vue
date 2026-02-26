@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useApiKeysStore, useProjectsStore } from '@/stores'
+import { useApiKeysStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import { Key, Search, X } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
@@ -10,6 +10,7 @@ import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 
 const apiKeysStore = useApiKeysStore()
 const projectsStore = useProjectsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
@@ -83,7 +84,7 @@ async function loadProjects() {
 async function loadApiKeys() {
   try {
     const orderBy = getOrderBy()
-    await apiKeysStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await apiKeysStore.fetchAll(projectSelectionStore.selectedProjectId || '', pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
     console.error('Failed to load API keys:', error)
   }
@@ -111,7 +112,7 @@ async function handleSave(data: CreateApiKeyRequest | UpdateApiKeyRequest) {
     if (editingApiKey.value) {
       const updateData = data as UpdateApiKeyRequest;
       // Update existing API key
-      await apiKeysStore.update(editingApiKey.value.id, {
+      await apiKeysStore.update(selectedProjectId.value, editingApiKey.value.id, {
         name: updateData.name,
         isActive: updateData.isActive,
         metadata: updateData.metadata,
@@ -122,8 +123,7 @@ async function handleSave(data: CreateApiKeyRequest | UpdateApiKeyRequest) {
     } else {
       const createData = data as CreateApiKeyRequest;
       // Create new API key
-      const result = await apiKeysStore.create({
-        projectId: createData.projectId,
+      const result = await apiKeysStore.create(selectedProjectId.value, {
         name: createData.name,
         metadata: createData.metadata || {},
       })
@@ -152,7 +152,7 @@ function closeModal() {
 
 async function toggleApiKeyStatus(apiKey: ApiKeyResponse) {
   try {
-    await apiKeysStore.update(apiKey.id, {
+    await apiKeysStore.update(apiKey.projectId, apiKey.id, {
       name: apiKey.name,
       isActive: !apiKey.isActive,
       metadata: apiKey.metadata || {},
@@ -168,7 +168,7 @@ async function deleteApiKey(apiKey: ApiKeyResponse) {
   if (!confirm(`Delete API key "${apiKey.name}"?\n\nThis action cannot be undone.`)) return
 
   try {
-    await apiKeysStore.remove(apiKey.id, apiKey.version)
+    await apiKeysStore.remove(apiKey.projectId, apiKey.id, apiKey.version)
     await loadApiKeys()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete API key')
@@ -330,6 +330,7 @@ function clearSearch() {
       @close="closeModal"
       @save="handleSave"
       @created="handleCreated"
+      @project-selected="selectedProjectId = $event"
     />
   </AdministrationSectionLayout>
 </template>

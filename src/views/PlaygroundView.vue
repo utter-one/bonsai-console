@@ -1055,8 +1055,8 @@ watch(() => route.params.projectId, (newProjectId) => {
 watch(projectId, async (newProjectId) => {
   if (newProjectId) {
     await Promise.all([
-      globalActionsStore.fetchAll({ filters: { projectId: newProjectId } }),
-      apiKeysStore.fetchAll({ filters: { projectId: newProjectId, isActive: true } })
+      globalActionsStore.fetchAll(newProjectId),
+      apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } })
     ])
 
     // Auto-select first active API key
@@ -1078,12 +1078,12 @@ function goToApiKeys() {
 // Computed
 const globalActions = computed(() => {
   if (!projectId.value) return []
-  return globalActionsStore.items.filter(action => action.projectId === projectId.value)
+  return globalActionsStore.items
 })
 
 const activeApiKeys = computed(() => {
   if (!projectId.value) return []
-  return apiKeysStore.items.filter(key => key.projectId === projectId.value && key.isActive)
+  return apiKeysStore.items.filter(key => key.isActive && key.projectId === projectId.value)
 })
 
 const apiKeysLoading = computed(() => apiKeysStore.isLoading)

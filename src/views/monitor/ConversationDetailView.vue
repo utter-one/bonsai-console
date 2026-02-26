@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -14,8 +14,10 @@ import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 const route = useRoute()
 const router = useRouter()
 const conversationsStore = useConversationsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 const conversationId = computed(() => route.params.conversationId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const conversation = ref<ConversationResponse | null>(null)
 const events = ref<ConversationEventResponse[]>([])
 const isLoading = ref(false)
@@ -36,10 +38,10 @@ async function loadConversationData() {
 
   try {
     // Load conversation details
-    conversation.value = await conversationsStore.fetchById(conversationId.value)
+    conversation.value = await conversationsStore.fetchById(projectId.value, conversationId.value)
 
     // Load conversation events
-    const eventsResponse = await conversationsStore.fetchEvents(conversationId.value, {
+    const eventsResponse = await conversationsStore.fetchEvents(projectId.value, conversationId.value, {
       orderBy: 'timestamp'
     })
     events.value = eventsResponse.items || []

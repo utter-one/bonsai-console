@@ -72,7 +72,8 @@ async function loadClassifiers() {
   try {
     const orderBy = getOrderBy()
     await classifiersStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load classifiers:', error)
@@ -83,7 +84,7 @@ async function deleteClassifier(classifier: ClassifierResponse) {
   if (!confirm(`Delete classifier "${classifier.name}" (${classifier.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await classifiersStore.remove(classifier.id, classifier.version)
+    await classifiersStore.remove(projectId.value, classifier.id, classifier.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete classifier')
   }

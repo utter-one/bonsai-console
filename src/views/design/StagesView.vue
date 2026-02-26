@@ -72,7 +72,8 @@ async function loadStages() {
   try {
     const orderBy = getOrderBy()
     await stagesStore.fetchAll(
-      pagination.getParams({ filters: { projectId: projectId.value }, ...(orderBy ? { orderBy } : {}) })
+      projectId.value,
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
     console.error('Failed to load stages:', error)
@@ -100,7 +101,7 @@ async function deleteStage(stage: StageResponse) {
   if (!confirm(`Delete stage "${stage.name}" (${stage.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await stagesStore.remove(stage.id, stage.version)
+    await stagesStore.remove(projectId.value, stage.id, stage.version)
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete stage')
   }

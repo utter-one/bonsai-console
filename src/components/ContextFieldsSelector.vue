@@ -165,8 +165,7 @@ async function loadStages() {
   if (!props.projectId) return
   isLoading.value = true
   try {
-    await stagesStore.fetchAll({
-      filters: { projectId: props.projectId },
+    await stagesStore.fetchAll(props.projectId, {
       limit: 200,
     } as ListParams)
     allStages.value = stagesStore.items.slice()

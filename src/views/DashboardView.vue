@@ -28,9 +28,6 @@ onMounted(async () => {
     await Promise.all([
       projectsStore.fetchAll({ offset: 0, limit: 10, orderBy: '-updatedAt' }),
       usersStore.fetchAll({ offset: 0, limit: 1 }),
-      conversationsStore.fetchAll({ offset: 0, limit: 1 }),
-      stagesStore.fetchAll({ offset: 0, limit: 1 }),
-      personasStore.fetchAll({ offset: 0, limit: 1 }),
       providersStore.fetchAll({ offset: 0, limit: 1 }),
     ])
   } catch (error) {

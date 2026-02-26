@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUsersStore, useConversationsStore } from '@/stores'
+import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, User, MessageSquare } from 'lucide-vue-next'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -11,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 const userId = computed(() => route.params.userId as string)
 const user = ref<UserResponse | null>(null)
@@ -32,16 +33,19 @@ async function loadUserData() {
     user.value = await usersStore.fetchById(userId.value)
 
     // Load user's conversations
-    const conversationsResponse = await conversationsStore.fetchAll({
-      limit: 50,
-      orderBy: '-createdAt',
-      filters: {
-        userId: {
-          op: 'eq',
-          value: userId.value
+    const conversationsResponse = await conversationsStore.fetchAll(
+      projectSelectionStore.selectedProjectId || '',
+      {
+        limit: 50,
+        orderBy: '-createdAt',
+        filters: {
+          userId: {
+            op: 'eq',
+            value: userId.value
+          }
         }
       }
-    })
+    )
     conversations.value = conversationsResponse.items || []
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load user data'

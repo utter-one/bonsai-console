@@ -23,12 +23,17 @@ export const useConversationsStore = defineStore('conversations', () => {
     limit: null as number | null,
   })
 
-  async function fetchAll(params?: ListParams) {
+  async function fetchAll(projectId: string, params?: ListParams) {
+    if (!projectId) {
+      conversations.value = []
+      pagination.value = { total: 0, offset: 0, limit: null }
+      return
+    }
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.conversationsList(params)
+      const response = await apiClient.projectsConversationsList(projectId, params) as any
       conversations.value = response.items
       pagination.value = {
         total: response.total,
@@ -44,12 +49,12 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchById(id: string) {
+  async function fetchById(projectId: string, id: string) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.conversationsDetail(id)
+      const response = await apiClient.projectsConversationsDetail(projectId, id) as any
       currentConversation.value = response
       return response
     } catch (err: any) {
@@ -60,12 +65,12 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function remove(id: string) {
+  async function remove(projectId: string, id: string) {
     isLoading.value = true
     error.value = null
 
     try {
-      await apiClient.conversationsDelete(id)
+      await apiClient.projectsConversationsDelete(projectId, id)
       conversations.value = conversations.value.filter((c) => c.id !== id)
       if (currentConversation.value?.id === id) {
         currentConversation.value = null
@@ -78,12 +83,12 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchEvents(conversationId: string, params?: ListParams) {
+  async function fetchEvents(projectId: string, conversationId: string, params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.conversationsEventsList(conversationId, params) as any
+      const response = await apiClient.projectsConversationsEventsList(projectId, conversationId, params) as any
       events.value = response.items
       return response
     } catch (err: any) {
@@ -94,12 +99,12 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchEventById(conversationId: string, eventId: string) {
+  async function fetchEventById(projectId: string, conversationId: string, eventId: string) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.conversationsEventsDetail(conversationId, eventId) as any
+      const response = await apiClient.projectsConversationsEventsDetail(projectId, conversationId, eventId) as any
       currentEvent.value = response
       return response
     } catch (err: any) {
@@ -110,13 +115,12 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
-  async function fetchAuditLogs(conversationId: string, _params?: ListParams) {
+  async function fetchAuditLogs(projectId: string, conversationId: string, _params?: ListParams) {
     isLoading.value = true
     error.value = null
 
     try {
-      // Note: The generated API doesn't properly support pagination params for audit logs yet
-      const response = await apiClient.conversationsAuditLogsList(conversationId) as any
+      const response = await apiClient.projectsConversationsAuditLogsList(projectId, conversationId) as any
       auditLogs.value = response.items || []
       return response
     } catch (err: any) {

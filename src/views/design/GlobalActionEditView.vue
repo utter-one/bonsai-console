@@ -54,23 +54,23 @@ const isEditMode = computed(() => !!globalActionId.value)
 const currentGlobalAction = ref<GlobalActionResponse | null>(null)
 
 const projectClassifiers = computed(() => 
-  classifiersStore.items.filter(c => c.projectId === projectId.value)
+  classifiersStore.items.filter(() => true)
 )
 
 const projectStages = computed(() => 
-  stagesStore.items.filter(s => s.projectId === projectId.value)
+  stagesStore.items.filter(() => true)
 )
 
 const projectTools = computed(() => 
-  toolsStore.items.filter(t => t.projectId === projectId.value)
+  toolsStore.items.filter(() => true)
 )
 
 // Lifecycle
 onMounted(async () => {
   // Load classifiers and stages for dropdowns
-  await classifiersStore.fetchAll({ filters: { projectId: projectId.value } })
-  await stagesStore.fetchAll({ filters: { projectId: projectId.value } })
-  await toolsStore.fetchAll({ filters: { projectId: projectId.value } })
+  await classifiersStore.fetchAll(projectId.value)
+  await stagesStore.fetchAll(projectId.value)
+  await toolsStore.fetchAll(projectId.value)
   
   if (isEditMode.value) {
     await loadGlobalAction()
@@ -85,7 +85,7 @@ async function loadGlobalAction() {
   error.value = null
   
   try {
-    currentGlobalAction.value = await globalActionsStore.fetchById(globalActionId.value)
+    currentGlobalAction.value = await globalActionsStore.fetchById(projectId.value, globalActionId.value)
     if (currentGlobalAction.value) {
       actionId.value = currentGlobalAction.value.id
       actionMetadata.value = currentGlobalAction.value.metadata || {}
@@ -128,7 +128,7 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentGlobalAction.value) {
       // Update existing global action
-      const updated = await globalActionsStore.update(currentGlobalAction.value.id, {
+      const updated = await globalActionsStore.update(projectId.value, currentGlobalAction.value.id, {
         version: currentGlobalAction.value.version,
         name: form.value.name,
         condition: form.value.condition || null,
@@ -147,7 +147,6 @@ async function handleSubmit() {
     } else {
       // Create new global action
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         effects: effectsArray,
         metadata: actionMetadata.value
@@ -182,7 +181,7 @@ async function handleSubmit() {
         createData.parameters = form.value.parameters
       }
 
-      const created = await globalActionsStore.create(createData)
+      const created = await globalActionsStore.create(projectId.value, createData)
       
       // Update currentGlobalAction with the created action
       currentGlobalAction.value = created

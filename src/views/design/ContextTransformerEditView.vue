@@ -60,7 +60,7 @@ async function loadTransformer() {
   error.value = null
   
   try {
-    currentTransformer.value = await transformersStore.fetchById(transformerId.value)
+    currentTransformer.value = await transformersStore.fetchById(projectId.value, transformerId.value)
     if (currentTransformer.value) {
       form.value = {
         id: currentTransformer.value.id,
@@ -87,7 +87,7 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentTransformer.value) {
       // Update existing transformer
-      const updated = await transformersStore.update(currentTransformer.value.id, {
+      const updated = await transformersStore.update(projectId.value, currentTransformer.value.id, {
         version: currentTransformer.value.version,
         name: form.value.name,
         description: form.value.description || null,
@@ -103,7 +103,6 @@ async function handleSubmit() {
     } else {
       // Create new transformer
       const createData: any = {
-        projectId: projectId.value,
         name: form.value.name,
         prompt: form.value.prompt,
         metadata: form.value.metadata
@@ -133,7 +132,7 @@ async function handleSubmit() {
         createData.llmSettings = form.value.llmSettings
       }
 
-      const created = await transformersStore.create(createData)
+      const created = await transformersStore.create(projectId.value, createData)
       
       // Update currentTransformer with the created transformer
       currentTransformer.value = created
@@ -380,6 +379,7 @@ const metadataFields = computed(() => {
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading"
+                show-toolbar
                 placeholder="You are a context transformer that enriches user data..."
                 aria-label="Context transformer prompt"
                 min-height="28rem"
