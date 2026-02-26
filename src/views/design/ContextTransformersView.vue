@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Microchip, Search, X, Plus } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,11 +10,6 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const transformersStore = useContextTransformersStore()
 const projectSelectionStore = useProjectSelectionStore()
-
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-context-transformers')
@@ -29,25 +24,14 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredTransformers = computed(() => {
-  if (!debouncedSearchQuery.value) return transformersStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return transformersStore.items.filter(transformer => 
+// Search
+const { searchQuery, filteredItems: filteredTransformers, clearSearch } = useSearch(
+  () => transformersStore.items,
+  (transformer, query) =>
     transformer.name.toLowerCase().includes(query) ||
     transformer.description?.toLowerCase().includes(query) ||
     transformer.prompt.toLowerCase().includes(query)
-  )
-})
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
+)
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -56,8 +40,7 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for projectId changes
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadTransformers()
 })
@@ -95,9 +78,7 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function clearSearch() {
-  searchQuery.value = ''
-}
+
 
 function createTransformer() {
   router.push({ name: 'design.contextTransformers.create', params: { projectId: projectId.value } })
