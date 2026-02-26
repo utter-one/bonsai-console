@@ -4698,6 +4698,133 @@ export interface MigrationPreview {
   apiKeys: EntityStub[];
 }
 
+export interface CreateFlowRequest {
+  /**
+   * Unique identifier for the flow (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the flow
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the flow's purpose */
+  description?: string | null;
+  /** Action definitions for this flow */
+  actions?: Record<string, StageAction>;
+  /** IDs of tools available in this flow */
+  toolIds?: string[];
+  /** Additional flow-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateFlowRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /** Updated action definitions */
+  actions?: Record<string, StageAction>;
+  /** Updated tool IDs */
+  toolIds?: string[];
+  /** Updated metadata */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteFlowRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface FlowResponse {
+  /** Unique identifier for the flow */
+  id: string;
+  /** ID of the project this flow belongs to */
+  projectId: string;
+  /** Display name of the flow */
+  name: string;
+  /** Detailed description of the flow */
+  description: string | null;
+  /** Action definitions */
+  actions: Record<string, StageAction>;
+  /** IDs of tools available in this flow */
+  toolIds: string[];
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the flow was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the flow was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface FlowListResponse {
+  /** Array of flows in the current page */
+  items: {
+    /** Unique identifier for the flow */
+    id: string;
+    /** ID of the project this flow belongs to */
+    projectId: string;
+    /** Display name of the flow */
+    name: string;
+    /** Detailed description of the flow */
+    description: string | null;
+    /** Action definitions */
+    actions: Record<string, StageAction>;
+    /** IDs of tools available in this flow */
+    toolIds: string[];
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the flow was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the flow was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of flows matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items per page (null if no limit)
+   * @min 0
+   * @exclusiveMin true
+   */
+  limit: number | null;
+}
+
 export interface ExportBundle {
   /**
    * ISO timestamp when the bundle was generated

@@ -125,6 +125,21 @@ const routes: RouteRecordRaw[] = [
             name: 'design.knowledge',
             component: () => import('@/views/design/KnowledgeView.vue'),
           },
+          {
+            path: 'projects/:projectId/flows',
+            name: 'design.flows',
+            component: () => import('@/views/design/FlowsView.vue'),
+          },
+          {
+            path: 'projects/:projectId/flows/new',
+            name: 'design.flows.create',
+            component: () => import('@/views/design/FlowEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/flows/:flowId',
+            name: 'design.flows.edit',
+            component: () => import('@/views/design/FlowEditView.vue'),
+          },
         ],
       },
       // Playground Section

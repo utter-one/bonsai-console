@@ -5976,6 +5976,200 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves a paginated list of flows for a project
+   *
+   * @tags Flows
+   * @name ProjectsFlowsList
+   * @summary List flows
+   * @request GET:/api/projects/{projectId}/flows
+   * @secure
+   */
+  projectsFlowsList = (
+    projectId: string,
+    query?: {
+      offset?: number | null;
+      limit?: number | null;
+      textSearch?: string | null;
+      orderBy?: string | string[];
+      filters?: Record<string, string | number | boolean | string[] | number[] | boolean[] | ListFilterOperation>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        items: {
+          id: string;
+          projectId: string;
+          name: string;
+          description: string | null;
+          actions: Record<string, StageAction>;
+          toolIds: string[];
+          metadata: Record<string, any>;
+          version: number;
+          createdAt: string | null;
+          updatedAt: string | null;
+        }[];
+        total: number;
+        offset: number;
+        limit: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/flows`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new flow for a project
+   *
+   * @tags Flows
+   * @name ProjectsFlowsCreate
+   * @summary Create flow
+   * @request POST:/api/projects/{projectId}/flows
+   * @secure
+   */
+  projectsFlowsCreate = (
+    projectId: string,
+    data: {
+      id?: string;
+      name: string;
+      description?: string | null;
+      actions?: Record<string, StageAction>;
+      toolIds?: string[];
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        id: string;
+        projectId: string;
+        name: string;
+        description: string | null;
+        actions: Record<string, StageAction>;
+        toolIds: string[];
+        metadata: Record<string, any>;
+        version: number;
+        createdAt: string | null;
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/flows`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single flow by its unique identifier
+   *
+   * @tags Flows
+   * @name ProjectsFlowsDetail
+   * @summary Get flow by ID
+   * @request GET:/api/projects/{projectId}/flows/{id}
+   * @secure
+   */
+  projectsFlowsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        id: string;
+        projectId: string;
+        name: string;
+        description: string | null;
+        actions: Record<string, StageAction>;
+        toolIds: string[];
+        metadata: Record<string, any>;
+        version: number;
+        createdAt: string | null;
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/flows/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing flow with optimistic locking
+   *
+   * @tags Flows
+   * @name ProjectsFlowsUpdate
+   * @summary Update flow
+   * @request PUT:/api/projects/{projectId}/flows/{id}
+   * @secure
+   */
+  projectsFlowsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      name?: string;
+      description?: string | null;
+      actions?: Record<string, StageAction>;
+      toolIds?: string[];
+      metadata?: Record<string, any>;
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        id: string;
+        projectId: string;
+        name: string;
+        description: string | null;
+        actions: Record<string, StageAction>;
+        toolIds: string[];
+        metadata: Record<string, any>;
+        version: number;
+        createdAt: string | null;
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/flows/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a flow by its unique identifier
+   *
+   * @tags Flows
+   * @name ProjectsFlowsDelete
+   * @summary Delete flow
+   * @request DELETE:/api/projects/{projectId}/flows/{id}
+   * @secure
+   */
+  projectsFlowsDelete = (
+    projectId: string,
+    id: string,
+    data: { version: number },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/flows/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
    * @description Creates a new issue report with bug details, environment, and severity information
    *
    * @tags Issues

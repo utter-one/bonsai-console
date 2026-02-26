@@ -1,16 +1,51 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProjectSelectionStore } from '@/stores'
+import { useProjectSelectionStore, useFlowsStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, BriefcaseBusiness } from 'lucide-vue-next'
+import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, BriefcaseBusiness, GitFork } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectSelectionStore = useProjectSelectionStore()
+const flowsStore = useFlowsStore()
 
 const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const menuItems = [
+async function loadFlows() {
+  if (!projectId.value) return
+  try {
+    await flowsStore.fetchAll(projectId.value, { limit: null })
+  } catch {
+    // ignore errors in sidebar
+  }
+}
+
+onMounted(() => {
+  if (projectId.value) loadFlows()
+})
+
+watch(projectId, (newId) => {
+  if (newId) loadFlows()
+})
+
+const flowSubItems = computed(() =>
+  [...flowsStore.items]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(flow => ({
+      name: 'design.flows.edit',
+      label: flow.name,
+      params: { projectId: projectId.value, flowId: flow.id }
+    }))
+)
+
+const menuItems = computed(() => [
+  {
+    name: 'design.flows',
+    label: 'Flows',
+    icon: GitFork,
+    children: flowSubItems.value
+  },
   { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.personas', label: 'Personas', icon: Drama },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
@@ -18,7 +53,7 @@ const menuItems = [
   { name: 'design.tools', label: 'Tools', icon: Hammer },
   { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },
-]
+])
 
 function goToProjects() {
   router.push({ name: 'administration.projects' })
@@ -46,3 +81,4 @@ function goToProjects() {
     </div>
   </div>
 </template>
+

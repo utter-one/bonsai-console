@@ -6,6 +6,8 @@ export interface MenuItem {
     name: string
     label: string
     icon?: Component
+    params?: Record<string, string>
+    children?: MenuItem[]
 }
 
 export const useLayoutStore = defineStore('layout', () => {
