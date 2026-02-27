@@ -687,6 +687,10 @@ export interface StartConversationRequest {
    * Stage ID to initiate the conversation at a specific stage
    */
   stageId: string;
+  /**
+   * IANA timezone identifier for this conversation (e.g. America/New_York, Europe/Warsaw). Overrides user profile and project timezone settings. Defaults to UTC when not provided by any source.
+   */
+  timezone?: string;
 }
 
 export interface StartConversationResponse {

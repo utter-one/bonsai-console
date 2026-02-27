@@ -2512,6 +2512,10 @@
               "nullable": true
             },
             "description": "Additional metadata for the project"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           }
         },
         "required": [
@@ -2706,6 +2710,10 @@
             },
             "description": "Updated metadata for the project"
           },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -2849,6 +2857,11 @@
             },
             "description": "Additional metadata for the project"
           },
+          "timezone": {
+            "type": "string",
+            "nullable": true,
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -2874,6 +2887,7 @@
           "generateVoice",
           "constants",
           "metadata",
+          "timezone",
           "version",
           "createdAt",
           "updatedAt"
@@ -2991,6 +3005,11 @@
                   },
                   "description": "Additional metadata for the project"
                 },
+                "timezone": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -3016,6 +3035,7 @@
                 "generateVoice",
                 "constants",
                 "metadata",
+                "timezone",
                 "version",
                 "createdAt",
                 "updatedAt"
@@ -12379,6 +12399,10 @@
                       "nullable": true
                     },
                     "description": "Additional metadata for the project"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
                   }
                 },
                 "required": [
@@ -12500,6 +12524,11 @@
                       },
                       "description": "Additional metadata for the project"
                     },
+                    "timezone": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -12525,6 +12554,7 @@
                     "generateVoice",
                     "constants",
                     "metadata",
+                    "timezone",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -12794,6 +12824,11 @@
                             },
                             "description": "Additional metadata for the project"
                           },
+                          "timezone": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -12819,6 +12854,7 @@
                           "generateVoice",
                           "constants",
                           "metadata",
+                          "timezone",
                           "version",
                           "createdAt",
                           "updatedAt"
@@ -12973,6 +13009,11 @@
                       },
                       "description": "Additional metadata for the project"
                     },
+                    "timezone": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -12998,6 +13039,7 @@
                     "generateVoice",
                     "constants",
                     "metadata",
+                    "timezone",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -13079,6 +13121,10 @@
                       "nullable": true
                     },
                     "description": "Updated metadata for the project"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
                   },
                   "version": {
                     "type": "number",
@@ -13204,6 +13250,11 @@
                       },
                       "description": "Additional metadata for the project"
                     },
+                    "timezone": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13229,6 +13280,7 @@
                     "generateVoice",
                     "constants",
                     "metadata",
+                    "timezone",
                     "version",
                     "createdAt",
                     "updatedAt"

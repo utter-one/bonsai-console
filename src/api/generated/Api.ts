@@ -739,6 +739,8 @@ export class Api<
       constants?: Record<string, ParameterValue>;
       /** Additional metadata for the project */
       metadata?: Record<string, any>;
+      /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
+      timezone?: string;
     },
     params: RequestParams = {},
   ) =>
@@ -785,6 +787,8 @@ export class Api<
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
+        /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+        timezone: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -896,6 +900,8 @@ export class Api<
           constants: Record<string, ParameterValue>;
           /** Additional metadata for the project */
           metadata: Record<string, any>;
+          /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+          timezone: string | null;
           /** The version number of the project */
           version: number;
           /**
@@ -974,6 +980,8 @@ export class Api<
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
+        /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+        timezone: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1027,6 +1035,8 @@ export class Api<
       constants?: Record<string, ParameterValue>;
       /** Updated metadata for the project */
       metadata?: Record<string, any>;
+      /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
+      timezone?: string;
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -1075,6 +1085,8 @@ export class Api<
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
         metadata: Record<string, any>;
+        /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+        timezone: string | null;
         /** The version number of the project */
         version: number;
         /**

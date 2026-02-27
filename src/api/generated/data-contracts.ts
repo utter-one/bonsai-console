@@ -1328,6 +1328,8 @@ export interface CreateProjectRequest {
   constants?: Record<string, ParameterValue>;
   /** Additional metadata for the project */
   metadata?: Record<string, any>;
+  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
+  timezone?: string;
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -1400,6 +1402,8 @@ export interface UpdateProjectRequest {
   constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
   metadata?: Record<string, any>;
+  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
+  timezone?: string;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -1458,6 +1462,8 @@ export interface ProjectResponse {
   constants: Record<string, ParameterValue>;
   /** Additional metadata for the project */
   metadata: Record<string, any>;
+  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+  timezone: string | null;
   /** The version number of the project */
   version: number;
   /**
@@ -1516,6 +1522,8 @@ export interface ProjectListResponse {
     constants: Record<string, ParameterValue>;
     /** Additional metadata for the project */
     metadata: Record<string, any>;
+    /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+    timezone: string | null;
     /** The version number of the project */
     version: number;
     /**
