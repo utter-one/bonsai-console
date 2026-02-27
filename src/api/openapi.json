@@ -30408,6 +30408,234 @@
         }
       }
     },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "List all API keys",
+        "description": "Retrieves a list of all API keys across all projects with optional filtering, sorting, and pagination.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "description": "Maximum number of items to return (optional, null for no limit)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (optional, null for no limit)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All API keys retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the API key"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "The ID of the project this API key belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Descriptive name for the API key"
+                          },
+                          "key": {
+                            "type": "string",
+                            "description": "The secret API key string (only included when creating a new key)"
+                          },
+                          "keyPreview": {
+                            "type": "string",
+                            "description": "First few characters of the key for identification"
+                          },
+                          "lastUsedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ISO timestamp of when the key was last used"
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "description": "Whether the API key is active"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "number",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of creation"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of last update"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "lastUsedAt",
+                          "isActive",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of API keys"
+                    },
+                    "total": {
+                      "type": "number",
+                      "description": "Total number of API keys matching the query"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "tags": [
