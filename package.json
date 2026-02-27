@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./scripts/fetch-contracts.js && npm run generate:api && npm run generate:ws-types && vite",
+    "dev": "npm run docs:build && node ./scripts/fetch-contracts.js && npm run generate:api && npm run generate:ws-types && vite",
     "build": "vue-tsc -b && vite build && npm run docs:build",
     "preview": "vite preview",
     "generate:api": "npx swagger-typescript-api generate -p ./src/api/openapi.json -o ./src/api/generated -n api.ts --axios --unwrap-response-data --modular",

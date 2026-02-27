@@ -281,8 +281,8 @@ router.beforeEach(async (to, _from, next) => {
   // Handle authentication for protected routes
   if (requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if (!requiresAuth && authStore.isAuthenticated && to.name !== 'dashboard') {
-    // If authenticated and trying to access login/setup, redirect to dashboard
+  } else if ((to.name === 'login' || to.name === 'setup') && authStore.isAuthenticated) {
+    // Authenticated users navigating to login/setup go to dashboard instead
     next({ name: 'dashboard' })
   } else if (requiresAuth && authStore.isAuthenticated) {
     // Ensure we have profile data when accessing protected routes

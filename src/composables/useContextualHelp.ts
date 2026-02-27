@@ -5,7 +5,7 @@ const HELP_BASE = '/help'
 
 const ROUTE_HELP_MAP: Record<string, string> = {
   // Guide
-  dashboard:                              '/guide/',
+  dashboard:                              '/guide/index',
   playground:                             '/guide/playground',
 
   // Design — Personas
@@ -75,7 +75,7 @@ export function useContextualHelp() {
   const helpUrl = computed(() => {
     const routeName = route.name as string | undefined
     if (routeName && ROUTE_HELP_MAP[routeName]) {
-      return `${HELP_BASE}${ROUTE_HELP_MAP[routeName]}`
+      return `${HELP_BASE}${ROUTE_HELP_MAP[routeName]}.html`
     }
     return `${HELP_BASE}/guide/`
   })
