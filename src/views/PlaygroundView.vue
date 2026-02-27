@@ -107,21 +107,21 @@
 
             <!-- Dropdown Menu -->
             <div v-if="showPresetMenu"
-              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1"
+              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1 dark:bg-gray-800 dark:border-gray-700"
               @click.stop>
               <button v-for="{ preset, disabled, reason } in availablePresets" :key="preset.id"
                 @click="handlePresetSelect(preset.id)" :disabled="disabled"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed relative"
-                :class="{ 'bg-primary-50': preset.id === selectedConversationMode }">
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed relative"
+                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex-1">
-                    <div class="font-medium text-gray-900 flex items-center gap-2">
+                    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                       {{ preset.name }}
                       <span v-if="preset.id === selectedConversationMode"
-                        class="text-primary-600 text-xs">(Active)</span>
+                        class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
                     </div>
-                    <div class="text-xs text-gray-500 mt-0.5">{{ preset.description }}</div>
-                    <div v-if="disabled && reason" class="text-xs text-red-600 mt-1">{{ reason }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
+                    <div v-if="disabled && reason" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ reason }}</div>
                   </div>
                 </div>
               </button>
