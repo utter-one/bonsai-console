@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore, useTimezonesStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -14,6 +14,7 @@ const router = useRouter()
 const projectsStore = useProjectsStore()
 const apiKeysStore = useApiKeysStore()
 const providersStore = useProvidersStore()
+const timezonesStore = useTimezonesStore()
 
 // State
 const isLoading = ref(false)
@@ -35,6 +36,7 @@ const form = ref({
   },
   acceptVoice: false,
   generateVoice: false,
+  timezone: '',
   version: undefined as number | undefined,
 })
 
@@ -54,6 +56,9 @@ const deepgramEndpointingValue = ref(300)
 const projectId = computed(() => route.params.projectId as string | undefined)
 const isEditMode = computed(() => !!projectId.value)
 const currentProject = ref<ProjectResponse | null>(null)
+
+const timezoneSearchQuery = ref('')
+const filteredTimezoneOptions = computed(() => timezonesStore.search(timezoneSearchQuery.value))
 
 const asrProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'asr')
@@ -272,6 +277,7 @@ async function loadProject() {
         },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
+        timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
       }
       
@@ -335,6 +341,7 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
+        timezone: form.value.timezone || undefined,
       })
       
       // Update currentProject with the response to get the new version
@@ -348,6 +355,7 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
+        timezone: form.value.timezone || undefined,
       })
 
       // Set currentProject to the newly created project
@@ -658,6 +666,29 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
             ></textarea>
             <p class="form-help-text">Provide additional context about the project's purpose</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Timezone</label>
+            <div class="relative">
+              <input
+                v-model="timezoneSearchQuery"
+                type="text"
+                class="form-input mb-1"
+                placeholder="Search timezones..."
+                :disabled="isLoading"
+              />
+              <select
+                v-model="form.timezone"
+                class="form-select"
+                :disabled="isLoading"
+                size="6"
+              >
+                <option value="">Default (UTC)</option>
+                <option v-for="tz in filteredTimezoneOptions" :key="tz" :value="tz">{{ tz }}</option>
+              </select>
+            </div>
+            <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
           </div>
 
           <!-- Create Playground API Key Checkbox (only when creating) -->
