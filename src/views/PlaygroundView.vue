@@ -49,46 +49,43 @@
 
         <!-- Controls -->
         <div class="flex flex-row items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
-          <!-- API Key Selection -->
-          <!-- API Key Selection -->
+          <!-- Settings Dropdown (API Key + Timezone) -->
           <div class="relative inline-flex">
-            <button class="btn-secondary flex items-center gap-2 whitespace-nowrap"
-              @click="showApiKeyMenu = !showApiKeyMenu" :disabled="wsIsConnected || apiKeysLoading">
-              <Key :size="18" />
-              <span class="hidden md:inline">{{ activeApiKeys.find(k => k.id === selectedApiKeyId)?.name || 'Select API Key' }}</span>
-              <ChevronDown :size="16" class="ml-1 text-gray-500" />
+            <button class="btn-secondary flex items-center gap-2"
+              @click="showSettingsMenu = !showSettingsMenu"
+              :disabled="wsIsConnected || apiKeysLoading"
+              title="Connection settings">
+              <Settings :size="18" />
+              <ChevronDown :size="14" class="text-gray-500" />
             </button>
 
-            <!-- API Key Dropdown Menu -->
-            <div v-if="showApiKeyMenu"
-              class="absolute top-full mt-1 left-0 z-20 bg-white border border-gray-200 rounded-md shadow-lg min-w-[200px] py-1 dark:bg-gray-800 dark:border-gray-700"
+            <div v-if="showSettingsMenu"
+              class="absolute top-full mt-1 right-0 z-20 bg-white border border-gray-200 rounded-lg shadow-lg w-64 p-3 space-y-3 dark:bg-gray-800 dark:border-gray-700"
               @click.stop>
-              <!-- Select API Key Option -->
-              <button
-                @click="selectedApiKeyId = null; showApiKeyMenu = false"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedApiKeyId === null }">
-                <div class="font-medium">Select API Key...</div>
-              </button>
-              <div v-if="activeApiKeys.length > 0" class="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
-
-              <button v-for="key in activeApiKeys" :key="key.id"
-                @click="selectedApiKeyId = key.id; showApiKeyMenu = false"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': key.id === selectedApiKeyId }">
-                <div class="font-medium">{{ key.name }}</div>
-              </button>
-              <div v-if="activeApiKeys.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">No active keys</div>
+              <!-- API Key -->
+              <div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                  <Key :size="12" />API Key
+                </div>
+                <select v-model="selectedApiKeyId" class="form-select w-full text-sm" :disabled="wsIsConnected || apiKeysLoading">
+                  <option :value="null">Select API Key...</option>
+                  <option v-for="key in activeApiKeys" :key="key.id" :value="key.id">{{ key.name }}</option>
+                </select>
+              </div>
+              <!-- Timezone -->
+              <div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+                  Timezone
+                </div>
+                <TimezoneSelector
+                  v-model="selectedTimezone"
+                  placeholder="Project Default"
+                  :show-icon="true"
+                  :disabled="wsIsConnected"
+                />
+              </div>
             </div>
           </div>
-
-          <!-- Timezone Selection -->
-          <TimezoneSelector
-            v-model="selectedTimezone"
-            placeholder="Project Default"
-            :show-icon="true"
-            :disabled="wsIsConnected"
-          />
 
           <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
@@ -110,21 +107,21 @@
 
             <!-- Dropdown Menu -->
             <div v-if="showPresetMenu"
-              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1"
+              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1 dark:bg-gray-800 dark:border-gray-700"
               @click.stop>
               <button v-for="{ preset, disabled, reason } in availablePresets" :key="preset.id"
                 @click="handlePresetSelect(preset.id)" :disabled="disabled"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed relative"
-                :class="{ 'bg-primary-50': preset.id === selectedConversationMode }">
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed relative"
+                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex-1">
-                    <div class="font-medium text-gray-900 flex items-center gap-2">
+                    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                       {{ preset.name }}
                       <span v-if="preset.id === selectedConversationMode"
-                        class="text-primary-600 text-xs">(Active)</span>
+                        class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
                     </div>
-                    <div class="text-xs text-gray-500 mt-0.5">{{ preset.description }}</div>
-                    <div v-if="disabled && reason" class="text-xs text-red-600 mt-1">{{ reason }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
+                    <div v-if="disabled && reason" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ reason }}</div>
                   </div>
                 </div>
               </button>
@@ -175,10 +172,6 @@
           class="bg-gray-50 border-b border-gray-200 px-4 py-3 md:flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
           <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
           <div class="flex items-center md:gap-4 mt-2 md:mt-0">
-            <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
-              <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
-              <span>Show system events</span>
-            </label>
             <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
               <input type="checkbox" v-model="showConversationEvents" class="form-checkbox" />
               <span>Show conversation events</span>
@@ -1047,7 +1040,7 @@ onMounted(() => {
     const target = e.target as HTMLElement
     if (!target.closest('.relative')) {
       showPresetMenu.value = false
-      showApiKeyMenu.value = false
+      showSettingsMenu.value = false
     }
   }
   document.addEventListener('click', handleClickOutside)
@@ -1150,7 +1143,7 @@ const isResuming = ref(false)
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
 const showPresetMenu = ref(false)
-const showApiKeyMenu = ref(false)
+const showSettingsMenu = ref(false)
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
