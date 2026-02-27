@@ -133,6 +133,12 @@ watch(projectId, (newId) => {
   }
 })
 
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
+  if (n >= 1_000) return (n / 1_000).toFixed(2).replace(/\.?0+$/, '') + 'k'
+  return String(n)
+}
+
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return '—'
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -169,7 +175,7 @@ function getActionBadgeClass(action: string): string {
         <div class="flex-1">
           <div class="stat-value">
             <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ projectsStore.pagination.total }}</span>
+            <span v-else>{{ formatCount(projectsStore.pagination.total) }}</span>
           </div>
           <div class="stat-label">Projects</div>
         </div>
@@ -180,7 +186,7 @@ function getActionBadgeClass(action: string): string {
         <div class="flex-1">
           <div class="stat-value">
             <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ usersStore.pagination.total }}</span>
+            <span v-else>{{ formatCount(usersStore.pagination.total) }}</span>
           </div>
           <div class="stat-label">Users</div>
         </div>
@@ -192,7 +198,7 @@ function getActionBadgeClass(action: string): string {
           <div class="stat-value">
             <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
             <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ convTotal }}</span>
+            <span v-else>{{ formatCount(convTotal) }}</span>
           </div>
           <div class="stat-label">Conversations</div>
         </div>
@@ -203,7 +209,7 @@ function getActionBadgeClass(action: string): string {
         <div class="flex-1">
           <div class="stat-value">
             <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ auditLogsStore.pagination.total }}</span>
+            <span v-else>{{ formatCount(auditLogsStore.pagination.total) }}</span>
           </div>
           <div class="stat-label">Audit Log Entries</div>
         </div>
@@ -242,22 +248,25 @@ function getActionBadgeClass(action: string): string {
         <div v-else-if="conversationsError" class="alert-error">{{ conversationsError }}</div>
 
         <div v-else class="grid grid-cols-3 gap-3">
-          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-4 text-center">
-            <Activity class="mx-auto mb-2 text-blue-500" :size="20" />
-            <div class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ convCounts.active }}</div>
-            <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">Active</div>
+          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-8 text-center">
+            <Activity class="mx-auto mb-3 text-blue-500" :size="28" />
+            <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
+            <div class="text-xs text-blue-600 dark:text-blue-400 mt-2">Active</div>
           </div>
-          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 p-4 text-center">
-            <CheckCircle class="mx-auto mb-2 text-green-500" :size="20" />
-            <div class="text-2xl font-bold text-green-700 dark:text-green-300">{{ convCounts.finished }}</div>
-            <div class="text-xs text-green-600 dark:text-green-400 mt-1">Finished</div>
+          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 p-8 text-center">
+            <CheckCircle class="mx-auto mb-3 text-green-500" :size="28" />
+            <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
+            <div class="text-xs text-green-600 dark:text-green-400 mt-2">Finished</div>
           </div>
-          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-4 text-center">
-            <XCircle class="mx-auto mb-2 text-red-500" :size="20" />
-            <div class="text-2xl font-bold text-red-700 dark:text-red-300">{{ convCounts.failed }}</div>
-            <div class="text-xs text-red-600 dark:text-red-400 mt-1">Failed / Aborted</div>
+          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-8 text-center">
+            <XCircle class="mx-auto mb-3 text-red-500" :size="28" />
+            <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
+            <div class="text-xs text-red-600 dark:text-red-400 mt-2">Failed / Aborted</div>
           </div>
         </div>
+        <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+          Total number of conversations is <span class="font-semibold text-gray-700 dark:text-gray-200">{{ formatCount(convTotal) }}</span>
+        </p>
       </div>
 
       <!-- Issues by Severity Widget -->
@@ -291,19 +300,19 @@ function getActionBadgeClass(action: string): string {
         <div v-else class="flex flex-col gap-3">
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
             <span class="text-sm font-medium text-red-700 dark:text-red-300">Critical</span>
-            <span class="text-lg font-bold text-red-700 dark:text-red-300">{{ issueCounts.critical }}</span>
+            <span class="text-lg font-bold text-red-700 dark:text-red-300">{{ formatCount(issueCounts.critical) }}</span>
           </div>
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
             <span class="text-sm font-medium text-orange-700 dark:text-orange-300">High</span>
-            <span class="text-lg font-bold text-orange-700 dark:text-orange-300">{{ issueCounts.high }}</span>
+            <span class="text-lg font-bold text-orange-700 dark:text-orange-300">{{ formatCount(issueCounts.high) }}</span>
           </div>
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
             <span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">Medium</span>
-            <span class="text-lg font-bold text-yellow-700 dark:text-yellow-300">{{ issueCounts.medium }}</span>
+            <span class="text-lg font-bold text-yellow-700 dark:text-yellow-300">{{ formatCount(issueCounts.medium) }}</span>
           </div>
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 dark:bg-gray-700/50 dark:border-gray-600">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Low</span>
-            <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ issueCounts.low }}</span>
+            <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ formatCount(issueCounts.low) }}</span>
           </div>
         </div>
       </div>
