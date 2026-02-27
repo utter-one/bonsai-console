@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useApiKeysStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
+import { useApiKeysStore, useAllApiKeysStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import { Key, Search, X } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
@@ -8,6 +8,7 @@ import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.v
 import PaginationControls from '@/components/PaginationControls.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 
+const allApiKeysStore = useAllApiKeysStore()
 const apiKeysStore = useApiKeysStore()
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -25,7 +26,7 @@ const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort
 
 // Pagination
 const pagination = usePagination({
-  store: apiKeysStore,
+  store: allApiKeysStore,
   pageSize: 20,
   onPageChange: loadApiKeys
 })
@@ -41,9 +42,9 @@ const projectNamesMap = computed(() => {
 
 // Computed
 const filteredApiKeys = computed(() => {
-  if (!debouncedSearchQuery.value) return apiKeysStore.items
+  if (!debouncedSearchQuery.value) return allApiKeysStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
-  return apiKeysStore.items.filter(apiKey => 
+  return allApiKeysStore.items.filter(apiKey => 
     apiKey.id.toLowerCase().includes(query) ||
     apiKey.name.toLowerCase().includes(query) ||
     apiKey.keyPreview?.toLowerCase().includes(query) ||
@@ -84,7 +85,7 @@ async function loadProjects() {
 async function loadApiKeys() {
   try {
     const orderBy = getOrderBy()
-    await apiKeysStore.fetchAll(projectSelectionStore.selectedProjectId || '', pagination.getParams(orderBy ? { orderBy } : {}))
+    await allApiKeysStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
     console.error('Failed to load API keys:', error)
   }
@@ -219,13 +220,13 @@ function clearSearch() {
       </div>
 
       <!-- Loading State -->
-      <div v-if="apiKeysStore.isLoading" class="loading-state">
+      <div v-if="allApiKeysStore.isLoading" class="loading-state">
         Loading API keys...
       </div>
 
       <!-- Error State -->
-      <div v-else-if="apiKeysStore.error" class="error-state">
-        {{ apiKeysStore.error }}
+      <div v-else-if="allApiKeysStore.error" class="error-state">
+        {{ allApiKeysStore.error }}
       </div>
 
       <!-- Empty State -->
