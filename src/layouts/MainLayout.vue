@@ -191,7 +191,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
         <!-- Right Side Actions -->
         <div class="flex items-center gap-4 ml-auto">
           <!-- Project Selector (only show if not in administration) -->
-          <div v-if="currentSection !== 'administration' && currentSection !== 'dashboard'" class="relative sm:block hidden">
+          <div v-if="currentSection !== 'administration'" class="relative sm:block hidden">
             <select 
               v-model="selectedProjectId" 
               :disabled="isInEditOrDetailView"
