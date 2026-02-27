@@ -25,6 +25,12 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Testing',
+          items: [
+            { text: 'Playground', link: '/guide/playground' },
+          ],
+        },
+        {
           text: 'Advanced Topics',
           items: [
             { text: 'Prompt Templating', link: '/guide/templating' },
