@@ -37,12 +37,30 @@ const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 
+const dropdownStyle = ref<{ top: string; left: string; width?: string; minWidth?: string }>({
+  top: '0px',
+  left: '0px',
+})
+
 const filteredTimezones = computed(() => timezonesStore.search(searchQuery.value))
 
 const displayLabel = computed(() => props.modelValue || props.placeholder)
 
+function updateDropdownPosition() {
+  if (!containerRef.value) return
+  const rect = containerRef.value.getBoundingClientRect()
+  dropdownStyle.value = {
+    top: `${rect.bottom + window.scrollY + 4}px`,
+    left: `${rect.left + window.scrollX}px`,
+    ...(props.variant === 'form'
+      ? { width: `${rect.width}px` }
+      : { minWidth: '280px' }),
+  }
+}
+
 function open() {
   if (props.disabled) return
+  updateDropdownPosition()
   isOpen.value = true
   searchQuery.value = ''
   nextTick(() => searchInputRef.value?.focus())
@@ -67,8 +85,16 @@ function handleClickOutside(e: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside))
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+  window.addEventListener('scroll', updateDropdownPosition, true)
+  window.addEventListener('resize', updateDropdownPosition)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+  window.removeEventListener('scroll', updateDropdownPosition, true)
+  window.removeEventListener('resize', updateDropdownPosition)
+})
 </script>
 
 <template>
@@ -104,6 +130,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
     </button>
 
     <!-- Dropdown -->
+    <Teleport to="body">
     <Transition
       enter-active-class="transition duration-100 ease-out"
       enter-from-class="opacity-0 scale-95"
@@ -114,10 +141,8 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
     >
       <div
         v-if="isOpen"
-        :class="[
-          'absolute top-full mt-1 z-30 bg-white border border-gray-200 rounded-md shadow-lg dark:bg-gray-800 dark:border-gray-700',
-          variant === 'form' ? 'left-0 right-0' : 'left-0 min-w-[280px]',
-        ]"
+        class="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg dark:bg-gray-800 dark:border-gray-700"
+        :style="dropdownStyle"
         @click.stop
         @mousedown.stop
       >
@@ -164,5 +189,6 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
         </div>
       </div>
     </Transition>
+    </Teleport>
   </div>
 </template>

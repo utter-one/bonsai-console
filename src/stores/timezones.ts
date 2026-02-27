@@ -2,9 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 /**
- * All canonical IANA timezone identifiers from the tz database (release 2025a).
- * Only canonical zones are included (no links/aliases).
+ * All canonical IANA timezone identifiers from the official tz database.
+ * Source: https://data.iana.org/time-zones/tzdb/zone1970.tab (as of 2025-05-15)
+ * Only zones where civil timestamps have agreed since 1970 are included (no links/aliases).
  * Sorted alphabetically within each region.
+ * Also includes UTC and Etc/UTC/Etc/GMT as widely-used convenience identifiers.
  */
 const CANONICAL_TIMEZONES: readonly string[] = [
   // Africa
