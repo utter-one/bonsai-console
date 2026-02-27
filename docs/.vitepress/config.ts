@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'Bonsai Console Help',
   description: 'Documentation and help for the Bonsai Console admin panel',
   base: '/help/',
+  outDir: '../dist/help',
 
   themeConfig: {
     nav: [
