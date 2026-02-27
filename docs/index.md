@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Bonsai Console
   text: Help & Documentation
-  tagline: Everything you need to manage your conversational AI platform.
+  tagline: Design, monitor, and manage your conversational AI experiences.
   actions:
     - theme: brand
       text: Get Started
@@ -18,9 +18,9 @@ hero:
 
 features:
   - title: Design
-    details: Build your conversational AI experience — define personas, conversation stages, classifiers, actions, tools, and knowledge bases.
+    details: Build your AI assistants — define personalities, conversation flows, intent detection, FAQ knowledge bases, and automated actions.
   - title: Monitor
-    details: Observe live and historical conversations, review user activity, track issues, and audit system events.
+    details: Watch conversations in real time, review transcripts, track end users, and investigate flagged issues.
   - title: Administration
-    details: Manage projects, environments, provider integrations, API keys, and admin accounts.
+    details: Manage projects, AI service providers, deployment environments, API keys, and team access.
 ---

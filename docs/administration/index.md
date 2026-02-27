@@ -1,17 +1,13 @@
-# Administration Overview
+# Platform Management
 
-::: info Coming Soon
-This section is a stub. Full documentation is being written.
-:::
+The **Administration** section is where you manage the infrastructure that powers your conversational AI experiences. These settings are shared across the platform (not scoped to a single project).
 
-The **Administration** section provides tools to manage platform-level resources that are shared across all projects.
+## What's Here
 
-## Resources
-
-| Resource | Description |
+| View | Purpose |
 |---|---|
-| [Projects](./projects) | Create and manage projects |
-| [Environments](./environments) | Configure deployment environments |
-| [Admins](./admins) | Manage admin user accounts |
-| [API Keys](./api-keys) | Issue and revoke API keys |
-| [Providers](./providers) | Configure LLM and TTS provider integrations |
+| [Projects](./projects) | Create and configure self-contained AI experiences |
+| [Environments](./environments) | Manage deployment targets (dev, staging, production) |
+| [Admins & Roles](./admins) | Control who has access and what they can do |
+| [API Keys](./api-keys) | Issue credentials for client applications |
+| [Providers](./providers) | Set up connections to external AI services |

@@ -6,7 +6,6 @@ export default defineConfig({
   base: '/help/',
 
   themeConfig: {
-    logo: '/logo.png',
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Design', link: '/design/' },
@@ -17,31 +16,41 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         {
-          text: 'Introduction',
+          text: 'Getting Started',
           items: [
-            { text: 'What is Bonsai Console?', link: '/guide/' },
-            { text: 'Getting Started', link: '/guide/getting-started' },
-            { text: 'Navigation', link: '/guide/navigation' },
+            { text: 'What is Bonsai?', link: '/guide/' },
+            { text: 'Quick Start', link: '/guide/getting-started' },
+            { text: 'Core Concepts', link: '/guide/core-concepts' },
+            { text: 'Navigating the Console', link: '/guide/navigation' },
+          ],
+        },
+        {
+          text: 'Advanced Topics',
+          items: [
+            { text: 'Prompt Templating', link: '/guide/templating' },
+            { text: 'Scripting', link: '/guide/scripting' },
           ],
         },
       ],
       '/design/': [
         {
-          text: 'Design',
+          text: 'Design Your AI',
           items: [
             { text: 'Overview', link: '/design/' },
             { text: 'Personas', link: '/design/personas' },
             { text: 'Stages', link: '/design/stages' },
+            { text: 'Actions & Effects', link: '/design/actions' },
             { text: 'Classifiers', link: '/design/classifiers' },
-            { text: 'Actions', link: '/design/actions' },
+            { text: 'Context Transformers', link: '/design/context-transformers' },
+            { text: 'Global Actions', link: '/design/global-actions' },
             { text: 'Tools', link: '/design/tools' },
-            { text: 'Knowledge', link: '/design/knowledge' },
+            { text: 'Knowledge Base', link: '/design/knowledge' },
           ],
         },
       ],
       '/monitor/': [
         {
-          text: 'Monitor',
+          text: 'Monitor & Observe',
           items: [
             { text: 'Overview', link: '/monitor/' },
             { text: 'Conversations', link: '/monitor/conversations' },
@@ -53,12 +62,12 @@ export default defineConfig({
       ],
       '/administration/': [
         {
-          text: 'Administration',
+          text: 'Platform Management',
           items: [
             { text: 'Overview', link: '/administration/' },
             { text: 'Projects', link: '/administration/projects' },
             { text: 'Environments', link: '/administration/environments' },
-            { text: 'Admins', link: '/administration/admins' },
+            { text: 'Admins & Roles', link: '/administration/admins' },
             { text: 'API Keys', link: '/administration/api-keys' },
             { text: 'Providers', link: '/administration/providers' },
           ],

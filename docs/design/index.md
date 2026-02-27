@@ -1,18 +1,39 @@
 # Design Overview
 
-::: info Coming Soon
-This section is a stub. Full documentation is being written.
-:::
+The **Design** section is where you build your AI assistant's behavior. Everything here is scoped to the currently selected project — make sure you've picked a project from the selector in the top navigation bar.
 
-The **Design** section lets you configure the behavior of AI assistants for a specific project. All resources in this section are scoped to the currently selected project.
+## What You'll Build
 
-## Resources
+At a high level, designing a conversation means defining:
 
-| Resource | Description |
-|---|---|
-| [Personas](./personas) | Define the identity, voice, and instructions of an AI assistant |
-| [Stages](./stages) | Model multi-step conversation flows |
-| [Classifiers](./classifiers) | Detect intents and route conversations |
-| [Actions](./actions) | Configure automated responses and integrations |
-| [Tools](./tools) | Register callable tools available to the AI |
-| [Knowledge](./knowledge) | Manage knowledge bases used for retrieval |
+1. **Who the AI is** → [Personas](./personas)
+2. **What steps the conversation goes through** → [Stages](./stages)
+3. **What the AI can do when users say things** → [Actions & Effects](./actions)
+4. **How the AI understands user intent** → [Classifiers](./classifiers)
+5. **How data is extracted from the conversation** → [Context Transformers](./context-transformers)
+6. **Shared behaviors that work across stages** → [Global Actions](./global-actions)
+7. **AI-powered utility functions** → [Tools](./tools)
+8. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
+
+## Where to Start
+
+If you're setting up a new project, a good order is:
+
+1. **Create a persona** — Even a simple personality prompt gets you started.
+2. **Create a classifier** — You'll need one for your stages to understand user input.
+3. **Create your first stage** — Assign the persona and classifier. Write a prompt that tells the AI what to do. Set the enter behavior to "Generate response" so the AI speaks first.
+4. **Add actions to the stage** — Define what happens when users say specific things.
+5. **Add more stages** — Map out the full conversation flow and connect stages with "go to stage" effects.
+6. **Add knowledge** — Create FAQ categories to handle common questions.
+7. **Create global actions** — Factor out any behaviors that repeat across stages.
+
+## Cloning
+
+Most design resources (personas, stages, classifiers, tools, etc.) can be **cloned** to create copies. This is handy when you want to create a variation of something without starting from scratch — for example, a slightly different persona for after-hours support, or a new stage based on an existing one.
+
+## Templating & Scripting
+
+Prompts throughout the Design section support **dynamic templates** with Handlebars syntax. You can insert variables, use conditionals, and loop over data. For custom logic beyond what templates can do, action effects support **JavaScript scripting**.
+
+- [Prompt Templating](../guide/templating) — Dynamic prompts with variables.
+- [Scripting](../guide/scripting) — Custom JavaScript in action effects.
