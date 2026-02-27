@@ -8,7 +8,6 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
-import ApiKeySelectionModal from '@/components/modals/ApiKeySelectionModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 
 
@@ -29,9 +28,6 @@ const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
-
-// Resume conversation state
-const showApiKeyModal = ref(false)
 
 onMounted(async () => {
   await loadConversationData()
@@ -145,40 +141,23 @@ async function handleResumeConversation() {
   try {
     // Fetch active API keys for the project
     await apiKeysStore.fetchAll(projectId.value, { filters: { isActive: true } })
-    const activeKeys = apiKeysStore.items.filter(k => k.isActive)
+    const activeKeys = apiKeysStore.items.filter(k => k.isActive && k.projectId === projectId.value)
 
     if (activeKeys.length === 0) {
       alert('No active API keys found for this project. Please create an API key first.')
       return
     }
 
-    if (activeKeys.length === 1) {
-      // Auto-select the only available key
-      const key = activeKeys[0]!
-      router.push({
-        name: 'playground',
-        params: { projectId: projectId.value },
-        query: { conversationId: conversation.value.id, apiKeyId: key.id }
-      })
-    } else {
-      // Show modal to select API key
-      showApiKeyModal.value = true
-    }
+    // Auto-select the first available key for this project
+    const key = activeKeys[0]!
+    router.push({
+      name: 'playground',
+      params: { projectId: projectId.value },
+      query: { conversationId: conversation.value.id, apiKeyId: key.id }
+    })
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to load API keys')
   }
-}
-
-function handleApiKeySelected(apiKeyId: string) {
-  if (!conversation.value || !projectId.value) return
-
-  router.push({
-    name: 'playground',
-    params: { projectId: projectId.value },
-    query: { conversationId: conversation.value.id, apiKeyId }
-  })
-  
-  showApiKeyModal.value = false
 }
 
 // Type guard to check if event data is a message event
@@ -1111,14 +1090,6 @@ const metadataFields = computed(() => {
       v-if="showVariablesPreviewModal"
       :variables="selectedVariables"
       @close="showVariablesPreviewModal = false" />
-    
-    <!-- API Key Selection Modal -->
-    <ApiKeySelectionModal
-      v-if="showApiKeyModal"
-      :api-keys="apiKeysStore.items.filter(k => k.isActive)"
-      @select="handleApiKeySelected"
-      @close="showApiKeyModal = false"
-    />
   </MonitorSectionLayout>
 </template>
 
