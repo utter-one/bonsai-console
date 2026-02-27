@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useApiKeysStore, useAllApiKeysStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
+import { useApiKeysStore, useAllApiKeysStore, useProjectsStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import { Key, Search, X } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
@@ -11,7 +11,6 @@ import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 const allApiKeysStore = useAllApiKeysStore()
 const apiKeysStore = useApiKeysStore()
 const projectsStore = useProjectsStore()
-const projectSelectionStore = useProjectSelectionStore()
 
 // UI State
 const searchQuery = ref('')
