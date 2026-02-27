@@ -1,9 +1,17 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
-      <h2 class="modal-header">
-        {{ modalTitle }}
-      </h2>
+      <div class="modal-header flex items-center justify-between">
+        <h2 class="m-0 text-xl font-semibold">{{ modalTitle }}</h2>
+        <a
+          href="/help/design/actions.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400 bg-white dark:bg-gray-800 transition-colors"
+        >
+          <HelpCircle :size="16" />
+        </a>
+      </div>
       
       <!-- Lifecycle Action Info -->
       <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
@@ -50,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, reactive } from 'vue'
+import { HelpCircle } from 'lucide-vue-next'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
