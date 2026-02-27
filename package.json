@@ -8,7 +8,10 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "generate:api": "npx swagger-typescript-api generate -p ./src/api/openapi.json -o ./src/api/generated -n api.ts --axios --unwrap-response-data --modular",
-    "generate:ws-types": "node scripts/generate-ws-types.js"
+    "generate:ws-types": "node scripts/generate-ws-types.js",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.0",
@@ -37,6 +40,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "^5.4.21",
+    "vitepress": "^1.6.4",
     "vue-tsc": "^3.1.4"
   }
 }
