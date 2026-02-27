@@ -82,6 +82,14 @@
             </div>
           </div>
 
+          <!-- Timezone Selection -->
+          <TimezoneSelector
+            v-model="selectedTimezone"
+            placeholder="Project Default"
+            :show-icon="true"
+            :disabled="wsIsConnected"
+          />
+
           <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
           <!-- Conversation Controls -->
@@ -844,6 +852,7 @@
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
+import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
@@ -920,6 +929,7 @@ interface PlaygroundPreferences {
   showSystemEvents: boolean
   showConversationEvents: boolean
   conversationMode: ConversationMode
+  timezone: string
 }
 
 interface PlaygroundPreferencesStorage {
@@ -998,6 +1008,7 @@ function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
     showSystemEvents: false,
     showConversationEvents: true,
     conversationMode: 'full-voice', // Default to full voice
+    timezone: '',
   }
 }
 
@@ -1097,6 +1108,7 @@ const selectedApiKey = computed(() => {
 
 // Conversation mode and preferences
 const selectedConversationMode = ref<ConversationMode>('full-voice')
+const selectedTimezone = ref('')
 const showPresetMenu = ref(false)
 const showApiKeyMenu = ref(false)
 const showSystemEvents = ref(false)
@@ -1110,11 +1122,12 @@ watch(projectId, (newProjectId) => {
     showSystemEvents.value = prefs.showSystemEvents
     showConversationEvents.value = prefs.showConversationEvents
     selectedConversationMode.value = prefs.conversationMode
+    selectedTimezone.value = prefs.timezone ?? ''
   }
 }, { immediate: true })
 
 // Save preferences when they change
-watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode], () => {
+watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone], () => {
   if (projectId.value) {
     const prefs: PlaygroundPreferences = {
       lastApiKeyId: selectedApiKeyId.value,
@@ -1122,6 +1135,7 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
       showSystemEvents: showSystemEvents.value,
       showConversationEvents: showConversationEvents.value,
       conversationMode: selectedConversationMode.value,
+      timezone: selectedTimezone.value,
     }
     savePlaygroundPreferences(projectId.value, prefs)
   }
@@ -2036,7 +2050,8 @@ async function handleStartConversation(stage: StageResponse) {
     const convId = await wsClient.value.startConversation({
       userId: userId,
       stageId: stage.id,
-      personaId: stage.personaId
+      personaId: stage.personaId,
+      timezone: selectedTimezone.value || undefined,
     })
 
     currentStage.value = stage

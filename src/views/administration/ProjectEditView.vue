@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
+import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -35,6 +36,7 @@ const form = ref({
   },
   acceptVoice: false,
   generateVoice: false,
+  timezone: '',
   version: undefined as number | undefined,
 })
 
@@ -272,6 +274,7 @@ async function loadProject() {
         },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
+        timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
       }
       
@@ -335,6 +338,7 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
+        timezone: form.value.timezone || undefined,
       })
       
       // Update currentProject with the response to get the new version
@@ -348,6 +352,7 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
+        timezone: form.value.timezone || undefined,
       })
 
       // Set currentProject to the newly created project
@@ -658,6 +663,17 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
             ></textarea>
             <p class="form-help-text">Provide additional context about the project's purpose</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Timezone</label>
+            <TimezoneSelector
+              v-model="form.timezone"
+              variant="form"
+              placeholder="Default (UTC)"
+              :disabled="isLoading"
+            />
+            <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
           </div>
 
           <!-- Create Playground API Key Checkbox (only when creating) -->

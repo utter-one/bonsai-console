@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, GitBranch, Eye, Repeat2, ListChecks, Highlighter } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -86,6 +86,8 @@ const contextVariables: ToolbarVariable[] = [
   { label: 'actions', path: 'actions', isArray: false, detail: 'object' },
   { label: 'results', path: 'results', isArray: false, detail: 'object' },
   { label: 'stage', path: 'stage', isArray: false, detail: 'object' },
+  { label: 'time', path: 'time', isArray: false, detail: 'object' },
+  { label: 'time.calendar', path: 'time.calendar', isArray: true, detail: 'array' },
 ]
 
 const userProfileFields = [
@@ -95,6 +97,35 @@ const userProfileFields = [
   { key: 'language', detail: 'string — preferred language' },
   { key: 'timezone', detail: 'string — user timezone' },
   { key: 'metadata', detail: 'object — custom metadata' },
+]
+
+const timeFields = [
+  { key: 'anchor', detail: 'LLM grounding sentence' },
+  { key: 'iso', detail: 'Full ISO 8601 timestamp' },
+  { key: 'timestamp', detail: 'Unix epoch (ms)' },
+  { key: 'date', detail: 'YYYY-MM-DD' },
+  { key: 'time', detail: 'HH:MM:SS (24-hour)' },
+  { key: 'dateTime', detail: 'YYYY-MM-DD HH:MM:SS' },
+  { key: 'year', detail: 'Four-digit year' },
+  { key: 'month', detail: 'Zero-padded month (01–12)' },
+  { key: 'day', detail: 'Zero-padded day (01–31)' },
+  { key: 'hour', detail: 'Zero-padded hour (00–23)' },
+  { key: 'minute', detail: 'Zero-padded minute (00–59)' },
+  { key: 'second', detail: 'Zero-padded second (00–59)' },
+  { key: 'monthName', detail: 'Full month name — e.g. "February"' },
+  { key: 'monthNameShort', detail: 'Abbreviated month — e.g. "Feb"' },
+  { key: 'dayOfWeek', detail: 'Full weekday name — e.g. "Friday"' },
+  { key: 'dayOfWeekShort', detail: 'Abbreviated weekday — e.g. "Fri"' },
+  { key: 'timezone', detail: 'IANA identifier — e.g. "Europe/Warsaw"' },
+  { key: 'offset', detail: 'UTC offset — e.g. "+01:00"' },
+  { key: 'nextMonday', detail: 'Date of next or current Monday' },
+  { key: 'nextTuesday', detail: 'Date of next or current Tuesday' },
+  { key: 'nextWednesday', detail: 'Date of next or current Wednesday' },
+  { key: 'nextThursday', detail: 'Date of next or current Thursday' },
+  { key: 'nextFriday', detail: 'Date of next or current Friday' },
+  { key: 'nextSaturday', detail: 'Date of next or current Saturday' },
+  { key: 'nextSunday', detail: 'Date of next or current Sunday' },
+  { key: 'calendar', detail: 'Array of next 14 days' },
 ]
 
 const flattenedStageVariables = computed<ToolbarVariable[]>(() =>
@@ -615,6 +646,33 @@ watch(
             @click.stop="insertVariable(`userProfile.${f.key}`)"
           >
             <span class="font-mono text-blue-600 dark:text-blue-400">userProfile.{{ f.key }}</span>
+            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Insert time field -->
+      <div class="relative">
+        <button
+          type="button"
+          :disabled="disabled"
+          class="toolbar-btn"
+          title="Insert time field"
+          @click.stop="toggleDropdown('time')"
+        >
+          <Clock :size="13" />
+          <span>Time</span>
+          <ChevronDown :size="11" />
+        </button>
+        <div v-if="openDropdown === 'time'" class="toolbar-dropdown">
+          <button
+            v-for="f in timeFields"
+            :key="f.key"
+            type="button"
+            class="toolbar-dropdown-item"
+            @click.stop="insertVariable(`time.${f.key}`)"
+          >
+            <span class="font-mono text-blue-600 dark:text-blue-400">time.{{ f.key }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
           </button>
         </div>
