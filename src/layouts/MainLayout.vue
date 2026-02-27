@@ -2,8 +2,8 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, useLayoutStore } from '@/stores'
-import { formatEnum } from '@/composables'
-import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User } from 'lucide-vue-next'
+import { formatEnum, useContextualHelp } from '@/composables'
+import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
@@ -15,6 +15,8 @@ const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const layoutStore = useLayoutStore()
+
+const { helpUrl } = useContextualHelp()
 
 const currentSection = computed(() => {
   const path = route.path
@@ -211,6 +213,17 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               </option>
             </select>
           </div>
+
+          <!-- Help -->
+          <a
+            :href="helpUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="p-2 border-none bg-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            title="Help & Documentation"
+          >
+            <HelpCircle :size="20" />
+          </a>
 
           <!-- Dark Mode Toggle -->
           <DarkModeToggle />

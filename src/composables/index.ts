@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores'
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-vue-next'
 
 export * from './useActionForm'
+export * from './useContextualHelp'
 export * from './useSearch'
 export * from './useWebSocketClient'
 export * from './useAudioPlayback'
