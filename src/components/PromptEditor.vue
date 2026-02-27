@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter, HelpCircle } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -864,6 +864,19 @@ watch(
       >
         <Highlighter :size="13" />
       </button>
+
+      <!-- Templating help link -->
+      <a
+        href="/help/guide/templating.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="toolbar-btn"
+        title="Templating documentation"
+        @click.stop
+      >
+        <HelpCircle :size="13" />
+        <span>Need help?</span>
+      </a>
     </div>
 
     <!-- CodeMirror Editor -->

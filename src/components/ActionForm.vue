@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MoreHorizontal } from 'lucide-vue-next'
+import { MoreHorizontal, HelpCircle } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
 import PromptEditor from './PromptEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
@@ -1049,9 +1049,18 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     <!-- Run Script Tab -->
     <div v-show="activeTab.value === 'runScript'" class="space-y-6">
       <div class="form-group">
-        <label class="form-label">
-          JavaScript Code <span class="required">*</span>
-        </label>
+        <div class="flex items-center justify-between mb-1">
+          <label class="form-label mb-0">JavaScript Code <span class="required">*</span></label>
+          <a
+            href="/help/guide/scripting.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400 bg-white dark:bg-gray-800 transition-colors"
+          >
+            <HelpCircle :size="13" />
+            Need help?
+          </a>
+        </div>
         <textarea
           v-model="operations.runScript.code"
           rows="10"
