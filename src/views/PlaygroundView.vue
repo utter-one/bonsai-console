@@ -1079,6 +1079,13 @@ watch(projectId, async (newProjectId) => {
       resumeConversationId.value = queryConversationId
       selectedApiKeyId.value = queryApiKeyId
 
+      // Load preferences but don't overwrite the resume API key
+      const prefs = loadPlaygroundPreferences(newProjectId)
+      showSystemEvents.value = prefs.showSystemEvents
+      showConversationEvents.value = prefs.showConversationEvents
+      selectedConversationMode.value = prefs.conversationMode
+      selectedTimezone.value = prefs.timezone ?? ''
+
       // Clear query params from URL
       router.replace({ 
         name: route.name!, 
@@ -1089,7 +1096,15 @@ watch(projectId, async (newProjectId) => {
       // Auto-connect and resume
       await handleResumeConversation()
     } else {
-      // Normal flow: auto-select first active API key
+      // Normal flow: load preferences and auto-select first active API key
+      const prefs = loadPlaygroundPreferences(newProjectId)
+      selectedApiKeyId.value = prefs.lastApiKeyId
+      showSystemEvents.value = prefs.showSystemEvents
+      showConversationEvents.value = prefs.showConversationEvents
+      selectedConversationMode.value = prefs.conversationMode
+      selectedTimezone.value = prefs.timezone ?? ''
+
+      // If no saved preference, auto-select first active API key
       const firstActiveKey = activeApiKeys.value[0]
       if (firstActiveKey && !selectedApiKeyId.value) {
         selectedApiKeyId.value = firstActiveKey.id
@@ -1138,17 +1153,7 @@ const showApiKeyMenu = ref(false)
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
-// Load preferences when project changes
-watch(projectId, (newProjectId) => {
-  if (newProjectId) {
-    const prefs = loadPlaygroundPreferences(newProjectId)
-    selectedApiKeyId.value = prefs.lastApiKeyId
-    showSystemEvents.value = prefs.showSystemEvents
-    showConversationEvents.value = prefs.showConversationEvents
-    selectedConversationMode.value = prefs.conversationMode
-    selectedTimezone.value = prefs.timezone ?? ''
-  }
-}, { immediate: true })
+// Note: Preferences loading is now handled in the main projectId watch above to avoid conflicts with resume flow
 
 // Save preferences when they change
 watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone], () => {

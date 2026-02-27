@@ -7,16 +7,11 @@ import { RefreshCw, Calendar, ChevronDown, MessageSquare } from 'lucide-vue-next
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
-import ApiKeySelectionModal from '@/components/modals/ApiKeySelectionModal.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
-
-// Resume conversation state
-const showApiKeyModal = ref(false)
-const resumeConversationId = ref<string | null>(null)
 
 // Time filter state
 const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-24h')
@@ -251,44 +246,23 @@ async function handleResumeConversation(conversation: ConversationResponse) {
   try {
     // Fetch active API keys for the project
     await apiKeysStore.fetchAll(projectId, { filters: { isActive: true } })
-    const activeKeys = apiKeysStore.items.filter(k => k.isActive)
+    const activeKeys = apiKeysStore.items.filter(k => k.isActive && k.projectId === projectId)
 
     if (activeKeys.length === 0) {
       alert('No active API keys found for this project. Please create an API key first.')
       return
     }
 
-    if (activeKeys.length === 1) {
-      // Auto-select the only available key
-      const key = activeKeys[0]!
-      router.push({
-        name: 'playground',
-        params: { projectId },
-        query: { conversationId: conversation.id, apiKeyId: key.id }
-      })
-    } else {
-      // Show modal to select API key
-      resumeConversationId.value = conversation.id
-      showApiKeyModal.value = true
-    }
+    // Auto-select the first available key for this project
+    const key = activeKeys[0]!
+    router.push({
+      name: 'playground',
+      params: { projectId },
+      query: { conversationId: conversation.id, apiKeyId: key.id }
+    })
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to load API keys')
   }
-}
-
-function handleApiKeySelected(apiKeyId: string) {
-  const projectId = projectSelectionStore.selectedProjectId
-  if (!projectId || !resumeConversationId.value) return
-
-  router.push({
-    name: 'playground',
-    params: { projectId },
-    query: { conversationId: resumeConversationId.value, apiKeyId }
-  })
-  
-  // Reset state
-  showApiKeyModal.value = false
-  resumeConversationId.value = null
 }
 </script>
 
@@ -434,14 +408,6 @@ function handleApiKeySelected(apiKeyId: string) {
         />
       </div>
     </div>
-
-    <!-- API Key Selection Modal -->
-    <ApiKeySelectionModal
-      v-if="showApiKeyModal"
-      :api-keys="apiKeysStore.items.filter(k => k.isActive)"
-      @select="handleApiKeySelected"
-      @close="showApiKeyModal = false; resumeConversationId = null"
-    />
   </MonitorSectionLayout>
 </template>
 
