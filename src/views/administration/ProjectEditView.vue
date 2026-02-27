@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore, useTimezonesStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
+import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -14,7 +15,6 @@ const router = useRouter()
 const projectsStore = useProjectsStore()
 const apiKeysStore = useApiKeysStore()
 const providersStore = useProvidersStore()
-const timezonesStore = useTimezonesStore()
 
 // State
 const isLoading = ref(false)
@@ -56,9 +56,6 @@ const deepgramEndpointingValue = ref(300)
 const projectId = computed(() => route.params.projectId as string | undefined)
 const isEditMode = computed(() => !!projectId.value)
 const currentProject = ref<ProjectResponse | null>(null)
-
-const timezoneSearchQuery = ref('')
-const filteredTimezoneOptions = computed(() => timezonesStore.search(timezoneSearchQuery.value))
 
 const asrProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'asr')
@@ -670,24 +667,12 @@ function handleStorageSettingsClose() {
 
           <div class="form-group">
             <label class="form-label">Timezone</label>
-            <div class="relative">
-              <input
-                v-model="timezoneSearchQuery"
-                type="text"
-                class="form-input mb-1"
-                placeholder="Search timezones..."
-                :disabled="isLoading"
-              />
-              <select
-                v-model="form.timezone"
-                class="form-select"
-                :disabled="isLoading"
-                size="6"
-              >
-                <option value="">Default (UTC)</option>
-                <option v-for="tz in filteredTimezoneOptions" :key="tz" :value="tz">{{ tz }}</option>
-              </select>
-            </div>
+            <TimezoneSelector
+              v-model="form.timezone"
+              variant="form"
+              placeholder="Default (UTC)"
+              :disabled="isLoading"
+            />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
           </div>
 

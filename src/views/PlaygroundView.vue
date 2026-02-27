@@ -83,39 +83,12 @@
           </div>
 
           <!-- Timezone Selection -->
-          <div class="relative inline-flex">
-            <button class="btn-secondary flex items-center gap-2 whitespace-nowrap"
-              @click="showTimezoneMenu = !showTimezoneMenu; if (showTimezoneMenu) timezoneSearchQuery = ''" :disabled="wsIsConnected">
-              <Globe :size="18" />
-              <span class="hidden md:inline">{{ selectedTimezone || 'Project Default' }}</span>
-              <ChevronDown :size="16" class="ml-1 text-gray-500" />
-            </button>
-
-            <div v-if="showTimezoneMenu"
-              class="absolute top-full mt-1 left-0 z-20 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1 dark:bg-gray-800 dark:border-gray-700"
-              @click.stop>
-              <div class="px-2 py-1.5">
-                <input v-model="timezoneSearchQuery" type="text" placeholder="Search timezones..."
-                  class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-              </div>
-              <div class="max-h-[280px] overflow-y-auto">
-                <button
-                  @click="selectedTimezone = ''; showTimezoneMenu = false"
-                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-                  :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedTimezone === '' }">
-                  <div class="font-medium">Project Default</div>
-                </button>
-                <div class="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
-                <button v-for="tz in filteredPlaygroundTimezones" :key="tz"
-                  @click="selectedTimezone = tz; showTimezoneMenu = false"
-                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-                  :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': tz === selectedTimezone }">
-                  <div class="font-medium">{{ tz }}</div>
-                </button>
-                <div v-if="filteredPlaygroundTimezones.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">No timezones found</div>
-              </div>
-            </div>
-          </div>
+          <TimezoneSelector
+            v-model="selectedTimezone"
+            placeholder="Project Default"
+            :show-icon="true"
+            :disabled="wsIsConnected"
+          />
 
           <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
@@ -878,11 +851,12 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useTimezonesStore } from '@/stores'
+import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
+import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces, Globe } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -1073,7 +1047,6 @@ onMounted(() => {
     if (!target.closest('.relative')) {
       showPresetMenu.value = false
       showApiKeyMenu.value = false
-      showTimezoneMenu.value = false
     }
   }
   document.addEventListener('click', handleClickOutside)
@@ -1138,11 +1111,6 @@ const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
 const showPresetMenu = ref(false)
 const showApiKeyMenu = ref(false)
-const showTimezoneMenu = ref(false)
-const timezoneSearchQuery = ref('')
-
-const timezonesStore = useTimezonesStore()
-const filteredPlaygroundTimezones = computed(() => timezonesStore.search(timezoneSearchQuery.value))
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
