@@ -1070,10 +1070,30 @@ watch(projectId, async (newProjectId) => {
       apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } })
     ])
 
-    // Auto-select first active API key
-    const firstActiveKey = activeApiKeys.value[0]
-    if (firstActiveKey && !selectedApiKeyId.value) {
-      selectedApiKeyId.value = firstActiveKey.id
+    // Check if resuming from query params
+    const queryConversationId = route.query.conversationId as string | undefined
+    const queryApiKeyId = route.query.apiKeyId as string | undefined
+
+    if (queryConversationId && queryApiKeyId) {
+      // Resume flow: pre-select API key and store conversation ID
+      resumeConversationId.value = queryConversationId
+      selectedApiKeyId.value = queryApiKeyId
+
+      // Clear query params from URL
+      router.replace({ 
+        name: route.name!, 
+        params: route.params,
+        query: {} 
+      })
+
+      // Auto-connect and resume
+      await handleResumeConversation()
+    } else {
+      // Normal flow: auto-select first active API key
+      const firstActiveKey = activeApiKeys.value[0]
+      if (firstActiveKey && !selectedApiKeyId.value) {
+        selectedApiKeyId.value = firstActiveKey.id
+      }
     }
   }
 }, { immediate: true })
@@ -1105,6 +1125,10 @@ const selectedApiKey = computed(() => {
   if (!selectedApiKeyId.value) return null
   return apiKeysStore.items.find(k => k.id === selectedApiKeyId.value)
 })
+
+// Resume conversation state
+const resumeConversationId = ref<string | null>(null)
+const isResuming = ref(false)
 
 // Conversation mode and preferences
 const selectedConversationMode = ref<ConversationMode>('full-voice')
@@ -1890,6 +1914,11 @@ async function connectWebSocket() {
         details: `Session ID: ${wsSessionId.value}`
       })
     }
+
+    // If resuming, do it after successful connection
+    if (resumeConversationId.value && !isResuming.value) {
+      await resumeConversation(resumeConversationId.value)
+    }
   } catch (error) {
     addEvent({
       type: 'Error',
@@ -2070,6 +2099,64 @@ async function handleStartConversation(stage: StageResponse) {
     })
   } finally {
     isConversationStarting.value = false
+  }
+}
+
+async function handleResumeConversation() {
+  if (!selectedApiKey.value) {
+    addEvent({
+      type: 'Error',
+      message: 'No API key selected',
+      timestamp: new Date()
+    })
+    return
+  }
+
+  // Connect if not already connected
+  if (!wsIsConnected.value) {
+    await connectWebSocket()
+  }
+}
+
+async function resumeConversation(convId: string) {
+  if (!wsClient.value) return
+  if (isResuming.value || isConversationStarting.value || isConversationEnding.value) return
+
+  try {
+    isResuming.value = true
+
+    // Clear conversation history when resuming
+    conversationEvents.value = []
+    activeVoiceOutputs.value.clear()
+
+    addEvent({
+      type: 'System',
+      message: `Resuming conversation: ${convId}`,
+      timestamp: new Date()
+    })
+
+    await wsClient.value.resumeConversation(convId)
+
+    addEvent({
+      type: 'System',
+      message: 'Conversation resumed successfully',
+      timestamp: new Date(),
+      details: `Conversation ID: ${convId}`
+    })
+
+    // Clear the resume conversation ID after successful resume
+    resumeConversationId.value = null
+  } catch (error) {
+    addEvent({
+      type: 'Error',
+      message: `Failed to resume conversation: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+
+    // Clear the resume conversation ID on error
+    resumeConversationId.value = null
+  } finally {
+    isResuming.value = false
   }
 }
 

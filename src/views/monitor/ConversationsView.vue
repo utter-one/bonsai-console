@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { RefreshCw, Calendar, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import ApiKeySelectionModal from '@/components/modals/ApiKeySelectionModal.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const apiKeysStore = useApiKeysStore()
+
+// Resume conversation state
+const showApiKeyModal = ref(false)
+const resumeConversationId = ref<string | null>(null)
 
 // Time filter state
 const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-24h')
@@ -230,6 +236,60 @@ function selectStatusFilter(value: typeof statusFilter.value) {
 async function refreshData() {
   await loadConversations()
 }
+
+function isResumable(status: string): boolean {
+  return status === 'awaiting_user_input'
+}
+
+async function handleResumeConversation(conversation: ConversationResponse) {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId) {
+    alert('No project selected')
+    return
+  }
+
+  try {
+    // Fetch active API keys for the project
+    await apiKeysStore.fetchAll(projectId, { filters: { isActive: true } })
+    const activeKeys = apiKeysStore.items.filter(k => k.isActive)
+
+    if (activeKeys.length === 0) {
+      alert('No active API keys found for this project. Please create an API key first.')
+      return
+    }
+
+    if (activeKeys.length === 1) {
+      // Auto-select the only available key
+      const key = activeKeys[0]!
+      router.push({
+        name: 'playground',
+        params: { projectId },
+        query: { conversationId: conversation.id, apiKeyId: key.id }
+      })
+    } else {
+      // Show modal to select API key
+      resumeConversationId.value = conversation.id
+      showApiKeyModal.value = true
+    }
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to load API keys')
+  }
+}
+
+function handleApiKeySelected(apiKeyId: string) {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId || !resumeConversationId.value) return
+
+  router.push({
+    name: 'playground',
+    params: { projectId },
+    query: { conversationId: resumeConversationId.value, apiKeyId }
+  })
+  
+  // Reset state
+  showApiKeyModal.value = false
+  resumeConversationId.value = null
+}
 </script>
 
 <template>
@@ -345,6 +405,14 @@ async function refreshData() {
                 <td class="table-cell-muted">{{ formatDate(conversation.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
+                    <button 
+                      v-if="isResumable(conversation.status)"
+                      @click="handleResumeConversation(conversation)" 
+                      class="btn-primary btn-sm"
+                      title="Resume conversation"
+                    >
+                      Resume
+                    </button>
                     <button @click="viewConversation(conversation)" class="btn-secondary btn-sm">
                       View
                     </button>
@@ -366,6 +434,14 @@ async function refreshData() {
         />
       </div>
     </div>
+
+    <!-- API Key Selection Modal -->
+    <ApiKeySelectionModal
+      v-if="showApiKeyModal"
+      :api-keys="apiKeysStore.items.filter(k => k.isActive)"
+      @select="handleApiKeySelected"
+      @close="showApiKeyModal = false; resumeConversationId = null"
+    />
   </MonitorSectionLayout>
 </template>
 
