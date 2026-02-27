@@ -851,7 +851,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore } from '@/stores'
+import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
@@ -866,7 +866,7 @@ import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
-import type { StageResponse } from '@/api/types'
+import type { StageResponse, ConversationEventResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
@@ -1030,6 +1030,7 @@ const globalActionsStore = useGlobalActionsStore()
 const apiKeysStore = useApiKeysStore()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
+const conversationsStore = useConversationsStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
@@ -2130,9 +2131,45 @@ async function resumeConversation(convId: string) {
   try {
     isResuming.value = true
 
-    // Clear conversation history when resuming
+    // Clear conversation history and voice outputs
     conversationEvents.value = []
     activeVoiceOutputs.value.clear()
+
+    addEvent({
+      type: 'System',
+      message: `Loading conversation history...`,
+      timestamp: new Date()
+    })
+
+    // Fetch conversation history from API
+    const projectIdValue = projectId.value
+    if (projectIdValue) {
+      try {
+        const response = await conversationsStore.fetchEvents(projectIdValue, convId, {
+          orderBy: 'timestamp'
+        })
+        
+        const historicalEvents = response.items || []
+        
+        // Convert API events to display format
+        for (const apiEvent of historicalEvents) {
+          conversationEvents.value.push(convertApiEventToDisplayEvent(apiEvent))
+        }
+
+        addEvent({
+          type: 'System',
+          message: `Loaded ${historicalEvents.length} historical event${historicalEvents.length !== 1 ? 's' : ''}`,
+          timestamp: new Date()
+        })
+      } catch (error) {
+        console.error('Failed to load conversation history:', error)
+        addEvent({
+          type: 'Error',
+          message: `Failed to load conversation history: ${error instanceof Error ? error.message : String(error)}`,
+          timestamp: new Date()
+        })
+      }
+    }
 
     addEvent({
       type: 'System',
@@ -2149,6 +2186,9 @@ async function resumeConversation(convId: string) {
       details: `Conversation ID: ${convId}`
     })
 
+    // Auto-scroll to bottom after loading history
+    nextTick(() => scrollHistoryToBottom())
+
     // Clear the resume conversation ID after successful resume
     resumeConversationId.value = null
   } catch (error) {
@@ -2162,6 +2202,32 @@ async function resumeConversation(convId: string) {
     resumeConversationId.value = null
   } finally {
     isResuming.value = false
+  }
+}
+
+/**
+ * Convert API conversation event to Playground display format
+ */
+function convertApiEventToDisplayEvent(apiEvent: ConversationEventResponse): ConversationEvent {
+  const timestamp = apiEvent.timestamp ? new Date(apiEvent.timestamp) : new Date()
+  
+  // Handle message events specially (User/AI type)
+  if (apiEvent.eventType === 'message' && 'role' in apiEvent.eventData) {
+    const messageData = apiEvent.eventData as { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
+    return {
+      type: messageData.role === 'user' ? 'User' : 'AI',
+      message: messageData.text || messageData.originalText || '',
+      timestamp,
+      wsEvent: apiEvent as any // Include raw event for metadata buttons
+    }
+  }
+  
+  // For all other events, use ConversationEvent type with wsEvent
+  return {
+    type: 'ConversationEvent',
+    message: formatEventType(apiEvent.eventType),
+    timestamp,
+    wsEvent: apiEvent as any
   }
 }
 
