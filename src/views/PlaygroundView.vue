@@ -173,10 +173,6 @@
           <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
           <div class="flex items-center md:gap-4 mt-2 md:mt-0">
             <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
-              <input type="checkbox" v-model="showSystemEvents" class="form-checkbox" />
-              <span>Show system events</span>
-            </label>
-            <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
               <input type="checkbox" v-model="showConversationEvents" class="form-checkbox" />
               <span>Show conversation events</span>
             </label>
