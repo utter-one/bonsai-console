@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
 import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
+import ApiKeySelectionModal from '@/components/modals/ApiKeySelectionModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 
 
@@ -15,6 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const apiKeysStore = useApiKeysStore()
 
 const conversationId = computed(() => route.params.conversationId as string)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -27,6 +29,9 @@ const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
+
+// Resume conversation state
+const showApiKeyModal = ref(false)
 
 onMounted(async () => {
   await loadConversationData()
@@ -128,6 +133,52 @@ function openVariablesPreview(variables: Record<string, any>) {
 
 function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
+}
+
+function isResumable(status: string | undefined): boolean {
+  return status === 'awaiting_user_input'
+}
+
+async function handleResumeConversation() {
+  if (!conversation.value || !projectId.value) return
+
+  try {
+    // Fetch active API keys for the project
+    await apiKeysStore.fetchAll(projectId.value, { filters: { isActive: true } })
+    const activeKeys = apiKeysStore.items.filter(k => k.isActive)
+
+    if (activeKeys.length === 0) {
+      alert('No active API keys found for this project. Please create an API key first.')
+      return
+    }
+
+    if (activeKeys.length === 1) {
+      // Auto-select the only available key
+      const key = activeKeys[0]!
+      router.push({
+        name: 'playground',
+        params: { projectId: projectId.value },
+        query: { conversationId: conversation.value.id, apiKeyId: key.id }
+      })
+    } else {
+      // Show modal to select API key
+      showApiKeyModal.value = true
+    }
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to load API keys')
+  }
+}
+
+function handleApiKeySelected(apiKeyId: string) {
+  if (!conversation.value || !projectId.value) return
+
+  router.push({
+    name: 'playground',
+    params: { projectId: projectId.value },
+    query: { conversationId: conversation.value.id, apiKeyId }
+  })
+  
+  showApiKeyModal.value = false
 }
 
 // Type guard to check if event data is a message event
@@ -282,6 +333,12 @@ const metadataFields = computed(() => {
             <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
             <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ conversationId }}</p>
           </div>
+        </div>
+        <div v-if="conversation && isResumable(conversation.status)">
+          <button @click="handleResumeConversation" class="btn-primary" title="Resume conversation">
+            <Play class="w-4 h-4 mr-2" />
+            Resume
+          </button>
         </div>
       </div>
 
@@ -1054,6 +1111,14 @@ const metadataFields = computed(() => {
       v-if="showVariablesPreviewModal"
       :variables="selectedVariables"
       @close="showVariablesPreviewModal = false" />
+    
+    <!-- API Key Selection Modal -->
+    <ApiKeySelectionModal
+      v-if="showApiKeyModal"
+      :api-keys="apiKeysStore.items.filter(k => k.isActive)"
+      @select="handleApiKeySelected"
+      @close="showApiKeyModal = false"
+    />
   </MonitorSectionLayout>
 </template>
 
