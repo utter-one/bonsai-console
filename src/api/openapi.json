@@ -10293,6 +10293,11 @@
             "type": "string",
             "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
           },
+          "projectId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the project associated with the entity"
+          },
           "oldEntity": {
             "type": "object",
             "nullable": true,
@@ -10326,6 +10331,7 @@
           "action",
           "entityId",
           "entityType",
+          "projectId",
           "oldEntity",
           "newEntity",
           "version",
@@ -10361,6 +10367,11 @@
                   "type": "string",
                   "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
                 },
+                "projectId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the project associated with the entity"
+                },
                 "oldEntity": {
                   "type": "object",
                   "nullable": true,
@@ -10394,6 +10405,7 @@
                 "action",
                 "entityId",
                 "entityType",
+                "projectId",
                 "oldEntity",
                 "newEntity",
                 "version",
@@ -13499,6 +13511,11 @@
                             "type": "string",
                             "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the project associated with the entity"
+                          },
                           "oldEntity": {
                             "type": "object",
                             "nullable": true,
@@ -13532,6 +13549,7 @@
                           "action",
                           "entityId",
                           "entityType",
+                          "projectId",
                           "oldEntity",
                           "newEntity",
                           "version",

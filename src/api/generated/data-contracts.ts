@@ -4512,6 +4512,8 @@ export interface AuditLogResponse {
   entityId: string;
   /** Type of the entity (e.g., "admin", "agent", "classifier") */
   entityType: string;
+  /** ID of the project associated with the entity */
+  projectId: string | null;
   /** Entity state before the change */
   oldEntity: Record<string, any>;
   /** Entity state after the change */
@@ -4538,6 +4540,8 @@ export interface AuditLogListResponse {
     entityId: string;
     /** Type of the entity (e.g., "admin", "agent", "classifier") */
     entityType: string;
+    /** ID of the project associated with the entity */
+    projectId: string | null;
     /** Entity state before the change */
     oldEntity: Record<string, any>;
     /** Entity state after the change */

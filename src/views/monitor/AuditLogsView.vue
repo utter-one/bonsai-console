@@ -38,6 +38,19 @@ const actionFilterOptions = [
   { value: 'DELETE', label: 'Delete' },
 ] as const
 
+// Project scope filter state
+const projectScopeFilter = ref<'selected' | 'all'>('selected')
+const showProjectScopeDropdown = ref(false)
+
+const projectScopeFilterOptions = [
+  { value: 'selected', label: 'Selected Project' },
+  { value: 'all', label: 'All Projects' },
+] as const
+
+const currentProjectScopeLabel = computed(() => {
+  return projectScopeFilterOptions.find(opt => opt.value === projectScopeFilter.value)?.label || 'Selected Project'
+})
+
 // Mobile Filter State
 const showFilterDrawer = ref(false)
 
@@ -63,7 +76,7 @@ const currentActionFilterLabel = computed(() => {
 })
 
 const hasActiveFilters = computed(() => {
-  return timeFilter.value !== 'last-24h' || actionFilter.value !== 'all'
+  return timeFilter.value !== 'last-24h' || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
 })
 
 const filteredLogs = computed(() => {
@@ -101,6 +114,12 @@ watch(actionFilter, () => {
   loadAuditLogs()
 })
 
+// Watch for project scope changes
+watch(projectScopeFilter, () => {
+  pagination.reset()
+  loadAuditLogs()
+})
+
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
   searchQuery.value = ''
@@ -126,6 +145,8 @@ function handleClickOutside(event: MouseEvent) {
   const timeButton = document.querySelector('.time-filter-button')
   const actionDropdown = document.querySelector('.action-filter-dropdown')
   const actionButton = document.querySelector('.action-filter-button')
+  const projectScopeDropdown = document.querySelector('.project-scope-filter-dropdown')
+  const projectScopeButton = document.querySelector('.project-scope-filter-button')
 
   if (timeDropdown && !timeDropdown.contains(target) && !timeButton?.contains(target)) {
     showTimeDropdown.value = false
@@ -133,6 +154,10 @@ function handleClickOutside(event: MouseEvent) {
 
   if (actionDropdown && !actionDropdown.contains(target) && !actionButton?.contains(target)) {
     showActionDropdown.value = false
+  }
+
+  if (projectScopeDropdown && !projectScopeDropdown.contains(target) && !projectScopeButton?.contains(target)) {
+    showProjectScopeDropdown.value = false
   }
 }
 
@@ -179,8 +204,8 @@ async function loadAuditLogs() {
       }
     }
 
-    // Add project filter if a project is selected
-    if (projectSelectionStore.selectedProjectId) {
+    // Add project filter if a project is selected and scope is not "all"
+    if (projectSelectionStore.selectedProjectId && projectScopeFilter.value === 'selected') {
       filters.projectId = {
         op: 'eq',
         value: projectSelectionStore.selectedProjectId
@@ -224,6 +249,11 @@ function selectTimeFilter(value: typeof timeFilter.value) {
 function selectActionFilter(value: typeof actionFilter.value) {
   actionFilter.value = value
   showActionDropdown.value = false
+}
+
+function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
+  projectScopeFilter.value = value
+  showProjectScopeDropdown.value = false
 }
 </script>
 
@@ -282,6 +312,28 @@ function selectActionFilter(value: typeof actionFilter.value) {
                 @click="selectActionFilter(option.value)"
                 class="filter-dropdown-item"
                 :class="{ 'filter-dropdown-item-active': actionFilter === option.value }">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Project Scope Filter (only when a project is selected) -->
+          <div v-if="projectSelectionStore.selectedProjectId" class="relative">
+            <button
+              @click="showProjectScopeDropdown = !showProjectScopeDropdown"
+              class="project-scope-filter-button filter-btn !shadow-none">
+              <span>{{ currentProjectScopeLabel }}</span>
+              <ChevronDown class="w-4 h-4 ml-2" />
+            </button>
+
+            <!-- Project Scope Dropdown -->
+            <div v-if="showProjectScopeDropdown" class="project-scope-filter-dropdown filter-dropdown-panel min-w-[200px]">
+              <button
+                v-for="option in projectScopeFilterOptions"
+                :key="option.value"
+                @click="selectProjectScopeFilter(option.value)"
+                class="filter-dropdown-item"
+                :class="{ 'filter-dropdown-item-active': projectScopeFilter === option.value }">
                 {{ option.label }}
               </button>
             </div>
@@ -381,11 +433,28 @@ function selectActionFilter(value: typeof actionFilter.value) {
                   </button>
                 </div>
               </div>
+
+              <!-- Project Scope Filter (only when a project is selected) -->
+              <div v-if="projectSelectionStore.selectedProjectId" class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Project Scope</label>
+                <div class="flex flex-col gap-1">
+                  <button 
+                    v-for="option in projectScopeFilterOptions" 
+                    :key="option.value" 
+                    @click="projectScopeFilter = option.value"
+                    class="flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left"
+                    :class="projectScopeFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
+                  >
+                    {{ option.label }}
+                    <span v-if="projectScopeFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="mt-auto pt-6 flex gap-3">
               <button 
-                @click="() => { timeFilter = 'last-24h'; actionFilter = 'all'; }"
+                @click="() => { timeFilter = 'last-24h'; actionFilter = 'all'; projectScopeFilter = 'selected' }"
                 class="btn-secondary flex-1 justify-center"
               >
                 Reset

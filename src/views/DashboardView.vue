@@ -54,13 +54,20 @@ async function loadGlobalStats() {
     await Promise.all([
       projectsStore.fetchCount(),
       usersStore.fetchAll({ offset: 0, limit: 1 }),
-      auditLogsStore.fetchAll({ limit: 10, orderBy: '-createdAt' }),
     ])
   } catch (error) {
     console.error('Failed to load global stats:', error)
   } finally {
     isLoadingGlobal.value = false
   }
+}
+
+async function loadRecentAuditLogs(pid?: string) {
+  const params: Record<string, any> = { limit: 10, orderBy: '-createdAt' }
+  if (pid) {
+    params.filters = { projectId: pid }
+  }
+  await auditLogsStore.fetchAll(params)
 }
 
 async function loadConversationCounts(pid: string) {
@@ -120,6 +127,7 @@ async function loadIssueCounts(pid: string) {
 
 onMounted(() => {
   loadGlobalStats()
+  loadRecentAuditLogs(projectId.value || undefined)
   if (projectId.value) {
     loadConversationCounts(projectId.value)
     loadIssueCounts(projectId.value)
@@ -127,6 +135,7 @@ onMounted(() => {
 })
 
 watch(projectId, (newId) => {
+  loadRecentAuditLogs(newId || undefined)
   if (newId) {
     loadConversationCounts(newId)
     loadIssueCounts(newId)
@@ -330,7 +339,7 @@ function getActionBadgeClass(action: string): string {
         </router-link>
       </div>
 
-      <div v-if="isLoadingGlobal" class="flex justify-center py-8">
+      <div v-if="auditLogsStore.isLoading" class="flex justify-center py-8">
         <div class="spinner"></div>
       </div>
 
