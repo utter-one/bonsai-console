@@ -3053,27 +3053,27 @@
           "total"
         ]
       },
-      "CreatePersonaRequest": {
+      "CreateAgentRequest": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the persona (auto-generated if not provided)"
+            "description": "Unique identifier for the agent (auto-generated if not provided)"
           },
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Display name of the persona"
+            "description": "Display name of the agent"
           },
           "description": {
             "type": "string",
-            "description": "Detailed description of the persona purpose"
+            "description": "Detailed description of the agent purpose"
           },
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Detailed prompt defining the persona's characteristics and behavior"
+            "description": "Detailed prompt defining the agent's characteristics and behavior"
           },
           "ttsProviderId": {
             "type": "string",
@@ -3108,14 +3108,14 @@
               "type": "string"
             },
             "default": [],
-            "description": "Tags for categorizing and filtering this persona"
+            "description": "Tags for categorizing and filtering this agent"
           },
           "metadata": {
             "type": "object",
             "additionalProperties": {
               "nullable": true
             },
-            "description": "Additional persona-specific metadata"
+            "description": "Additional agent-specific metadata"
           }
         },
         "required": [
@@ -3123,7 +3123,7 @@
           "prompt"
         ]
       },
-      "UpdatePersonaRequest": {
+      "UpdateAgentRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -3133,7 +3133,7 @@
           },
           "description": {
             "type": "string",
-            "description": "Updated detailed description of the persona"
+            "description": "Updated detailed description of the agent"
           },
           "prompt": {
             "type": "string",
@@ -3191,7 +3191,7 @@
           "version"
         ]
       },
-      "DeletePersonaRequest": {
+      "DeleteAgentRequest": {
         "type": "object",
         "properties": {
           "version": {
@@ -3204,29 +3204,29 @@
           "version"
         ]
       },
-      "PersonaResponse": {
+      "AgentResponse": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the persona"
+            "description": "Unique identifier for the agent"
           },
           "projectId": {
             "type": "string",
-            "description": "ID of the project this persona belongs to"
+            "description": "ID of the project this agent belongs to"
           },
           "name": {
             "type": "string",
-            "description": "Display name of the persona"
+            "description": "Display name of the agent"
           },
           "description": {
             "type": "string",
             "nullable": true,
-            "description": "Detailed description of the persona purpose"
+            "description": "Detailed description of the agent purpose"
           },
           "prompt": {
             "type": "string",
-            "description": "Prompt defining the persona's characteristics and behavior"
+            "description": "Prompt defining the agent's characteristics and behavior"
           },
           "ttsProviderId": {
             "type": "string",
@@ -3261,7 +3261,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Tags for categorizing and filtering this persona"
+            "description": "Tags for categorizing and filtering this agent"
           },
           "metadata": {
             "type": "object",
@@ -3269,7 +3269,7 @@
             "additionalProperties": {
               "nullable": true
             },
-            "description": "Additional persona-specific metadata"
+            "description": "Additional agent-specific metadata"
           },
           "version": {
             "type": "integer",
@@ -3279,13 +3279,13 @@
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the persona was created"
+            "description": "Timestamp when the agent was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the persona was last updated"
+            "description": "Timestamp when the agent was last updated"
           }
         },
         "required": [
@@ -3302,7 +3302,7 @@
           "updatedAt"
         ]
       },
-      "PersonaListResponse": {
+      "AgentListResponse": {
         "type": "object",
         "properties": {
           "items": {
@@ -3312,24 +3312,24 @@
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "Unique identifier for the persona"
+                  "description": "Unique identifier for the agent"
                 },
                 "projectId": {
                   "type": "string",
-                  "description": "ID of the project this persona belongs to"
+                  "description": "ID of the project this agent belongs to"
                 },
                 "name": {
                   "type": "string",
-                  "description": "Display name of the persona"
+                  "description": "Display name of the agent"
                 },
                 "description": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Detailed description of the persona purpose"
+                  "description": "Detailed description of the agent purpose"
                 },
                 "prompt": {
                   "type": "string",
-                  "description": "Prompt defining the persona's characteristics and behavior"
+                  "description": "Prompt defining the agent's characteristics and behavior"
                 },
                 "ttsProviderId": {
                   "type": "string",
@@ -3364,7 +3364,7 @@
                   "items": {
                     "type": "string"
                   },
-                  "description": "Tags for categorizing and filtering this persona"
+                  "description": "Tags for categorizing and filtering this agent"
                 },
                 "metadata": {
                   "type": "object",
@@ -3372,7 +3372,7 @@
                   "additionalProperties": {
                     "nullable": true
                   },
-                  "description": "Additional persona-specific metadata"
+                  "description": "Additional agent-specific metadata"
                 },
                 "version": {
                   "type": "integer",
@@ -3382,13 +3382,13 @@
                   "type": "string",
                   "nullable": true,
                   "format": "date-time",
-                  "description": "Timestamp when the persona was created"
+                  "description": "Timestamp when the agent was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
                   "format": "date-time",
-                  "description": "Timestamp when the persona was last updated"
+                  "description": "Timestamp when the agent was last updated"
                 }
               },
               "required": [
@@ -3405,12 +3405,12 @@
                 "updatedAt"
               ]
             },
-            "description": "Array of personas in the current page"
+            "description": "Array of agents in the current page"
           },
           "total": {
             "type": "integer",
             "minimum": 0,
-            "description": "Total number of personas matching the query"
+            "description": "Total number of agents matching the query"
           },
           "offset": {
             "type": "integer",
@@ -5875,10 +5875,10 @@
             ],
             "description": "LLM provider-specific settings for this stage"
           },
-          "personaId": {
+          "agentId": {
             "type": "string",
             "minLength": 1,
-            "description": "ID of the persona associated with this stage"
+            "description": "ID of the agent associated with this stage"
           },
           "enterBehavior": {
             "type": "string",
@@ -5962,7 +5962,7 @@
         "required": [
           "name",
           "prompt",
-          "personaId"
+          "agentId"
         ]
       },
       "UpdateStageRequest": {
@@ -6007,10 +6007,10 @@
             ],
             "description": "Updated LLM provider-specific settings"
           },
-          "personaId": {
+          "agentId": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated persona ID"
+            "description": "Updated agent ID"
           },
           "enterBehavior": {
             "type": "string",
@@ -6154,9 +6154,9 @@
             ],
             "description": "LLM provider-specific settings"
           },
-          "personaId": {
+          "agentId": {
             "type": "string",
-            "description": "ID of the associated persona"
+            "description": "ID of the associated agent"
           },
           "enterBehavior": {
             "type": "string",
@@ -6253,7 +6253,7 @@
           "description",
           "prompt",
           "llmProviderId",
-          "personaId",
+          "agentId",
           "enterBehavior",
           "useKnowledge",
           "knowledgeTags",
@@ -6324,9 +6324,9 @@
                   ],
                   "description": "LLM provider-specific settings"
                 },
-                "personaId": {
+                "agentId": {
                   "type": "string",
-                  "description": "ID of the associated persona"
+                  "description": "ID of the associated agent"
                 },
                 "enterBehavior": {
                   "type": "string",
@@ -6423,7 +6423,7 @@
                 "description",
                 "prompt",
                 "llmProviderId",
-                "personaId",
+                "agentId",
                 "enterBehavior",
                 "useKnowledge",
                 "knowledgeTags",
@@ -10291,7 +10291,7 @@
           },
           "entityType": {
             "type": "string",
-            "description": "Type of the entity (e.g., \"admin\", \"persona\", \"classifier\")"
+            "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
           },
           "oldEntity": {
             "type": "object",
@@ -10359,7 +10359,7 @@
                 },
                 "entityType": {
                   "type": "string",
-                  "description": "Type of the entity (e.g., \"admin\", \"persona\", \"classifier\")"
+                  "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
                 },
                 "oldEntity": {
                   "type": "object",
@@ -10803,21 +10803,21 @@
             "items": {
               "type": "string"
             },
-            "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
+            "description": "Specific project IDs to include. Pulls all child entities (stages, agents, classifiers, etc.) for these projects."
           },
           "stageIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
+            "description": "Specific stage IDs to include. Transitively pulls in the stage's agent, classifiers, context transformers, global actions, and all referenced providers."
           },
-          "personaIds": {
+          "agentIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
+            "description": "Specific agent IDs to include. Pulls in referenced TTS provider."
           },
           "classifierIds": {
             "type": "array",
@@ -10892,12 +10892,12 @@
             },
             "description": "Project stubs that would be included"
           },
-          "personas": {
+          "agents": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EntityStub"
             },
-            "description": "Persona stubs that would be included"
+            "description": "Agent stubs that would be included"
           },
           "classifiers": {
             "type": "array",
@@ -10960,7 +10960,7 @@
           "totalCount",
           "providers",
           "projects",
-          "personas",
+          "agents",
           "classifiers",
           "contextTransformers",
           "tools",
@@ -11017,7 +11017,7 @@
             },
             "description": "Project records"
           },
-          "personas": {
+          "agents": {
             "type": "array",
             "items": {
               "type": "object",
@@ -11025,7 +11025,7 @@
                 "nullable": true
               }
             },
-            "description": "Persona records — depend on projects"
+            "description": "Agent records — depend on projects"
           },
           "classifiers": {
             "type": "array",
@@ -11095,7 +11095,7 @@
                 "nullable": true
               }
             },
-            "description": "Stage records — depend on projects, personas, and classifiers"
+            "description": "Stage records — depend on projects, agents, and classifiers"
           },
           "apiKeys": {
             "type": "array",
@@ -11114,7 +11114,7 @@
           "selection",
           "providers",
           "projects",
-          "personas",
+          "agents",
           "classifiers",
           "contextTransformers",
           "tools",
@@ -12294,7 +12294,7 @@
           "Projects"
         ],
         "summary": "Create a new project",
-        "description": "Creates a new project that groups stages, personas, classifiers, context transformers, tools, knowledge, actions, and issues",
+        "description": "Creates a new project that groups stages, agents, classifiers, context transformers, tools, knowledge, actions, and issues",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13497,7 +13497,7 @@
                           },
                           "entityType": {
                             "type": "string",
-                            "description": "Type of the entity (e.g., \"admin\", \"persona\", \"classifier\")"
+                            "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
                           },
                           "oldEntity": {
                             "type": "object",
@@ -19264,13 +19264,13 @@
         }
       }
     },
-    "/api/projects/{projectId}/personas": {
+    "/api/projects/{projectId}/agents": {
       "post": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Create a new persona",
-        "description": "Creates a new AI persona with specified characteristics and voice configuration",
+        "summary": "Create a new agent",
+        "description": "Creates a new AI agent with specified characteristics and voice configuration",
         "requestBody": {
           "content": {
             "application/json": {
@@ -19280,21 +19280,21 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the persona (auto-generated if not provided)"
+                    "description": "Unique identifier for the agent (auto-generated if not provided)"
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Display name of the persona"
+                    "description": "Display name of the agent"
                   },
                   "description": {
                     "type": "string",
-                    "description": "Detailed description of the persona purpose"
+                    "description": "Detailed description of the agent purpose"
                   },
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Detailed prompt defining the persona's characteristics and behavior"
+                    "description": "Detailed prompt defining the agent's characteristics and behavior"
                   },
                   "ttsProviderId": {
                     "type": "string",
@@ -19329,14 +19329,14 @@
                       "type": "string"
                     },
                     "default": [],
-                    "description": "Tags for categorizing and filtering this persona"
+                    "description": "Tags for categorizing and filtering this agent"
                   },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
                       "nullable": true
                     },
-                    "description": "Additional persona-specific metadata"
+                    "description": "Additional agent-specific metadata"
                   }
                 },
                 "required": [
@@ -19349,7 +19349,7 @@
         },
         "responses": {
           "201": {
-            "description": "Persona created successfully",
+            "description": "Agent created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -19357,24 +19357,24 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the persona"
+                      "description": "Unique identifier for the agent"
                     },
                     "projectId": {
                       "type": "string",
-                      "description": "ID of the project this persona belongs to"
+                      "description": "ID of the project this agent belongs to"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the persona"
+                      "description": "Display name of the agent"
                     },
                     "description": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Detailed description of the persona purpose"
+                      "description": "Detailed description of the agent purpose"
                     },
                     "prompt": {
                       "type": "string",
-                      "description": "Prompt defining the persona's characteristics and behavior"
+                      "description": "Prompt defining the agent's characteristics and behavior"
                     },
                     "ttsProviderId": {
                       "type": "string",
@@ -19409,7 +19409,7 @@
                       "items": {
                         "type": "string"
                       },
-                      "description": "Tags for categorizing and filtering this persona"
+                      "description": "Tags for categorizing and filtering this agent"
                     },
                     "metadata": {
                       "type": "object",
@@ -19417,7 +19417,7 @@
                       "additionalProperties": {
                         "nullable": true
                       },
-                      "description": "Additional persona-specific metadata"
+                      "description": "Additional agent-specific metadata"
                     },
                     "version": {
                       "type": "integer",
@@ -19427,13 +19427,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was created"
+                      "description": "Timestamp when the agent was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was last updated"
+                      "description": "Timestamp when the agent was last updated"
                     }
                   },
                   "required": [
@@ -19457,16 +19457,16 @@
             "description": "Invalid request body"
           },
           "409": {
-            "description": "Persona already exists"
+            "description": "Agent already exists"
           }
         }
       },
       "get": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "List personas",
-        "description": "Retrieves a paginated list of personas with optional filtering",
+        "summary": "List agents",
+        "description": "Retrieves a paginated list of agents with optional filtering",
         "parameters": [
           {
             "schema": {
@@ -19599,7 +19599,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of personas retrieved successfully",
+            "description": "List of agents retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -19612,24 +19612,24 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "description": "Unique identifier for the persona"
+                            "description": "Unique identifier for the agent"
                           },
                           "projectId": {
                             "type": "string",
-                            "description": "ID of the project this persona belongs to"
+                            "description": "ID of the project this agent belongs to"
                           },
                           "name": {
                             "type": "string",
-                            "description": "Display name of the persona"
+                            "description": "Display name of the agent"
                           },
                           "description": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Detailed description of the persona purpose"
+                            "description": "Detailed description of the agent purpose"
                           },
                           "prompt": {
                             "type": "string",
-                            "description": "Prompt defining the persona's characteristics and behavior"
+                            "description": "Prompt defining the agent's characteristics and behavior"
                           },
                           "ttsProviderId": {
                             "type": "string",
@@ -19664,7 +19664,7 @@
                             "items": {
                               "type": "string"
                             },
-                            "description": "Tags for categorizing and filtering this persona"
+                            "description": "Tags for categorizing and filtering this agent"
                           },
                           "metadata": {
                             "type": "object",
@@ -19672,7 +19672,7 @@
                             "additionalProperties": {
                               "nullable": true
                             },
-                            "description": "Additional persona-specific metadata"
+                            "description": "Additional agent-specific metadata"
                           },
                           "version": {
                             "type": "integer",
@@ -19682,13 +19682,13 @@
                             "type": "string",
                             "nullable": true,
                             "format": "date-time",
-                            "description": "Timestamp when the persona was created"
+                            "description": "Timestamp when the agent was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
                             "format": "date-time",
-                            "description": "Timestamp when the persona was last updated"
+                            "description": "Timestamp when the agent was last updated"
                           }
                         },
                         "required": [
@@ -19705,12 +19705,12 @@
                           "updatedAt"
                         ]
                       },
-                      "description": "Array of personas in the current page"
+                      "description": "Array of agents in the current page"
                     },
                     "total": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Total number of personas matching the query"
+                      "description": "Total number of agents matching the query"
                     },
                     "offset": {
                       "type": "integer",
@@ -19741,13 +19741,13 @@
         }
       }
     },
-    "/api/projects/{projectId}/personas/{id}": {
+    "/api/projects/{projectId}/agents/{id}": {
       "get": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Get persona by ID",
-        "description": "Retrieves a single persona by their unique identifier",
+        "summary": "Get agent by ID",
+        "description": "Retrieves a single agent by their unique identifier",
         "parameters": [
           {
             "schema": {
@@ -19763,17 +19763,17 @@
           {
             "schema": {
               "type": "string",
-              "description": "Persona ID"
+              "description": "Agent ID"
             },
             "required": true,
-            "description": "Persona ID",
+            "description": "Agent ID",
             "name": "id",
             "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Persona retrieved successfully",
+            "description": "Agent retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -19781,24 +19781,24 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the persona"
+                      "description": "Unique identifier for the agent"
                     },
                     "projectId": {
                       "type": "string",
-                      "description": "ID of the project this persona belongs to"
+                      "description": "ID of the project this agent belongs to"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the persona"
+                      "description": "Display name of the agent"
                     },
                     "description": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Detailed description of the persona purpose"
+                      "description": "Detailed description of the agent purpose"
                     },
                     "prompt": {
                       "type": "string",
-                      "description": "Prompt defining the persona's characteristics and behavior"
+                      "description": "Prompt defining the agent's characteristics and behavior"
                     },
                     "ttsProviderId": {
                       "type": "string",
@@ -19833,7 +19833,7 @@
                       "items": {
                         "type": "string"
                       },
-                      "description": "Tags for categorizing and filtering this persona"
+                      "description": "Tags for categorizing and filtering this agent"
                     },
                     "metadata": {
                       "type": "object",
@@ -19841,7 +19841,7 @@
                       "additionalProperties": {
                         "nullable": true
                       },
-                      "description": "Additional persona-specific metadata"
+                      "description": "Additional agent-specific metadata"
                     },
                     "version": {
                       "type": "integer",
@@ -19851,13 +19851,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was created"
+                      "description": "Timestamp when the agent was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was last updated"
+                      "description": "Timestamp when the agent was last updated"
                     }
                   },
                   "required": [
@@ -19878,16 +19878,16 @@
             }
           },
           "404": {
-            "description": "Persona not found"
+            "description": "Agent not found"
           }
         }
       },
       "put": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Update persona",
-        "description": "Updates an existing persona with optimistic locking",
+        "summary": "Update agent",
+        "description": "Updates an existing agent with optimistic locking",
         "parameters": [
           {
             "schema": {
@@ -19903,10 +19903,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Persona ID"
+              "description": "Agent ID"
             },
             "required": true,
-            "description": "Persona ID",
+            "description": "Agent ID",
             "name": "id",
             "in": "path"
           }
@@ -19924,7 +19924,7 @@
                   },
                   "description": {
                     "type": "string",
-                    "description": "Updated detailed description of the persona"
+                    "description": "Updated detailed description of the agent"
                   },
                   "prompt": {
                     "type": "string",
@@ -19987,7 +19987,7 @@
         },
         "responses": {
           "200": {
-            "description": "Persona updated successfully",
+            "description": "Agent updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -19995,24 +19995,24 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the persona"
+                      "description": "Unique identifier for the agent"
                     },
                     "projectId": {
                       "type": "string",
-                      "description": "ID of the project this persona belongs to"
+                      "description": "ID of the project this agent belongs to"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the persona"
+                      "description": "Display name of the agent"
                     },
                     "description": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Detailed description of the persona purpose"
+                      "description": "Detailed description of the agent purpose"
                     },
                     "prompt": {
                       "type": "string",
-                      "description": "Prompt defining the persona's characteristics and behavior"
+                      "description": "Prompt defining the agent's characteristics and behavior"
                     },
                     "ttsProviderId": {
                       "type": "string",
@@ -20047,7 +20047,7 @@
                       "items": {
                         "type": "string"
                       },
-                      "description": "Tags for categorizing and filtering this persona"
+                      "description": "Tags for categorizing and filtering this agent"
                     },
                     "metadata": {
                       "type": "object",
@@ -20055,7 +20055,7 @@
                       "additionalProperties": {
                         "nullable": true
                       },
-                      "description": "Additional persona-specific metadata"
+                      "description": "Additional agent-specific metadata"
                     },
                     "version": {
                       "type": "integer",
@@ -20065,13 +20065,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was created"
+                      "description": "Timestamp when the agent was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was last updated"
+                      "description": "Timestamp when the agent was last updated"
                     }
                   },
                   "required": [
@@ -20095,7 +20095,7 @@
             "description": "Invalid request body"
           },
           "404": {
-            "description": "Persona not found"
+            "description": "Agent not found"
           },
           "409": {
             "description": "Version conflict - entity was modified"
@@ -20104,10 +20104,10 @@
       },
       "delete": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Delete persona",
-        "description": "Deletes a persona with optimistic locking",
+        "summary": "Delete agent",
+        "description": "Deletes an agent with optimistic locking",
         "parameters": [
           {
             "schema": {
@@ -20123,10 +20123,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Persona ID"
+              "description": "Agent ID"
             },
             "required": true,
-            "description": "Persona ID",
+            "description": "Agent ID",
             "name": "id",
             "in": "path"
           }
@@ -20152,13 +20152,13 @@
         },
         "responses": {
           "204": {
-            "description": "Persona deleted successfully"
+            "description": "Agent deleted successfully"
           },
           "400": {
             "description": "Invalid request body"
           },
           "404": {
-            "description": "Persona not found"
+            "description": "Agent not found"
           },
           "409": {
             "description": "Version conflict - entity was modified"
@@ -20166,13 +20166,13 @@
         }
       }
     },
-    "/api/projects/{projectId}/personas/{id}/audit-logs": {
+    "/api/projects/{projectId}/agents/{id}/audit-logs": {
       "get": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Get persona audit logs",
-        "description": "Retrieves audit logs for a specific persona",
+        "summary": "Get agent audit logs",
+        "description": "Retrieves audit logs for a specific agent",
         "parameters": [
           {
             "schema": {
@@ -20188,10 +20188,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Persona ID"
+              "description": "Agent ID"
             },
             "required": true,
-            "description": "Persona ID",
+            "description": "Agent ID",
             "name": "id",
             "in": "path"
           }
@@ -20201,18 +20201,18 @@
             "description": "Audit logs retrieved successfully"
           },
           "404": {
-            "description": "Persona not found"
+            "description": "Agent not found"
           }
         }
       }
     },
-    "/api/projects/{projectId}/personas/{id}/clone": {
+    "/api/projects/{projectId}/agents/{id}/clone": {
       "post": {
         "tags": [
-          "Personas"
+          "Agents"
         ],
-        "summary": "Clone persona",
-        "description": "Creates a copy of an existing persona with a new ID and optional name override",
+        "summary": "Clone agent",
+        "description": "Creates a copy of an existing agent with a new ID and optional name override",
         "parameters": [
           {
             "schema": {
@@ -20228,10 +20228,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Persona ID"
+              "description": "Agent ID"
             },
             "required": true,
-            "description": "Persona ID",
+            "description": "Agent ID",
             "name": "id",
             "in": "path"
           }
@@ -20245,12 +20245,12 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "New ID for the cloned persona (auto-generated if not provided)"
+                    "description": "New ID for the cloned agent (auto-generated if not provided)"
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Name for the cloned persona (defaults to \"{original name} (Clone)\")"
+                    "description": "Name for the cloned agent (defaults to \"{original name} (Clone)\")"
                   }
                 }
               }
@@ -20259,7 +20259,7 @@
         },
         "responses": {
           "201": {
-            "description": "Persona cloned successfully",
+            "description": "Agent cloned successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -20267,24 +20267,24 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the persona"
+                      "description": "Unique identifier for the agent"
                     },
                     "projectId": {
                       "type": "string",
-                      "description": "ID of the project this persona belongs to"
+                      "description": "ID of the project this agent belongs to"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the persona"
+                      "description": "Display name of the agent"
                     },
                     "description": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Detailed description of the persona purpose"
+                      "description": "Detailed description of the agent purpose"
                     },
                     "prompt": {
                       "type": "string",
-                      "description": "Prompt defining the persona's characteristics and behavior"
+                      "description": "Prompt defining the agent's characteristics and behavior"
                     },
                     "ttsProviderId": {
                       "type": "string",
@@ -20319,7 +20319,7 @@
                       "items": {
                         "type": "string"
                       },
-                      "description": "Tags for categorizing and filtering this persona"
+                      "description": "Tags for categorizing and filtering this agent"
                     },
                     "metadata": {
                       "type": "object",
@@ -20327,7 +20327,7 @@
                       "additionalProperties": {
                         "nullable": true
                       },
-                      "description": "Additional persona-specific metadata"
+                      "description": "Additional agent-specific metadata"
                     },
                     "version": {
                       "type": "integer",
@@ -20337,13 +20337,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was created"
+                      "description": "Timestamp when the agent was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the persona was last updated"
+                      "description": "Timestamp when the agent was last updated"
                     }
                   },
                   "required": [
@@ -20367,7 +20367,7 @@
             "description": "Invalid request body"
           },
           "404": {
-            "description": "Persona not found"
+            "description": "Agent not found"
           }
         }
       }
@@ -23952,11 +23952,11 @@
                   }
                 }
               ],
-              "description": "Specific persona IDs to export."
+              "description": "Specific agent IDs to export."
             },
             "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
+            "description": "Specific agent IDs to export.",
+            "name": "agentIds",
             "in": "query"
           },
           {
@@ -24153,21 +24153,21 @@
                         "items": {
                           "type": "string"
                         },
-                        "description": "Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects."
+                        "description": "Specific project IDs to include. Pulls all child entities (stages, agents, classifiers, etc.) for these projects."
                       },
                       "stageIds": {
                         "type": "array",
                         "items": {
                           "type": "string"
                         },
-                        "description": "Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers."
+                        "description": "Specific stage IDs to include. Transitively pulls in the stage's agent, classifiers, context transformers, global actions, and all referenced providers."
                       },
-                      "personaIds": {
+                      "agentIds": {
                         "type": "array",
                         "items": {
                           "type": "string"
                         },
-                        "description": "Specific persona IDs to include. Pulls in referenced TTS provider."
+                        "description": "Specific agent IDs to include. Pulls in referenced TTS provider."
                       },
                       "classifierIds": {
                         "type": "array",
@@ -26441,10 +26441,10 @@
                     ],
                     "description": "LLM provider-specific settings for this stage"
                   },
-                  "personaId": {
+                  "agentId": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "ID of the persona associated with this stage"
+                    "description": "ID of the agent associated with this stage"
                   },
                   "enterBehavior": {
                     "type": "string",
@@ -26528,7 +26528,7 @@
                 "required": [
                   "name",
                   "prompt",
-                  "personaId"
+                  "agentId"
                 ]
               }
             }
@@ -26588,9 +26588,9 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
-                    "personaId": {
+                    "agentId": {
                       "type": "string",
-                      "description": "ID of the associated persona"
+                      "description": "ID of the associated agent"
                     },
                     "enterBehavior": {
                       "type": "string",
@@ -26687,7 +26687,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
-                    "personaId",
+                    "agentId",
                     "enterBehavior",
                     "useKnowledge",
                     "knowledgeTags",
@@ -26910,9 +26910,9 @@
                             ],
                             "description": "LLM provider-specific settings"
                           },
-                          "personaId": {
+                          "agentId": {
                             "type": "string",
-                            "description": "ID of the associated persona"
+                            "description": "ID of the associated agent"
                           },
                           "enterBehavior": {
                             "type": "string",
@@ -27009,7 +27009,7 @@
                           "description",
                           "prompt",
                           "llmProviderId",
-                          "personaId",
+                          "agentId",
                           "enterBehavior",
                           "useKnowledge",
                           "knowledgeTags",
@@ -27147,9 +27147,9 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
-                    "personaId": {
+                    "agentId": {
                       "type": "string",
-                      "description": "ID of the associated persona"
+                      "description": "ID of the associated agent"
                     },
                     "enterBehavior": {
                       "type": "string",
@@ -27246,7 +27246,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
-                    "personaId",
+                    "agentId",
                     "enterBehavior",
                     "useKnowledge",
                     "knowledgeTags",
@@ -27346,10 +27346,10 @@
                     ],
                     "description": "Updated LLM provider-specific settings"
                   },
-                  "personaId": {
+                  "agentId": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Updated persona ID"
+                    "description": "Updated agent ID"
                   },
                   "enterBehavior": {
                     "type": "string",
@@ -27488,9 +27488,9 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
-                    "personaId": {
+                    "agentId": {
                       "type": "string",
-                      "description": "ID of the associated persona"
+                      "description": "ID of the associated agent"
                     },
                     "enterBehavior": {
                       "type": "string",
@@ -27587,7 +27587,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
-                    "personaId",
+                    "agentId",
                     "enterBehavior",
                     "useKnowledge",
                     "knowledgeTags",
@@ -27830,9 +27830,9 @@
                       ],
                       "description": "LLM provider-specific settings"
                     },
-                    "personaId": {
+                    "agentId": {
                       "type": "string",
-                      "description": "ID of the associated persona"
+                      "description": "ID of the associated agent"
                     },
                     "enterBehavior": {
                       "type": "string",
@@ -27929,7 +27929,7 @@
                     "description",
                     "prompt",
                     "llmProviderId",
-                    "personaId",
+                    "agentId",
                     "enterBehavior",
                     "useKnowledge",
                     "knowledgeTags",
@@ -30408,6 +30408,234 @@
         }
       }
     },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "List all API keys",
+        "description": "Retrieves a list of all API keys across all projects with optional filtering, sorting, and pagination.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "description": "Maximum number of items to return (optional, null for no limit)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (optional, null for no limit)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All API keys retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the API key"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "The ID of the project this API key belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Descriptive name for the API key"
+                          },
+                          "key": {
+                            "type": "string",
+                            "description": "The secret API key string (only included when creating a new key)"
+                          },
+                          "keyPreview": {
+                            "type": "string",
+                            "description": "First few characters of the key for identification"
+                          },
+                          "lastUsedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ISO timestamp of when the key was last used"
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "description": "Whether the API key is active"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "number",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of creation"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "description": "ISO timestamp of last update"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "lastUsedAt",
+                          "isActive",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of API keys"
+                    },
+                    "total": {
+                      "type": "number",
+                      "description": "Total number of API keys matching the query"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "tags": [
@@ -30491,11 +30719,11 @@
                   }
                 }
               ],
-              "description": "Specific persona IDs to export."
+              "description": "Specific agent IDs to export."
             },
             "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
+            "description": "Specific agent IDs to export.",
+            "name": "agentIds",
             "in": "query"
           },
           {
@@ -30662,7 +30890,7 @@
           "Migration"
         ],
         "summary": "Export config bundle",
-        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.",
+        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.",
         "parameters": [
           {
             "schema": {
@@ -30717,11 +30945,11 @@
                   }
                 }
               ],
-              "description": "Specific persona IDs to export."
+              "description": "Specific agent IDs to export."
             },
             "required": false,
-            "description": "Specific persona IDs to export.",
-            "name": "personaIds",
+            "description": "Specific agent IDs to export.",
+            "name": "agentIds",
             "in": "query"
           },
           {

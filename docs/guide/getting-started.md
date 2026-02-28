@@ -46,9 +46,9 @@ You can add more providers later for voice synthesis (TTS), speech recognition (
 
 With a project and a provider in place, you can start designing:
 
-### 1. Create a Persona
+### 1. Create a Agent
 
-Go to **Design > Personas** and create a persona. This defines the AI's personality:
+Go to **Design > Agents** and create a agent. This defines the AI's personality:
 
 - **Name** — e.g., "Friendly Agent"
 - **Personality Prompt** — Describe how the AI should behave: _"You are a warm, professional customer service agent. You use simple language and always confirm you've understood the customer before moving on."_
@@ -60,7 +60,7 @@ Go to **Design > Stages** and create your first stage. Think of a stage as a ste
 
 - **Name** — e.g., "Greeting"
 - **Prompt** — The instructions for the AI at this step: _"Welcome the customer and ask how you can help."_
-- **Persona** — Select the persona you just created.
+- **Agent** — Select the agent you just created.
 - **LLM Provider** — Select the language model provider you configured.
 - **Enter Behavior** — Choose "Generate response" so the AI speaks first when a conversation starts.
 
@@ -70,7 +70,7 @@ Go to **Administration > API Keys** (or the project's API Keys section) and crea
 
 ### 4. Test It
 
-Use the **Playground** to start a test conversation and see your AI in action. You can send text messages and see how the assistant responds based on your stage prompt and persona.
+Use the **Playground** to start a test conversation and see your AI in action. You can send text messages and see how the assistant responds based on your stage prompt and agent.
 
 ## What's Next?
 

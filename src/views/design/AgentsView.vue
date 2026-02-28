@@ -1,89 +1,89 @@
 <script setup lang="ts">
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePersonasStore, useProjectSelectionStore } from '@/stores'
+import { useAgentsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Drama, Search, X } from 'lucide-vue-next'
-import type { PersonaResponse } from '@/api/types'
+import type { AgentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
-const personasStore = usePersonasStore()
+const agentsStore = useAgentsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // Sorting
-const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-personas')
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-agents')
 
 // Pagination
 const pagination = usePagination({
-  store: personasStore,
+  store: agentsStore,
   pageSize: 20,
-  onPageChange: loadPersonas
+  onPageChange: loadAgents
 })
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // Search
-const { searchQuery, filteredItems: filteredPersonas, clearSearch } = useSearch(
-  () => personasStore.items,
-  (persona, query) => persona.name.toLowerCase().includes(query)
+const { searchQuery, filteredItems: filteredAgents, clearSearch } = useSearch(
+  () => agentsStore.items,
+  (agent, query) => agent.name.toLowerCase().includes(query)
 )
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
-  loadPersonas()
+  loadAgents()
 })
 
 // Watch for projectId changes
 watch(projectId, () => {
   clearSearch()
   pagination.reset()
-  loadPersonas()
+  loadAgents()
 })
 
 // Lifecycle
 onMounted(async () => {
-  await loadPersonas()
+  await loadAgents()
 })
 
 // Methods
-async function loadPersonas() {
+async function loadAgents() {
   try {
     const orderBy = getOrderBy()
-    await personasStore.fetchAll(
+    await agentsStore.fetchAll(
       projectId.value,
       pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
     )
   } catch (error) {
-    console.error('Failed to load personas:', error)
+    console.error('Failed to load agents:', error)
   }
 }
 
-function createPersona() {
+function createAgent() {
   router.push({
-    name: 'design.personas.create',
+    name: 'design.agents.create',
     params: { projectId: projectId.value }
   })
 }
 
-function editPersona(persona: PersonaResponse) {
+function editAgent(agent: AgentResponse) {
   router.push({
-    name: 'design.personas.edit',
+    name: 'design.agents.edit',
     params: {
       projectId: projectId.value,
-      personaId: persona.id
+      agentId: agent.id
     }
   })
 }
 
-async function deletePersona(persona: PersonaResponse) {
-  if (!confirm(`Delete persona "${persona.name}" (${persona.id})?\n\nThis action cannot be undone.`)) return
+async function deleteAgent(agent: AgentResponse) {
+  if (!confirm(`Delete agent "${agent.name}" (${agent.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await personasStore.remove(projectId.value, persona.id, persona.version)
+    await agentsStore.remove(projectId.value, agent.id, agent.version)
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to delete persona')
+    alert(error.response?.data?.message || 'Failed to delete agent')
   }
 }
 
@@ -100,12 +100,12 @@ function formatDate(date: string | null) {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Personas</h1>
-        <p class="page-subtitle">Manage AI personas for this project</p>
+        <h1 class="page-title">Agents</h1>
+        <p class="page-subtitle">Manage AI agents for this project</p>
       </div>
-      <button @click="createPersona" class="btn-primary">
+      <button @click="createAgent" class="btn-primary">
         <Drama class="inline-block mr-2 w-4 h-4" />
-        New Persona
+        New Agent
       </button>
     </div>
 
@@ -119,21 +119,21 @@ function formatDate(date: string | null) {
     </div>
 
     <!-- Loading State -->
-    <div v-if="personasStore.isLoading" class="loading-state">
-      Loading personas...
+    <div v-if="agentsStore.isLoading" class="loading-state">
+      Loading agents...
     </div>
 
     <!-- Error State -->
-    <div v-else-if="personasStore.error" class="error-state">
-      {{ personasStore.error }}
+    <div v-else-if="agentsStore.error" class="error-state">
+      {{ agentsStore.error }}
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="filteredPersonas.length === 0" class="empty-state">
+    <div v-else-if="filteredAgents.length === 0" class="empty-state">
       <Drama class="empty-state-icon" />
-      <p class="empty-state-title">No personas found</p>
+      <p class="empty-state-title">No agents found</p>
       <p v-if="searchQuery">Try adjusting your search criteria</p>
-      <p v-else>Create your first persona to get started</p>
+      <p v-else>Create your first agent to get started</p>
     </div>
 
     <!-- Table -->
@@ -159,24 +159,24 @@ function formatDate(date: string | null) {
             </tr>
           </thead>
           <tbody class="table-body">
-            <tr v-for="persona in filteredPersonas" :key="persona.id" class="table-row">
+            <tr v-for="agent in filteredAgents" :key="agent.id" class="table-row">
               <td class="table-clickable-cell"
-                @click="editPersona(persona)">
-                {{ persona.name }}
+                @click="editAgent(agent)">
+                {{ agent.name }}
               </td>
               <td class="table-cell">
-                <div v-if="persona.tags?.length" class="tag-list">
-                  <span v-for="tag in persona.tags" :key="tag" class="tag-item">{{ tag }}</span>
+                <div v-if="agent.tags?.length" class="tag-list">
+                  <span v-for="tag in agent.tags" :key="tag" class="tag-item">{{ tag }}</span>
                 </div>
                 <span v-else class="text-gray-400">—</span>
               </td>
-              <td class="table-cell-muted">{{ formatDate(persona.updatedAt) }}</td>
+              <td class="table-cell-muted">{{ formatDate(agent.updatedAt) }}</td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editPersona(persona)" class="btn-secondary btn-sm">
+                  <button @click="editAgent(agent)" class="btn-secondary btn-sm">
                     Edit
                   </button>
-                  <button @click="deletePersona(persona)" class="btn-danger btn-sm">
+                  <button @click="deleteAgent(agent)" class="btn-danger btn-sm">
                     Delete
                   </button>
                 </div>
@@ -187,8 +187,8 @@ function formatDate(date: string | null) {
       </div>
 
       <!-- Pagination Controls -->
-      <PaginationControls :pagination="pagination" :displayed-count="filteredPersonas.length"
-        resource-name="personas" />
+      <PaginationControls :pagination="pagination" :displayed-count="filteredAgents.length"
+        resource-name="agents" />
     </div>
   </div>
 </template>

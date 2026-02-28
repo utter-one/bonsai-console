@@ -34,7 +34,7 @@ const isInEditOrDetailView = computed(() => {
   
   // Check for edit/create/detail routes by looking at route params
   const hasResourceId = 
-    !!route.params.personaId ||
+    !!route.params.agentId ||
     !!route.params.stageId ||
     !!route.params.classifierId ||
     !!route.params.globalActionId ||

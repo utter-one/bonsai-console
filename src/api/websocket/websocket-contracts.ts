@@ -680,9 +680,9 @@ export interface StartConversationRequest {
    */
   userId: string;
   /**
-   * Optional persona ID for the conversation
+   * Optional agent ID for the conversation
    */
-  personaId?: string;
+  agentId?: string;
   /**
    * Stage ID to initiate the conversation at a specific stage
    */

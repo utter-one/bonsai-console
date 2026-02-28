@@ -116,7 +116,7 @@ export interface WebSocketClientConfig {
 export interface StartConversationOptions {
   userId: string
   stageId: string
-  personaId?: string
+  agentId?: string
   timezone?: string
 }
 
@@ -265,7 +265,7 @@ export class NexusWebSocketClient {
       sessionId: this.sessionId!,
       userId: options.userId,
       stageId: options.stageId,
-      personaId: options.personaId,
+      agentId: options.agentId,
       timezone: options.timezone,
     } as StartConversationRequest, (response) => {
       if (response.success && response.conversationId) {

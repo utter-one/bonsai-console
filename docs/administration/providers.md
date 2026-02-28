@@ -30,7 +30,7 @@ These convert the AI's text responses into spoken audio.
 | **Deepgram** | Low-latency streaming voices |
 | **Cartesia** | Low-latency, multilingual |
 
-**Used by:** Personas (voice configuration).
+**Used by:** Agents (voice configuration).
 
 ### ASR — Automatic Speech Recognition
 
@@ -85,7 +85,7 @@ The exact fields vary by provider — the form dynamically shows the relevant se
 | Resource | Provider Type |
 |---|---|
 | **Project** | ASR (speech input), Storage (artifacts) |
-| **Persona** | TTS (voice output) |
+| **Agent** | TTS (voice output) |
 | **Stage** | LLM (response generation) |
 | **Classifier** | LLM (intent classification) |
 | **Context Transformer** | LLM (data extraction) |

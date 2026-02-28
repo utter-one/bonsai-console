@@ -31,7 +31,7 @@ export const useAdminsStore = defineStore('admins', () => {
 
 ### Routing Structure
 Three main sections with nested routes:
-- **Design** (`/design`) - Project-specific tools (personas, stages, classifiers, etc.)
+- **Design** (`/design`) - Project-specific tools (agents, stages, classifiers, etc.)
   - All routes require `projectId` param
 - **Monitor** (`/monitor`) - Conversations, users, issues, audit logs
 - **Administration** (`/administration`) - Admins, projects, environments, providers
@@ -113,7 +113,7 @@ src/
 
 ### MetadataTab Component
 Unified component for displaying read-only metadata in edit views:
-- Used in all edit views (Admin, Provider, Persona, Classifier, etc.)
+- Used in all edit views (Admin, Provider, Agent, Classifier, etc.)
 - Displays resource metadata (ID, version, timestamps, etc.)
 - Props: `fields` array with `{ label, value, format? }` structure
 - Format options: `'date'` (auto-formats timestamps), `'mono'` (monospace font), `'default'`

@@ -680,7 +680,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates a new project that groups stages, personas, classifiers, context transformers, tools, knowledge, actions, and issues
+   * @description Creates a new project that groups stages, agents, classifiers, context transformers, tools, knowledge, actions, and issues
    *
    * @tags Projects
    * @name ProjectsCreate
@@ -1181,7 +1181,7 @@ export class Api<
           action: string;
           /** ID of the entity that was modified */
           entityId: string;
-          /** Type of the entity (e.g., "admin", "persona", "classifier") */
+          /** Type of the entity (e.g., "admin", "agent", "classifier") */
           entityType: string;
           /** Entity state before the change */
           oldEntity: Record<string, any>;
@@ -3589,31 +3589,31 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates a new AI persona with specified characteristics and voice configuration
+   * @description Creates a new AI agent with specified characteristics and voice configuration
    *
-   * @tags Personas
-   * @name ProjectsPersonasCreate
-   * @summary Create a new persona
-   * @request POST:/api/projects/{projectId}/personas
+   * @tags Agents
+   * @name ProjectsAgentsCreate
+   * @summary Create a new agent
+   * @request POST:/api/projects/{projectId}/agents
    * @secure
    */
-  projectsPersonasCreate = (
+  projectsAgentsCreate = (
     projectId: string,
     data: {
       /**
-       * Unique identifier for the persona (auto-generated if not provided)
+       * Unique identifier for the agent (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
       /**
-       * Display name of the persona
+       * Display name of the agent
        * @minLength 1
        */
       name: string;
-      /** Detailed description of the persona purpose */
+      /** Detailed description of the agent purpose */
       description?: string;
       /**
-       * Detailed prompt defining the persona's characteristics and behavior
+       * Detailed prompt defining the agent's characteristics and behavior
        * @minLength 1
        */
       prompt: string;
@@ -3627,26 +3627,26 @@ export class Api<
         | CartesiaTtsSettings
         | AzureTtsSettings;
       /**
-       * Tags for categorizing and filtering this persona
+       * Tags for categorizing and filtering this agent
        * @default []
        */
       tags?: string[];
-      /** Additional persona-specific metadata */
+      /** Additional agent-specific metadata */
       metadata?: Record<string, any>;
     },
     params: RequestParams = {},
   ) =>
     this.request<
       {
-        /** Unique identifier for the persona */
+        /** Unique identifier for the agent */
         id: string;
-        /** ID of the project this persona belongs to */
+        /** ID of the project this agent belongs to */
         projectId: string;
-        /** Display name of the persona */
+        /** Display name of the agent */
         name: string;
-        /** Detailed description of the persona purpose */
+        /** Detailed description of the agent purpose */
         description: string | null;
-        /** Prompt defining the persona's characteristics and behavior */
+        /** Prompt defining the agent's characteristics and behavior */
         prompt: string;
         /** ID of the TTS provider */
         ttsProviderId: string | null;
@@ -3657,26 +3657,26 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
-        /** Tags for categorizing and filtering this persona */
+        /** Tags for categorizing and filtering this agent */
         tags: string[];
-        /** Additional persona-specific metadata */
+        /** Additional agent-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the persona was created
+         * Timestamp when the agent was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the persona was last updated
+         * Timestamp when the agent was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/projects/${projectId}/personas`,
+      path: `/api/projects/${projectId}/agents`,
       method: "POST",
       body: data,
       secure: true,
@@ -3685,15 +3685,15 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of personas with optional filtering
+   * @description Retrieves a paginated list of agents with optional filtering
    *
-   * @tags Personas
-   * @name ProjectsPersonasList
-   * @summary List personas
-   * @request GET:/api/projects/{projectId}/personas
+   * @tags Agents
+   * @name ProjectsAgentsList
+   * @summary List agents
+   * @request GET:/api/projects/{projectId}/agents
    * @secure
    */
-  projectsPersonasList = (
+  projectsAgentsList = (
     projectId: string,
     query?: {
       /**
@@ -3730,17 +3730,17 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Array of personas in the current page */
+        /** Array of agents in the current page */
         items: {
-          /** Unique identifier for the persona */
+          /** Unique identifier for the agent */
           id: string;
-          /** ID of the project this persona belongs to */
+          /** ID of the project this agent belongs to */
           projectId: string;
-          /** Display name of the persona */
+          /** Display name of the agent */
           name: string;
-          /** Detailed description of the persona purpose */
+          /** Detailed description of the agent purpose */
           description: string | null;
-          /** Prompt defining the persona's characteristics and behavior */
+          /** Prompt defining the agent's characteristics and behavior */
           prompt: string;
           /** ID of the TTS provider */
           ttsProviderId: string | null;
@@ -3751,25 +3751,25 @@ export class Api<
             | DeepgramTtsSettings
             | CartesiaTtsSettings
             | AzureTtsSettings;
-          /** Tags for categorizing and filtering this persona */
+          /** Tags for categorizing and filtering this agent */
           tags: string[];
-          /** Additional persona-specific metadata */
+          /** Additional agent-specific metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
           version: number;
           /**
-           * Timestamp when the persona was created
+           * Timestamp when the agent was created
            * @format date-time
            */
           createdAt: string | null;
           /**
-           * Timestamp when the persona was last updated
+           * Timestamp when the agent was last updated
            * @format date-time
            */
           updatedAt: string | null;
         }[];
         /**
-         * Total number of personas matching the query
+         * Total number of agents matching the query
          * @min 0
          */
         total: number;
@@ -3787,7 +3787,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/projects/${projectId}/personas`,
+      path: `/api/projects/${projectId}/agents`,
       method: "GET",
       query: query,
       secure: true,
@@ -3795,30 +3795,30 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a single persona by their unique identifier
+   * @description Retrieves a single agent by their unique identifier
    *
-   * @tags Personas
-   * @name ProjectsPersonasDetail
-   * @summary Get persona by ID
-   * @request GET:/api/projects/{projectId}/personas/{id}
+   * @tags Agents
+   * @name ProjectsAgentsDetail
+   * @summary Get agent by ID
+   * @request GET:/api/projects/{projectId}/agents/{id}
    * @secure
    */
-  projectsPersonasDetail = (
+  projectsAgentsDetail = (
     projectId: string,
     id: string,
     params: RequestParams = {},
   ) =>
     this.request<
       {
-        /** Unique identifier for the persona */
+        /** Unique identifier for the agent */
         id: string;
-        /** ID of the project this persona belongs to */
+        /** ID of the project this agent belongs to */
         projectId: string;
-        /** Display name of the persona */
+        /** Display name of the agent */
         name: string;
-        /** Detailed description of the persona purpose */
+        /** Detailed description of the agent purpose */
         description: string | null;
-        /** Prompt defining the persona's characteristics and behavior */
+        /** Prompt defining the agent's characteristics and behavior */
         prompt: string;
         /** ID of the TTS provider */
         ttsProviderId: string | null;
@@ -3829,41 +3829,41 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
-        /** Tags for categorizing and filtering this persona */
+        /** Tags for categorizing and filtering this agent */
         tags: string[];
-        /** Additional persona-specific metadata */
+        /** Additional agent-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the persona was created
+         * Timestamp when the agent was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the persona was last updated
+         * Timestamp when the agent was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/projects/${projectId}/personas/${id}`,
+      path: `/api/projects/${projectId}/agents/${id}`,
       method: "GET",
       secure: true,
       format: "json",
       ...params,
     });
   /**
-   * @description Updates an existing persona with optimistic locking
+   * @description Updates an existing agent with optimistic locking
    *
-   * @tags Personas
-   * @name ProjectsPersonasUpdate
-   * @summary Update persona
-   * @request PUT:/api/projects/{projectId}/personas/{id}
+   * @tags Agents
+   * @name ProjectsAgentsUpdate
+   * @summary Update agent
+   * @request PUT:/api/projects/{projectId}/agents/{id}
    * @secure
    */
-  projectsPersonasUpdate = (
+  projectsAgentsUpdate = (
     projectId: string,
     id: string,
     data: {
@@ -3872,7 +3872,7 @@ export class Api<
        * @minLength 1
        */
       name?: string;
-      /** Updated detailed description of the persona */
+      /** Updated detailed description of the agent */
       description?: string;
       /**
        * Updated prompt defining behavior
@@ -3902,15 +3902,15 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Unique identifier for the persona */
+        /** Unique identifier for the agent */
         id: string;
-        /** ID of the project this persona belongs to */
+        /** ID of the project this agent belongs to */
         projectId: string;
-        /** Display name of the persona */
+        /** Display name of the agent */
         name: string;
-        /** Detailed description of the persona purpose */
+        /** Detailed description of the agent purpose */
         description: string | null;
-        /** Prompt defining the persona's characteristics and behavior */
+        /** Prompt defining the agent's characteristics and behavior */
         prompt: string;
         /** ID of the TTS provider */
         ttsProviderId: string | null;
@@ -3921,26 +3921,26 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
-        /** Tags for categorizing and filtering this persona */
+        /** Tags for categorizing and filtering this agent */
         tags: string[];
-        /** Additional persona-specific metadata */
+        /** Additional agent-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the persona was created
+         * Timestamp when the agent was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the persona was last updated
+         * Timestamp when the agent was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/projects/${projectId}/personas/${id}`,
+      path: `/api/projects/${projectId}/agents/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -3949,15 +3949,15 @@ export class Api<
       ...params,
     });
   /**
-   * @description Deletes a persona with optimistic locking
+   * @description Deletes an agent with optimistic locking
    *
-   * @tags Personas
-   * @name ProjectsPersonasDelete
-   * @summary Delete persona
-   * @request DELETE:/api/projects/{projectId}/personas/{id}
+   * @tags Agents
+   * @name ProjectsAgentsDelete
+   * @summary Delete agent
+   * @request DELETE:/api/projects/{projectId}/agents/{id}
    * @secure
    */
-  projectsPersonasDelete = (
+  projectsAgentsDelete = (
     projectId: string,
     id: string,
     data: {
@@ -3970,7 +3970,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/projects/${projectId}/personas/${id}`,
+      path: `/api/projects/${projectId}/agents/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -3978,45 +3978,45 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves audit logs for a specific persona
+   * @description Retrieves audit logs for a specific agent
    *
-   * @tags Personas
-   * @name ProjectsPersonasAuditLogsList
-   * @summary Get persona audit logs
-   * @request GET:/api/projects/{projectId}/personas/{id}/audit-logs
+   * @tags Agents
+   * @name ProjectsAgentsAuditLogsList
+   * @summary Get agent audit logs
+   * @request GET:/api/projects/{projectId}/agents/{id}/audit-logs
    * @secure
    */
-  projectsPersonasAuditLogsList = (
+  projectsAgentsAuditLogsList = (
     projectId: string,
     id: string,
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/projects/${projectId}/personas/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/agents/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
     });
   /**
-   * @description Creates a copy of an existing persona with a new ID and optional name override
+   * @description Creates a copy of an existing agent with a new ID and optional name override
    *
-   * @tags Personas
-   * @name ProjectsPersonasCloneCreate
-   * @summary Clone persona
-   * @request POST:/api/projects/{projectId}/personas/{id}/clone
+   * @tags Agents
+   * @name ProjectsAgentsCloneCreate
+   * @summary Clone agent
+   * @request POST:/api/projects/{projectId}/agents/{id}/clone
    * @secure
    */
-  projectsPersonasCloneCreate = (
+  projectsAgentsCloneCreate = (
     projectId: string,
     id: string,
     data: {
       /**
-       * New ID for the cloned persona (auto-generated if not provided)
+       * New ID for the cloned agent (auto-generated if not provided)
        * @minLength 1
        */
       id?: string;
       /**
-       * Name for the cloned persona (defaults to "{original name} (Clone)")
+       * Name for the cloned agent (defaults to "{original name} (Clone)")
        * @minLength 1
        */
       name?: string;
@@ -4025,15 +4025,15 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Unique identifier for the persona */
+        /** Unique identifier for the agent */
         id: string;
-        /** ID of the project this persona belongs to */
+        /** ID of the project this agent belongs to */
         projectId: string;
-        /** Display name of the persona */
+        /** Display name of the agent */
         name: string;
-        /** Detailed description of the persona purpose */
+        /** Detailed description of the agent purpose */
         description: string | null;
-        /** Prompt defining the persona's characteristics and behavior */
+        /** Prompt defining the agent's characteristics and behavior */
         prompt: string;
         /** ID of the TTS provider */
         ttsProviderId: string | null;
@@ -4044,26 +4044,26 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings;
-        /** Tags for categorizing and filtering this persona */
+        /** Tags for categorizing and filtering this agent */
         tags: string[];
-        /** Additional persona-specific metadata */
+        /** Additional agent-specific metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the persona was created
+         * Timestamp when the agent was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the persona was last updated
+         * Timestamp when the agent was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/projects/${projectId}/personas/${id}/clone`,
+      path: `/api/projects/${projectId}/agents/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
@@ -5443,8 +5443,8 @@ export class Api<
       projectIds?: string | string[];
       /** Specific stage IDs to export. */
       stageIds?: string | string[];
-      /** Specific persona IDs to export. */
-      personaIds?: string | string[];
+      /** Specific agent IDs to export. */
+      agentIds?: string | string[];
       /** Specific classifier IDs to export. */
       classifierIds?: string | string[];
       /** Specific context transformer IDs to export. */
@@ -5487,12 +5487,12 @@ export class Api<
        * @default {}
        */
       selection?: {
-        /** Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects. */
+        /** Specific project IDs to include. Pulls all child entities (stages, agents, classifiers, etc.) for these projects. */
         projectIds?: string[];
-        /** Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers. */
+        /** Specific stage IDs to include. Transitively pulls in the stage's agent, classifiers, context transformers, global actions, and all referenced providers. */
         stageIds?: string[];
-        /** Specific persona IDs to include. Pulls in referenced TTS provider. */
-        personaIds?: string[];
+        /** Specific agent IDs to include. Pulls in referenced TTS provider. */
+        agentIds?: string[];
         /** Specific classifier IDs to include. Pulls in referenced LLM provider. */
         classifierIds?: string[];
         /** Specific context transformer IDs to include. Pulls in referenced LLM provider. */
@@ -6535,10 +6535,10 @@ export class Api<
         | AnthropicLlmSettings
         | GeminiLlmSettings;
       /**
-       * ID of the persona associated with this stage
+       * ID of the agent associated with this stage
        * @minLength 1
        */
-      personaId: string;
+      agentId: string;
       /**
        * What should happen when entering the stage
        * @default "generate_response"
@@ -6608,8 +6608,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** ID of the associated persona */
-        personaId: string;
+        /** ID of the associated agent */
+        agentId: string;
         /** What happens when entering the stage */
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
@@ -6721,8 +6721,8 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings;
-          /** ID of the associated persona */
-          personaId: string;
+          /** ID of the associated agent */
+          agentId: string;
           /** What happens when entering the stage */
           enterBehavior: "generate_response" | "await_user_input";
           /** Whether knowledge base is enabled */
@@ -6818,8 +6818,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** ID of the associated persona */
-        personaId: string;
+        /** ID of the associated agent */
+        agentId: string;
         /** What happens when entering the stage */
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
@@ -6897,10 +6897,10 @@ export class Api<
         | AnthropicLlmSettings
         | GeminiLlmSettings;
       /**
-       * Updated persona ID
+       * Updated agent ID
        * @minLength 1
        */
-      personaId?: string;
+      agentId?: string;
       /** Updated behavior when entering this stage */
       enterBehavior?: "generate_response" | "await_user_input";
       /** Updated knowledge usage flag */
@@ -6951,8 +6951,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** ID of the associated persona */
-        personaId: string;
+        /** ID of the associated agent */
+        agentId: string;
         /** What happens when entering the stage */
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
@@ -7093,8 +7093,8 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** ID of the associated persona */
-        personaId: string;
+        /** ID of the associated agent */
+        agentId: string;
         /** What happens when entering the stage */
         enterBehavior: "generate_response" | "await_user_input";
         /** Whether knowledge base is enabled */
@@ -8186,6 +8186,88 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves a list of all API keys across all projects with optional filtering, sorting, and pagination.
+   *
+   * @tags API Keys
+   * @name ApiKeysList
+   * @summary List all API keys
+   * @request GET:/api/api-keys
+   * @secure
+   */
+  apiKeysList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return (optional, null for no limit)
+       * @min 0
+       * @exclusiveMin true
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of API keys */
+        items: {
+          /** Unique identifier for the API key */
+          id: string;
+          /** The ID of the project this API key belongs to */
+          projectId: string;
+          /** Descriptive name for the API key */
+          name: string;
+          /** The secret API key string (only included when creating a new key) */
+          key?: string;
+          /** First few characters of the key for identification */
+          keyPreview?: string;
+          /** ISO timestamp of when the key was last used */
+          lastUsedAt: string | null;
+          /** Whether the API key is active */
+          isActive: boolean;
+          /** Additional metadata */
+          metadata?: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /** ISO timestamp of creation */
+          createdAt: string;
+          /** ISO timestamp of last update */
+          updatedAt: string;
+        }[];
+        /** Total number of API keys matching the query */
+        total: number;
+      },
+      any
+    >({
+      path: `/api/api-keys`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual pull. No data is written and the full entity records are never serialised.
    *
    * @tags Migration
@@ -8200,8 +8282,8 @@ export class Api<
       projectIds?: string | string[];
       /** Specific stage IDs to export. */
       stageIds?: string | string[];
-      /** Specific persona IDs to export. */
-      personaIds?: string | string[];
+      /** Specific agent IDs to export. */
+      agentIds?: string | string[];
       /** Specific classifier IDs to export. */
       classifierIds?: string | string[];
       /** Specific context transformer IDs to export. */
@@ -8228,7 +8310,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, personaIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.
+   * @description Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.
    *
    * @tags Migration
    * @name MigrationExportList
@@ -8242,8 +8324,8 @@ export class Api<
       projectIds?: string | string[];
       /** Specific stage IDs to export. */
       stageIds?: string | string[];
-      /** Specific persona IDs to export. */
-      personaIds?: string | string[];
+      /** Specific agent IDs to export. */
+      agentIds?: string | string[];
       /** Specific classifier IDs to export. */
       classifierIds?: string | string[];
       /** Specific context transformer IDs to export. */

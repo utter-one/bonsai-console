@@ -2078,7 +2078,7 @@ async function handleStartConversation(stage: StageResponse) {
     const convId = await wsClient.value.startConversation({
       userId: userId,
       stageId: stage.id,
-      personaId: stage.personaId,
+      agentId: stage.agentId,
       timezone: selectedTimezone.value || undefined,
     })
 

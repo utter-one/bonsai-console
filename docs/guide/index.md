@@ -10,7 +10,7 @@ Bonsai is a platform for building conversational AI experiences — both voice a
 
 In the **Design** section you build the brain of your AI assistant:
 
-- **Personas** — Give your AI a personality, tone of voice, and (optionally) a speaking voice.
+- **Agents** — Give your AI a personality, tone of voice, and (optionally) a speaking voice.
 - **Stages** — Map out the steps of a conversation, like "greeting", "collect info", "resolve issue".
 - **Actions** — Define what happens when the user says something — navigate to a different stage, call an external service, set a variable, and more.
 - **Classifiers** — Teach the system to understand what users mean and route them to the right action.
@@ -46,7 +46,7 @@ When an end user connects and starts talking (or typing), here's what happens be
 2. **Classification** — The system analyzes the text and figures out what the user wants (their _intent_).
 3. **Data extraction** — Context transformers pull out any useful information (names, numbers, dates) and store it as variables.
 4. **Action execution** — Matched actions run their effects: scripts execute, webhooks fire, variables update, the conversation may move to a new stage.
-5. **Response generation** — The AI composes a reply using the stage's prompt, the persona's personality, conversation history, and any relevant knowledge.
+5. **Response generation** — The AI composes a reply using the stage's prompt, the agent's personality, conversation history, and any relevant knowledge.
 6. **Voice synthesis** — If voice is enabled, the reply is converted to speech and streamed back.
 
 All of this happens in real time, with text and audio delivered to the user as it's being generated.

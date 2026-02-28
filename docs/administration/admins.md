@@ -20,7 +20,7 @@ Roles control what an admin can access. Each role comes with a set of permission
 | Role | Access Level |
 |---|---|
 | **Super Admin** | Full access to everything — all features and settings |
-| **Content Manager** | Create and edit projects, personas, stages, classifiers, transformers, tools, knowledge, providers, and API keys |
+| **Content Manager** | Create and edit projects, agents, stages, classifiers, transformers, tools, knowledge, providers, and API keys |
 | **Support** | View projects and conversations, manage users and issues |
 | **Developer** | Read-only access to most resources plus system configuration |
 | **Viewer** | Read-only access to most resources |

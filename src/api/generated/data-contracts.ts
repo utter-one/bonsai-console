@@ -1541,21 +1541,21 @@ export interface ProjectListResponse {
   total: number;
 }
 
-export interface CreatePersonaRequest {
+export interface CreateAgentRequest {
   /**
-   * Unique identifier for the persona (auto-generated if not provided)
+   * Unique identifier for the agent (auto-generated if not provided)
    * @minLength 1
    */
   id?: string;
   /**
-   * Display name of the persona
+   * Display name of the agent
    * @minLength 1
    */
   name: string;
-  /** Detailed description of the persona purpose */
+  /** Detailed description of the agent purpose */
   description?: string;
   /**
-   * Detailed prompt defining the persona's characteristics and behavior
+   * Detailed prompt defining the agent's characteristics and behavior
    * @minLength 1
    */
   prompt: string;
@@ -1569,21 +1569,21 @@ export interface CreatePersonaRequest {
     | CartesiaTtsSettings
     | AzureTtsSettings;
   /**
-   * Tags for categorizing and filtering this persona
+   * Tags for categorizing and filtering this agent
    * @default []
    */
   tags?: string[];
-  /** Additional persona-specific metadata */
+  /** Additional agent-specific metadata */
   metadata?: Record<string, any>;
 }
 
-export interface UpdatePersonaRequest {
+export interface UpdateAgentRequest {
   /**
    * Updated display name
    * @minLength 1
    */
   name?: string;
-  /** Updated detailed description of the persona */
+  /** Updated detailed description of the agent */
   description?: string;
   /**
    * Updated prompt defining behavior
@@ -1610,7 +1610,7 @@ export interface UpdatePersonaRequest {
   version: number;
 }
 
-export interface DeletePersonaRequest {
+export interface DeleteAgentRequest {
   /**
    * Current version number for optimistic locking
    * @min 1
@@ -1618,16 +1618,16 @@ export interface DeletePersonaRequest {
   version: number;
 }
 
-export interface PersonaResponse {
-  /** Unique identifier for the persona */
+export interface AgentResponse {
+  /** Unique identifier for the agent */
   id: string;
-  /** ID of the project this persona belongs to */
+  /** ID of the project this agent belongs to */
   projectId: string;
-  /** Display name of the persona */
+  /** Display name of the agent */
   name: string;
-  /** Detailed description of the persona purpose */
+  /** Detailed description of the agent purpose */
   description: string | null;
-  /** Prompt defining the persona's characteristics and behavior */
+  /** Prompt defining the agent's characteristics and behavior */
   prompt: string;
   /** ID of the TTS provider */
   ttsProviderId: string | null;
@@ -1638,36 +1638,36 @@ export interface PersonaResponse {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings;
-  /** Tags for categorizing and filtering this persona */
+  /** Tags for categorizing and filtering this agent */
   tags: string[];
-  /** Additional persona-specific metadata */
+  /** Additional agent-specific metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
   version: number;
   /**
-   * Timestamp when the persona was created
+   * Timestamp when the agent was created
    * @format date-time
    */
   createdAt: string | null;
   /**
-   * Timestamp when the persona was last updated
+   * Timestamp when the agent was last updated
    * @format date-time
    */
   updatedAt: string | null;
 }
 
-export interface PersonaListResponse {
-  /** Array of personas in the current page */
+export interface AgentListResponse {
+  /** Array of agents in the current page */
   items: {
-    /** Unique identifier for the persona */
+    /** Unique identifier for the agent */
     id: string;
-    /** ID of the project this persona belongs to */
+    /** ID of the project this agent belongs to */
     projectId: string;
-    /** Display name of the persona */
+    /** Display name of the agent */
     name: string;
-    /** Detailed description of the persona purpose */
+    /** Detailed description of the agent purpose */
     description: string | null;
-    /** Prompt defining the persona's characteristics and behavior */
+    /** Prompt defining the agent's characteristics and behavior */
     prompt: string;
     /** ID of the TTS provider */
     ttsProviderId: string | null;
@@ -1678,25 +1678,25 @@ export interface PersonaListResponse {
       | DeepgramTtsSettings
       | CartesiaTtsSettings
       | AzureTtsSettings;
-    /** Tags for categorizing and filtering this persona */
+    /** Tags for categorizing and filtering this agent */
     tags: string[];
-    /** Additional persona-specific metadata */
+    /** Additional agent-specific metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */
     version: number;
     /**
-     * Timestamp when the persona was created
+     * Timestamp when the agent was created
      * @format date-time
      */
     createdAt: string | null;
     /**
-     * Timestamp when the persona was last updated
+     * Timestamp when the agent was last updated
      * @format date-time
      */
     updatedAt: string | null;
   }[];
   /**
-   * Total number of personas matching the query
+   * Total number of agents matching the query
    * @min 0
    */
   total: number;
@@ -2763,10 +2763,10 @@ export interface CreateStageRequest {
     | AnthropicLlmSettings
     | GeminiLlmSettings;
   /**
-   * ID of the persona associated with this stage
+   * ID of the agent associated with this stage
    * @minLength 1
    */
-  personaId: string;
+  agentId: string;
   /**
    * What should happen when entering the stage
    * @default "generate_response"
@@ -2837,10 +2837,10 @@ export interface UpdateStageRequest {
     | AnthropicLlmSettings
     | GeminiLlmSettings;
   /**
-   * Updated persona ID
+   * Updated agent ID
    * @minLength 1
    */
-  personaId?: string;
+  agentId?: string;
   /** Updated behavior when entering this stage */
   enterBehavior?: "generate_response" | "await_user_input";
   /** Updated knowledge usage flag */
@@ -2897,8 +2897,8 @@ export interface StageResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** ID of the associated persona */
-  personaId: string;
+  /** ID of the associated agent */
+  agentId: string;
   /** What happens when entering the stage */
   enterBehavior: "generate_response" | "await_user_input";
   /** Whether knowledge base is enabled */
@@ -2956,8 +2956,8 @@ export interface StageListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings;
-    /** ID of the associated persona */
-    personaId: string;
+    /** ID of the associated agent */
+    agentId: string;
     /** What happens when entering the stage */
     enterBehavior: "generate_response" | "await_user_input";
     /** Whether knowledge base is enabled */
@@ -4510,7 +4510,7 @@ export interface AuditLogResponse {
   action: string;
   /** ID of the entity that was modified */
   entityId: string;
-  /** Type of the entity (e.g., "admin", "persona", "classifier") */
+  /** Type of the entity (e.g., "admin", "agent", "classifier") */
   entityType: string;
   /** Entity state before the change */
   oldEntity: Record<string, any>;
@@ -4536,7 +4536,7 @@ export interface AuditLogListResponse {
     action: string;
     /** ID of the entity that was modified */
     entityId: string;
-    /** Type of the entity (e.g., "admin", "persona", "classifier") */
+    /** Type of the entity (e.g., "admin", "agent", "classifier") */
     entityType: string;
     /** Entity state before the change */
     oldEntity: Record<string, any>;
@@ -4723,12 +4723,12 @@ export interface MigrationJob {
 
 /** Entity selection used for this pull */
 export interface MigrationSelection {
-  /** Specific project IDs to include. Pulls all child entities (stages, personas, classifiers, etc.) for these projects. */
+  /** Specific project IDs to include. Pulls all child entities (stages, agents, classifiers, etc.) for these projects. */
   projectIds?: string[];
-  /** Specific stage IDs to include. Transitively pulls in the stage's persona, classifiers, context transformers, global actions, and all referenced providers. */
+  /** Specific stage IDs to include. Transitively pulls in the stage's agent, classifiers, context transformers, global actions, and all referenced providers. */
   stageIds?: string[];
-  /** Specific persona IDs to include. Pulls in referenced TTS provider. */
-  personaIds?: string[];
+  /** Specific agent IDs to include. Pulls in referenced TTS provider. */
+  agentIds?: string[];
   /** Specific classifier IDs to include. Pulls in referenced LLM provider. */
   classifierIds?: string[];
   /** Specific context transformer IDs to include. Pulls in referenced LLM provider. */
@@ -4752,8 +4752,8 @@ export interface MigrationPreview {
   providers: EntityStub[];
   /** Project stubs that would be included */
   projects: EntityStub[];
-  /** Persona stubs that would be included */
-  personas: EntityStub[];
+  /** Agent stubs that would be included */
+  agents: EntityStub[];
   /** Classifier stubs that would be included */
   classifiers: EntityStub[];
   /** Context transformer stubs that would be included */
@@ -4788,8 +4788,8 @@ export interface ExportBundle {
   providers: Record<string, any>[];
   /** Project records */
   projects: Record<string, any>[];
-  /** Persona records — depend on projects */
-  personas: Record<string, any>[];
+  /** Agent records — depend on projects */
+  agents: Record<string, any>[];
   /** Classifier records — depend on projects */
   classifiers: Record<string, any>[];
   /** Context transformer records — depend on projects */
@@ -4802,7 +4802,7 @@ export interface ExportBundle {
   knowledgeCategories: Record<string, any>[];
   /** Knowledge item records — depend on knowledgeCategories */
   knowledgeItems: Record<string, any>[];
-  /** Stage records — depend on projects, personas, and classifiers */
+  /** Stage records — depend on projects, agents, and classifiers */
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];

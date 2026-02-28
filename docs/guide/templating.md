@@ -2,7 +2,7 @@
 
 Prompts in Bonsai are not just static text — they're **templates** that can include dynamic content based on the conversation state. This is powered by the [Handlebars](https://handlebarsjs.com/) templating language.
 
-You'll encounter templates in stage prompts, persona prompts, tool prompts, and several action effects.
+You'll encounter templates in stage prompts, agent prompts, tool prompts, and several action effects.
 
 ## Inserting Dynamic Values
 

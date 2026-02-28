@@ -8,11 +8,11 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   dashboard:                              '/guide/index',
   playground:                             '/guide/playground',
 
-  // Design — Personas
+  // Design — Agents
   'design':                               '/design/',
-  'design.personas':                      '/design/personas',
-  'design.personas.create':              '/design/personas',
-  'design.personas.edit':                '/design/personas',
+  'design.agents':                        '/design/agents',
+  'design.agents.create':                '/design/agents',
+  'design.agents.edit':                  '/design/agents',
 
   // Design — Stages
   'design.stages':                        '/design/stages',
