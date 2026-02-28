@@ -1,5 +1,7 @@
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResourceStore } from './utils/resource'
+import apiClient from '@/api/client'
 import type {
   ProjectResponse,
   CreateProjectRequest,
@@ -13,5 +15,16 @@ export const useProjectsStore = defineStore('projects', () => {
     apiResourceName: 'projects',
   })
 
-  return store
+  const count = ref<number | null>(null)
+
+  async function fetchCount() {
+    try {
+      const response = await (apiClient as any).projectsList({ limit: 1 })
+      count.value = response?.total ?? 0
+    } catch {
+      count.value = null
+    }
+  }
+
+  return { ...store, count, fetchCount }
 })

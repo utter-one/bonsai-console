@@ -52,7 +52,7 @@ async function loadGlobalStats() {
   isLoadingGlobal.value = true
   try {
     await Promise.all([
-      projectsStore.fetchAll({ offset: 0, limit: 1 }),
+      projectsStore.fetchCount(),
       usersStore.fetchAll({ offset: 0, limit: 1 }),
       auditLogsStore.fetchAll({ limit: 10, orderBy: '-createdAt' }),
     ])
@@ -175,7 +175,7 @@ function getActionBadgeClass(action: string): string {
         <div class="flex-1">
           <div class="stat-value">
             <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(projectsStore.pagination.total) }}</span>
+            <span v-else>{{ formatCount(projectsStore.count ?? 0) }}</span>
           </div>
           <div class="stat-label">Projects</div>
         </div>
