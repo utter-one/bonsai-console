@@ -6,7 +6,7 @@ The **Design** section is where you build your AI assistant's behavior. Everythi
 
 At a high level, designing a conversation means defining:
 
-1. **Who the AI is** → [Personas](./personas)
+1. **Who the AI is** → [Agents](./agents)
 2. **What steps the conversation goes through** → [Stages](./stages)
 3. **What the AI can do when users say things** → [Actions & Effects](./actions)
 4. **How the AI understands user intent** → [Classifiers](./classifiers)
@@ -19,9 +19,9 @@ At a high level, designing a conversation means defining:
 
 If you're setting up a new project, a good order is:
 
-1. **Create a persona** — Even a simple personality prompt gets you started.
+1. **Create a agent** — Even a simple personality prompt gets you started.
 2. **Create a classifier** — You'll need one for your stages to understand user input.
-3. **Create your first stage** — Assign the persona and classifier. Write a prompt that tells the AI what to do. Set the enter behavior to "Generate response" so the AI speaks first.
+3. **Create your first stage** — Assign the agent and classifier. Write a prompt that tells the AI what to do. Set the enter behavior to "Generate response" so the AI speaks first.
 4. **Add actions to the stage** — Define what happens when users say specific things.
 5. **Add more stages** — Map out the full conversation flow and connect stages with "go to stage" effects.
 6. **Add knowledge** — Create FAQ categories to handle common questions.
@@ -29,7 +29,7 @@ If you're setting up a new project, a good order is:
 
 ## Cloning
 
-Most design resources (personas, stages, classifiers, tools, etc.) can be **cloned** to create copies. This is handy when you want to create a variation of something without starting from scratch — for example, a slightly different persona for after-hours support, or a new stage based on an existing one.
+Most design resources (agents, stages, classifiers, tools, etc.) can be **cloned** to create copies. This is handy when you want to create a variation of something without starting from scratch — for example, a slightly different agent for after-hours support, or a new stage based on an existing one.
 
 ## Templating & Scripting
 

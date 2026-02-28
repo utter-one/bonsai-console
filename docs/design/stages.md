@@ -24,7 +24,7 @@ Go to **Design > Stages** and click **Create Stage**.
 
 - **Name** — A descriptive label (e.g., "Greeting", "Order Lookup").
 - **Description** — Optional notes for your team.
-- **Persona** — Which personality and voice the AI uses in this stage.
+- **Agent** — Which personality and voice the AI uses in this stage.
 - **LLM Provider** — Which language model generates the AI's responses.
 - **LLM Settings** — Fine-tune the model settings (model name, temperature, max tokens, etc.).
 
@@ -44,7 +44,7 @@ Ask the customer what they need help with today.
 {{/if}}
 ```
 
-The prompt is combined with the persona's personality prompt to form the complete system instructions the AI follows.
+The prompt is combined with the agent's personality prompt to form the complete system instructions the AI follows.
 
 ### Enter Behavior
 
@@ -117,7 +117,7 @@ Actions define what happens when the user triggers them. Each stage has its own 
 Conversations move between stages through the **go to stage** action effect. When a stage transition happens:
 
 1. The current stage's `__on_leave` lifecycle action runs (if defined).
-2. The new stage loads with its own prompt, persona, classifier, and actions.
+2. The new stage loads with its own prompt, agent, classifier, and actions.
 3. The new stage's `__on_enter` lifecycle action runs (if defined).
 4. The new stage's enter behavior activates (generate response or await input).
 

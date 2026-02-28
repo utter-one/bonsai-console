@@ -76,7 +76,7 @@ Both selections are also remembered per project.
 
 ## Tips
 
-- **Iterate quickly** — change a persona prompt or stage configuration in the Design section, then switch back to the Playground and start a new conversation to see the effect immediately.
+- **Iterate quickly** — change a agent prompt or stage configuration in the Design section, then switch back to the Playground and start a new conversation to see the effect immediately.
 - **Use "Jump to Stage"** to skip straight to a tricky part of the flow you're working on, instead of chatting through the whole conversation tree each time.
 - **Set variables** before a conversation reaches a point that depends on them — this lets you test branches without building the entire preceding flow.
 - **Watch system events** to understand exactly what the AI is doing: which classifier matched, which actions fired, which stage it transitioned to, and what the rendered prompt looked like.

@@ -44,7 +44,7 @@ export default defineConfig({
           text: 'Design Your AI',
           items: [
             { text: 'Overview', link: '/design/' },
-            { text: 'Personas', link: '/design/personas' },
+            { text: 'Agents', link: '/design/agents' },
             { text: 'Stages', link: '/design/stages' },
             { text: 'Actions & Effects', link: '/design/actions' },
             { text: 'Classifiers', link: '/design/classifiers' },

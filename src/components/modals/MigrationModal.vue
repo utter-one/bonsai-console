@@ -26,8 +26,8 @@ interface EntityGroup {
 
 const ENTITY_GROUPS: EntityGroup[] = [
   { label: 'Projects',              previewKey: 'projects',             selectionKey: 'projectIds' },
-  { label: 'Stages',                previewKey: 'stages',               selectionKey: 'stageIds',             projectScoped: true, description: 'Pulls in persona, classifiers, context transformers, global actions & providers' },
-  { label: 'Personas',              previewKey: 'personas',             selectionKey: 'personaIds',           projectScoped: true, description: 'Pulls in referenced TTS provider' },
+  { label: 'Stages',                previewKey: 'stages',               selectionKey: 'stageIds',             projectScoped: true, description: 'Pulls in agent, classifiers, context transformers, global actions & providers' },
+  { label: 'Agents',                previewKey: 'agents',               selectionKey: 'agentIds',             projectScoped: true, description: 'Pulls in referenced TTS provider' },
   { label: 'Classifiers',           previewKey: 'classifiers',          selectionKey: 'classifierIds',        projectScoped: true, description: 'Pulls in referenced LLM provider' },
   { label: 'Context Transformers',  previewKey: 'contextTransformers',  selectionKey: 'contextTransformerIds',projectScoped: true, description: 'Pulls in referenced LLM provider' },
   { label: 'Tools',                 previewKey: 'tools',                selectionKey: 'toolIds',              projectScoped: true, description: 'Pulls in referenced LLM provider' },

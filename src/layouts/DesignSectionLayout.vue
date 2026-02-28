@@ -12,7 +12,7 @@ const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
 
 const menuItems = [
   { name: 'design.stages', label: 'Stages', icon: Route },
-  { name: 'design.personas', label: 'Personas', icon: Drama },
+  { name: 'design.agents', label: 'Agents', icon: Drama },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
   { name: 'design.tools', label: 'Tools', icon: Hammer },

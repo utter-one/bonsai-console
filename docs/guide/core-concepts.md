@@ -4,7 +4,7 @@ This page explains the building blocks of Bonsai and how they fit together. Unde
 
 ## Projects — The Top Level
 
-A **project** is the container for everything. It represents one complete conversational AI experience. All the design resources (stages, personas, classifiers, etc.) live inside a project, and all conversations happen within a project.
+A **project** is the container for everything. It represents one complete conversational AI experience. All the design resources (stages, agents, classifiers, etc.) live inside a project, and all conversations happen within a project.
 
 Think of a project as "the bot" — if you have a customer service bot and a sales bot, those would be two separate projects.
 
@@ -19,20 +19,20 @@ Think of a project as "the bot" — if you have a customer service bot and a sal
 
 Each stage has its own:
 - **Prompt** — Instructions that tell the AI what to do and how to behave at this point
-- **Persona** — Which personality and voice to use
+- **Agent** — Which personality and voice to use
 - **Actions** — What the AI can do when triggered by user input
 - **Variables** — Data being tracked at this step
 
 Conversations move between stages through actions (specifically, the "go to stage" effect).
 
-## Personas — Personality & Voice
+## Agents — Personality & Voice
 
-A **persona** defines _who_ the AI is in the conversation. It includes:
+A **agent** defines _who_ the AI is in the conversation. It includes:
 
 - A **personality prompt** that describes tone, style, and behavioral rules (e.g., "Be friendly and professional, avoid jargon")
 - **Voice settings** (optional) that control which synthetic voice is used for spoken output
 
-You can have multiple personas in a project (e.g., a casual helper and a formal escalation agent) and assign different personas to different stages.
+You can have multiple agents in a project (e.g., a casual helper and a formal escalation agent) and assign different agents to different stages.
 
 ## Actions & Effects — Making Things Happen
 
@@ -101,7 +101,7 @@ Providers are shared across all projects, so you only need to set up your API ke
 ```
 Project
 ├── Stages (conversation steps)
-│   ├── Persona (personality + voice)
+│   ├── Agent (personality + voice)
 │   ├── LLM Provider (for generating AI responses)
 │   ├── Classifier (for understanding user intent)
 │   ├── Context Transformers (for extracting data)
@@ -110,7 +110,7 @@ Project
 │   ├── Global Actions (shared behaviors)
 │   └── Knowledge tags (FAQ content to include)
 │
-├── Personas (reusable across stages)
+├── Agents (reusable across stages)
 ├── Classifiers (reusable across stages)
 ├── Context Transformers (reusable across stages)
 ├── Tools (AI-powered functions)

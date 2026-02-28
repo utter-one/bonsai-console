@@ -1,6 +1,6 @@
 # Projects
 
-A **project** is the top-level container in Bonsai. It represents one complete conversational AI experience — everything from the stages and personas to the conversations and users lives inside a project.
+A **project** is the top-level container in Bonsai. It represents one complete conversational AI experience — everything from the stages and agents to the conversations and users lives inside a project.
 
 ## Creating a Project
 
@@ -56,7 +56,7 @@ Constants are a great way to avoid repeating the same information in every stage
 
 A project contains:
 - [Stages](../design/stages) — Conversation phases
-- [Personas](../design/personas) — AI personalities and voices
+- [Agents](../design/agents) — AI personalities and voices
 - [Classifiers](../design/classifiers) — Intent detection
 - [Context Transformers](../design/context-transformers) — Data extraction
 - [Tools](../design/tools) — AI-powered functions

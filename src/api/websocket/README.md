@@ -41,7 +41,7 @@ await client.connect()
 const conversationId = await client.startConversation({
   userId: 'user-123',
   stageId: 'stage-456',
-  personaId: 'persona-789' // optional
+  agentId: 'agent-789' // optional
 })
 
 // Send text input

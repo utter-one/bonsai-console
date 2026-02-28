@@ -10,7 +10,7 @@ Every time an admin creates, updates, or deletes a resource, an audit log entry 
 |---|---|
 | **Admin** | Who performed the action |
 | **Action** | What they did (create, update, delete) |
-| **Entity type** | What kind of resource was affected (stage, persona, project, etc.) |
+| **Entity type** | What kind of resource was affected (stage, agent, project, etc.) |
 | **Entity ID** | Which specific resource was changed |
 | **Previous state** | The resource's state before the change |
 | **New state** | The resource's state after the change |

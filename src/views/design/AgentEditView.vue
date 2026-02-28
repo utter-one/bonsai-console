@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePersonasStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
+import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X, Check } from 'lucide-vue-next'
-import type { PersonaResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -12,7 +12,7 @@ import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
-const personasStore = usePersonasStore()
+const agentsStore = useAgentsStore()
 const providersStore = useProvidersStore()
 const providerCatalogStore = useProviderCatalogStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -44,9 +44,9 @@ const form = ref<{
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
-const personaId = computed(() => route.params.personaId as string | undefined)
-const isEditMode = computed(() => !!personaId.value)
-const currentPersona = ref<PersonaResponse | null>(null)
+const agentId = computed(() => route.params.agentId as string | undefined)
+const isEditMode = computed(() => !!agentId.value)
+const currentAgent = ref<AgentResponse | null>(null)
 
 const ttsProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'tts')
@@ -262,33 +262,33 @@ onMounted(async () => {
   await providerCatalogStore.fetchTtsProviders()
   
   if (isEditMode.value) {
-    await loadPersona()
+    await loadAgent()
   }
 })
 
 // Methods
-async function loadPersona() {
-  if (!personaId.value) return
+async function loadAgent() {
+  if (!agentId.value) return
   
   isLoading.value = true
   error.value = null
   
   try {
-    currentPersona.value = await personasStore.fetchById(projectId.value, personaId.value)
-    if (currentPersona.value) {
+    currentAgent.value = await agentsStore.fetchById(projectId.value, agentId.value)
+    if (currentAgent.value) {
       form.value = {
-        id: currentPersona.value.id,
-        name: currentPersona.value.name,
-        description: currentPersona.value.description || '',
-        tags: currentPersona.value.tags || [],
-        prompt: currentPersona.value.prompt,
-        ttsProviderId: currentPersona.value.ttsProviderId || '',
-        ttsSettings: currentPersona.value.ttsSettings || {} as TtsSettings,
-        metadata: currentPersona.value.metadata || {}
+        id: currentAgent.value.id,
+        name: currentAgent.value.name,
+        description: currentAgent.value.description || '',
+        tags: currentAgent.value.tags || [],
+        prompt: currentAgent.value.prompt,
+        ttsProviderId: currentAgent.value.ttsProviderId || '',
+        ttsSettings: currentAgent.value.ttsSettings || {} as TtsSettings,
+        metadata: currentAgent.value.metadata || {}
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load persona'
+    error.value = err.response?.data?.message || 'Failed to load agent'
   } finally {
     isLoading.value = false
   }
@@ -321,10 +321,10 @@ async function handleSubmit() {
       ? form.value.ttsSettings
       : undefined
 
-    if (isEditMode.value && currentPersona.value) {
-      // Update existing persona
-      const updatedPersona = await personasStore.update(projectId.value, currentPersona.value.id, {
-        version: currentPersona.value.version,
+    if (isEditMode.value && currentAgent.value) {
+      // Update existing agent
+      const updatedAgent = await agentsStore.update(projectId.value, currentAgent.value.id, {
+        version: currentAgent.value.version,
         name: form.value.name,
         description: form.value.description || undefined,
         prompt: form.value.prompt,
@@ -334,10 +334,10 @@ async function handleSubmit() {
         metadata: form.value.metadata
       })
       
-      // Update currentPersona with the response to get the new version
-      currentPersona.value = updatedPersona
+      // Update currentAgent with the response to get the new version
+      currentAgent.value = updatedAgent
     } else {
-      // Create new persona
+      // Create new agent
       const createData: any = {
         name: form.value.name,
         prompt: form.value.prompt,
@@ -369,15 +369,15 @@ async function handleSubmit() {
         createData.ttsSettings = ttsSettings
       }
 
-      const createdPersona = await personasStore.create(projectId.value, createData)
+      const createdAgent = await agentsStore.create(projectId.value, createData)
       
-      // Update currentPersona with the created persona (includes version and server-generated fields)
-      currentPersona.value = createdPersona
+      // Update currentAgent with the created agent (includes version and server-generated fields)
+      currentAgent.value = createdAgent
       
       // Navigate to edit mode
       await router.push({
-        name: 'design.personas.edit',
-        params: { projectId: projectId.value, personaId: createdPersona.id }
+        name: 'design.agents.edit',
+        params: { projectId: projectId.value, agentId: createdAgent.id }
       })
     }
 
@@ -387,24 +387,24 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} persona`
+    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} agent`
   } finally {
     isLoading.value = false
   }
 }
 
 function goBack() {
-  router.push({ name: 'design.personas', params: { projectId: projectId.value } })
+  router.push({ name: 'design.agents', params: { projectId: projectId.value } })
 }
 
 const metadataFields = computed(() => {
-  if (!currentPersona.value) return []
+  if (!currentAgent.value) return []
   return [
-    { label: 'Persona ID', value: currentPersona.value.id, format: 'mono' as const },
-    { label: 'Project ID', value: currentPersona.value.projectId, format: 'mono' as const },
-    { label: 'Version', value: currentPersona.value.version },
-    { label: 'Created', value: currentPersona.value.createdAt, format: 'date' as const },
-    { label: 'Updated', value: currentPersona.value.updatedAt, format: 'date' as const },
+    { label: 'Agent ID', value: currentAgent.value.id, format: 'mono' as const },
+    { label: 'Project ID', value: currentAgent.value.projectId, format: 'mono' as const },
+    { label: 'Version', value: currentAgent.value.version },
+    { label: 'Created', value: currentAgent.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentAgent.value.updatedAt, format: 'date' as const },
   ]
 })
 
@@ -430,13 +430,13 @@ function removeNoSpeechMarker(index: number) {
     <!-- Header -->
     <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
-        <button @click="goBack" class="btn-icon mb-2" title="Back to personas">
+        <button @click="goBack" class="btn-icon mb-2" title="Back to agents">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Persona' : 'Create Persona' }}</h1>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Agent' : 'Create Agent' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            {{ isEditMode ? 'Update the persona configuration' : 'Define a new AI persona for this project' }}
+            {{ isEditMode ? 'Update the agent configuration' : 'Define a new AI agent for this project' }}
           </p>
         </div>
       </div>
@@ -447,7 +447,7 @@ function removeNoSpeechMarker(index: number) {
         <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
-          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Persona')) }}
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Agent')) }}
         </button>
       </div>
     </div>
@@ -489,7 +489,7 @@ function removeNoSpeechMarker(index: number) {
 
     <!-- Loading State -->
     <div v-if="isLoading && isEditMode" class="loading-state">
-      Loading persona...
+      Loading agent...
     </div>
 
     <!-- Form -->
@@ -511,11 +511,11 @@ function removeNoSpeechMarker(index: number) {
               v-model="form.name"
               type="text"
               required
-              placeholder="My Persona"
+              placeholder="My Agent"
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">A descriptive name for this persona</p>
+            <p class="form-help-text">A descriptive name for this agent</p>
           </div>
 
           <div class="form-group">
@@ -526,11 +526,11 @@ function removeNoSpeechMarker(index: number) {
               v-model="form.description"
               rows="3"
               class="form-textarea"
-              placeholder="Brief description of this persona's purpose..."
+              placeholder="Brief description of this agent's purpose..."
               :disabled="isLoading"
             ></textarea>
             <p class="form-help-text">
-              Optional description of what this persona is used for
+              Optional description of what this agent is used for
             </p>
           </div>
 
@@ -548,11 +548,11 @@ function removeNoSpeechMarker(index: number) {
               :disabled="isLoading"
               show-toolbar
               placeholder="You are a helpful assistant..."
-              aria-label="Persona system prompt"
+              aria-label="Agent system prompt"
               min-height="28rem"
             />
             <p class="form-help-text">
-              The system prompt that defines this persona's behavior, personality, and capabilities
+              The system prompt that defines this agent's behavior, personality, and capabilities
             </p>
           </div>
         </div>
@@ -576,7 +576,7 @@ function removeNoSpeechMarker(index: number) {
               </option>
             </select>
             <p class="form-help-text">
-              Select a text-to-speech provider for this persona
+              Select a text-to-speech provider for this agent
             </p>
           </div>
 
@@ -1170,7 +1170,7 @@ function removeNoSpeechMarker(index: number) {
 
         <!-- Metadata Tab -->
         <MetadataTab
-          v-if="isEditMode && currentPersona"
+          v-if="isEditMode && currentAgent"
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />

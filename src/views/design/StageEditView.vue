@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore, usePersonasStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
+import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -46,7 +46,7 @@ function isLifecycleAction(key: string): boolean {
 const route = useRoute()
 const router = useRouter()
 const stagesStore = useStagesStore()
-const personasStore = usePersonasStore()
+const agentsStore = useAgentsStore()
 const providersStore = useProvidersStore()
 const classifiersStore = useClassifiersStore()
 const transformersStore = useContextTransformersStore()
@@ -74,7 +74,7 @@ const form = ref({
   name: '',
   description: '',
   tags: [] as string[],
-  personaId: '',
+  agentId: '',
   prompt: '',
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
@@ -105,8 +105,8 @@ const llmProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'llm')
 )
 
-const projectPersonas = computed(() =>
-  personasStore.items
+const projectAgents = computed(() =>
+  agentsStore.items
 )
 
 const projectClassifiers = computed(() =>
@@ -122,7 +122,7 @@ onMounted(async () => {
   // Load related data
   await Promise.all([
     providersStore.fetchAll(),
-    personasStore.fetchAll(projectId.value),
+    agentsStore.fetchAll(projectId.value),
     classifiersStore.fetchAll(projectId.value),
     transformersStore.fetchAll(projectId.value),
     toolsStore.fetchAll(projectId.value)
@@ -148,7 +148,7 @@ async function loadStage() {
         name: currentStage.value.name,
         description: currentStage.value.description || '',
         tags: currentStage.value.tags || [],
-        personaId: currentStage.value.personaId,
+        agentId: currentStage.value.agentId,
         prompt: currentStage.value.prompt,
         llmProviderId: currentStage.value.llmProviderId || '',
         llmSettings: currentStage.value.llmSettings || null,
@@ -197,7 +197,7 @@ async function handleSubmit() {
         name: form.value.name,
         description: form.value.description || undefined,
         tags: form.value.tags,
-        personaId: form.value.personaId,
+        agentId: form.value.agentId,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
         llmSettings: form.value.llmSettings || undefined,
@@ -219,7 +219,7 @@ async function handleSubmit() {
       // Create new stage
       const createData: any = {
         name: form.value.name,
-        personaId: form.value.personaId,
+        agentId: form.value.agentId,
         prompt: form.value.prompt,
         llmProviderId: form.value.llmProviderId,
         llmSettings: form.value.llmSettings,
@@ -283,7 +283,7 @@ const metadataFields = computed(() => {
   return [
     { label: 'Stage ID', value: currentStage.value.id, format: 'mono' as const },
     { label: 'Project ID', value: currentStage.value.projectId, format: 'mono' as const },
-    { label: 'Persona ID', value: currentStage.value.personaId, format: 'mono' as const },
+    { label: 'Agent ID', value: currentStage.value.agentId, format: 'mono' as const },
     { label: 'Version', value: currentStage.value.version },
     { label: 'Created', value: currentStage.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: currentStage.value.updatedAt, format: 'date' as const },
@@ -857,21 +857,21 @@ function toggleNode(path: number[]) {
 
             <div class="form-group">
               <label class="form-label">
-                Persona <span class="required">*</span>
+                Agent <span class="required">*</span>
               </label>
               <select
-                v-model="form.personaId"
+                v-model="form.agentId"
                 required
                 class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
-                <option value="">Select a persona</option>
-                <option v-for="persona in projectPersonas" :key="persona.id" :value="persona.id">
-                  {{ persona.name }}
+                <option value="">Select an agent</option>
+                <option v-for="agent in projectAgents" :key="agent.id" :value="agent.id">
+                  {{ agent.name }}
                 </option>
               </select>
               <p class="form-help-text">
-                The AI persona to use for this stage
+                The AI agent to use for this stage
               </p>
             </div>
 

@@ -7,7 +7,7 @@ This page helps you find your way around the Bonsai Console interface.
 The left sidebar divides the console into three main areas:
 
 ### Design
-Where you build and configure your AI assistant's behavior. Everything here is scoped to the currently selected project. This includes personas, stages, classifiers, context transformers, tools, knowledge, and global actions.
+Where you build and configure your AI assistant's behavior. Everything here is scoped to the currently selected project. This includes agents, stages, classifiers, context transformers, tools, knowledge, and global actions.
 
 ### Monitor
 Where you observe what's happening in real time and review historical data. Browse conversations, view user profiles, review flagged issues, and check audit logs.
@@ -29,7 +29,7 @@ If no project is selected, the Design section will show a prompt asking you to p
 
 ### Lists and Search
 
-Most resource views (Personas, Stages, Conversations, etc.) show a searchable list. Use the search bar at the top to filter by name or other fields. Results update as you type (with a brief delay for smooth performance).
+Most resource views (Agents, Stages, Conversations, etc.) show a searchable list. Use the search bar at the top to filter by name or other fields. Results update as you type (with a brief delay for smooth performance).
 
 ### Pagination
 
@@ -43,7 +43,7 @@ Long lists are paginated. Use the controls at the bottom of a list to navigate b
 
 ### Tabs in Edit Views
 
-When editing a resource like a stage or persona, the edit view is organized into tabs. For example, a stage might have tabs for "General", "Actions", "Variables", and "Metadata". The Metadata tab shows read-only information like the resource's ID, creation date, and version number.
+When editing a resource like a stage or agent, the edit view is organized into tabs. For example, a stage might have tabs for "General", "Actions", "Variables", and "Metadata". The Metadata tab shows read-only information like the resource's ID, creation date, and version number.
 
 ### Dark Mode
 

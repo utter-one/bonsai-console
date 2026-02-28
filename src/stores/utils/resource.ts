@@ -22,7 +22,7 @@ export function createProjectResourceStore<T extends { id: string }, CreateReque
 ) {
   const { resourceName, apiResourceName } = options
 
-  // Build method prefix: e.g., 'personas' -> 'projectsPersonas'
+  // Build method prefix: e.g., 'agents' -> 'projectsAgents'
   const prefix = `projects${apiResourceName.charAt(0).toUpperCase()}${apiResourceName.slice(1)}`
 
   const items = ref<T[]>([])
