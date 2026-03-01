@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminsStore } from '@/stores'
 import { formatEnum, usePagination, useTableSort } from '@/composables'
-import { User, Search, X } from 'lucide-vue-next'
+import { User, Search, X, Plus } from 'lucide-vue-next'
 import type { AdminResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -108,7 +108,7 @@ function clearSearch() {
         <p class="page-subtitle">Manage admin users and permissions</p>
       </div>
       <button @click="createAdmin" class="btn-primary">
-        <User class="inline-block mr-2 w-4 h-4" />
+        <Plus class="inline-block mr-2 w-4 h-4" />
         New Administrator
       </button>
     </div>

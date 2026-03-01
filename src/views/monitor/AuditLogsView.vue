@@ -13,7 +13,7 @@ const auditLogsStore = useAuditLogsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // Time filter state
-const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-24h')
+const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-7d')
 const showTimeDropdown = ref(false)
 
 const timeFilterOptions = [
@@ -76,7 +76,7 @@ const currentActionFilterLabel = computed(() => {
 })
 
 const hasActiveFilters = computed(() => {
-  return timeFilter.value !== 'last-24h' || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
+  return timeFilter.value !== 'last-7d' || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
 })
 
 const filteredLogs = computed(() => {
@@ -454,7 +454,7 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
 
             <div class="mt-auto pt-6 flex gap-3">
               <button 
-                @click="() => { timeFilter = 'last-24h'; actionFilter = 'all'; projectScopeFilter = 'selected' }"
+                @click="() => { timeFilter = 'last-7d'; actionFilter = 'all'; projectScopeFilter = 'selected' }"
                 class="btn-secondary flex-1 justify-center"
               >
                 Reset

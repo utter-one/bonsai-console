@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useAllApiKeysStore, useProjectsStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
-import { Key, Search, X } from 'lucide-vue-next'
+import { Key, Search, X, Plus } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -199,7 +199,7 @@ function clearSearch() {
           <p class="page-subtitle">Manage API keys across all projects</p>
         </div>
         <button @click="openCreateModal" class="btn-primary">
-          <Key class="inline-block mr-2 w-4 h-4" />
+          <Plus class="inline-block mr-2 w-4 h-4" />
           New API Key
         </button>
       </div>

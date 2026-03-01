@@ -150,12 +150,6 @@ function editTransformer(transformer: ContextTransformerResponse) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('description')">
-                  <div class="flex items-center gap-1">
-                    Description
-                    <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell">Variables</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -170,10 +164,6 @@ function editTransformer(transformer: ContextTransformerResponse) {
             <tbody class="table-body">
               <tr v-for="transformer in filteredTransformers" :key="transformer.id" class="table-row">
                 <td class="table-clickable-cell" @click="editTransformer(transformer)">{{ transformer.name }}</td>
-                <td class="table-cell">
-                  <span v-if="transformer.description" class="truncate">{{ transformer.description.length > 30 ? transformer.description.substring(0, 30) + '...' : transformer.description }}</span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
                 <td class="table-cell">
                   <span v-if="transformer.contextFields?.length" class="badge-info">
                     {{ transformer.contextFields.length }} variable{{ transformer.contextFields.length !== 1 ? 's' : '' }}

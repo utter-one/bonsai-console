@@ -14,7 +14,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 
 // Time filter state
-const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-24h')
+const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-7d')
 const showTimeDropdown = ref(false)
 
 const timeFilterOptions = [

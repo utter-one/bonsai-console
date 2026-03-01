@@ -156,12 +156,6 @@ function getTypeIcon(type: string) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('description')">
-                  <div class="flex items-center gap-1">
-                    Description
-                    <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell">Input/Output Types</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -176,10 +170,6 @@ function getTypeIcon(type: string) {
             <tbody class="table-body">
               <tr v-for="tool in filteredTools" :key="tool.id" class="table-row">
                 <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}</td>
-                <td class="table-cell">
-                  <span v-if="tool.description" class="truncate">{{ tool.description.length > 30 ? tool.description.substring(0, 30) + '...' : tool.description }}</span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
                 <td class="table-cell">
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-1.5 text-xs text-gray-600">

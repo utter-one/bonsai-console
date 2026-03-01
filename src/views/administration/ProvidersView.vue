@@ -188,12 +188,6 @@ function getProviderTypeBadgeClass(type: string) {
                     <component :is="getSortIcon('apiType')" class="w-4 h-4" :class="sortKey === 'apiType' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('description')">
-                  <div class="flex items-center gap-1">
-                    Description
-                    <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -216,10 +210,6 @@ function getProviderTypeBadgeClass(type: string) {
                   </span>
                 </td>
                 <td class="table-cell-mono">{{ provider.apiType }}</td>
-                <td class="table-cell">
-                  <span v-if="provider.description" class="truncate max-w-xs">{{ provider.description }}</span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
                 <td class="table-cell-muted">{{ formatDate(provider.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">

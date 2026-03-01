@@ -361,7 +361,10 @@ function getActionBadgeClass(action: string): string {
             <span class="text-sm font-medium text-gray-900 dark:text-white capitalize flex-shrink-0">{{ log.entityType }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400 font-mono truncate">{{ log.entityId }}</span>
           </div>
-          <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">{{ formatRelativeTime(log.createdAt) }}</span>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span v-if="log.userId" class="text-xs font-mono text-gray-400 dark:text-gray-500 truncate" :title="log.userId">{{ log.userId }}</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500">{{ formatRelativeTime(log.createdAt) }}</span>
+          </div>
         </div>
       </div>
     </div>
