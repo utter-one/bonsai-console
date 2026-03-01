@@ -709,6 +709,13 @@ export interface SpeechmaticsAsrSettings {
   [key: string]: any;
 }
 
+export interface FillerSettings {
+  /** How to pick a filler sentence: disabled turns the feature off, random picks one at random each turn, sequential cycles through the list in order */
+  strategy: "disabled" | "random" | "sequential";
+  /** List of short filler sentences to choose from (e.g. "Hmm...", "Let me think.") */
+  sentences: string[];
+}
+
 export interface S3StorageConfig {
   /** AWS access key ID */
   accessKeyId: string;
@@ -1575,6 +1582,8 @@ export interface CreateAgentRequest {
   tags?: string[];
   /** Additional agent-specific metadata */
   metadata?: Record<string, any>;
+  /** Filler response settings: a short sentence spoken through TTS at the very start of each turn while classification runs in parallel */
+  fillerSettings?: FillerSettings;
 }
 
 export interface UpdateAgentRequest {
@@ -1603,6 +1612,8 @@ export interface UpdateAgentRequest {
   tags?: string[];
   /** Updated metadata */
   metadata?: Record<string, any>;
+  /** Updated filler response settings */
+  fillerSettings?: FillerSettings;
   /**
    * Current version number for optimistic locking
    * @min 1
@@ -1642,6 +1653,8 @@ export interface AgentResponse {
   tags: string[];
   /** Additional agent-specific metadata */
   metadata: Record<string, any>;
+  /** Filler response settings */
+  fillerSettings: FillerSettings;
   /** Version number for optimistic locking */
   version: number;
   /**
@@ -1682,6 +1695,8 @@ export interface AgentListResponse {
     tags: string[];
     /** Additional agent-specific metadata */
     metadata: Record<string, any>;
+    /** Filler response settings */
+    fillerSettings: FillerSettings;
     /** Version number for optimistic locking */
     version: number;
     /**

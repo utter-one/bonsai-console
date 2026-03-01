@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Plus, X, Check } from 'lucide-vue-next'
-import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings } from '@/api/types'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings } from '@/api/types'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -21,7 +21,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'voice' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata'>('basic')
 const form = ref<{
   id: string
   name: string
@@ -31,6 +31,8 @@ const form = ref<{
   ttsProviderId: string
   ttsSettings: TtsSettings
   metadata: Record<string, any>
+  fillerStrategy: FillerSettings['strategy']
+  fillerSentences: string
 }>({
   id: '',
   name: '',
@@ -39,7 +41,9 @@ const form = ref<{
   prompt: '',
   ttsProviderId: '',
   ttsSettings: {} as TtsSettings,
-  metadata: {}
+  metadata: {},
+  fillerStrategy: 'disabled',
+  fillerSentences: ''
 })
 
 // Computed
@@ -284,7 +288,9 @@ async function loadAgent() {
         prompt: currentAgent.value.prompt,
         ttsProviderId: currentAgent.value.ttsProviderId || '',
         ttsSettings: currentAgent.value.ttsSettings || {} as TtsSettings,
-        metadata: currentAgent.value.metadata || {}
+        metadata: currentAgent.value.metadata || {},
+        fillerStrategy: currentAgent.value.fillerSettings?.strategy || 'disabled',
+        fillerSentences: currentAgent.value.fillerSettings?.sentences?.join('\n') || ''
       }
     }
   } catch (err: any) {
@@ -321,6 +327,13 @@ async function handleSubmit() {
       ? form.value.ttsSettings
       : undefined
 
+    const fillerSettings: FillerSettings = {
+      strategy: form.value.fillerStrategy,
+      sentences: form.value.fillerSentences
+        ? form.value.fillerSentences.split('\n').filter(s => s.trim())
+        : []
+    }
+
     if (isEditMode.value && currentAgent.value) {
       // Update existing agent
       const updatedAgent = await agentsStore.update(projectId.value, currentAgent.value.id, {
@@ -331,7 +344,8 @@ async function handleSubmit() {
         tags: form.value.tags.length > 0 ? form.value.tags : undefined,
         ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
         ...(ttsSettings && { ttsSettings }),
-        metadata: form.value.metadata
+        metadata: form.value.metadata,
+        fillerSettings
       })
       
       // Update currentAgent with the response to get the new version
@@ -368,6 +382,9 @@ async function handleSubmit() {
       if (ttsSettings) {
         createData.ttsSettings = ttsSettings
       }
+
+      // Include filler settings
+      createData.fillerSettings = fillerSettings
 
       const createdAgent = await agentsStore.create(projectId.value, createData)
       
@@ -475,6 +492,13 @@ function removeNoSpeechMarker(index: number) {
           type="button"
         >
           Voice Configuration
+        </button>
+        <button
+          @click="activeTab = 'filler'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'filler' }]"
+          type="button"
+        >
+          Filler Responses
         </button>
         <button
           v-if="isEditMode"
@@ -1165,6 +1189,67 @@ function removeNoSpeechMarker(index: number) {
                 <X class="w-5 h-5" />
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Filler Responses Tab -->
+        <div v-show="activeTab === 'filler'" class="tab-content">
+          <div class="form-group">
+            <label class="form-label">Strategy</label>
+            <p class="form-help-text mb-3">
+              Controls how a filler sentence is picked at the start of each turn while classification runs in parallel
+            </p>
+            <div class="flex flex-col gap-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  v-model="form.fillerStrategy"
+                  value="disabled"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Disabled</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">— no filler responses</span>
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  v-model="form.fillerStrategy"
+                  value="random"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Random</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">— pick one at random each turn</span>
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  v-model="form.fillerStrategy"
+                  value="sequential"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Sequential</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">— cycle through the list in order</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Sentences <span class="text-gray-500">(one per line)</span>
+            </label>
+            <textarea
+              v-model="form.fillerSentences"
+              rows="6"
+              class="form-textarea"
+              placeholder="Hmm...&#10;Let me think.&#10;One moment please.&#10;Just a second."
+              :disabled="isLoading || form.fillerStrategy === 'disabled'"
+            ></textarea>
+            <p class="form-help-text">
+              Short filler sentences spoken through TTS while the agent processes the request
+            </p>
           </div>
         </div>
 
