@@ -3,8 +3,8 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, ParameterValue } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
@@ -20,7 +20,15 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'apiKeys' | 'metadata'>('basic')
+type ConstantType = 'string' | 'number' | 'boolean' | 'json'
+
+interface ConstantEntry {
+  key: string
+  type: ConstantType
+  value: string
+}
+
 const form = ref({
   name: '',
   description: '',
@@ -38,6 +46,7 @@ const form = ref({
   generateVoice: false,
   timezone: '',
   version: undefined as number | undefined,
+  constants: [] as ConstantEntry[],
 })
 
 const showApiKeyModal = ref(false)
@@ -139,6 +148,107 @@ const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
   return apiKeysStore.items
 })
+
+const duplicateConstantKeys = computed(() => {
+  const keys = form.value.constants.map(c => c.key.trim()).filter(Boolean)
+  const seen = new Set<string>()
+  const duplicates: string[] = []
+  for (const key of keys) {
+    if (seen.has(key)) duplicates.push(key)
+    seen.add(key)
+  }
+  return [...new Set(duplicates)]
+})
+
+function inferConstantType(val: any): ConstantType {
+  if (typeof val === 'boolean') return 'boolean'
+  if (typeof val === 'number') return 'number'
+  if (typeof val === 'string') return 'string'
+  return 'json'
+}
+
+function constantEntryToValue(entry: ConstantEntry): ParameterValue {
+  switch (entry.type) {
+    case 'number': return Number(entry.value)
+    case 'boolean': return entry.value === 'true'
+    case 'json':
+      try { return JSON.parse(entry.value) } catch { return entry.value }
+    default: return entry.value
+  }
+}
+
+function constantsRecordToEntries(record: Record<string, ParameterValue>): ConstantEntry[] {
+  return Object.entries(record).map(([key, val]) => {
+    const type = inferConstantType(val)
+    const value = type === 'json' ? JSON.stringify(val, null, 2) : String(val)
+    return { key, type, value }
+  })
+}
+
+function entriesToConstantsRecord(entries: ConstantEntry[]): Record<string, ParameterValue> {
+  const result: Record<string, ParameterValue> = {}
+  for (const entry of entries) {
+    const trimmedKey = entry.key.trim()
+    if (trimmedKey) result[trimmedKey] = constantEntryToValue(entry)
+  }
+  return result
+}
+
+function addConstant() {
+  form.value.constants.push({ key: '', type: 'string', value: '' })
+}
+
+function deleteConstant(index: number) {
+  form.value.constants.splice(index, 1)
+}
+
+function copyAllConstants() {
+  if (form.value.constants.length === 0) {
+    alert('No constants to copy')
+    return
+  }
+  try {
+    const record = entriesToConstantsRecord(form.value.constants)
+    navigator.clipboard.writeText(JSON.stringify(record, null, 2))
+    alert(`Copied ${Object.keys(record).length} constant(s) to clipboard`)
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err)
+    alert('Failed to copy constants to clipboard')
+  }
+}
+
+async function pasteConstants() {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    if (!clipboardText) { alert('Clipboard is empty'); return }
+    let parsed: Record<string, any>
+    try { parsed = JSON.parse(clipboardText) } catch { alert('Clipboard does not contain valid JSON data'); return }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      alert('Clipboard does not contain a valid constants object')
+      return
+    }
+    const incoming = constantsRecordToEntries(parsed as Record<string, ParameterValue>)
+    let addedCount = 0
+    let overwrittenCount = 0
+    for (const entry of incoming) {
+      const existing = form.value.constants.findIndex(c => c.key === entry.key)
+      if (existing !== -1) {
+        form.value.constants[existing] = entry
+        overwrittenCount++
+      } else {
+        form.value.constants.push(entry)
+        addedCount++
+      }
+    }
+    const msg = overwrittenCount > 0
+      ? `Pasted ${addedCount + overwrittenCount} constant(s) (${overwrittenCount} updated)`
+      : `Pasted ${addedCount} constant(s)`
+    alert(msg)
+  } catch (err) {
+    console.error('Failed to read clipboard:', err)
+    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
+  }
+}
 
 const metadataFields = computed(() => {
   if (!currentProject.value) return []
@@ -276,6 +386,7 @@ async function loadProject() {
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
+        constants: constantsRecordToEntries(currentProject.value.constants || {}),
       }
       
       // Load API keys for edit mode
@@ -339,6 +450,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        constants: entriesToConstantsRecord(form.value.constants),
       })
       
       // Update currentProject with the response to get the new version
@@ -353,6 +465,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        constants: entriesToConstantsRecord(form.value.constants),
       })
 
       // Set currentProject to the newly created project
@@ -594,6 +707,13 @@ function handleStorageSettingsClose() {
           type="button"
         >
           Storage
+        </button>
+        <button
+          @click="activeTab = 'constants'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'constants' }]"
+          type="button"
+        >
+          Constants
         </button>
         <button
           v-if="isEditMode"
@@ -1786,6 +1906,130 @@ function handleStorageSettingsClose() {
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 No storage provider selected. Conversation artifacts will not be persisted to external storage.
               </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Constants Tab -->
+        <div v-show="activeTab === 'constants'" class="tab-content">
+          <div v-if="duplicateConstantKeys.length > 0" class="alert-error mb-4">
+            <AlertTriangle class="inline-block mr-2 w-4 h-4" />
+            Duplicate constant keys detected: <strong>{{ duplicateConstantKeys.join(', ') }}</strong>. Keys must be unique.
+          </div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Constants</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Key-value constants available in templating and conversation logic
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                @click="copyAllConstants"
+                class="btn-secondary"
+                :disabled="isLoading || form.constants.length === 0"
+                title="Copy all constants to clipboard"
+              >
+                <Clipboard class="inline-block mr-1 w-4 h-4" />
+                Copy
+              </button>
+              <button
+                type="button"
+                @click="pasteConstants"
+                class="btn-secondary"
+                :disabled="isLoading"
+                title="Paste constants from clipboard"
+              >
+                <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
+                Paste
+              </button>
+              <button
+                type="button"
+                @click="addConstant"
+                class="btn-primary"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Constant
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="form.constants.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <p class="text-gray-500 dark:text-gray-400 mb-4">No constants defined yet</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500">
+              Click "Add Constant" to define your first constant
+            </p>
+          </div>
+
+          <!-- Constants List -->
+          <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+            <div class="grid grid-cols-[1fr_auto_2fr_auto] gap-0 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Header -->
+              <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <span>Key</span>
+                <span class="px-3">Type</span>
+                <span>Value</span>
+                <span></span>
+              </div>
+              <!-- Rows -->
+              <template v-for="(entry, index) in form.constants" :key="index">
+                <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <!-- Key -->
+                  <input
+                    v-model="entry.key"
+                    type="text"
+                    placeholder="constant_name"
+                    class="form-input py-1 px-2 text-sm font-mono"
+                    :disabled="isLoading"
+                    :class="{ 'border-red-400': duplicateConstantKeys.includes(entry.key.trim()) && entry.key.trim() }"
+                  />
+                  <!-- Type -->
+                  <select
+                    v-model="entry.type"
+                    class="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 h-[34px]"
+                    :disabled="isLoading"
+                  >
+                    <option value="string">String</option>
+                    <option value="number">Number</option>
+                    <option value="boolean">Boolean</option>
+                    <option value="json">JSON</option>
+                  </select>
+                  <!-- Value -->
+                  <div class="flex items-center">
+                    <input
+                      v-if="entry.type === 'string' || entry.type === 'number' || entry.type === 'json'"
+                      v-model="entry.value"
+                      :type="entry.type === 'number' ? 'number' : 'text'"
+                      :placeholder="entry.type === 'json' ? '{&quot;key&quot;: &quot;value&quot;}' : 'value'"
+                      :class="['form-input py-1 px-2 text-sm w-full', entry.type === 'json' ? 'font-mono' : '']"
+                      :disabled="isLoading"
+                    />
+                    <label v-else-if="entry.type === 'boolean'" class="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        :checked="entry.value === 'true'"
+                        @change="entry.value = ($event.target as HTMLInputElement).checked ? 'true' : 'false'"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ entry.value === 'true' ? 'true' : 'false' }}</span>
+                    </label>
+                  </div>
+                  <!-- Delete -->
+                  <button
+                    type="button"
+                    @click="deleteConstant(index)"
+                    class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                    :disabled="isLoading"
+                    title="Delete constant"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </template>
             </div>
           </div>
         </div>
