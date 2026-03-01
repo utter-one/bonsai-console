@@ -1,19 +1,9 @@
 <template>
   <!-- No Project Selected State -->
-  <div v-if="!hasProject"
-    class="flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-[calc(100vh-7rem)] overflow-hidden">
-    <div class="text-center max-w-md">
-      <Play class="mx-auto mb-4 text-gray-400 dark:text-gray-500" :size="64" />
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2 dark:text-white">No Project Selected</h2>
-      <p class="text-gray-600 mb-6 dark:text-gray-400">
-        Please select a project from the dropdown in the top navigation bar to use the Playground.
-      </p>
-      <button @click="goToProjects"
-        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
-        View All Projects
-      </button>
-    </div>
-  </div>
+  <NoProjectSelected
+    v-if="!hasProject"
+    description="Please select a project from the dropdown in the top navigation bar to use the Playground."
+  />
 
   <!-- No Active API Keys State -->
   <div v-else-if="hasProject && !apiKeysLoading && activeApiKeys.length === 0"
@@ -845,6 +835,7 @@
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore } from '@/stores'
+import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
@@ -1106,10 +1097,6 @@ watch(projectId, async (newProjectId) => {
     }
   }
 }, { immediate: true })
-
-function goToProjects() {
-  router.push({ name: 'administration.projects' })
-}
 
 function goToApiKeys() {
   router.push({ name: 'administration.projects', params: { projectId: projectId.value } })
