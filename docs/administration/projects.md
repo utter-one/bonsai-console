@@ -42,15 +42,28 @@ Set a project-wide default timezone (IANA format, e.g., `Europe/Warsaw`, `Americ
 
 ### Constants
 
-Project-level constants are key-value pairs available in all prompts via <code v-pre>{{constants.key}}</code>:
+The **Constants** tab lets you define project-wide key-value pairs available in all stage prompts and conversation logic via `{{consts.key}}`.
 
-| Key | Example Value |
-|---|---|
-| `companyName` | Acme Corp |
-| `supportHours` | 9am - 5pm EST |
-| `supportEmail` | support@acme.com |
+Each constant has a **key**, a **type**, and a **value**:
 
-Constants are a great way to avoid repeating the same information in every stage prompt.
+| Type | Description | Example value |
+|---|---|---|
+| `String` | Plain text | `Acme Corp` |
+| `Number` | Integer or decimal | `42` |
+| `Boolean` | `true` or `false` | `true` |
+| `JSON` | Inline JSON object or array | `{"tier": "pro", "limit": 100}` |
+
+**Example constants:**
+
+| Key | Type | Value |
+|---|---|---|
+| `companyName` | String | `Acme Corp` |
+| `supportHours` | String | `9am – 5pm EST` |
+| `supportEmail` | String | `support@acme.com` |
+| `maxRetries` | Number | `3` |
+| `debugMode` | Boolean | `false` |
+
+Use **Copy** to export all constants as JSON and **Paste** to import them from the clipboard. Pasting merges with existing constants — existing keys are updated, new keys are added.
 
 ## Child Resources
 
