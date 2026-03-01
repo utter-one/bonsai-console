@@ -3,7 +3,7 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAgentsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
-import { Drama, Search, X } from 'lucide-vue-next'
+import { Drama, Search, X, Plus } from 'lucide-vue-next'
 import type { AgentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -104,7 +104,7 @@ function formatDate(date: string | null) {
         <p class="page-subtitle">Manage AI agents for this project</p>
       </div>
       <button @click="createAgent" class="btn-primary">
-        <Drama class="inline-block mr-2 w-4 h-4" />
+        <Plus class="inline-block mr-2 w-4 h-4" />
         New Agent
       </button>
     </div>

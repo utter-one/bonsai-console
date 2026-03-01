@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectsStore } from '@/stores'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { DraftingCompass, FlaskConical, Search, X, BriefcaseBusiness } from 'lucide-vue-next'
+import { DraftingCompass, FlaskConical, Search, X, BriefcaseBusiness, Plus } from 'lucide-vue-next'
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
@@ -79,7 +79,8 @@ function openPlayground(projectId: string) {
         <p class="page-subtitle">Manage your AI application projects</p>
       </div>
       <button @click="createProject" class="btn-primary">
-        + New Project
+        <Plus class="inline-block mr-2 w-4 h-4" />
+        New Project
       </button>
     </div>
 
