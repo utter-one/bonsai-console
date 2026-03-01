@@ -2,13 +2,14 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, X, Check } from 'lucide-vue-next'
-import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings } from '@/api/types'
+import { ArrowLeft, Save, Plus, X, Check, Settings } from 'lucide-vue-next'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata'>('basic')
+const showFillerLLMSettingsModal = ref(false)
 const form = ref<{
   id: string
   name: string
@@ -31,8 +33,9 @@ const form = ref<{
   ttsProviderId: string
   ttsSettings: TtsSettings
   metadata: Record<string, any>
-  fillerStrategy: FillerSettings['strategy']
-  fillerSentences: string
+  fillerLlmProviderId: string
+  fillerLlmSettings: LlmSettings | null
+  fillerPrompt: string
 }>({
   id: '',
   name: '',
@@ -42,8 +45,9 @@ const form = ref<{
   ttsProviderId: '',
   ttsSettings: {} as TtsSettings,
   metadata: {},
-  fillerStrategy: 'disabled',
-  fillerSentences: ''
+  fillerLlmProviderId: '',
+  fillerLlmSettings: null,
+  fillerPrompt: ''
 })
 
 // Computed
@@ -54,6 +58,10 @@ const currentAgent = ref<AgentResponse | null>(null)
 
 const ttsProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'tts')
+)
+
+const llmProviders = computed(() =>
+  providersStore.items.filter(p => p.providerType === 'llm')
 )
 
 const selectedProvider = computed(() => 
@@ -289,8 +297,9 @@ async function loadAgent() {
         ttsProviderId: currentAgent.value.ttsProviderId || '',
         ttsSettings: currentAgent.value.ttsSettings || {} as TtsSettings,
         metadata: currentAgent.value.metadata || {},
-        fillerStrategy: currentAgent.value.fillerSettings?.strategy || 'disabled',
-        fillerSentences: currentAgent.value.fillerSettings?.sentences?.join('\n') || ''
+        fillerLlmProviderId: currentAgent.value.fillerSettings?.llmProviderId || '',
+        fillerLlmSettings: currentAgent.value.fillerSettings?.llmSettings || null,
+        fillerPrompt: currentAgent.value.fillerSettings?.prompt || ''
       }
     }
   } catch (err: any) {
@@ -327,12 +336,14 @@ async function handleSubmit() {
       ? form.value.ttsSettings
       : undefined
 
-    const fillerSettings: FillerSettings = {
-      strategy: form.value.fillerStrategy,
-      sentences: form.value.fillerSentences
-        ? form.value.fillerSentences.split('\n').filter(s => s.trim())
-        : []
-    }
+    const fillerSettings: FillerSettings | undefined =
+      form.value.fillerLlmProviderId && form.value.fillerPrompt
+        ? {
+            llmProviderId: form.value.fillerLlmProviderId,
+            ...(form.value.fillerLlmSettings ? { llmSettings: form.value.fillerLlmSettings } : {}),
+            prompt: form.value.fillerPrompt
+          }
+        : undefined
 
     if (isEditMode.value && currentAgent.value) {
       // Update existing agent
@@ -345,7 +356,7 @@ async function handleSubmit() {
         ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
         ...(ttsSettings && { ttsSettings }),
         metadata: form.value.metadata,
-        fillerSettings
+        ...(fillerSettings ? { fillerSettings } : {})
       })
       
       // Update currentAgent with the response to get the new version
@@ -383,8 +394,10 @@ async function handleSubmit() {
         createData.ttsSettings = ttsSettings
       }
 
-      // Include filler settings
-      createData.fillerSettings = fillerSettings
+      // Include filler settings if configured
+      if (fillerSettings) {
+        createData.fillerSettings = fillerSettings
+      }
 
       const createdAgent = await agentsStore.create(projectId.value, createData)
       
@@ -438,6 +451,11 @@ function removeNoSpeechMarker(index: number) {
   if (settings.noSpeechMarkers) {
     settings.noSpeechMarkers.splice(index, 1)
   }
+}
+
+function handleFillerLLMSettingsSave(settings: Record<string, any>) {
+  form.value.fillerLlmSettings = settings as LlmSettings
+  showFillerLLMSettingsModal.value = false
 }
 
 </script>
@@ -1195,60 +1213,48 @@ function removeNoSpeechMarker(index: number) {
         <!-- Filler Responses Tab -->
         <div v-show="activeTab === 'filler'" class="tab-content">
           <div class="form-group">
-            <label class="form-label">Strategy</label>
-            <p class="form-help-text mb-3">
-              Controls how a filler sentence is picked at the start of each turn while classification runs in parallel
-            </p>
-            <div class="flex flex-col gap-2">
-              <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  v-model="form.fillerStrategy"
-                  value="disabled"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="text-sm text-gray-700 dark:text-gray-300">Disabled</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">— no filler responses</span>
-              </label>
-              <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  v-model="form.fillerStrategy"
-                  value="random"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="text-sm text-gray-700 dark:text-gray-300">Random</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">— pick one at random each turn</span>
-              </label>
-              <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  v-model="form.fillerStrategy"
-                  value="sequential"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="text-sm text-gray-700 dark:text-gray-300">Sequential</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">— cycle through the list in order</span>
-              </label>
+            <label class="form-label">
+              LLM Provider <span class="required">*</span>
+            </label>
+            <div class="flex flex-col md:flex-row gap-2">
+              <select
+                v-model="form.fillerLlmProviderId"
+                class="form-select-auto min-w-64"
+                :disabled="isLoading"
+              >
+                <option value="">Disabled (no filler responses)</option>
+                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }}
+                </option>
+              </select>
+              <button
+                type="button"
+                @click="showFillerLLMSettingsModal = true"
+                class="btn-secondary whitespace-nowrap"
+                :disabled="isLoading || !form.fillerLlmProviderId"
+              >
+                <Settings class="inline-block mr-1 w-4 h-4" />
+                Settings...
+              </button>
             </div>
+            <p class="form-help-text">
+              The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.
+            </p>
           </div>
 
           <div class="form-group">
             <label class="form-label">
-              Sentences <span class="text-gray-500">(one per line)</span>
+              Filler Prompt <span class="required">*</span>
             </label>
             <textarea
-              v-model="form.fillerSentences"
-              rows="6"
+              v-model="form.fillerPrompt"
+              rows="4"
               class="form-textarea"
-              placeholder="Hmm...&#10;Let me think.&#10;One moment please.&#10;Just a second."
-              :disabled="isLoading || form.fillerStrategy === 'disabled'"
+              placeholder='Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."'
+              :disabled="isLoading || !form.fillerLlmProviderId"
             ></textarea>
             <p class="form-help-text">
-              Short filler sentences spoken through TTS while the agent processes the request
+              Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request
             </p>
           </div>
         </div>
@@ -1263,6 +1269,16 @@ function removeNoSpeechMarker(index: number) {
       </div>
     </div>
   </div>
+
+  <!-- Filler LLM Settings Modal -->
+  <LLMSettingsModal
+    v-if="showFillerLLMSettingsModal"
+    :settings="form.fillerLlmSettings"
+    :selected-provider-id="form.fillerLlmProviderId"
+    :providers="llmProviders"
+    @close="showFillerLLMSettingsModal = false"
+    @save="handleFillerLLMSettingsSave"
+  />
 </template>
 
 <style scoped>

@@ -710,10 +710,19 @@ export interface SpeechmaticsAsrSettings {
 }
 
 export interface FillerSettings {
-  /** How to pick a filler sentence: disabled turns the feature off, random picks one at random each turn, sequential cycles through the list in order */
-  strategy: "disabled" | "random" | "sequential";
-  /** List of short filler sentences to choose from (e.g. "Hmm...", "Let me think.") */
-  sentences: string[];
+  /** ID of the LLM provider used to generate the filler sentence */
+  llmProviderId: string;
+  /** LLM provider-specific settings for filler generation */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /**
+   * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
+   * @minLength 1
+   */
+  prompt: string;
 }
 
 export interface S3StorageConfig {

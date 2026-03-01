@@ -1201,27 +1201,39 @@
       "FillerSettings": {
         "type": "object",
         "properties": {
-          "strategy": {
+          "llmProviderId": {
             "type": "string",
-            "enum": [
-              "disabled",
-              "random",
-              "sequential"
-            ],
-            "description": "How to pick a filler sentence: disabled turns the feature off, random picks one at random each turn, sequential cycles through the list in order"
+            "description": "ID of the LLM provider used to generate the filler sentence"
           },
-          "sentences": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            },
-            "description": "List of short filler sentences to choose from (e.g. \"Hmm...\", \"Let me think.\")"
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for filler generation"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
           }
         },
         "required": [
-          "strategy",
-          "sentences"
+          "llmProviderId",
+          "prompt"
         ]
       },
       "S3StorageConfig": {
