@@ -42,7 +42,7 @@ Set a project-wide default timezone (IANA format, e.g., `Europe/Warsaw`, `Americ
 
 ### Constants
 
-The **Constants** tab lets you define project-wide key-value pairs available in all stage prompts and conversation logic via `{{consts.key}}`.
+The **Constants** tab lets you define project-wide key-value pairs available in all stage prompts and conversation logic via <span v-pre>`{{consts.key}}`</span>.
 
 Each constant has a **key**, a **type**, and a **value**:
 
