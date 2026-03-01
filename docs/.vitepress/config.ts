@@ -34,6 +34,7 @@ export default defineConfig({
         {
           text: 'Advanced Topics',
           items: [
+            { text: 'Project Design Guide', link: '/guide/project-design' },
             { text: 'Prompt Templating', link: '/guide/templating' },
             { text: 'Scripting', link: '/guide/scripting' },
           ],
