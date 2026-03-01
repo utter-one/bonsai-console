@@ -129,7 +129,6 @@ function openPlayground(projectId: string) {
             </button>
           </div>
         </div>
-        <p v-if="project.description" class="project-card-description">{{ project.description }}</p>
         <div class="project-card-meta">
           <span v-if="project.createdAt">Created {{ new Date(project.createdAt).toLocaleDateString() }}</span>
         </div>

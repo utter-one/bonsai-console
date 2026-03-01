@@ -150,12 +150,6 @@ function formatDate(date: string | null) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('description')">
-                  <div class="flex items-center gap-1">
-                    Description
-                    <component :is="getSortIcon('description')" class="w-4 h-4" :class="sortKey === 'description' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
@@ -171,10 +165,6 @@ function formatDate(date: string | null) {
                 <td class="table-clickable-cell"
                   @click="editClassifier(classifier)">
                     {{ classifier.name }}
-                </td>
-                <td class="table-cell">
-                  <span v-if="classifier.description" class="truncate">{{ classifier.description.length > 30 ? classifier.description.substring(0, 30) + '...' : classifier.description }}</span>
-                  <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="table-cell">
                   <div v-if="classifier.tags?.length" class="tag-list">
