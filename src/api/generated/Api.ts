@@ -6076,26 +6076,27 @@ export class Api<
    * @description Creates a new issue report with bug details, environment, and severity information
    *
    * @tags Issues
-   * @name ProjectsIssuesCreate
+   * @name IssuesCreate
    * @summary Create a new issue
-   * @request POST:/api/projects/{projectId}/issues
+   * @request POST:/api/issues
    * @secure
    */
-  projectsIssuesCreate = (
-    projectId: string,
+  issuesCreate = (
     data: {
       /**
-       * Environment where issue occurred (e.g., production, staging, development)
+       * ID of the project this issue belongs to
        * @minLength 1
        */
+      projectId: string;
+      /** Environment where issue occurred (e.g., production, staging, development) */
       environment: string;
       /**
        * Application build version where the issue was encountered
        * @minLength 1
        */
       buildVersion: string;
-      /** Beat/sprint identifier for tracking purposes */
-      beat?: string;
+      /** Stage identifier for tracking purposes */
+      stage?: string;
       /** Reference to related conversation session ID */
       sessionId?: string;
       /** Index of event in session where issue occurred */
@@ -6145,8 +6146,8 @@ export class Api<
         environment: string;
         /** Application build version */
         buildVersion: string;
-        /** Beat/sprint identifier */
-        beat: string | null;
+        /** Stage identifier */
+        stage: string | null;
         /** Related conversation session ID */
         sessionId: string | null;
         /** Event index in session */
@@ -6178,7 +6179,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/projects/${projectId}/issues`,
+      path: `/api/issues`,
       method: "POST",
       body: data,
       secure: true,
@@ -6187,16 +6188,15 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of issues with optional filtering by status, severity, environment, and text search in bug descriptions
+   * @description Retrieves a paginated list of issues with optional filtering by projectId, status, severity, environment, and text search in bug descriptions. Use filters[projectId]=value to filter by project.
    *
    * @tags Issues
-   * @name ProjectsIssuesList
+   * @name IssuesList
    * @summary List issues
-   * @request GET:/api/projects/{projectId}/issues
+   * @request GET:/api/issues
    * @secure
    */
-  projectsIssuesList = (
-    projectId: string,
+  issuesList = (
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -6242,8 +6242,8 @@ export class Api<
           environment: string;
           /** Application build version */
           buildVersion: string;
-          /** Beat/sprint identifier */
-          beat: string | null;
+          /** Stage identifier */
+          stage: string | null;
           /** Related conversation session ID */
           sessionId: string | null;
           /** Event index in session */
@@ -6292,7 +6292,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/projects/${projectId}/issues`,
+      path: `/api/issues`,
       method: "GET",
       query: query,
       secure: true,
@@ -6303,16 +6303,12 @@ export class Api<
    * @description Retrieves a single issue by its unique identifier
    *
    * @tags Issues
-   * @name ProjectsIssuesDetail
+   * @name IssuesDetail
    * @summary Get issue by ID
-   * @request GET:/api/projects/{projectId}/issues/{id}
+   * @request GET:/api/issues/{id}
    * @secure
    */
-  projectsIssuesDetail = (
-    projectId: string,
-    id: string,
-    params: RequestParams = {},
-  ) =>
+  issuesDetail = (id: string, params: RequestParams = {}) =>
     this.request<
       {
         /** Unique auto-incrementing identifier for the issue */
@@ -6323,8 +6319,8 @@ export class Api<
         environment: string;
         /** Application build version */
         buildVersion: string;
-        /** Beat/sprint identifier */
-        beat: string | null;
+        /** Stage identifier */
+        stage: string | null;
         /** Related conversation session ID */
         sessionId: string | null;
         /** Event index in session */
@@ -6356,7 +6352,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/projects/${projectId}/issues/${id}`,
+      path: `/api/issues/${id}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -6366,27 +6362,23 @@ export class Api<
    * @description Updates an existing issue with new information, typically used to change status, add comments, or update severity
    *
    * @tags Issues
-   * @name ProjectsIssuesUpdate
+   * @name IssuesUpdate
    * @summary Update issue
-   * @request PUT:/api/projects/{projectId}/issues/{id}
+   * @request PUT:/api/issues/{id}
    * @secure
    */
-  projectsIssuesUpdate = (
-    projectId: string,
+  issuesUpdate = (
     id: string,
     data: {
-      /**
-       * Environment where issue occurred
-       * @minLength 1
-       */
+      /** Environment where issue occurred */
       environment?: string;
       /**
        * Application build version
        * @minLength 1
        */
       buildVersion?: string;
-      /** Beat/sprint identifier */
-      beat?: string;
+      /** Stage identifier */
+      stage?: string;
       /** Related conversation session ID */
       sessionId?: string;
       /** Event index in session */
@@ -6433,8 +6425,8 @@ export class Api<
         environment: string;
         /** Application build version */
         buildVersion: string;
-        /** Beat/sprint identifier */
-        beat: string | null;
+        /** Stage identifier */
+        stage: string | null;
         /** Related conversation session ID */
         sessionId: string | null;
         /** Event index in session */
@@ -6466,7 +6458,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/projects/${projectId}/issues/${id}`,
+      path: `/api/issues/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -6478,18 +6470,14 @@ export class Api<
    * @description Deletes an issue from the system
    *
    * @tags Issues
-   * @name ProjectsIssuesDelete
+   * @name IssuesDelete
    * @summary Delete issue
-   * @request DELETE:/api/projects/{projectId}/issues/{id}
+   * @request DELETE:/api/issues/{id}
    * @secure
    */
-  projectsIssuesDelete = (
-    projectId: string,
-    id: string,
-    params: RequestParams = {},
-  ) =>
+  issuesDelete = (id: string, params: RequestParams = {}) =>
     this.request<void, void>({
-      path: `/api/projects/${projectId}/issues/${id}`,
+      path: `/api/issues/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
@@ -6498,18 +6486,14 @@ export class Api<
    * @description Retrieves audit logs for a specific issue showing its change history
    *
    * @tags Issues
-   * @name ProjectsIssuesAuditLogsList
+   * @name IssuesAuditLogsList
    * @summary Get issue audit logs
-   * @request GET:/api/projects/{projectId}/issues/{id}/audit-logs
+   * @request GET:/api/issues/{id}/audit-logs
    * @secure
    */
-  projectsIssuesAuditLogsList = (
-    projectId: string,
-    id: string,
-    params: RequestParams = {},
-  ) =>
+  issuesAuditLogsList = (id: string, params: RequestParams = {}) =>
     this.request<void, void>({
-      path: `/api/projects/${projectId}/issues/${id}/audit-logs`,
+      path: `/api/issues/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,

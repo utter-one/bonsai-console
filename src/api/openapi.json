@@ -4303,9 +4303,13 @@
       "CreateIssueRequest": {
         "type": "object",
         "properties": {
-          "environment": {
+          "projectId": {
             "type": "string",
             "minLength": 1,
+            "description": "ID of the project this issue belongs to"
+          },
+          "environment": {
+            "type": "string",
             "description": "Environment where issue occurred (e.g., production, staging, development)"
           },
           "buildVersion": {
@@ -4313,9 +4317,9 @@
             "minLength": 1,
             "description": "Application build version where the issue was encountered"
           },
-          "beat": {
+          "stage": {
             "type": "string",
-            "description": "Beat/sprint identifier for tracking purposes"
+            "description": "Stage identifier for tracking purposes"
           },
           "sessionId": {
             "type": "string",
@@ -4361,6 +4365,7 @@
           }
         },
         "required": [
+          "projectId",
           "environment",
           "buildVersion",
           "severity",
@@ -4375,7 +4380,6 @@
         "properties": {
           "environment": {
             "type": "string",
-            "minLength": 1,
             "description": "Environment where issue occurred"
           },
           "buildVersion": {
@@ -4383,9 +4387,9 @@
             "minLength": 1,
             "description": "Application build version"
           },
-          "beat": {
+          "stage": {
             "type": "string",
-            "description": "Beat/sprint identifier"
+            "description": "Stage identifier"
           },
           "sessionId": {
             "type": "string",
@@ -4449,10 +4453,10 @@
             "type": "string",
             "description": "Application build version"
           },
-          "beat": {
+          "stage": {
             "type": "string",
             "nullable": true,
-            "description": "Beat/sprint identifier"
+            "description": "Stage identifier"
           },
           "sessionId": {
             "type": "string",
@@ -4511,7 +4515,7 @@
           "projectId",
           "environment",
           "buildVersion",
-          "beat",
+          "stage",
           "sessionId",
           "eventIndex",
           "userId",
@@ -4549,10 +4553,10 @@
                   "type": "string",
                   "description": "Application build version"
                 },
-                "beat": {
+                "stage": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Beat/sprint identifier"
+                  "description": "Stage identifier"
                 },
                 "sessionId": {
                   "type": "string",
@@ -4611,7 +4615,7 @@
                 "projectId",
                 "environment",
                 "buildVersion",
-                "beat",
+                "stage",
                 "sessionId",
                 "eventIndex",
                 "userId",
@@ -25673,7 +25677,7 @@
         }
       }
     },
-    "/api/projects/{projectId}/issues": {
+    "/api/issues": {
       "post": {
         "tags": [
           "Issues"
@@ -25686,9 +25690,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "environment": {
+                  "projectId": {
                     "type": "string",
                     "minLength": 1,
+                    "description": "ID of the project this issue belongs to"
+                  },
+                  "environment": {
+                    "type": "string",
                     "description": "Environment where issue occurred (e.g., production, staging, development)"
                   },
                   "buildVersion": {
@@ -25696,9 +25704,9 @@
                     "minLength": 1,
                     "description": "Application build version where the issue was encountered"
                   },
-                  "beat": {
+                  "stage": {
                     "type": "string",
-                    "description": "Beat/sprint identifier for tracking purposes"
+                    "description": "Stage identifier for tracking purposes"
                   },
                   "sessionId": {
                     "type": "string",
@@ -25744,6 +25752,7 @@
                   }
                 },
                 "required": [
+                  "projectId",
                   "environment",
                   "buildVersion",
                   "severity",
@@ -25780,10 +25789,10 @@
                       "type": "string",
                       "description": "Application build version"
                     },
-                    "beat": {
+                    "stage": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Beat/sprint identifier"
+                      "description": "Stage identifier"
                     },
                     "sessionId": {
                       "type": "string",
@@ -25842,7 +25851,7 @@
                     "projectId",
                     "environment",
                     "buildVersion",
-                    "beat",
+                    "stage",
                     "sessionId",
                     "eventIndex",
                     "userId",
@@ -25869,7 +25878,7 @@
           "Issues"
         ],
         "summary": "List issues",
-        "description": "Retrieves a paginated list of issues with optional filtering by status, severity, environment, and text search in bug descriptions",
+        "description": "Retrieves a paginated list of issues with optional filtering by projectId, status, severity, environment, and text search in bug descriptions. Use filters[projectId]=value to filter by project.",
         "parameters": [
           {
             "schema": {
@@ -26029,10 +26038,10 @@
                             "type": "string",
                             "description": "Application build version"
                           },
-                          "beat": {
+                          "stage": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Beat/sprint identifier"
+                            "description": "Stage identifier"
                           },
                           "sessionId": {
                             "type": "string",
@@ -26091,7 +26100,7 @@
                           "projectId",
                           "environment",
                           "buildVersion",
-                          "beat",
+                          "stage",
                           "sessionId",
                           "eventIndex",
                           "userId",
@@ -26141,7 +26150,7 @@
         }
       }
     },
-    "/api/projects/{projectId}/issues/{id}": {
+    "/api/issues/{id}": {
       "get": {
         "tags": [
           "Issues"
@@ -26149,17 +26158,6 @@
         "summary": "Get issue by ID",
         "description": "Retrieves a single issue by its unique identifier",
         "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Project ID"
-            },
-            "required": true,
-            "description": "Project ID",
-            "name": "projectId",
-            "in": "path"
-          },
           {
             "schema": {
               "type": "string",
@@ -26195,10 +26193,10 @@
                       "type": "string",
                       "description": "Application build version"
                     },
-                    "beat": {
+                    "stage": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Beat/sprint identifier"
+                      "description": "Stage identifier"
                     },
                     "sessionId": {
                       "type": "string",
@@ -26257,7 +26255,7 @@
                     "projectId",
                     "environment",
                     "buildVersion",
-                    "beat",
+                    "stage",
                     "sessionId",
                     "eventIndex",
                     "userId",
@@ -26289,17 +26287,6 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "description": "Project ID"
-            },
-            "required": true,
-            "description": "Project ID",
-            "name": "projectId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
               "description": "Issue ID"
             },
             "required": true,
@@ -26316,7 +26303,6 @@
                 "properties": {
                   "environment": {
                     "type": "string",
-                    "minLength": 1,
                     "description": "Environment where issue occurred"
                   },
                   "buildVersion": {
@@ -26324,9 +26310,9 @@
                     "minLength": 1,
                     "description": "Application build version"
                   },
-                  "beat": {
+                  "stage": {
                     "type": "string",
-                    "description": "Beat/sprint identifier"
+                    "description": "Stage identifier"
                   },
                   "sessionId": {
                     "type": "string",
@@ -26398,10 +26384,10 @@
                       "type": "string",
                       "description": "Application build version"
                     },
-                    "beat": {
+                    "stage": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Beat/sprint identifier"
+                      "description": "Stage identifier"
                     },
                     "sessionId": {
                       "type": "string",
@@ -26460,7 +26446,7 @@
                     "projectId",
                     "environment",
                     "buildVersion",
-                    "beat",
+                    "stage",
                     "sessionId",
                     "eventIndex",
                     "userId",
@@ -26495,17 +26481,6 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "description": "Project ID"
-            },
-            "required": true,
-            "description": "Project ID",
-            "name": "projectId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
               "description": "Issue ID"
             },
             "required": true,
@@ -26524,7 +26499,7 @@
         }
       }
     },
-    "/api/projects/{projectId}/issues/{id}/audit-logs": {
+    "/api/issues/{id}/audit-logs": {
       "get": {
         "tags": [
           "Issues"
@@ -26532,17 +26507,6 @@
         "summary": "Get issue audit logs",
         "description": "Retrieves audit logs for a specific issue showing its change history",
         "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "description": "Project ID"
-            },
-            "required": true,
-            "description": "Project ID",
-            "name": "projectId",
-            "in": "path"
-          },
           {
             "schema": {
               "type": "string",

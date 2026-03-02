@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createProjectResourceStore } from './utils/resource'
+import { createResourceStore } from './utils/resource'
 import type {
   IssueResponse,
   CreateIssueRequest,
@@ -7,7 +7,7 @@ import type {
 } from '@/api/types'
 
 export const useIssuesStore = defineStore('issues', () => {
-  const baseStore = createProjectResourceStore<IssueResponse & { id: string }, CreateIssueRequest, UpdateIssueRequest>({
+  const baseStore = createResourceStore<IssueResponse, CreateIssueRequest, UpdateIssueRequest>({
     endpoint: '/issues',
     resourceName: 'issue',
     apiResourceName: 'issues',

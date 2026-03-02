@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
-import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces } from 'lucide-vue-next'
-import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore } from '@/stores'
+import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces, Bug } from 'lucide-vue-next'
+import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
+import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
 
 
@@ -16,6 +17,7 @@ const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
+const issuesStore = useIssuesStore()
 
 const conversationId = computed(() => route.params.conversationId as string)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -28,6 +30,8 @@ const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
+const showBugReportModal = ref(false)
+const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
 
 onMounted(async () => {
   await loadConversationData()
@@ -129,6 +133,30 @@ function openVariablesPreview(variables: Record<string, any>) {
 
 function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
+}
+
+function openBugReport(_event: ConversationEventResponse) {
+  bugReportPrefillData.value = {
+    projectId: projectId.value,
+    sessionId: conversationId.value,
+    eventIndex: undefined,
+    stageId: conversation.value?.stageId || undefined
+  }
+  showBugReportModal.value = true
+}
+
+function closeBugReportModal() {
+  showBugReportModal.value = false
+  bugReportPrefillData.value = undefined
+}
+
+async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest) {
+  try {
+    await issuesStore.create(data as CreateIssueRequest)
+    closeBugReportModal()
+  } catch (error) {
+    console.error('Failed to create issue:', error)
+  }
 }
 
 function isResumable(status: string | undefined): boolean {
@@ -394,6 +422,12 @@ const metadataFields = computed(() => {
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
                           </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                       <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
@@ -444,6 +478,12 @@ const metadataFields = computed(() => {
                             class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
+                          </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -526,6 +566,12 @@ const metadataFields = computed(() => {
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
                           </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                       <div class="space-y-2">
@@ -587,6 +633,12 @@ const metadataFields = computed(() => {
                             class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
+                          </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -661,6 +713,12 @@ const metadataFields = computed(() => {
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
                           </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                       <div class="space-y-2">
@@ -729,6 +787,12 @@ const metadataFields = computed(() => {
                             class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
+                          </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -810,6 +874,12 @@ const metadataFields = computed(() => {
                             class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
                             title="View stage variables">
                             <Braces class="w-4 h-4" />
+                          </button>
+                          <button
+                            @click="openBugReport(event)"
+                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            title="Report bug">
+                            <Bug class="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -1090,6 +1160,14 @@ const metadataFields = computed(() => {
       v-if="showVariablesPreviewModal"
       :variables="selectedVariables"
       @close="showVariablesPreviewModal = false" />
+    
+    <!-- Bug Report Modal -->
+    <IssueEditModal
+      v-if="showBugReportModal"
+      :issue="null"
+      :prefill-data="bugReportPrefillData"
+      @close="closeBugReportModal"
+      @save="handleBugReportSave" />
   </MonitorSectionLayout>
 </template>
 
