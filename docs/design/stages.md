@@ -108,8 +108,8 @@ Variables are available in:
 - **Action conditions** — `vars.retryCount < 3`
 - **Scripts** — `vars.retryCount = (vars.retryCount || 0) + 1`
 
-::: tip User Profile Variables
-Stage variables (`vars.*`) are scoped to a single conversation. For data that persists across all of a user's conversations (e.g., account tier, preferences), use **user profile variables** instead. The schema for custom `userProfile.*` fields is defined at the project level in **Administration > Projects > User Profile** tab.
+::: tip Memory (User Profile Variables)
+Stage variables (`vars.*`) are scoped to a single conversation. For data that persists across all of a user's conversations (e.g., account tier, preferences), use **user profile variables** instead. The schema for custom `userProfile.*` fields is defined at the project level in **Administration > Projects > Memory** tab.
 :::
 
 ## Actions

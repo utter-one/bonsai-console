@@ -18,7 +18,7 @@ Profile data persists across conversations, so when a returning user connects ag
 
 ### Built-in and Custom Fields
 
-Projects can declare user profile custom fields in **Administration > Projects > User Profile** tab. These define the expected schema for extra data your application writes into user profiles (e.g., `tier`, `accountId`, `preferences`). Declaring the schema makes the fields available in the prompt editor's autocomplete and documents the data model for your team.
+Projects can declare user profile custom fields in **Administration > Projects > Memory** tab. These define the expected schema for extra data your application writes into user profiles (e.g., `tier`, `accountId`, `preferences`). Declaring the schema makes the fields available in the prompt editor's autocomplete and documents the data model for your team.
 
 ## Conversation History
 

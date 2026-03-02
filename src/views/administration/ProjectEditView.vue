@@ -22,7 +22,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'userProfile' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'memory' | 'apiKeys' | 'metadata'>('basic')
 type ConstantType = 'string' | 'number' | 'boolean' | 'json'
 
 interface ConstantEntry {
@@ -893,11 +893,11 @@ function handleVariablesPaste(indices: number[]) {
           Constants
         </button>
         <button
-          @click="activeTab = 'userProfile'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'userProfile' }]"
+          @click="activeTab = 'memory'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'memory' }]"
           type="button"
         >
-          User Profile
+          Memory
         </button>
         <button
           v-if="isEditMode"
@@ -2218,15 +2218,15 @@ function handleVariablesPaste(indices: number[]) {
           </div>
         </div>
 
-        <!-- User Profile Variables Tab -->
-        <div v-show="activeTab === 'userProfile'" class="tab-content">
+        <!-- Memory Tab -->
+        <div v-show="activeTab === 'memory'" class="tab-content">
           <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
             <AlertTriangle class="inline-block mr-2 w-4 h-4" />
             Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
           </div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">User Profile Variable Descriptors</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Define the schema for user profile variables available in conversations of this project
               </p>

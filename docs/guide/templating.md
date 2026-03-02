@@ -25,7 +25,7 @@ Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
 
 ### User Profile Fields
 
-Custom fields can be declared per-project in **Administration > Projects > User Profile** tab. Custom fields show up in the prompt editor's autocomplete and can be accessed the same way:
+Custom fields can be declared per-project in **Administration > Projects > Memory** tab. Custom fields show up in the prompt editor's autocomplete and can be accessed the same way:
 
 ```handlebars
 {{userProfile.tier}}
