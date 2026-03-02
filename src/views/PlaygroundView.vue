@@ -229,6 +229,18 @@
                           title="View stage variables">
                           <Braces class="w-4 h-4" />
                         </button>
+                        <button
+                          @click="openBugReport(event)"
+                          class="btn-icon p-1"
+                          :class="{
+                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI',
+                            'hover:bg-gray-100 dark:hover:bg-gray-900/30': event.type === 'System',
+                            'hover:bg-red-100 dark:hover:bg-red-900/30': event.type === 'Error'
+                          }"
+                          title="Report bug">
+                          <Bug class="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                     <div class="text-sm">
@@ -828,19 +840,26 @@
       v-if="showVariablesPreviewModal"
       :variables="selectedVariables"
       @close="showVariablesPreviewModal = false" />
+    
+    <IssueEditModal
+      v-if="showBugReportModal"
+      :issue="null"
+      :prefill-data="bugReportPrefillData"
+      @close="closeBugReportModal"
+      @save="handleBugReportSave" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore } from '@/stores'
+import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces, Bug } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -849,8 +868,9 @@ import AudioPlayer from '@/components/AudioPlayer.vue'
 import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
+import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
-import type { StageResponse, ConversationEventResponse } from '@/api/types'
+import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
@@ -1015,6 +1035,7 @@ const apiKeysStore = useApiKeysStore()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
+const issuesStore = useIssuesStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
@@ -1523,6 +1544,40 @@ function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean
   return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
 }
 
+function openBugReport(_event: ConversationEvent) {
+  bugReportPrefillData.value = {
+    projectId: projectId.value,
+    sessionId: wsSessionId.value || undefined,
+    eventIndex: undefined,
+    stageId: currentStage.value?.id || undefined
+  }
+  showBugReportModal.value = true
+}
+
+function closeBugReportModal() {
+  showBugReportModal.value = false
+  bugReportPrefillData.value = undefined
+}
+
+async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest) {
+  try {
+    await issuesStore.create(data as CreateIssueRequest)
+    closeBugReportModal()
+    addEvent({
+      type: 'System',
+      message: 'Bug report created successfully',
+      timestamp: new Date()
+    })
+  } catch (error) {
+    console.error('Failed to create issue:', error)
+    addEvent({
+      type: 'Error',
+      message: 'Failed to create bug report',
+      timestamp: new Date()
+    })
+  }
+}
+
 /**
  * Handle conversation event from WebSocket
  */
@@ -1957,6 +2012,8 @@ const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
+const showBugReportModal = ref(false)
+const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
 
 // Audio settings
 const audioSettings = ref<AudioSettings>(loadAudioSettings())

@@ -2168,17 +2168,19 @@ export interface KnowledgeItemListResponse {
 
 export interface CreateIssueRequest {
   /**
-   * Environment where issue occurred (e.g., production, staging, development)
+   * ID of the project this issue belongs to
    * @minLength 1
    */
+  projectId: string;
+  /** Environment where issue occurred (e.g., production, staging, development) */
   environment: string;
   /**
    * Application build version where the issue was encountered
    * @minLength 1
    */
   buildVersion: string;
-  /** Beat/sprint identifier for tracking purposes */
-  beat?: string;
+  /** Stage identifier for tracking purposes */
+  stage?: string;
   /** Reference to related conversation session ID */
   sessionId?: string;
   /** Index of event in session where issue occurred */
@@ -2218,18 +2220,15 @@ export interface CreateIssueRequest {
 }
 
 export interface UpdateIssueRequest {
-  /**
-   * Environment where issue occurred
-   * @minLength 1
-   */
+  /** Environment where issue occurred */
   environment?: string;
   /**
    * Application build version
    * @minLength 1
    */
   buildVersion?: string;
-  /** Beat/sprint identifier */
-  beat?: string;
+  /** Stage identifier */
+  stage?: string;
   /** Related conversation session ID */
   sessionId?: string;
   /** Event index in session */
@@ -2274,8 +2273,8 @@ export interface IssueResponse {
   environment: string;
   /** Application build version */
   buildVersion: string;
-  /** Beat/sprint identifier */
-  beat: string | null;
+  /** Stage identifier */
+  stage: string | null;
   /** Related conversation session ID */
   sessionId: string | null;
   /** Event index in session */
@@ -2317,8 +2316,8 @@ export interface IssueListResponse {
     environment: string;
     /** Application build version */
     buildVersion: string;
-    /** Beat/sprint identifier */
-    beat: string | null;
+    /** Stage identifier */
+    stage: string | null;
     /** Related conversation session ID */
     sessionId: string | null;
     /** Event index in session */

@@ -17,7 +17,7 @@ export interface ProjectResourceStoreOptions {
   apiResourceName: string
 }
 
-export function createProjectResourceStore<T extends { id: string }, CreateRequest, UpdateRequest>(
+export function createProjectResourceStore<T extends { id: string | number }, CreateRequest, UpdateRequest>(
   options: ProjectResourceStoreOptions
 ) {
   const { resourceName, apiResourceName } = options
@@ -175,7 +175,7 @@ export function createProjectResourceStore<T extends { id: string }, CreateReque
   }
 }
 
-export function createResourceStore<T extends { id: string }, CreateRequest, UpdateRequest>(
+export function createResourceStore<T extends { id: string | number }, CreateRequest, UpdateRequest>(
   options: ResourceStoreOptions
 ) {
   const { resourceName, apiResourceName } = options
