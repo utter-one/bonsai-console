@@ -51,6 +51,50 @@ If your project uses voice output (text-to-speech), you can configure the AI's s
 
 You'll need to have a TTS provider set up in **Administration > Providers** before configuring voice settings.
 
+## Filler Responses (Experimental)
+
+::: warning Experimental Feature
+Filler Responses are under active development. Behaviour may change in future releases.
+:::
+
+In voice-based conversations there is an unavoidable pause between the user finishing a sentence and the AI beginning to speak — the model needs time to classify intent and generate a full response. Filler Responses close that gap by having a small, fast LLM generate a short neutral sentence that is spoken through TTS **immediately** at the start of every turn, while the main classification and response generation runs in parallel behind the scenes.
+
+Examples of what a filler sentence might sound like:
+- *"Hmm, let me think about that."*
+- *"Sure, give me just a moment."*
+- *"Let me look into that for you."*
+
+### How It Works
+
+1. The user finishes speaking.
+2. Bonsai sends the filler prompt to the chosen **Filler LLM Provider** and immediately streams the result to TTS.
+3. In parallel, the full classification and stage response pipeline runs as normal.
+4. The filler audio plays, masking the processing delay from the user.
+
+### Configuration
+
+Open **Design > Agents**, select an agent, and switch to the **Filler Responses** tab.
+
+| Field | Description |
+|---|---|
+| **LLM Provider** | The LLM provider used to generate the filler sentence. Leave empty (disabled) to turn the feature off. |
+| **LLM Settings** | Optional provider-specific model/parameter overrides (e.g. model name, temperature). |
+| **Filler Prompt** | The instruction sent to the LLM. It should ask for a single short neutral sentence. |
+
+A typical filler prompt looks like:
+
+```
+Generate only the first short sentence of the response. The rest will be generated later by another call.
+```
+
+::: tip Keep It Lightweight
+Use a small, fast model for the filler LLM — the whole point is speed. A large model defeats the purpose.
+:::
+
+::: tip Voice Required
+Filler Responses only make sense when a TTS provider is configured on the agent. Without a voice, the generated sentence is never spoken.
+:::
+
 ## Using Agents in Stages
 
 Every stage references exactly one agent. When the AI generates a response in that stage, it combines:
