@@ -1,11 +1,11 @@
 <template>
   <div v-if="admin" class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
-      <h2 class="modal-header">Edit Administrator</h2>
+      <h2 class="modal-header">Edit Operator</h2>
       
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label class="form-label">Admin ID</label>
+          <label class="form-label">Operator ID</label>
           <input
             :value="admin.id"
             type="text"
@@ -71,10 +71,10 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { formatEnum } from '@/composables'
-import type { AdminResponse } from '@/api/types'
+import type { OperatorResponse } from '@/api/types'
 
 const props = defineProps<{
-  admin: AdminResponse | null
+  admin: OperatorResponse | null
   availableRoles: string[]
 }>()
 

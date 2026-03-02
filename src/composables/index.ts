@@ -69,7 +69,7 @@ export function useAuth() {
   const authStore = useAuthStore()
 
   const isAuthenticated = computed(() => authStore.isAuthenticated)
-  const currentUser = computed(() => authStore.currentAdmin)
+  const currentUser = computed(() => authStore.currentOperator)
 
   async function requireAuth() {
     if (!isAuthenticated.value) {

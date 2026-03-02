@@ -96,8 +96,8 @@ onMounted(async () => {
   try {
     await authStore.fetchProfile()
     // Pre-populate form with current display name
-    if (authStore.currentAdmin) {
-      form.value.name = authStore.currentAdmin.name
+    if (authStore.currentOperator) {
+      form.value.name = authStore.currentOperator.name
     }
   } catch (err) {
     // Error is handled in the store
@@ -137,7 +137,7 @@ const handleSubmit = async () => {
   }
 
   // Check if anything has changed
-  const hasDisplayNameChange = form.value.name !== authStore.currentAdmin?.name
+  const hasDisplayNameChange = form.value.name !== authStore.currentOperator?.name
   const hasPasswordChange = form.value.oldPassword && form.value.newPassword
 
   if (!hasDisplayNameChange && !hasPasswordChange) {

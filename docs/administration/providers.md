@@ -105,7 +105,7 @@ These settings are configured where the provider is referenced (e.g., on the sta
 
 ## Security
 
-Provider configurations contain sensitive data (API keys, connection strings). Only admins with the appropriate permissions can view or modify provider settings.
+Provider configurations contain sensitive data (API keys, connection strings). Only operators with the appropriate permissions can view or modify provider settings.
 
 ## Tips
 

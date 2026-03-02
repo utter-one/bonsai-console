@@ -5,13 +5,13 @@ This page walks you through your first login and the basic steps to get a projec
 ## Logging In
 
 1. Open the Bonsai Console URL in your browser.
-2. Enter your admin email and password.
+2. Enter your operator email and password.
 3. Click **Log In**.
 
 You'll land on the Dashboard.
 
 ::: tip First-Time Setup
-If this is a brand-new installation with no admin accounts yet, you'll see a one-time setup screen where you create the first super-admin account.
+If this is a brand-new installation with no operator accounts yet, you'll see a one-time setup screen where you create the first super admin account.
 :::
 
 ## Selecting a Project
