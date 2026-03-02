@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, Save, Plus, X, Check, Settings } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, X, Check, Settings, FlaskConical } from 'lucide-vue-next'
 import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
@@ -517,6 +517,9 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           type="button"
         >
           Filler Responses
+          <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+            <FlaskConical class="w-3 h-3" />
+          </span>
         </button>
         <button
           v-if="isEditMode"
@@ -1212,6 +1215,12 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
 
         <!-- Filler Responses Tab -->
         <div v-show="activeTab === 'filler'" class="tab-content">
+          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
+            <p class="text-sm">
+              <span class="font-semibold">Experimental feature</span> — Filler Responses are under active development. Behaviour may change in future releases.
+            </p>
+          </div>
           <div class="form-group">
             <label class="form-label">
               LLM Provider <span class="required">*</span>
