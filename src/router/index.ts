@@ -203,19 +203,19 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/administration/ApiKeysView.vue'),
           },
           {
-            path: 'admins',
-            name: 'administration.admins',
-            component: () => import('@/views/administration/AdminsView.vue'),
+            path: 'operators',
+            name: 'administration.operators',
+            component: () => import('@/views/administration/OperatorsView.vue'),
           },
           {
-            path: 'admins/new',
-            name: 'administration.admins.create',
-            component: () => import('@/views/administration/AdminEditView.vue'),
+            path: 'operators/new',
+            name: 'administration.operators.create',
+            component: () => import('@/views/administration/OperatorEditView.vue'),
           },
           {
-            path: 'admins/:adminId',
-            name: 'administration.admins.edit',
-            component: () => import('@/views/administration/AdminEditView.vue'),
+            path: 'operators/:operatorId',
+            name: 'administration.operators.edit',
+            component: () => import('@/views/administration/OperatorEditView.vue'),
           },
           {
             path: 'providers',

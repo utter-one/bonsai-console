@@ -2051,38 +2051,38 @@ async function startConversation() {
 }
 
 /**
- * Ensure a user exists for the current admin
- * If not, create one with the admin's ID and basic profile
+ * Ensure a user exists for the current operator
+ * If not, create one with the operator's ID and basic profile
  */
 async function ensureUserExists(): Promise<string> {
-  const adminId = authStore.currentAdmin?.id
-  if (!adminId) {
-    throw new Error('No authenticated admin found')
+  const operatorId = authStore.currentOperator?.id
+  if (!operatorId) {
+    throw new Error('No authenticated operator found')
   }
 
   try {
-    // Try to fetch the user by admin ID
-    const user = await usersStore.fetchById(adminId)
+    // Try to fetch the user by operator ID
+    const user = await usersStore.fetchById(operatorId)
     if (user) {
-      return adminId
+      return operatorId
     }
   } catch (error) {
     // User doesn't exist (404), so we'll create it
   }
 
-  // Create user with admin ID
+  // Create user with operator ID
   try {
     addEvent({
       type: 'System',
-      message: `Creating user profile for admin: ${authStore.currentAdmin?.name}`,
+      message: `Creating user profile for operator: ${authStore.currentOperator?.name}`,
       timestamp: new Date()
     })
 
     await usersStore.create({
-      id: adminId,
+      id: operatorId,
       profile: {
-        name: authStore.currentAdmin?.name || 'Admin User',
-        type: 'admin',
+        name: authStore.currentOperator?.name || 'Operator User',
+        type: 'operator',
         createdVia: 'playground'
       }
     })
@@ -2093,7 +2093,7 @@ async function ensureUserExists(): Promise<string> {
       timestamp: new Date()
     })
 
-    return adminId
+    return operatorId
   } catch (error) {
     throw new Error(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`)
   }

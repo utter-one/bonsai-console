@@ -5,7 +5,7 @@ import { BriefcaseBusiness, User, CloudCog, Globe, Key } from 'lucide-vue-next'
 const menuItems = [
   { name: 'administration.projects', label: 'Projects', icon: BriefcaseBusiness },
   { name: 'administration.apiKeys', label: 'API Keys', icon: Key },
-  { name: 'administration.admins', label: 'Admins', icon: User },
+  { name: 'administration.operators', label: 'Operators', icon: User },
   { name: 'administration.providers', label: 'Providers', icon: CloudCog },
   { name: 'administration.environments', label: 'Environments', icon: Globe },
 ]

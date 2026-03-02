@@ -26,7 +26,7 @@ In the **Monitor** section you observe what's happening:
 - **Conversations** — Browse live and historical conversations with full transcripts and event details.
 - **Users** — View end-user profiles and their conversation history.
 - **Issues** — Review automatically flagged conversations that may need attention.
-- **Audit Logs** — See a complete record of every change made by admins in the console.
+- **Audit Logs** — See a complete record of every change made by operators in the console.
 
 ### Administer the Platform
 
@@ -34,7 +34,7 @@ In the **Administration** section you manage the infrastructure:
 
 - **Projects** — Create and configure self-contained AI experiences.
 - **Environments** — Manage deployment targets (development, staging, production).
-- **Admins** — Add team members and control who can see and change what.
+- **Operators** — Add team members and control who can see and change what.
 - **API Keys** — Issue credentials that client applications use to connect.
 - **Providers** — Set up connections to AI services (language models, voice synthesis, speech recognition, storage).
 

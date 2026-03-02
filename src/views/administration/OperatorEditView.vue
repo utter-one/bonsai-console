@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAdminsStore } from '@/stores'
+import { useOperatorsStore } from '@/stores'
 import { formatEnum } from '@/composables'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { AdminResponse } from '@/api/types'
+import type { OperatorResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 
 const route = useRoute()
 const router = useRouter()
-const adminsStore = useAdminsStore()
+const adminsStore = useOperatorsStore()
 
 // State
 const isLoading = ref(false)
@@ -26,9 +26,9 @@ const form = ref({
 })
 
 // Computed
-const adminId = computed(() => route.params.adminId as string | undefined)
-const isEditMode = computed(() => !!adminId.value)
-const currentAdmin = ref<AdminResponse | null>(null)
+const operatorId = computed(() => route.params.operatorId as string | undefined)
+const isEditMode = computed(() => !!operatorId.value)
+const currentOperator = ref<OperatorResponse | null>(null)
 const isSuperAdminSelected = computed(() => form.value.roles.includes('super_admin'))
 
 // Available roles
@@ -37,30 +37,30 @@ const availableRoles = ['super_admin', 'content_manager', 'support', 'developer'
 // Lifecycle
 onMounted(async () => {
   if (isEditMode.value) {
-    await loadAdmin()
+    await loadOperator()
   }
 })
 
 // Methods
-async function loadAdmin() {
-  if (!adminId.value) return
+async function loadOperator() {
+  if (!operatorId.value) return
   
   isLoading.value = true
   error.value = null
   
   try {
-    currentAdmin.value = await adminsStore.fetchById(adminId.value)
-    if (currentAdmin.value) {
+    currentOperator.value = await adminsStore.fetchById(operatorId.value)
+    if (currentOperator.value) {
       form.value = {
-        id: currentAdmin.value.id,
-        name: currentAdmin.value.name,
-        roles: [...currentAdmin.value.roles],
+        id: currentOperator.value.id,
+        name: currentOperator.value.name,
+        roles: [...currentOperator.value.roles],
         password: '',
-        metadata: currentAdmin.value.metadata || {}
+        metadata: currentOperator.value.metadata || {}
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load admin'
+    error.value = err.response?.data?.message || 'Failed to load operator'
   } finally {
     isLoading.value = false
   }
@@ -71,10 +71,10 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    if (isEditMode.value && currentAdmin.value) {
-      // Update existing admin
+    if (isEditMode.value && currentOperator.value) {
+      // Update existing operator
       const updateData: any = {
-        version: currentAdmin.value.version,
+        version: currentOperator.value.version,
         name: form.value.name,
         roles: form.value.roles,
         metadata: form.value.metadata
@@ -90,14 +90,14 @@ async function handleSubmit() {
         updateData.password = form.value.password
       }
 
-      const updated = await adminsStore.update(currentAdmin.value.id, updateData)
+      const updated = await adminsStore.update(currentOperator.value.id, updateData)
       
-      // Update currentAdmin with the response to get the new version
-      currentAdmin.value = updated
+      // Update currentOperator with the response to get the new version
+      currentOperator.value = updated
     } else {
-      // Create new admin
+      // Create new operator
       if (!form.value.password) {
-        error.value = 'Password is required for new administrators'
+        error.value = 'Password is required for new operators'
         isLoading.value = false
         return
       }
@@ -122,13 +122,13 @@ async function handleSubmit() {
         metadata: form.value.metadata
       })
       
-      // Update currentAdmin with the created admin
-      currentAdmin.value = created
+      // Update currentOperator with the created operator
+      currentOperator.value = created
       
       // Navigate to edit mode
       await router.push({
-        name: 'administration.admins.edit',
-        params: { adminId: created.id }
+        name: 'administration.operators.edit',
+        params: { operatorId: created.id }
       })
     }
 
@@ -138,14 +138,14 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} administrator`
+    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} operator`
   } finally {
     isLoading.value = false
   }
 }
 
 function goBack() {
-  router.push({ name: 'administration.admins' })
+  router.push({ name: 'administration.operators' })
 }
 
 function toggleRole(role: string) {
@@ -168,13 +168,13 @@ function toggleRole(role: string) {
 }
 
 const metadataFields = computed(() => {
-  if (!currentAdmin.value) return []
+  if (!currentOperator.value) return []
   return [
-    { label: 'Admin ID', value: currentAdmin.value.id, format: 'mono' as const },
-    { label: 'Version', value: currentAdmin.value.version },
-    { label: 'Created', value: currentAdmin.value.createdAt, format: 'date' as const },
-    { label: 'Updated', value: currentAdmin.value.updatedAt, format: 'date' as const },
-    { label: 'Current Roles', value: currentAdmin.value.roles.map(formatEnum).join(', ') },
+    { label: 'Operator ID', value: currentOperator.value.id, format: 'mono' as const },
+    { label: 'Version', value: currentOperator.value.version },
+    { label: 'Created', value: currentOperator.value.createdAt, format: 'date' as const },
+    { label: 'Updated', value: currentOperator.value.updatedAt, format: 'date' as const },
+    { label: 'Current Roles', value: currentOperator.value.roles.map(formatEnum).join(', ') },
   ]
 })
 </script>
@@ -185,13 +185,13 @@ const metadataFields = computed(() => {
     <!-- Header -->
     <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
-        <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to administrators">
+        <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to operators">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Administrator' : 'Create Administrator' }}</h1>
+          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Operator' : 'Create Operator' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            {{ isEditMode ? 'Update administrator details and permissions' : 'Create a new administrator account' }}
+            {{ isEditMode ? 'Update operator details and permissions' : 'Create a new operator account' }}
           </p>
         </div>
       </div>
@@ -202,7 +202,7 @@ const metadataFields = computed(() => {
         <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
-          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Administrator')) }}
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Operator')) }}
         </button>
       </div>
     </div>
@@ -237,14 +237,14 @@ const metadataFields = computed(() => {
 
     <!-- Loading State -->
     <div v-if="isLoading && isEditMode" class="loading-state">
-      Loading administrator...
+      Loading operator...
     </div>
 
     <!-- Error State -->
     <div v-else-if="error && isEditMode" class="error-state">
       {{ error }}
       <button @click="goBack" class="btn-secondary mt-4">
-        Back to Administrators
+        Back to Operators
       </button>
     </div>
 
@@ -261,20 +261,20 @@ const metadataFields = computed(() => {
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
-              Admin ID <span class="required">*</span>
+              Operator ID <span class="required">*</span>
             </label>
             <input
               v-model="form.id"
               type="text"
               required
-              placeholder="admin-username"
+              placeholder="operator-username"
               class="form-input-mono"
               :disabled="isEditMode || isLoading"
             />
             <p class="form-help-text">
               {{ isEditMode 
-                ? 'The admin ID cannot be changed after creation' 
-                : 'Unique identifier for this administrator. Use lowercase letters, numbers, and hyphens only.' 
+                ? 'The operator ID cannot be changed after creation' 
+                : 'Unique identifier for this operator. Use lowercase letters, numbers, and hyphens only.' 
               }}
             </p>
           </div>
@@ -291,7 +291,7 @@ const metadataFields = computed(() => {
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">Full name or display name for this administrator</p>
+            <p class="form-help-text">Full name or display name for this operator</p>
           </div>
 
           <div class="form-group">
@@ -355,7 +355,7 @@ const metadataFields = computed(() => {
 
         <!-- Metadata Tab -->
         <MetadataTab
-          v-if="isEditMode && currentAdmin"
+          v-if="isEditMode && currentOperator"
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />

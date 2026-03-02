@@ -4,11 +4,11 @@ The **Audit Logs** view provides a complete, read-only record of every administr
 
 ## What Gets Logged
 
-Every time an admin creates, updates, or deletes a resource, an audit log entry is recorded with:
+Every time an operator creates, updates, or deletes a resource, an audit log entry is recorded with:
 
 | Field | Description |
 |---|---|
-| **Admin** | Who performed the action |
+| **Operator** | Who performed the action |
 | **Action** | What they did (create, update, delete) |
 | **Entity type** | What kind of resource was affected (stage, agent, project, etc.) |
 | **Entity ID** | Which specific resource was changed |
@@ -19,15 +19,15 @@ Every time an admin creates, updates, or deletes a resource, an audit log entry 
 ## Use Cases
 
 - **Track changes** — See exactly who changed what and when. Useful when something breaks and you need to figure out which edit caused it.
-- **Compliance and governance** — Maintain a record of all administrative actions for compliance purposes.
+- **Compliance and governance** — Maintain a record of all operator actions for compliance purposes.
 - **Collaboration** — When multiple team members work on the same project, audit logs show who did what.
 - **Rollback support** — The previous and new state data lets you see exactly what changed, making it easier to manually revert a problematic edit.
 
 ## Access
 
-Audit logs are visible to users with the `audit:read` permission. By default, super admins have this permission. See [Admins & Roles](../administration/admins) for details on permissions.
+Audit logs are visible to users with the `audit:read` permission. By default, super admins have this permission. See [Operators & Roles](../administration/operators) for details on permissions.
 
 ## Tips
 
 - **Correlate with issues** — If conversations start failing after a certain time, check audit logs to see what changed around that time.
-- **Use filters** — Filter by entity type, admin, or date range to find specific changes quickly.
+- **Use filters** — Filter by entity type, operator, or date range to find specific changes quickly.

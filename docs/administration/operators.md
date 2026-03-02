@@ -1,21 +1,21 @@
-# Admins & Roles
+# Operators & Roles
 
-The **Admins** view is where you manage the team members who have access to the Bonsai Console.
+The **Operators** view is where you manage the team members who have access to the Bonsai Console.
 
-## Admin Accounts
+## Operator Accounts
 
-Each admin has:
+Each operator has:
 - **Email** — Used for logging in.
 - **Name** — Display name.
 - **Roles** — One or more roles that determine what they can see and do.
 
-### Creating an Admin
+### Creating an Operator
 
-Go to **Administration > Admins** and click **Create Admin**. Fill in the email, name, and password, then assign one or more roles.
+Go to **Administration > Operators** and click **Create Operator**. Fill in the email, name, and password, then assign one or more roles.
 
 ## Roles
 
-Roles control what an admin can access. Each role comes with a set of permissions.
+Roles control what an operator can access. Each role comes with a set of permissions.
 
 | Role | Access Level |
 |---|---|
@@ -27,7 +27,7 @@ Roles control what an admin can access. Each role comes with a set of permission
 
 ### Choosing the Right Role
 
-- Give **Super Admin** only to team leads or platform administrators.
+- Give **Super Admin** only to team leads or platform operators.
 - Give **Content Manager** to people who design and maintain conversations.
 - Give **Support** to customer service team members who need to review conversations and handle issues.
 - Give **Developer** to technical staff who need to inspect configurations.
@@ -51,10 +51,10 @@ You don't need to manage permissions individually — they're determined by the 
 
 ## Initial Setup
 
-When Bonsai is first installed with no admin accounts, a one-time setup screen appears where you create the first super admin. This endpoint is disabled as soon as the first admin is created.
+When Bonsai is first installed with no operator accounts, a one-time setup screen appears where you create the first super admin. This endpoint is disabled as soon as the first operator is created.
 
 ## Tips
 
 - **Follow least privilege** — Give each person only the access they need.
-- **Use descriptive names** — When you have many admins, clear names make audit logs easier to read.
+- **Use descriptive names** — When you have many operators, clear names make audit logs easier to read.
 - **Review access periodically** — Remove accounts for people who no longer need access.
