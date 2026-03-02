@@ -27,6 +27,7 @@ const props = withDefaults(
     monospace?: boolean
     stageVariables?: FieldDescriptor[]
     actionParameters?: Record<string, StageActionParameter[]>
+    userProfileVariables?: FieldDescriptor[]
     showToolbar?: boolean
   }>(),
   {
@@ -37,6 +38,7 @@ const props = withDefaults(
     monospace: true,
     stageVariables: () => [],
     actionParameters: () => ({}),
+    userProfileVariables: () => [],
     showToolbar: false,
   }
 )
@@ -90,7 +92,7 @@ const contextVariables: ToolbarVariable[] = [
   { label: 'time.calendar', path: 'time.calendar', isArray: true, detail: 'array' },
 ]
 
-const userProfileFields = [
+const defaultUserProfileFields = [
   { key: 'name', detail: 'string — display name' },
   { key: 'email', detail: 'string — email address' },
   { key: 'phoneNumber', detail: 'string — phone number' },
@@ -98,6 +100,17 @@ const userProfileFields = [
   { key: 'timezone', detail: 'string — user timezone' },
   { key: 'metadata', detail: 'object — custom metadata' },
 ]
+
+const userProfileFields = computed(() => {
+  if (props.userProfileVariables && props.userProfileVariables.length > 0) {
+    return flattenVariables(props.userProfileVariables, 'userProfile').map(v => ({
+      key: v.path.replace(/^userProfile\./, ''),
+      detail: `${v.detail}${v.isArray ? ' (array)' : ''}`,
+      fullPath: v.path,
+    }))
+  }
+  return defaultUserProfileFields.map(f => ({ ...f, fullPath: `userProfile.${f.key}` }))
+})
 
 const timeFields = [
   { key: 'anchor', detail: 'LLM grounding sentence' },
@@ -350,6 +363,7 @@ function buildHandlebarsHighlightExtension() {
 const completionContext = computed<CompletionContextData>(() => ({
   stageVariables: props.stageVariables,
   actionParameters: props.actionParameters,
+  userProfileVariables: props.userProfileVariables,
 }))
 
 function buildTheme() {
@@ -643,9 +657,9 @@ watch(
             :key="f.key"
             type="button"
             class="toolbar-dropdown-item"
-            @click.stop="insertVariable(`userProfile.${f.key}`)"
+            @click.stop="insertVariable(f.fullPath)"
           >
-            <span class="font-mono text-blue-600 dark:text-blue-400">userProfile.{{ f.key }}</span>
+            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ f.fullPath }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
           </button>
         </div>

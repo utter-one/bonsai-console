@@ -1346,6 +1346,11 @@ export interface CreateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /**
+   * Descriptors defining the data schema for user profile variables in this project
+   * @default []
+   */
+  userProfileVariableDescriptors?: FieldDescriptor[];
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -1420,6 +1425,8 @@ export interface UpdateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /** Updated descriptors defining the data schema for user profile variables in this project */
+  userProfileVariableDescriptors?: FieldDescriptor[];
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -1480,6 +1487,8 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** Descriptors defining the data schema for user profile variables in this project */
+  userProfileVariableDescriptors: FieldDescriptor[];
   /** The version number of the project */
   version: number;
   /**
@@ -1540,6 +1549,8 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** Descriptors defining the data schema for user profile variables in this project */
+    userProfileVariableDescriptors: FieldDescriptor[];
     /** The version number of the project */
     version: number;
     /**

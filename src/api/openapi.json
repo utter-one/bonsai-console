@@ -2554,6 +2554,14 @@
           "timezone": {
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "default": [],
+            "description": "Descriptors defining the data schema for user profile variables in this project"
           }
         },
         "required": [
@@ -2752,6 +2760,13 @@
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Updated descriptors defining the data schema for user profile variables in this project"
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -2900,6 +2915,13 @@
             "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
           },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Descriptors defining the data schema for user profile variables in this project"
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -2926,6 +2948,7 @@
           "constants",
           "metadata",
           "timezone",
+          "userProfileVariableDescriptors",
           "version",
           "createdAt",
           "updatedAt"
@@ -3048,6 +3071,13 @@
                   "nullable": true,
                   "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                 },
+                "userProfileVariableDescriptors": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldDescriptor"
+                  },
+                  "description": "Descriptors defining the data schema for user profile variables in this project"
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -3074,6 +3104,7 @@
                 "constants",
                 "metadata",
                 "timezone",
+                "userProfileVariableDescriptors",
                 "version",
                 "createdAt",
                 "updatedAt"
@@ -12501,6 +12532,14 @@
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "userProfileVariableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
+                    },
+                    "default": [],
+                    "description": "Descriptors defining the data schema for user profile variables in this project"
                   }
                 },
                 "required": [
@@ -12627,6 +12666,13 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -12653,6 +12699,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -12927,6 +12974,13 @@
                             "nullable": true,
                             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                           },
+                          "userProfileVariableDescriptors": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FieldDescriptor"
+                            },
+                            "description": "Descriptors defining the data schema for user profile variables in this project"
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -12953,6 +13007,7 @@
                           "constants",
                           "metadata",
                           "timezone",
+                          "userProfileVariableDescriptors",
                           "version",
                           "createdAt",
                           "updatedAt"
@@ -13112,6 +13167,13 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13138,6 +13200,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -13223,6 +13286,13 @@
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "userProfileVariableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
+                    },
+                    "description": "Updated descriptors defining the data schema for user profile variables in this project"
                   },
                   "version": {
                     "type": "number",
@@ -13353,6 +13423,13 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13379,6 +13456,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"

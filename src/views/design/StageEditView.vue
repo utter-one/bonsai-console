@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
+import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -52,12 +52,13 @@ const classifiersStore = useClassifiersStore()
 const transformersStore = useContextTransformersStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const projectsStore = useProjectsStore()
 
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'variables' | 'actions' | 'lifecycle' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
@@ -125,8 +126,11 @@ onMounted(async () => {
     agentsStore.fetchAll(projectId.value),
     classifiersStore.fetchAll(projectId.value),
     transformersStore.fetchAll(projectId.value),
-    toolsStore.fetchAll(projectId.value)
+    toolsStore.fetchAll(projectId.value),
+    projectsStore.fetchById(projectId.value),
   ])
+  
+  userProfileVariablesForCompletion.value = projectsStore.currentItem?.userProfileVariableDescriptors || []
   
   if (isEditMode.value) {
     await loadStage()
@@ -183,7 +187,7 @@ async function handleSubmit() {
 
   if (duplicateVariableNames.value.length > 0) {
     error.value = `Duplicate variable names detected: ${duplicateVariableNames.value.join(', ')}. Variable names must be unique within each level.`
-    activeTab.value = 'variables'
+    activeTab.value = 'memory'
     return
   }
 
@@ -292,6 +296,8 @@ const metadataFields = computed(() => {
 
 // Computed properties for prompt editor auto-completion
 const stageVariablesForCompletion = computed(() => form.value.variableDescriptors)
+
+const userProfileVariablesForCompletion = ref<any[]>([])
 
 const actionParametersForCompletion = computed(() => {
   const result: Record<string, any[]> = {}
@@ -765,11 +771,11 @@ function toggleNode(path: number[]) {
           Features & Integrations
         </button>
         <button
-          @click="activeTab = 'variables'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'variables' }]"
+          @click="activeTab = 'memory'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'memory' }]"
           type="button"
         >
-          Variables
+          Memory
         </button>
         <button
           @click="activeTab = 'actions'"
@@ -936,6 +942,7 @@ function toggleNode(path: number[]) {
                 :disabled="isLoading"
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
+                :user-profile-variables="userProfileVariablesForCompletion"
                 show-toolbar
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
@@ -1047,15 +1054,15 @@ function toggleNode(path: number[]) {
             </div>
           </div>
 
-          <!-- Variables Tab -->
-          <div v-show="activeTab === 'variables'" class="tab-content">
+          <!-- Memory Tab -->
+          <div v-show="activeTab === 'memory'" class="tab-content">
             <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
               <AlertTriangle class="inline-block mr-2 w-4 h-4" />
               Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
             </div>
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Variable Descriptors</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Click field names to edit, change types inline
                 </p>
