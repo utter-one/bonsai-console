@@ -876,7 +876,7 @@ function handleVariablesPaste(indices: number[]) {
           :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
           type="button"
         >
-          Voice Settings
+          Voice
         </button>
         <button
           @click="activeTab = 'storage'"
