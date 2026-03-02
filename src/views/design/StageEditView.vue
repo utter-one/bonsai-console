@@ -754,21 +754,21 @@ function toggleNode(path: number[]) {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'prompt'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
           type="button"
         >
-          Prompt Configuration
+          Prompt
         </button>
         <button
           @click="activeTab = 'features'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'features' }]"
           type="button"
         >
-          Features & Integrations
+          Features
         </button>
         <button
           @click="activeTab = 'memory'"
@@ -824,7 +824,7 @@ function toggleNode(path: number[]) {
             {{ error }}
           </div>
 
-          <!-- Basic Information Tab -->
+          <!-- General Tab -->
           <div v-show="activeTab === 'basic'" class="tab-content">
             <div class="form-group">
               <label class="form-label">
@@ -900,7 +900,7 @@ function toggleNode(path: number[]) {
             </div>
           </div>
 
-          <!-- Prompt Configuration Tab -->
+          <!-- Prompt Tab -->
           <div v-show="activeTab === 'prompt'" class="tab-content">
             <div class="form-group">
               <label class="form-label">
@@ -954,7 +954,7 @@ function toggleNode(path: number[]) {
             </div>
           </div>
 
-          <!-- Features & Integrations Tab -->
+          <!-- Features Tab -->
           <div v-show="activeTab === 'features'" class="tab-content">
             
             <div class="form-group">

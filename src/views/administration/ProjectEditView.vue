@@ -869,14 +869,14 @@ function handleVariablesPaste(indices: number[]) {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'voice'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
           type="button"
         >
-          Voice Settings
+          Voice
         </button>
         <button
           @click="activeTab = 'storage'"
@@ -940,7 +940,7 @@ function handleVariablesPaste(indices: number[]) {
           {{ error }}
         </div>
 
-        <!-- Basic Information Tab -->
+        <!-- General Tab -->
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">

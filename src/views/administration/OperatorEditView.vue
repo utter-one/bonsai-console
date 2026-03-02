@@ -215,7 +215,7 @@ const metadataFields = computed(() => {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'roles'"
@@ -257,7 +257,7 @@ const metadataFields = computed(() => {
           {{ error }}
         </div>
 
-        <!-- Basic Information Tab -->
+        <!-- General Tab -->
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
