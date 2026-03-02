@@ -1246,13 +1246,14 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             <label class="form-label">
               Filler Prompt <span class="required">*</span>
             </label>
-            <textarea
+            <PromptEditor
               v-model="form.fillerPrompt"
-              rows="4"
-              class="form-textarea"
-              placeholder='Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."'
               :disabled="isLoading || !form.fillerLlmProviderId"
-            ></textarea>
+              show-toolbar
+              placeholder='Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."'
+              aria-label="Filler response prompt"
+              min-height="20rem"
+            />
             <p class="form-help-text">
               Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request
             </p>
