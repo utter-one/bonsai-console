@@ -30,6 +30,9 @@ export function useAudioPlayback() {
   let scheduledSources: AudioBufferSourceNode[] = []
   let nextScheduledTime = 0
   let playbackStartTime = 0
+  // Index in audioBuffers where the current/next stream starts.
+  // Allows prior audio to be retained for replay while new streams auto-start correctly.
+  let streamStartIndex = 0
 
   // State
   const state = ref<AudioPlaybackState>({
@@ -133,6 +136,9 @@ export function useAudioPlayback() {
         lastScheduledBufferIndex = -1
         nextScheduledTime = 0
         playbackStartTime = 0
+        // Advance the stream start index so the next incoming stream auto-starts
+        // correctly while prior audio buffers are retained for replay.
+        streamStartIndex = audioBuffers.value.length
       }
     }
 
@@ -188,8 +194,8 @@ export function useAudioPlayback() {
       if (state.value.playing) {
         scheduleAllBuffers()
       }
-      // Auto-start playback when first chunk arrives
-      else if (audioBuffers.value.length === 1 && !state.value.paused) {
+      // Auto-start playback when the first chunk of a new stream arrives
+      else if (audioBuffers.value.length === streamStartIndex + 1 && !state.value.paused) {
         play()
       }
     } catch (err) {
@@ -266,15 +272,15 @@ export function useAudioPlayback() {
         scheduleAllBuffers()
         startTimeTracking()
       } else if (!state.value.playing) {
-        // Start fresh
+        // Start fresh from the current stream's start index
         state.value.playing = true
         state.value.paused = false
         state.value.currentTime = 0
 
-        // Schedule all buffers on the timeline
+        // Schedule buffers from the current stream start
         nextScheduledTime = ctx.currentTime + 0.1 // Small buffer to prevent immediate playback issues
         playbackStartTime = nextScheduledTime
-        lastScheduledBufferIndex = -1
+        lastScheduledBufferIndex = streamStartIndex - 1
         scheduleAllBuffers()
         startTimeTracking()
       }
@@ -346,6 +352,7 @@ export function useAudioPlayback() {
     stop()
     chunkQueue.value = []
     audioBuffers.value = []
+    streamStartIndex = 0
     state.value.duration = 0
     state.value.error = null
   }

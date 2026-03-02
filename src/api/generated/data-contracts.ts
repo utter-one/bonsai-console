@@ -709,6 +709,22 @@ export interface SpeechmaticsAsrSettings {
   [key: string]: any;
 }
 
+export interface FillerSettings {
+  /** ID of the LLM provider used to generate the filler sentence */
+  llmProviderId: string;
+  /** LLM provider-specific settings for filler generation */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /**
+   * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
+   * @minLength 1
+   */
+  prompt: string;
+}
+
 export interface S3StorageConfig {
   /** AWS access key ID */
   accessKeyId: string;
@@ -1575,6 +1591,8 @@ export interface CreateAgentRequest {
   tags?: string[];
   /** Additional agent-specific metadata */
   metadata?: Record<string, any>;
+  /** Filler response settings: a short sentence spoken through TTS at the very start of each turn while classification runs in parallel */
+  fillerSettings?: FillerSettings;
 }
 
 export interface UpdateAgentRequest {
@@ -1603,6 +1621,8 @@ export interface UpdateAgentRequest {
   tags?: string[];
   /** Updated metadata */
   metadata?: Record<string, any>;
+  /** Updated filler response settings */
+  fillerSettings?: FillerSettings;
   /**
    * Current version number for optimistic locking
    * @min 1
@@ -1642,6 +1662,8 @@ export interface AgentResponse {
   tags: string[];
   /** Additional agent-specific metadata */
   metadata: Record<string, any>;
+  /** Filler response settings */
+  fillerSettings: FillerSettings;
   /** Version number for optimistic locking */
   version: number;
   /**
@@ -1682,6 +1704,8 @@ export interface AgentListResponse {
     tags: string[];
     /** Additional agent-specific metadata */
     metadata: Record<string, any>;
+    /** Filler response settings */
+    fillerSettings: FillerSettings;
     /** Version number for optimistic locking */
     version: number;
     /**

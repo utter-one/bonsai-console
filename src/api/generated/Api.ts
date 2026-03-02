@@ -27,6 +27,7 @@ import {
   ElevenLabsTtsSettings,
   ExportBundle,
   FieldDescriptor,
+  FillerSettings,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
@@ -3635,6 +3636,8 @@ export class Api<
       tags?: string[];
       /** Additional agent-specific metadata */
       metadata?: Record<string, any>;
+      /** Filler response settings: a short sentence spoken through TTS at the very start of each turn while classification runs in parallel */
+      fillerSettings?: FillerSettings;
     },
     params: RequestParams = {},
   ) =>
@@ -3663,6 +3666,8 @@ export class Api<
         tags: string[];
         /** Additional agent-specific metadata */
         metadata: Record<string, any>;
+        /** Filler response settings */
+        fillerSettings: FillerSettings;
         /** Version number for optimistic locking */
         version: number;
         /**
@@ -3757,6 +3762,8 @@ export class Api<
           tags: string[];
           /** Additional agent-specific metadata */
           metadata: Record<string, any>;
+          /** Filler response settings */
+          fillerSettings: FillerSettings;
           /** Version number for optimistic locking */
           version: number;
           /**
@@ -3835,6 +3842,8 @@ export class Api<
         tags: string[];
         /** Additional agent-specific metadata */
         metadata: Record<string, any>;
+        /** Filler response settings */
+        fillerSettings: FillerSettings;
         /** Version number for optimistic locking */
         version: number;
         /**
@@ -3894,6 +3903,8 @@ export class Api<
       tags?: string[];
       /** Updated metadata */
       metadata?: Record<string, any>;
+      /** Updated filler response settings */
+      fillerSettings?: FillerSettings;
       /**
        * Current version number for optimistic locking
        * @min 1
@@ -3927,6 +3938,8 @@ export class Api<
         tags: string[];
         /** Additional agent-specific metadata */
         metadata: Record<string, any>;
+        /** Filler response settings */
+        fillerSettings: FillerSettings;
         /** Version number for optimistic locking */
         version: number;
         /**
@@ -4050,6 +4063,8 @@ export class Api<
         tags: string[];
         /** Additional agent-specific metadata */
         metadata: Record<string, any>;
+        /** Filler response settings */
+        fillerSettings: FillerSettings;
         /** Version number for optimistic locking */
         version: number;
         /**

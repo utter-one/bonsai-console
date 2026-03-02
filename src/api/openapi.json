@@ -1198,6 +1198,44 @@
         },
         "description": "Speechmatics speech-to-text settings"
       },
+      "FillerSettings": {
+        "type": "object",
+        "properties": {
+          "llmProviderId": {
+            "type": "string",
+            "description": "ID of the LLM provider used to generate the filler sentence"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for filler generation"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
+          }
+        },
+        "required": [
+          "llmProviderId",
+          "prompt"
+        ]
+      },
       "S3StorageConfig": {
         "type": "object",
         "properties": {
@@ -3116,6 +3154,16 @@
               "nullable": true
             },
             "description": "Additional agent-specific metadata"
+          },
+          "fillerSettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FillerSettings"
+              },
+              {
+                "description": "Filler response settings: a short sentence spoken through TTS at the very start of each turn while classification runs in parallel"
+              }
+            ]
           }
         },
         "required": [
@@ -3180,6 +3228,16 @@
               "nullable": true
             },
             "description": "Updated metadata"
+          },
+          "fillerSettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FillerSettings"
+              },
+              {
+                "description": "Updated filler response settings"
+              }
+            ]
           },
           "version": {
             "type": "integer",
@@ -3271,6 +3329,17 @@
             },
             "description": "Additional agent-specific metadata"
           },
+          "fillerSettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FillerSettings"
+              },
+              {
+                "nullable": true,
+                "description": "Filler response settings"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "description": "Version number for optimistic locking"
@@ -3297,6 +3366,7 @@
           "ttsProviderId",
           "tags",
           "metadata",
+          "fillerSettings",
           "version",
           "createdAt",
           "updatedAt"
@@ -3374,6 +3444,17 @@
                   },
                   "description": "Additional agent-specific metadata"
                 },
+                "fillerSettings": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/FillerSettings"
+                    },
+                    {
+                      "nullable": true,
+                      "description": "Filler response settings"
+                    }
+                  ]
+                },
                 "version": {
                   "type": "integer",
                   "description": "Version number for optimistic locking"
@@ -3400,6 +3481,7 @@
                 "ttsProviderId",
                 "tags",
                 "metadata",
+                "fillerSettings",
                 "version",
                 "createdAt",
                 "updatedAt"
@@ -19355,6 +19437,16 @@
                       "nullable": true
                     },
                     "description": "Additional agent-specific metadata"
+                  },
+                  "fillerSettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/FillerSettings"
+                      },
+                      {
+                        "description": "Filler response settings: a short sentence spoken through TTS at the very start of each turn while classification runs in parallel"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -19437,6 +19529,17 @@
                       },
                       "description": "Additional agent-specific metadata"
                     },
+                    "fillerSettings": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FillerSettings"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Filler response settings"
+                        }
+                      ]
+                    },
                     "version": {
                       "type": "integer",
                       "description": "Version number for optimistic locking"
@@ -19463,6 +19566,7 @@
                     "ttsProviderId",
                     "tags",
                     "metadata",
+                    "fillerSettings",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -19692,6 +19796,17 @@
                             },
                             "description": "Additional agent-specific metadata"
                           },
+                          "fillerSettings": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/FillerSettings"
+                              },
+                              {
+                                "nullable": true,
+                                "description": "Filler response settings"
+                              }
+                            ]
+                          },
                           "version": {
                             "type": "integer",
                             "description": "Version number for optimistic locking"
@@ -19718,6 +19833,7 @@
                           "ttsProviderId",
                           "tags",
                           "metadata",
+                          "fillerSettings",
                           "version",
                           "createdAt",
                           "updatedAt"
@@ -19861,6 +19977,17 @@
                       },
                       "description": "Additional agent-specific metadata"
                     },
+                    "fillerSettings": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FillerSettings"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Filler response settings"
+                        }
+                      ]
+                    },
                     "version": {
                       "type": "integer",
                       "description": "Version number for optimistic locking"
@@ -19887,6 +20014,7 @@
                     "ttsProviderId",
                     "tags",
                     "metadata",
+                    "fillerSettings",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -19990,6 +20118,16 @@
                     },
                     "description": "Updated metadata"
                   },
+                  "fillerSettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/FillerSettings"
+                      },
+                      {
+                        "description": "Updated filler response settings"
+                      }
+                    ]
+                  },
                   "version": {
                     "type": "integer",
                     "minimum": 1,
@@ -20075,6 +20213,17 @@
                       },
                       "description": "Additional agent-specific metadata"
                     },
+                    "fillerSettings": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FillerSettings"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Filler response settings"
+                        }
+                      ]
+                    },
                     "version": {
                       "type": "integer",
                       "description": "Version number for optimistic locking"
@@ -20101,6 +20250,7 @@
                     "ttsProviderId",
                     "tags",
                     "metadata",
+                    "fillerSettings",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -20347,6 +20497,17 @@
                       },
                       "description": "Additional agent-specific metadata"
                     },
+                    "fillerSettings": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FillerSettings"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Filler response settings"
+                        }
+                      ]
+                    },
                     "version": {
                       "type": "integer",
                       "description": "Version number for optimistic locking"
@@ -20373,6 +20534,7 @@
                     "ttsProviderId",
                     "tags",
                     "metadata",
+                    "fillerSettings",
                     "version",
                     "createdAt",
                     "updatedAt"
