@@ -14,6 +14,8 @@ export interface CompletionContextData {
   stageVariables?: FieldDescriptor[]
   /** Action parameters indexed by action key */
   actionParameters?: Record<string, StageActionParameter[]>
+  /** User profile variable descriptors defined on the project */
+  userProfileVariables?: FieldDescriptor[]
 }
 
 /**
@@ -71,12 +73,6 @@ const baseVariableCompletions: Completion[] = [
   { label: 'vars', type: 'variable', detail: 'Stage variables (object)' },
 
   { label: 'userProfile', type: 'variable', detail: 'User profile (object)' },
-  { label: 'userProfile.name', type: 'property', detail: 'User display name' },
-  { label: 'userProfile.email', type: 'property', detail: 'User email address' },
-  { label: 'userProfile.phoneNumber', type: 'property', detail: 'User phone number' },
-  { label: 'userProfile.language', type: 'property', detail: 'User preferred language' },
-  { label: 'userProfile.timezone', type: 'property', detail: 'User timezone' },
-  { label: 'userProfile.metadata', type: 'property', detail: 'Custom user metadata' },
 
   { label: 'history', type: 'variable', detail: 'Conversation message history (array)' },
   { label: 'history.length', type: 'property', detail: 'Array length' },
@@ -254,6 +250,10 @@ export function createHandlebarsPromptCompletionSource(
 
   if (contextData?.stageVariables && contextData.stageVariables.length > 0) {
     dynamicVariableCompletions.push(...generateVariableCompletions(contextData.stageVariables))
+  }
+
+  if (contextData?.userProfileVariables && contextData.userProfileVariables.length > 0) {
+    dynamicVariableCompletions.push(...generateVariableCompletions(contextData.userProfileVariables, 'userProfile'))
   }
 
   if (contextData?.actionParameters && Object.keys(contextData.actionParameters).length > 0) {

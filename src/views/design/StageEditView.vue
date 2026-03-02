@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore } from '@/stores'
+import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -52,6 +52,7 @@ const classifiersStore = useClassifiersStore()
 const transformersStore = useContextTransformersStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const projectsStore = useProjectsStore()
 
 // State
 const isLoading = ref(false)
@@ -125,8 +126,11 @@ onMounted(async () => {
     agentsStore.fetchAll(projectId.value),
     classifiersStore.fetchAll(projectId.value),
     transformersStore.fetchAll(projectId.value),
-    toolsStore.fetchAll(projectId.value)
+    toolsStore.fetchAll(projectId.value),
+    projectsStore.fetchById(projectId.value),
   ])
+  
+  userProfileVariablesForCompletion.value = projectsStore.currentItem?.userProfileVariableDescriptors || []
   
   if (isEditMode.value) {
     await loadStage()
@@ -292,6 +296,8 @@ const metadataFields = computed(() => {
 
 // Computed properties for prompt editor auto-completion
 const stageVariablesForCompletion = computed(() => form.value.variableDescriptors)
+
+const userProfileVariablesForCompletion = ref<any[]>([])
 
 const actionParametersForCompletion = computed(() => {
   const result: Record<string, any[]> = {}
@@ -936,6 +942,7 @@ function toggleNode(path: number[]) {
                 :disabled="isLoading"
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
+                :user-profile-variables="userProfileVariablesForCompletion"
                 show-toolbar
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
