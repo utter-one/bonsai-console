@@ -36,7 +36,7 @@ const convTotal = computed(() => convCounts.value.active + convCounts.value.fini
 const isLoadingConversations = ref(false)
 const conversationsError = ref<string | null>(null)
 
-const issueCounts = ref({ critical: 0, high: 0, medium: 0, low: 0 })
+const issueCounts = ref({ critical: 0, major: 0, minor: 0, trivial: 0 })
 const isLoadingIssues = ref(false)
 const issuesError = ref<string | null>(null)
 
@@ -106,19 +106,20 @@ async function loadIssueCounts(pid: string) {
   isLoadingIssues.value = true
   issuesError.value = null
   try {
-    const [criticalRes, highRes, mediumRes, lowRes] = await Promise.all([
-      (apiClient as any).projectsIssuesList(pid, { limit: 1, filters: { severity: 'critical' } }),
-      (apiClient as any).projectsIssuesList(pid, { limit: 1, filters: { severity: 'high' } }),
-      (apiClient as any).projectsIssuesList(pid, { limit: 1, filters: { severity: 'medium' } }),
-      (apiClient as any).projectsIssuesList(pid, { limit: 1, filters: { severity: 'low' } }),
+    const [criticalRes, majorRes, minorRes, trivialRes] = await Promise.all([
+      apiClient.issuesList({ limit: 1, filters: { projectId: pid, severity: 'critical' } }),
+      apiClient.issuesList({ limit: 1, filters: { projectId: pid, severity: 'major' } }),
+      apiClient.issuesList({ limit: 1, filters: { projectId: pid, severity: 'minor' } }),
+      apiClient.issuesList({ limit: 1, filters: { projectId: pid, severity: 'trivial' } }),
     ])
     issueCounts.value = {
       critical: criticalRes?.total ?? 0,
-      high: highRes?.total ?? 0,
-      medium: mediumRes?.total ?? 0,
-      low: lowRes?.total ?? 0,
+      major: majorRes?.total ?? 0,
+      minor: minorRes?.total ?? 0,
+      trivial: trivialRes?.total ?? 0,
     }
   } catch (err: any) {
+    console.log('Error loading issue counts:', err)
     issuesError.value = err?.response?.data?.message || 'Failed to load issues'
   } finally {
     isLoadingIssues.value = false
@@ -312,16 +313,16 @@ function getActionBadgeClass(action: string): string {
             <span class="text-lg font-bold text-red-700 dark:text-red-300">{{ formatCount(issueCounts.critical) }}</span>
           </div>
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
-            <span class="text-sm font-medium text-orange-700 dark:text-orange-300">High</span>
-            <span class="text-lg font-bold text-orange-700 dark:text-orange-300">{{ formatCount(issueCounts.high) }}</span>
+            <span class="text-sm font-medium text-orange-700 dark:text-orange-300">Major</span>
+            <span class="text-lg font-bold text-orange-700 dark:text-orange-300">{{ formatCount(issueCounts.major) }}</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
-            <span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">Medium</span>
-            <span class="text-lg font-bold text-yellow-700 dark:text-yellow-300">{{ formatCount(issueCounts.medium) }}</span>
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+            <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Minor</span>
+            <span class="text-lg font-bold text-blue-700 dark:text-blue-300">{{ formatCount(issueCounts.minor) }}</span>
           </div>
           <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 dark:bg-gray-700/50 dark:border-gray-600">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Low</span>
-            <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ formatCount(issueCounts.low) }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trivial</span>
+            <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ formatCount(issueCounts.trivial) }}</span>
           </div>
         </div>
       </div>
