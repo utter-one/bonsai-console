@@ -17,11 +17,23 @@ Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
 | Variable | Description |
 |---|---|
 | `vars` | Current stage variables (data collected during the conversation) |
-| `userProfile` | The end user's profile information |
+| `userProfile` | The end user's profile information (custom fields defined in the project) |
 | `constants` | Project-level constants (company name, support hours, etc.) |
 | `userInput` | What the user just said |
 | `time` | Current date and time (timezone-aware) |
 | `context.results` | Results from tool calls and webhooks |
+
+### User Profile Fields
+
+Custom fields can be declared per-project in **Administration > Projects > User Profile** tab. Custom fields show up in the prompt editor's autocomplete and can be accessed the same way:
+
+```handlebars
+{{userProfile.tier}}
+{{userProfile.accountId}}
+{{userProfile.preferences.language}}
+```
+
+See [Projects](../administration/projects#user-profile-variables) for details on defining custom fields.
 
 ### Nested Properties
 

@@ -65,6 +65,31 @@ Each constant has a **key**, a **type**, and a **value**:
 
 Use **Copy** to export all constants as JSON and **Paste** to import them from the clipboard. Pasting merges with existing constants — existing keys are updated, new keys are added.
 
+### User Profile Variables
+
+The **User Profile** tab defines the schema for custom data stored on each end user. Use this to declare what fields your conversations will read or write on user profiles.
+
+#### Custom Fields
+
+Click **Add Variable** to define additional fields. Each descriptor has:
+
+| Property | Description |
+|---|---|
+| **Name** | Field name (e.g., `tier`, `accountId`, `preferences`) |
+| **Type** | `string`, `number`, `boolean`, `object`, or array variants |
+| **Object Schema** | For `object` types, define nested fields inline |
+
+Custom fields are accessed in prompts and scripts exactly like built-in ones:
+
+```handlebars
+{{userProfile.tier}}
+{{userProfile.preferences.language}}
+```
+
+The schema is informational — it documents the expected shape to the prompt editor (autocomplete) and your team. Values are set at runtime via `modify_user_profile` action effects or scripts.
+
+Use **Copy** and **Paste** to transfer variable schemas between projects in JSON format.
+
 ## Child Resources
 
 A project contains:
@@ -82,5 +107,6 @@ A project contains:
 
 - **One bot = one project** — Keep each conversational experience in its own project.
 - **Use constants generously** — Company name, support hours, URLs — anything repeated across prompts belongs in constants.
+- **Define your user profile schema** — Declaring custom profile fields gives you autocomplete in the prompt editor and makes your data model explicit for the whole team.
 - **Configure storage early** — If you want to keep audio recordings and transcripts, set up storage before going live.
 - **Set a timezone** — This ensures the AI gives accurate date and time information in conversations.
