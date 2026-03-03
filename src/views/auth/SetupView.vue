@@ -50,7 +50,7 @@ async function handleSetup() {
   isLoading.value = true
 
   try {
-    await authStore.createInitialAdmin({
+    await authStore.createInitialOperator({
       id: setupForm.value.id,
       name: setupForm.value.name,
       password: setupForm.value.password,
@@ -79,7 +79,7 @@ async function handleSetup() {
             <Rocket :size="40" />
           </div>
           <h1 class="auth-title">Welcome to Bonsai Console</h1>
-          <p class="auth-subtitle">Let's set up your initial administrator account</p>
+          <p class="auth-subtitle">Let's set up your initial operator account</p>
         </div>
 
         <form @submit.prevent="handleSetup" class="auth-form">
@@ -101,13 +101,13 @@ async function handleSetup() {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="id" class="form-label">Admin ID / Email</label>
+            <label for="id" class="form-label">Operator ID / Email</label>
             <input
               id="id"
               v-model="setupForm.id"
               type="text"
               required
-              placeholder="admin@example.com or admin-user"
+              placeholder="operator@example.com or operator-id"
               :disabled="isLoading"
               class="form-input px-3 py-3"
             />

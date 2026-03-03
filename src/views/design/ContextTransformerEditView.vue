@@ -221,7 +221,7 @@ const metadataFields = computed(() => {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'variables'"
@@ -241,7 +241,7 @@ const metadataFields = computed(() => {
           :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
           type="button"
         >
-          Prompt Configuration
+          Prompt
         </button>
         <button
           v-if="isEditMode"
@@ -276,7 +276,7 @@ const metadataFields = computed(() => {
             {{ error }}
           </div>
 
-          <!-- Basic Information Tab -->
+          <!-- General Tab -->
           <div v-show="activeTab === 'basic'" class="tab-content">
             <div class="form-group">
               <label class="form-label">
@@ -348,7 +348,7 @@ const metadataFields = computed(() => {
             </div>
           </div>
 
-          <!-- Prompt Configuration Tab -->
+          <!-- Prompt Tab -->
           <div v-show="activeTab === 'prompt'" class="tab-content">
             <div class="form-group">
               <label class="form-label">

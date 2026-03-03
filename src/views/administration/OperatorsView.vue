@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAdminsStore } from '@/stores'
+import { useOperatorsStore } from '@/stores'
 import { formatEnum, usePagination, useTableSort } from '@/composables'
 import { User, Search, X, Plus } from 'lucide-vue-next'
-import type { AdminResponse } from '@/api/types'
+import type { OperatorResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
-const adminsStore = useAdminsStore()
+const operatorsStore = useOperatorsStore()
 
 // UI State
 const searchQuery = ref('')
@@ -17,23 +17,23 @@ const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
-const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-admins')
+const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-operators')
 
 // Pagination
 const pagination = usePagination({
-  store: adminsStore,
+  store: operatorsStore,
   pageSize: 20,
-  onPageChange: loadAdmins
+  onPageChange: loadOperators
 })
 
 // Computed
-const filteredAdmins = computed(() => {
-  if (!debouncedSearchQuery.value) return adminsStore.items
+const filteredOperators = computed(() => {
+  if (!debouncedSearchQuery.value) return operatorsStore.items
   const query = debouncedSearchQuery.value.toLowerCase()
-  return adminsStore.items.filter(admin => 
-    admin.id.toLowerCase().includes(query) ||
-    admin.name.toLowerCase().includes(query) ||
-    admin.roles.some(role => role.toLowerCase().includes(query))
+  return operatorsStore.items.filter(operator => 
+    operator.id.toLowerCase().includes(query) ||
+    operator.name.toLowerCase().includes(query) ||
+    operator.roles.some(role => role.toLowerCase().includes(query))
   )
 })
 
@@ -49,42 +49,42 @@ watch(searchQuery, (newValue) => {
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
-  loadAdmins()
+  loadOperators()
 })
 
 // Lifecycle
 onMounted(async () => {
-  await loadAdmins()
+  await loadOperators()
 })
 
 // Methods
-async function loadAdmins() {
+async function loadOperators() {
   try {
     const orderBy = getOrderBy()
-    await adminsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await operatorsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
   } catch (error) {
-    console.error('Failed to load admins:', error)
+    console.error('Failed to load operators:', error)
   }
 }
 
-function createAdmin() {
-  router.push({ name: 'administration.admins.create' })
+function createOperator() {
+  router.push({ name: 'administration.operators.create' })
 }
 
-function editAdmin(admin: AdminResponse) {
+function editOperator(operator: OperatorResponse) {
   router.push({ 
-    name: 'administration.admins.edit', 
-    params: { adminId: admin.id } 
+    name: 'administration.operators.edit', 
+    params: { operatorId: operator.id } 
   })
 }
 
-async function deleteAdmin(admin: AdminResponse) {
-  if (!confirm(`Delete admin "${admin.name}" (${admin.id})?\n\nThis action cannot be undone.`)) return
+async function deleteOperator(operator: OperatorResponse) {
+  if (!confirm(`Delete operator "${operator.name}" (${operator.id})?\n\nThis action cannot be undone.`)) return
 
   try {
-    await adminsStore.remove(admin.id, admin.version)
+    await operatorsStore.remove(operator.id, operator.version)
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to delete admin')
+    alert(error.response?.data?.message || 'Failed to delete operator')
   }
 }
 
@@ -104,12 +104,12 @@ function clearSearch() {
       <!-- Header -->
       <div class="page-header">
       <div>
-        <h1 class="page-title">Administrators</h1>
-        <p class="page-subtitle">Manage admin users and permissions</p>
+        <h1 class="page-title">Operators</h1>
+        <p class="page-subtitle">Manage operator users and permissions</p>
       </div>
-      <button @click="createAdmin" class="btn-primary">
+      <button @click="createOperator" class="btn-primary">
         <Plus class="inline-block mr-2 w-4 h-4" />
-        New Administrator
+        New Operator
       </button>
     </div>
 
@@ -128,21 +128,21 @@ function clearSearch() {
     </div>
 
     <!-- Loading State -->
-    <div v-if="adminsStore.isLoading" class="loading-state">
-      Loading administrators...
+    <div v-if="operatorsStore.isLoading" class="loading-state">
+      Loading operators...
     </div>
 
     <!-- Error State -->
-    <div v-else-if="adminsStore.error" class="error-state">
-      {{ adminsStore.error }}
+    <div v-else-if="operatorsStore.error" class="error-state">
+      {{ operatorsStore.error }}
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="filteredAdmins.length === 0" class="empty-state">
+    <div v-else-if="filteredOperators.length === 0" class="empty-state">
       <User class="empty-state-icon" />
-      <p class="empty-state-title">No administrators found</p>
+      <p class="empty-state-title">No operators found</p>
       <p v-if="searchQuery">Try adjusting your search criteria</p>
-      <p v-else>Create your first administrator to get started</p>
+      <p v-else>Create your first operator to get started</p>
     </div>
 
     <!-- Table -->
@@ -180,28 +180,28 @@ function clearSearch() {
             </tr>
           </thead>
           <tbody class="table-body">
-            <tr v-for="admin in filteredAdmins" :key="admin.id" class="table-row">
-              <td class="table-clickable-cell" @click="editAdmin(admin)">
-                {{ admin.id }}
+            <tr v-for="operator in filteredOperators" :key="operator.id" class="table-row">
+              <td class="table-clickable-cell" @click="editOperator(operator)">
+                {{ operator.id }}
               </td>
-              <td class="table-clickable-cell" @click="editAdmin(admin)">
-                {{ admin.name }}
+              <td class="table-clickable-cell" @click="editOperator(operator)">
+                {{ operator.name }}
               </td>
               <td class="table-cell">
                 <div class="flex-gap">
-                  <span v-for="role in admin.roles" :key="role" class="badge-primary">
+                  <span v-for="role in operator.roles" :key="role" class="badge-primary">
                     {{ formatEnum(role) }}
                   </span>
                 </div>
               </td>
-              <td class="table-cell-muted">{{ formatDate(admin.createdAt) }}</td>
-              <td class="table-cell-muted">{{ formatDate(admin.updatedAt) }}</td>
+              <td class="table-cell-muted">{{ formatDate(operator.createdAt) }}</td>
+              <td class="table-cell-muted">{{ formatDate(operator.updatedAt) }}</td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editAdmin(admin)" class="btn-secondary btn-sm">
+                  <button @click="editOperator(operator)" class="btn-secondary btn-sm">
                     Edit
                   </button>
-                  <button @click="deleteAdmin(admin)" class="btn-danger btn-sm">
+                  <button @click="deleteOperator(operator)" class="btn-danger btn-sm">
                     Delete
                   </button>
                 </div>
@@ -214,8 +214,8 @@ function clearSearch() {
       <!-- Pagination Controls -->
       <PaginationControls
         :pagination="pagination"
-        :displayed-count="filteredAdmins.length"
-        resource-name="administrators"
+        :displayed-count="filteredOperators.length"
+        resource-name="operators"
       />
     </div>
   </div>

@@ -9,6 +9,8 @@ import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.v
 import MetadataTab from '@/components/MetadataTab.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
+import VariableTreeNode from '@/components/VariableTreeNode.vue'
+import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,7 +22,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'memory' | 'apiKeys' | 'metadata'>('basic')
 type ConstantType = 'string' | 'number' | 'boolean' | 'json'
 
 interface ConstantEntry {
@@ -47,8 +49,17 @@ const form = ref({
   timezone: '',
   version: undefined as number | undefined,
   constants: [] as ConstantEntry[],
+  autoCreateUsers: false,
+  userProfileVariableDescriptors: [] as Array<{
+    name: string
+    type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
+    isArray: boolean
+    objectSchema?: Array<any>
+  }>,
 })
 
+const showVariablesPasteModal = ref(false)
+const clipboardVariables = ref<Array<any> | null>(null)
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
@@ -387,6 +398,8 @@ async function loadProject() {
         timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
         constants: constantsRecordToEntries(currentProject.value.constants || {}),
+        autoCreateUsers: currentProject.value.autoCreateUsers ?? false,
+        userProfileVariableDescriptors: currentProject.value.userProfileVariableDescriptors || [],
       }
       
       // Load API keys for edit mode
@@ -451,6 +464,8 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         constants: entriesToConstantsRecord(form.value.constants),
+        autoCreateUsers: form.value.autoCreateUsers,
+        userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
       
       // Update currentProject with the response to get the new version
@@ -466,6 +481,8 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         constants: entriesToConstantsRecord(form.value.constants),
+        autoCreateUsers: form.value.autoCreateUsers,
+        userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
 
       // Set currentProject to the newly created project
@@ -654,6 +671,170 @@ function handleStorageSettingsSave(settings: any) {
 function handleStorageSettingsClose() {
   showStorageSettingsModal.value = false
 }
+
+// User profile variable descriptor management
+const duplicateVariableNames = computed(() => {
+  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
+    const seen = new Set<string>()
+    const dupes: string[] = []
+    for (const d of descriptors) {
+      if (seen.has(d.name)) {
+        if (!dupes.includes(d.name)) dupes.push(d.name)
+      } else {
+        seen.add(d.name)
+      }
+    }
+    for (const d of descriptors) {
+      if (d.objectSchema && d.objectSchema.length > 0) {
+        dupes.push(...findDuplicates(d.objectSchema))
+      }
+    }
+    return dupes
+  }
+  return findDuplicates(form.value.userProfileVariableDescriptors)
+})
+
+const expandedNodes = ref<Set<string>>(new Set())
+
+function getDescriptorByPath(path: number[]): any {
+  let current: any = { objectSchema: form.value.userProfileVariableDescriptors }
+  for (const index of path) {
+    current = current.objectSchema[index]
+    if (!current) return null
+  }
+  return current
+}
+
+function addRootVariable() {
+  form.value.userProfileVariableDescriptors.push({
+    name: 'new_variable',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  })
+}
+
+function addNestedVariable(path: number[]) {
+  const parent = getDescriptorByPath(path)
+  if (!parent) return
+  if (!parent.objectSchema) {
+    parent.objectSchema = []
+  }
+  parent.objectSchema.push({
+    name: 'new_field',
+    type: 'string' as const,
+    isArray: false,
+    objectSchema: []
+  })
+  expandedNodes.value.add(path.join('-'))
+}
+
+function updateVariableName(data: { path: number[]; name: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.name = data.name
+  }
+}
+
+function updateVariableType(data: { path: number[]; type: string }) {
+  const descriptor = getDescriptorByPath(data.path)
+  if (descriptor) {
+    descriptor.type = data.type
+    descriptor.isArray = data.type.endsWith('[]')
+    const isObject = data.type === 'object' || data.type === 'object[]'
+    if (!isObject && descriptor.objectSchema) {
+      descriptor.objectSchema = []
+    }
+  }
+}
+
+function deleteVariable(path: number[]) {
+  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
+  if (path.length === 1) {
+    const index = path[0]
+    if (index !== undefined) {
+      form.value.userProfileVariableDescriptors.splice(index, 1)
+    }
+  } else {
+    const parentPath = path.slice(0, -1)
+    const index = path[path.length - 1]
+    const parent = getDescriptorByPath(parentPath)
+    if (parent?.objectSchema && index !== undefined) {
+      parent.objectSchema.splice(index, 1)
+    }
+  }
+}
+
+function toggleNode(path: number[]) {
+  const key = path.join('-')
+  if (expandedNodes.value.has(key)) {
+    expandedNodes.value.delete(key)
+  } else {
+    expandedNodes.value.add(key)
+  }
+}
+
+function copyAllVariables() {
+  if (form.value.userProfileVariableDescriptors.length === 0) {
+    alert('No variables to copy')
+    return
+  }
+  try {
+    const jsonData = JSON.stringify(form.value.userProfileVariableDescriptors, null, 2)
+    navigator.clipboard.writeText(jsonData)
+    alert(`Copied ${form.value.userProfileVariableDescriptors.length} variable(s) to clipboard`)
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err)
+    alert('Failed to copy variables to clipboard')
+  }
+}
+
+async function pasteVariables() {
+  try {
+    const clipboardText = await navigator.clipboard.readText()
+    if (!clipboardText) { alert('Clipboard is empty'); return }
+    let parsedVariables: Array<any>
+    try {
+      parsedVariables = JSON.parse(clipboardText)
+    } catch {
+      alert('Clipboard does not contain valid JSON data'); return
+    }
+    if (!Array.isArray(parsedVariables)) {
+      alert('Clipboard does not contain valid variables data (must be an array)'); return
+    }
+    clipboardVariables.value = parsedVariables
+    showVariablesPasteModal.value = true
+  } catch (err) {
+    console.error('Failed to read clipboard:', err)
+    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
+  }
+}
+
+function handleVariablesPaste(indices: number[]) {
+  if (!clipboardVariables.value) return
+  let pastedCount = 0
+  let overwrittenCount = 0
+  for (const index of indices) {
+    const variable = clipboardVariables.value[index]
+    if (!variable) continue
+    const existingIndex = form.value.userProfileVariableDescriptors.findIndex(v => v.name === variable.name)
+    if (existingIndex !== -1) {
+      form.value.userProfileVariableDescriptors[existingIndex] = JSON.parse(JSON.stringify(variable))
+      overwrittenCount++
+    } else {
+      form.value.userProfileVariableDescriptors.push(JSON.parse(JSON.stringify(variable)))
+    }
+    pastedCount++
+  }
+  showVariablesPasteModal.value = false
+  clipboardVariables.value = null
+  if (pastedCount > 0) {
+    const message = overwrittenCount > 0
+      ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
+      : `Successfully pasted ${pastedCount} variable(s)`
+    alert(message)
+  }
+}
 </script>
 
 <template>
@@ -692,14 +873,14 @@ function handleStorageSettingsClose() {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'voice'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
           type="button"
         >
-          Voice Settings
+          Voice
         </button>
         <button
           @click="activeTab = 'storage'"
@@ -714,6 +895,13 @@ function handleStorageSettingsClose() {
           type="button"
         >
           Constants
+        </button>
+        <button
+          @click="activeTab = 'memory'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'memory' }]"
+          type="button"
+        >
+          Memory
         </button>
         <button
           v-if="isEditMode"
@@ -756,7 +944,7 @@ function handleStorageSettingsClose() {
           {{ error }}
         </div>
 
-        <!-- Basic Information Tab -->
+        <!-- General Tab -->
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
@@ -2034,6 +2222,94 @@ function handleStorageSettingsClose() {
           </div>
         </div>
 
+        <!-- Memory Tab -->
+        <div v-show="activeTab === 'memory'" class="tab-content">
+          <div class="form-group mb-6">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input
+                v-model="form.autoCreateUsers"
+                type="checkbox"
+                class="form-checkbox"
+                :disabled="isLoading"
+              />
+              <span class="form-label mb-0">Automatically create users</span>
+            </label>
+            <p class="form-help-text mt-1 ml-7">
+              When enabled, users are automatically created on first connection if they do not exist, using the provided user ID and an empty profile
+            </p>
+          </div>
+
+          <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
+            <AlertTriangle class="inline-block mr-2 w-4 h-4" />
+            Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
+          </div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Define the schema for user profile variables available in conversations of this project
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                @click="copyAllVariables"
+                class="btn-secondary"
+                :disabled="isLoading || form.userProfileVariableDescriptors.length === 0"
+                title="Copy all variables to clipboard"
+              >
+                <Clipboard class="inline-block mr-1 w-4 h-4" />
+                Copy
+              </button>
+              <button
+                type="button"
+                @click="pasteVariables"
+                class="btn-secondary"
+                :disabled="isLoading"
+                title="Paste variables from clipboard"
+              >
+                <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
+                Paste
+              </button>
+              <button
+                type="button"
+                @click="addRootVariable"
+                class="btn-primary"
+                :disabled="isLoading"
+              >
+                <Plus class="inline-block mr-1 w-4 h-4" />
+                Add Variable
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="form.userProfileVariableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <p class="text-gray-500 dark:text-gray-400 mb-4">No user profile variable descriptors defined yet</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500">
+              Click "Add Variable" to define your first variable
+            </p>
+          </div>
+
+          <!-- Tree View -->
+          <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+              <template v-for="(descriptor, index) in form.userProfileVariableDescriptors" :key="index">
+                <VariableTreeNode
+                  :descriptor="descriptor"
+                  :path="[index]"
+                  :expanded-nodes="expandedNodes"
+                  @toggle="toggleNode"
+                  @update-name="updateVariableName"
+                  @update-type="updateVariableType"
+                  @delete="deleteVariable"
+                  @add-nested="addNestedVariable"
+                />
+              </template>
+            </div>
+          </div>
+        </div>
+
         <!-- API Keys Tab -->
         <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
           <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
@@ -2140,6 +2416,15 @@ function handleStorageSettingsClose() {
       :settings="form.storageConfig.settings"
       @close="handleStorageSettingsClose"
       @save="handleStorageSettingsSave"
+    />
+
+    <!-- Variables Paste Modal -->
+    <VariablesPasteModal
+      v-if="showVariablesPasteModal && clipboardVariables"
+      :clipboard-variables="clipboardVariables"
+      :existing-names="form.userProfileVariableDescriptors.map(v => v.name)"
+      @close="showVariablesPasteModal = false"
+      @save="handleVariablesPaste"
     />
   </div>
   </AdministrationSectionLayout>

@@ -1,6 +1,6 @@
 // Export all stores
 export { useAuthStore } from './auth'
-export { useAdminsStore } from './admins'
+export { useOperatorsStore } from './operators'
 export { useApiKeysStore, useAllApiKeysStore } from './apiKeys'
 export { useUsersStore } from './users'
 export { useProjectsStore } from './projects'

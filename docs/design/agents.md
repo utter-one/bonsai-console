@@ -37,7 +37,7 @@ The personality prompt is combined with each stage's prompt — the stage says _
 The personality prompt should describe communication style, not tasks. Leave task instructions (what to ask, what information to collect) for stage prompts.
 :::
 
-### Voice Configuration (Optional)
+### Voice (Optional)
 
 If your project uses voice output (text-to-speech), you can configure the AI's speaking voice here. The available settings depend on which TTS provider you're using:
 

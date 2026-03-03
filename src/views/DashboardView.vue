@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   useProjectsStore,
-  useUsersStore,
   useAuditLogsStore,
   useProjectSelectionStore,
 } from '@/stores'
@@ -23,13 +22,15 @@ import {
 
 const router = useRouter()
 const projectsStore = useProjectsStore()
-const usersStore = useUsersStore()
 const auditLogsStore = useAuditLogsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 const isLoadingGlobal = ref(true)
+
+const userCount = ref(0)
+const isLoadingUsers = ref(false)
 
 const convCounts = ref({ active: 0, finished: 0, failed: 0 })
 const convTotal = computed(() => convCounts.value.active + convCounts.value.finished + convCounts.value.failed)
@@ -51,14 +52,27 @@ const ACTIVE_STATUSES = [
 async function loadGlobalStats() {
   isLoadingGlobal.value = true
   try {
-    await Promise.all([
-      projectsStore.fetchCount(),
-      usersStore.fetchAll({ offset: 0, limit: 1 }),
-    ])
+    await projectsStore.fetchCount()
   } catch (error) {
     console.error('Failed to load global stats:', error)
   } finally {
     isLoadingGlobal.value = false
+  }
+}
+
+async function loadUserCount(pid: string) {
+  if (!pid) {
+    userCount.value = 0
+    return
+  }
+  isLoadingUsers.value = true
+  try {
+    const res = await (apiClient as any).projectsUsersList(pid, { limit: 1 }) as any
+    userCount.value = res?.total ?? 0
+  } catch (err) {
+    console.error('Failed to load user count:', err)
+  } finally {
+    isLoadingUsers.value = false
   }
 }
 
@@ -132,6 +146,7 @@ onMounted(() => {
   if (projectId.value) {
     loadConversationCounts(projectId.value)
     loadIssueCounts(projectId.value)
+    loadUserCount(projectId.value)
   }
 })
 
@@ -140,6 +155,9 @@ watch(projectId, (newId) => {
   if (newId) {
     loadConversationCounts(newId)
     loadIssueCounts(newId)
+    loadUserCount(newId)
+  } else {
+    userCount.value = 0
   }
 })
 
@@ -195,8 +213,9 @@ function getActionBadgeClass(action: string): string {
         <Users class="text-primary-500 flex-shrink-0" :size="36" />
         <div class="flex-1">
           <div class="stat-value">
-            <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(usersStore.pagination.total) }}</span>
+            <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
+            <span v-else-if="isLoadingUsers" class="text-gray-400 text-2xl">—</span>
+            <span v-else>{{ formatCount(userCount) }}</span>
           </div>
           <div class="stat-label">Users</div>
         </div>

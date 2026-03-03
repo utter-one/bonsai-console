@@ -14,6 +14,10 @@ export interface CompletionContextData {
   stageVariables?: FieldDescriptor[]
   /** Action parameters indexed by action key */
   actionParameters?: Record<string, StageActionParameter[]>
+  /** User profile variable descriptors defined on the project */
+  userProfileVariables?: FieldDescriptor[]
+  /** Project constants key-value store */
+  projectConstants?: Record<string, any>
 }
 
 /**
@@ -21,23 +25,23 @@ export interface CompletionContextData {
  */
 function generateVariableCompletions(descriptors: FieldDescriptor[], prefix = 'vars'): Completion[] {
   const completions: Completion[] = []
-  
+
   for (const descriptor of descriptors) {
     const fullPath = `${prefix}.${descriptor.name}`
-    
+
     // Add completion for the variable itself
     completions.push({
       label: fullPath,
       type: 'property',
       detail: `${descriptor.type}${descriptor.isArray ? ' (array)' : ''}`,
     })
-    
+
     // If it's an object type with nested schema, recursively add nested properties
     if ((descriptor.type === 'object' || descriptor.type === 'object[]') && descriptor.objectSchema) {
       completions.push(...generateVariableCompletions(descriptor.objectSchema, fullPath))
     }
   }
-  
+
   return completions
 }
 
@@ -48,7 +52,7 @@ function generateActionParameterCompletions(
   actionParameters: Record<string, StageActionParameter[]>
 ): Completion[] {
   const completions: Completion[] = []
-  
+
   for (const [actionKey, parameters] of Object.entries(actionParameters)) {
     for (const param of parameters) {
       const fullPath = `actions.${actionKey}.parameters.${param.name}`
@@ -59,7 +63,7 @@ function generateActionParameterCompletions(
       })
     }
   }
-  
+
   return completions
 }
 
@@ -71,12 +75,6 @@ const baseVariableCompletions: Completion[] = [
   { label: 'vars', type: 'variable', detail: 'Stage variables (object)' },
 
   { label: 'userProfile', type: 'variable', detail: 'User profile (object)' },
-  { label: 'userProfile.name', type: 'property', detail: 'User display name' },
-  { label: 'userProfile.email', type: 'property', detail: 'User email address' },
-  { label: 'userProfile.phoneNumber', type: 'property', detail: 'User phone number' },
-  { label: 'userProfile.language', type: 'property', detail: 'User preferred language' },
-  { label: 'userProfile.timezone', type: 'property', detail: 'User timezone' },
-  { label: 'userProfile.metadata', type: 'property', detail: 'Custom user metadata' },
 
   { label: 'history', type: 'variable', detail: 'Conversation message history (array)' },
   { label: 'history.length', type: 'property', detail: 'Array length' },
@@ -256,14 +254,35 @@ export function createHandlebarsPromptCompletionSource(
     dynamicVariableCompletions.push(...generateVariableCompletions(contextData.stageVariables))
   }
 
+  if (contextData?.userProfileVariables && contextData.userProfileVariables.length > 0) {
+    dynamicVariableCompletions.push(...generateVariableCompletions(contextData.userProfileVariables, 'userProfile'))
+  }
+
   if (contextData?.actionParameters && Object.keys(contextData.actionParameters).length > 0) {
     dynamicActionCompletions.push(...generateActionParameterCompletions(contextData.actionParameters))
+  }
+
+  const dynamicConstantCompletions: Completion[] = []
+  if (contextData?.projectConstants && Object.keys(contextData.projectConstants).length > 0) {
+    dynamicConstantCompletions.push({
+      label: 'consts',
+      type: 'variable',
+      detail: 'Project constants (object)',
+    })
+    for (const key of Object.keys(contextData.projectConstants)) {
+      dynamicConstantCompletions.push({
+        label: `consts.${key}`,
+        type: 'property',
+        detail: 'Project constant',
+      })
+    }
   }
 
   const allVariableCompletions = [
     ...baseVariableCompletions,
     ...dynamicVariableCompletions,
     ...dynamicActionCompletions,
+    ...dynamicConstantCompletions,
   ]
 
   const allCompletions: Completion[] = [

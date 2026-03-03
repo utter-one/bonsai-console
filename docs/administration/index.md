@@ -8,6 +8,6 @@ The **Administration** section is where you manage the infrastructure that power
 |---|---|
 | [Projects](./projects) | Create and configure self-contained AI experiences |
 | [Environments](./environments) | Manage deployment targets (dev, staging, production) |
-| [Admins & Roles](./admins) | Control who has access and what they can do |
+| [Operators & Roles](./operators) | Control who has access and what they can do |
 | [API Keys](./api-keys) | Issue credentials for client applications |
 | [Providers](./providers) | Set up connections to external AI services |

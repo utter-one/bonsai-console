@@ -3,15 +3,15 @@ import { ref, computed } from 'vue'
 import apiClient from '@/api/client'
 import type {
   LoginRequest,
-  AdminResponse,
-  InitialAdminSetupRequest,
+  OperatorResponse,
+  InitialOperatorSetupRequest,
   UpdateProfileRequest,
 } from '@/api/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
   const refreshToken = ref<string | null>(localStorage.getItem('refreshToken'))
-  const currentAdmin = ref<AdminResponse | null>(null)
+  const currentOperator = ref<OperatorResponse | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -67,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     accessToken.value = null
     refreshToken.value = null
-    currentAdmin.value = null
+    currentOperator.value = null
 
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
@@ -87,20 +87,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function createInitialAdmin(data: InitialAdminSetupRequest) {
+  async function createInitialOperator(data: InitialOperatorSetupRequest) {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await apiClient.setupInitialAdminCreate(data)
-      const { admin, accessToken: token, refreshToken: refresh } = response
+      const response = await apiClient.setupInitialOperatorCreate(data)
+      const { operator, accessToken: token, refreshToken: refresh } = response
 
       accessToken.value = token
       refreshToken.value = refresh
-      currentAdmin.value = {
-        id: admin.id,
-        name: admin.name,
-        roles: admin.roles,
+      currentOperator.value = {
+        id: operator.id,
+        name: operator.name,
+        roles: operator.roles,
         version: 1,
         createdAt: null,
         updatedAt: null,
@@ -111,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       return response
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to create initial admin'
+      error.value = err.response?.data?.message || 'Failed to create initial operator'
       throw err
     } finally {
       isLoading.value = false
@@ -124,7 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiClient.profileList()
-      currentAdmin.value = response
+      currentOperator.value = response
       return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch profile'
@@ -136,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function ensureProfile() {
     // If we have a token but no profile data, fetch it
-    if (accessToken.value && !currentAdmin.value) {
+    if (accessToken.value && !currentOperator.value) {
       try {
         await fetchProfile()
       } catch (err) {
@@ -154,10 +154,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await apiClient.profileCreate(data)
       
-      // Update current admin with new profile data
-      if (currentAdmin.value) {
-        currentAdmin.value = {
-          ...currentAdmin.value,
+      // Update current operator with new profile data
+      if (currentOperator.value) {
+        currentOperator.value = {
+          ...currentOperator.value,
           name: response.name,
           version: response.version,
           updatedAt: response.updatedAt,
@@ -176,7 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     refreshToken,
-    currentAdmin,
+    currentOperator,
     isLoading,
     error,
     isAuthenticated,
@@ -184,7 +184,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshAccessToken,
     checkSetupStatus,
-    createInitialAdmin,
+    createInitialOperator,
     fetchProfile,
     ensureProfile,
     updateProfile,

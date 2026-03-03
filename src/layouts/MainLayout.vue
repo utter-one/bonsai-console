@@ -136,7 +136,7 @@ function handleEditProfile() {
 }
 
 const formattedRoles = computed(() => {
-  return authStore.currentAdmin?.roles?.map(formatEnum).join(', ') || ''
+  return authStore.currentOperator?.roles?.map(formatEnum).join(', ') || ''
 })
 
 // Sections for navigation
@@ -235,10 +235,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               @click="showUserMenu = !showUserMenu"
             >
               <span class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
-                {{ authStore.currentAdmin?.name?.[0]?.toUpperCase() }}
+                {{ authStore.currentOperator?.name?.[0]?.toUpperCase() }}
               </span>
               <span class="text-sm font-medium text-gray-900 sm:inline hidden dark:text-gray-200">
-                {{ authStore.currentAdmin?.name }}
+                {{ authStore.currentOperator?.name }}
               </span>
             </button>
             
@@ -247,7 +247,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
               class="absolute top-[calc(100%+0.5rem)] right-0 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[220px] z-[1000] dark:bg-gray-800 dark:border-gray-700"
             >
               <div class="p-3">
-                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ authStore.currentAdmin?.name }}</div>
+                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ authStore.currentOperator?.name }}</div>
                 <div class="text-xs text-gray-600 mt-1 dark:text-gray-400">{{ formattedRoles }}</div>
               </div>
               <div class="h-px bg-gray-200 my-2 dark:bg-gray-700"></div>
@@ -378,10 +378,10 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
           <div class="flex flex-col gap-2">
             <div class="px-3 py-2 flex items-center gap-3">
               <div class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">
-                {{ authStore.currentAdmin?.name?.[0]?.toUpperCase() }}
+                {{ authStore.currentOperator?.name?.[0]?.toUpperCase() }}
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-900 truncate dark:text-white">{{ authStore.currentAdmin?.name }}</div>
+                <div class="text-sm font-medium text-gray-900 truncate dark:text-white">{{ authStore.currentOperator?.name }}</div>
                 <div class="text-xs text-gray-500 truncate dark:text-gray-400">{{ formattedRoles }}</div>
               </div>
             </div>

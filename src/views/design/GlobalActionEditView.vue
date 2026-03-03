@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore } from '@/stores'
+import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
@@ -15,6 +15,7 @@ const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const projectsStore = useProjectsStore()
 
 // State
 const isLoading = ref(false)
@@ -73,11 +74,14 @@ onMounted(async () => {
   await classifiersStore.fetchAll(projectId.value)
   await stagesStore.fetchAll(projectId.value)
   await toolsStore.fetchAll(projectId.value)
+  await projectsStore.fetchById(projectId.value)
   
   if (isEditMode.value) {
     await loadGlobalAction()
   }
 })
+
+const projectConstants = computed(() => projectsStore.currentItem?.constants ?? {})
 
 // Methods
 async function loadGlobalAction() {
@@ -308,6 +312,7 @@ const metadataFields = computed(() => {
             :available-tools="projectTools"
             :stage-variables="[]"
             :action-parameters="{}"
+            :project-constants="projectConstants"
             :show-tabs="true"
             :show-key-field="false"
             :show-parameters="true"

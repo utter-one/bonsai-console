@@ -75,7 +75,7 @@ export default defineConfig({
             { text: 'Overview', link: '/administration/' },
             { text: 'Projects', link: '/administration/projects' },
             { text: 'Environments', link: '/administration/environments' },
-            { text: 'Admins & Roles', link: '/administration/admins' },
+            { text: 'Operators & Roles', link: '/administration/operators' },
             { text: 'API Keys', link: '/administration/api-keys' },
             { text: 'Providers', link: '/administration/providers' },
           ],

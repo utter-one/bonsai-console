@@ -1048,19 +1048,19 @@ export interface StageAction {
   metadata?: Record<string, any>;
 }
 
-export interface CreateAdminRequest {
+export interface CreateOperatorRequest {
   /**
-   * Unique identifier for the admin user (auto-generated if not provided)
+   * Unique identifier for the operator user (auto-generated if not provided)
    * @minLength 1
    */
   id: string;
   /**
-   * Display name for the admin user
+   * Display name for the operator user
    * @minLength 1
    */
   name: string;
   /**
-   * Array of role identifiers assigned to the admin (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer
+   * Array of role identifiers assigned to the operator (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer
    * @minItems 1
    */
   roles: (
@@ -1071,7 +1071,7 @@ export interface CreateAdminRequest {
     | "viewer"
   )[];
   /**
-   * Admin user password (will be hashed)
+   * Operator user password (will be hashed)
    * @minLength 1
    */
   password: string;
@@ -1079,7 +1079,7 @@ export interface CreateAdminRequest {
   metadata?: Record<string, any>;
 }
 
-export interface UpdateAdminRequest {
+export interface UpdateOperatorRequest {
   /**
    * Current version number for optimistic locking (prevents concurrent updates)
    * @min 0
@@ -1087,7 +1087,7 @@ export interface UpdateAdminRequest {
    */
   version: number;
   /**
-   * Updated display name for the admin user
+   * Updated display name for the operator user
    * @minLength 1
    */
   name?: string;
@@ -1111,7 +1111,7 @@ export interface UpdateAdminRequest {
   metadata?: Record<string, any>;
 }
 
-export interface DeleteAdminRequest {
+export interface DeleteOperatorRequest {
   /**
    * Current version number for optimistic locking (prevents concurrent deletions)
    * @min 0
@@ -1120,55 +1120,55 @@ export interface DeleteAdminRequest {
   version: number;
 }
 
-export interface AdminResponse {
-  /** Unique identifier for the admin user */
+export interface OperatorResponse {
+  /** Unique identifier for the operator user */
   id: string;
-  /** Display name of the admin user */
+  /** Display name of the operator user */
   name: string;
-  /** Array of role identifiers assigned to the admin */
+  /** Array of role identifiers assigned to the operator */
   roles: string[];
   /** Metadata as key-value pairs */
   metadata?: Record<string, any>;
   /** Current version number for optimistic locking */
   version: number;
   /**
-   * Timestamp when the admin user was created
+   * Timestamp when the operator user was created
    * @format date-time
    */
   createdAt: string | null;
   /**
-   * Timestamp when the admin user was last updated
+   * Timestamp when the operator user was last updated
    * @format date-time
    */
   updatedAt: string | null;
 }
 
-export interface AdminListResponse {
-  /** Array of admin users in the current page */
+export interface OperatorListResponse {
+  /** Array of operator users in the current page */
   items: {
-    /** Unique identifier for the admin user */
+    /** Unique identifier for the operator user */
     id: string;
-    /** Display name of the admin user */
+    /** Display name of the operator user */
     name: string;
-    /** Array of role identifiers assigned to the admin */
+    /** Array of role identifiers assigned to the operator */
     roles: string[];
     /** Metadata as key-value pairs */
     metadata?: Record<string, any>;
     /** Current version number for optimistic locking */
     version: number;
     /**
-     * Timestamp when the admin user was created
+     * Timestamp when the operator user was created
      * @format date-time
      */
     createdAt: string | null;
     /**
-     * Timestamp when the admin user was last updated
+     * Timestamp when the operator user was last updated
      * @format date-time
      */
     updatedAt: string | null;
   }[];
   /**
-   * Total number of admin users matching the query
+   * Total number of operator users matching the query
    * @min 0
    */
   total: number;
@@ -1187,7 +1187,7 @@ export interface AdminListResponse {
 
 export interface UpdateProfileRequest {
   /**
-   * Updated display name for the admin user
+   * Updated display name for the operator user
    * @minLength 1
    */
   name?: string;
@@ -1204,23 +1204,23 @@ export interface UpdateProfileRequest {
 }
 
 export interface ProfileResponse {
-  /** Unique identifier for the admin user */
+  /** Unique identifier for the operator user */
   id: string;
-  /** Display name of the admin user */
+  /** Display name of the operator user */
   name: string;
-  /** Array of role identifiers assigned to the admin */
+  /** Array of role identifiers assigned to the operator */
   roles: string[];
   /** Metadata as key-value pairs */
   metadata?: Record<string, any>;
   /** Current version number for optimistic locking */
   version: number;
   /**
-   * Timestamp when the admin user was created
+   * Timestamp when the operator user was created
    * @format date-time
    */
   createdAt: string | null;
   /**
-   * Timestamp when the admin user was last updated
+   * Timestamp when the operator user was last updated
    * @format date-time
    */
   updatedAt: string | null;
@@ -1244,6 +1244,8 @@ export interface UpdateUserRequest {
 export interface UserResponse {
   /** Unique identifier for the user */
   id: string;
+  /** Project this user belongs to */
+  projectId: string;
   /** User profile data as key-value pairs */
   profile: Record<string, any>;
   /**
@@ -1263,6 +1265,8 @@ export interface UserListResponse {
   items: {
     /** Unique identifier for the user */
     id: string;
+    /** Project this user belongs to */
+    projectId: string;
     /** User profile data as key-value pairs */
     profile: Record<string, any>;
     /**
@@ -1346,6 +1350,16 @@ export interface CreateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /**
+   * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
+   * @default false
+   */
+  autoCreateUsers?: boolean;
+  /**
+   * Descriptors defining the data schema for user profile variables in this project
+   * @default []
+   */
+  userProfileVariableDescriptors?: FieldDescriptor[];
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -1420,6 +1434,10 @@ export interface UpdateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+  autoCreateUsers?: boolean;
+  /** Updated descriptors defining the data schema for user profile variables in this project */
+  userProfileVariableDescriptors?: FieldDescriptor[];
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -1480,6 +1498,10 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+  autoCreateUsers: boolean;
+  /** Descriptors defining the data schema for user profile variables in this project */
+  userProfileVariableDescriptors: FieldDescriptor[];
   /** The version number of the project */
   version: number;
   /**
@@ -1540,6 +1562,10 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+    autoCreateUsers: boolean;
+    /** Descriptors defining the data schema for user profile variables in this project */
+    userProfileVariableDescriptors: FieldDescriptor[];
     /** The version number of the project */
     version: number;
     /**
@@ -1739,12 +1765,12 @@ export interface AgentListResponse {
 
 export interface LoginRequest {
   /**
-   * Admin user ID or email
+   * Operator user ID or email
    * @minLength 1
    */
   id: string;
   /**
-   * Admin user password
+   * Operator user password
    * @minLength 1
    */
   password: string;
@@ -1769,9 +1795,9 @@ export interface LoginResponse {
    * @exclusiveMin true
    */
   expiresIn: number;
-  /** Admin user ID */
-  adminId: string;
-  /** Admin display name */
+  /** Operator user ID */
+  operatorId: string;
+  /** Operator display name */
   displayName: string;
   /** Array of role identifiers */
   roles: string[];
@@ -1788,19 +1814,19 @@ export interface RefreshTokenResponse {
   expiresIn: number;
 }
 
-export interface InitialAdminSetupRequest {
+export interface InitialOperatorSetupRequest {
   /**
-   * Unique identifier for the admin user (typically an email address)
+   * Unique identifier for the operator user (typically an email address)
    * @minLength 1
    */
   id: string;
   /**
-   * Display name for the admin user
+   * Display name for the operator user
    * @minLength 1
    */
   name: string;
   /**
-   * Admin user password (minimum 8 characters, will be hashed)
+   * Operator user password (minimum 8 characters, will be hashed)
    * @minLength 8
    */
   password: string;
@@ -1809,25 +1835,25 @@ export interface InitialAdminSetupRequest {
 }
 
 export interface SetupStatusResponse {
-  /** Whether the system has been set up with at least one admin account */
+  /** Whether the system has been set up with at least one operator account */
   isSetup: boolean;
   /** Descriptive message about the setup status */
   message: string;
 }
 
-export interface InitialAdminSetupResponse {
-  /** Created admin user details */
-  admin: {
-    /** Unique identifier for the admin user */
+export interface InitialOperatorSetupResponse {
+  /** Created operator user details */
+  operator: {
+    /** Unique identifier for the operator user */
     id: string;
-    /** Display name of the admin user */
+    /** Display name of the operator user */
     name: string;
-    /** Array of role identifiers assigned to the admin */
+    /** Array of role identifiers assigned to the operator */
     roles: string[];
     /** Metadata as key-value pairs */
     metadata?: Record<string, any>;
     /**
-     * Timestamp when the admin user was created
+     * Timestamp when the operator user was created
      * @format date-time
      */
     createdAt: string | null;
@@ -3973,7 +3999,7 @@ export interface CreateProviderRequest {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig;
-  /** Admin user ID who created the provider */
+  /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
@@ -4161,7 +4187,7 @@ export interface ProviderResponse {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig;
-  /** Admin user ID who created the provider */
+  /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
   tags: string[] | null;
@@ -4262,7 +4288,7 @@ export interface ProviderListResponse {
       | AzureBlobStorageConfig
       | GcsStorageConfig
       | LocalStorageConfig;
-    /** Admin user ID who created the provider */
+    /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
     tags: string[] | null;
@@ -4527,13 +4553,13 @@ export interface LlmProviderInfo {
 export interface AuditLogResponse {
   /** Unique identifier for the audit log entry */
   id: string;
-  /** ID of the admin user who performed the action */
+  /** ID of the operator user who performed the action */
   userId: string | null;
   /** Action performed (CREATE, UPDATE, DELETE) */
   action: string;
   /** ID of the entity that was modified */
   entityId: string;
-  /** Type of the entity (e.g., "admin", "agent", "classifier") */
+  /** Type of the entity (e.g., "operator", "agent", "classifier") */
   entityType: string;
   /** ID of the project associated with the entity */
   projectId: string | null;
@@ -4555,13 +4581,13 @@ export interface AuditLogListResponse {
   items: {
     /** Unique identifier for the audit log entry */
     id: string;
-    /** ID of the admin user who performed the action */
+    /** ID of the operator user who performed the action */
     userId: string | null;
     /** Action performed (CREATE, UPDATE, DELETE) */
     action: string;
     /** ID of the entity that was modified */
     entityId: string;
-    /** Type of the entity (e.g., "admin", "agent", "classifier") */
+    /** Type of the entity (e.g., "operator", "agent", "classifier") */
     entityType: string;
     /** ID of the project associated with the entity */
     projectId: string | null;

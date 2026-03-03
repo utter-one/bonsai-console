@@ -58,28 +58,28 @@ export class Api<
   SecurityDataType = unknown,
 > extends HttpClient<SecurityDataType> {
   /**
-   * @description Creates a new admin user with the specified credentials and roles
+   * @description Creates a new operator user with the specified credentials and roles
    *
-   * @tags Admins
-   * @name AdminsCreate
-   * @summary Create a new admin user
-   * @request POST:/api/admins
+   * @tags Operators
+   * @name OperatorsCreate
+   * @summary Create a new operator user
+   * @request POST:/api/operators
    * @secure
    */
-  adminsCreate = (
+  operatorsCreate = (
     data: {
       /**
-       * Unique identifier for the admin user (auto-generated if not provided)
+       * Unique identifier for the operator user (auto-generated if not provided)
        * @minLength 1
        */
       id: string;
       /**
-       * Display name for the admin user
+       * Display name for the operator user
        * @minLength 1
        */
       name: string;
       /**
-       * Array of role identifiers assigned to the admin (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer
+       * Array of role identifiers assigned to the operator (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer
        * @minItems 1
        */
       roles: (
@@ -90,7 +90,7 @@ export class Api<
         | "viewer"
       )[];
       /**
-       * Admin user password (will be hashed)
+       * Operator user password (will be hashed)
        * @minLength 1
        */
       password: string;
@@ -101,30 +101,30 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Unique identifier for the admin user */
+        /** Unique identifier for the operator user */
         id: string;
-        /** Display name of the admin user */
+        /** Display name of the operator user */
         name: string;
-        /** Array of role identifiers assigned to the admin */
+        /** Array of role identifiers assigned to the operator */
         roles: string[];
         /** Metadata as key-value pairs */
         metadata?: Record<string, any>;
         /** Current version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the admin user was created
+         * Timestamp when the operator user was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the admin user was last updated
+         * Timestamp when the operator user was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/admins`,
+      path: `/api/operators`,
       method: "POST",
       body: data,
       secure: true,
@@ -133,15 +133,15 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of admin users with optional filtering
+   * @description Retrieves a paginated list of operator users with optional filtering
    *
-   * @tags Admins
-   * @name AdminsList
-   * @summary List admin users
-   * @request GET:/api/admins
+   * @tags Operators
+   * @name OperatorsList
+   * @summary List operator users
+   * @request GET:/api/operators
    * @secure
    */
-  adminsList = (
+  operatorsList = (
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -177,31 +177,31 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Array of admin users in the current page */
+        /** Array of operator users in the current page */
         items: {
-          /** Unique identifier for the admin user */
+          /** Unique identifier for the operator user */
           id: string;
-          /** Display name of the admin user */
+          /** Display name of the operator user */
           name: string;
-          /** Array of role identifiers assigned to the admin */
+          /** Array of role identifiers assigned to the operator */
           roles: string[];
           /** Metadata as key-value pairs */
           metadata?: Record<string, any>;
           /** Current version number for optimistic locking */
           version: number;
           /**
-           * Timestamp when the admin user was created
+           * Timestamp when the operator user was created
            * @format date-time
            */
           createdAt: string | null;
           /**
-           * Timestamp when the admin user was last updated
+           * Timestamp when the operator user was last updated
            * @format date-time
            */
           updatedAt: string | null;
         }[];
         /**
-         * Total number of admin users matching the query
+         * Total number of operator users matching the query
          * @min 0
          */
         total: number;
@@ -219,7 +219,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/admins`,
+      path: `/api/operators`,
       method: "GET",
       query: query,
       secure: true,
@@ -227,56 +227,56 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a single admin user by their unique identifier
+   * @description Retrieves a single operator user by their unique identifier
    *
-   * @tags Admins
-   * @name AdminsDetail
-   * @summary Get admin user by ID
-   * @request GET:/api/admins/{id}
+   * @tags Operators
+   * @name OperatorsDetail
+   * @summary Get operator user by ID
+   * @request GET:/api/operators/{id}
    * @secure
    */
-  adminsDetail = (id: string, params: RequestParams = {}) =>
+  operatorsDetail = (id: string, params: RequestParams = {}) =>
     this.request<
       {
-        /** Unique identifier for the admin user */
+        /** Unique identifier for the operator user */
         id: string;
-        /** Display name of the admin user */
+        /** Display name of the operator user */
         name: string;
-        /** Array of role identifiers assigned to the admin */
+        /** Array of role identifiers assigned to the operator */
         roles: string[];
         /** Metadata as key-value pairs */
         metadata?: Record<string, any>;
         /** Current version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the admin user was created
+         * Timestamp when the operator user was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the admin user was last updated
+         * Timestamp when the operator user was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/admins/${id}`,
+      path: `/api/operators/${id}`,
       method: "GET",
       secure: true,
       format: "json",
       ...params,
     });
   /**
-   * @description Updates an existing admin user with optimistic locking
+   * @description Updates an existing operator user with optimistic locking
    *
-   * @tags Admins
-   * @name AdminsUpdate
-   * @summary Update admin user
-   * @request PUT:/api/admins/{id}
+   * @tags Operators
+   * @name OperatorsUpdate
+   * @summary Update operator user
+   * @request PUT:/api/operators/{id}
    * @secure
    */
-  adminsUpdate = (
+  operatorsUpdate = (
     id: string,
     data: {
       /**
@@ -286,7 +286,7 @@ export class Api<
        */
       version: number;
       /**
-       * Updated display name for the admin user
+       * Updated display name for the operator user
        * @minLength 1
        */
       name?: string;
@@ -313,30 +313,30 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Unique identifier for the admin user */
+        /** Unique identifier for the operator user */
         id: string;
-        /** Display name of the admin user */
+        /** Display name of the operator user */
         name: string;
-        /** Array of role identifiers assigned to the admin */
+        /** Array of role identifiers assigned to the operator */
         roles: string[];
         /** Metadata as key-value pairs */
         metadata?: Record<string, any>;
         /** Current version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the admin user was created
+         * Timestamp when the operator user was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the admin user was last updated
+         * Timestamp when the operator user was last updated
          * @format date-time
          */
         updatedAt: string | null;
       },
       void
     >({
-      path: `/api/admins/${id}`,
+      path: `/api/operators/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -345,15 +345,15 @@ export class Api<
       ...params,
     });
   /**
-   * @description Deletes an admin user with optimistic locking
+   * @description Deletes an operator user with optimistic locking
    *
-   * @tags Admins
-   * @name AdminsDelete
-   * @summary Delete admin user
-   * @request DELETE:/api/admins/{id}
+   * @tags Operators
+   * @name OperatorsDelete
+   * @summary Delete operator user
+   * @request DELETE:/api/operators/{id}
    * @secure
    */
-  adminsDelete = (
+  operatorsDelete = (
     id: string,
     data: {
       /**
@@ -366,7 +366,7 @@ export class Api<
     params: RequestParams = {},
   ) =>
     this.request<void, void>({
-      path: `/api/admins/${id}`,
+      path: `/api/operators/${id}`,
       method: "DELETE",
       body: data,
       secure: true,
@@ -374,23 +374,23 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves audit logs for a specific admin user
+   * @description Retrieves audit logs for a specific operator user
    *
-   * @tags Admins
-   * @name AdminsAuditLogsList
-   * @summary Get admin audit logs
-   * @request GET:/api/admins/{id}/audit-logs
+   * @tags Operators
+   * @name OperatorsAuditLogsList
+   * @summary Get operator audit logs
+   * @request GET:/api/operators/{id}/audit-logs
    * @secure
    */
-  adminsAuditLogsList = (id: string, params: RequestParams = {}) =>
+  operatorsAuditLogsList = (id: string, params: RequestParams = {}) =>
     this.request<void, void>({
-      path: `/api/admins/${id}/audit-logs`,
+      path: `/api/operators/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
     });
   /**
-   * @description Retrieves the profile information of the currently logged-in admin user
+   * @description Retrieves the profile information of the currently logged-in operator user
    *
    * @tags Profile
    * @name ProfileList
@@ -401,23 +401,23 @@ export class Api<
   profileList = (params: RequestParams = {}) =>
     this.request<
       {
-        /** Unique identifier for the admin user */
+        /** Unique identifier for the operator user */
         id: string;
-        /** Display name of the admin user */
+        /** Display name of the operator user */
         name: string;
-        /** Array of role identifiers assigned to the admin */
+        /** Array of role identifiers assigned to the operator */
         roles: string[];
         /** Metadata as key-value pairs */
         metadata?: Record<string, any>;
         /** Current version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the admin user was created
+         * Timestamp when the operator user was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the admin user was last updated
+         * Timestamp when the operator user was last updated
          * @format date-time
          */
         updatedAt: string | null;
@@ -431,7 +431,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Updates the profile of the currently logged-in admin user. Allows changing display name and/or password. When changing password, the old password must be provided for verification.
+   * @description Updates the profile of the currently logged-in operator user. Allows changing display name and/or password. When changing password, the old password must be provided for verification.
    *
    * @tags Profile
    * @name ProfileCreate
@@ -442,7 +442,7 @@ export class Api<
   profileCreate = (
     data: {
       /**
-       * Updated display name for the admin user
+       * Updated display name for the operator user
        * @minLength 1
        */
       name?: string;
@@ -461,23 +461,23 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Unique identifier for the admin user */
+        /** Unique identifier for the operator user */
         id: string;
-        /** Display name of the admin user */
+        /** Display name of the operator user */
         name: string;
-        /** Array of role identifiers assigned to the admin */
+        /** Array of role identifiers assigned to the operator */
         roles: string[];
         /** Metadata as key-value pairs */
         metadata?: Record<string, any>;
         /** Current version number for optimistic locking */
         version: number;
         /**
-         * Timestamp when the admin user was created
+         * Timestamp when the operator user was created
          * @format date-time
          */
         createdAt: string | null;
         /**
-         * Timestamp when the admin user was last updated
+         * Timestamp when the operator user was last updated
          * @format date-time
          */
         updatedAt: string | null;
@@ -493,7 +493,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Authenticate an admin user with email/ID and password. Returns access and refresh tokens.
+   * @description Authenticate an operator user with email/ID and password. Returns access and refresh tokens.
    *
    * @tags Authentication
    * @name AuthLoginCreate
@@ -504,12 +504,12 @@ export class Api<
   authLoginCreate = (
     data: {
       /**
-       * Admin user ID or email
+       * Operator user ID or email
        * @minLength 1
        */
       id: string;
       /**
-       * Admin user password
+       * Operator user password
        * @minLength 1
        */
       password: string;
@@ -528,9 +528,9 @@ export class Api<
          * @exclusiveMin true
          */
         expiresIn: number;
-        /** Admin user ID */
-        adminId: string;
-        /** Admin display name */
+        /** Operator user ID */
+        operatorId: string;
+        /** Operator display name */
         displayName: string;
         /** Array of role identifiers */
         roles: string[];
@@ -586,7 +586,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Returns whether the system has been initialized with at least one admin account
+   * @description Returns whether the system has been initialized with at least one operator account
    *
    * @tags Setup
    * @name SetupStatusList
@@ -597,7 +597,7 @@ export class Api<
   setupStatusList = (params: RequestParams = {}) =>
     this.request<
       {
-        /** Whether the system has been set up with at least one admin account */
+        /** Whether the system has been set up with at least one operator account */
         isSetup: boolean;
         /** Descriptive message about the setup status */
         message: string;
@@ -611,28 +611,28 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates the first admin account with super_admin role. This endpoint only works when no admin accounts exist. Returns admin details and authentication tokens for immediate login.
+   * @description Creates the first operator account with super_operator role. This endpoint only works when no operator accounts exist. Returns operator details and authentication tokens for immediate login.
    *
    * @tags Setup
-   * @name SetupInitialAdminCreate
-   * @summary Create initial admin account
-   * @request POST:/api/setup/initial-admin
+   * @name SetupInitialOperatorCreate
+   * @summary Create initial operator account
+   * @request POST:/api/setup/initial-operator
    * @secure
    */
-  setupInitialAdminCreate = (
+  setupInitialOperatorCreate = (
     data: {
       /**
-       * Unique identifier for the admin user (typically an email address)
+       * Unique identifier for the operator user (typically an email address)
        * @minLength 1
        */
       id: string;
       /**
-       * Display name for the admin user
+       * Display name for the operator user
        * @minLength 1
        */
       name: string;
       /**
-       * Admin user password (minimum 8 characters, will be hashed)
+       * Operator user password (minimum 8 characters, will be hashed)
        * @minLength 8
        */
       password: string;
@@ -643,18 +643,18 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Created admin user details */
-        admin: {
-          /** Unique identifier for the admin user */
+        /** Created operator user details */
+        operator: {
+          /** Unique identifier for the operator user */
           id: string;
-          /** Display name of the admin user */
+          /** Display name of the operator user */
           name: string;
-          /** Array of role identifiers assigned to the admin */
+          /** Array of role identifiers assigned to the operator */
           roles: string[];
           /** Metadata as key-value pairs */
           metadata?: Record<string, any>;
           /**
-           * Timestamp when the admin user was created
+           * Timestamp when the operator user was created
            * @format date-time
            */
           createdAt: string | null;
@@ -672,7 +672,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/setup/initial-admin`,
+      path: `/api/setup/initial-operator`,
       method: "POST",
       body: data,
       secure: true,
@@ -742,6 +742,16 @@ export class Api<
       metadata?: Record<string, any>;
       /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
       timezone?: string;
+      /**
+       * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
+       * @default false
+       */
+      autoCreateUsers?: boolean;
+      /**
+       * Descriptors defining the data schema for user profile variables in this project
+       * @default []
+       */
+      userProfileVariableDescriptors?: FieldDescriptor[];
     },
     params: RequestParams = {},
   ) =>
@@ -790,6 +800,10 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+        autoCreateUsers: boolean;
+        /** Descriptors defining the data schema for user profile variables in this project */
+        userProfileVariableDescriptors: FieldDescriptor[];
         /** The version number of the project */
         version: number;
         /**
@@ -903,6 +917,10 @@ export class Api<
           metadata: Record<string, any>;
           /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
           timezone: string | null;
+          /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+          autoCreateUsers: boolean;
+          /** Descriptors defining the data schema for user profile variables in this project */
+          userProfileVariableDescriptors: FieldDescriptor[];
           /** The version number of the project */
           version: number;
           /**
@@ -983,6 +1001,10 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+        autoCreateUsers: boolean;
+        /** Descriptors defining the data schema for user profile variables in this project */
+        userProfileVariableDescriptors: FieldDescriptor[];
         /** The version number of the project */
         version: number;
         /**
@@ -1038,6 +1060,10 @@ export class Api<
       metadata?: Record<string, any>;
       /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
       timezone?: string;
+      /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+      autoCreateUsers?: boolean;
+      /** Updated descriptors defining the data schema for user profile variables in this project */
+      userProfileVariableDescriptors?: FieldDescriptor[];
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -1088,6 +1114,10 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+        autoCreateUsers: boolean;
+        /** Descriptors defining the data schema for user profile variables in this project */
+        userProfileVariableDescriptors: FieldDescriptor[];
         /** The version number of the project */
         version: number;
         /**
@@ -1176,13 +1206,13 @@ export class Api<
         items: {
           /** Unique identifier for the audit log entry */
           id: string;
-          /** ID of the admin user who performed the action */
+          /** ID of the operator user who performed the action */
           userId: string | null;
           /** Action performed (CREATE, UPDATE, DELETE) */
           action: string;
           /** ID of the entity that was modified */
           entityId: string;
-          /** Type of the entity (e.g., "admin", "agent", "classifier") */
+          /** Type of the entity (e.g., "operator", "agent", "classifier") */
           entityType: string;
           /** ID of the project associated with the entity */
           projectId: string | null;
@@ -4185,7 +4215,7 @@ export class Api<
         | AzureBlobStorageConfig
         | GcsStorageConfig
         | LocalStorageConfig;
-      /** Admin user ID who created the provider */
+      /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
@@ -4274,7 +4304,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig;
-        /** Admin user ID who created the provider */
+        /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
         tags: string[] | null;
@@ -4428,7 +4458,7 @@ export class Api<
             | AzureBlobStorageConfig
             | GcsStorageConfig
             | LocalStorageConfig;
-          /** Admin user ID who created the provider */
+          /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
           tags: string[] | null;
@@ -4563,7 +4593,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig;
-        /** Admin user ID who created the provider */
+        /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
         tags: string[] | null;
@@ -4774,7 +4804,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig;
-        /** Admin user ID who created the provider */
+        /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
         tags: string[] | null;
@@ -7663,15 +7693,16 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates a new user with the specified profile data
+   * @description Creates a new user within the specified project
    *
    * @tags Users
-   * @name UsersCreate
+   * @name ProjectsUsersCreate
    * @summary Create a new user
-   * @request POST:/api/users
+   * @request POST:/api/projects/{projectId}/users
    * @secure
    */
-  usersCreate = (
+  projectsUsersCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the user (auto-generated if not provided)
@@ -7687,6 +7718,8 @@ export class Api<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7702,7 +7735,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users`,
+      path: `/api/projects/${projectId}/users`,
       method: "POST",
       body: data,
       secure: true,
@@ -7711,15 +7744,16 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of users with optional filtering
+   * @description Retrieves a paginated list of users within a project with optional filtering
    *
    * @tags Users
-   * @name UsersList
+   * @name ProjectsUsersList
    * @summary List users
-   * @request GET:/api/users
+   * @request GET:/api/projects/{projectId}/users
    * @secure
    */
-  usersList = (
+  projectsUsersList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -7759,6 +7793,8 @@ export class Api<
         items: {
           /** Unique identifier for the user */
           id: string;
+          /** Project this user belongs to */
+          projectId: string;
           /** User profile data as key-value pairs */
           profile: Record<string, any>;
           /**
@@ -7791,7 +7827,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users`,
+      path: `/api/projects/${projectId}/users`,
       method: "GET",
       query: query,
       secure: true,
@@ -7799,19 +7835,25 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a single user by their unique identifier
+   * @description Retrieves a single user by their unique identifier within a project
    *
    * @tags Users
-   * @name UsersDetail
+   * @name ProjectsUsersDetail
    * @summary Get user by ID
-   * @request GET:/api/users/{id}
+   * @request GET:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersDetail = (id: string, params: RequestParams = {}) =>
+  projectsUsersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7827,22 +7869,23 @@ export class Api<
       },
       void
     >({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "GET",
       secure: true,
       format: "json",
       ...params,
     });
   /**
-   * @description Updates an existing user
+   * @description Updates an existing user within a project
    *
    * @tags Users
-   * @name UsersUpdate
+   * @name ProjectsUsersUpdate
    * @summary Update user
-   * @request PUT:/api/users/{id}
+   * @request PUT:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersUpdate = (
+  projectsUsersUpdate = (
+    projectId: string,
     id: string,
     data: {
       /** Updated profile data (merges with existing profile) */
@@ -7854,6 +7897,8 @@ export class Api<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7869,7 +7914,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -7878,33 +7923,41 @@ export class Api<
       ...params,
     });
   /**
-   * @description Deletes a user
+   * @description Deletes a user from a project
    *
    * @tags Users
-   * @name UsersDelete
+   * @name ProjectsUsersDelete
    * @summary Delete user
-   * @request DELETE:/api/users/{id}
+   * @request DELETE:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersDelete = (id: string, params: RequestParams = {}) =>
+  projectsUsersDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
     });
   /**
-   * @description Retrieves audit logs for a specific user
+   * @description Retrieves audit logs for a specific user within a project
    *
    * @tags Users
-   * @name UsersAuditLogsList
+   * @name ProjectsUsersAuditLogsList
    * @summary Get user audit logs
-   * @request GET:/api/users/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/users/{id}/audit-logs
    * @secure
    */
-  usersAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsUsersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/users/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/users/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,

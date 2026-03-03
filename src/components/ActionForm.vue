@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MoreHorizontal, HelpCircle } from 'lucide-vue-next'
+import { MoreHorizontal } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
 import PromptEditor from './PromptEditor.vue'
+import JavaScriptEditor from './JavaScriptEditor.vue'
+import {
+  bonsaiDefaultGlobalVariables,
+  bonsaiDefaultFunctions,
+} from './javascript/bonsaiScriptContext'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 
 interface ActionParameter {
@@ -79,6 +84,7 @@ const props = withDefaults(
     metadataFields?: Array<{ label: string; value: any; format?: 'mono' | 'date' | 'default' }>
     stageVariables?: any[]
     actionParameters?: Record<string, any[]>
+    projectConstants?: Record<string, any>
   }>(),
   {
     parameters: () => [],
@@ -93,7 +99,8 @@ const props = withDefaults(
     showMetadata: false,
     metadataFields: () => [],
     stageVariables: () => [],
-    actionParameters: () => ({})
+    actionParameters: () => ({}),
+    projectConstants: () => ({}),
   }
 )
 
@@ -116,6 +123,16 @@ function removeParameter(index: number) {
 function addWatchedVariable() {
   props.form.watchedVariables.push({ path: '', changeType: 'changed' })
 }
+
+// allow parent to query the current script editor value (in case of sync issues)
+const runScriptEditor = ref<any>(null)
+
+function getRunScriptCode() {
+  // read from the live CodeMirror editor if available, fall back to prop value
+  return runScriptEditor.value?.getValue?.() ?? props.operations.runScript.code
+}
+
+defineExpose({ getRunScriptCode })
 
 function removeWatchedVariable(index: number) {
   props.form.watchedVariables.splice(index, 1)
@@ -398,9 +415,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col flex-1 min-h-0">
     <!-- Tab Navigation -->
-    <div v-if="showTabs" class="tabs-container mb-6">
+    <div v-if="showTabs" class="tabs-container shrink-0">
       <nav class="tabs-nav">
         <button
           type="button"
@@ -507,7 +524,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </nav>
     </div>
 
-    <div class="space-y-6 mt-4">
+    <div class="flex-1 min-h-0 overflow-y-auto mt-4">
     <!-- Basic Tab -->
     <div v-show="activeTab.value === 'basic'" class="space-y-6">
       <div v-if="showKeyField && actionKey" class="form-group">
@@ -1047,28 +1064,23 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Run Script Tab -->
-    <div v-show="activeTab.value === 'runScript'" class="space-y-6">
-      <div class="form-group">
-        <div class="flex items-center justify-between mb-1">
-          <label class="form-label mb-0">JavaScript Code <span class="required">*</span></label>
-          <a
-            href="/help/guide/scripting.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400 bg-white dark:bg-gray-800 transition-colors"
-          >
-            <HelpCircle :size="13" />
-            Need help?
-          </a>
-        </div>
-        <textarea
+    <div v-show="activeTab.value === 'runScript'" class="flex flex-col min-h-full">
+      <div class="form-group flex flex-col flex-1 min-h-0">
+        <label class="form-label shrink-0">JavaScript Code <span class="required">*</span></label>
+        <JavaScriptEditor
+          ref="runScriptEditor"
           v-model="operations.runScript.code"
-          rows="10"
-          :required="operations.runScript.enabled"
-          class="form-textarea font-mono text-sm"
-          placeholder="// Available: context, user, conversation&#10;const result = context.variables.count + 1;&#10;return { count: result };"
-        ></textarea>
-        <p class="form-help-text">
+          :disabled="!operations.runScript.enabled"
+          :stage-variables="stageVariables"
+          :global-variables="bonsaiDefaultGlobalVariables"
+          :function-list="bonsaiDefaultFunctions"
+          :project-constants="projectConstants"
+          :fluid="true"
+          show-toolbar
+          placeholder="// Available: context, user, conversation\nconst result = context.variables.count + 1;\nreturn { count: result };"
+          aria-label="JavaScript code"
+        />
+        <p class="form-help-text shrink-0">
           JavaScript code to execute. Available objects: context, user, conversation
         </p>
       </div>
@@ -1085,6 +1097,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.modifyUserInput.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder="User wants to {{user.input}}"
           min-height="6rem"
           aria-label="Modify user input template"
@@ -1201,6 +1214,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                 v-model="mod.value"
                 :stage-variables="stageVariables"
                 :action-parameters="actionParameters"
+                :project-constants="projectConstants"
                 placeholder="42 or {{user.name}}"
                 min-height="3rem"
                 aria-label="Variable value"
@@ -1266,6 +1280,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                 v-model="mod.value"
                 :stage-variables="stageVariables"
                 :action-parameters="actionParameters"
+                :project-constants="projectConstants"
                 placeholder="user@example.com or {{user.email}}"
                 min-height="3rem"
                 aria-label="Profile field value"
@@ -1530,6 +1545,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder="https://api.example.com/webhook"
           min-height="3rem"
           aria-label="Webhook URL"
@@ -1561,6 +1577,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer {{token}}"\n}'
           min-height="6rem"
           aria-label="Webhook headers"
@@ -1579,6 +1596,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder='{\n  "userId": "{{user.id}}",\n  "message": "{{user.input}}"\n}'
           min-height="9rem"
           aria-label="Webhook body"

@@ -7,10 +7,13 @@ import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
+import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
 const router = useRouter()
 const usersStore = useUsersStore()
 const projectSelectionStore = useProjectSelectionStore()
+
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // UI State
 const searchQuery = ref('')
@@ -67,17 +70,7 @@ onMounted(async () => {
 // Methods
 async function loadUsers() {
   try {
-    const filters: any = {}
-    
-    // Add project filter if a project is selected
-    if (projectSelectionStore.selectedProjectId) {
-      filters.projectId = {
-        op: 'eq',
-        value: projectSelectionStore.selectedProjectId
-      }
-    }
-    
-    await usersStore.fetchAll(pagination.getParams({ filters }))
+    await usersStore.fetchAll(projectId.value, pagination.getParams())
   } catch (error) {
     console.error('Failed to load users:', error)
   }
@@ -117,7 +110,8 @@ function getProfileDisplay(profile: Record<string, any>): string {
 
 <template>
   <MonitorSectionLayout>
-    <div class="container-constrained">
+    <NoProjectSelected v-if="!projectId" />
+    <div v-else class="container-constrained">
       <!-- Header -->
       <div class="page-header">
         <div>

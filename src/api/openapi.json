@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Bonsai Admin API",
-    "description": "API documentation for Bonsai Admin API with JWT authentication",
+    "title": "Bonsai Operator API",
+    "description": "API documentation for Bonsai Operator API with JWT authentication",
     "version": "0.1.0"
   },
   "servers": [
@@ -2004,18 +2004,18 @@
           "effects"
         ]
       },
-      "CreateAdminRequest": {
+      "CreateOperatorRequest": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the admin user (auto-generated if not provided)"
+            "description": "Unique identifier for the operator user (auto-generated if not provided)"
           },
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Display name for the admin user"
+            "description": "Display name for the operator user"
           },
           "roles": {
             "type": "array",
@@ -2030,12 +2030,12 @@
               ]
             },
             "minItems": 1,
-            "description": "Array of role identifiers assigned to the admin (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer"
+            "description": "Array of role identifiers assigned to the operator (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer"
           },
           "password": {
             "type": "string",
             "minLength": 1,
-            "description": "Admin user password (will be hashed)"
+            "description": "Operator user password (will be hashed)"
           },
           "metadata": {
             "type": "object",
@@ -2052,7 +2052,7 @@
           "password"
         ]
       },
-      "UpdateAdminRequest": {
+      "UpdateOperatorRequest": {
         "type": "object",
         "properties": {
           "version": {
@@ -2064,7 +2064,7 @@
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated display name for the admin user"
+            "description": "Updated display name for the operator user"
           },
           "roles": {
             "type": "array",
@@ -2098,7 +2098,7 @@
           "version"
         ]
       },
-      "DeleteAdminRequest": {
+      "DeleteOperatorRequest": {
         "type": "object",
         "properties": {
           "version": {
@@ -2112,23 +2112,23 @@
           "version"
         ]
       },
-      "AdminResponse": {
+      "OperatorResponse": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the admin user"
+            "description": "Unique identifier for the operator user"
           },
           "name": {
             "type": "string",
-            "description": "Display name of the admin user"
+            "description": "Display name of the operator user"
           },
           "roles": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Array of role identifiers assigned to the admin"
+            "description": "Array of role identifiers assigned to the operator"
           },
           "metadata": {
             "type": "object",
@@ -2145,13 +2145,13 @@
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the admin user was created"
+            "description": "Timestamp when the operator user was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the admin user was last updated"
+            "description": "Timestamp when the operator user was last updated"
           }
         },
         "required": [
@@ -2163,7 +2163,7 @@
           "updatedAt"
         ]
       },
-      "AdminListResponse": {
+      "OperatorListResponse": {
         "type": "object",
         "properties": {
           "items": {
@@ -2173,18 +2173,18 @@
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "Unique identifier for the admin user"
+                  "description": "Unique identifier for the operator user"
                 },
                 "name": {
                   "type": "string",
-                  "description": "Display name of the admin user"
+                  "description": "Display name of the operator user"
                 },
                 "roles": {
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "description": "Array of role identifiers assigned to the admin"
+                  "description": "Array of role identifiers assigned to the operator"
                 },
                 "metadata": {
                   "type": "object",
@@ -2201,13 +2201,13 @@
                   "type": "string",
                   "nullable": true,
                   "format": "date-time",
-                  "description": "Timestamp when the admin user was created"
+                  "description": "Timestamp when the operator user was created"
                 },
                 "updatedAt": {
                   "type": "string",
                   "nullable": true,
                   "format": "date-time",
-                  "description": "Timestamp when the admin user was last updated"
+                  "description": "Timestamp when the operator user was last updated"
                 }
               },
               "required": [
@@ -2219,12 +2219,12 @@
                 "updatedAt"
               ]
             },
-            "description": "Array of admin users in the current page"
+            "description": "Array of operator users in the current page"
           },
           "total": {
             "type": "integer",
             "minimum": 0,
-            "description": "Total number of admin users matching the query"
+            "description": "Total number of operator users matching the query"
           },
           "offset": {
             "type": "integer",
@@ -2252,7 +2252,7 @@
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated display name for the admin user"
+            "description": "Updated display name for the operator user"
           },
           "oldPassword": {
             "type": "string",
@@ -2271,18 +2271,18 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the admin user"
+            "description": "Unique identifier for the operator user"
           },
           "name": {
             "type": "string",
-            "description": "Display name of the admin user"
+            "description": "Display name of the operator user"
           },
           "roles": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Array of role identifiers assigned to the admin"
+            "description": "Array of role identifiers assigned to the operator"
           },
           "metadata": {
             "type": "object",
@@ -2299,13 +2299,13 @@
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the admin user was created"
+            "description": "Timestamp when the operator user was created"
           },
           "updatedAt": {
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Timestamp when the admin user was last updated"
+            "description": "Timestamp when the operator user was last updated"
           }
         },
         "required": [
@@ -2356,6 +2356,10 @@
             "type": "string",
             "description": "Unique identifier for the user"
           },
+          "projectId": {
+            "type": "string",
+            "description": "Project this user belongs to"
+          },
           "profile": {
             "type": "object",
             "additionalProperties": {
@@ -2378,6 +2382,7 @@
         },
         "required": [
           "id",
+          "projectId",
           "profile",
           "createdAt",
           "updatedAt"
@@ -2394,6 +2399,10 @@
                 "id": {
                   "type": "string",
                   "description": "Unique identifier for the user"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "Project this user belongs to"
                 },
                 "profile": {
                   "type": "object",
@@ -2417,6 +2426,7 @@
               },
               "required": [
                 "id",
+                "projectId",
                 "profile",
                 "createdAt",
                 "updatedAt"
@@ -2554,6 +2564,19 @@
           "timezone": {
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+          },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "default": false,
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "default": [],
+            "description": "Descriptors defining the data schema for user profile variables in this project"
           }
         },
         "required": [
@@ -2752,6 +2775,17 @@
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Updated descriptors defining the data schema for user profile variables in this project"
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -2900,6 +2934,17 @@
             "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
           },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Descriptors defining the data schema for user profile variables in this project"
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -2926,6 +2971,8 @@
           "constants",
           "metadata",
           "timezone",
+          "autoCreateUsers",
+          "userProfileVariableDescriptors",
           "version",
           "createdAt",
           "updatedAt"
@@ -3048,6 +3095,17 @@
                   "nullable": true,
                   "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                 },
+                "autoCreateUsers": {
+                  "type": "boolean",
+                  "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                },
+                "userProfileVariableDescriptors": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldDescriptor"
+                  },
+                  "description": "Descriptors defining the data schema for user profile variables in this project"
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -3074,6 +3132,8 @@
                 "constants",
                 "metadata",
                 "timezone",
+                "autoCreateUsers",
+                "userProfileVariableDescriptors",
                 "version",
                 "createdAt",
                 "updatedAt"
@@ -3520,12 +3580,12 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Admin user ID or email"
+            "description": "Operator user ID or email"
           },
           "password": {
             "type": "string",
             "minLength": 1,
-            "description": "Admin user password"
+            "description": "Operator user password"
           }
         },
         "required": [
@@ -3563,13 +3623,13 @@
             "exclusiveMinimum": true,
             "description": "Access token expiry time in seconds"
           },
-          "adminId": {
+          "operatorId": {
             "type": "string",
-            "description": "Admin user ID"
+            "description": "Operator user ID"
           },
           "displayName": {
             "type": "string",
-            "description": "Admin display name"
+            "description": "Operator display name"
           },
           "roles": {
             "type": "array",
@@ -3583,7 +3643,7 @@
           "accessToken",
           "refreshToken",
           "expiresIn",
-          "adminId",
+          "operatorId",
           "displayName",
           "roles"
         ]
@@ -3607,23 +3667,23 @@
           "expiresIn"
         ]
       },
-      "InitialAdminSetupRequest": {
+      "InitialOperatorSetupRequest": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique identifier for the admin user (typically an email address)"
+            "description": "Unique identifier for the operator user (typically an email address)"
           },
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Display name for the admin user"
+            "description": "Display name for the operator user"
           },
           "password": {
             "type": "string",
             "minLength": 8,
-            "description": "Admin user password (minimum 8 characters, will be hashed)"
+            "description": "Operator user password (minimum 8 characters, will be hashed)"
           },
           "metadata": {
             "type": "object",
@@ -3644,7 +3704,7 @@
         "properties": {
           "isSetup": {
             "type": "boolean",
-            "description": "Whether the system has been set up with at least one admin account"
+            "description": "Whether the system has been set up with at least one operator account"
           },
           "message": {
             "type": "string",
@@ -3656,26 +3716,26 @@
           "message"
         ]
       },
-      "InitialAdminSetupResponse": {
+      "InitialOperatorSetupResponse": {
         "type": "object",
         "properties": {
-          "admin": {
+          "operator": {
             "type": "object",
             "properties": {
               "id": {
                 "type": "string",
-                "description": "Unique identifier for the admin user"
+                "description": "Unique identifier for the operator user"
               },
               "name": {
                 "type": "string",
-                "description": "Display name of the admin user"
+                "description": "Display name of the operator user"
               },
               "roles": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 },
-                "description": "Array of role identifiers assigned to the admin"
+                "description": "Array of role identifiers assigned to the operator"
               },
               "metadata": {
                 "type": "object",
@@ -3688,7 +3748,7 @@
                 "type": "string",
                 "nullable": true,
                 "format": "date-time",
-                "description": "Timestamp when the admin user was created"
+                "description": "Timestamp when the operator user was created"
               }
             },
             "required": [
@@ -3697,7 +3757,7 @@
               "roles",
               "createdAt"
             ],
-            "description": "Created admin user details"
+            "description": "Created operator user details"
           },
           "accessToken": {
             "type": "string",
@@ -3715,7 +3775,7 @@
           }
         },
         "required": [
-          "admin",
+          "operator",
           "accessToken",
           "refreshToken",
           "expiresIn"
@@ -8717,7 +8777,7 @@
           },
           "createdBy": {
             "type": "string",
-            "description": "Admin user ID who created the provider"
+            "description": "Operator user ID who created the provider"
           },
           "tags": {
             "type": "array",
@@ -9323,7 +9383,7 @@
           "createdBy": {
             "type": "string",
             "nullable": true,
-            "description": "Admin user ID who created the provider"
+            "description": "Operator user ID who created the provider"
           },
           "tags": {
             "type": "array",
@@ -9651,7 +9711,7 @@
                 "createdBy": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Admin user ID who created the provider"
+                  "description": "Operator user ID who created the provider"
                 },
                 "tags": {
                   "type": "array",
@@ -10365,7 +10425,7 @@
           "userId": {
             "type": "string",
             "nullable": true,
-            "description": "ID of the admin user who performed the action"
+            "description": "ID of the operator user who performed the action"
           },
           "action": {
             "type": "string",
@@ -10377,7 +10437,7 @@
           },
           "entityType": {
             "type": "string",
-            "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
+            "description": "Type of the entity (e.g., \"operator\", \"agent\", \"classifier\")"
           },
           "projectId": {
             "type": "string",
@@ -10439,7 +10499,7 @@
                 "userId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "ID of the admin user who performed the action"
+                  "description": "ID of the operator user who performed the action"
                 },
                 "action": {
                   "type": "string",
@@ -10451,7 +10511,7 @@
                 },
                 "entityType": {
                   "type": "string",
-                  "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
+                  "description": "Type of the entity (e.g., \"operator\", \"agent\", \"classifier\")"
                 },
                 "projectId": {
                   "type": "string",
@@ -11235,13 +11295,13 @@
     }
   },
   "paths": {
-    "/api/admins": {
+    "/api/operators": {
       "post": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "Create a new admin user",
-        "description": "Creates a new admin user with the specified credentials and roles",
+        "summary": "Create a new operator user",
+        "description": "Creates a new operator user with the specified credentials and roles",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11251,12 +11311,12 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the admin user (auto-generated if not provided)"
+                    "description": "Unique identifier for the operator user (auto-generated if not provided)"
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Display name for the admin user"
+                    "description": "Display name for the operator user"
                   },
                   "roles": {
                     "type": "array",
@@ -11271,12 +11331,12 @@
                       ]
                     },
                     "minItems": 1,
-                    "description": "Array of role identifiers assigned to the admin (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer"
+                    "description": "Array of role identifiers assigned to the operator (at least one required). Valid roles: super_admin, content_manager, support, developer, viewer"
                   },
                   "password": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Admin user password (will be hashed)"
+                    "description": "Operator user password (will be hashed)"
                   },
                   "metadata": {
                     "type": "object",
@@ -11298,7 +11358,7 @@
         },
         "responses": {
           "201": {
-            "description": "Admin user created successfully",
+            "description": "Operator user created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -11306,18 +11366,18 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the admin user"
+                      "description": "Unique identifier for the operator user"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the admin user"
+                      "description": "Display name of the operator user"
                     },
                     "roles": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of role identifiers assigned to the admin"
+                      "description": "Array of role identifiers assigned to the operator"
                     },
                     "metadata": {
                       "type": "object",
@@ -11334,13 +11394,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was created"
+                      "description": "Timestamp when the operator user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was last updated"
+                      "description": "Timestamp when the operator user was last updated"
                     }
                   },
                   "required": [
@@ -11359,16 +11419,16 @@
             "description": "Invalid request body"
           },
           "409": {
-            "description": "Admin user already exists"
+            "description": "Operator user already exists"
           }
         }
       },
       "get": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "List admin users",
-        "description": "Retrieves a paginated list of admin users with optional filtering",
+        "summary": "List operator users",
+        "description": "Retrieves a paginated list of operator users with optional filtering",
         "parameters": [
           {
             "schema": {
@@ -11501,7 +11561,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of admin users retrieved successfully",
+            "description": "List of operator users retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -11514,18 +11574,18 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "description": "Unique identifier for the admin user"
+                            "description": "Unique identifier for the operator user"
                           },
                           "name": {
                             "type": "string",
-                            "description": "Display name of the admin user"
+                            "description": "Display name of the operator user"
                           },
                           "roles": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             },
-                            "description": "Array of role identifiers assigned to the admin"
+                            "description": "Array of role identifiers assigned to the operator"
                           },
                           "metadata": {
                             "type": "object",
@@ -11542,13 +11602,13 @@
                             "type": "string",
                             "nullable": true,
                             "format": "date-time",
-                            "description": "Timestamp when the admin user was created"
+                            "description": "Timestamp when the operator user was created"
                           },
                           "updatedAt": {
                             "type": "string",
                             "nullable": true,
                             "format": "date-time",
-                            "description": "Timestamp when the admin user was last updated"
+                            "description": "Timestamp when the operator user was last updated"
                           }
                         },
                         "required": [
@@ -11560,12 +11620,12 @@
                           "updatedAt"
                         ]
                       },
-                      "description": "Array of admin users in the current page"
+                      "description": "Array of operator users in the current page"
                     },
                     "total": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Total number of admin users matching the query"
+                      "description": "Total number of operator users matching the query"
                     },
                     "offset": {
                       "type": "integer",
@@ -11596,29 +11656,29 @@
         }
       }
     },
-    "/api/admins/{id}": {
+    "/api/operators/{id}": {
       "get": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "Get admin user by ID",
-        "description": "Retrieves a single admin user by their unique identifier",
+        "summary": "Get operator user by ID",
+        "description": "Retrieves a single operator user by their unique identifier",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "minLength": 1,
-              "description": "Admin user ID"
+              "description": "Operator user ID"
             },
             "required": true,
-            "description": "Admin user ID",
+            "description": "Operator user ID",
             "name": "id",
             "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Admin user retrieved successfully",
+            "description": "Operator user retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -11626,18 +11686,18 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the admin user"
+                      "description": "Unique identifier for the operator user"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the admin user"
+                      "description": "Display name of the operator user"
                     },
                     "roles": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of role identifiers assigned to the admin"
+                      "description": "Array of role identifiers assigned to the operator"
                     },
                     "metadata": {
                       "type": "object",
@@ -11654,13 +11714,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was created"
+                      "description": "Timestamp when the operator user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was last updated"
+                      "description": "Timestamp when the operator user was last updated"
                     }
                   },
                   "required": [
@@ -11676,25 +11736,25 @@
             }
           },
           "404": {
-            "description": "Admin user not found"
+            "description": "Operator user not found"
           }
         }
       },
       "put": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "Update admin user",
-        "description": "Updates an existing admin user with optimistic locking",
+        "summary": "Update operator user",
+        "description": "Updates an existing operator user with optimistic locking",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "minLength": 1,
-              "description": "Admin user ID"
+              "description": "Operator user ID"
             },
             "required": true,
-            "description": "Admin user ID",
+            "description": "Operator user ID",
             "name": "id",
             "in": "path"
           }
@@ -11714,7 +11774,7 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Updated display name for the admin user"
+                    "description": "Updated display name for the operator user"
                   },
                   "roles": {
                     "type": "array",
@@ -11753,7 +11813,7 @@
         },
         "responses": {
           "200": {
-            "description": "Admin user updated successfully",
+            "description": "Operator user updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -11761,18 +11821,18 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the admin user"
+                      "description": "Unique identifier for the operator user"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the admin user"
+                      "description": "Display name of the operator user"
                     },
                     "roles": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of role identifiers assigned to the admin"
+                      "description": "Array of role identifiers assigned to the operator"
                     },
                     "metadata": {
                       "type": "object",
@@ -11789,13 +11849,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was created"
+                      "description": "Timestamp when the operator user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was last updated"
+                      "description": "Timestamp when the operator user was last updated"
                     }
                   },
                   "required": [
@@ -11814,7 +11874,7 @@
             "description": "Invalid request body"
           },
           "404": {
-            "description": "Admin user not found"
+            "description": "Operator user not found"
           },
           "409": {
             "description": "Version conflict - entity was modified"
@@ -11823,19 +11883,19 @@
       },
       "delete": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "Delete admin user",
-        "description": "Deletes an admin user with optimistic locking",
+        "summary": "Delete operator user",
+        "description": "Deletes an operator user with optimistic locking",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "minLength": 1,
-              "description": "Admin user ID"
+              "description": "Operator user ID"
             },
             "required": true,
-            "description": "Admin user ID",
+            "description": "Operator user ID",
             "name": "id",
             "in": "path"
           }
@@ -11862,13 +11922,13 @@
         },
         "responses": {
           "204": {
-            "description": "Admin user deleted successfully"
+            "description": "Operator user deleted successfully"
           },
           "400": {
             "description": "Invalid request body"
           },
           "404": {
-            "description": "Admin user not found"
+            "description": "Operator user not found"
           },
           "409": {
             "description": "Version conflict - entity was modified"
@@ -11876,22 +11936,22 @@
         }
       }
     },
-    "/api/admins/{id}/audit-logs": {
+    "/api/operators/{id}/audit-logs": {
       "get": {
         "tags": [
-          "Admins"
+          "Operators"
         ],
-        "summary": "Get admin audit logs",
-        "description": "Retrieves audit logs for a specific admin user",
+        "summary": "Get operator audit logs",
+        "description": "Retrieves audit logs for a specific operator user",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "minLength": 1,
-              "description": "Admin user ID"
+              "description": "Operator user ID"
             },
             "required": true,
-            "description": "Admin user ID",
+            "description": "Operator user ID",
             "name": "id",
             "in": "path"
           }
@@ -11901,7 +11961,7 @@
             "description": "Audit logs retrieved successfully"
           },
           "404": {
-            "description": "Admin user not found"
+            "description": "Operator user not found"
           }
         }
       }
@@ -11912,7 +11972,7 @@
           "Profile"
         ],
         "summary": "Get own profile",
-        "description": "Retrieves the profile information of the currently logged-in admin user",
+        "description": "Retrieves the profile information of the currently logged-in operator user",
         "responses": {
           "200": {
             "description": "Profile retrieved successfully",
@@ -11923,18 +11983,18 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the admin user"
+                      "description": "Unique identifier for the operator user"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the admin user"
+                      "description": "Display name of the operator user"
                     },
                     "roles": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of role identifiers assigned to the admin"
+                      "description": "Array of role identifiers assigned to the operator"
                     },
                     "metadata": {
                       "type": "object",
@@ -11951,13 +12011,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was created"
+                      "description": "Timestamp when the operator user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was last updated"
+                      "description": "Timestamp when the operator user was last updated"
                     }
                   },
                   "required": [
@@ -11982,7 +12042,7 @@
           "Profile"
         ],
         "summary": "Update own profile",
-        "description": "Updates the profile of the currently logged-in admin user. Allows changing display name and/or password. When changing password, the old password must be provided for verification.",
+        "description": "Updates the profile of the currently logged-in operator user. Allows changing display name and/or password. When changing password, the old password must be provided for verification.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11992,7 +12052,7 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Updated display name for the admin user"
+                    "description": "Updated display name for the operator user"
                   },
                   "oldPassword": {
                     "type": "string",
@@ -12019,18 +12079,18 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Unique identifier for the admin user"
+                      "description": "Unique identifier for the operator user"
                     },
                     "name": {
                       "type": "string",
-                      "description": "Display name of the admin user"
+                      "description": "Display name of the operator user"
                     },
                     "roles": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       },
-                      "description": "Array of role identifiers assigned to the admin"
+                      "description": "Array of role identifiers assigned to the operator"
                     },
                     "metadata": {
                       "type": "object",
@@ -12047,13 +12107,13 @@
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was created"
+                      "description": "Timestamp when the operator user was created"
                     },
                     "updatedAt": {
                       "type": "string",
                       "nullable": true,
                       "format": "date-time",
-                      "description": "Timestamp when the admin user was last updated"
+                      "description": "Timestamp when the operator user was last updated"
                     }
                   },
                   "required": [
@@ -12083,7 +12143,7 @@
           "Authentication"
         ],
         "summary": "Login with credentials",
-        "description": "Authenticate an admin user with email/ID and password. Returns access and refresh tokens.",
+        "description": "Authenticate an operator user with email/ID and password. Returns access and refresh tokens.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -12093,12 +12153,12 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Admin user ID or email"
+                    "description": "Operator user ID or email"
                   },
                   "password": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Admin user password"
+                    "description": "Operator user password"
                   }
                 },
                 "required": [
@@ -12131,13 +12191,13 @@
                       "exclusiveMinimum": true,
                       "description": "Access token expiry time in seconds"
                     },
-                    "adminId": {
+                    "operatorId": {
                       "type": "string",
-                      "description": "Admin user ID"
+                      "description": "Operator user ID"
                     },
                     "displayName": {
                       "type": "string",
-                      "description": "Admin display name"
+                      "description": "Operator display name"
                     },
                     "roles": {
                       "type": "array",
@@ -12151,7 +12211,7 @@
                     "accessToken",
                     "refreshToken",
                     "expiresIn",
-                    "adminId",
+                    "operatorId",
                     "displayName",
                     "roles"
                   ]
@@ -12230,7 +12290,7 @@
           "Setup"
         ],
         "summary": "Check system setup status",
-        "description": "Returns whether the system has been initialized with at least one admin account",
+        "description": "Returns whether the system has been initialized with at least one operator account",
         "responses": {
           "200": {
             "description": "Setup status retrieved successfully",
@@ -12241,7 +12301,7 @@
                   "properties": {
                     "isSetup": {
                       "type": "boolean",
-                      "description": "Whether the system has been set up with at least one admin account"
+                      "description": "Whether the system has been set up with at least one operator account"
                     },
                     "message": {
                       "type": "string",
@@ -12259,13 +12319,13 @@
         }
       }
     },
-    "/api/setup/initial-admin": {
+    "/api/setup/initial-operator": {
       "post": {
         "tags": [
           "Setup"
         ],
-        "summary": "Create initial admin account",
-        "description": "Creates the first admin account with super_admin role. This endpoint only works when no admin accounts exist. Returns admin details and authentication tokens for immediate login.",
+        "summary": "Create initial operator account",
+        "description": "Creates the first operator account with super_operator role. This endpoint only works when no operator accounts exist. Returns operator details and authentication tokens for immediate login.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -12275,17 +12335,17 @@
                   "id": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Unique identifier for the admin user (typically an email address)"
+                    "description": "Unique identifier for the operator user (typically an email address)"
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Display name for the admin user"
+                    "description": "Display name for the operator user"
                   },
                   "password": {
                     "type": "string",
                     "minLength": 8,
-                    "description": "Admin user password (minimum 8 characters, will be hashed)"
+                    "description": "Operator user password (minimum 8 characters, will be hashed)"
                   },
                   "metadata": {
                     "type": "object",
@@ -12306,29 +12366,29 @@
         },
         "responses": {
           "201": {
-            "description": "Initial admin account created successfully with authentication tokens",
+            "description": "Initial operator account created successfully with authentication tokens",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "admin": {
+                    "operator": {
                       "type": "object",
                       "properties": {
                         "id": {
                           "type": "string",
-                          "description": "Unique identifier for the admin user"
+                          "description": "Unique identifier for the operator user"
                         },
                         "name": {
                           "type": "string",
-                          "description": "Display name of the admin user"
+                          "description": "Display name of the operator user"
                         },
                         "roles": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           },
-                          "description": "Array of role identifiers assigned to the admin"
+                          "description": "Array of role identifiers assigned to the operator"
                         },
                         "metadata": {
                           "type": "object",
@@ -12341,7 +12401,7 @@
                           "type": "string",
                           "nullable": true,
                           "format": "date-time",
-                          "description": "Timestamp when the admin user was created"
+                          "description": "Timestamp when the operator user was created"
                         }
                       },
                       "required": [
@@ -12350,7 +12410,7 @@
                         "roles",
                         "createdAt"
                       ],
-                      "description": "Created admin user details"
+                      "description": "Created operator user details"
                     },
                     "accessToken": {
                       "type": "string",
@@ -12368,7 +12428,7 @@
                     }
                   },
                   "required": [
-                    "admin",
+                    "operator",
                     "accessToken",
                     "refreshToken",
                     "expiresIn"
@@ -12381,7 +12441,7 @@
             "description": "Invalid request body"
           },
           "409": {
-            "description": "System is already configured with admin accounts"
+            "description": "System is already configured with operator accounts"
           }
         }
       }
@@ -12501,6 +12561,19 @@
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "autoCreateUsers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                  },
+                  "userProfileVariableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
+                    },
+                    "default": [],
+                    "description": "Descriptors defining the data schema for user profile variables in this project"
                   }
                 },
                 "required": [
@@ -12627,6 +12700,17 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -12653,6 +12737,8 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -12927,6 +13013,17 @@
                             "nullable": true,
                             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                           },
+                          "autoCreateUsers": {
+                            "type": "boolean",
+                            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                          },
+                          "userProfileVariableDescriptors": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FieldDescriptor"
+                            },
+                            "description": "Descriptors defining the data schema for user profile variables in this project"
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -12953,6 +13050,8 @@
                           "constants",
                           "metadata",
                           "timezone",
+                          "autoCreateUsers",
+                          "userProfileVariableDescriptors",
                           "version",
                           "createdAt",
                           "updatedAt"
@@ -13112,6 +13211,17 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13138,6 +13248,8 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -13223,6 +13335,17 @@
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "autoCreateUsers": {
+                    "type": "boolean",
+                    "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                  },
+                  "userProfileVariableDescriptors": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDescriptor"
+                    },
+                    "description": "Updated descriptors defining the data schema for user profile variables in this project"
                   },
                   "version": {
                     "type": "number",
@@ -13353,6 +13476,17 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13379,6 +13513,8 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
+                    "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
                     "updatedAt"
@@ -13583,7 +13719,7 @@
                           "userId": {
                             "type": "string",
                             "nullable": true,
-                            "description": "ID of the admin user who performed the action"
+                            "description": "ID of the operator user who performed the action"
                           },
                           "action": {
                             "type": "string",
@@ -13595,7 +13731,7 @@
                           },
                           "entityType": {
                             "type": "string",
-                            "description": "Type of the entity (e.g., \"admin\", \"agent\", \"classifier\")"
+                            "description": "Type of the entity (e.g., \"operator\", \"agent\", \"classifier\")"
                           },
                           "projectId": {
                             "type": "string",
@@ -20848,7 +20984,7 @@
                   },
                   "createdBy": {
                     "type": "string",
-                    "description": "Admin user ID who created the provider"
+                    "description": "Operator user ID who created the provider"
                   },
                   "tags": {
                     "type": "array",
@@ -21155,7 +21291,7 @@
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Admin user ID who created the provider"
+                      "description": "Operator user ID who created the provider"
                     },
                     "tags": {
                       "type": "array",
@@ -21635,7 +21771,7 @@
                           "createdBy": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Admin user ID who created the provider"
+                            "description": "Operator user ID who created the provider"
                           },
                           "tags": {
                             "type": "array",
@@ -22018,7 +22154,7 @@
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Admin user ID who created the provider"
+                      "description": "Operator user ID who created the provider"
                     },
                     "tags": {
                       "type": "array",
@@ -22671,7 +22807,7 @@
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Admin user ID who created the provider"
+                      "description": "Operator user ID who created the provider"
                     },
                     "tags": {
                       "type": "array",
@@ -29391,13 +29527,26 @@
         }
       }
     },
-    "/api/users": {
+    "/api/projects/{projectId}/users": {
       "post": {
         "tags": [
           "Users"
         ],
         "summary": "Create a new user",
-        "description": "Creates a new user with the specified profile data",
+        "description": "Creates a new user within the specified project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -29436,6 +29585,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29458,6 +29611,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29469,6 +29623,9 @@
           "400": {
             "description": "Invalid request body"
           },
+          "404": {
+            "description": "Project not found"
+          },
           "409": {
             "description": "User already exists"
           }
@@ -29479,8 +29636,19 @@
           "Users"
         ],
         "summary": "List users",
-        "description": "Retrieves a paginated list of users with optional filtering",
+        "description": "Retrieves a paginated list of users within a project with optional filtering",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "integer",
@@ -29627,6 +29795,10 @@
                             "type": "string",
                             "description": "Unique identifier for the user"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "Project this user belongs to"
+                          },
                           "profile": {
                             "type": "object",
                             "additionalProperties": {
@@ -29649,6 +29821,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "profile",
                           "createdAt",
                           "updatedAt"
@@ -29690,14 +29863,25 @@
         }
       }
     },
-    "/api/users/{id}": {
+    "/api/projects/{projectId}/users/{id}": {
       "get": {
         "tags": [
           "Users"
         ],
         "summary": "Get user by ID",
-        "description": "Retrieves a single user by their unique identifier",
+        "description": "Retrieves a single user by their unique identifier within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29722,6 +29906,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29744,6 +29932,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29762,8 +29951,19 @@
           "Users"
         ],
         "summary": "Update user",
-        "description": "Updates an existing user",
+        "description": "Updates an existing user within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29806,6 +30006,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29828,6 +30032,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29849,8 +30054,19 @@
           "Users"
         ],
         "summary": "Delete user",
-        "description": "Deletes a user",
+        "description": "Deletes a user from a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29873,14 +30089,25 @@
         }
       }
     },
-    "/api/users/{id}/audit-logs": {
+    "/api/projects/{projectId}/users/{id}/audit-logs": {
       "get": {
         "tags": [
           "Users"
         ],
         "summary": "Get user audit logs",
-        "description": "Retrieves audit logs for a specific user",
+        "description": "Retrieves audit logs for a specific user within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",

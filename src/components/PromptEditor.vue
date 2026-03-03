@@ -27,7 +27,9 @@ const props = withDefaults(
     monospace?: boolean
     stageVariables?: FieldDescriptor[]
     actionParameters?: Record<string, StageActionParameter[]>
+    userProfileVariables?: FieldDescriptor[]
     showToolbar?: boolean
+    projectConstants?: Record<string, any>
   }>(),
   {
     disabled: false,
@@ -37,7 +39,9 @@ const props = withDefaults(
     monospace: true,
     stageVariables: () => [],
     actionParameters: () => ({}),
+    userProfileVariables: () => [],
     showToolbar: false,
+    projectConstants: () => ({}),
   }
 )
 
@@ -90,7 +94,7 @@ const contextVariables: ToolbarVariable[] = [
   { label: 'time.calendar', path: 'time.calendar', isArray: true, detail: 'array' },
 ]
 
-const userProfileFields = [
+const defaultUserProfileFields = [
   { key: 'name', detail: 'string — display name' },
   { key: 'email', detail: 'string — email address' },
   { key: 'phoneNumber', detail: 'string — phone number' },
@@ -98,6 +102,17 @@ const userProfileFields = [
   { key: 'timezone', detail: 'string — user timezone' },
   { key: 'metadata', detail: 'object — custom metadata' },
 ]
+
+const userProfileFields = computed(() => {
+  if (props.userProfileVariables && props.userProfileVariables.length > 0) {
+    return flattenVariables(props.userProfileVariables, 'userProfile').map(v => ({
+      key: v.path.replace(/^userProfile\./, ''),
+      detail: `${v.detail}${v.isArray ? ' (array)' : ''}`,
+      fullPath: v.path,
+    }))
+  }
+  return defaultUserProfileFields.map(f => ({ ...f, fullPath: `userProfile.${f.key}` }))
+})
 
 const timeFields = [
   { key: 'anchor', detail: 'LLM grounding sentence' },
@@ -350,6 +365,8 @@ function buildHandlebarsHighlightExtension() {
 const completionContext = computed<CompletionContextData>(() => ({
   stageVariables: props.stageVariables,
   actionParameters: props.actionParameters,
+  userProfileVariables: props.userProfileVariables,
+  projectConstants: props.projectConstants,
 }))
 
 function buildTheme() {
@@ -610,6 +627,19 @@ watch(
               <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
             </button>
           </template>
+          <template v-if="Object.keys(projectConstants).length > 0">
+            <div class="toolbar-dropdown-section">Constants</div>
+            <button
+              v-for="(_, key) in projectConstants"
+              :key="key"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertVariable(`consts.${String(key)}`)"
+            >
+              <span class="font-mono text-orange-600 dark:text-orange-400 truncate">consts.{{ key }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">constant</span>
+            </button>
+          </template>
           <div class="toolbar-dropdown-section">Context</div>
           <button
             v-for="v in contextVariables"
@@ -643,9 +673,9 @@ watch(
             :key="f.key"
             type="button"
             class="toolbar-dropdown-item"
-            @click.stop="insertVariable(`userProfile.${f.key}`)"
+            @click.stop="insertVariable(f.fullPath)"
           >
-            <span class="font-mono text-blue-600 dark:text-blue-400">userProfile.{{ f.key }}</span>
+            <span class="font-mono text-blue-600 dark:text-blue-400 truncate">{{ f.fullPath }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
           </button>
         </div>
@@ -928,106 +958,4 @@ watch(
   color: #22d3ee;
 }
 
-/* Ensure CodeMirror autocomplete tooltips appear above modal content */
-.cm-tooltip-autocomplete {
-  z-index: 10000 !important;
-}
-
-.cm-tooltip {
-  z-index: 10000 !important;
-}
-
-/* Toolbar */
-.toolbar-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
-  line-height: 1rem;
-  border-radius: 0.25rem;
-  color: #4b5563;
-  white-space: nowrap;
-  user-select: none;
-  transition: background-color 0.1s;
-}
-.dark .toolbar-btn {
-  color: #d1d5db;
-}
-.toolbar-btn:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-.dark .toolbar-btn:hover:not(:disabled) {
-  background-color: #374151;
-}
-.toolbar-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.toolbar-btn-active {
-  background-color: #e5e7eb;
-  color: #ea580c;
-}
-.dark .toolbar-btn-active {
-  background-color: #374151;
-  color: #fb923c;
-}
-
-.toolbar-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.25rem;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  z-index: 9999;
-  min-width: 17rem;
-  max-height: 14rem;
-  overflow-y: auto;
-}
-.dark .toolbar-dropdown {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
-.toolbar-dropdown-section {
-  padding: 0.2rem 0.625rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-  position: sticky;
-  top: 0;
-  background-color: #ffffff;
-}
-.dark .toolbar-dropdown-section {
-  color: #6b7280;
-  background-color: #1f2937;
-}
-
-.toolbar-dropdown-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 0.3rem 0.625rem;
-  font-size: 0.7rem;
-  text-align: left;
-  transition: background-color 0.1s;
-}
-.toolbar-dropdown-item:hover {
-  background-color: #f9fafb;
-}
-.dark .toolbar-dropdown-item:hover {
-  background-color: #374151;
-}
-
-.toolbar-dropdown-empty {
-  padding: 0.5rem 0.625rem;
-  font-size: 0.7rem;
-  color: #9ca3af;
-  font-style: italic;
-}
 </style>

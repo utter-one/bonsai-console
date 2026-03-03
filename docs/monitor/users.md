@@ -16,6 +16,10 @@ Each user has a **profile** — a set of data associated with them. Profile data
 
 Profile data persists across conversations, so when a returning user connects again, the AI already knows their information.
 
+### Built-in and Custom Fields
+
+Projects can declare user profile custom fields in **Administration > Projects > Memory** tab. These define the expected schema for extra data your application writes into user profiles (e.g., `tier`, `accountId`, `preferences`). Declaring the schema makes the fields available in the prompt editor's autocomplete and documents the data model for your team.
+
 ## Conversation History
 
 From a user's detail view, you can see all the conversations they've had. This gives you a full picture of a user's interaction history with the AI.

@@ -495,21 +495,21 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
           type="button"
         >
-          Basic Information
+          General
         </button>
         <button
           @click="activeTab = 'prompt'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
           type="button"
         >
-          Prompt Configuration
+          Prompt
         </button>
         <button
           @click="activeTab = 'voice'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
           type="button"
         >
-          Voice Configuration
+          Voice
         </button>
         <button
           @click="activeTab = 'filler'"
@@ -546,7 +546,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           {{ error }}
         </div>
 
-        <!-- Basic Information Tab -->
+        <!-- General Tab -->
         <div v-show="activeTab === 'basic'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
@@ -582,7 +582,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           <TagsEditor v-model="form.tags" :disabled="isLoading" />
         </div>
 
-        <!-- Prompt Configuration Tab -->
+        <!-- Prompt Tab -->
         <div v-show="activeTab === 'prompt'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
@@ -602,7 +602,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           </div>
         </div>
 
-        <!-- Voice Configuration Tab -->
+        <!-- Voice Tab -->
         <div v-show="activeTab === 'voice'" class="tab-content">
           <!-- TTS Provider -->
           <div class="form-group">
