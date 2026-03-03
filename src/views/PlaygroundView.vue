@@ -2062,7 +2062,7 @@ async function ensureUserExists(): Promise<string> {
 
   try {
     // Try to fetch the user by operator ID
-    const user = await usersStore.fetchById(operatorId)
+    const user = await usersStore.fetchById(projectId.value, operatorId)
     if (user) {
       return operatorId
     }
@@ -2078,7 +2078,7 @@ async function ensureUserExists(): Promise<string> {
       timestamp: new Date()
     })
 
-    await usersStore.create({
+    await usersStore.create(projectId.value, {
       id: operatorId,
       profile: {
         name: authStore.currentOperator?.name || 'Operator User',
