@@ -14,6 +14,7 @@ const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 const userId = computed(() => route.params.userId as string)
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const user = ref<UserResponse | null>(null)
 const conversations = ref<ConversationResponse[]>([])
 const isLoading = ref(false)
@@ -30,7 +31,7 @@ async function loadUserData() {
 
   try {
     // Load user details
-    user.value = await usersStore.fetchById(userId.value)
+    user.value = await usersStore.fetchById(projectId.value, userId.value)
 
     // Load user's conversations
     const conversationsResponse = await conversationsStore.fetchAll(

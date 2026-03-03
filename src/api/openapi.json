@@ -2356,6 +2356,10 @@
             "type": "string",
             "description": "Unique identifier for the user"
           },
+          "projectId": {
+            "type": "string",
+            "description": "Project this user belongs to"
+          },
           "profile": {
             "type": "object",
             "additionalProperties": {
@@ -2378,6 +2382,7 @@
         },
         "required": [
           "id",
+          "projectId",
           "profile",
           "createdAt",
           "updatedAt"
@@ -2394,6 +2399,10 @@
                 "id": {
                   "type": "string",
                   "description": "Unique identifier for the user"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "Project this user belongs to"
                 },
                 "profile": {
                   "type": "object",
@@ -2417,6 +2426,7 @@
               },
               "required": [
                 "id",
+                "projectId",
                 "profile",
                 "createdAt",
                 "updatedAt"
@@ -29469,13 +29479,26 @@
         }
       }
     },
-    "/api/users": {
+    "/api/projects/{projectId}/users": {
       "post": {
         "tags": [
           "Users"
         ],
         "summary": "Create a new user",
-        "description": "Creates a new user with the specified profile data",
+        "description": "Creates a new user within the specified project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -29514,6 +29537,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29536,6 +29563,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29547,6 +29575,9 @@
           "400": {
             "description": "Invalid request body"
           },
+          "404": {
+            "description": "Project not found"
+          },
           "409": {
             "description": "User already exists"
           }
@@ -29557,8 +29588,19 @@
           "Users"
         ],
         "summary": "List users",
-        "description": "Retrieves a paginated list of users with optional filtering",
+        "description": "Retrieves a paginated list of users within a project with optional filtering",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "integer",
@@ -29705,6 +29747,10 @@
                             "type": "string",
                             "description": "Unique identifier for the user"
                           },
+                          "projectId": {
+                            "type": "string",
+                            "description": "Project this user belongs to"
+                          },
                           "profile": {
                             "type": "object",
                             "additionalProperties": {
@@ -29727,6 +29773,7 @@
                         },
                         "required": [
                           "id",
+                          "projectId",
                           "profile",
                           "createdAt",
                           "updatedAt"
@@ -29768,14 +29815,25 @@
         }
       }
     },
-    "/api/users/{id}": {
+    "/api/projects/{projectId}/users/{id}": {
       "get": {
         "tags": [
           "Users"
         ],
         "summary": "Get user by ID",
-        "description": "Retrieves a single user by their unique identifier",
+        "description": "Retrieves a single user by their unique identifier within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29800,6 +29858,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29822,6 +29884,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29840,8 +29903,19 @@
           "Users"
         ],
         "summary": "Update user",
-        "description": "Updates an existing user",
+        "description": "Updates an existing user within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29884,6 +29958,10 @@
                       "type": "string",
                       "description": "Unique identifier for the user"
                     },
+                    "projectId": {
+                      "type": "string",
+                      "description": "Project this user belongs to"
+                    },
                     "profile": {
                       "type": "object",
                       "additionalProperties": {
@@ -29906,6 +29984,7 @@
                   },
                   "required": [
                     "id",
+                    "projectId",
                     "profile",
                     "createdAt",
                     "updatedAt"
@@ -29927,8 +30006,19 @@
           "Users"
         ],
         "summary": "Delete user",
-        "description": "Deletes a user",
+        "description": "Deletes a user from a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",
@@ -29951,14 +30041,25 @@
         }
       }
     },
-    "/api/users/{id}/audit-logs": {
+    "/api/projects/{projectId}/users/{id}/audit-logs": {
       "get": {
         "tags": [
           "Users"
         ],
         "summary": "Get user audit logs",
-        "description": "Retrieves audit logs for a specific user",
+        "description": "Retrieves audit logs for a specific user within a project",
         "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
           {
             "schema": {
               "type": "string",

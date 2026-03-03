@@ -1244,6 +1244,8 @@ export interface UpdateUserRequest {
 export interface UserResponse {
   /** Unique identifier for the user */
   id: string;
+  /** Project this user belongs to */
+  projectId: string;
   /** User profile data as key-value pairs */
   profile: Record<string, any>;
   /**
@@ -1263,6 +1265,8 @@ export interface UserListResponse {
   items: {
     /** Unique identifier for the user */
     id: string;
+    /** Project this user belongs to */
+    projectId: string;
     /** User profile data as key-value pairs */
     profile: Record<string, any>;
     /**

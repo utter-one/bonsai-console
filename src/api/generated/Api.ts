@@ -7678,15 +7678,16 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates a new user with the specified profile data
+   * @description Creates a new user within the specified project
    *
    * @tags Users
-   * @name UsersCreate
+   * @name ProjectsUsersCreate
    * @summary Create a new user
-   * @request POST:/api/users
+   * @request POST:/api/projects/{projectId}/users
    * @secure
    */
-  usersCreate = (
+  projectsUsersCreate = (
+    projectId: string,
     data: {
       /**
        * Unique identifier for the user (auto-generated if not provided)
@@ -7702,6 +7703,8 @@ export class Api<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7717,7 +7720,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users`,
+      path: `/api/projects/${projectId}/users`,
       method: "POST",
       body: data,
       secure: true,
@@ -7726,15 +7729,16 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of users with optional filtering
+   * @description Retrieves a paginated list of users within a project with optional filtering
    *
    * @tags Users
-   * @name UsersList
+   * @name ProjectsUsersList
    * @summary List users
-   * @request GET:/api/users
+   * @request GET:/api/projects/{projectId}/users
    * @secure
    */
-  usersList = (
+  projectsUsersList = (
+    projectId: string,
     query?: {
       /**
        * Starting index for pagination (default: 0)
@@ -7774,6 +7778,8 @@ export class Api<
         items: {
           /** Unique identifier for the user */
           id: string;
+          /** Project this user belongs to */
+          projectId: string;
           /** User profile data as key-value pairs */
           profile: Record<string, any>;
           /**
@@ -7806,7 +7812,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users`,
+      path: `/api/projects/${projectId}/users`,
       method: "GET",
       query: query,
       secure: true,
@@ -7814,19 +7820,25 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a single user by their unique identifier
+   * @description Retrieves a single user by their unique identifier within a project
    *
    * @tags Users
-   * @name UsersDetail
+   * @name ProjectsUsersDetail
    * @summary Get user by ID
-   * @request GET:/api/users/{id}
+   * @request GET:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersDetail = (id: string, params: RequestParams = {}) =>
+  projectsUsersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7842,22 +7854,23 @@ export class Api<
       },
       void
     >({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "GET",
       secure: true,
       format: "json",
       ...params,
     });
   /**
-   * @description Updates an existing user
+   * @description Updates an existing user within a project
    *
    * @tags Users
-   * @name UsersUpdate
+   * @name ProjectsUsersUpdate
    * @summary Update user
-   * @request PUT:/api/users/{id}
+   * @request PUT:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersUpdate = (
+  projectsUsersUpdate = (
+    projectId: string,
     id: string,
     data: {
       /** Updated profile data (merges with existing profile) */
@@ -7869,6 +7882,8 @@ export class Api<
       {
         /** Unique identifier for the user */
         id: string;
+        /** Project this user belongs to */
+        projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
         /**
@@ -7884,7 +7899,7 @@ export class Api<
       },
       void
     >({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "PUT",
       body: data,
       secure: true,
@@ -7893,33 +7908,41 @@ export class Api<
       ...params,
     });
   /**
-   * @description Deletes a user
+   * @description Deletes a user from a project
    *
    * @tags Users
-   * @name UsersDelete
+   * @name ProjectsUsersDelete
    * @summary Delete user
-   * @request DELETE:/api/users/{id}
+   * @request DELETE:/api/projects/{projectId}/users/{id}
    * @secure
    */
-  usersDelete = (id: string, params: RequestParams = {}) =>
+  projectsUsersDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/users/${id}`,
+      path: `/api/projects/${projectId}/users/${id}`,
       method: "DELETE",
       secure: true,
       ...params,
     });
   /**
-   * @description Retrieves audit logs for a specific user
+   * @description Retrieves audit logs for a specific user within a project
    *
    * @tags Users
-   * @name UsersAuditLogsList
+   * @name ProjectsUsersAuditLogsList
    * @summary Get user audit logs
-   * @request GET:/api/users/{id}/audit-logs
+   * @request GET:/api/projects/{projectId}/users/{id}/audit-logs
    * @secure
    */
-  usersAuditLogsList = (id: string, params: RequestParams = {}) =>
+  projectsUsersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
     this.request<void, void>({
-      path: `/api/users/${id}/audit-logs`,
+      path: `/api/projects/${projectId}/users/${id}/audit-logs`,
       method: "GET",
       secure: true,
       ...params,
