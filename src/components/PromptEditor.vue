@@ -29,6 +29,7 @@ const props = withDefaults(
     actionParameters?: Record<string, StageActionParameter[]>
     userProfileVariables?: FieldDescriptor[]
     showToolbar?: boolean
+    projectConstants?: Record<string, any>
   }>(),
   {
     disabled: false,
@@ -40,6 +41,7 @@ const props = withDefaults(
     actionParameters: () => ({}),
     userProfileVariables: () => [],
     showToolbar: false,
+    projectConstants: () => ({}),
   }
 )
 
@@ -364,6 +366,7 @@ const completionContext = computed<CompletionContextData>(() => ({
   stageVariables: props.stageVariables,
   actionParameters: props.actionParameters,
   userProfileVariables: props.userProfileVariables,
+  projectConstants: props.projectConstants,
 }))
 
 function buildTheme() {
@@ -622,6 +625,19 @@ watch(
             >
               <span class="font-mono text-purple-600 dark:text-purple-400 truncate">{{ v.path }}</span>
               <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.detail }}</span>
+            </button>
+          </template>
+          <template v-if="Object.keys(projectConstants).length > 0">
+            <div class="toolbar-dropdown-section">Constants</div>
+            <button
+              v-for="(_, key) in projectConstants"
+              :key="key"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertVariable(`consts.${String(key)}`)"
+            >
+              <span class="font-mono text-orange-600 dark:text-orange-400 truncate">consts.{{ key }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">constant</span>
             </button>
           </template>
           <div class="toolbar-dropdown-section">Context</div>
