@@ -23,9 +23,10 @@
         </p>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="flex flex-col" style="height: calc(100% - 80px);">
+      <form @submit.prevent="handleSubmit" class="flex flex-col flex-1 min-h-0">
         <!-- Use shared ActionForm component -->
         <ActionForm
+          ref="actionFormRef"
           :form="form"
           :operations="operations"
           :active-tab="activeTab"
@@ -125,6 +126,9 @@ const emit = defineEmits<{
   save: [data: { key: string; action: StageAction }]
 }>()
 
+// reference to inner ActionForm for flushing code
+const actionFormRef = ref<any>(null)
+
 type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
 
 const activeTab = reactive({ value: 'basic' as TabType })
@@ -208,9 +212,15 @@ function handleSubmit() {
     return
   }
 
+  // Always pull the latest value directly from the live editor before building effects.
+  // This ensures the code is not empty even if the reactive v-model update was delayed.
+  if (operations.value.runScript.enabled && actionFormRef.value?.getRunScriptCode) {
+    operations.value.runScript.code = actionFormRef.value.getRunScriptCode()
+  }
+
   // Build effects array using shared utility
   const result = buildEffectsFromOperations(operations.value)
-  
+
   if (result.error) {
     alert(result.error)
     return
@@ -247,5 +257,6 @@ function handleSubmit() {
   max-height: 1200px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 </style>
