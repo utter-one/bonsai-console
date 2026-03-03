@@ -2565,6 +2565,11 @@
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "default": false,
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
           "userProfileVariableDescriptors": {
             "type": "array",
             "items": {
@@ -2770,6 +2775,10 @@
             "type": "string",
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
           "userProfileVariableDescriptors": {
             "type": "array",
             "items": {
@@ -2925,6 +2934,10 @@
             "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
           },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+          },
           "userProfileVariableDescriptors": {
             "type": "array",
             "items": {
@@ -2958,6 +2971,7 @@
           "constants",
           "metadata",
           "timezone",
+          "autoCreateUsers",
           "userProfileVariableDescriptors",
           "version",
           "createdAt",
@@ -3081,6 +3095,10 @@
                   "nullable": true,
                   "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                 },
+                "autoCreateUsers": {
+                  "type": "boolean",
+                  "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                },
                 "userProfileVariableDescriptors": {
                   "type": "array",
                   "items": {
@@ -3114,6 +3132,7 @@
                 "constants",
                 "metadata",
                 "timezone",
+                "autoCreateUsers",
                 "userProfileVariableDescriptors",
                 "version",
                 "createdAt",
@@ -12543,6 +12562,11 @@
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
                   },
+                  "autoCreateUsers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                  },
                   "userProfileVariableDescriptors": {
                     "type": "array",
                     "items": {
@@ -12676,6 +12700,10 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
                     "userProfileVariableDescriptors": {
                       "type": "array",
                       "items": {
@@ -12709,6 +12737,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
@@ -12984,6 +13013,10 @@
                             "nullable": true,
                             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                           },
+                          "autoCreateUsers": {
+                            "type": "boolean",
+                            "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                          },
                           "userProfileVariableDescriptors": {
                             "type": "array",
                             "items": {
@@ -13017,6 +13050,7 @@
                           "constants",
                           "metadata",
                           "timezone",
+                          "autoCreateUsers",
                           "userProfileVariableDescriptors",
                           "version",
                           "createdAt",
@@ -13177,6 +13211,10 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
                     "userProfileVariableDescriptors": {
                       "type": "array",
                       "items": {
@@ -13210,6 +13248,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
@@ -13296,6 +13335,10 @@
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "autoCreateUsers": {
+                    "type": "boolean",
+                    "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
                   },
                   "userProfileVariableDescriptors": {
                     "type": "array",
@@ -13433,6 +13476,10 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
                     "userProfileVariableDescriptors": {
                       "type": "array",
                       "items": {
@@ -13466,6 +13513,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
