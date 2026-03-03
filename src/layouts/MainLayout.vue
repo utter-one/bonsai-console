@@ -165,7 +165,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
         <!-- Logo & Brand -->
         <div class="md:mr-12">
           <div class="flex items-center gap-2">
-            <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8 dark:invert" />
+            <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8" />
             <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai Console</h1>
           </div>
         </div>

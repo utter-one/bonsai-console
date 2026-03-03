@@ -64,7 +64,7 @@ async function handleLogin() {
 
       <div v-else class="auth-card">
         <div class="auth-header">
-          <img :src="logoUrl" alt="Bonsai Console" class="mx-auto mb-4 h-20 w-20 dark:invert" />
+          <img :src="logoUrl" alt="Bonsai Console" class="mx-auto mb-4 h-20 w-20" />
           <h1 class="auth-title">Bonsai Console</h1>
           <p class="auth-subtitle">Sign in to manage your AI platform</p>
         </div>
