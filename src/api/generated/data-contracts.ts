@@ -1351,6 +1351,11 @@ export interface CreateProjectRequest {
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
   /**
+   * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
+   * @default false
+   */
+  autoCreateUsers?: boolean;
+  /**
    * Descriptors defining the data schema for user profile variables in this project
    * @default []
    */
@@ -1429,6 +1434,8 @@ export interface UpdateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+  autoCreateUsers?: boolean;
   /** Updated descriptors defining the data schema for user profile variables in this project */
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** The current version number for optimistic locking */
@@ -1491,6 +1498,8 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+  autoCreateUsers: boolean;
   /** Descriptors defining the data schema for user profile variables in this project */
   userProfileVariableDescriptors: FieldDescriptor[];
   /** The version number of the project */
@@ -1553,6 +1562,8 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+    autoCreateUsers: boolean;
     /** Descriptors defining the data schema for user profile variables in this project */
     userProfileVariableDescriptors: FieldDescriptor[];
     /** The version number of the project */

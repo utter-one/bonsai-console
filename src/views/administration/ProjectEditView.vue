@@ -49,6 +49,7 @@ const form = ref({
   timezone: '',
   version: undefined as number | undefined,
   constants: [] as ConstantEntry[],
+  autoCreateUsers: false,
   userProfileVariableDescriptors: [] as Array<{
     name: string
     type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
@@ -397,6 +398,7 @@ async function loadProject() {
         timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
         constants: constantsRecordToEntries(currentProject.value.constants || {}),
+        autoCreateUsers: currentProject.value.autoCreateUsers ?? false,
         userProfileVariableDescriptors: currentProject.value.userProfileVariableDescriptors || [],
       }
       
@@ -462,6 +464,7 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         constants: entriesToConstantsRecord(form.value.constants),
+        autoCreateUsers: form.value.autoCreateUsers,
         userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
       
@@ -478,6 +481,7 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         constants: entriesToConstantsRecord(form.value.constants),
+        autoCreateUsers: form.value.autoCreateUsers,
         userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
 
@@ -2220,6 +2224,21 @@ function handleVariablesPaste(indices: number[]) {
 
         <!-- Memory Tab -->
         <div v-show="activeTab === 'memory'" class="tab-content">
+          <div class="form-group mb-6">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input
+                v-model="form.autoCreateUsers"
+                type="checkbox"
+                class="form-checkbox"
+                :disabled="isLoading"
+              />
+              <span class="form-label mb-0">Automatically create users</span>
+            </label>
+            <p class="form-help-text mt-1 ml-7">
+              When enabled, users are automatically created on first connection if they do not exist, using the provided user ID and an empty profile
+            </p>
+          </div>
+
           <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
             <AlertTriangle class="inline-block mr-2 w-4 h-4" />
             Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
