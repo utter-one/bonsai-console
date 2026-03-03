@@ -84,6 +84,7 @@ const props = withDefaults(
     metadataFields?: Array<{ label: string; value: any; format?: 'mono' | 'date' | 'default' }>
     stageVariables?: any[]
     actionParameters?: Record<string, any[]>
+    projectConstants?: Record<string, any>
   }>(),
   {
     parameters: () => [],
@@ -98,7 +99,8 @@ const props = withDefaults(
     showMetadata: false,
     metadataFields: () => [],
     stageVariables: () => [],
-    actionParameters: () => ({})
+    actionParameters: () => ({}),
+    projectConstants: () => ({}),
   }
 )
 
@@ -1072,6 +1074,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :stage-variables="stageVariables"
           :global-variables="bonsaiDefaultGlobalVariables"
           :function-list="bonsaiDefaultFunctions"
+          :project-constants="projectConstants"
           :fluid="true"
           show-toolbar
           placeholder="// Available: context, user, conversation\nconst result = context.variables.count + 1;\nreturn { count: result };"
@@ -1094,6 +1097,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.modifyUserInput.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder="User wants to {{user.input}}"
           min-height="6rem"
           aria-label="Modify user input template"
@@ -1210,6 +1214,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                 v-model="mod.value"
                 :stage-variables="stageVariables"
                 :action-parameters="actionParameters"
+                :project-constants="projectConstants"
                 placeholder="42 or {{user.name}}"
                 min-height="3rem"
                 aria-label="Variable value"
@@ -1275,6 +1280,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                 v-model="mod.value"
                 :stage-variables="stageVariables"
                 :action-parameters="actionParameters"
+                :project-constants="projectConstants"
                 placeholder="user@example.com or {{user.email}}"
                 min-height="3rem"
                 aria-label="Profile field value"
@@ -1539,6 +1545,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder="https://api.example.com/webhook"
           min-height="3rem"
           aria-label="Webhook URL"
@@ -1570,6 +1577,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer {{token}}"\n}'
           min-height="6rem"
           aria-label="Webhook headers"
@@ -1588,6 +1596,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :disabled="!operations.callWebhook.enabled"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           placeholder='{\n  "userId": "{{user.id}}",\n  "message": "{{user.input}}"\n}'
           min-height="9rem"
           aria-label="Webhook body"

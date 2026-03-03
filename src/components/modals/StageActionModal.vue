@@ -36,6 +36,7 @@
           :available-tools="projectTools"
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
+          :project-constants="projectConstants"
           :show-key-field="!isLifecycleAction"
           :action-key="actionKey"
           :is-key-disabled="!!editingKey"
@@ -91,6 +92,7 @@ const props = defineProps<{
   isLifecycleAction?: boolean
   stageVariables?: any[]
   actionParameters?: Record<string, any[]>
+  projectConstants?: Record<string, any>
 }>()
 
 const projectClassifiers = computed(() => {

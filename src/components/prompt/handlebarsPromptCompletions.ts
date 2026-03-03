@@ -16,6 +16,8 @@ export interface CompletionContextData {
   actionParameters?: Record<string, StageActionParameter[]>
   /** User profile variable descriptors defined on the project */
   userProfileVariables?: FieldDescriptor[]
+  /** Project constants key-value store */
+  projectConstants?: Record<string, any>
 }
 
 /**
@@ -23,23 +25,23 @@ export interface CompletionContextData {
  */
 function generateVariableCompletions(descriptors: FieldDescriptor[], prefix = 'vars'): Completion[] {
   const completions: Completion[] = []
-  
+
   for (const descriptor of descriptors) {
     const fullPath = `${prefix}.${descriptor.name}`
-    
+
     // Add completion for the variable itself
     completions.push({
       label: fullPath,
       type: 'property',
       detail: `${descriptor.type}${descriptor.isArray ? ' (array)' : ''}`,
     })
-    
+
     // If it's an object type with nested schema, recursively add nested properties
     if ((descriptor.type === 'object' || descriptor.type === 'object[]') && descriptor.objectSchema) {
       completions.push(...generateVariableCompletions(descriptor.objectSchema, fullPath))
     }
   }
-  
+
   return completions
 }
 
@@ -50,7 +52,7 @@ function generateActionParameterCompletions(
   actionParameters: Record<string, StageActionParameter[]>
 ): Completion[] {
   const completions: Completion[] = []
-  
+
   for (const [actionKey, parameters] of Object.entries(actionParameters)) {
     for (const param of parameters) {
       const fullPath = `actions.${actionKey}.parameters.${param.name}`
@@ -61,7 +63,7 @@ function generateActionParameterCompletions(
       })
     }
   }
-  
+
   return completions
 }
 
@@ -260,10 +262,27 @@ export function createHandlebarsPromptCompletionSource(
     dynamicActionCompletions.push(...generateActionParameterCompletions(contextData.actionParameters))
   }
 
+  const dynamicConstantCompletions: Completion[] = []
+  if (contextData?.projectConstants && Object.keys(contextData.projectConstants).length > 0) {
+    dynamicConstantCompletions.push({
+      label: 'consts',
+      type: 'variable',
+      detail: 'Project constants (object)',
+    })
+    for (const key of Object.keys(contextData.projectConstants)) {
+      dynamicConstantCompletions.push({
+        label: `consts.${key}`,
+        type: 'property',
+        detail: 'Project constant',
+      })
+    }
+  }
+
   const allVariableCompletions = [
     ...baseVariableCompletions,
     ...dynamicVariableCompletions,
     ...dynamicActionCompletions,
+    ...dynamicConstantCompletions,
   ]
 
   const allCompletions: Completion[] = [

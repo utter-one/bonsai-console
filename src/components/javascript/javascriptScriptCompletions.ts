@@ -11,6 +11,7 @@ export interface CompletionContextData {
   stageVariables?: FieldDescriptor[]
   globalVariables?: GlobalVariable[]
   functionList?: ToolbarFunction[]
+  projectConstants?: Record<string, any>
 }
 
 function variableCompletions(context: CompletionContext, data: CompletionContextData): CompletionResult | null {
@@ -27,6 +28,24 @@ function variableCompletions(context: CompletionContext, data: CompletionContext
       options.push({ label, type: 'variable', info: g.detail } as Completion)
     }
   })
+
+  // Project constants: expand consts.KEY
+  if (data.projectConstants && Object.keys(data.projectConstants).length > 0 && before.startsWith('consts')) {
+    const parts = before.split('.')
+    if (parts.length === 1) {
+      options.push({ label: 'consts', type: 'variable', info: 'Project constants (object)' } as Completion)
+      for (const key of Object.keys(data.projectConstants)) {
+        options.push({ label: `consts.${key}`, type: 'variable', info: `Project constant` } as Completion)
+      }
+    } else {
+      const keyPrefix = parts[parts.length - 1] || ''
+      for (const key of Object.keys(data.projectConstants)) {
+        if (key.startsWith(keyPrefix)) {
+          options.push({ label: `consts.${key}`, type: 'variable', info: `Project constant` } as Completion)
+        }
+      }
+    }
+  }
 
   // Stage variables: expand vars.x (and nested vars.x.y if objectSchema present)
   if (data.stageVariables && before.startsWith('vars')) {

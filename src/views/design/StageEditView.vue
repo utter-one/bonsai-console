@@ -299,6 +299,8 @@ const stageVariablesForCompletion = computed(() => form.value.variableDescriptor
 
 const userProfileVariablesForCompletion = ref<any[]>([])
 
+const projectConstantsForCompletion = computed(() => projectsStore.currentItem?.constants ?? {})
+
 const actionParametersForCompletion = computed(() => {
   const result: Record<string, any[]> = {}
   
@@ -943,6 +945,7 @@ function toggleNode(path: number[]) {
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
                 :user-profile-variables="userProfileVariablesForCompletion"
+                :project-constants="projectConstantsForCompletion"
                 show-toolbar
                 placeholder="You are now in the [stage name] stage..."
                 aria-label="Stage prompt"
@@ -1349,6 +1352,7 @@ function toggleNode(path: number[]) {
       :is-lifecycle-action="isLifecycleActionKey"
       :stage-variables="stageVariablesForCompletion"
       :action-parameters="actionParametersForCompletion"
+      :project-constants="projectConstantsForCompletion"
       @close="showActionModal = false"
       @save="handleActionSave"
     />

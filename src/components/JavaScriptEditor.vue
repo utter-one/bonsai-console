@@ -42,6 +42,19 @@
               <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ v.type }}</span>
             </button>
           </template>
+          <template v-if="Object.keys(projectConstants).length > 0">
+            <div class="toolbar-dropdown-section">Constants</div>
+            <button
+              v-for="(_, key) in projectConstants"
+              :key="key"
+              type="button"
+              class="toolbar-dropdown-item"
+              @click.stop="insertVariable(`consts.${String(key)}`)"
+            >
+              <span class="font-mono text-orange-600 dark:text-orange-400 truncate">consts.{{ key }}</span>
+              <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">constant</span>
+            </button>
+          </template>
           <template v-if="globalVariables.length > 0">
             <div class="toolbar-dropdown-section">Globals</div>
             <button
@@ -55,7 +68,7 @@
               <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ g.detail }}</span>
             </button>
           </template>
-          <div v-if="!stageVariables?.length && !globalVariables.length" class="toolbar-dropdown-empty">No variables available</div>
+          <div v-if="!stageVariables?.length && !globalVariables.length && !Object.keys(projectConstants).length" class="toolbar-dropdown-empty">No variables available</div>
         </div>
       </div>
 
@@ -141,6 +154,7 @@ const props = withDefaults(
     functionList?: ToolbarFunction[]
     showToolbar?: boolean
     fluid?: boolean
+    projectConstants?: Record<string, any>
   }>(),
   {
     disabled: false,
@@ -153,6 +167,7 @@ const props = withDefaults(
     functionList: () => [],
     showToolbar: true,
     fluid: false,
+    projectConstants: () => ({}),
   }
 )
 
@@ -192,6 +207,7 @@ const completionContext = computed(() => ({
   stageVariables: props.stageVariables,
   globalVariables: props.globalVariables.length ? props.globalVariables : undefined,
   functionList: props.functionList.length ? props.functionList : undefined,
+  projectConstants: Object.keys(props.projectConstants).length ? props.projectConstants : undefined,
 }))
 
 const editorRoot = ref<HTMLDivElement | null>(null)
