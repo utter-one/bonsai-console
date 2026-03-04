@@ -49,7 +49,7 @@ When the classifier runs, the following variables are available in your prompt t
 
 #### Writing the Prompt
 
-Use `{{#each stage.availableActions}}` to enumerate the actions and instruct the LLM on what to look for. Always include an explicit output format block so the LLM knows to return action IDs.
+Use <code v-pre>{{#each stage.availableActions}}</code> to enumerate the actions and instruct the LLM on what to look for. Always include an explicit output format block so the LLM knows to return action IDs.
 
 **Example classification prompt:**
 

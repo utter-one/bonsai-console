@@ -34,15 +34,15 @@ The prompt tells the AI what to do at this particular step. It's a [Handlebars t
 
 | Variable | Description |
 |---|---|
-| `{{agent}}` | The agent's personality prompt — **must be explicitly included** |
-| `{{faq}}` | Matched knowledge base results — **must be explicitly included** if Knowledge is enabled |
-| `{{time.anchor}}` | Current date/time context sentence |
-| `{{vars.*}}` | Stage variables collected during the conversation |
-| `{{userProfile.*}}` | The end user's profile fields |
-| `{{constants.*}}` | Project-level constants |
+| <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** |
+| <code v-pre>{{faq}}</code> | Matched knowledge base results — **must be explicitly included** if Knowledge is enabled |
+| <code v-pre>{{time.anchor}}</code> | Current date/time context sentence |
+| <code v-pre>{{vars.*}}</code> | Stage variables collected during the conversation |
+| <code v-pre>{{userProfile.*}}</code> | The end user's profile fields |
+| <code v-pre>{{constants.*}}</code> | Project-level constants |
 
-::: warning `{{agent}}` and `{{faq}}` are not auto-injected
-Without `{{agent}}` in the prompt, the agent's personality is silently absent. Without `{{faq}}`, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.
+::: warning These variables are not auto-injected
+Without <code v-pre>{{agent}}</code> in the prompt, the agent's personality is silently absent. Without <code v-pre>{{faq}}</code>, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.
 :::
 
 A canonical stage prompt looks like this:
@@ -65,7 +65,7 @@ Ask the customer what they need help with today.
 {{faq}}
 ```
 
-See [Prompt Templating](../guide/templating) for the full list of available variables and helpers, including the `{{agent}}` and `{{faq}}` variables.
+See [Prompt Templating](../guide/templating) for the full list of available variables and helpers, including the <code v-pre>{{agent}}</code> and <code v-pre>{{faq}}</code> variables.
 
 ### Enter Behavior
 
