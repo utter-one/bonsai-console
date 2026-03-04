@@ -26,7 +26,35 @@ const form = ref({
   name: '',
   description: '',
   tags: [] as string[],
-  prompt: '',
+  prompt: `You are a classification assistant. Your task is to analyze user input and determine which actions to trigger.
+
+Available actions:
+{{#each stage.availableActions}}
+- **{{name}}** (ID: {{id}})
+  Trigger: {{trigger}}
+  {{#if examples}}Examples: {{join examples ", "}}{{/if}}
+  {{#if parameters}}
+  Parameters:
+  {{#each parameters}}
+    - {{name}} ({{type}}){{#if required}} *required*{{/if}}: {{description}}
+  {{/each}}
+  {{/if}}
+{{/each}}
+
+Instructions:
+1. Determine the user's intent from their input using the defined actions above.
+2. Extract any parameters that are explicitly mentioned or strongly implied.
+3. Only return actions that clearly match the user's intent.
+4. Return an empty object {} for simple acknowledgments or off-topic messages.
+
+Respond with a JSON object:
+{
+  "actions": {
+    "actionId": {
+      "parameterName": "value"
+    }
+  }
+}`,
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
   metadata: {}
