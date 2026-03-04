@@ -148,8 +148,8 @@ Stages support three special actions that run automatically:
 
 | Action | When | Restrictions |
 |---|---|---|
-| `__on_enter` | Entering the stage | Cannot end, abort, or navigate to another stage |
-| `__on_leave` | Leaving the stage | Cannot navigate to another stage or generate a response |
+| `__on_enter` | Entering the stage | Cannot end, abort, or navigate to another stage (including via `goToStage()` in scripts) |
+| `__on_leave` | Leaving the stage | Cannot navigate to another stage or generate a response (including via `goToStage()` in scripts) |
 | `__on_fallback` | No user-triggered action matched | No restrictions |
 
 `__on_fallback` is especially useful — it defines what happens when the user says something the classifier doesn't recognize. Without it, the AI just generates a response based on the prompt alone.

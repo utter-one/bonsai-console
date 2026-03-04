@@ -99,6 +99,10 @@ These functions let a script control the conversation flow. They take effect _af
 | `prescriptResponse(text)` | Send a specific message instead of generating one with the AI |
 | `suppressResponse()` | Don't generate any response for this turn |
 
+::: warning `goToStage` is ignored in lifecycle actions
+`goToStage()` has no effect when called from a script running inside `__on_enter` or `__on_leave`. If you need stage navigation, use a regular user-triggered action.
+:::
+
 ### Example — Smart Routing
 
 ```javascript
