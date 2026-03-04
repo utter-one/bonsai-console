@@ -35,14 +35,14 @@ The prompt tells the AI what to do at this particular step. It's a [Handlebars t
 | Variable | Description |
 |---|---|
 | <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** |
-| <code v-pre>{{faq}}</code> | Matched knowledge base results — **must be explicitly included** if Knowledge is enabled |
+| `faq` | Array of matched Q&A pairs (`question`/`answer`) — **must be explicitly included** via <code v-pre>{{#hasItems faq}}</code> if Knowledge is enabled |
 | <code v-pre>{{time.anchor}}</code> | Current date/time context sentence |
 | <code v-pre>{{vars.*}}</code> | Stage variables collected during the conversation |
 | <code v-pre>{{userProfile.*}}</code> | The end user's profile fields |
 | <code v-pre>{{constants.*}}</code> | Project-level constants |
 
 ::: warning These variables are not auto-injected
-Without <code v-pre>{{agent}}</code> in the prompt, the agent's personality is silently absent. Without <code v-pre>{{faq}}</code>, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.
+Without <code v-pre>{{agent}}</code> in the prompt, the agent's personality is silently absent. Without the `faq` block, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.
 :::
 
 A canonical stage prompt looks like this:
@@ -50,19 +50,23 @@ A canonical stage prompt looks like this:
 ```handlebars
 {{agent}}
 
-{{time.anchor}}
-
-You are a customer service agent for {{constants.companyName}}.
+You are a customer service agent for {{consts.companyName}}.
 The customer's name is {{userProfile.name}}.
 
-{{#if vars.issue}}
+{{#if (exists vars.issue)}}
 The customer is experiencing: {{vars.issue}}
 Help them resolve this issue step by step.
 {{else}}
 Ask the customer what they need help with today.
 {{/if}}
 
-{{faq}}
+{{#hasItems faq}}
+Relevant knowledge:
+{{#each faq}}
+Q: {{this.question}}
+A: {{this.answer}}
+{{/each}}
+{{/hasItems}}
 ```
 
 See [Prompt Templating](../guide/templating) for the full list of available variables and helpers, including the <code v-pre>{{agent}}</code> and <code v-pre>{{faq}}</code> variables.
