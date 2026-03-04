@@ -42,13 +42,13 @@ The prompt is a **Handlebars template** with access to the full conversation con
 
 | Variable | Description |
 |---|---|
-| `{{schema}}` | Pseudo-JSON schema of the expected output — field names and their types derived from `contextFields` cross-referenced with the stage's variable descriptors. Always include this so the LLM knows the exact JSON structure to return. |
-| `{{{json context}}}` | Current values of the transformer's context fields. Shows what is already populated so the LLM can decide what to update or leave unchanged. |
-| `{{vars.*}}` | All stage variables (e.g. `{{vars.customerName}}`). |
-| `{{userInput}}` | The current user message being processed. |
-| `{{history}}` | Conversation history as an array of `{role, content}` entries. |
-| `{{userProfile.*}}` | User profile fields. |
-| `{{time.*}}` | Time context anchored to the conversation's timezone. |
+| <code v-pre>{{schema}}</code> | Pseudo-JSON schema of the expected output — field names and their types derived from `contextFields` cross-referenced with the stage's variable descriptors. Always include this so the LLM knows the exact JSON structure to return. |
+| <code v-pre>{{{json context}}}</code> | Current values of the transformer's context fields. Shows what is already populated so the LLM can decide what to update or leave unchanged. |
+| <code v-pre>{{vars.*}}</code> | All stage variables (e.g. <code v-pre>{{vars.customerName}}</code>). |
+| <code v-pre>{{userInput}}</code> | The current user message being processed. |
+| <code v-pre>{{history}}</code> | Conversation history as an array of `{role, content}` entries. |
+| <code v-pre>{{userProfile.*}}</code> | User profile fields. |
+| <code v-pre>{{time.*}}</code> | Time context anchored to the conversation's timezone. |
 
 A typical prompt using these variables:
 
@@ -70,7 +70,7 @@ Describe exactly what constitutes a valid value for each field. This reduces fal
 
 #### Schema Format
 
-`{{schema}}` renders as a JSON-like object where each value is the field's type label:
+<code v-pre>{{schema}}</code> renders as a JSON-like object where each value is the field's type label:
 
 ```json
 {
@@ -120,8 +120,8 @@ Context transformers can be cloned to create variations for different stages or 
 ## Tips
 
 - **Keep field lists focused** — A transformer with 3-5 fields works better than one trying to extract 20 things at once. Use multiple transformers if needed.
-- **Always include `{{schema}}`** — This ensures the LLM knows what JSON structure to return and reduces formatting errors.
-- **Use `{{{json context}}}` to avoid re-extracting known values** — Show the LLM what's already filled in so it can skip those fields.
+- **Always include <code v-pre>{{schema}}</code>** — This ensures the LLM knows what JSON structure to return and reduces formatting errors.
+- **Use <code v-pre>{{{json context}}}</code> to avoid re-extracting known values** — Show the LLM what's already filled in so it can skip those fields.
 - **Match field names to variable descriptors** — The context fields should correspond to the variable descriptors defined on the stage.
 - **Don't extract what you already know** — If you've already collected the customer's name, you don't need to keep extracting it.
 - **Use for optional enrichment** — Transformers work best as a complement to explicit actions, not a replacement. Use actions for critical data that must be collected, and transformers for opportunistic extraction.
