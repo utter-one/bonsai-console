@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore } from '@/stores'
-import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces, Bug } from 'lucide-vue-next'
+import { ArrowLeft, ArrowLeftRight, MessageSquare, GitBranch, Zap, Terminal, Play, RotateCcw, CheckCircle, XCircle, AlertCircle, Layers, Wrench, FileText, Braces, Bug, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -33,6 +33,50 @@ const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
 const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
 
+const expandedEvents = ref(new Set<string>())
+
+function toggleEvent(eventId: string) {
+  if (expandedEvents.value.has(eventId)) {
+    expandedEvents.value.delete(eventId)
+  } else {
+    expandedEvents.value.add(eventId)
+  }
+}
+
+function isEventExpanded(eventId: string): boolean {
+  return expandedEvents.value.has(eventId)
+}
+
+function getEventSummary(event: ConversationEventResponse): string {
+  const data = event.eventData as any
+  switch (event.eventType) {
+    case 'classification':
+      return `${data.classifierId} · ${data.actions?.length ?? 0} action(s) matched`
+    case 'transformation':
+      return `${data.transformerId} · ${data.appliedFields?.length ?? 0} field(s) applied`
+    case 'action':
+      return data.actionName
+    case 'command':
+      return data.command
+    case 'tool_call':
+      return `${data.toolName} · ${data.success ? 'success' : 'failed'}`
+    case 'conversation_start':
+      return `stage: ${data.stageId}`
+    case 'conversation_resume':
+      return `${data.previousStatus} → stage: ${data.stageId}`
+    case 'conversation_end':
+      return data.reason ? data.reason : `stage: ${data.stageId}`
+    case 'conversation_aborted':
+      return data.reason
+    case 'conversation_failed':
+      return data.reason
+    case 'jump_to_stage':
+      return `${data.fromStageId} → ${data.toStageId}`
+    default:
+      return ''
+  }
+}
+
 onMounted(async () => {
   await loadConversationData()
 })
@@ -60,11 +104,6 @@ async function loadConversationData() {
 
 function goBack() {
   router.push({ name: 'monitor.conversations' })
-}
-
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
 }
 
 function formatTime(date: string | null) {
@@ -456,15 +495,20 @@ const metadataFields = computed(() => {
 
                 <!-- Classification Event -->
                 <div v-else-if="isClassificationEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -487,7 +531,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.classifierId }}</div>
@@ -543,15 +587,20 @@ const metadataFields = computed(() => {
 
                 <!-- Transformation Event -->
                 <div v-else-if="isTransformationEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-violet-900 dark:text-violet-100">Transformation</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -574,7 +623,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.transformerId }}</div>
@@ -611,15 +660,20 @@ const metadataFields = computed(() => {
 
                 <!-- Action Event -->
                 <div v-else-if="isActionEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Zap class="w-5 h-5 mt-0.5 text-purple-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -642,7 +696,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
                           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
@@ -690,15 +744,20 @@ const metadataFields = computed(() => {
 
                 <!-- Command Event -->
                 <div v-else-if="isCommandEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-indigo-900 dark:text-indigo-100 shrink-0 text-left">Command</button>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -721,7 +780,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.command }}</div>
@@ -757,23 +816,28 @@ const metadataFields = computed(() => {
 
                 <!-- Tool Call Event -->
                 <div v-else-if="isToolCallEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
-                          <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-pink-900 dark:text-pink-100 shrink-0 text-left">Tool Call</button>
+                          <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
                             <CheckCircle class="w-3 h-3" />
                             Success
                           </span>
-                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 shrink-0">
                             <XCircle class="w-3 h-3" />
                             Failed
                           </span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -796,7 +860,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
                           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.toolName }}</div>
@@ -852,15 +916,20 @@ const metadataFields = computed(() => {
 
                 <!-- Conversation Start Event -->
                 <div v-else-if="isConversationStartEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <Play class="w-5 h-5 mt-0.5 text-green-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Play class="w-5 h-5 mt-0.5 text-green-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleEvent(event.id)" class="font-semibold text-green-900 dark:text-green-100 shrink-0 text-left">Conversation Started</button>
+                          <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0" @click.stop>
                           <button
                             v-if="hasSystemPrompt(event.eventData.metadata)"
                             @click="openPromptPreview(event.eventData.metadata!.systemPrompt as string)"
@@ -883,7 +952,7 @@ const metadataFields = computed(() => {
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
@@ -920,14 +989,19 @@ const metadataFields = computed(() => {
 
                 <!-- Conversation Resume Event -->
                 <div v-else-if="isConversationResumeEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-cyan-900 dark:text-cyan-100">Conversation Resumed</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <button @click="toggleEvent(event.id)" class="font-semibold text-cyan-900 dark:text-cyan-100 shrink-0 text-left">Conversation Resumed</button>
+                        <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.previousStatus }}</div>
@@ -955,14 +1029,19 @@ const metadataFields = computed(() => {
 
                 <!-- Conversation End Event -->
                 <div v-else-if="isConversationEndEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-gray-900 dark:text-white">Conversation Ended</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <button @click="toggleEvent(event.id)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">Conversation Ended</button>
+                        <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div v-if="event.eventData.reason">
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
@@ -990,14 +1069,19 @@ const metadataFields = computed(() => {
 
                 <!-- Conversation Aborted Event -->
                 <div v-else-if="isConversationAbortedEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-orange-900 dark:text-orange-100">Conversation Aborted</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <button @click="toggleEvent(event.id)" class="font-semibold text-orange-900 dark:text-orange-100 shrink-0 text-left">Conversation Aborted</button>
+                        <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
@@ -1025,14 +1109,19 @@ const metadataFields = computed(() => {
 
                 <!-- Conversation Failed Event -->
                 <div v-else-if="isConversationFailedEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-red-900 dark:text-red-100">Conversation Failed</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <button @click="toggleEvent(event.id)" class="font-semibold text-red-900 dark:text-red-100 shrink-0 text-left">Conversation Failed</button>
+                        <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
                           <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
@@ -1061,14 +1150,19 @@ const metadataFields = computed(() => {
 
                 <!-- Jump to Stage Event -->
                 <div v-else-if="isJumpToStageEvent(event)">
-                  <div class="flex items-start gap-3">
-                    <Layers class="w-5 h-5 mt-0.5 text-teal-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click.stop="toggleEvent(event.id)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-teal-900 dark:text-teal-100">Stage Transition</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isEventExpanded(event.id) }">
+                        <button @click="toggleEvent(event.id)" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>
+                        <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isEventExpanded(event.id)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.fromStageId }}</div>
@@ -1096,24 +1190,22 @@ const metadataFields = computed(() => {
 
                 <!-- Generic Event (Fallback) -->
                 <div v-else>
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2">
-                        <span class="font-semibold text-gray-900 dark:text-white">
-                          {{ formatEventType(event.eventType) }}
-                        </span>
-                        <span class="text-xs text-gray-500 font-mono">
-                          {{ event.id }}
-                        </span>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        {{ formatDate(event.timestamp) }}
-                      </div>
+                  <div class="flex items-center gap-2" :class="{ 'mb-3': isEventExpanded(event.id) }">
+                    <button @click.stop="toggleEvent(event.id)" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isEventExpanded(event.id)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                      <button @click="toggleEvent(event.id)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">
+                        {{ formatEventType(event.eventType) }}
+                      </button>
+                      <span v-if="!isEventExpanded(event.id)" class="text-xs text-gray-500 font-mono truncate">{{ event.id }}</span>
+                      <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                     </div>
                   </div>
 
                   <!-- Event Data -->
-                  <div v-if="Object.keys(event.eventData).length > 0" class="mt-3">
+                  <div v-if="isEventExpanded(event.id) && Object.keys(event.eventData).length > 0" class="mt-3">
                     <details class="group">
                       <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
                         Event Data
@@ -1128,7 +1220,7 @@ const metadataFields = computed(() => {
                 </div>
 
                 <!-- Metadata (Available for all events) -->
-                <div v-if="event.metadata && Object.keys(event.metadata).length > 0" class="mt-3">
+                <div v-if="event.metadata && Object.keys(event.metadata).length > 0 && (!isMessageEvent(event) ? isEventExpanded(event.id) : true)" class="mt-3">
                   <details class="group">
                     <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
                       Metadata

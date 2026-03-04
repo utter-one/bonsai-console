@@ -289,15 +289,20 @@
                 
                 <!-- Classification Event -->
                 <div v-if="isClassificationEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-yellow-900 dark:text-yellow-100">Classification</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -314,7 +319,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.classifierId }}</div>
@@ -357,15 +362,20 @@
 
                 <!-- Transformation Event -->
                 <div v-else-if="isTransformationEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-violet-900 dark:text-violet-100">Transformation</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -382,7 +392,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.transformerId }}</div>
@@ -407,15 +417,20 @@
 
                 <!-- Action Event -->
                 <div v-else-if="isActionEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <Zap class="w-5 h-5 mt-0.5 text-purple-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Zap class="w-5 h-5 mt-0.5 text-purple-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-purple-900 dark:text-purple-100">Action</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -432,7 +447,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
                           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.actionName }}</div>
@@ -464,15 +479,20 @@
 
                 <!-- Command Event -->
                 <div v-else-if="isCommandEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-indigo-900 dark:text-indigo-100">Command</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-indigo-900 dark:text-indigo-100 shrink-0 text-left">Command</button>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -489,7 +509,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.command }}</div>
@@ -513,23 +533,28 @@
 
                 <!-- Tool Call Event -->
                 <div v-else-if="isToolCallEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-pink-900 dark:text-pink-100">Tool Call</span>
-                          <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-pink-900 dark:text-pink-100 shrink-0 text-left">Tool Call</button>
+                          <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
                             <CheckCircle class="w-3 h-3" />
                             Success
                           </span>
-                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 shrink-0">
                             <XCircle class="w-3 h-3" />
                             Failed
                           </span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -546,7 +571,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
                           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toolName }}</div>
@@ -574,15 +599,20 @@
 
                 <!-- Conversation Start Event -->
                 <div v-else-if="isConversationStartEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <Play class="w-5 h-5 mt-0.5 text-green-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Play class="w-5 h-5 mt-0.5 text-green-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-green-900 dark:text-green-100">Conversation Started</span>
-                          <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <button @click="toggleWsEvent(event)" class="font-semibold text-green-900 dark:text-green-100 shrink-0 text-left">Conversation Started</button>
+                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 shrink-0">
                           <button
                             v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
                             @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
@@ -599,7 +629,7 @@
                           </button>
                         </div>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.stageId }}</div>
@@ -611,14 +641,19 @@
 
                 <!-- Conversation Resume Event -->
                 <div v-else-if="isConversationResumeEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-cyan-900 dark:text-cyan-100">Conversation Resumed</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <button @click="toggleWsEvent(event)" class="font-semibold text-cyan-900 dark:text-cyan-100 shrink-0 text-left">Conversation Resumed</button>
+                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.previousStatus }}</div>
@@ -630,14 +665,19 @@
 
                 <!-- Conversation End Event -->
                 <div v-else-if="isConversationEndEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-gray-900 dark:text-white">Conversation Ended</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <button @click="toggleWsEvent(event)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">Conversation Ended</button>
+                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2" v-if="event.wsEvent.eventData.reason">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2" v-if="event.wsEvent.eventData.reason">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
@@ -649,14 +689,19 @@
 
                 <!-- Conversation Aborted Event -->
                 <div v-else-if="isConversationAbortedEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-orange-900 dark:text-orange-100">Conversation Aborted</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <button @click="toggleWsEvent(event)" class="font-semibold text-orange-900 dark:text-orange-100 shrink-0 text-left">Conversation Aborted</button>
+                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
                           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
@@ -668,14 +713,19 @@
 
                 <!-- Conversation Failed Event -->
                 <div v-else-if="isConversationFailedEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-red-900 dark:text-red-100">Conversation Failed</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <button @click="toggleWsEvent(event)" class="font-semibold text-red-900 dark:text-red-100 shrink-0 text-left">Conversation Failed</button>
+                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
                           <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
@@ -688,14 +738,19 @@
 
                 <!-- Jump to Stage Event -->
                 <div v-else-if="isJumpToStageEvent(event.wsEvent)">
-                  <div class="flex items-start gap-3">
-                    <Layers class="w-5 h-5 mt-0.5 text-teal-600" />
+                  <div class="flex items-start gap-2">
+                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="font-semibold text-teal-900 dark:text-teal-100">Stage Transition</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
+                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
+                        <button @click="toggleWsEvent(event)" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>
+                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
+                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                       </div>
-                      <div class="space-y-2">
+                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.fromStageId }}</div>
@@ -711,21 +766,19 @@
 
                 <!-- Generic Event (Fallback) -->
                 <div v-else>
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2">
-                        <span class="font-semibold text-gray-900 dark:text-white">
-                          {{ formatEventType(event.wsEvent.eventType) }}
-                        </span>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        {{ formatTime(event.timestamp) }}
-                      </div>
-                    </div>
+                  <div class="flex items-center gap-2" :class="{ 'mb-3': isWsEventExpanded(event) }">
+                    <button @click="toggleWsEvent(event)" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <button @click="toggleWsEvent(event)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">
+                      {{ formatEventType(event.wsEvent.eventType) }}
+                    </button>
+                    <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
                   </div>
 
                   <!-- Event Data -->
-                  <div v-if="Object.keys(event.wsEvent.eventData).length > 0" class="mt-3">
+                  <div v-if="isWsEventExpanded(event) && Object.keys(event.wsEvent.eventData).length > 0" class="mt-3">
                     <details class="group">
                       <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
                         Event Data
@@ -859,7 +912,7 @@ import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces, Bug } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, ChevronRight, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces, Bug } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -1215,6 +1268,49 @@ interface ConversationEvent {
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
+const expandedWsEvents = ref(new Set<ConversationEvent>())
+
+function toggleWsEvent(event: ConversationEvent) {
+  if (expandedWsEvents.value.has(event)) {
+    expandedWsEvents.value.delete(event)
+  } else {
+    expandedWsEvents.value.add(event)
+  }
+}
+
+function isWsEventExpanded(event: ConversationEvent): boolean {
+  return expandedWsEvents.value.has(event)
+}
+
+function getWsEventSummary(wsEvent: WSConversationEvent): string {
+  const data = wsEvent.eventData as any
+  switch (wsEvent.eventType) {
+    case 'classification':
+      return `${data.classifierId} · ${data.actions?.length ?? 0} action(s) matched`
+    case 'transformation':
+      return `${data.transformerId} · ${data.appliedFields?.length ?? 0} field(s) applied`
+    case 'action':
+      return data.actionName
+    case 'command':
+      return data.command
+    case 'tool_call':
+      return `${data.toolName} · ${data.success ? 'success' : 'failed'}`
+    case 'conversation_start':
+      return `stage: ${data.stageId}`
+    case 'conversation_resume':
+      return `${data.previousStatus} → stage: ${data.stageId}`
+    case 'conversation_end':
+      return data.reason ? data.reason : `stage: ${data.stageId}`
+    case 'conversation_aborted':
+      return data.reason
+    case 'conversation_failed':
+      return data.reason
+    case 'jump_to_stage':
+      return `${data.fromStageId} → ${data.toStageId}`
+    default:
+      return ''
+  }
+}
 const historyContainer = ref<HTMLElement | null>(null)
 
 // Filter events based on showSystemEvents and showConversationEvents toggles
@@ -2108,6 +2204,7 @@ async function handleStartConversation(stage: StageResponse) {
 
     // Clear conversation history when starting a new conversation
     conversationEvents.value = []
+    expandedWsEvents.value.clear()
     activeVoiceOutputs.value.clear()
 
     addEvent({
@@ -2170,6 +2267,7 @@ async function resumeConversation(convId: string) {
 
     // Clear conversation history and voice outputs
     conversationEvents.value = []
+    expandedWsEvents.value.clear()
     activeVoiceOutputs.value.clear()
 
     addEvent({
