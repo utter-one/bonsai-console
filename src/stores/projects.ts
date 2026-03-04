@@ -26,5 +26,19 @@ export const useProjectsStore = defineStore('projects', () => {
     }
   }
 
-  return { ...store, count, fetchCount }
+  // Dedicated project list for navigation/layout use — unaffected by view-level fetchAll() calls
+  const navProjects = ref<ProjectResponse[]>([])
+  const navProjectsLoaded = ref(false)
+
+  async function fetchNavProjects() {
+    try {
+      const response = await (apiClient as any).projectsList({ offset: 0, limit: 1000, orderBy: 'name' })
+      navProjects.value = response?.items ?? []
+      navProjectsLoaded.value = true
+    } catch {
+      navProjects.value = []
+    }
+  }
+
+  return { ...store, count, fetchCount, navProjects, navProjectsLoaded, fetchNavProjects }
 })
