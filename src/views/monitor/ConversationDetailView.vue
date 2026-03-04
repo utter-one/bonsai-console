@@ -426,7 +426,7 @@ const metadataFields = computed(() => {
 
             <div v-else class="space-y-4">
               <div v-for="event in events" :key="event.id"
-                class="border rounded-lg p-4 transition-shadow hover:shadow-md"
+                class="border rounded-lg p-1 transition-shadow hover:shadow-md"
                 :class="[
                   getEventTypeColor(event.eventType),
                   { 'ml-8': !isMessageEvent(event) }
@@ -434,7 +434,7 @@ const metadataFields = computed(() => {
 
                 <!-- Message Event -->
                 <div v-if="isMessageEvent(event)">
-                  <div class="flex items-start gap-3">
+                  <div class="flex items-start p-2 gap-3">
                     <MessageSquare class="w-5 h-5 mt-0.5"
                       :class="event.eventData.role === 'user' ? 'text-blue-600' : 'text-green-600'" />
                     <div class="flex-1 min-w-0">

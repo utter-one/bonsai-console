@@ -284,7 +284,7 @@
               </div>
 
               <!-- Conversation Events (styled like ConversationDetailView) -->
-              <div v-else-if="event.wsEvent" class="border rounded-lg p-4 shadow-sm transition-shadow hover:shadow-md ml-8"
+              <div v-else-if="event.wsEvent" class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md ml-8"
                 :class="getEventTypeColor(event.wsEvent.eventType)">
                 
                 <!-- Classification Event -->
@@ -355,6 +355,16 @@
                             </div>
                           </div>
                         </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -409,6 +419,16 @@
                               {{ field }}
                             </span>
                           </div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
@@ -472,6 +492,16 @@
                             </div>
                           </div>
                         </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -523,6 +553,16 @@
                             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
                               <pre
                                 class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.parameters, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
                             </div>
                           </details>
                         </div>
@@ -592,6 +632,16 @@
                             <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.wsEvent.eventData.error }}</div>
                           </div>
                         </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -633,6 +683,16 @@
                         <div>
                           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
                           <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.stageId }}</div>
+                        </div>
+                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
+                          <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
+                            </summary>
+                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     </div>
