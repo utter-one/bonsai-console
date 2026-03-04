@@ -76,7 +76,17 @@ const form = ref({
   description: '',
   tags: [] as string[],
   agentId: '',
-  prompt: '',
+  prompt: `{{agent}}
+
+...
+
+{{#hasItems faq}}
+Relevant knowledge:
+{{#each faq}}
+Q: {{this.question}}
+A: {{this.answer}}
+{{/each}}
+{{/hasItems}}`,
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
   enterBehavior: 'generate_response' as 'generate_response' | 'await_user_input',

@@ -27,7 +27,19 @@ const form = ref({
   name: '',
   description: '',
   tags: [] as string[],
-  prompt: '',
+  prompt: `You are a data extraction assistant. Your task is to extract structured information from the user's message and update the conversation context.
+
+{{time.anchor}}
+
+## Fields to Extract
+
+The following fields must be populated. Their expected types and shapes are:
+
+\`\`\`json
+{{schema}}
+\`\`\`
+
+Only extract values that are explicitly stated or clearly implied by the user's message. Return previous values for any fields not mentioned.`,
   contextFields: [] as string[],
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
