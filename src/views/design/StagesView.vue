@@ -25,17 +25,18 @@ const pagination = usePagination({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // Search
-const { searchQuery, filteredItems: filteredStages, clearSearch } = useSearch(
-  () => stagesStore.items,
-  (stage, query) =>
-    stage.name.toLowerCase().includes(query) ||
-    stage.prompt.toLowerCase().includes(query) ||
-    stage.id.toLowerCase().includes(query)
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredStages, clearSearch } = useSearch(
+  () => stagesStore.items
 )
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadStages()
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for projectId changes
@@ -56,7 +57,7 @@ async function loadStages() {
     const orderBy = getOrderBy()
     await stagesStore.fetchAll(
       projectId.value,
-      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) })
     )
   } catch (error) {
     console.error('Failed to load stages:', error)

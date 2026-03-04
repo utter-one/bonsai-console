@@ -25,17 +25,18 @@ const pagination = usePagination({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // Search
-const { searchQuery, filteredItems: filteredGlobalActions, clearSearch } = useSearch(
-  () => globalActionsStore.items,
-  (action, query) =>
-    action.name.toLowerCase().includes(query) ||
-    !!action.classificationTrigger?.toLowerCase().includes(query) ||
-    !!action.condition?.toLowerCase().includes(query)
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredGlobalActions, clearSearch } = useSearch(
+  () => globalActionsStore.items
 )
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadGlobalActions()
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for projectId changes
@@ -56,7 +57,7 @@ async function loadGlobalActions() {
     const orderBy = getOrderBy()
     await globalActionsStore.fetchAll(
       projectId.value,
-      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) })
     )
   } catch (error) {
     console.error('Failed to load global actions:', error)

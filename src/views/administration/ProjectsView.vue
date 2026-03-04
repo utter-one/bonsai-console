@@ -27,14 +27,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredProjects = computed(() => {
-  if (!debouncedSearchQuery.value) return projectsStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return projectsStore.items.filter(project =>
-    project.name.toLowerCase().includes(query) ||
-    project.description?.toLowerCase().includes(query)
-  )
-})
+const filteredProjects = computed(() => projectsStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -49,6 +42,11 @@ watch([sortKey, sortOrder], () => {
   loadProjects()
 })
 
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
+})
+
 onMounted(async () => {
   await loadProjects()
 })
@@ -56,7 +54,7 @@ onMounted(async () => {
 async function loadProjects() {
   try {
     const orderBy = getOrderBy()
-    await projectsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await projectsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load projects:', error)
   }

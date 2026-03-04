@@ -27,15 +27,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredOperators = computed(() => {
-  if (!debouncedSearchQuery.value) return operatorsStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return operatorsStore.items.filter(operator => 
-    operator.id.toLowerCase().includes(query) ||
-    operator.name.toLowerCase().includes(query) ||
-    operator.roles.some(role => role.toLowerCase().includes(query))
-  )
-})
+const filteredOperators = computed(() => operatorsStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -52,6 +44,11 @@ watch([sortKey, sortOrder], () => {
   loadOperators()
 })
 
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadOperators()
@@ -61,7 +58,7 @@ onMounted(async () => {
 async function loadOperators() {
   try {
     const orderBy = getOrderBy()
-    await operatorsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await operatorsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load operators:', error)
   }
