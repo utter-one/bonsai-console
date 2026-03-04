@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
@@ -57,6 +57,7 @@ const projectsStore = useProjectsStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
@@ -128,6 +129,12 @@ const projectTransformers = computed(() =>
   transformersStore.items
 )
 
+watch(() => form.value.llmProviderId, (newVal) => {
+  if (!newVal) {
+    form.value.llmSettings = null
+  }
+})
+
 // Lifecycle
 onMounted(async () => {
   // Load related data
@@ -179,7 +186,7 @@ async function loadStage() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load stage'
+    loadError.value = err.response?.data?.message || 'Failed to load stage'
   } finally {
     isLoading.value = false
   }
@@ -191,6 +198,12 @@ async function handleSubmit() {
   // Validate required fields
   if (!form.value.llmProviderId) {
     error.value = 'LLM Provider is required. Please select an LLM provider.'
+    activeTab.value = 'prompt'
+    return
+  }
+
+  if (!form.value.llmSettings) {
+    error.value = 'LLM Settings are required. Please configure the LLM settings.'
     activeTab.value = 'prompt'
     return
   }
@@ -820,8 +833,8 @@ function toggleNode(path: number[]) {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error && isEditMode" class="error-state">
-      {{ error }}
+    <div v-else-if="loadError && isEditMode" class="error-state">
+      {{ loadError }}
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Stages
       </button>

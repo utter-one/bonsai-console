@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useContextTransformersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
@@ -19,6 +19,7 @@ const projectSelectionStore = useProjectSelectionStore()
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata'>('basic')
 const showLLMSettingsModal = ref(false)
@@ -56,6 +57,12 @@ const llmProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'llm')
 )
 
+watch(() => form.value.llmProviderId, (newVal) => {
+  if (!newVal) {
+    form.value.llmSettings = null
+  }
+})
+
 // Lifecycle
 onMounted(async () => {
   // Load LLM providers
@@ -89,7 +96,7 @@ async function loadTransformer() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load context transformer'
+    loadError.value = err.response?.data?.message || 'Failed to load context transformer'
   } finally {
     isLoading.value = false
   }
@@ -97,6 +104,19 @@ async function loadTransformer() {
 
 async function handleSubmit() {
   error.value = null
+
+  if (!form.value.llmProviderId) {
+    error.value = 'LLM Provider is required. Please select an LLM provider.'
+    activeTab.value = 'prompt'
+    return
+  }
+
+  if (!form.value.llmSettings) {
+    error.value = 'LLM Settings are required. Please configure the LLM settings.'
+    activeTab.value = 'prompt'
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -143,13 +163,8 @@ async function handleSubmit() {
       }
 
       // Only include LLM settings if provider is selected
-      if (form.value.llmProviderId) {
-        createData.llmProviderId = form.value.llmProviderId
-      }
-
-      if (form.value.llmSettings) {
-        createData.llmSettings = form.value.llmSettings
-      }
+      createData.llmProviderId = form.value.llmProviderId
+      createData.llmSettings = form.value.llmSettings
 
       const created = await transformersStore.create(projectId.value, createData)
       
@@ -272,8 +287,8 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error && isEditMode" class="error-state">
-      {{ error }}
+    <div v-else-if="loadError && isEditMode" class="error-state">
+      {{ loadError }}
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Context Transformers
       </button>
@@ -364,7 +379,7 @@ const metadataFields = computed(() => {
           <div v-show="activeTab === 'prompt'" class="tab-content">
             <div class="form-group">
               <label class="form-label">
-                LLM Provider <span class="text-gray-500">(optional)</span>
+                LLM Provider <span class="required">*</span>
               </label>
               <div class="flex flex-col md:flex-row gap-2">
                 <select
@@ -372,7 +387,7 @@ const metadataFields = computed(() => {
                   class="form-select-auto min-w-64"
                   :disabled="isLoading"
                 >
-                  <option value="">Use default provider</option>
+                  <option value="">Select an LLM provider</option>
                   <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
                     {{ provider.name }}
                   </option>
@@ -388,7 +403,7 @@ const metadataFields = computed(() => {
                 </button>
               </div>
               <p class="form-help-text">
-                The LLM provider to use for this transformer. Leave empty to use the default provider.
+                The LLM provider to use for this transformer.
               </p>
             </div>
 
