@@ -65,10 +65,10 @@ const selectedProjectId = computed({
 
 // Load projects on mount
 onMounted(async () => {
-  await projectsStore.fetchAll({ offset: 0, limit: 100 })
+  await projectsStore.fetchNavProjects()
   
   // Validate that the saved project still exists
-  projectSelectionStore.validateSelectedProject(projectsStore.items)
+  projectSelectionStore.validateSelectedProject(projectsStore.navProjects)
   
   // Set selectedProjectId from route if present (route takes priority)
   if (route.params.projectId) {
@@ -205,7 +205,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             >
               <option :value="null">Select Project...</option>
               <option
-                v-for="project in projectsStore.items"
+                v-for="project in projectsStore.navProjects"
                 :key="project.id"
                 :value="project.id"
               >
@@ -327,7 +327,7 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             >
               <option :value="null">Select Project...</option>
               <option
-                v-for="project in projectsStore.items"
+                v-for="project in projectsStore.navProjects"
                 :key="project.id"
                 :value="project.id"
               >
