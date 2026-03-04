@@ -31,11 +31,15 @@ Actions can be triggered in several ways:
 
 ### Classification Trigger
 
-The **classification trigger** is a label that describes when this action should fire. It's what the classifier uses to match user input to this action. For example:
+The **classification trigger** is a human-readable label that **the LLM reads** to understand when this action should fire. Think of it as the action's intent description shown directly to the language model. For example:
 
 - _"The user wants to check their order status"_
 - _"The user is asking about return policy"_
 - _"The user wants to speak to a human"_
+
+::: tip Labels for the LLM, IDs in the response
+The classification trigger is a hint *for* the language model — it explains an action's purpose so the LLM can decide whether it matches. When the LLM decides an action matches, it returns the action's **ID** (e.g., `check_order_status`) in its JSON response — not the trigger label. See [Classifiers](./classifiers#required-output-format) for the output format.
+:::
 
 ### Examples
 
@@ -144,8 +148,8 @@ Stages support three special actions that run automatically:
 
 | Action | When | Restrictions |
 |---|---|---|
-| `__on_enter` | Entering the stage | Cannot end, abort, or navigate to another stage |
-| `__on_leave` | Leaving the stage | Cannot navigate to another stage or generate a response |
+| `__on_enter` | Entering the stage | Cannot end, abort, or navigate to another stage (including via `goToStage()` in scripts) |
+| `__on_leave` | Leaving the stage | Cannot navigate to another stage or generate a response (including via `goToStage()` in scripts) |
 | `__on_fallback` | No user-triggered action matched | No restrictions |
 
 `__on_fallback` is especially useful — it defines what happens when the user says something the classifier doesn't recognize. Without it, the AI just generates a response based on the prompt alone.
@@ -160,6 +164,31 @@ When the user sends a message, here's what happens in detail:
 4. If nothing matched and `__on_fallback` exists, it runs instead.
 5. Matched actions' effects execute **sequentially**.
 6. If any effect triggers navigation, conversation end, or abort, it takes effect after all current effects finish.
+
+### Effect Execution Priority
+
+When multiple actions are triggered in the same turn, the system **collects all effects from all matched actions** and sorts them globally by type before executing. Types with lower priority numbers run first:
+
+| Priority | Effect Type |
+|---|---|
+| 1 | `call_webhook` |
+| 2 | `call_tool` |
+| 3 | `modify_variables` |
+| 4 | `modify_user_profile` |
+| 5 | `modify_user_input` |
+| 6 | `run_script` |
+| 7 | `generate_response` |
+| 8 | `end_conversation` |
+| 9 | `abort_conversation` |
+| 10 | `go_to_stage` |
+
+#### Conflict Resolution
+
+When multiple matched actions contribute the same effect type, these rules apply:
+
+- **`go_to_stage`** — Only the **first** matched action's target stage wins. Subsequent `go_to_stage` effects from other actions are discarded.
+- **`abort_conversation`** vs **`end_conversation`** — `abort_conversation` always wins and suppresses any `end_conversation` effects.
+- **`modify_user_input`** — All `modify_user_input` effects are **chained**: each one transforms the output of the previous, so the AI sees the result of all of them applied in order.
 
 ## Tips
 

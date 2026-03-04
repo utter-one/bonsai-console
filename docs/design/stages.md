@@ -30,9 +30,28 @@ Go to **Design > Stages** and click **Create Stage**.
 
 ### System Prompt
 
-The prompt tells the AI what to do at this particular step. It's a [Handlebars template](../guide/templating) that can include dynamic content:
+The prompt tells the AI what to do at this particular step. It's a [Handlebars template](../guide/templating) that can include dynamic content. Key variables available in stage prompts:
+
+| Variable | Description |
+|---|---|
+| <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** |
+| <code v-pre>{{faq}}</code> | Matched knowledge base results — **must be explicitly included** if Knowledge is enabled |
+| <code v-pre>{{time.anchor}}</code> | Current date/time context sentence |
+| <code v-pre>{{vars.*}}</code> | Stage variables collected during the conversation |
+| <code v-pre>{{userProfile.*}}</code> | The end user's profile fields |
+| <code v-pre>{{constants.*}}</code> | Project-level constants |
+
+::: warning These variables are not auto-injected
+Without <code v-pre>{{agent}}</code> in the prompt, the agent's personality is silently absent. Without <code v-pre>{{faq}}</code>, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.
+:::
+
+A canonical stage prompt looks like this:
 
 ```handlebars
+{{agent}}
+
+{{time.anchor}}
+
 You are a customer service agent for {{constants.companyName}}.
 The customer's name is {{userProfile.name}}.
 
@@ -42,9 +61,11 @@ Help them resolve this issue step by step.
 {{else}}
 Ask the customer what they need help with today.
 {{/if}}
+
+{{faq}}
 ```
 
-The prompt is combined with the agent's personality prompt to form the complete system instructions the AI follows.
+See [Prompt Templating](../guide/templating) for the full list of available variables and helpers, including the <code v-pre>{{agent}}</code> and <code v-pre>{{faq}}</code> variables.
 
 ### Enter Behavior
 

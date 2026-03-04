@@ -22,6 +22,8 @@ Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
 | `userInput` | What the user just said |
 | `time` | Current date and time (timezone-aware) |
 | `context.results` | Results from tool calls and webhooks |
+| <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** (see below) |
+| <code v-pre>{{faq}}</code> | Matched knowledge base results — **must be explicitly included** (see below) |
 
 ### User Profile Fields
 
@@ -147,6 +149,49 @@ The timezone is determined once when a conversation starts:
 You are a booking assistant for {{constants.companyName}}.
 When the user says "next Tuesday", that means {{time.nextTuesday}}.
 When the user says "this Friday", that means {{time.nextFriday}}.
+```
+
+## Agent and Knowledge Variables
+
+Two variables have behavior that is easy to get wrong: <code v-pre>{{agent}}</code> and <code v-pre>{{faq}}</code>.
+
+### <span v-pre>`{{agent}}`</span> — Agent Personality
+
+The <code v-pre>{{agent}}</code> tag injects the **agent's personality prompt** — the description and instructions defined on the Agent resource — into your stage system prompt.
+
+::: danger Must be explicitly included
+<code v-pre>{{agent}}</code> is **not auto-injected**. If you omit it from your stage prompt, the agent's personality is silently absent and the LLM has no personality instructions at all. Always include <code v-pre>{{agent}}</code> unless you are intentionally overriding the personality inline.
+:::
+
+Typical placement is near the top of the prompt:
+
+```handlebars
+{{agent}}
+
+{{time.anchor}}
+
+You are helping the customer with their order.
+```
+
+### <span v-pre>`{{faq}}`</span> — Knowledge Base Results
+
+When a stage has **Use Knowledge** enabled and the classifier matches a knowledge category, the relevant FAQ answers are made available as <code v-pre>{{faq}}</code>. Including <code v-pre>{{faq}}</code> in your prompt tells the LLM to use those results when composing its response.
+
+::: danger Must be explicitly included
+<code v-pre>{{faq}}</code> is **not auto-injected**. If you omit it from your stage prompt, matched knowledge results are silently discarded — the LLM will never see them, even though the classifier found relevant content. Always include <code v-pre>{{faq}}</code> on stages where knowledge lookup is enabled.
+:::
+
+Typical placement is before the closing instructions:
+
+```handlebars
+{{agent}}
+
+{{time.anchor}}
+
+{{faq}}
+
+Answer the customer's question using the information above if available.
+If no relevant information was found, be honest about it.
 ```
 
 ## Full Prompt Example
