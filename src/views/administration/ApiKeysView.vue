@@ -40,16 +40,7 @@ const projectNamesMap = computed(() => {
 })
 
 // Computed
-const filteredApiKeys = computed(() => {
-  if (!debouncedSearchQuery.value) return allApiKeysStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return allApiKeysStore.items.filter(apiKey => 
-    apiKey.id.toLowerCase().includes(query) ||
-    apiKey.name.toLowerCase().includes(query) ||
-    apiKey.keyPreview?.toLowerCase().includes(query) ||
-    projectNamesMap.value[apiKey.projectId]?.toLowerCase().includes(query)
-  )
-})
+const filteredApiKeys = computed(() => allApiKeysStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -64,6 +55,11 @@ watch(searchQuery, (newValue) => {
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadApiKeys()
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Lifecycle
@@ -84,7 +80,7 @@ async function loadProjects() {
 async function loadApiKeys() {
   try {
     const orderBy = getOrderBy()
-    await allApiKeysStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await allApiKeysStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load API keys:', error)
   }

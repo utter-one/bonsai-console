@@ -79,18 +79,7 @@ const hasActiveFilters = computed(() => {
   return timeFilter.value !== 'last-7d' || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
 })
 
-const filteredLogs = computed(() => {
-  if (!debouncedSearchQuery.value) return auditLogsStore.logs
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return auditLogsStore.logs.filter(log => {
-    return (
-      log.action?.toLowerCase().includes(query) ||
-      log.entityType?.toLowerCase().includes(query) ||
-      log.entityId?.toLowerCase().includes(query) ||
-      log.userId?.toLowerCase().includes(query)
-    )
-  })
-})
+const filteredLogs = computed(() => auditLogsStore.logs)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -100,6 +89,11 @@ watch(searchQuery, (newValue) => {
   searchTimeout = setTimeout(() => {
     debouncedSearchQuery.value = newValue
   }, 300)
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for time filter changes
@@ -212,7 +206,7 @@ async function loadAuditLogs() {
       }
     }
 
-    await auditLogsStore.fetchAll(pagination.getParams({ filters, orderBy: '-createdAt' }))
+    await auditLogsStore.fetchAll(pagination.getParams({ filters, orderBy: '-createdAt', ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load audit logs:', error)
   }

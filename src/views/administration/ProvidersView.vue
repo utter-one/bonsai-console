@@ -27,17 +27,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredProviders = computed(() => {
-  if (!debouncedSearchQuery.value) return providersStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return providersStore.items.filter(provider => 
-    provider.id.toLowerCase().includes(query) ||
-    provider.name.toLowerCase().includes(query) ||
-    provider.description?.toLowerCase().includes(query) ||
-    provider.apiType.toLowerCase().includes(query) ||
-    provider.providerType.toLowerCase().includes(query)
-  )
-})
+const filteredProviders = computed(() => providersStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -54,6 +44,11 @@ watch([sortKey, sortOrder], () => {
   loadProviders()
 })
 
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadProviders()
@@ -63,7 +58,7 @@ onMounted(async () => {
 async function loadProviders() {
   try {
     const orderBy = getOrderBy()
-    await providersStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await providersStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load providers:', error)
   }

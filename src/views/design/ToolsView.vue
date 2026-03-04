@@ -25,17 +25,18 @@ const pagination = usePagination({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // Search
-const { searchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
-  () => toolsStore.items,
-  (tool, query) =>
-    tool.name.toLowerCase().includes(query) ||
-    !!tool.description?.toLowerCase().includes(query) ||
-    tool.prompt.toLowerCase().includes(query)
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
+  () => toolsStore.items
 )
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadTools()
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for projectId changes
@@ -56,7 +57,7 @@ async function loadTools() {
     const orderBy = getOrderBy()
     await toolsStore.fetchAll(
       projectId.value,
-      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) })
     )
   } catch (error) {
     console.error('Failed to load tools:', error)

@@ -27,17 +27,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredIssues = computed(() => {
-  if (!debouncedSearchQuery.value) return issuesStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return issuesStore.items.filter(issue => 
-    issue.bugDescription.toLowerCase().includes(query) ||
-    issue.category.toLowerCase().includes(query) ||
-    issue.severity.toLowerCase().includes(query) ||
-    issue.status.toLowerCase().includes(query) ||
-    issue.id.toString().includes(query)
-  )
-})
+const filteredIssues = computed(() => issuesStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -47,6 +37,11 @@ watch(searchQuery, (newValue) => {
   searchTimeout = setTimeout(() => {
     debouncedSearchQuery.value = newValue
   }, 300)
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for project selection changes
@@ -69,7 +64,7 @@ onMounted(async () => {
 async function loadIssues() {
   try {
     const filters: any = {}
-    await issuesStore.fetchAll(pagination.getParams({ filters }))
+    await issuesStore.fetchAll(pagination.getParams({ filters, ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load issues:', error)
   }

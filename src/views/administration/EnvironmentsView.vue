@@ -30,16 +30,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredEnvironments = computed(() => {
-  if (!debouncedSearchQuery.value) return environmentsStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return environmentsStore.items.filter(env =>
-    env.id.toLowerCase().includes(query) ||
-    env.description.toLowerCase().includes(query) ||
-    env.url.toLowerCase().includes(query) ||
-    env.login.toLowerCase().includes(query)
-  )
-})
+const filteredEnvironments = computed(() => environmentsStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -54,6 +45,11 @@ watch([sortKey, sortOrder], () => {
   loadEnvironments()
 })
 
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
+})
+
 // Lifecycle
 onMounted(async () => {
   await loadEnvironments()
@@ -63,7 +59,7 @@ onMounted(async () => {
 async function loadEnvironments() {
   try {
     const orderBy = getOrderBy()
-    await environmentsStore.fetchAll(pagination.getParams(orderBy ? { orderBy } : {}))
+    await environmentsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load environments:', error)
   }

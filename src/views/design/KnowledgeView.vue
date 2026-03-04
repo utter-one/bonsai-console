@@ -27,21 +27,7 @@ const itemModalCategoryId = ref<string>('')
 // Computed 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filteredCategories = computed(() => {
-  if (!debouncedSearchQuery.value) return knowledgeStore.categories
-  const q = debouncedSearchQuery.value.toLowerCase()
-  return knowledgeStore.categories.filter(
-    (cat: KnowledgeCategoryResponse) =>
-      cat.name.toLowerCase().includes(q) ||
-      cat.promptTrigger.toLowerCase().includes(q) ||
-      cat.tags.some((t: string) => t.toLowerCase().includes(q)) ||
-      cat.items?.some(
-        (item: KnowledgeItemResponse) =>
-          item.question.toLowerCase().includes(q) ||
-          item.answer.toLowerCase().includes(q),
-      ),
-  )
-})
+const filteredCategories = computed(() => knowledgeStore.categories)
 
 // Watchers 
 watch(searchQuery, (value) => {
@@ -58,6 +44,11 @@ watch(projectId, () => {
   loadCategories()
 })
 
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  loadCategories()
+})
+
 // Lifecycle 
 onMounted(() => loadCategories())
 
@@ -68,6 +59,7 @@ async function loadCategories() {
     await knowledgeStore.fetchCategories(projectId.value, {
       filters: {},
       orderBy: 'order',
+      ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}),
     })
   } catch {
     // error is handled in the store

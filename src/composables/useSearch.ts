@@ -1,25 +1,18 @@
 import { ref, computed, watch } from 'vue'
 
 /**
- * Composable for search with debounce and tag: prefix filtering.
+ * Composable for search with debounce.
  *
- * Items must have an optional `tags?: string[]` field.
- * The `textMatch` callback handles plain-text tokens (no tag: prefix).
+ * Text search is handled entirely server-side via `textSearchQuery`.
+ * `filteredItems` is a pass-through that returns all items unfiltered.
  *
  * Usage:
- *   const { searchQuery, filteredItems, clearSearch } = useSearch(
- *     () => store.items,
- *     (item, query) => item.name.toLowerCase().includes(query)
+ *   const { searchQuery, textSearchQuery, filteredItems, clearSearch } = useSearch(
+ *     () => store.items
  *   )
- *
- * In the search box the user can type:
- *   - plain text   → matched via textMatch callback
- *   - tag:welcome  → item must have a tag containing "welcome"
- *   - multiple tokens are ANDed together
  */
-export function useSearch<T extends { tags?: string[] }>(
+export function useSearch<T>(
   getItems: () => T[],
-  textMatch: (item: T, query: string) => boolean,
   debounceDelay = 300
 ) {
   const searchQuery = ref('')
@@ -33,22 +26,11 @@ export function useSearch<T extends { tags?: string[] }>(
     }, debounceDelay)
   })
 
-  const filteredItems = computed(() => {
-    const raw = debouncedSearchQuery.value.trim()
-    if (!raw) return getItems()
+  // Full query string to send to the backend as textSearch
+  const textSearchQuery = computed(() => debouncedSearchQuery.value.trim())
 
-    const tokens = raw.toLowerCase().split(/\s+/)
-    const tagTerms = tokens.filter(t => t.startsWith('tag:')).map(t => t.slice(4)).filter(Boolean)
-    const textTerms = tokens.filter(t => !t.startsWith('tag:'))
-
-    return getItems().filter(item => {
-      const tagsMatch = tagTerms.every(tag =>
-        item.tags?.some(t => t.toLowerCase().includes(tag))
-      )
-      const textMatches = textTerms.length === 0 || textTerms.every(term => textMatch(item, term))
-      return tagsMatch && textMatches
-    })
-  })
+  // Pass-through: all filtering is done server-side
+  const filteredItems = computed(() => getItems())
 
   function clearSearch() {
     searchQuery.value = ''
@@ -59,5 +41,5 @@ export function useSearch<T extends { tags?: string[] }>(
     }
   }
 
-  return { searchQuery, filteredItems, clearSearch }
+  return { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems, clearSearch }
 }

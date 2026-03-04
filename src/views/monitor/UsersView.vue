@@ -28,23 +28,7 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredUsers = computed(() => {
-  if (!debouncedSearchQuery.value) return usersStore.items
-  const query = debouncedSearchQuery.value.toLowerCase()
-  return usersStore.items.filter(user => {
-    // Search by user ID
-    if (user.id.toLowerCase().includes(query)) return true
-    
-    // Search by profile values
-    const profileValues = Object.values(user.profile || {})
-    return profileValues.some(value => {
-      if (typeof value === 'string') {
-        return value.toLowerCase().includes(query)
-      }
-      return false
-    })
-  })
-})
+const filteredUsers = computed(() => usersStore.items)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -54,6 +38,11 @@ watch(searchQuery, (newValue) => {
   searchTimeout = setTimeout(() => {
     debouncedSearchQuery.value = newValue
   }, 300)
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for project selection changes
@@ -70,7 +59,7 @@ onMounted(async () => {
 // Methods
 async function loadUsers() {
   try {
-    await usersStore.fetchAll(projectId.value, pagination.getParams())
+    await usersStore.fetchAll(projectId.value, pagination.getParams(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}))
   } catch (error) {
     console.error('Failed to load users:', error)
   }

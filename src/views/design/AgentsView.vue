@@ -25,14 +25,18 @@ const pagination = usePagination({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
 // Search
-const { searchQuery, filteredItems: filteredAgents, clearSearch } = useSearch(
-  () => agentsStore.items,
-  (agent, query) => agent.name.toLowerCase().includes(query)
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredAgents, clearSearch } = useSearch(
+  () => agentsStore.items
 )
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadAgents()
+})
+
+// Watch for search changes and reload data from backend
+watch(debouncedSearchQuery, () => {
+  pagination.reset()
 })
 
 // Watch for projectId changes
@@ -53,7 +57,7 @@ async function loadAgents() {
     const orderBy = getOrderBy()
     await agentsStore.fetchAll(
       projectId.value,
-      pagination.getParams({ ...(orderBy ? { orderBy } : {}) })
+      pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) })
     )
   } catch (error) {
     console.error('Failed to load agents:', error)
