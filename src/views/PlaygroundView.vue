@@ -906,7 +906,7 @@
                 rows="1" 
                 placeholder="Type your message here..."
                 :disabled="!canSendMessage || recording?.recordingState === 'recording'"
-                @keydown.enter.ctrl="sendMessage" 
+                @keydown.enter.exact.prevent="sendMessage" 
                 style="min-height: 42px; max-height: 120px;" 
                 />
             </div>
