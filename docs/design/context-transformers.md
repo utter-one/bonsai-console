@@ -1,6 +1,6 @@
 # Context Transformers
 
-A **context transformer** automatically extracts structured data from what the user says and writes it into stage variables. Think of it as an AI-powered form filler that works in the background of every conversation turn.
+A **context transformer** is an LLM-powered component that extracts structured data from a conversation turn and writes it into stage variables. Think of it as an AI-powered form filler that works in the background of every conversation turn. Transformers run in parallel with classifiers on each user input.
 
 ## Why Use Transformers?
 
@@ -14,10 +14,12 @@ Instead of writing explicit actions to ask for and capture every piece of inform
 ## How They Work
 
 1. You create a transformer with a prompt and a list of field names to extract.
-2. You assign the transformer to one or more stages.
-3. On every user message, the transformer runs **in parallel** with the classifier (no added delay).
-4. The language model reads the conversation and extracts values for your fields.
-5. Extracted values are written into the stage's variables.
+2. You assign the transformer to one or more stages via the stage's **Transformer IDs** list.
+3. On every user message, all referenced transformers run **in parallel** with the classifier (no added delay).
+4. The language model reads the conversation and returns a JSON object with extracted values.
+5. Only fields declared in **Context Fields** are accepted — any extra fields returned by the LLM are discarded.
+6. Extracted values are **merged** into the stage's variable store. Fields omitted from the LLM's response keep their current values.
+7. All variable writes from all transformers are flushed to the database in a single batch update.
 
 ## Creating a Context Transformer
 
@@ -28,28 +30,63 @@ Go to **Design > Context Transformers** and click **Create Context Transformer**
 - **Name** — A clear label (e.g., "Customer Info Extractor").
 - **Description** — Optional notes.
 - **Prompt** — Instructions telling the AI what to look for (see below).
-- **Context Fields** — The list of variable names to populate (these should match your stage's variable descriptors).
+- **Context Fields** — The list of variable names to populate. These should correspond to the variable descriptors defined on the stage. Only fields listed here are written; any extra fields the LLM returns are silently discarded.
 - **LLM Provider** — Which language model performs the extraction.
 - **LLM Settings** — Model-specific settings.
 
 ### The Extraction Prompt
 
-Write the prompt as clear instructions about what to look for:
+The prompt is a **Handlebars template** with access to the full conversation context. Use the variables below to give the LLM the information it needs.
+
+#### Template Variables
+
+| Variable | Description |
+|---|---|
+| `{{schema}}` | Pseudo-JSON schema of the expected output — field names and their types derived from `contextFields` cross-referenced with the stage's variable descriptors. Always include this so the LLM knows the exact JSON structure to return. |
+| `{{{json context}}}` | Current values of the transformer's context fields. Shows what is already populated so the LLM can decide what to update or leave unchanged. |
+| `{{vars.*}}` | All stage variables (e.g. `{{vars.customerName}}`). |
+| `{{userInput}}` | The current user message being processed. |
+| `{{history}}` | Conversation history as an array of `{role, content}` entries. |
+| `{{userProfile.*}}` | User profile fields. |
+| `{{time.*}}` | Time context anchored to the conversation's timezone. |
+
+A typical prompt using these variables:
 
 ```
 Extract the following information from the user's message.
 Only extract values that are explicitly stated or clearly implied.
 Return null for any fields not mentioned.
 
-Fields to extract:
-- customerName: The user's full name
-- orderNumber: Any order or reference number mentioned
-- issueType: Category of the issue (billing, technical, shipping)
+Return a JSON object matching this schema:
+{{schema}}
+
+Current values (only update fields that changed):
+{{{json context}}}
 ```
 
 ::: tip Be Specific
 Describe exactly what constitutes a valid value for each field. This reduces false extractions and improves accuracy.
 :::
+
+#### Schema Format
+
+`{{schema}}` renders as a JSON-like object where each value is the field's type label:
+
+```json
+{
+  "customerName": "string",
+  "orderNumber": "string",
+  "issueType": "string",
+  "itemCount": "number",
+  "tags": ["string"],
+  "address": {
+    "street": "string",
+    "city": "string"
+  }
+}
+```
+
+The LLM should respond with a JSON object of the same shape, with actual values instead of type labels.
 
 ## Triggering Actions from Transformations
 
@@ -69,6 +106,10 @@ For example, you could have an action that fires when `orderNumber` is newly set
 | **Changed** | The variable already existed and its value was updated |
 | **Removed** | The variable was cleared (set to null) |
 
+## Cloning
+
+Context transformers can be cloned to create variations for different stages or extraction requirements. Use the clone action from the transformer list or detail view.
+
 ## Use Cases
 
 - **Progressive form filling** — Collect name, email, phone number naturally over the course of a conversation, without asking each question in turn.
@@ -79,6 +120,8 @@ For example, you could have an action that fires when `orderNumber` is newly set
 ## Tips
 
 - **Keep field lists focused** — A transformer with 3-5 fields works better than one trying to extract 20 things at once. Use multiple transformers if needed.
+- **Always include `{{schema}}`** — This ensures the LLM knows what JSON structure to return and reduces formatting errors.
+- **Use `{{{json context}}}` to avoid re-extracting known values** — Show the LLM what's already filled in so it can skip those fields.
 - **Match field names to variable descriptors** — The context fields should correspond to the variable descriptors defined on the stage.
 - **Don't extract what you already know** — If you've already collected the customer's name, you don't need to keep extracting it.
 - **Use for optional enrichment** — Transformers work best as a complement to explicit actions, not a replacement. Use actions for critical data that must be collected, and transformers for opportunistic extraction.
