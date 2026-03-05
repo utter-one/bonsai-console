@@ -34,6 +34,7 @@ import {
   LanguageInfo,
   ListFilterOperation,
   LlmModelInfo,
+  LlmSettings,
   LocalStorageConfig,
   LocalStorageSettings,
   MigrationJob,
@@ -1283,14 +1284,13 @@ export class Api<
        * @minLength 1
        */
       prompt: string;
-      /** ID of the LLM provider to use for this classifier */
-      llmProviderId?: string | null;
+      /**
+       * ID of the LLM provider to use for this classifier
+       * @minLength 1
+       */
+      llmProviderId: string;
       /** LLM provider-specific settings for this classifier */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings: LlmSettings;
       /**
        * Tags for categorizing and filtering this classifier
        * @default []
@@ -1541,14 +1541,13 @@ export class Api<
        * @minLength 1
        */
       prompt?: string;
-      /** Updated LLM provider ID */
-      llmProviderId?: string | null;
+      /**
+       * Updated LLM provider ID
+       * @minLength 1
+       */
+      llmProviderId?: string;
       /** Updated LLM provider-specific settings */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings?: LlmSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -1761,14 +1760,13 @@ export class Api<
       prompt: string;
       /** List of context field names to be transformed */
       contextFields?: string[];
-      /** ID of the LLM provider to use for this transformer */
-      llmProviderId?: string | null;
+      /**
+       * ID of the LLM provider to use for this transformer
+       * @minLength 1
+       */
+      llmProviderId: string;
       /** LLM provider-specific settings for this transformer */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings: LlmSettings;
       /**
        * Tags for categorizing and filtering this context transformer
        * @default []
@@ -2027,14 +2025,13 @@ export class Api<
       prompt?: string;
       /** Updated context field names */
       contextFields?: string[];
-      /** Updated LLM provider ID */
-      llmProviderId?: string | null;
+      /**
+       * Updated LLM provider ID
+       * @minLength 1
+       */
+      llmProviderId?: string;
       /** Updated LLM provider-specific settings */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings?: LlmSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -6557,14 +6554,13 @@ export class Api<
        * @minLength 1
        */
       prompt: string;
-      /** ID of the LLM provider to use for this stage */
-      llmProviderId?: string | null;
+      /**
+       * ID of the LLM provider to use for this stage
+       * @minLength 1
+       */
+      llmProviderId: string;
       /** LLM provider-specific settings for this stage */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings: LlmSettings;
       /**
        * ID of the agent associated with this stage
        * @minLength 1
@@ -6919,14 +6915,13 @@ export class Api<
        * @minLength 1
        */
       prompt?: string;
-      /** Updated LLM provider ID */
-      llmProviderId?: string | null;
+      /**
+       * Updated LLM provider ID
+       * @minLength 1
+       */
+      llmProviderId?: string;
       /** Updated LLM provider-specific settings */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+      llmSettings?: LlmSettings;
       /**
        * Updated agent ID
        * @minLength 1
