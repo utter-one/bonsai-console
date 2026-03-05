@@ -284,574 +284,13 @@
               </div>
 
               <!-- Conversation Events (styled like ConversationDetailView) -->
-              <div v-else-if="event.wsEvent" class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md ml-8"
-                :class="getEventTypeColor(event.wsEvent.eventType)">
-                
-                <!-- Classification Event -->
-                <div v-if="isClassificationEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.classifierId }}</div>
-                        </div>
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
-                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.input }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.actions && event.wsEvent.eventData.actions.length > 0">
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Matched Actions:</span>
-                          <div class="mt-1 space-y-2">
-                            <div v-for="(actionGroup, idx) in event.wsEvent.eventData.actions" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
-                              <div class="text-xs font-medium text-gray-700 mb-1.5">
-                                {{ actionGroup.classifierName }}
-                              </div>
-                              <div class="space-y-2.5">
-                                <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
-                                  class="pl-2.5 border-l-2 border-yellow-300">
-                                  <div class="text-sm font-semibold text-gray-900 mb-1.5 dark:text-white">{{ action.name }}</div>
-                                  <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
-                                    class="space-y-1">
-                                    <div v-for="(value, key) in action.parameters" :key="key"
-                                      class="md:flex items-start gap-2 text-xs">
-                                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
-                                      <span class="text-gray-900 break-words dark:text-gray-200">{{ 
-                                        typeof value === 'object' ? JSON.stringify(value) : String(value) 
-                                      }}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Transformation Event -->
-                <div v-else-if="isTransformationEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.transformerId }}</div>
-                        </div>
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
-                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.input }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.appliedFields && event.wsEvent.eventData.appliedFields.length > 0">
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Applied Fields ({{ event.wsEvent.eventData.appliedFields.length }}):</span>
-                          <div class="mt-1 flex flex-wrap gap-1.5">
-                            <span v-for="field in event.wsEvent.eventData.appliedFields" :key="field"
-                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
-                              {{ field }}
-                            </span>
-                          </div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Action Event -->
-                <div v-else-if="isActionEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <Zap class="w-5 h-5 mt-0.5 text-purple-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
-                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.actionName }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.effects && event.wsEvent.eventData.effects.length > 0">
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.wsEvent.eventData.effects.length }}):</span>
-                          <div class="mt-1 space-y-2">
-                            <div v-for="(effect, idx) in event.wsEvent.eventData.effects" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
-                              <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
-                                {{ effect.type || 'Effect' }} {{ idx + 1 }}
-                              </div>
-                              <div class="space-y-1">
-                                <div v-for="(value, key) in effect" :key="key"
-                                  class="md:flex items-start gap-2 text-xs">
-                                  <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}: </span>
-                                  <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
-                                    typeof value === 'object' ? JSON.stringify(value) : String(value) 
-                                  }}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Command Event -->
-                <div v-else-if="isCommandEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <Terminal class="w-5 h-5 mt-0.5 text-indigo-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-indigo-900 dark:text-indigo-100 shrink-0 text-left">Command</button>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.command }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.parameters && Object.keys(event.wsEvent.eventData.parameters).length > 0">
-                          <details class="group">
-                            <summary
-                              class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Parameters ({{ Object.keys(event.wsEvent.eventData.parameters).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre
-                                class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.parameters, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Tool Call Event -->
-                <div v-else-if="isToolCallEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <Wrench class="w-5 h-5 mt-0.5 text-pink-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-pink-900 dark:text-pink-100 shrink-0 text-left">Tool Call</button>
-                          <span v-if="event.wsEvent.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
-                            <CheckCircle class="w-3 h-3" />
-                            Success
-                          </span>
-                          <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 shrink-0">
-                            <XCircle class="w-3 h-3" />
-                            Failed
-                          </span>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
-                          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toolName }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.success && event.wsEvent.eventData.result && Array.isArray(event.wsEvent.eventData.result) && event.wsEvent.eventData.result.length > 0">
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.wsEvent.eventData.result.length }} item{{ event.wsEvent.eventData.result.length !== 1 ? 's' : '' }}):</span>
-                          <div class="mt-2 space-y-3">
-                            <div v-for="(content, idx) in event.wsEvent.eventData.result" :key="idx"
-                              class="bg-white bg-opacity-60 rounded p-3 dark:bg-gray-900 dark:bg-opacity-60">
-                              <div class="text-xs font-medium text-gray-500 mb-2 uppercase dark:text-gray-400">{{ content.contentType }}</div>
-                              <ContentViewer :content="content" />
-                            </div>
-                          </div>
-                        </div>
-                        <div v-if="!event.wsEvent.eventData.success && event.wsEvent.eventData.error">
-                          <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
-                            <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
-                            <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.wsEvent.eventData.error }}</div>
-                          </div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Conversation Start Event -->
-                <div v-else-if="isConversationStartEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <Play class="w-5 h-5 mt-0.5 text-green-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <button @click="toggleWsEvent(event)" class="font-semibold text-green-900 dark:text-green-100 shrink-0 text-left">Conversation Started</button>
-                          <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                          <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                        </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                          <button
-                            v-if="hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                            @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
-                            title="View system prompt">
-                            <FileText class="w-4 h-4" />
-                          </button>
-                          <button
-                            v-if="hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                            @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                            class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
-                            title="View stage variables">
-                            <Braces class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.stageId }}</div>
-                        </div>
-                        <div v-if="event.wsEvent.eventData.metadata && Object.keys(event.wsEvent.eventData.metadata).length > 0">
-                          <details class="group">
-                            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
-                              Metadata ({{ Object.keys(event.wsEvent.eventData.metadata).length }})
-                            </summary>
-                            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-                              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData.metadata, null, 2) }}</pre>
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Conversation Resume Event -->
-                <div v-else-if="isConversationResumeEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <button @click="toggleWsEvent(event)" class="font-semibold text-cyan-900 dark:text-cyan-100 shrink-0 text-left">Conversation Resumed</button>
-                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
-                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.previousStatus }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Conversation End Event -->
-                <div v-else-if="isConversationEndEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <button @click="toggleWsEvent(event)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">Conversation Ended</button>
-                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2" v-if="event.wsEvent.eventData.reason">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
-                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Conversation Aborted Event -->
-                <div v-else-if="isConversationAbortedEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <XCircle class="w-5 h-5 mt-0.5 text-orange-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <button @click="toggleWsEvent(event)" class="font-semibold text-orange-900 dark:text-orange-100 shrink-0 text-left">Conversation Aborted</button>
-                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
-                          <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.reason }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Conversation Failed Event -->
-                <div v-else-if="isConversationFailedEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <button @click="toggleWsEvent(event)" class="font-semibold text-red-900 dark:text-red-100 shrink-0 text-left">Conversation Failed</button>
-                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
-                          <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{
-                            event.wsEvent.eventData.reason }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Jump to Stage Event -->
-                <div v-else-if="isJumpToStageEvent(event.wsEvent)">
-                  <div class="flex items-start gap-2">
-                    <button @click="toggleWsEvent(event)" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2" :class="{ 'mb-2': isWsEventExpanded(event) }">
-                        <button @click="toggleWsEvent(event)" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>
-                        <span v-if="!isWsEventExpanded(event)" class="text-xs text-gray-500 truncate">{{ getWsEventSummary(event.wsEvent) }}</span>
-                        <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div v-show="isWsEventExpanded(event)" class="space-y-2">
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.fromStageId }}</div>
-                        </div>
-                        <div>
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
-                          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.wsEvent.eventData.toStageId }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Generic Event (Fallback) -->
-                <div v-else>
-                  <div class="flex items-center gap-2" :class="{ 'mb-3': isWsEventExpanded(event) }">
-                    <button @click="toggleWsEvent(event)" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <ChevronDown v-if="isWsEventExpanded(event)" class="w-4 h-4" />
-                      <ChevronRight v-else class="w-4 h-4" />
-                    </button>
-                    <button @click="toggleWsEvent(event)" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">
-                      {{ formatEventType(event.wsEvent.eventType) }}
-                    </button>
-                    <span class="text-xs text-gray-400 shrink-0">{{ formatTime(event.timestamp) }}</span>
-                  </div>
-
-                  <!-- Event Data -->
-                  <div v-if="isWsEventExpanded(event) && Object.keys(event.wsEvent.eventData).length > 0" class="mt-3">
-                    <details class="group">
-                      <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
-                        Event Data
-                        <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
-                      </summary>
-                      <div class="mt-2 bg-white bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
-                        <pre
-                          class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.wsEvent.eventData, null, 2) }}</pre>
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              </div>
+              <ConversationEventCard
+                v-else-if="event.wsEvent"
+                :event="toNormalizedWsEvent(event, index)"
+                :show-bug-report="false"
+                @open-prompt="openPromptPreview"
+                @open-variables="openVariablesPreview"
+              />
             </div>
           </div>
         </div>
@@ -972,7 +411,7 @@ import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, ChevronRight, Wrench, GitBranch, ArrowLeftRight, Terminal, RotateCcw, CheckCircle, XCircle, Layers, FileText, Key, Braces, Bug } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Key, Braces, Bug } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -982,7 +421,7 @@ import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ContentViewer, { type Content } from '@/components/ContentViewer.vue'
+import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
 import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
 
@@ -1328,47 +767,18 @@ interface ConversationEvent {
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
-const expandedWsEvents = ref(new Set<ConversationEvent>())
 
-function toggleWsEvent(event: ConversationEvent) {
-  if (expandedWsEvents.value.has(event)) {
-    expandedWsEvents.value.delete(event)
-  } else {
-    expandedWsEvents.value.add(event)
-  }
+function formatEventType(eventType: string): string {
+  return eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function isWsEventExpanded(event: ConversationEvent): boolean {
-  return expandedWsEvents.value.has(event)
-}
-
-function getWsEventSummary(wsEvent: WSConversationEvent): string {
-  const data = wsEvent.eventData as any
-  switch (wsEvent.eventType) {
-    case 'classification':
-      return `${data.classifierId} · ${data.actions?.length ?? 0} action(s) matched`
-    case 'transformation':
-      return `${data.transformerId} · ${data.appliedFields?.length ?? 0} field(s) applied`
-    case 'action':
-      return data.actionName
-    case 'command':
-      return data.command
-    case 'tool_call':
-      return `${data.toolName} · ${data.success ? 'success' : 'failed'}`
-    case 'conversation_start':
-      return `stage: ${data.stageId}`
-    case 'conversation_resume':
-      return `${data.previousStatus} → stage: ${data.stageId}`
-    case 'conversation_end':
-      return data.reason ? data.reason : `stage: ${data.stageId}`
-    case 'conversation_aborted':
-      return data.reason
-    case 'conversation_failed':
-      return data.reason
-    case 'jump_to_stage':
-      return `${data.fromStageId} → ${data.toStageId}`
-    default:
-      return ''
+function toNormalizedWsEvent(event: ConversationEvent, index: number): NormalizedEvent {
+  const wsEvent = event.wsEvent!
+  return {
+    id: String(index),
+    eventType: wsEvent.eventType as NormalizedEvent['eventType'],
+    eventData: wsEvent.eventData,
+    timestamp: formatTime(event.timestamp),
   }
 }
 const historyContainer = ref<HTMLElement | null>(null)
@@ -1533,153 +943,12 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
   nextTick(() => scrollHistoryToBottom())
 }
 
-// Type guards for conversation events (matching ConversationDetailView)
+// Type guard used for User/AI message cards in the playground
 function isMessageEvent(event: WSConversationEvent): event is WSConversationEvent & {
   eventType: 'message'
   eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
 } {
   return event.eventType === 'message'
-}
-
-function isClassificationEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'classification'
-  eventData: {
-    classifierId: string
-    input: string
-    actions: {
-      classifierId: string
-      classifierName: string
-      actions: { name: string; parameters: Record<string, any> }[]
-    }[]
-    metadata?: Record<string, any>
-  }
-} {
-  return event.eventType === 'classification'
-}
-
-function isTransformationEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'transformation'
-  eventData: {
-    transformerId: string
-    input: string
-    appliedFields: string[]
-    metadata?: Record<string, any>
-  }
-} {
-  return event.eventType === 'transformation'
-}
-
-function isActionEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'action'
-  eventData: { actionName: string; stageId: string; effects: any[]; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'action'
-}
-
-function isCommandEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'command'
-  eventData: { command: string; parameters?: Record<string, any>; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'command'
-}
-
-function isToolCallEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'tool_call'
-  eventData: {
-    toolId: string
-    toolName: string
-    parameters: Record<string, any>
-    success: boolean
-    result?: Content[]
-    error?: string
-    metadata?: Record<string, any>
-  }
-} {
-  return event.eventType === 'tool_call'
-}
-
-function isConversationStartEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'conversation_start'
-  eventData: { stageId: string; initialVariables?: Record<string, any>; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'conversation_start'
-}
-
-function isConversationResumeEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'conversation_resume'
-  eventData: {
-    previousStatus: string
-    stageId: string
-    metadata?: Record<string, any>
-  }
-} {
-  return event.eventType === 'conversation_resume'
-}
-
-function isConversationEndEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'conversation_end'
-  eventData: { reason?: string; stageId: string; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'conversation_end'
-}
-
-function isConversationAbortedEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'conversation_aborted'
-  eventData: { reason: string; stageId: string; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'conversation_aborted'
-}
-
-function isConversationFailedEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'conversation_failed'
-  eventData: { reason: string; stageId?: string; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'conversation_failed'
-}
-
-function isJumpToStageEvent(event: WSConversationEvent): event is WSConversationEvent & {
-  eventType: 'jump_to_stage'
-  eventData: { fromStageId: string; toStageId: string; metadata?: Record<string, any> }
-} {
-  return event.eventType === 'jump_to_stage'
-}
-
-function formatEventType(eventType: string): string {
-  return eventType
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
-
-function getEventTypeColor(eventType: string): string {
-  switch (eventType) {
-    case 'message':
-      return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
-    case 'classification':
-      return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
-    case 'transformation':
-      return 'bg-violet-50 border-violet-200 dark:bg-violet-900/10 dark:border-violet-800'
-    case 'action':
-      return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
-    case 'command':
-      return 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-800'
-    case 'tool_call':
-      return 'bg-pink-50 border-pink-200 dark:bg-pink-900/10 dark:border-pink-800'
-    case 'conversation_start':
-      return 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
-    case 'conversation_resume':
-      return 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/10 dark:border-cyan-800'
-    case 'conversation_end':
-      return 'bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-600'
-    case 'conversation_aborted':
-      return 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
-    case 'conversation_failed':
-      return 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
-    case 'jump_to_stage':
-      return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
-    default:
-      return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-  }
 }
 
 function openPromptPreview(prompt: string) {
@@ -1766,7 +1035,7 @@ function handleConversationEvent(event: WSConversationEvent) {
   // Store the raw WebSocket event for rendering in ConversationDetailView style
   addEvent({
     type: 'ConversationEvent',
-    message: formatEventType(event.eventType),
+    message: formatEventType(event.eventType as string),
     timestamp: new Date(),
     wsEvent: event
   })
@@ -2264,7 +1533,6 @@ async function handleStartConversation(stage: StageResponse) {
 
     // Clear conversation history when starting a new conversation
     conversationEvents.value = []
-    expandedWsEvents.value.clear()
     activeVoiceOutputs.value.clear()
 
     addEvent({
@@ -2327,7 +1595,6 @@ async function resumeConversation(convId: string) {
 
     // Clear conversation history and voice outputs
     conversationEvents.value = []
-    expandedWsEvents.value.clear()
     activeVoiceOutputs.value.clear()
 
     addEvent({
@@ -2420,7 +1687,7 @@ function convertApiEventToDisplayEvent(apiEvent: ConversationEventResponse): Con
   // For all other events, use ConversationEvent type with wsEvent
   return {
     type: 'ConversationEvent',
-    message: formatEventType(apiEvent.eventType),
+    message: formatEventType(apiEvent.eventType as string),
     timestamp,
     wsEvent: apiEvent as any
   }

@@ -5998,28 +5998,11 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "ID of the LLM provider to use for this stage"
           },
           "llmSettings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
-              }
-            ],
-            "description": "LLM provider-specific settings for this stage"
+            "$ref": "#/components/schemas/LlmSettings"
           },
           "agentId": {
             "type": "string",
@@ -6108,6 +6091,8 @@
         "required": [
           "name",
           "prompt",
+          "llmProviderId",
+          "llmSettings",
           "agentId"
         ]
       },
@@ -6130,28 +6115,18 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "Updated LLM provider ID"
           },
           "llmSettings": {
-            "anyOf": [
+            "allOf": [
               {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
+                "$ref": "#/components/schemas/LlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
+                "description": "Updated LLM provider-specific settings"
               }
-            ],
-            "description": "Updated LLM provider-specific settings"
+            ]
           },
           "agentId": {
             "type": "string",
@@ -6638,28 +6613,18 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "ID of the LLM provider to use for this classifier"
           },
           "llmSettings": {
-            "anyOf": [
+            "allOf": [
               {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
+                "$ref": "#/components/schemas/LlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
+                "description": "LLM provider-specific settings for this classifier"
               }
-            ],
-            "description": "LLM provider-specific settings for this classifier"
+            ]
           },
           "tags": {
             "type": "array",
@@ -6679,7 +6644,9 @@
         },
         "required": [
           "name",
-          "prompt"
+          "prompt",
+          "llmProviderId",
+          "llmSettings"
         ]
       },
       "UpdateClassifierRequest": {
@@ -6702,28 +6669,18 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "Updated LLM provider ID"
           },
           "llmSettings": {
-            "anyOf": [
+            "allOf": [
               {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
+                "$ref": "#/components/schemas/LlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
+                "description": "Updated LLM provider-specific settings"
               }
-            ],
-            "description": "Updated LLM provider-specific settings"
+            ]
           },
           "tags": {
             "type": "array",
@@ -7016,28 +6973,18 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "ID of the LLM provider to use for this transformer"
           },
           "llmSettings": {
-            "anyOf": [
+            "allOf": [
               {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
+                "$ref": "#/components/schemas/LlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
+                "description": "LLM provider-specific settings for this transformer"
               }
-            ],
-            "description": "LLM provider-specific settings for this transformer"
+            ]
           },
           "tags": {
             "type": "array",
@@ -7057,7 +7004,9 @@
         },
         "required": [
           "name",
-          "prompt"
+          "prompt",
+          "llmProviderId",
+          "llmSettings"
         ]
       },
       "UpdateContextTransformerRequest": {
@@ -7087,28 +7036,18 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
+            "minLength": 1,
             "description": "Updated LLM provider ID"
           },
           "llmSettings": {
-            "anyOf": [
+            "allOf": [
               {
-                "$ref": "#/components/schemas/OpenAILlmSettings"
+                "$ref": "#/components/schemas/LlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AnthropicLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GeminiLlmSettings"
-              },
-              {
-                "nullable": true
+                "description": "Updated LLM provider-specific settings"
               }
-            ],
-            "description": "Updated LLM provider-specific settings"
+            ]
           },
           "tags": {
             "type": "array",
@@ -13852,28 +13791,18 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "ID of the LLM provider to use for this classifier"
                   },
                   "llmSettings": {
-                    "anyOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
+                        "$ref": "#/components/schemas/LlmSettings"
                       },
                       {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
+                        "description": "LLM provider-specific settings for this classifier"
                       }
-                    ],
-                    "description": "LLM provider-specific settings for this classifier"
+                    ]
                   },
                   "tags": {
                     "type": "array",
@@ -13893,7 +13822,9 @@
                 },
                 "required": [
                   "name",
-                  "prompt"
+                  "prompt",
+                  "llmProviderId",
+                  "llmSettings"
                 ]
               }
             }
@@ -14477,28 +14408,18 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "Updated LLM provider ID"
                   },
                   "llmSettings": {
-                    "anyOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
+                        "$ref": "#/components/schemas/LlmSettings"
                       },
                       {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
+                        "description": "Updated LLM provider-specific settings"
                       }
-                    ],
-                    "description": "Updated LLM provider-specific settings"
+                    ]
                   },
                   "tags": {
                     "type": "array",
@@ -14950,28 +14871,18 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "ID of the LLM provider to use for this transformer"
                   },
                   "llmSettings": {
-                    "anyOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
+                        "$ref": "#/components/schemas/LlmSettings"
                       },
                       {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
+                        "description": "LLM provider-specific settings for this transformer"
                       }
-                    ],
-                    "description": "LLM provider-specific settings for this transformer"
+                    ]
                   },
                   "tags": {
                     "type": "array",
@@ -14991,7 +14902,9 @@
                 },
                 "required": [
                   "name",
-                  "prompt"
+                  "prompt",
+                  "llmProviderId",
+                  "llmSettings"
                 ]
               }
             }
@@ -15609,28 +15522,18 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "Updated LLM provider ID"
                   },
                   "llmSettings": {
-                    "anyOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
+                        "$ref": "#/components/schemas/LlmSettings"
                       },
                       {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
+                        "description": "Updated LLM provider-specific settings"
                       }
-                    ],
-                    "description": "Updated LLM provider-specific settings"
+                    ]
                   },
                   "tags": {
                     "type": "array",
@@ -26698,28 +26601,11 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "ID of the LLM provider to use for this stage"
                   },
                   "llmSettings": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ],
-                    "description": "LLM provider-specific settings for this stage"
+                    "$ref": "#/components/schemas/LlmSettings"
                   },
                   "agentId": {
                     "type": "string",
@@ -26808,6 +26694,8 @@
                 "required": [
                   "name",
                   "prompt",
+                  "llmProviderId",
+                  "llmSettings",
                   "agentId"
                 ]
               }
@@ -27603,28 +27491,18 @@
                   },
                   "llmProviderId": {
                     "type": "string",
-                    "nullable": true,
+                    "minLength": 1,
                     "description": "Updated LLM provider ID"
                   },
                   "llmSettings": {
-                    "anyOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
+                        "$ref": "#/components/schemas/LlmSettings"
                       },
                       {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
+                        "description": "Updated LLM provider-specific settings"
                       }
-                    ],
-                    "description": "Updated LLM provider-specific settings"
+                    ]
                   },
                   "agentId": {
                     "type": "string",

@@ -1,0 +1,1016 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  ArrowLeftRight,
+  GitBranch,
+  Zap,
+  Terminal,
+  Play,
+  RotateCcw,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Layers,
+  Wrench,
+  FileText,
+  Braces,
+  Bug,
+  ChevronRight,
+  ChevronDown,
+  MessageSquare,
+} from 'lucide-vue-next'
+import ContentViewer from '@/components/ContentViewer.vue'
+
+/**
+ * Normalized event interface that abstracts over both ConversationEventResponse
+ * (from the REST API) and WSConversationEvent (from WebSocket).
+ */
+export interface NormalizedEvent {
+  /** Unique identifier used for expand/collapse tracking */
+  id: string
+  /** The event type discriminator */
+  eventType:
+    | 'message'
+    | 'classification'
+    | 'transformation'
+    | 'action'
+    | 'command'
+    | 'tool_call'
+    | 'conversation_start'
+    | 'conversation_resume'
+    | 'conversation_end'
+    | 'conversation_aborted'
+    | 'conversation_failed'
+    | 'jump_to_stage'
+  /** Event payload (same union shape from the API) */
+  eventData: any
+  /** Formatted timestamp string to display */
+  timestamp: string
+}
+
+const props = defineProps<{
+  event: NormalizedEvent
+  /** Whether to show the bug report button on events */
+  showBugReport?: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'open-prompt', prompt: string): void
+  (e: 'open-variables', variables: Record<string, any>): void
+  (e: 'open-bug-report', event: NormalizedEvent): void
+}>()
+
+const expanded = ref(false)
+
+function toggle() {
+  expanded.value = !expanded.value
+}
+
+// Type guards
+function isMessageEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'message'
+}
+
+function isClassificationEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'classification'
+}
+
+function isTransformationEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'transformation'
+}
+
+function isActionEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'action'
+}
+
+function isCommandEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'command'
+}
+
+function isToolCallEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'tool_call'
+}
+
+function isConversationStartEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'conversation_start'
+}
+
+function isConversationResumeEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'conversation_resume'
+}
+
+function isConversationEndEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'conversation_end'
+}
+
+function isConversationAbortedEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'conversation_aborted'
+}
+
+function isConversationFailedEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'conversation_failed'
+}
+
+function isJumpToStageEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'jump_to_stage'
+}
+
+function getEventTypeColor(eventType: string): string {
+  switch (eventType) {
+    case 'message':
+      return 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
+    case 'classification':
+      return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
+    case 'transformation':
+      return 'bg-violet-50 border-violet-200 dark:bg-violet-900/10 dark:border-violet-800'
+    case 'action':
+      return 'bg-purple-50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
+    case 'command':
+      return 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/10 dark:border-indigo-800'
+    case 'tool_call':
+      return 'bg-pink-50 border-pink-200 dark:bg-pink-900/10 dark:border-pink-800'
+    case 'conversation_start':
+      return 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800'
+    case 'conversation_resume':
+      return 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/10 dark:border-cyan-800'
+    case 'conversation_end':
+      return 'bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-600'
+    case 'conversation_aborted':
+      return 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
+    case 'conversation_failed':
+      return 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
+    case 'jump_to_stage':
+      return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
+    default:
+      return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+  }
+}
+
+function getEventSummary(event: NormalizedEvent): string {
+  const data = event.eventData as any
+  switch (event.eventType) {
+    case 'classification':
+      return `${data.classifierId} · ${data.actions?.length ?? 0} action(s) matched`
+    case 'transformation':
+      return `${data.transformerId} · ${data.appliedFields?.length ?? 0} field(s) applied`
+    case 'action':
+      return data.actionName
+    case 'command':
+      return data.command
+    case 'tool_call':
+      return `${data.toolName} · ${data.success ? 'success' : 'failed'}`
+    case 'conversation_start':
+      return `stage: ${data.stageId}`
+    case 'conversation_resume':
+      return `${data.previousStatus} → stage: ${data.stageId}`
+    case 'conversation_end':
+      return data.reason ? data.reason : `stage: ${data.stageId}`
+    case 'conversation_aborted':
+      return data.reason
+    case 'conversation_failed':
+      return data.reason
+    case 'jump_to_stage':
+      return `${data.fromStageId} → ${data.toStageId}`
+    default:
+      return ''
+  }
+}
+
+function formatEventType(eventType: string): string {
+  return eventType
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
+}
+
+function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
+}
+
+function formatMs(ms: number | null | undefined): string | null {
+  if (ms == null) return null
+  if (ms < 1000) return `${ms}ms`
+  return `${(ms / 1000).toFixed(2)}s`
+}
+
+function hasAssistantTiming(metadata: Record<string, any> | undefined): boolean {
+  if (!metadata) return false
+  return ['llmDurationMs', 'timeToFirstTokenMs', 'timeToFirstTokenFromTurnStartMs', 'timeToFirstAudioMs', 'totalTurnDurationMs']
+    .some(key => metadata[key] != null)
+}
+
+function onOpenPrompt(prompt: string) {
+  emit('open-prompt', prompt)
+}
+
+function onOpenVariables(variables: Record<string, any>) {
+  emit('open-variables', variables)
+}
+
+function onBugReport() {
+  emit('open-bug-report', props.event)
+}
+</script>
+
+<template>
+  <div
+    class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md"
+    :class="[
+      getEventTypeColor(event.eventType),
+      { 'ml-8': !isMessageEvent(event) }
+    ]"
+  >
+    <!-- Message Event -->
+    <div v-if="isMessageEvent(event)">
+      <div class="flex items-start p-2 gap-3">
+        <MessageSquare class="w-5 h-5 mt-0.5"
+          :class="event.eventData.role === 'user' ? 'text-blue-600' : 'text-green-600'" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold"
+                :class="event.eventData.role === 'user' ? 'text-blue-900 dark:text-blue-100' : 'text-green-900 dark:text-green-100'">
+                {{ event.eventData.role === 'user' ? 'User' : 'Assistant' }}
+              </span>
+              <span class="text-xs text-gray-500">{{ event.timestamp }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
+          <div v-if="event.eventData.role === 'user' && (event.eventData.metadata?.processingDurationMs != null || event.eventData.metadata?.actionsDurationMs != null || event.eventData.metadata?.fillerDurationMs != null)"
+            class="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            <span v-if="event.eventData.metadata?.processingDurationMs != null">Processing: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.processingDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.actionsDurationMs != null">Actions: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.actionsDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.fillerDurationMs != null">Filler: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.fillerDurationMs) }}</span></span>
+          </div>
+          <div v-if="event.eventData.role === 'assistant' && hasAssistantTiming(event.eventData.metadata)"
+            class="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            <span v-if="event.eventData.metadata?.totalTurnDurationMs != null">Total: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.totalTurnDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.llmDurationMs != null">LLM: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.llmDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstTokenMs != null">TTFT: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstTokenMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstTokenFromTurnStartMs != null">TTFT (turn): <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstAudioMs != null">First audio: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstAudioMs) }}</span></span>
+          </div>
+          <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
+            class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Original:</span>
+            <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}</div>
+          </div>
+          <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0"
+            class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
+            <details class="group">
+              <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                Message Metadata ({{ Object.keys(event.eventData.metadata).length }})
+              </summary>
+              <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classification Event -->
+    <div v-else-if="isClassificationEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.classifierId }}</div>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.input }}</div>
+            </div>
+            <div v-if="event.eventData.actions && event.eventData.actions.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Matched Actions:</span>
+              <div class="mt-1 space-y-2">
+                <div v-for="(actionGroup, idx) in event.eventData.actions" :key="idx"
+                  class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+                  <div class="text-xs font-medium text-gray-700 mb-1.5">
+                    {{ actionGroup.classifierName }}
+                  </div>
+                  <div v-if="actionGroup.classifierId" class="text-[10px] text-gray-500 font-mono mb-2">{{ actionGroup.classifierId }}</div>
+                  <div class="space-y-2.5">
+                    <div v-for="(action, aidx) in actionGroup.actions" :key="aidx"
+                      class="pl-2.5 border-l-2 border-yellow-300">
+                      <div class="text-sm font-semibold text-gray-900 mb-1.5 dark:text-white">{{ action.name }}</div>
+                      <div v-if="action.parameters && Object.keys(action.parameters).length > 0"
+                        class="space-y-1">
+                        <div v-for="(value, key) in action.parameters" :key="key"
+                          class="md:flex items-start gap-2 text-xs">
+                          <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
+                          <span class="text-gray-900 break-words dark:text-gray-200">{{ 
+                            typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transformation Event -->
+    <div v-else-if="isTransformationEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <ArrowLeftRight class="w-5 h-5 mt-0.5 text-violet-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.transformerId }}</div>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.input }}</div>
+            </div>
+            <div v-if="event.eventData.appliedFields && event.eventData.appliedFields.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Applied Fields ({{ event.eventData.appliedFields.length }}):</span>
+              <div class="mt-1 flex flex-wrap gap-1.5">
+                <span v-for="field in event.eventData.appliedFields" :key="field"
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
+                  {{ field }}
+                </span>
+              </div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Event -->
+    <div v-else-if="isActionEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <Zap class="w-5 h-5 mt-0.5 text-purple-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
+              <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
+            </div>
+            <div v-if="event.eventData.stageId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.eventData.effects.length }}):</span>
+              <div class="mt-1 space-y-2">
+                <div v-for="(effect, idx) in event.eventData.effects" :key="idx"
+                  class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+                  <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
+                    {{ effect.type || 'Effect' }} {{ (idx as number) + 1 }}
+                  </div>
+                  <div class="space-y-1">
+                    <div v-for="(value, key) in effect" :key="key"
+                      class="md:flex items-start gap-2 text-xs">
+                      <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}: </span>
+                      <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
+                        typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Command Event -->
+    <div v-else-if="isCommandEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <Terminal class="w-5 h-5 mt-0.5 text-indigo-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-indigo-900 dark:text-indigo-100 shrink-0 text-left">Command</button>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Command:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.command }}</div>
+            </div>
+            <div v-if="event.eventData.parameters && Object.keys(event.eventData.parameters).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Parameters ({{ Object.keys(event.eventData.parameters).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool Call Event -->
+    <div v-else-if="isToolCallEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <Wrench class="w-5 h-5 mt-0.5 text-pink-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-pink-900 dark:text-pink-100 shrink-0 text-left">Tool Call</button>
+              <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
+                <CheckCircle class="w-3 h-3" />
+                Success
+              </span>
+              <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 shrink-0">
+                <XCircle class="w-3 h-3" />
+                Failed
+              </span>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool Name:</span>
+              <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.toolName }}</div>
+            </div>
+            <div v-if="event.eventData.toolId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toolId }}</div>
+            </div>
+            <div v-if="event.eventData.parameters && Object.keys(event.eventData.parameters).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Parameters ({{ Object.keys(event.eventData.parameters).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+            <div v-if="event.eventData.success && event.eventData.result && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.eventData.result.length }} item{{ event.eventData.result.length !== 1 ? 's' : '' }}):</span>
+              <div class="mt-2 space-y-3">
+                <div v-for="(content, idx) in event.eventData.result" :key="idx"
+                  class="bg-white bg-opacity-60 rounded p-3 dark:bg-gray-900 dark:bg-opacity-60">
+                  <div class="text-xs font-medium text-gray-500 mb-2 uppercase dark:text-gray-400">{{ content.contentType }}</div>
+                  <ContentViewer :content="content" />
+                </div>
+              </div>
+            </div>
+            <div v-if="!event.eventData.success && event.eventData.error">
+              <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
+                <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
+                <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.eventData.error }}</div>
+              </div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversation Start Event -->
+    <div v-else-if="isConversationStartEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <Play class="w-5 h-5 mt-0.5 text-green-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+            <div class="flex items-center gap-2 min-w-0">
+              <button @click="toggle()" class="font-semibold text-green-900 dark:text-green-100 shrink-0 text-left">Conversation Started</button>
+              <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                v-if="hasSystemPrompt(event.eventData.metadata)"
+                @click="onOpenPrompt(event.eventData.metadata!.systemPrompt as string)"
+                class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                title="View system prompt">
+                <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasCurrentVariables(event.eventData.metadata)"
+                @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
+                class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                title="View stage variables">
+                <Braces class="w-4 h-4" />
+              </button>
+              <button
+                v-if="showBugReport"
+                @click="onBugReport"
+                class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                title="Report bug">
+                <Bug class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Initial Stage:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.initialVariables && Object.keys(event.eventData.initialVariables).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Initial Variables ({{ Object.keys(event.eventData.initialVariables).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.initialVariables, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversation Resume Event -->
+    <div v-else-if="isConversationResumeEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <RotateCcw class="w-5 h-5 mt-0.5 text-cyan-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold text-cyan-900 dark:text-cyan-100 shrink-0 text-left">Conversation Resumed</button>
+            <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Previous Status:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.previousStatus }}</div>
+            </div>
+            <div v-if="event.eventData.stageId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversation End Event -->
+    <div v-else-if="isConversationEndEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">Conversation Ended</button>
+            <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div v-if="event.eventData.reason">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
+            </div>
+            <div v-if="event.eventData.stageId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversation Aborted Event -->
+    <div v-else-if="isConversationAbortedEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <XCircle class="w-5 h-5 mt-0.5 text-orange-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold text-orange-900 dark:text-orange-100 shrink-0 text-left">Conversation Aborted</button>
+            <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
+            </div>
+            <div v-if="event.eventData.stageId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversation Failed Event -->
+    <div v-else-if="isConversationFailedEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <AlertCircle class="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold text-red-900 dark:text-red-100 shrink-0 text-left">Conversation Failed</button>
+            <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
+              <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{ event.eventData.reason }}</div>
+            </div>
+            <div v-if="event.eventData.stageId">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage ID:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jump to Stage Event -->
+    <div v-else-if="isJumpToStageEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>
+            <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.fromStageId }}</div>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
+              <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toStageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generic Event (Fallback) -->
+    <div v-else>
+      <div class="flex items-center gap-2" :class="{ 'mb-3': expanded }">
+        <button @click.stop="toggle()" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+          <button @click="toggle()" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">
+            {{ formatEventType(event.eventType) }}
+          </button>
+          <span v-if="!expanded" class="text-xs text-gray-500 font-mono truncate">{{ event.id }}</span>
+          <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+        </div>
+      </div>
+      <div v-if="expanded && Object.keys(event.eventData).length > 0" class="mt-3">
+        <details class="group">
+          <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 select-none dark:text-gray-300 dark:hover:text-gray-100">
+            Event Data
+            <span class="text-xs text-gray-500 ml-1">(click to expand)</span>
+          </summary>
+          <div class="mt-2 bg-white bg-opacity-60 rounded p-3 font-mono text-xs overflow-x-auto">
+            <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData, null, 2) }}</pre>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary::marker {
+  display: none;
+}
+
+details[open] summary {
+  margin-bottom: 0.5rem;
+}
+</style>
