@@ -1,4 +1,6 @@
 import { ref, onUnmounted } from 'vue'
+import { create, ConverterType } from '@alexanderolsen/libsamplerate-js'
+import type { SRC } from '@alexanderolsen/libsamplerate-js/dist/src'
 
 export type RecordingState = 'idle' | 'recording' | 'processing' | 'error'
 
@@ -42,6 +44,7 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
   let processorNode: ScriptProcessorNode | null = null
   let audioChunks: Float32Array[] = []
   let chunkTimer: number | null = null
+  let resampler: SRC | null = null
 
   /**
    * Convert Float32Array audio samples to 16-bit PCM and encode as base64.
@@ -96,8 +99,11 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
       offset += chunk.length
     }
 
+    // Resample to the target ASR sample rate if the device runs at a different rate
+    const samplesToEncode = resampler ? resampler.full(combinedSamples) : combinedSamples
+
     // Encode to base64 PCM
-    const base64Audio = encodePCMToBase64(combinedSamples)
+    const base64Audio = encodePCMToBase64(samplesToEncode)
 
     // Send to callback
     if (onChunk) {
@@ -131,6 +137,19 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
       // Create audio context with desired sample rate
       audioContext = new AudioContext({ sampleRate })
       sourceNode = audioContext.createMediaStreamSource(mediaStream)
+
+      // Log the requested vs negotiated sample rate for debugging
+      const actualSampleRate = audioContext.sampleRate
+      console.log('[AudioRecording] requested sampleRate=', sampleRate, 'actual sampleRate=', actualSampleRate)
+
+      // If the browser/OS negotiated a different sample rate than what ASR expects,
+      // initialise a resampler to convert from the actual device rate to the target rate.
+      if (actualSampleRate !== sampleRate) {
+        console.warn('[AudioRecording] sample rates differ, installing resampler')
+        resampler = await create(1, actualSampleRate, sampleRate, {
+          converterType: ConverterType.SRC_SINC_BEST_QUALITY,
+        })
+      }
 
       // Use ScriptProcessorNode for audio processing (4096 buffer size)
       // Note: ScriptProcessorNode is deprecated but widely supported
@@ -226,6 +245,11 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
     if (chunkTimer !== null) {
       clearInterval(chunkTimer)
       chunkTimer = null
+    }
+
+    if (resampler) {
+      resampler.destroy()
+      resampler = null
     }
 
     audioChunks = []

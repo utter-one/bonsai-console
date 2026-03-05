@@ -129,7 +129,7 @@ async function handleSubmit() {
         tags: form.value.tags,
         prompt: form.value.prompt,
         contextFields: form.value.contextFields.length > 0 ? form.value.contextFields : undefined,
-        llmProviderId: form.value.llmProviderId || null,
+        llmProviderId: form.value.llmProviderId || undefined,
         llmSettings: form.value.llmSettings || undefined,
         metadata: form.value.metadata
       })
