@@ -279,6 +279,20 @@
                         </div>
                       </template>
                     </div>
+                    <div v-if="event.type === 'User' && event.wsEvent?.eventData?.metadata && (event.wsEvent.eventData.metadata.processingDurationMs != null || event.wsEvent.eventData.metadata.actionsDurationMs != null || event.wsEvent.eventData.metadata.fillerDurationMs != null)"
+                      class="mt-2 pt-2 border-t border-blue-200 flex flex-wrap gap-1.5 dark:border-blue-900">
+                      <span v-if="event.wsEvent.eventData.metadata.processingDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Processing</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.processingDurationMs) }}</span></span>
+                      <span v-if="event.wsEvent.eventData.metadata.actionsDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Actions</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.actionsDurationMs) }}</span></span>
+                      <span v-if="event.wsEvent.eventData.metadata.fillerDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Filler</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.fillerDurationMs) }}</span></span>
+                    </div>
+                    <div v-if="event.type === 'AI' && hasAssistantTiming(event.wsEvent?.eventData?.metadata)"
+                      class="mt-2 pt-2 border-t border-green-200 flex flex-wrap gap-1.5 dark:border-green-900">
+                      <span v-if="event.wsEvent?.eventData?.metadata?.totalTurnDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">Total</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.totalTurnDurationMs) }}</span></span>
+                      <span v-if="event.wsEvent?.eventData?.metadata?.llmDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">LLM</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.llmDurationMs) }}</span></span>
+                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstTokenMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstTokenMs) }}</span></span>
+                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstTokenFromTurnStartMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT (turn)</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
+                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstAudioMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">First audio</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstAudioMs) }}</span></span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -770,6 +784,18 @@ const conversationEvents = ref<ConversationEvent[]>([])
 
 function formatEventType(eventType: string): string {
   return eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function formatMs(ms: any): string | null {
+  if (ms == null) return null
+  if (ms < 1000) return `${ms}ms`
+  return `${(ms / 1000).toFixed(2)}s`
+}
+
+function hasAssistantTiming(metadata: Record<string, any> | undefined): boolean {
+  if (!metadata) return false
+  return ['llmDurationMs', 'timeToFirstTokenMs', 'timeToFirstTokenFromTurnStartMs', 'timeToFirstAudioMs', 'totalTurnDurationMs']
+    .some(key => metadata[key] != null)
 }
 
 function toNormalizedWsEvent(event: ConversationEvent, index: number): NormalizedEvent {

@@ -264,18 +264,18 @@ function onBugReport() {
           </div>
           <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
           <div v-if="event.eventData.role === 'user' && (event.eventData.metadata?.processingDurationMs != null || event.eventData.metadata?.actionsDurationMs != null || event.eventData.metadata?.fillerDurationMs != null)"
-            class="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-            <span v-if="event.eventData.metadata?.processingDurationMs != null">Processing: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.processingDurationMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.actionsDurationMs != null">Actions: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.actionsDurationMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.fillerDurationMs != null">Filler: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.fillerDurationMs) }}</span></span>
+            class="mt-2 pt-2 border-t border-blue-200 flex flex-wrap gap-1.5 dark:border-blue-900">
+            <span v-if="event.eventData.metadata?.processingDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Processing</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.processingDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.actionsDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Actions</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.actionsDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.fillerDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Filler</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.fillerDurationMs) }}</span></span>
           </div>
           <div v-if="event.eventData.role === 'assistant' && hasAssistantTiming(event.eventData.metadata)"
-            class="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-            <span v-if="event.eventData.metadata?.totalTurnDurationMs != null">Total: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.totalTurnDurationMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.llmDurationMs != null">LLM: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.llmDurationMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.timeToFirstTokenMs != null">TTFT: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstTokenMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.timeToFirstTokenFromTurnStartMs != null">TTFT (turn): <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
-            <span v-if="event.eventData.metadata?.timeToFirstAudioMs != null">First audio: <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatMs(event.eventData.metadata.timeToFirstAudioMs) }}</span></span>
+            class="mt-2 pt-2 border-t border-green-200 flex flex-wrap gap-1.5 dark:border-green-900">
+            <span v-if="event.eventData.metadata?.totalTurnDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">Total</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.eventData.metadata.totalTurnDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.llmDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">LLM</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.eventData.metadata.llmDurationMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstTokenMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.eventData.metadata.timeToFirstTokenMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstTokenFromTurnStartMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT (turn)</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
+            <span v-if="event.eventData.metadata?.timeToFirstAudioMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">First audio</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.eventData.metadata.timeToFirstAudioMs) }}</span></span>
           </div>
           <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
             class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
@@ -311,7 +311,7 @@ function onBugReport() {
               <button @click="toggle()" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
               <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
               <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
-              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 shrink-0"><span class="text-yellow-600 dark:text-yellow-400">{{ formatMs(event.eventData.metadata.durationMs) }}</span></span>
             </div>
             <div class="flex items-center gap-1 shrink-0" @click.stop>
               <button
@@ -403,7 +403,7 @@ function onBugReport() {
               <button @click="toggle()" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
               <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
               <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
-              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-violet-50 border border-violet-200 dark:bg-violet-900/20 dark:border-violet-800 shrink-0"><span class="text-violet-600 dark:text-violet-400">{{ formatMs(event.eventData.metadata.durationMs) }}</span></span>
             </div>
             <div class="flex items-center gap-1 shrink-0" @click.stop>
               <button
@@ -636,7 +636,7 @@ function onBugReport() {
               </span>
               <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ getEventSummary(event) }}</span>
               <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
-              <span v-if="event.eventData.metadata?.durationMs != null" class="text-xs font-mono text-gray-400 shrink-0">{{ formatMs(event.eventData.metadata.durationMs) }}</span>
+              <span v-if="event.eventData.metadata?.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-pink-50 border border-pink-200 dark:bg-pink-900/20 dark:border-pink-800 shrink-0"><span class="text-pink-600 dark:text-pink-400">{{ formatMs(event.eventData.metadata.durationMs) }}</span></span>
             </div>
             <div class="flex items-center gap-1 shrink-0" @click.stop>
               <button
