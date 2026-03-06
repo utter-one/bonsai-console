@@ -368,19 +368,22 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                   <span class="font-mono text-sm">{{ conversation.id }}</span>
                 </td>
                 <td class="table-cell">
-                  <span 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help whitespace-nowrap"
-                    :class="getStatusBadgeClass(conversation.status)"
-                    :title="conversation.statusDetails || 'No status details provided'"
-                  >
-                    {{ formatStatusLabel(conversation.status) }}
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help whitespace-nowrap"
+                      :class="getStatusBadgeClass(conversation.status)"
+                      :title="conversation.statusDetails || 'No status details provided'"
+                    >
+                      {{ formatStatusLabel(conversation.status) }}
+                    </span>
+                    <span v-if="conversation.archived" class="badge-secondary">Archived</span>
+                  </div>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(conversation.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button 
-                      v-if="isResumable(conversation.status)"
+                      v-if="isResumable(conversation.status) && !conversation.archived"
                       @click="handleResumeConversation(conversation)" 
                       class="btn-primary btn-sm"
                       title="Resume conversation"
@@ -390,7 +393,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     <button @click="viewConversation(conversation)" class="btn-secondary btn-sm">
                       View
                     </button>
-                    <button @click="deleteConversation(conversation)" class="btn-danger btn-sm">
+                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-danger btn-sm">
                       Delete
                     </button>
                   </div>

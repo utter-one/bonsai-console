@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClassifiersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Target, Search, X, Plus } from 'lucide-vue-next'
 import type { ClassifierResponse } from '@/api/types'
@@ -23,6 +24,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredClassifiers, clearSearch } = useSearch(
@@ -75,6 +77,7 @@ async function deleteClassifier(classifier: ClassifierResponse) {
 }
 
 function createClassifier() {
+  if (projectIsArchived.value) return
   router.push({ name: 'design.classifiers.create', params: { projectId: projectId.value } })
 }
 
@@ -101,7 +104,7 @@ function formatDate(date: string | null) {
           <h1 class="page-title">Classifiers</h1>
           <p class="page-subtitle">Configure classification rules for this project</p>
         </div>
-        <button @click="createClassifier" class="btn-primary">
+        <button @click="createClassifier" class="btn-primary" :disabled="projectIsArchived">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Classifier
         </button>
@@ -166,6 +169,7 @@ function formatDate(date: string | null) {
                 <td class="table-clickable-cell"
                   @click="editClassifier(classifier)">
                     {{ classifier.name }}
+                    <span v-if="classifier.archived" class="badge badge-error ml-2">Archived</span>
                 </td>
                 <td class="table-cell">
                   <div v-if="classifier.tags?.length" class="tag-list">
@@ -177,9 +181,9 @@ function formatDate(date: string | null) {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editClassifier(classifier)" class="btn-secondary btn-sm">
-                      Edit
+                      {{ (projectIsArchived || classifier.archived) ? 'View' : 'Edit' }}
                     </button>
-                    <button @click="deleteClassifier(classifier)" class="btn-danger btn-sm">
+                    <button @click="deleteClassifier(classifier)" class="btn-danger btn-sm" :disabled="classifier.archived">
                       Delete
                     </button>
                   </div>

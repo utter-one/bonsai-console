@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useProjectsStore } from '@/stores'
+import { useRouter, useRoute } from 'vue-router'
+import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -9,12 +9,24 @@ import { Search, X, BriefcaseBusiness, Plus } from 'lucide-vue-next'
 import type { ProjectResponse } from '@/api/types'
 
 const router = useRouter()
+const route = useRoute()
 const projectsStore = useProjectsStore()
 
 // Search state
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// archived toggle
+const showArchived = ref(route.query.archived === 'true')
+watch(showArchived, (val) => {
+  router.push({ query: { ...route.query, archived: val ? 'true' : undefined } })
+  pagination.reset()
+})
+// if someone navigates (back/forward) update toggle
+watch(() => route.query.archived, (q) => {
+  showArchived.value = q === 'true'
+})
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-projects')
@@ -54,7 +66,9 @@ onMounted(async () => {
 async function loadProjects() {
   try {
     const orderBy = getOrderBy()
-    await projectsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    const params: any = { ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }
+    if (showArchived.value) params.archived = true
+    await projectsStore.fetchAll(pagination.getParams(params))
   } catch (error) {
     console.error('Failed to load projects:', error)
   }
@@ -72,12 +86,23 @@ function editProject(project: ProjectResponse) {
   router.push({ name: 'administration.projects.edit', params: { projectId: project.id } })
 }
 
-async function deleteProject(project: ProjectResponse) {
-  if (!confirm(`Delete project "${project.name}"?\n\nThis action cannot be undone.`)) return
+async function archiveProject(project: ProjectResponse) {
+  const action = project.archivedAt ? 'unarchive' : 'archive'
+  if (!confirm(`${action === 'archive' ? 'Archive' : 'Unarchive'} project "${project.name}"?`)) return
   try {
-    await projectsStore.remove(project.id)
+    if (action === 'archive') {
+      await projectsStore.archive(project.id, project.version)
+    } else {
+      await projectsStore.unarchive(project.id, project.version)
+    }
+    // refresh selection if necessary
+    const projSel = useProjectSelectionStore()
+    if (projSel.selectedProjectId === project.id) {
+      projSel.setSelectedProjectId(project.id)
+    }
+    await loadProjects()
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to delete project')
+    alert(error.response?.data?.message || `Failed to ${action} project`)
   }
 }
 
@@ -104,24 +129,35 @@ function formatDate(date: string | null) {
           <h1 class="page-title">Projects</h1>
           <p class="page-subtitle">Manage your AI application projects</p>
         </div>
-        <button @click="createProject" class="btn-primary">
-          <Plus class="inline-block mr-2 w-4 h-4" />
-          New Project
-        </button>
+        <div class="flex items-center gap-4">
+          <button @click="createProject" class="btn-primary" :disabled="showArchived">
+            <Plus class="inline-block mr-2 w-4 h-4" />
+            New Project
+          </button>
+        </div>
       </div>
 
       <!-- Search Bar -->
-      <div class="search-container">
-        <Search class="input-icon-left" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by name..."
-          class="search-input"
-        />
-        <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
-          <X class="w-5 h-5" />
-        </button>
+      <div class="search-container flex gap-4">
+        <div class="relative flex-1">
+          <Search class="input-icon-left" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by name..."
+            class="search-input"
+          />
+          <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+          <span>Status:</span>
+          <select v-model="showArchived" class="form-select">
+            <option :value="false">Active</option>
+            <option :value="true">Archived</option>
+          </select>
+        </label>
       </div>
 
       <!-- Loading State -->
@@ -173,6 +209,7 @@ function formatDate(date: string | null) {
               <tr v-for="project in filteredProjects" :key="project.id" class="table-row">
                 <td class="table-clickable-cell" @click="editProject(project)">
                   {{ project.name }}
+                  <span v-if="project.archivedAt" class="badge badge-error ml-2">Archived</span>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(project.createdAt) }}</td>
                 <td class="table-cell-muted">{{ formatDate(project.updatedAt) }}</td>
@@ -181,7 +218,9 @@ function formatDate(date: string | null) {
                     <button @click="selectProject(project.id)" class="btn-secondary btn-sm">Design</button>
                     <button @click="openPlayground(project.id)" class="btn-secondary btn-sm">Test</button>
                     <button @click="editProject(project)" class="btn-secondary btn-sm">Edit</button>
-                    <button @click="deleteProject(project)" class="btn-danger btn-sm">Delete</button>
+                    <button @click="archiveProject(project)" :class="['btn-sm', project.archivedAt ? 'btn-secondary' : 'btn-danger']">
+                    {{ project.archivedAt ? 'Unarchive' : 'Archive' }}
+                </button>
                   </div>
                 </td>
               </tr>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag } from 'lucide-vue-next'
 import type { KnowledgeCategoryResponse, KnowledgeItemResponse } from '@/api/types'
 import KnowledgeCategoryModal from '@/components/modals/KnowledgeCategoryModal.vue'
@@ -24,10 +25,21 @@ const showItemModal = ref(false)
 const editingItem = ref<KnowledgeItemResponse | null>(null)
 const itemModalCategoryId = ref<string>('')
 
+// computed helper to locate the category currently being edited/created for items
+const activeCategory = computed(() =>
+  knowledgeStore.categories.find((c) => c.id === itemModalCategoryId.value) || null
+)
+
 // Computed 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 const filteredCategories = computed(() => knowledgeStore.categories)
+
+// helper to determine if a category should be treated as read-only (project archived or category archived)
+function categoryIsReadOnly(category: KnowledgeCategoryResponse) {
+  return projectIsArchived.value || !!category.archived
+}
 
 // Watchers 
 watch(searchQuery, (value) => {
@@ -83,6 +95,7 @@ function isExpanded(categoryId: string) {
 
 // Category CRUD 
 function openCreateCategory() {
+  if (projectIsArchived.value) return
   editingCategory.value = null
   showCategoryModal.value = true
 }
@@ -120,6 +133,7 @@ async function handleCategorySubmit(data: {
 
 async function deleteCategory(category: KnowledgeCategoryResponse, event: MouseEvent) {
   event.stopPropagation()
+  if (category.archived) return
   const itemCount = (category.items ?? []).length
   const itemWarning = itemCount > 0 ? `\n\nThis will also delete ${itemCount} item(s) within this category.` : ''
   if (!confirm(`Delete category "${category.name}"?${itemWarning}\n\nThis action cannot be undone.`)) return
@@ -136,6 +150,7 @@ async function deleteCategory(category: KnowledgeCategoryResponse, event: MouseE
 
 function openCreateItem(categoryId: string, event: MouseEvent) {
   event.stopPropagation()
+  if (projectIsArchived.value) return
   editingItem.value = null
   itemModalCategoryId.value = categoryId
   showItemModal.value = true
@@ -169,6 +184,7 @@ async function handleItemSubmit(data: { question: string; answer: string; order:
 }
 
 async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
+  if (item.archived) return
   if (!confirm(`Delete item?\n\n"${item.question}"\n\nThis action cannot be undone.`)) return
   try {
     await knowledgeStore.deleteItem(projectId.value, item.id, categoryId, item.version)
@@ -191,7 +207,7 @@ function clearSearch() {
         <h1 class="page-title">Knowledge</h1>
         <p class="page-subtitle">Manage knowledge categories and Q&amp;A items</p>
       </div>
-      <button @click="openCreateCategory" class="btn-primary">
+      <button @click="openCreateCategory" class="btn-primary" :disabled="projectIsArchived">
         <Plus class="inline-block mr-2 w-4 h-4" />
         New Category
       </button>
@@ -271,6 +287,7 @@ function clearSearch() {
           <!-- Category actions -->
           <div class="flex-shrink-0 flex items-center gap-2" @click.stop>
             <button
+              v-if="!categoryIsReadOnly(category)"
               @click="openCreateItem(category.id, $event)"
               class="btn-secondary btn-sm"
               title="Add item to this category"
@@ -278,10 +295,17 @@ function clearSearch() {
               <Plus class="w-3 h-3 mr-1" />
               Add Item
             </button>
-            <button @click="openEditCategory(category, $event)" class="btn-secondary btn-sm">
-              Edit
+            <button
+              @click="openEditCategory(category, $event)"
+              :class="['btn-secondary btn-sm', categoryIsReadOnly(category) ? '' : '']"
+            >
+              {{ categoryIsReadOnly(category) ? 'View' : 'Edit' }}
             </button>
-            <button @click="deleteCategory(category, $event)" class="btn-danger btn-sm">
+            <button
+              v-if="!categoryIsReadOnly(category)"
+              @click="deleteCategory(category, $event)"
+              class="btn-danger btn-sm"
+            >
               Delete
             </button>
           </div>
@@ -318,10 +342,17 @@ function clearSearch() {
 
             <!-- Item actions -->
             <div class="flex-shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button @click="openEditItem(item, category.id)" class="btn-secondary btn-sm">
-                Edit
+              <button
+                @click="openEditItem(item, category.id)"
+                class="btn-secondary btn-sm"
+              >
+                {{ categoryIsReadOnly(category) ? 'View' : 'Edit' }}
               </button>
-              <button @click="deleteItem(item, category.id)" class="btn-danger btn-sm">
+              <button
+                v-if="!categoryIsReadOnly(category)"
+                @click="deleteItem(item, category.id)"
+                class="btn-danger btn-sm"
+              >
                 Delete
               </button>
             </div>
@@ -342,6 +373,7 @@ function clearSearch() {
     <KnowledgeItemModal
       v-if="showItemModal"
       :item="editingItem"
+      :category-archived="activeCategory ? activeCategory.archived : false"
       @close="showItemModal = false"
       @save="handleItemSubmit"
     />

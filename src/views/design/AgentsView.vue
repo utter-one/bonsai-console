@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAgentsStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Drama, Search, X, Plus } from 'lucide-vue-next'
 import type { AgentResponse } from '@/api/types'
@@ -23,6 +24,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredAgents, clearSearch } = useSearch(
@@ -65,6 +67,7 @@ async function loadAgents() {
 }
 
 function createAgent() {
+  if (projectIsArchived.value) return
   router.push({
     name: 'design.agents.create',
     params: { projectId: projectId.value }
@@ -107,7 +110,7 @@ function formatDate(date: string | null) {
         <h1 class="page-title">Agents</h1>
         <p class="page-subtitle">Manage AI agents for this project</p>
       </div>
-      <button @click="createAgent" class="btn-primary">
+      <button @click="createAgent" class="btn-primary" :disabled="projectIsArchived">
         <Plus class="inline-block mr-2 w-4 h-4" />
         New Agent
       </button>
@@ -167,6 +170,7 @@ function formatDate(date: string | null) {
               <td class="table-clickable-cell"
                 @click="editAgent(agent)">
                 {{ agent.name }}
+                <span v-if="agent.archived" class="badge badge-error ml-2">Archived</span>
               </td>
               <td class="table-cell">
                 <div v-if="agent.tags?.length" class="tag-list">
@@ -178,9 +182,9 @@ function formatDate(date: string | null) {
               <td class="table-cell-right">
                 <div class="flex-end">
                   <button @click="editAgent(agent)" class="btn-secondary btn-sm">
-                    Edit
+                    {{ (projectIsArchived || agent.archived) ? 'View' : 'Edit' }}
                   </button>
-                  <button @click="deleteAgent(agent)" class="btn-danger btn-sm">
+                  <button @click="deleteAgent(agent)" class="btn-danger btn-sm" :disabled="agent.archived">
                     Delete
                   </button>
                 </div>

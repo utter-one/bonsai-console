@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
@@ -55,6 +56,9 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const globalActionId = computed(() => route.params.globalActionId as string | undefined)
 const isEditMode = computed(() => !!globalActionId.value)
 const currentGlobalAction = ref<GlobalActionResponse | null>(null)
+
+const { projectIsArchived } = useProjectReadOnly(currentGlobalAction)
+const isReadOnly = computed(() => projectIsArchived.value || !!currentGlobalAction.value?.archived)
 
 const projectClassifiers = computed(() => 
   classifiersStore.items.filter(() => true)
@@ -251,7 +255,8 @@ const metadataFields = computed(() => {
           </p>
         </div>
       </div>
-      <button 
+      <button v-if="isReadOnly" class="btn-secondary" disabled>Read-only</button>
+      <button v-else 
         @click="handleSubmit" 
         :disabled="isLoading || showSuccess"
         class="btn-primary"
@@ -262,6 +267,9 @@ const metadataFields = computed(() => {
       </button>
     </div>
 
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This global action is read-only because the project is archived.
+    </div>
     <!-- Error Message -->
     <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-4 dark:bg-red-900/30 dark:border-red-500">
       <div class="flex">
@@ -280,6 +288,7 @@ const metadataFields = computed(() => {
     <div class="flex-1 overflow-y-auto px-0 py-4 md:px-8 md:py-6 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
+          <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Action ID Field (only for create mode) -->
           <div v-show="activeTab.value === 'basic' && !isEditMode" class="form-group">
             <label class="form-label">
@@ -319,6 +328,7 @@ const metadataFields = computed(() => {
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
           />
+          </fieldset>
         </form>
       </div>
     </div>

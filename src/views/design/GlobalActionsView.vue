@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Zap, Search, X, Plus } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
@@ -23,6 +24,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredGlobalActions, clearSearch } = useSearch(
@@ -82,6 +84,7 @@ function formatDate(date: string | null) {
 
 
 function createGlobalAction() {
+  if (projectIsArchived.value) return
   router.push({ 
     name: 'design.globalActions.create', 
     params: { projectId: projectId.value } 
@@ -104,7 +107,7 @@ function editGlobalAction(action: GlobalActionResponse) {
           <h1 class="page-title">Global Actions</h1>
           <p class="page-subtitle">Define system-wide actions for this project</p>
         </div>
-        <button @click="createGlobalAction" class="btn-primary">
+        <button @click="createGlobalAction" class="btn-primary" :disabled="projectIsArchived">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Global Action
         </button>
@@ -172,6 +175,7 @@ function editGlobalAction(action: GlobalActionResponse) {
               <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
                 <td class="table-clickable-cell" @click="editGlobalAction(action)">
                   {{ action.name }}
+                  <span v-if="action.archived" class="badge badge-error ml-2">Archived</span>
                 </td>
                 <td class="table-cell">
                   <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
@@ -202,9 +206,9 @@ function editGlobalAction(action: GlobalActionResponse) {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editGlobalAction(action)" class="btn-secondary btn-sm">
-                      Edit
+                      {{ (projectIsArchived || action.archived) ? 'View' : 'Edit' }}
                     </button>
-                    <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm">
+                    <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm" :disabled="action.archived">
                       Delete
                     </button>
                   </div>

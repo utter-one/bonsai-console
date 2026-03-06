@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Plus, X, Check, Settings, FlaskConical } from 'lucide-vue-next'
 import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
 
@@ -55,6 +56,9 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const agentId = computed(() => route.params.agentId as string | undefined)
 const isEditMode = computed(() => !!agentId.value)
 const currentAgent = ref<AgentResponse | null>(null)
+
+const { projectIsArchived } = useProjectReadOnly(currentAgent)
+const isReadOnly = computed(() => projectIsArchived.value || !!currentAgent.value?.archived)
 
 const ttsProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'tts')
@@ -479,12 +483,16 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+        <button v-if="!isReadOnly" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
           {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Agent')) }}
         </button>
       </div>
+    </div>
+    
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This agent is read-only because the project is archived.
     </div>
 
     <!-- Tabs -->
@@ -538,9 +546,10 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
+    <div class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
+        <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
         <div v-if="error" class="alert-error mb-6">
           {{ error }}
@@ -590,7 +599,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <PromptEditor
               v-model="form.prompt"
-              :disabled="isLoading"
+              :disabled="isLoading || isReadOnly"
               show-toolbar
               placeholder="You are a helpful assistant..."
               aria-label="Agent system prompt"
@@ -1275,6 +1284,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
+        </fieldset>
         </form>
       </div>
     </div>

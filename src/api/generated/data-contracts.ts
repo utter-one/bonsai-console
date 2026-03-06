@@ -93,6 +93,45 @@ export interface ListFilterOperation {
   value: string | number | boolean | string[] | number[] | boolean[];
 }
 
+export interface ArchiveProject {
+  /** The current version number for optimistic locking */
+  version: number;
+}
+
+export interface ListProjectsQuery {
+  /**
+   * Starting index for pagination (default: 0)
+   * @min 0
+   * @default 0
+   */
+  offset?: number | null;
+  /**
+   * Maximum number of items to return (optional, null for no limit)
+   * @min 0
+   * @exclusiveMin true
+   */
+  limit?: number | null;
+  /** Full-text search query string (optional) */
+  textSearch?: string | null;
+  /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+  orderBy?: string | string[];
+  /** Field(s) to group results by (optional) */
+  groupBy?: string | string[];
+  /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+  filters?: Record<
+    string,
+    | string
+    | number
+    | boolean
+    | string[]
+    | number[]
+    | boolean[]
+    | ListFilterOperation
+  >;
+  /** When true, returns only archived projects. When omitted or false, returns only active (non-archived) projects. */
+  archived?: "true" | "false";
+}
+
 export interface OpenAILlmSettings {
   /**
    * Model name (e.g., gpt-4, gpt-3.5-turbo, gpt-5, o1)
@@ -1258,6 +1297,8 @@ export interface UserResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface UserListResponse {
@@ -1279,6 +1320,8 @@ export interface UserListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of users matching the query
@@ -1514,6 +1557,13 @@ export interface ProjectResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /**
+   * The timestamp when the project was archived, or null if the project is not archived
+   * @format date-time
+   */
+  archivedAt: string | null;
+  /** The ID of the operator who archived the project, or null if the project is not archived */
+  archivedBy: string | null;
 }
 
 export interface ProjectListResponse {
@@ -1578,6 +1628,13 @@ export interface ProjectListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /**
+     * The timestamp when the project was archived, or null if the project is not archived
+     * @format date-time
+     */
+    archivedAt: string | null;
+    /** The ID of the operator who archived the project, or null if the project is not archived */
+    archivedBy: string | null;
   }[];
   /** Total number of projects */
   total: number;
@@ -1702,6 +1759,8 @@ export interface AgentResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface AgentListResponse {
@@ -1744,6 +1803,8 @@ export interface AgentListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of agents matching the query
@@ -1980,6 +2041,8 @@ export interface KnowledgeCategoryResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface KnowledgeCategoryListResponse {
@@ -2036,6 +2099,8 @@ export interface KnowledgeCategoryListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of categories matching the query
@@ -2144,6 +2209,8 @@ export interface KnowledgeItemResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface KnowledgeItemListResponse {
@@ -2173,6 +2240,8 @@ export interface KnowledgeItemListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of items matching the query
@@ -2420,6 +2489,8 @@ export interface ConversationResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface ConversationListResponse {
@@ -2453,6 +2524,8 @@ export interface ConversationListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of conversations matching the query
@@ -2980,6 +3053,8 @@ export interface StageResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface StageListResponse {
@@ -3039,6 +3114,8 @@ export interface StageListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of stages matching the query
@@ -3166,6 +3243,8 @@ export interface ClassifierResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface ClassifierListResponse {
@@ -3205,6 +3284,8 @@ export interface ClassifierListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of classifiers matching the query
@@ -3338,6 +3419,8 @@ export interface ContextTransformerResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface ContextTransformerListResponse {
@@ -3379,6 +3462,8 @@ export interface ContextTransformerListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of context transformers matching the query
@@ -3529,6 +3614,8 @@ export interface ToolResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface ToolListResponse {
@@ -3574,6 +3661,8 @@ export interface ToolListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of tools matching the query
@@ -3715,6 +3804,8 @@ export interface GlobalActionResponse {
    * @format date-time
    */
   updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface GlobalActionListResponse {
@@ -3758,6 +3849,8 @@ export interface GlobalActionListResponse {
      * @format date-time
      */
     updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /**
    * Total number of global actions matching the query
@@ -4669,6 +4762,8 @@ export interface ApiKeyResponse {
   createdAt: string;
   /** ISO timestamp of last update */
   updatedAt: string;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
 }
 
 export interface ApiKeyListResponse {
@@ -4696,6 +4791,8 @@ export interface ApiKeyListResponse {
     createdAt: string;
     /** ISO timestamp of last update */
     updatedAt: string;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
   }[];
   /** Total number of API keys matching the query */
   total: number;

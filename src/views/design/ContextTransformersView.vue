@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Microchip, Search, X, Plus } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
@@ -23,6 +24,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredTransformers, clearSearch } = useSearch(
@@ -82,6 +84,7 @@ function formatDate(date: string | null) {
 
 
 function createTransformer() {
+  if (projectIsArchived.value) return
   router.push({ name: 'design.contextTransformers.create', params: { projectId: projectId.value } })
 }
 
@@ -101,7 +104,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
           <h1 class="page-title">Context Transformers</h1>
           <p class="page-subtitle">Manage context transformation logic for this project</p>
         </div>
-        <button @click="createTransformer" class="btn-primary">
+        <button @click="createTransformer" class="btn-primary" :disabled="projectIsArchived">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Transformer
         </button>
@@ -164,7 +167,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
             </thead>
             <tbody class="table-body">
               <tr v-for="transformer in filteredTransformers" :key="transformer.id" class="table-row">
-                <td class="table-clickable-cell" @click="editTransformer(transformer)">{{ transformer.name }}</td>
+                <td class="table-clickable-cell" @click="editTransformer(transformer)">{{ transformer.name }}<span v-if="transformer.archived" class="badge badge-error ml-2">Archived</span></td>
                 <td class="table-cell">
                   <span v-if="transformer.contextFields?.length" class="badge-info">
                     {{ transformer.contextFields.length }} variable{{ transformer.contextFields.length !== 1 ? 's' : '' }}
@@ -181,9 +184,9 @@ function editTransformer(transformer: ContextTransformerResponse) {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editTransformer(transformer)" class="btn-secondary btn-sm">
-                      Edit
+                      {{ (projectIsArchived || transformer.archived) ? 'View' : 'Edit' }}
                     </button>
-                    <button @click="deleteTransformer(transformer)" class="btn-danger btn-sm">
+                    <button @click="deleteTransformer(transformer)" class="btn-danger btn-sm" :disabled="transformer.archived">
                       Delete
                     </button>
                   </div>

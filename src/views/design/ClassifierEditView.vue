@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -66,6 +67,9 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const classifierId = computed(() => route.params.classifierId as string | undefined)
 const isEditMode = computed(() => !!classifierId.value)
 const currentClassifier = ref<ClassifierResponse | null>(null)
+
+const { projectIsArchived } = useProjectReadOnly(currentClassifier)
+const isReadOnly = computed(() => projectIsArchived.value || !!currentClassifier.value?.archived)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
@@ -244,12 +248,16 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+        <button v-if="!isReadOnly" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
           {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Classifier')) }}
         </button>
       </div>
+    </div>
+    
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This classifier is read-only because the project is archived.
     </div>
 
     <!-- Tabs -->
@@ -294,9 +302,10 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
+    <div v-show="!loadError || isReadOnly" class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
+        <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
         <div v-if="error" class="alert-error mb-6">
           {{ error }}
@@ -376,7 +385,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <PromptEditor
               v-model="form.prompt"
-              :disabled="isLoading"
+              :disabled="isLoading || isReadOnly"
               show-toolbar
               placeholder="Classify the user's intent based on their message..."
               aria-label="Classifier prompt"
@@ -394,6 +403,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
+        </fieldset>
         </form>
       </div>
     </div>

@@ -2,6 +2,9 @@
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
       <h2 class="modal-header">{{ category ? 'Edit Category' : 'New Category' }}</h2>
+      <div v-if="isReadOnly" class="alert-warning mb-4">
+        This category is read-only because the project is archived.
+      </div>
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
@@ -12,6 +15,7 @@
             required
             class="form-input"
             placeholder="Category name"
+            :disabled="disabled"
           />
         </div>
 
@@ -23,6 +27,7 @@
             required
             class="form-input"
             placeholder="e.g. When the user asks about pricing..."
+            :disabled="disabled"
           />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Phrase that activates this knowledge category in conversations
@@ -36,6 +41,7 @@
             type="text"
             class="form-input"
             placeholder="billing, pricing, plans"
+            :disabled="disabled"
           />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Comma-separated tags for this category
@@ -49,6 +55,7 @@
             type="number"
             min="0"
             class="form-input"
+            :disabled="disabled"
           />
         </div>
 
@@ -56,7 +63,7 @@
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
-          <button type="submit" class="btn-primary">
+          <button v-if="!disabled" type="submit" class="btn-primary">
             {{ category ? 'Save Changes' : 'Create Category' }}
           </button>
         </div>
@@ -67,6 +74,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import type { KnowledgeCategoryResponse } from '@/api/types'
 
 const props = defineProps<{
@@ -84,7 +92,11 @@ const form = ref({
   order: 0,
 })
 
+const disabled = computed(() => isReadOnly.value || projectIsArchived.value)
+
 const tagsInput = ref('')
+
+const { projectIsArchived, isReadOnly } = useProjectReadOnly(props.category)
 
 const parsedTags = computed(() =>
   tagsInput.value

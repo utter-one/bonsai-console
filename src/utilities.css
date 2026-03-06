@@ -57,6 +57,8 @@
 
 .form-input {
   @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  /* disabled styling matches .form-input-disabled so disabled attr works automatically */
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:border-gray-700 dark:disabled:text-gray-400;
 }
 
 .form-input-disabled {
@@ -65,14 +67,19 @@
 
 .form-input-mono {
   @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  /* disabled state similar to other inputs */
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 .form-select {
   @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  /* add disabled pseudo styling so native disabled select is obvious */
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 .form-select-auto {
   @apply w-auto px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 .form-help-text {
@@ -300,6 +307,7 @@
 
 .search-input {
   @apply w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400 bg-white dark:bg-gray-800;
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 /* Required indicator */
@@ -506,6 +514,8 @@
 /* Textarea */
 .form-textarea {
   @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 resize-y dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  /* dim when disabled */
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 /* Placeholder/Construction view */
