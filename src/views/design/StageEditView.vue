@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -112,6 +113,9 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const stageId = computed(() => route.params.stageId as string | undefined)
 const isEditMode = computed(() => !!stageId.value)
 const currentStage = ref<StageResponse | null>(null)
+
+const { projectIsArchived } = useProjectReadOnly(currentStage)
+const isReadOnly = computed(() => projectIsArchived.value || !!currentStage.value?.archived)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
@@ -759,11 +763,12 @@ function toggleNode(path: number[]) {
           </p>
         </div>
       </div>
-      <div class="flex gap-3">
+      <div class="flex gap-3 items-center">
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+        <button v-if="isReadOnly" class="btn-secondary" disabled>Read-only</button>
+        <button v-else @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
           {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Stage')) }}
@@ -771,6 +776,10 @@ function toggleNode(path: number[]) {
       </div>
     </div>
 
+    <!-- Archived banner -->
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This stage is read-only because the project is archived.
+    </div>
     <!-- Tabs -->
     <div class="tabs-container">
       <nav class="tabs-nav" aria-label="Tabs">
@@ -844,6 +853,7 @@ function toggleNode(path: number[]) {
     <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
+          <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
           <div v-if="error" class="alert-error mb-6">
             {{ error }}
@@ -964,7 +974,7 @@ function toggleNode(path: number[]) {
               </label>
               <PromptEditor
                 v-model="form.prompt"
-                :disabled="isLoading"
+                :disabled="isLoading || isReadOnly"
                 :stage-variables="stageVariablesForCompletion"
                 :action-parameters="actionParametersForCompletion"
                 :user-profile-variables="userProfileVariablesForCompletion"
@@ -1353,6 +1363,7 @@ function toggleNode(path: number[]) {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+          </fieldset>
         </form>
       </div>
     </div>

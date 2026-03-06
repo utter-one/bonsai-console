@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useProjectsStore } from '@/stores'
 import type { ProjectResponse } from '@/api/types'
 
 const SELECTED_PROJECT_KEY = 'selectedProjectId'
@@ -17,7 +18,7 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
 
   function setSelectedProjectId(projectId: string | null) {
     selectedProjectId.value = projectId
-    
+
     // Save to localStorage
     if (projectId) {
       localStorage.setItem(SELECTED_PROJECT_KEY, projectId)
@@ -25,6 +26,23 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
       localStorage.removeItem(SELECTED_PROJECT_KEY)
     }
   }
+
+  // currently loaded project details (including archived metadata)
+  const selectedProject = ref<ProjectResponse | null>(null)
+
+  // whenever id changes, fetch the full project
+  watch(selectedProjectId, async (newId) => {
+    if (newId) {
+      try {
+        const projectsStore = useProjectsStore()
+        selectedProject.value = await projectsStore.fetchById(newId)
+      } catch {
+        selectedProject.value = null
+      }
+    } else {
+      selectedProject.value = null
+    }
+  }, { immediate: true })
 
   function clearSelectedProject() {
     selectedProjectId.value = null
@@ -54,5 +72,6 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
     setSelectedProjectId,
     clearSelectedProject,
     validateSelectedProject,
+    selectedProject,
   }
 })

@@ -2,6 +2,9 @@
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
       <h2 class="modal-header">{{ item ? 'Edit Knowledge Item' : 'New Knowledge Item' }}</h2>
+      <div v-if="isReadOnly" class="alert-warning mb-4">
+        This item is read-only because the project is archived.
+      </div>
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
@@ -12,6 +15,7 @@
             required
             class="form-input"
             placeholder="What is the question the user might ask?"
+            :disabled="disabled"
           />
         </div>
 
@@ -23,6 +27,7 @@
             class="form-textarea"
             rows="5"
             placeholder="Provide the answer that the assistant should give..."
+            :disabled="disabled"
           />
         </div>
 
@@ -33,6 +38,7 @@
             type="number"
             min="0"
             class="form-input"
+            :disabled="disabled"
           />
         </div>
 
@@ -40,7 +46,7 @@
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
-          <button type="submit" class="btn-primary">
+          <button v-if="!disabled" type="submit" class="btn-primary">
             {{ item ? 'Save Changes' : 'Create Item' }}
           </button>
         </div>
@@ -50,11 +56,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import type { KnowledgeItemResponse } from '@/api/types'
 
 const props = defineProps<{
   item: KnowledgeItemResponse | null
+  categoryArchived?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -67,6 +75,12 @@ const form = ref({
   answer: '',
   order: 0,
 })
+
+const { projectIsArchived, isReadOnly } = useProjectReadOnly(props.item)
+
+const disabled = computed(
+  () => isReadOnly.value || projectIsArchived.value || !!props.categoryArchived
+)
 
 watch(
   () => props.item,

@@ -1,9 +1,11 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
-      <h2 class="modal-header">{{ apiKey ? 'Edit API Key' : 'Create New API Key' }}</h2>
+      <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
       
-      <!-- Show the key immediately after creation -->
+      <div v-if="isReadOnly" class="alert-warning mb-4">
+        This API key is read-only because its project is archived.
+      </div>
       <div v-if="showNewKeyAlert && newKeyValue" class="alert-success">
         <div class="flex items-start gap-3">
           <svg class="w-5 h-5 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -26,6 +28,7 @@
       </div>
 
       <form @submit.prevent="handleSubmit">
+        <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <div class="form-group">
           <label class="form-label">
             API Key Name <span class="required">*</span>
@@ -80,13 +83,13 @@
             </div>
           </div>
         </div>
+        </fieldset>
 
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
-            {{ showNewKeyAlert ? 'Close' : 'Cancel' }}
+            {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
           </button>
-          <!-- Show Save button if editing, or if creating and not showing new key alert -->
-          <button type="submit" class="btn-primary">
+          <button v-if="!isReadOnly" type="submit" class="btn-primary">
             {{ apiKey ? 'Save Changes' : 'Create API Key' }}
           </button>
         </div>
@@ -103,6 +106,7 @@ import { useProjectsStore } from '@/stores/projects'
 const props = defineProps<{
   apiKey: ApiKeyResponse | null
   projectId: string
+  isReadOnly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -124,7 +128,7 @@ const projectsStore = useProjectsStore()
 onMounted(() => projectsStore.fetchAll())
 const projects = computed(() => projectsStore.items)
 const projectOptions = computed(() =>
-  projects.value.map(p => ({ label: p.name, value: p.id }))
+  projects.value.filter(p => !p.archivedAt).map(p => ({ label: p.name, value: p.id }))
 )
 
 const newKeyValue = ref<string | null>(null)

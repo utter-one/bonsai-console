@@ -27,6 +27,9 @@ const currentSection = computed(() => {
   return 'dashboard'
 })
 
+// determine when selected project is archived so we can adjust UI
+const projectIsArchived = computed(() => !!projectSelectionStore.selectedProject?.archivedAt)
+
 // Check if we're in an edit or detail view where project selection should be disabled
 const isInEditOrDetailView = computed(() => {
   const routeName = route.name as string
@@ -65,15 +68,20 @@ const selectedProjectId = computed({
 
 // Load projects on mount
 onMounted(async () => {
-  await projectsStore.fetchNavProjects()
+  await projectsStore.fetchUnfilteredProjects()
   
   // Validate that the saved project still exists
-  projectSelectionStore.validateSelectedProject(projectsStore.navProjects)
+  projectSelectionStore.validateSelectedProject(projectsStore.unfilteredProjects)
   
   // Set selectedProjectId from route if present (route takes priority)
   if (route.params.projectId) {
     projectSelectionStore.setSelectedProjectId(route.params.projectId as string)
   }
+})
+
+// Keep selection in sync with the master project list – clears if current
+watch(() => projectsStore.unfilteredProjects, (list) => {
+  projectSelectionStore.validateSelectedProject(list)
 })
 
 // Watch route changes to update selected project
@@ -83,7 +91,7 @@ watch(() => route.params.projectId, (newProjectId) => {
   }
 })
 
-// Watch project selector changes
+// Watch project selector changes (only design nav here; playground handled separately)
 watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
   if (newProjectId && currentSection.value === 'design') {
     // Only auto-navigate if we're in the design section
@@ -94,11 +102,28 @@ watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
       // Otherwise navigate to stages view of the selected project
       router.push({ name: 'design.stages', params: { projectId: newProjectId } })
     }
-  } else if (newProjectId && currentSection.value === 'playground') {
-    // Navigate to playground with the new project
-    router.push({ name: 'playground', params: { projectId: newProjectId } })
   }
 })
+
+// watch the full project object so we know its archived status before routing playground
+watch(() => projectSelectionStore.selectedProject, (proj) => {
+  if (!proj) return
+  if (currentSection.value === 'playground') {
+    if (proj.archivedAt) {
+      router.push({ name: 'dashboard' })
+    } else {
+      router.push({ name: 'playground', params: { projectId: proj.id } })
+    }
+  }
+})
+
+// watch computed archived flag as a fallback
+watch(projectIsArchived, (archived) => {
+  if (archived && currentSection.value === 'playground') {
+    router.push({ name: 'dashboard' })
+  }
+})
+
 
 function navigateToSection(section: string) {
   if (section === 'dashboard') {
@@ -112,6 +137,10 @@ function navigateToSection(section: string) {
        router.push({ name: 'design' })
     }
   } else if (section === 'playground') {
+     // block playground navigation if the project is archived
+     if (projectIsArchived.value) {
+       return
+     }
      if (selectedProjectId.value) {
         // Navigate to playground with the selected project
         router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
@@ -139,14 +168,24 @@ const formattedRoles = computed(() => {
   return authStore.currentOperator?.roles?.map(formatEnum).join(', ') || ''
 })
 
-// Sections for navigation
-const sections: Array<{ id: string; label: string; icon: Component }> = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'design', label: 'Design', icon: DraftingCompass },
-  { id: 'playground', label: 'Playground', icon: FlaskConical },
-  { id: 'monitor', label: 'Monitor', icon: Activity },
-  { id: 'administration', label: 'Administration', icon: Settings },
-]
+// Sections for navigation. playground should be hidden when an archived project is selected
+const sections = computed((): Array<{ id: string; label: string; icon: Component }> => {
+  const list = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'design', label: 'Design', icon: DraftingCompass },
+  ]
+
+  // only show playground if project is not archived
+  if (!projectIsArchived.value) {
+    list.push({ id: 'playground', label: 'Playground', icon: FlaskConical })
+  }
+
+  list.push(
+    { id: 'monitor', label: 'Monitor', icon: Activity },
+    { id: 'administration', label: 'Administration', icon: Settings }
+  )
+  return list
+})
 </script>
 
 <template>
@@ -205,12 +244,22 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             >
               <option :value="null">Select Project...</option>
               <option
-                v-for="project in projectsStore.navProjects"
+                v-for="project in projectsStore.activeProjects"
                 :key="project.id"
                 :value="project.id"
               >
                 {{ project.name }}
               </option>
+              <template v-if="projectsStore.archivedProjects.length > 0">
+                <option disabled value="">── Archived Projects ──</option>
+                <option
+                  v-for="project in projectsStore.archivedProjects"
+                  :key="project.id"
+                  :value="project.id"
+                >
+                  {{ project.name }} (archived)
+                </option>
+              </template>
             </select>
           </div>
 
@@ -327,12 +376,22 @@ const sections: Array<{ id: string; label: string; icon: Component }> = [
             >
               <option :value="null">Select Project...</option>
               <option
-                v-for="project in projectsStore.navProjects"
+                v-for="project in projectsStore.activeProjects"
                 :key="project.id"
                 :value="project.id"
               >
                 {{ project.name }}
               </option>
+              <template v-if="projectsStore.archivedProjects.length > 0">
+                <option disabled value="">── Archived Projects ──</option>
+                <option
+                  v-for="project in projectsStore.archivedProjects"
+                  :key="project.id"
+                  :value="project.id"
+                >
+                  {{ project.name }} (archived)
+                </option>
+              </template>
             </select>
           </div>
 

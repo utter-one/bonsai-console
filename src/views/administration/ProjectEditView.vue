@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig, ParameterValue } from '@/api/types'
@@ -22,7 +22,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'memory' | 'apiKeys' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'memory' | 'apiKeys' | 'metadata' | 'danger'>('basic')
 type ConstantType = 'string' | 'number' | 'boolean' | 'json'
 
 interface ConstantEntry {
@@ -76,6 +76,9 @@ const deepgramEndpointingValue = ref(300)
 const projectId = computed(() => route.params.projectId as string | undefined)
 const isEditMode = computed(() => !!projectId.value)
 const currentProject = ref<ProjectResponse | null>(null)
+
+const isArchived = computed(() => !!currentProject.value?.archivedAt)
+const deleteConfirmName = ref('')
 
 const asrProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'asr')
@@ -380,6 +383,7 @@ async function loadProject() {
   try {
     currentProject.value = await projectsStore.fetchById(projectId.value)
     if (currentProject.value) {
+      deleteConfirmName.value = ''
       form.value = {
         name: currentProject.value.name,
         description: currentProject.value.description ?? '',
@@ -525,6 +529,50 @@ async function handleSubmit() {
 
 function goBack() {
   router.push({ name: 'administration.projects' })
+}
+
+async function handleArchiveUnarchive() {
+  if (!currentProject.value) return
+  const action = isArchived.value ? 'unarchive' : 'archive'
+  if (!confirm(`${action === 'archive' ? 'Archive' : 'Unarchive'} project "${currentProject.value.name}"?`)) return
+  try {
+    if (action === 'archive') {
+      currentProject.value = await projectsStore.archive(currentProject.value.id, currentProject.value.version)
+    } else {
+      currentProject.value = await projectsStore.unarchive(currentProject.value.id, currentProject.value.version)
+    }
+    // refresh selection store if this project is currently selected
+    const projSel = useProjectSelectionStore()
+    const updatedId = currentProject.value?.id
+    if (updatedId && projSel.selectedProjectId === updatedId) {
+      projSel.setSelectedProjectId(updatedId)
+    }
+  } catch (err: any) {
+    alert(err.response?.data?.message || `Failed to ${action} project`)
+  }
+}
+
+async function handleDeleteProject() {
+  if (!currentProject.value) return
+  if (deleteConfirmName.value !== currentProject.value.name) {
+    alert('You must type the project name exactly to confirm deletion')
+    return
+  }
+  if (!confirm('This will permanently remove the project and all related entities. This action cannot be undone.')) return
+  try {
+    const deletedId = currentProject.value.id
+    await projectsStore.remove(deletedId, currentProject.value.version)
+
+    // If the deleted project was selected globally, clear it
+    const projSel = useProjectSelectionStore()
+    if (projSel.selectedProjectId === deletedId) {
+      projSel.clearSelectedProject()
+    }
+
+    goBack()
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to delete project')
+  }
 }
 
 function formatDate(dateString: string | null) {
@@ -853,11 +901,14 @@ function handleVariablesPaste(indices: number[]) {
           </p>
         </div>
       </div>
-      <div class="flex gap-3">
+      <div class="flex gap-3 items-center">
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+        <button v-if="isEditMode" type="button" @click="handleArchiveUnarchive" :class="isArchived ? 'btn-secondary' : 'btn-danger'" :disabled="isLoading">
+          {{ isArchived ? 'Unarchive' : 'Archive' }}
+        </button>
+        <button v-if="!isArchived" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
           {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Project')) }}
@@ -865,6 +916,10 @@ function handleVariablesPaste(indices: number[]) {
       </div>
     </div>
 
+    <!-- Archived banner -->
+    <div v-if="isArchived" class="alert-warning mb-4">
+      This project is archived — editing is disabled.
+    </div>
     <!-- Tabs -->
     <div class="tabs-container">
       <nav class="tabs-nav" aria-label="Tabs">
@@ -919,6 +974,14 @@ function handleVariablesPaste(indices: number[]) {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'danger'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'danger' }]"
+          type="button"
+        >
+          Danger Zone
+        </button>
       </nav>
     </div>
 
@@ -939,6 +1002,7 @@ function handleVariablesPaste(indices: number[]) {
     <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-900">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
+        <fieldset :disabled="isArchived" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
         <div v-if="error" class="alert-error mb-6">
           {{ error }}
@@ -2309,15 +2373,16 @@ function handleVariablesPaste(indices: number[]) {
             </div>
           </div>
         </div>
+        </fieldset>
 
-        <!-- API Keys Tab -->
+        <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
         <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
           <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">Manage API keys for this project</p>
             </div>
-            <button @click="handleCreateApiKey" class="btn-primary" type="button">
+            <button @click="handleCreateApiKey" class="btn-primary" type="button" :disabled="isArchived">
               <Plus class="inline-block w-4 h-4 mr-2" />
               Create API Key
             </button>
@@ -2367,6 +2432,7 @@ function handleVariablesPaste(indices: number[]) {
                     class="btn-secondary text-sm"
                     :title="apiKey.isActive ? 'Deactivate' : 'Activate'"
                     type="button"
+                    :disabled="isArchived"
                   >
                     {{ apiKey.isActive ? 'Deactivate' : 'Activate' }}
                   </button>
@@ -2375,7 +2441,7 @@ function handleVariablesPaste(indices: number[]) {
                     class="btn-secondary text-sm"
                     type="button"
                   >
-                    Edit
+                    {{ isArchived ? 'View' : 'Edit' }}
                   </button>
                   <button
                     @click="handleDeleteApiKey(apiKey)"
@@ -2396,6 +2462,27 @@ function handleVariablesPaste(indices: number[]) {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
+
+        <!-- Danger Zone Tab -->
+        <div v-if="isEditMode" v-show="activeTab === 'danger'" class="tab-content">
+          <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>
+          <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+            Deleting a project will remove <strong>all</strong> related entities (agents, stages,
+            classifiers, etc.). This cannot be undone. Type the project name below to confirm
+            deletion.
+          </p>
+          <div class="form-group mb-4">
+            <label class="form-label">Project name</label>
+            <input v-model="deleteConfirmName" type="text" class="form-input" :disabled="isLoading" />
+          </div>
+          <button
+            class="btn-danger"
+            :disabled="isLoading || deleteConfirmName !== currentProject?.name"
+            @click="handleDeleteProject"
+          >
+            Delete Project
+          </button>
+        </div>
         </form>
       </div>
     </div>
@@ -2405,6 +2492,7 @@ function handleVariablesPaste(indices: number[]) {
       v-if="showApiKeyModal"
       :api-key="selectedApiKey"
       :project-id="currentProject?.id || ''"
+      :is-read-only="isArchived"
       @close="handleApiKeyModalClose"
       @save="handleApiKeySave"
     />

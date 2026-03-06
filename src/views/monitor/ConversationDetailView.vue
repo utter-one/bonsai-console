@@ -161,6 +161,8 @@ const metadataFields = computed(() => {
   ]
 })
 
+const isArchived = computed(() => conversation.value?.archived ?? false)
+
 </script>
 
 <template>
@@ -176,8 +178,9 @@ const metadataFields = computed(() => {
             <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
             <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ conversationId }}</p>
           </div>
+          <span v-if="isArchived" class="badge-secondary ml-2 self-center">Archived</span>
         </div>
-        <div v-if="conversation && isResumable(conversation.status)">
+        <div v-if="conversation && isResumable(conversation.status) && !isArchived">
           <button @click="handleResumeConversation" class="btn-primary" title="Resume conversation">
             <Play class="w-4 h-4 mr-2" />
             Resume
@@ -225,7 +228,7 @@ const metadataFields = computed(() => {
               <div v-for="event in events" :key="event.id">
                 <ConversationEventCard
                   :event="toNormalizedEvent(event)"
-                  :show-bug-report="true"
+                  :show-bug-report="!isArchived"
                   @open-prompt="openPromptPreview"
                   @open-variables="openVariablesPreview"
                   @open-bug-report="openBugReport(event)"

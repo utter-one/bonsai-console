@@ -169,6 +169,123 @@
         ],
         "description": "Filter operation with explicit operator and value"
       },
+      "ArchiveProject": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "description": "The current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "ListProjectsQuery": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "default": 0,
+            "description": "Starting index for pagination (default: 0)"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Maximum number of items to return (optional, null for no limit)"
+          },
+          "textSearch": {
+            "type": "string",
+            "nullable": true,
+            "description": "Full-text search query string (optional)"
+          },
+          "orderBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+          },
+          "groupBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "Field(s) to group results by (optional)"
+          },
+          "filters": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "$ref": "#/components/schemas/ListFilterOperation"
+                }
+              ]
+            },
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+          },
+          "archived": {
+            "type": "string",
+            "enum": [
+              "true",
+              "false"
+            ],
+            "description": "When true, returns only archived projects. When omitted or false, returns only active (non-archived) projects."
+          }
+        }
+      },
       "OpenAILlmSettings": {
         "type": "object",
         "properties": {
@@ -2378,6 +2495,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the user was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -2422,6 +2543,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the user was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -2960,6 +3085,17 @@
             "nullable": true,
             "format": "date-time",
             "description": "The timestamp when the project was last updated"
+          },
+          "archivedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "The timestamp when the project was archived, or null if the project is not archived"
+          },
+          "archivedBy": {
+            "type": "string",
+            "nullable": true,
+            "description": "The ID of the operator who archived the project, or null if the project is not archived"
           }
         },
         "required": [
@@ -2975,7 +3111,9 @@
           "userProfileVariableDescriptors",
           "version",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "archivedAt",
+          "archivedBy"
         ]
       },
       "ProjectListResponse": {
@@ -3121,6 +3259,17 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "The timestamp when the project was last updated"
+                },
+                "archivedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "The timestamp when the project was archived, or null if the project is not archived"
+                },
+                "archivedBy": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "The ID of the operator who archived the project, or null if the project is not archived"
                 }
               },
               "required": [
@@ -3136,7 +3285,9 @@
                 "userProfileVariableDescriptors",
                 "version",
                 "createdAt",
-                "updatedAt"
+                "updatedAt",
+                "archivedAt",
+                "archivedBy"
               ]
             },
             "description": "Array of projects"
@@ -3415,6 +3566,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the agent was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -3530,6 +3685,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the agent was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -3970,6 +4129,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the category was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -4094,6 +4257,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the category was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -4258,6 +4425,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the item was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -4319,6 +4490,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the item was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -4778,6 +4953,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the conversation was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -4861,6 +5040,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the conversation was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -6365,6 +6548,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the stage was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -6535,6 +6722,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the stage was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -6798,6 +6989,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the classifier was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -6898,6 +7093,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the classifier was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -7173,6 +7372,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the transformer was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -7282,6 +7485,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the transformer was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -7632,6 +7839,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the tool was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -7760,6 +7971,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the tool was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -8064,6 +8279,10 @@
             "nullable": true,
             "format": "date-time",
             "description": "Timestamp when the global action was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -8180,6 +8399,10 @@
                   "nullable": true,
                   "format": "date-time",
                   "description": "Timestamp when the global action was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -10636,6 +10859,10 @@
           "updatedAt": {
             "type": "string",
             "description": "ISO timestamp of last update"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
           }
         },
         "required": [
@@ -10704,6 +10931,10 @@
                 "updatedAt": {
                   "type": "string",
                   "description": "ISO timestamp of last update"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
                 }
               },
               "required": [
@@ -12665,6 +12896,17 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "The timestamp when the project was last updated"
+                    },
+                    "archivedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was archived, or null if the project is not archived"
+                    },
+                    "archivedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The ID of the operator who archived the project, or null if the project is not archived"
                     }
                   },
                   "required": [
@@ -12680,7 +12922,9 @@
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "archivedAt",
+                    "archivedBy"
                   ]
                 }
               }
@@ -12699,7 +12943,7 @@
           "Projects"
         ],
         "summary": "List projects",
-        "description": "Retrieves a paginated list of projects with optional filtering, sorting, and searching",
+        "description": "Retrieves a paginated list of projects with optional filtering, sorting, and searching. Use ?archived=true to list archived projects.",
         "parameters": [
           {
             "schema": {
@@ -12827,6 +13071,20 @@
             "required": false,
             "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
             "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "When true, returns only archived projects. When omitted or false, returns only active (non-archived) projects."
+            },
+            "required": false,
+            "description": "When true, returns only archived projects. When omitted or false, returns only active (non-archived) projects.",
+            "name": "archived",
             "in": "query"
           }
         ],
@@ -12978,6 +13236,17 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "The timestamp when the project was last updated"
+                          },
+                          "archivedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "The timestamp when the project was archived, or null if the project is not archived"
+                          },
+                          "archivedBy": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The ID of the operator who archived the project, or null if the project is not archived"
                           }
                         },
                         "required": [
@@ -12993,7 +13262,9 @@
                           "userProfileVariableDescriptors",
                           "version",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "archivedAt",
+                          "archivedBy"
                         ]
                       },
                       "description": "Array of projects"
@@ -13176,6 +13447,17 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "The timestamp when the project was last updated"
+                    },
+                    "archivedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was archived, or null if the project is not archived"
+                    },
+                    "archivedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The ID of the operator who archived the project, or null if the project is not archived"
                     }
                   },
                   "required": [
@@ -13191,7 +13473,9 @@
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "archivedAt",
+                    "archivedBy"
                   ]
                 }
               }
@@ -13441,6 +13725,17 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "The timestamp when the project was last updated"
+                    },
+                    "archivedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was archived, or null if the project is not archived"
+                    },
+                    "archivedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The ID of the operator who archived the project, or null if the project is not archived"
                     }
                   },
                   "required": [
@@ -13456,7 +13751,9 @@
                     "userProfileVariableDescriptors",
                     "version",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "archivedAt",
+                    "archivedBy"
                   ]
                 }
               }
@@ -13497,6 +13794,455 @@
           },
           "404": {
             "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/archive": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Archive project",
+        "description": "Archives a project. Archived projects cannot be modified. Pass current version for optimistic locking.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The project ID"
+            },
+            "required": true,
+            "description": "The project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "description": "The current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project archived successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The unique identifier of the project"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the project"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "A description of the project"
+                    },
+                    "asrConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "asrProviderId": {
+                          "type": "string",
+                          "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/AzureAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/DeepgramAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                            }
+                          ],
+                          "description": "ASR-specific settings including model, language preferences, etc."
+                        },
+                        "unintelligiblePlaceholder": {
+                          "type": "string",
+                          "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                        },
+                        "voiceActivityDetection": {
+                          "type": "boolean",
+                          "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        }
+                      },
+                      "description": "ASR configuration settings"
+                    },
+                    "acceptVoice": {
+                      "type": "boolean",
+                      "description": "Whether conversations can accept voice input (requires asrConfig fully populated)"
+                    },
+                    "generateVoice": {
+                      "type": "boolean",
+                      "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                    },
+                    "storageConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "storageProviderId": {
+                          "type": "string",
+                          "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/S3StorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/GcsStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/LocalStorageSettings"
+                            }
+                          ],
+                          "description": "Storage-specific settings including bucket, prefix, etc."
+                        }
+                      },
+                      "description": "Storage configuration for conversation artifacts"
+                    },
+                    "constants": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "$ref": "#/components/schemas/ParameterValue"
+                      },
+                      "description": "Key-value store of constants used in templating and conversation logic"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata for the project"
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                    },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
+                    "version": {
+                      "type": "number",
+                      "description": "The version number of the project"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was last updated"
+                    },
+                    "archivedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was archived, or null if the project is not archived"
+                    },
+                    "archivedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The ID of the operator who archived the project, or null if the project is not archived"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "acceptVoice",
+                    "generateVoice",
+                    "constants",
+                    "metadata",
+                    "timezone",
+                    "autoCreateUsers",
+                    "userProfileVariableDescriptors",
+                    "version",
+                    "createdAt",
+                    "updatedAt",
+                    "archivedAt",
+                    "archivedBy"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found"
+          },
+          "409": {
+            "description": "Version conflict or project already archived"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/unarchive": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Unarchive project",
+        "description": "Restores an archived project to active status. Pass current version for optimistic locking.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The project ID"
+            },
+            "required": true,
+            "description": "The project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "description": "The current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project unarchived successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The unique identifier of the project"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the project"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "A description of the project"
+                    },
+                    "asrConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "asrProviderId": {
+                          "type": "string",
+                          "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/AzureAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/DeepgramAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                            }
+                          ],
+                          "description": "ASR-specific settings including model, language preferences, etc."
+                        },
+                        "unintelligiblePlaceholder": {
+                          "type": "string",
+                          "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                        },
+                        "voiceActivityDetection": {
+                          "type": "boolean",
+                          "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        }
+                      },
+                      "description": "ASR configuration settings"
+                    },
+                    "acceptVoice": {
+                      "type": "boolean",
+                      "description": "Whether conversations can accept voice input (requires asrConfig fully populated)"
+                    },
+                    "generateVoice": {
+                      "type": "boolean",
+                      "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
+                    },
+                    "storageConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "storageProviderId": {
+                          "type": "string",
+                          "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                        },
+                        "settings": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/S3StorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/GcsStorageSettings"
+                            },
+                            {
+                              "$ref": "#/components/schemas/LocalStorageSettings"
+                            }
+                          ],
+                          "description": "Storage-specific settings including bucket, prefix, etc."
+                        }
+                      },
+                      "description": "Storage configuration for conversation artifacts"
+                    },
+                    "constants": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "$ref": "#/components/schemas/ParameterValue"
+                      },
+                      "description": "Key-value store of constants used in templating and conversation logic"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata for the project"
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
+                    },
+                    "autoCreateUsers": {
+                      "type": "boolean",
+                      "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
+                    },
+                    "userProfileVariableDescriptors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldDescriptor"
+                      },
+                      "description": "Descriptors defining the data schema for user profile variables in this project"
+                    },
+                    "version": {
+                      "type": "number",
+                      "description": "The version number of the project"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was last updated"
+                    },
+                    "archivedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "The timestamp when the project was archived, or null if the project is not archived"
+                    },
+                    "archivedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The ID of the operator who archived the project, or null if the project is not archived"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "acceptVoice",
+                    "generateVoice",
+                    "constants",
+                    "metadata",
+                    "timezone",
+                    "autoCreateUsers",
+                    "userProfileVariableDescriptors",
+                    "version",
+                    "createdAt",
+                    "updatedAt",
+                    "archivedAt",
+                    "archivedBy"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Project is not archived"
+          },
+          "404": {
+            "description": "Project not found"
+          },
+          "409": {
+            "description": "Version conflict"
           }
         }
       }
@@ -13914,6 +14660,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -14166,6 +14916,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the classifier was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -14332,6 +15086,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -14532,6 +15290,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -14801,6 +15563,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the classifier was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -15002,6 +15768,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -15263,6 +16033,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the transformer was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -15438,6 +16212,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -15654,6 +16432,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -15932,6 +16714,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the transformer was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -16058,6 +16844,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the conversation was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -16330,6 +17120,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the conversation was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -17880,6 +18674,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the category was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -18156,6 +18954,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the category was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -18346,6 +19148,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the category was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -18548,6 +19354,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the category was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -18735,6 +19545,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the item was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -18948,6 +19762,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the item was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -19075,6 +19893,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the item was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -19212,6 +20034,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the item was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -19383,6 +20209,10 @@
                         "nullable": true,
                         "format": "date-time",
                         "description": "Timestamp when the item was last updated"
+                      },
+                      "archived": {
+                        "type": "boolean",
+                        "description": "Whether this entity belongs to an archived project"
                       }
                     },
                     "required": [
@@ -19598,6 +20428,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the agent was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -19865,6 +20699,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the agent was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -20046,6 +20884,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the agent was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -20282,6 +21124,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the agent was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -20566,6 +21412,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the agent was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -24713,6 +25563,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -24981,6 +25835,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the global action was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -25163,6 +26021,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -25398,6 +26260,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -25683,6 +26549,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the global action was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -26846,6 +27716,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -27168,6 +28042,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the stage was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -27405,6 +28283,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -27736,6 +28618,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -28078,6 +28964,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the stage was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -28335,6 +29225,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -28615,6 +29509,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the tool was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -28810,6 +29708,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -29074,6 +29976,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -29374,6 +30280,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the tool was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -29485,6 +30395,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the user was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -29695,6 +30609,10 @@
                             "nullable": true,
                             "format": "date-time",
                             "description": "Timestamp when the user was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -29806,6 +30724,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the user was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -29906,6 +30828,10 @@
                       "nullable": true,
                       "format": "date-time",
                       "description": "Timestamp when the user was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -30097,6 +31023,10 @@
                     "updatedAt": {
                       "type": "string",
                       "description": "ISO timestamp of last update"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -30317,6 +31247,10 @@
                           "updatedAt": {
                             "type": "string",
                             "description": "ISO timestamp of last update"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [
@@ -30433,6 +31367,10 @@
                     "updatedAt": {
                       "type": "string",
                       "description": "ISO timestamp of last update"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -30573,6 +31511,10 @@
                     "updatedAt": {
                       "type": "string",
                       "description": "ISO timestamp of last update"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
                     }
                   },
                   "required": [
@@ -30854,6 +31796,10 @@
                           "updatedAt": {
                             "type": "string",
                             "description": "ISO timestamp of last update"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
                           }
                         },
                         "required": [

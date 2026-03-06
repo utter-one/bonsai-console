@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -40,6 +41,9 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const toolId = computed(() => route.params.toolId as string | undefined)
 const isEditMode = computed(() => !!toolId.value)
 const currentTool = ref<ToolResponse | null>(null)
+
+const { projectIsArchived } = useProjectReadOnly(currentTool)
+const isReadOnly = computed(() => projectIsArchived.value || !!currentTool.value?.archived)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
@@ -214,12 +218,16 @@ const metadataFields = computed(() => {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
+        <button v-if="!isReadOnly" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
           {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Tool')) }}
         </button>
       </div>
+    </div>
+    
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This tool is read-only because the project is archived.
     </div>
 
     <!-- Tabs -->
@@ -274,6 +282,7 @@ const metadataFields = computed(() => {
     <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
+          <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
           <div v-if="error" class="alert-error mb-6">
             {{ error }}
@@ -480,7 +489,7 @@ const metadataFields = computed(() => {
               </label>
               <PromptEditor
                 v-model="form.prompt"
-                :disabled="isLoading"
+                :disabled="isLoading || isReadOnly"
                 show-toolbar
                 placeholder="You are a tool that analyzes data and provides insights..."
                 aria-label="Tool prompt"
@@ -596,6 +605,7 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+          </fieldset>
         </form>
       </div>
     </div>

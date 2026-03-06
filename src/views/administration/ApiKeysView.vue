@@ -19,6 +19,7 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const showModal = ref(false)
 const editingApiKey = ref<ApiKeyResponse | null>(null)
 const selectedProjectId = ref<string>('')
+const showArchived = ref(false)
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-api-keys')
@@ -40,7 +41,9 @@ const projectNamesMap = computed(() => {
 })
 
 // Computed
-const filteredApiKeys = computed(() => allApiKeysStore.items)
+const filteredApiKeys = computed(() =>
+  allApiKeysStore.items.filter(k => showArchived.value ? k.archived : !k.archived)
+)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -59,6 +62,11 @@ watch([sortKey, sortOrder], () => {
 
 // Watch for search changes and reload data from backend
 watch(debouncedSearchQuery, () => {
+  pagination.reset()
+})
+
+// Watch for archived toggle changes and reload
+watch(showArchived, () => {
   pagination.reset()
 })
 
@@ -171,6 +179,10 @@ async function deleteApiKey(apiKey: ApiKeyResponse) {
   }
 }
 
+function clearSearch() {
+  searchQuery.value = ''
+}
+
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
@@ -178,10 +190,6 @@ function formatDate(date: string | null) {
 
 function getProjectName(projectId: string): string {
   return projectNamesMap.value[projectId] || projectId
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 </script>
 
@@ -201,17 +209,26 @@ function clearSearch() {
       </div>
 
       <!-- Search Bar -->
-      <div class="search-container">
-        <Search class="input-icon-left" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by ID, name, project, or key preview..."
-          class="search-input"
-        />
-        <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
-          <X class="w-5 h-5" />
-        </button>
+      <div class="search-container flex gap-4">
+        <div class="relative flex-1">
+          <Search class="input-icon-left" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by name..."
+            class="search-input"
+          />
+          <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+          <span>Status:</span>
+          <select v-model="showArchived" class="form-select">
+            <option :value="false">Active</option>
+            <option :value="true">Archived</option>
+          </select>
+        </label>
       </div>
 
       <!-- Loading State -->
@@ -278,7 +295,10 @@ function clearSearch() {
                   {{ apiKey.name }}
                 </td>
                 <td class="table-cell">
-                  {{ getProjectName(apiKey.projectId) }}
+                  <div class="flex items-center gap-2">
+                    {{ getProjectName(apiKey.projectId) }}
+                    <span v-if="apiKey.archived" class="badge-secondary">Archived</span>
+                  </div>
                 </td>
                 <td class="table-cell">
                   <code class="font-mono text-sm">{{ apiKey.keyPreview }}</code>
@@ -289,7 +309,8 @@ function clearSearch() {
                     :checked="apiKey.isActive"
                     @change="toggleApiKeyStatus(apiKey)"
                     class="form-checkbox cursor-pointer"
-                    :title="apiKey.isActive ? 'Click to deactivate' : 'Click to activate'"
+                    :disabled="apiKey.archived"
+                    :title="apiKey.archived ? 'Cannot change — project is archived' : (apiKey.isActive ? 'Click to deactivate' : 'Click to activate')"
                   />
                 </td>
                 <td class="table-cell-muted">{{ formatDate(apiKey.lastUsedAt) }}</td>
@@ -297,7 +318,7 @@ function clearSearch() {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="openEditModal(apiKey)" class="btn-secondary btn-sm">
-                      Edit
+                      {{ apiKey.archived ? 'View' : 'Edit' }}
                     </button>
                     <button @click="deleteApiKey(apiKey)" class="btn-danger btn-sm">
                       Delete
@@ -323,6 +344,7 @@ function clearSearch() {
       v-if="showModal"
       :api-key="editingApiKey"
       :project-id="selectedProjectId"
+      :is-read-only="editingApiKey ? editingApiKey.archived : false"
       @close="closeModal"
       @save="handleSave"
       @created="handleCreated"

@@ -17,6 +17,7 @@ const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 const showModal = ref(false)
 const selectedIssue = ref<IssueResponse | null>(null)
+const showArchived = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Pagination
@@ -27,7 +28,19 @@ const pagination = usePagination({
 })
 
 // Computed
-const filteredIssues = computed(() => issuesStore.items)
+const archivedProjectIds = computed(() => {
+  const set = new Set<string>()
+  projectsStore.unfilteredProjects.forEach(p => { if (p.archivedAt) set.add(p.id) })
+  return set
+})
+
+function isIssueArchived(issue: IssueResponse): boolean {
+  return archivedProjectIds.value.has(issue.projectId)
+}
+
+const filteredIssues = computed(() =>
+  issuesStore.items.filter(issue => showArchived.value ? isIssueArchived(issue) : !isIssueArchived(issue))
+)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -44,6 +57,11 @@ watch(debouncedSearchQuery, () => {
   pagination.reset()
 })
 
+// Watch for archived toggle changes
+watch(showArchived, () => {
+  pagination.reset()
+})
+
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
   searchQuery.value = ''
@@ -56,7 +74,7 @@ watch(() => projectSelectionStore.selectedProjectId, () => {
 onMounted(async () => {
   await Promise.all([
     loadIssues(),
-    projectsStore.fetchAll()
+    projectsStore.fetchUnfilteredProjects()
   ])
 })
 
@@ -85,7 +103,7 @@ function truncateText(text: string, maxLength: number = 50): string {
 }
 
 function getProjectName(projectId: string): string {
-  const project = projectsStore.items.find(p => p.id === projectId)
+  const project = projectsStore.unfilteredProjects.find(p => p.id === projectId)
   return project ? project.name : projectId
 }
 
@@ -161,17 +179,26 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
       </div>
 
       <!-- Search Bar -->
-      <div class="search-container">
-        <Search class="input-icon-left" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search issues..."
-          class="search-input"
-        />
-        <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
-          <X class="w-5 h-5" />
-        </button>
+      <div class="search-container flex gap-4">
+        <div class="relative flex-1">
+          <Search class="input-icon-left" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by name..."
+            class="search-input"
+          />
+          <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+          <span>Status:</span>
+          <select v-model="showArchived" class="form-select">
+            <option :value="false">Active</option>
+            <option :value="true">Archived</option>
+          </select>
+        </label>
       </div>
 
       <!-- Loading State -->
@@ -252,6 +279,7 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
       v-if="showModal"
       :issue="selectedIssue"
       :prefill-data="selectedIssue ? undefined : { projectId: projectSelectionStore.selectedProjectId || undefined }"
+      :is-read-only="selectedIssue ? isIssueArchived(selectedIssue) : false"
       @close="closeModal"
       @save="handleSave"
     />

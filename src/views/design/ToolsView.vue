@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToolsStore, useProjectSelectionStore } from '@/stores'
+import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
@@ -23,6 +24,7 @@ const pagination = usePagination({
 
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+const { projectIsArchived } = useProjectReadOnly()
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
@@ -82,6 +84,7 @@ function formatDate(date: string | null) {
 
 
 function createTool() {
+  if (projectIsArchived.value) return
   router.push({ name: 'design.tools.create', params: { projectId: projectId.value } })
 }
 
@@ -107,7 +110,7 @@ function getTypeIcon(type: string) {
           <h1 class="page-title">Tools</h1>
           <p class="page-subtitle">Configure available tools for this project</p>
         </div>
-        <button @click="createTool" class="btn-primary">
+        <button @click="createTool" class="btn-primary" :disabled="projectIsArchived">
           <Plus class="inline-block mr-2 w-4 h-4" />
           New Tool
         </button>
@@ -170,7 +173,7 @@ function getTypeIcon(type: string) {
             </thead>
             <tbody class="table-body">
               <tr v-for="tool in filteredTools" :key="tool.id" class="table-row">
-                <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}</td>
+                <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}<span v-if="tool.archived" class="badge badge-error ml-2">Archived</span></td>
                 <td class="table-cell">
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-1.5 text-xs text-gray-600">
@@ -190,9 +193,9 @@ function getTypeIcon(type: string) {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editTool(tool)" class="btn-secondary btn-sm">
-                      Edit
+                      {{ (projectIsArchived || tool.archived) ? 'View' : 'Edit' }}
                     </button>
-                    <button @click="deleteTool(tool)" class="btn-danger btn-sm">
+                    <button @click="deleteTool(tool)" class="btn-danger btn-sm" :disabled="tool.archived">
                       Delete
                     </button>
                   </div>

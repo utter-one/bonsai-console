@@ -159,8 +159,11 @@ function getProfileDisplay(profile: Record<string, any>): string {
                 <td class="table-clickable-cell" @click="viewUser(user)">
                   {{ user.id }}
                 </td>
-                <td class="table-clickable-cell" @click="viewUser(user)">                  
+                <td class="table-clickable-cell" @click="viewUser(user)">
+                  <div class="flex items-center gap-2">
                     {{ getProfileDisplay(user.profile) }}
+                    <span v-if="user.archived" class="badge-secondary">Archived</span>
+                  </div>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(user.createdAt) }}</td>
                 <td class="table-cell-muted">{{ formatDate(user.updatedAt) }}</td>

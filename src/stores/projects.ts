@@ -15,6 +15,46 @@ export const useProjectsStore = defineStore('projects', () => {
     apiResourceName: 'projects',
   })
 
+  // archive/unarchive helpers -------------------------------------------------
+  async function archive(id: string, version: number) {
+    try {
+      const response = await (apiClient as any).projectsArchiveCreate(id, { version })
+      // update stored item if present
+      const idx = store.items.value.findIndex(p => p.id === id)
+      if (idx !== -1) {
+        store.items.value[idx] = response
+      }
+      if (store.currentItem.value?.id === id) {
+        store.currentItem.value = response
+      }
+
+      // refresh navigation list after archive
+      await fetchUnfilteredProjects()
+      return response
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  async function unarchive(id: string, version: number) {
+    try {
+      const response = await (apiClient as any).projectsUnarchiveCreate(id, { version })
+      const idx = store.items.value.findIndex(p => p.id === id)
+      if (idx !== -1) {
+        store.items.value[idx] = response
+      }
+      if (store.currentItem.value?.id === id) {
+        store.currentItem.value = response
+      }
+
+      // refresh navigation list after unarchive
+      await fetchUnfilteredProjects()
+      return response
+    } catch (err: any) {
+      throw err
+    }
+  }
+
   const count = ref<number | null>(null)
 
   async function fetchCount() {
@@ -27,18 +67,51 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // Dedicated project list for navigation/layout use — unaffected by view-level fetchAll() calls
-  const navProjects = ref<ProjectResponse[]>([])
-  const navProjectsLoaded = ref(false)
+  const unfilteredProjects = ref<ProjectResponse[]>([])
+  const unfilteredProjectsLoaded = ref(false)
+  const activeProjects = ref<ProjectResponse[]>([])
+  const archivedProjects = ref<ProjectResponse[]>([])
 
-  async function fetchNavProjects() {
+  async function fetchUnfilteredProjects() {
     try {
-      const response = await (apiClient as any).projectsList({ offset: 0, limit: 1000, orderBy: 'name' })
-      navProjects.value = response?.items ?? []
-      navProjectsLoaded.value = true
+      const [activeRes, archivedRes] = await Promise.all([
+        (apiClient as any).projectsList({ offset: 0, limit: 1000, orderBy: 'name', archived: false }),
+        (apiClient as any).projectsList({ offset: 0, limit: 1000, orderBy: 'name', archived: true }),
+      ])
+      activeProjects.value = activeRes?.items ?? []
+      archivedProjects.value = archivedRes?.items ?? []
+      unfilteredProjects.value = [...activeProjects.value, ...archivedProjects.value]
+      unfilteredProjectsLoaded.value = true
     } catch {
-      navProjects.value = []
+      unfilteredProjects.value = []
     }
   }
 
-  return { ...store, count, fetchCount, navProjects, navProjectsLoaded, fetchNavProjects }
+  // Wrap create/remove so we also refresh the unfiltered project cache
+  async function createProject(data: CreateProjectRequest) {
+    const result = await store.create(data)
+    await fetchUnfilteredProjects()
+    return result
+  }
+
+  async function removeProject(id: string, version?: number) {
+    const result = await store.remove(id, version)
+    await fetchUnfilteredProjects()
+    return result
+  }
+
+  return {
+    ...store,
+    count,
+    fetchCount,
+    activeProjects,
+    archivedProjects,
+    unfilteredProjects,
+    unfilteredProjectsLoaded,
+    fetchUnfilteredProjects,
+    archive,
+    unarchive,
+    create: createProject,
+    remove: removeProject,
+  }
 })

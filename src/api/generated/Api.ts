@@ -817,6 +817,13 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /**
+         * The timestamp when the project was archived, or null if the project is not archived
+         * @format date-time
+         */
+        archivedAt: string | null;
+        /** The ID of the operator who archived the project, or null if the project is not archived */
+        archivedBy: string | null;
       },
       void
     >({
@@ -829,7 +836,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of projects with optional filtering, sorting, and searching
+   * @description Retrieves a paginated list of projects with optional filtering, sorting, and searching. Use ?archived=true to list archived projects.
    *
    * @tags Projects
    * @name ProjectsList
@@ -868,6 +875,8 @@ export class Api<
         | boolean[]
         | ListFilterOperation
       >;
+      /** When true, returns only archived projects. When omitted or false, returns only active (non-archived) projects. */
+      archived?: "true" | "false";
     },
     params: RequestParams = {},
   ) =>
@@ -934,6 +943,13 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /**
+           * The timestamp when the project was archived, or null if the project is not archived
+           * @format date-time
+           */
+          archivedAt: string | null;
+          /** The ID of the operator who archived the project, or null if the project is not archived */
+          archivedBy: string | null;
         }[];
         /** Total number of projects */
         total: number;
@@ -1018,6 +1034,13 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /**
+         * The timestamp when the project was archived, or null if the project is not archived
+         * @format date-time
+         */
+        archivedAt: string | null;
+        /** The ID of the operator who archived the project, or null if the project is not archived */
+        archivedBy: string | null;
       },
       void
     >({
@@ -1131,6 +1154,13 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /**
+         * The timestamp when the project was archived, or null if the project is not archived
+         * @format date-time
+         */
+        archivedAt: string | null;
+        /** The ID of the operator who archived the project, or null if the project is not archived */
+        archivedBy: string | null;
       },
       void
     >({
@@ -1156,6 +1186,198 @@ export class Api<
       path: `/api/projects/${id}`,
       method: "DELETE",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Archives a project. Archived projects cannot be modified. Pass current version for optimistic locking.
+   *
+   * @tags Projects
+   * @name ProjectsArchiveCreate
+   * @summary Archive project
+   * @request POST:/api/projects/{id}/archive
+   * @secure
+   */
+  projectsArchiveCreate = (
+    id: string,
+    data: {
+      /** The current version number for optimistic locking */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** The unique identifier of the project */
+        id: string;
+        /** The name of the project */
+        name: string;
+        /** A description of the project */
+        description: string | null;
+        /** ASR configuration settings */
+        asrConfig?: {
+          /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
+          asrProviderId?: string;
+          /** ASR-specific settings including model, language preferences, etc. */
+          settings?:
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
+          /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+          unintelligiblePlaceholder?: string;
+          /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+          voiceActivityDetection?: boolean;
+        } | null;
+        /** Whether conversations can accept voice input (requires asrConfig fully populated) */
+        acceptVoice: boolean;
+        /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
+        generateVoice: boolean;
+        /** Storage configuration for conversation artifacts */
+        storageConfig?: {
+          /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+          storageProviderId?: string;
+          /** Storage-specific settings including bucket, prefix, etc. */
+          settings?:
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
+        } | null;
+        /** Key-value store of constants used in templating and conversation logic */
+        constants: Record<string, ParameterValue>;
+        /** Additional metadata for the project */
+        metadata: Record<string, any>;
+        /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+        timezone: string | null;
+        /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+        autoCreateUsers: boolean;
+        /** Descriptors defining the data schema for user profile variables in this project */
+        userProfileVariableDescriptors: FieldDescriptor[];
+        /** The version number of the project */
+        version: number;
+        /**
+         * The timestamp when the project was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * The timestamp when the project was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /**
+         * The timestamp when the project was archived, or null if the project is not archived
+         * @format date-time
+         */
+        archivedAt: string | null;
+        /** The ID of the operator who archived the project, or null if the project is not archived */
+        archivedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${id}/archive`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Restores an archived project to active status. Pass current version for optimistic locking.
+   *
+   * @tags Projects
+   * @name ProjectsUnarchiveCreate
+   * @summary Unarchive project
+   * @request POST:/api/projects/{id}/unarchive
+   * @secure
+   */
+  projectsUnarchiveCreate = (
+    id: string,
+    data: {
+      /** The current version number for optimistic locking */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** The unique identifier of the project */
+        id: string;
+        /** The name of the project */
+        name: string;
+        /** A description of the project */
+        description: string | null;
+        /** ASR configuration settings */
+        asrConfig?: {
+          /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
+          asrProviderId?: string;
+          /** ASR-specific settings including model, language preferences, etc. */
+          settings?:
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
+          /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+          unintelligiblePlaceholder?: string;
+          /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+          voiceActivityDetection?: boolean;
+        } | null;
+        /** Whether conversations can accept voice input (requires asrConfig fully populated) */
+        acceptVoice: boolean;
+        /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
+        generateVoice: boolean;
+        /** Storage configuration for conversation artifacts */
+        storageConfig?: {
+          /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+          storageProviderId?: string;
+          /** Storage-specific settings including bucket, prefix, etc. */
+          settings?:
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
+        } | null;
+        /** Key-value store of constants used in templating and conversation logic */
+        constants: Record<string, ParameterValue>;
+        /** Additional metadata for the project */
+        metadata: Record<string, any>;
+        /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
+        timezone: string | null;
+        /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
+        autoCreateUsers: boolean;
+        /** Descriptors defining the data schema for user profile variables in this project */
+        userProfileVariableDescriptors: FieldDescriptor[];
+        /** The version number of the project */
+        version: number;
+        /**
+         * The timestamp when the project was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * The timestamp when the project was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /**
+         * The timestamp when the project was archived, or null if the project is not archived
+         * @format date-time
+         */
+        archivedAt: string | null;
+        /** The ID of the operator who archived the project, or null if the project is not archived */
+        archivedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${id}/unarchive`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -1337,6 +1559,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -1430,6 +1654,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of classifiers matching the query
@@ -1507,6 +1733,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -1596,6 +1824,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -1718,6 +1948,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -1815,6 +2047,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -1910,6 +2144,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of context transformers matching the query
@@ -1989,6 +2225,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -2082,6 +2320,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -2206,6 +2446,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -2261,6 +2503,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -2366,6 +2610,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of conversations matching the query
@@ -2893,6 +3139,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3003,6 +3251,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of categories matching the query
@@ -3097,6 +3347,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3197,6 +3449,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3303,6 +3557,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3386,6 +3642,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of items matching the query
@@ -3453,6 +3711,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3529,6 +3789,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3609,6 +3871,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       }[],
       void
     >({
@@ -3707,6 +3971,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3803,6 +4069,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of agents matching the query
@@ -3883,6 +4151,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -3979,6 +4249,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -4104,6 +4376,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -5689,6 +5963,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -5786,6 +6062,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of global actions matching the query
@@ -5867,6 +6145,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -5962,6 +6242,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -6088,6 +6370,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -6671,6 +6955,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -6784,6 +7070,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of stages matching the query
@@ -6881,6 +7169,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7013,6 +7303,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7155,6 +7447,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7264,6 +7558,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7363,6 +7659,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of tools matching the query
@@ -7446,6 +7744,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7548,6 +7848,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7676,6 +7978,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7727,6 +8031,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7802,6 +8108,8 @@ export class Api<
            * @format date-time
            */
           updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /**
          * Total number of users matching the query
@@ -7861,6 +8169,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -7906,6 +8216,8 @@ export class Api<
          * @format date-time
          */
         updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -8004,6 +8316,8 @@ export class Api<
         createdAt: string;
         /** ISO timestamp of last update */
         updatedAt: string;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -8085,6 +8399,8 @@ export class Api<
           createdAt: string;
           /** ISO timestamp of last update */
           updatedAt: string;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /** Total number of API keys matching the query */
         total: number;
@@ -8136,6 +8452,8 @@ export class Api<
         createdAt: string;
         /** ISO timestamp of last update */
         updatedAt: string;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -8197,6 +8515,8 @@ export class Api<
         createdAt: string;
         /** ISO timestamp of last update */
         updatedAt: string;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
       },
       void
     >({
@@ -8303,6 +8623,8 @@ export class Api<
           createdAt: string;
           /** ISO timestamp of last update */
           updatedAt: string;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
         }[];
         /** Total number of API keys matching the query */
         total: number;
