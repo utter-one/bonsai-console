@@ -26,7 +26,7 @@ export const useAuditLogsStore = defineStore('auditLogs', () => {
       pagination.value = {
         total: response.total,
         offset: response.offset,
-        limit: response.limit,
+        limit: response.limit ?? null,
       }
       return response
     } catch (err: any) {
