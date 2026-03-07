@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProvidersStore, useProjectsStore } from '@/stores'
+import { useProvidersStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import {
   X,
   Brain,
@@ -26,6 +26,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const providersStore = useProvidersStore()
 const projectsStore = useProjectsStore()
+const projectSelectionStore = useProjectSelectionStore()
 
 // Step management
 type Step = 'providers' | 'project' | 'done'
@@ -245,10 +246,11 @@ async function submitProject() {
 
   isCreatingProject.value = true
   try {
-    await projectsStore.create({
+    const newProject = await projectsStore.create({
       name: projectForm.value.name.trim(),
       description: projectForm.value.description.trim() || undefined,
     })
+    projectSelectionStore.setSelectedProjectId(newProject.id)
     projectCreated.value = true
     emit('projectCreated')
     currentStep.value = 'done'
