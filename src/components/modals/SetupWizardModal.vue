@@ -29,14 +29,16 @@ const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // Step management
-type Step = 'providers' | 'project' | 'done'
-const currentStep = ref<Step>('providers')
-const steps: Step[] = ['providers', 'project', 'done']
+type Step = 'llm' | 'asr' | 'tts' | 'project' | 'done'
+const currentStep = ref<Step>('llm')
+const steps: Step[] = ['llm', 'asr', 'tts', 'project', 'done']
 const stepIndex = computed(() => steps.indexOf(currentStep.value))
 
 function stepLabel(step: Step): string {
   switch (step) {
-    case 'providers': return 'Providers'
+    case 'llm': return 'Brains'
+    case 'asr': return 'Ears'
+    case 'tts': return 'Mouth'
     case 'project': return 'Project'
     case 'done': return 'Done'
   }
@@ -44,6 +46,23 @@ function stepLabel(step: Step): string {
 
 // Provider type
 type ProviderType = 'llm' | 'asr' | 'tts'
+
+const currentProviderType = computed<ProviderType | null>(() => {
+  if (currentStep.value === 'llm' || currentStep.value === 'asr' || currentStep.value === 'tts') {
+    return currentStep.value as ProviderType
+  }
+  return null
+})
+
+// Non-nullable alias for template bindings inside v-if="currentProviderType" blocks
+const providerType = computed(() => (currentProviderType.value ?? 'llm') as ProviderType)
+
+function nextStep() {
+  const idx = stepIndex.value
+  if (idx < steps.length - 1) {
+    currentStep.value = steps[idx + 1]!
+  }
+}
 
 // Brand definitions — apiType + credentials shape are fully described here
 
@@ -70,7 +89,7 @@ const LLM_BRANDS: BrandDef[] = [
   { brandKey: 'together',    displayName: 'Together AI',  apiType: 'openai-legacy',     baseUrl: 'https://api.together.xyz/v1',            needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://api.together.xyz/settings/api-keys',    color: '#6366f1' },
   { brandKey: 'fireworks',   displayName: 'Fireworks AI', apiType: 'openai-legacy',     baseUrl: 'https://api.fireworks.ai/inference/v1',  needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://fireworks.ai/account/api-keys',         color: '#ff6b35' },
   { brandKey: 'perplexity',  displayName: 'Perplexity',   apiType: 'openai-legacy',     baseUrl: 'https://api.perplexity.ai',             needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://perplexity.ai/settings/api',            color: '#20808d' },
-  { brandKey: 'cohere',      displayName: 'Cohere',       apiType: 'openai-legacy',     baseUrl: 'https://api.cohere.ai/v1',               needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://dashboard.cohere.com/api-keys',         color: '#d18ee2' },
+  { brandKey: 'cohere',      displayName: 'Cohere',       apiType: 'openai-legacy',     baseUrl: 'https://api.cohere.ai/compatibility/v1',               needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://dashboard.cohere.com/api-keys',         color: '#d18ee2' },
 ]
 
 const ASR_BRANDS: BrandDef[] = [
@@ -318,188 +337,183 @@ function navigateAndDismiss(name: string) {
       <!-- Scrollable content -->
       <div class="flex-1 overflow-y-auto px-6 py-5">
 
-        <!-- Step 1: Providers -->
-        <div v-if="currentStep === 'providers'">
+        <!-- Provider step (Brains / Ears / Mouth) -->
+        <div v-if="currentProviderType">
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">
-            Connect the AI services that power your projects. At minimum, an LLM provider is needed to run conversations.
+            <template v-if="currentStep === 'llm'">Connect your Language Model — the AI brain powering conversations. At least one LLM provider is required.</template>
+            <template v-else-if="currentStep === 'asr'">Optionally connect a Speech Recognition provider to enable voice input from users.</template>
+            <template v-else>Optionally connect a Text-to-Speech provider to enable spoken responses from agents.</template>
             <a href="/help/administration/providers" target="_blank" class="text-primary-600 hover:underline inline-flex items-center gap-1 ml-1">
               Providers docs <ExternalLink :size="12" />
             </a>
           </p>
 
-          <!-- Provider sections -->
-          <div class="flex flex-col gap-5">
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <!-- Section header -->
             <div
-              v-for="type in (['llm', 'asr', 'tts'] as ProviderType[])"
-              :key="type"
-              class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+              :class="[
+                'flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700',
+                providerType === 'llm' ? 'bg-primary-50 dark:bg-primary-900/10' : 'bg-gray-50 dark:bg-gray-800/50'
+              ]"
             >
-              <!-- Section header -->
-              <div
-                :class="[
-                  'flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700',
-                  type === 'llm' ? 'bg-primary-50 dark:bg-primary-900/10' : 'bg-gray-50 dark:bg-gray-800/50'
-                ]"
-              >
-                <component
-                  :is="SECTION_META[type].icon"
-                  :size="18"
-                  :class="type === 'llm' ? 'text-primary-500' : type === 'asr' ? 'text-blue-500' : 'text-purple-500'"
-                />
-                <div class="flex-1 min-w-0">
-                  <span class="font-semibold text-sm text-gray-900 dark:text-white">{{ SECTION_META[type].label }}</span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ SECTION_META[type].description }}</span>
-                </div>
-                <div v-if="addedByType(type).length > 0" class="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
-                  <Check :size="11" /> {{ addedByType(type).length }} added
+              <component
+                :is="SECTION_META[providerType].icon"
+                :size="18"
+                :class="providerType === 'llm' ? 'text-primary-500' : providerType === 'asr' ? 'text-blue-500' : 'text-purple-500'"
+              />
+              <div class="flex-1 min-w-0">
+                <span class="font-semibold text-sm text-gray-900 dark:text-white">{{ SECTION_META[providerType].label }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ SECTION_META[providerType].description }}</span>
+              </div>
+              <div v-if="addedByType(providerType).length > 0" class="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                <Check :size="11" /> {{ addedByType(providerType).length }} added
+              </div>
+            </div>
+
+            <div class="p-4 bg-white dark:bg-gray-800">
+              <!-- Already added providers -->
+              <div v-if="addedByType(providerType).length > 0" class="mb-4 flex flex-col gap-1.5">
+                <div
+                  v-for="added in addedByType(providerType)"
+                  :key="added.id"
+                  class="flex items-center justify-between rounded border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2"
+                >
+                  <div class="flex items-center gap-2">
+                    <Check :size="13" class="text-green-500 shrink-0" />
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ added.name }}</span>
+                    <span class="badge badge-secondary text-xs">{{ added.apiType }}</span>
+                  </div>
+                  <button type="button" class="btn-icon text-gray-400 hover:text-red-500" title="Remove" @click="removeProvider(added.id)">
+                    <Trash2 :size="13" />
+                  </button>
                 </div>
               </div>
 
-              <div class="p-4 bg-white dark:bg-gray-800">
-                <!-- Already added providers -->
-                <div v-if="addedByType(type).length > 0" class="mb-4 flex flex-col gap-1.5">
-                  <div
-                    v-for="added in addedByType(type)"
-                    :key="added.id"
-                    class="flex items-center justify-between rounded border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2"
-                  >
-                    <div class="flex items-center gap-2">
-                      <Check :size="13" class="text-green-500 shrink-0" />
-                      <span class="text-sm font-medium text-gray-900 dark:text-white">{{ added.name }}</span>
-                      <span class="badge badge-secondary text-xs">{{ added.apiType }}</span>
-                    </div>
-                    <button type="button" class="btn-icon text-gray-400 hover:text-red-500" title="Remove" @click="removeProvider(added.id)">
-                      <Trash2 :size="13" />
+              <!-- Brand grid -->
+              <div class="flex flex-wrap gap-2 mb-3">
+                <button
+                  v-for="brand in BRANDS_BY_TYPE[providerType]"
+                  :key="brand.brandKey"
+                  type="button"
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium transition-all',
+                    activeBrand[providerType] === brand.brandKey
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-650'
+                  ]"
+                  @click="selectBrand(providerType, brand.brandKey)"
+                >
+                  <span
+                    class="inline-flex items-center justify-center w-4 h-4 rounded text-white text-[9px] font-bold shrink-0"
+                    :style="{ backgroundColor: brand.color }"
+                  >{{ brand.displayName[0] }}</span>
+                  {{ brand.displayName }}
+                </button>
+              </div>
+
+              <!-- Inline form for selected brand -->
+              <Transition
+                enter-active-class="transition-all duration-150 ease-out"
+                enter-from-class="opacity-0 -translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition-all duration-100 ease-in"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-1"
+              >
+                <div
+                  v-if="activeFormBrand(providerType)"
+                  class="mt-1 rounded-lg border border-primary-200 dark:border-primary-800/50 bg-primary-50/50 dark:bg-primary-900/10 p-4 flex flex-col gap-3"
+                >
+                  <!-- Error -->
+                  <div v-if="sectionErrors[providerType]" class="alert-error text-sm">{{ sectionErrors[providerType] }}</div>
+
+                  <!-- Name -->
+                  <div class="form-group mb-0">
+                    <label class="form-label">Provider Name <span class="required">*</span></label>
+                    <input
+                      v-model="sectionForms[providerType].name"
+                      type="text"
+                      class="form-input"
+                      :placeholder="`e.g. ${activeFormBrand(providerType)?.displayName} ${SECTION_META[providerType].typeSuffix}`"
+                    />
+                  </div>
+
+                  <!-- API Key -->
+                  <div v-if="!activeFormBrand(providerType)?.needsSubscriptionKey" class="form-group mb-0">
+                    <label class="form-label flex items-center justify-between">
+                      <span>API Key <span class="required">*</span></span>
+                      <a
+                        v-if="activeFormBrand(providerType)?.apiKeyUrl"
+                        :href="activeFormBrand(providerType)!.apiKeyUrl!"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-xs text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        Get API key <ExternalLink :size="11" />
+                      </a>
+                    </label>
+                    <input
+                      v-model="sectionForms[providerType].apiKey"
+                      type="password"
+                      class="form-input font-mono"
+                      placeholder="sk-…"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <!-- Azure Subscription Key -->
+                  <div v-if="activeFormBrand(providerType)?.needsSubscriptionKey" class="form-group mb-0">
+                    <label class="form-label flex items-center justify-between">
+                      <span>Subscription Key <span class="required">*</span></span>
+                      <a
+                        href="https://portal.azure.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-xs text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        Azure Portal <ExternalLink :size="11" />
+                      </a>
+                    </label>
+                    <input v-model="sectionForms[providerType].subscriptionKey" type="password" class="form-input font-mono" autocomplete="off" />
+                  </div>
+
+                  <!-- Region -->
+                  <div v-if="activeFormBrand(providerType)?.needsRegion" class="form-group mb-0">
+                    <label class="form-label">Region <span class="required">*</span></label>
+                    <input
+                      v-model="sectionForms[providerType].region"
+                      type="text"
+                      class="form-input"
+                      placeholder="e.g. us, eu, eastus"
+                    />
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      class="btn-primary py-1.5 px-4 text-sm inline-flex items-center gap-1.5"
+                      :disabled="isCreatingProvider"
+                      @click="submitProvider(providerType)"
+                    >
+                      <Check :size="14" />
+                      {{ isCreatingProvider ? 'Adding…' : 'Add Provider' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-secondary py-1.5 px-3 text-sm"
+                      @click="activeBrand[providerType] = null"
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
-
-                <!-- Brand grid -->
-                <div class="flex flex-wrap gap-2 mb-3">
-                  <button
-                    v-for="brand in BRANDS_BY_TYPE[type]"
-                    :key="brand.brandKey"
-                    type="button"
-                    :class="[
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium transition-all',
-                      activeBrand[type] === brand.brandKey
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 shadow-sm'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-650'
-                    ]"
-                    @click="selectBrand(type, brand.brandKey)"
-                  >
-                    <span
-                      class="inline-flex items-center justify-center w-4 h-4 rounded text-white text-[9px] font-bold shrink-0"
-                      :style="{ backgroundColor: brand.color }"
-                    >{{ brand.displayName[0] }}</span>
-                    {{ brand.displayName }}
-                  </button>
-                </div>
-
-                <!-- Inline form for selected brand -->
-                <Transition
-                  enter-active-class="transition-all duration-150 ease-out"
-                  enter-from-class="opacity-0 -translate-y-1"
-                  enter-to-class="opacity-100 translate-y-0"
-                  leave-active-class="transition-all duration-100 ease-in"
-                  leave-from-class="opacity-100 translate-y-0"
-                  leave-to-class="opacity-0 -translate-y-1"
-                >
-                  <div
-                    v-if="activeFormBrand(type)"
-                    class="mt-1 rounded-lg border border-primary-200 dark:border-primary-800/50 bg-primary-50/50 dark:bg-primary-900/10 p-4 flex flex-col gap-3"
-                  >
-                    <!-- Error -->
-                    <div v-if="sectionErrors[type]" class="alert-error text-sm">{{ sectionErrors[type] }}</div>
-
-                    <!-- Name -->
-                    <div class="form-group mb-0">
-                      <label class="form-label">Provider Name <span class="required">*</span></label>
-                      <input
-                        v-model="sectionForms[type].name"
-                        type="text"
-                        class="form-input"
-                        :placeholder="`e.g. ${activeFormBrand(type)?.displayName} ${SECTION_META[type].typeSuffix}`"
-                      />
-                    </div>
-
-                    <!-- API Key -->
-                    <div v-if="!activeFormBrand(type)?.needsSubscriptionKey" class="form-group mb-0">
-                      <label class="form-label flex items-center justify-between">
-                        <span>API Key <span class="required">*</span></span>
-                        <a
-                          v-if="activeFormBrand(type)?.apiKeyUrl"
-                          :href="activeFormBrand(type)!.apiKeyUrl!"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="text-xs text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
-                        >
-                          Get API key <ExternalLink :size="11" />
-                        </a>
-                      </label>
-                      <input
-                        v-model="sectionForms[type].apiKey"
-                        type="password"
-                        class="form-input font-mono"
-                        placeholder="sk-…"
-                        autocomplete="off"
-                      />
-                    </div>
-
-                    <!-- Azure Subscription Key -->
-                    <div v-if="activeFormBrand(type)?.needsSubscriptionKey" class="form-group mb-0">
-                      <label class="form-label flex items-center justify-between">
-                        <span>Subscription Key <span class="required">*</span></span>
-                        <a
-                          href="https://portal.azure.com"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="text-xs text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
-                        >
-                          Azure Portal <ExternalLink :size="11" />
-                        </a>
-                      </label>
-                      <input v-model="sectionForms[type].subscriptionKey" type="password" class="form-input font-mono" autocomplete="off" />
-                    </div>
-
-                    <!-- Region -->
-                    <div v-if="activeFormBrand(type)?.needsRegion" class="form-group mb-0">
-                      <label class="form-label">Region <span class="required">*</span></label>
-                      <input
-                        v-model="sectionForms[type].region"
-                        type="text"
-                        class="form-input"
-                        placeholder="e.g. us, eu, eastus"
-                      />
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex items-center gap-2 pt-1">
-                      <button
-                        type="button"
-                        class="btn-primary py-1.5 px-4 text-sm inline-flex items-center gap-1.5"
-                        :disabled="isCreatingProvider"
-                        @click="submitProvider(type)"
-                      >
-                        <Check :size="14" />
-                        {{ isCreatingProvider ? 'Adding…' : 'Add Provider' }}
-                      </button>
-                      <button
-                        type="button"
-                        class="btn-secondary py-1.5 px-3 text-sm"
-                        @click="activeBrand[type] = null"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </Transition>
-              </div>
+              </Transition>
             </div>
           </div>
 
           <!-- LLM advisory -->
-          <div v-if="!hasLlmProvider" class="flex items-start gap-2 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-300">
+          <div v-if="currentStep === 'llm' && !hasLlmProvider" class="flex items-start gap-2 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-300">
             <AlertTriangle :size="16" class="shrink-0 mt-0.5" />
             <span>An LLM provider is required for conversations to work. You can add one now or skip and do it later.</span>
           </div>
@@ -586,19 +600,19 @@ function navigateAndDismiss(name: string) {
       <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between gap-3">
         <div>
           <button
-            v-if="currentStep === 'providers' || currentStep === 'project'"
+            v-if="currentStep !== 'done'"
             type="button"
             class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            @click="currentStep === 'providers' ? (currentStep = 'project') : (currentStep = 'done')"
+            @click="nextStep"
           >
             Skip this step
           </button>
         </div>
         <div class="flex items-center gap-2">
           <button
-            v-if="currentStep === 'providers'"
+            v-if="currentProviderType"
             class="btn-primary inline-flex items-center gap-2"
-            @click="currentStep = 'project'"
+            @click="nextStep"
           >
             Continue <ArrowRight :size="16" />
           </button>
