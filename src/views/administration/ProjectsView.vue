@@ -175,7 +175,13 @@ function formatDate(date: string | null) {
         <BriefcaseBusiness class="empty-state-icon" />
         <p class="empty-state-title">No projects found</p>
         <p v-if="searchQuery">Try adjusting your search criteria</p>
-        <p v-else>Create your first project to get started</p>
+        <template v-else>
+          <p>Create a project to start designing your AI experience</p>
+          <button class="btn-primary mt-4" :disabled="showArchived" @click="createProject">
+            <Plus class="inline-block mr-2 w-4 h-4" />
+            Create your first project
+          </button>
+        </template>
       </div>
 
       <!-- Table -->

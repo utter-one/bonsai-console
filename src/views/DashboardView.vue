@@ -7,6 +7,7 @@ import {
   useProjectSelectionStore,
 } from '@/stores'
 import apiClient from '@/api/client'
+import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
   BriefcaseBusiness,
   Users,
@@ -18,6 +19,7 @@ import {
   Activity,
   ChevronRight,
   FolderOpen,
+  Sparkles,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -49,10 +51,15 @@ const ACTIVE_STATUSES = [
   'generating_response',
 ]
 
+const showWizard = ref(false)
+
 async function loadGlobalStats() {
   isLoadingGlobal.value = true
   try {
     await projectsStore.fetchCount()
+    if ((projectsStore.count ?? 0) === 0 && localStorage.getItem('bonsai_wizard_dismissed') !== 'true') {
+      showWizard.value = true
+    }
   } catch (error) {
     console.error('Failed to load global stats:', error)
   } finally {
@@ -191,9 +198,25 @@ function getActionBadgeClass(action: string): string {
 
 <template>
   <div class="container-constrained mx-auto">
-    <div class="mb-8">
-      <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-      <p class="m-0 text-base text-gray-600 dark:text-gray-400">Platform health and recent activity overview</p>
+    <SetupWizardModal
+      v-if="showWizard"
+      @close="showWizard = false"
+      @project-created="loadGlobalStats"
+    />
+
+    <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p class="m-0 text-base text-gray-600 dark:text-gray-400">Platform health and recent activity overview</p>
+      </div>
+      <button
+        v-if="!isLoadingGlobal && (projectsStore.count ?? 0) === 0"
+        class="btn-secondary flex items-center gap-2 self-start mt-1"
+        @click="showWizard = true"
+      >
+        <Sparkles :size="16" />
+        Setup Guide
+      </button>
     </div>
 
     <!-- Global Stat Tiles -->

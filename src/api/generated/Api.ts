@@ -612,7 +612,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Creates the first operator account with super_operator role. This endpoint only works when no operator accounts exist. Returns operator details and authentication tokens for immediate login.
+   * @description Creates the first operator account with super_admin role. This endpoint only works when no operator accounts exist. Returns operator details and authentication tokens for immediate login.
    *
    * @tags Setup
    * @name SetupInitialOperatorCreate
