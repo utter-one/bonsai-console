@@ -150,7 +150,13 @@ function getProviderTypeBadgeClass(type: string) {
         <CloudCog class="empty-state-icon" />
         <p class="empty-state-title">No providers found</p>
         <p v-if="searchQuery">Try adjusting your search criteria</p>
-        <p v-else>Create your first provider to get started</p>
+        <template v-else>
+          <p>Connect an AI service to power your projects</p>
+          <button class="btn-primary mt-4" @click="createProvider">
+            <Plus class="inline-block mr-2 w-4 h-4" />
+            Create your first provider
+          </button>
+        </template>
       </div>
 
       <!-- Table -->
