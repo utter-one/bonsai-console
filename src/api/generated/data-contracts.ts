@@ -51,9 +51,10 @@ export interface ListParams {
    */
   offset?: number | null;
   /**
-   * Maximum number of items to return (optional, null for no limit)
+   * Maximum number of items to return. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
    */
   limit?: number | null;
   /** Full-text search query string (optional) */
@@ -106,9 +107,10 @@ export interface ListProjectsQuery {
    */
   offset?: number | null;
   /**
-   * Maximum number of items to return (optional, null for no limit)
+   * Maximum number of items to return. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
    */
   limit?: number | null;
   /** Full-text search query string (optional) */
@@ -1217,11 +1219,13 @@ export interface OperatorListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface UpdateProfileRequest {
@@ -1334,11 +1338,13 @@ export interface UserListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateProjectRequest {
@@ -1817,11 +1823,13 @@ export interface AgentListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface LoginRequest {
@@ -1846,9 +1854,9 @@ export interface RefreshTokenRequest {
 }
 
 export interface LoginResponse {
-  /** JWT access token (expires in 15 minutes) */
+  /** JWT access token */
   accessToken: string;
-  /** JWT refresh token (expires in 7 days) */
+  /** JWT refresh token */
   refreshToken: string;
   /**
    * Access token expiry time in seconds
@@ -2113,11 +2121,13 @@ export interface KnowledgeCategoryListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateKnowledgeItemRequest {
@@ -2254,11 +2264,13 @@ export interface KnowledgeItemListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateIssueRequest {
@@ -2453,11 +2465,13 @@ export interface IssueListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface ConversationResponse {
@@ -2538,11 +2552,13 @@ export interface ConversationListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface ConversationEventResponse {
@@ -2851,11 +2867,13 @@ export interface ConversationEventListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateStageRequest {
@@ -3128,11 +3146,13 @@ export interface StageListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateClassifierRequest {
@@ -3298,11 +3318,13 @@ export interface ClassifierListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateContextTransformerRequest {
@@ -3476,11 +3498,13 @@ export interface ContextTransformerListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateToolRequest {
@@ -3675,11 +3699,13 @@ export interface ToolListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateGlobalActionRequest {
@@ -3863,11 +3889,13 @@ export interface GlobalActionListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateEnvironmentRequest {
@@ -3992,11 +4020,13 @@ export interface EnvironmentListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateProviderRequest {
@@ -4403,11 +4433,13 @@ export interface ProviderListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface AsrModelInfo {
@@ -4701,11 +4733,13 @@ export interface AuditLogListResponse {
    */
   offset: number;
   /**
-   * Maximum number of items per page (null if no limit)
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
    * @min 0
    * @exclusiveMin true
+   * @max 1000
+   * @default 100
    */
-  limit: number | null;
+  limit?: number | null;
 }
 
 export interface CreateApiKeyRequest {
