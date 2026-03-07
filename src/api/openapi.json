@@ -28,7 +28,8 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items to return (optional, null for no limit)"
+            "maximum": 1000,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
           },
           "textSearch": {
             "type": "string",
@@ -196,7 +197,8 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items to return (optional, null for no limit)"
+            "maximum": 1000,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
           },
           "textSearch": {
             "type": "string",
@@ -2353,14 +2355,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "UpdateProfileRequest": {
@@ -2574,14 +2577,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateProjectRequest": {
@@ -3723,14 +3727,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "LoginRequest": {
@@ -3770,11 +3775,11 @@
         "properties": {
           "accessToken": {
             "type": "string",
-            "description": "JWT access token (expires in 15 minutes)"
+            "description": "JWT access token"
           },
           "refreshToken": {
             "type": "string",
-            "description": "JWT refresh token (expires in 7 days)"
+            "description": "JWT refresh token"
           },
           "expiresIn": {
             "type": "integer",
@@ -4292,14 +4297,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateKnowledgeItemRequest": {
@@ -4525,14 +4531,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateIssueRequest": {
@@ -4881,14 +4888,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "ConversationResponse": {
@@ -5077,14 +5085,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "ConversationEventResponse": {
@@ -6147,14 +6156,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateStageRequest": {
@@ -6769,14 +6779,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateClassifierRequest": {
@@ -7130,14 +7141,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateContextTransformerRequest": {
@@ -7523,14 +7535,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateToolRequest": {
@@ -8011,14 +8024,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateGlobalActionRequest": {
@@ -8441,14 +8455,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateEnvironmentRequest": {
@@ -8647,14 +8662,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateProviderRequest": {
@@ -9931,14 +9947,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "AsrModelInfo": {
@@ -10737,14 +10754,15 @@
             "nullable": true,
             "minimum": 0,
             "exclusiveMinimum": true,
-            "description": "Maximum number of items per page (null if no limit)"
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
           }
         },
         "required": [
           "items",
           "total",
-          "offset",
-          "limit"
+          "offset"
         ]
       },
       "CreateApiKeyRequest": {
@@ -11619,10 +11637,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -11807,14 +11826,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -12349,11 +12369,11 @@
                   "properties": {
                     "accessToken": {
                       "type": "string",
-                      "description": "JWT access token (expires in 15 minutes)"
+                      "description": "JWT access token"
                     },
                     "refreshToken": {
                       "type": "string",
-                      "description": "JWT refresh token (expires in 7 days)"
+                      "description": "JWT refresh token"
                     },
                     "expiresIn": {
                       "type": "integer",
@@ -12964,10 +12984,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -14274,10 +14295,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -14480,14 +14502,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -14717,10 +14740,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -14953,14 +14977,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -15826,10 +15851,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -16071,14 +16097,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -16938,10 +16965,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -17157,14 +17185,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -17224,10 +17253,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -17880,14 +17910,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -18729,10 +18760,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -18989,14 +19021,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -19600,10 +19633,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -19797,14 +19831,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -20486,10 +20521,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -20737,14 +20773,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -22122,10 +22159,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -22582,14 +22620,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -24470,10 +24509,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -24653,14 +24693,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -25625,10 +25666,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -25877,14 +25919,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -26808,10 +26851,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -27040,14 +27084,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -27783,10 +27828,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -28089,14 +28135,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -29285,10 +29332,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -29549,14 +29597,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -30460,10 +30509,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -30640,14 +30690,15 @@
                       "nullable": true,
                       "minimum": 0,
                       "exclusiveMinimum": true,
-                      "description": "Maximum number of items per page (null if no limit)"
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
                     }
                   },
                   "required": [
                     "items",
                     "total",
-                    "offset",
-                    "limit"
+                    "offset"
                   ]
                 }
               }
@@ -31077,10 +31128,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },
@@ -31626,10 +31678,11 @@
               "nullable": true,
               "minimum": 0,
               "exclusiveMinimum": true,
-              "description": "Maximum number of items to return (optional, null for no limit)"
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
             },
             "required": false,
-            "description": "Maximum number of items to return (optional, null for no limit)",
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
             "name": "limit",
             "in": "query"
           },

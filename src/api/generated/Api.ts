@@ -151,9 +151,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -212,11 +213,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -519,9 +522,9 @@ export class Api<
   ) =>
     this.request<
       {
-        /** JWT access token (expires in 15 minutes) */
+        /** JWT access token */
         accessToken: string;
-        /** JWT refresh token (expires in 7 days) */
+        /** JWT refresh token */
         refreshToken: string;
         /**
          * Access token expiry time in seconds
@@ -853,9 +856,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -1398,9 +1402,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -1462,11 +1467,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -1591,9 +1598,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -1668,11 +1676,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -2079,9 +2089,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -2158,11 +2169,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -2553,9 +2566,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -2624,11 +2638,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -2659,9 +2675,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -2844,11 +2861,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -3171,9 +3190,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -3265,11 +3285,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -3589,9 +3611,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -3656,11 +3679,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -4003,9 +4028,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -4083,11 +4109,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -4620,9 +4648,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -4757,11 +4786,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -5511,9 +5542,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -5572,11 +5604,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -5995,9 +6029,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -6076,11 +6111,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -6516,9 +6553,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -6595,11 +6633,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -6987,9 +7027,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -7084,11 +7125,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -7590,9 +7633,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -7673,11 +7717,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -8063,9 +8109,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -8122,11 +8169,13 @@ export class Api<
          */
         offset: number;
         /**
-         * Maximum number of items per page (null if no limit)
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
          * @min 0
          * @exclusiveMin true
+         * @max 1000
+         * @default 100
          */
-        limit: number | null;
+        limit?: number | null;
       },
       void
     >({
@@ -8348,9 +8397,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
@@ -8572,9 +8622,10 @@ export class Api<
        */
       offset?: number | null;
       /**
-       * Maximum number of items to return (optional, null for no limit)
+       * Maximum number of items to return. Defaults to 100; maximum 1000
        * @min 0
        * @exclusiveMin true
+       * @max 1000
        */
       limit?: number | null;
       /** Full-text search query string (optional) */
