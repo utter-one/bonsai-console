@@ -75,7 +75,7 @@ const providerPresets: ProviderPreset[] = [
   {
     name: 'cohere',
     displayName: 'Cohere',
-    baseUrl: 'https://api.cohere.ai/v1',
+    baseUrl: 'https://api.cohere.ai/compatibility/v1',
     urlPattern: /cohere\.ai/i,
     icon: 'C',
     color: '#d18ee2'

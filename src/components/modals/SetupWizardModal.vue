@@ -89,7 +89,7 @@ const LLM_BRANDS: BrandDef[] = [
   { brandKey: 'together',    displayName: 'Together AI',  apiType: 'openai-legacy',     baseUrl: 'https://api.together.xyz/v1',            needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://api.together.xyz/settings/api-keys',    color: '#6366f1' },
   { brandKey: 'fireworks',   displayName: 'Fireworks AI', apiType: 'openai-legacy',     baseUrl: 'https://api.fireworks.ai/inference/v1',  needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://fireworks.ai/account/api-keys',         color: '#ff6b35' },
   { brandKey: 'perplexity',  displayName: 'Perplexity',   apiType: 'openai-legacy',     baseUrl: 'https://api.perplexity.ai',             needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://perplexity.ai/settings/api',            color: '#20808d' },
-  { brandKey: 'cohere',      displayName: 'Cohere',       apiType: 'openai-legacy',     baseUrl: 'https://api.cohere.ai/v1',               needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://dashboard.cohere.com/api-keys',         color: '#d18ee2' },
+  { brandKey: 'cohere',      displayName: 'Cohere',       apiType: 'openai-legacy',     baseUrl: 'https://api.cohere.ai/compatibility/v1',               needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://dashboard.cohere.com/api-keys',         color: '#d18ee2' },
 ]
 
 const ASR_BRANDS: BrandDef[] = [
