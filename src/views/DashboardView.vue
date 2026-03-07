@@ -300,17 +300,17 @@ function getActionBadgeClass(action: string): string {
         <div v-else-if="conversationsError" class="alert-error">{{ conversationsError }}</div>
 
         <div v-else class="grid grid-cols-3 gap-3">
-          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-8 text-center">
+          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-8 text-center">
             <Activity class="mx-auto mb-3 text-blue-500" :size="28" />
             <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
             <div class="text-xs text-blue-600 dark:text-blue-400 mt-2">Active</div>
           </div>
-          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 p-8 text-center">
+          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 p-8 text-center">
             <CheckCircle class="mx-auto mb-3 text-green-500" :size="28" />
             <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
             <div class="text-xs text-green-600 dark:text-green-400 mt-2">Finished</div>
           </div>
-          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-8 text-center">
+          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 p-8 text-center">
             <XCircle class="mx-auto mb-3 text-red-500" :size="28" />
             <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
             <div class="text-xs text-red-600 dark:text-red-400 mt-2">Failed / Aborted</div>
@@ -350,15 +350,15 @@ function getActionBadgeClass(action: string): string {
         <div v-else-if="issuesError" class="alert-error">{{ issuesError }}</div>
 
         <div v-else class="flex flex-col gap-3">
-          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-900">
             <span class="text-sm font-medium text-red-700 dark:text-red-300">Critical</span>
             <span class="text-lg font-bold text-red-700 dark:text-red-300">{{ formatCount(issueCounts.critical) }}</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-900">
             <span class="text-sm font-medium text-orange-700 dark:text-orange-300">Major</span>
             <span class="text-lg font-bold text-orange-700 dark:text-orange-300">{{ formatCount(issueCounts.major) }}</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-900">
             <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Minor</span>
             <span class="text-lg font-bold text-blue-700 dark:text-blue-300">{{ formatCount(issueCounts.minor) }}</span>
           </div>
