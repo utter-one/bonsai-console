@@ -11,6 +11,7 @@
  */
 
 import {
+  AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   AsrConfig,
   AsrModelInfo,
@@ -3944,7 +3945,8 @@ export class Api<
         | OpenAiTtsSettings
         | DeepgramTtsSettings
         | CartesiaTtsSettings
-        | AzureTtsSettings;
+        | AzureTtsSettings
+        | AmazonPollyTtsSettings;
       /**
        * Tags for categorizing and filtering this agent
        * @default []
@@ -3977,7 +3979,8 @@ export class Api<
           | OpenAiTtsSettings
           | DeepgramTtsSettings
           | CartesiaTtsSettings
-          | AzureTtsSettings;
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -4076,7 +4079,8 @@ export class Api<
             | OpenAiTtsSettings
             | DeepgramTtsSettings
             | CartesiaTtsSettings
-            | AzureTtsSettings;
+            | AzureTtsSettings
+            | AmazonPollyTtsSettings;
           /** Tags for categorizing and filtering this agent */
           tags: string[];
           /** Additional agent-specific metadata */
@@ -4160,7 +4164,8 @@ export class Api<
           | OpenAiTtsSettings
           | DeepgramTtsSettings
           | CartesiaTtsSettings
-          | AzureTtsSettings;
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -4223,7 +4228,8 @@ export class Api<
         | OpenAiTtsSettings
         | DeepgramTtsSettings
         | CartesiaTtsSettings
-        | AzureTtsSettings;
+        | AzureTtsSettings
+        | AmazonPollyTtsSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -4258,7 +4264,8 @@ export class Api<
           | OpenAiTtsSettings
           | DeepgramTtsSettings
           | CartesiaTtsSettings
-          | AzureTtsSettings;
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -4385,7 +4392,8 @@ export class Api<
           | OpenAiTtsSettings
           | DeepgramTtsSettings
           | CartesiaTtsSettings
-          | AzureTtsSettings;
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */

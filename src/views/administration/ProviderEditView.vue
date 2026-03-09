@@ -253,6 +253,9 @@ const showAzureASRFields = computed(() =>
 const showAzureTtsFields = computed(() => 
   form.value.apiType === 'azure' && form.value.providerType === 'tts'
 )
+const showAmazonPollyTtsFields = computed(() =>
+  form.value.apiType === 'amazon-polly' && form.value.providerType === 'tts'
+)
 
 // Storage provider config fields
 const showS3Fields = computed(() => 
@@ -419,6 +422,12 @@ async function handleSubmit() {
       region: form.value.config.region,
       subscriptionKey: form.value.config.subscriptionKey
     }
+  } else if (showAmazonPollyTtsFields.value) {
+    config = {
+      accessKeyId: form.value.config.accessKeyId,
+      secretAccessKey: form.value.config.secretAccessKey,
+      region: form.value.config.region
+    }
   } else if (showS3Fields.value) {
     config = {
       accessKeyId: form.value.config.accessKeyId,
@@ -469,6 +478,11 @@ async function handleSubmit() {
       error.value = 'Region and Subscription Key are required for Azure Speech'
       return
     }
+  } else if (showAmazonPollyTtsFields.value) {
+    if (!config.accessKeyId || !config.secretAccessKey || !config.region) {
+      error.value = 'Access Key ID, Secret Access Key, and Region are required for Amazon Polly'
+      return
+    }
   } else if (showS3Fields.value) {
     if (!config.accessKeyId || !config.secretAccessKey || !config.region) {
       error.value = 'Access Key ID, Secret Access Key, and Region are required for S3'
@@ -489,7 +503,7 @@ async function handleSubmit() {
       error.value = 'Base Path is required for Local Storage'
       return
     }
-  } else if (!showAzureASRFields.value && !showS3Fields.value && !showAzureBlobFields.value && !showGcsFields.value && !showLocalStorageFields.value) {
+  } else if (!showAzureASRFields.value && !showS3Fields.value && !showAzureBlobFields.value && !showGcsFields.value && !showLocalStorageFields.value && !showAmazonPollyTtsFields.value) {
     if (!config.apiKey) {
       error.value = 'API Key is required'
       return
@@ -1103,6 +1117,62 @@ const metadataFields = computed(() => {
               />
               <p class="form-help-text">
                 Your Azure Speech service subscription key
+              </p>
+            </div>
+          </template>
+
+          <!-- Amazon Polly TTS Configuration -->
+          <template v-if="showAmazonPollyTtsFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Amazon Polly Configuration</h3>
+
+            <div class="form-group">
+              <label class="form-label">
+                AWS Access Key ID <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.accessKeyId"
+                type="text"
+                required
+                placeholder="AKIA..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your AWS Access Key ID with Polly permissions
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                AWS Secret Access Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.secretAccessKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your AWS Secret Access Key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                AWS Region <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.region"
+                type="text"
+                required
+                placeholder="us-east-1"
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                AWS region where Amazon Polly is used (e.g., us-east-1, eu-west-1)
               </p>
             </div>
           </template>

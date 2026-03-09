@@ -4,9 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Plus, X, Check, Settings, FlaskConical } from 'lucide-vue-next'
-import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | AmazonPollyTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
@@ -88,8 +88,9 @@ const isOpenAI = computed(() => selectedProviderApiType.value === 'openai')
 const isDeepgram = computed(() => selectedProviderApiType.value === 'deepgram')
 const isCartesia = computed(() => selectedProviderApiType.value === 'cartesia')
 const isAzure = computed(() => selectedProviderApiType.value === 'azure')
+const isAmazonPolly = computed(() => selectedProviderApiType.value === 'amazon-polly')
 
-const isModelSelected = computed(() => !!form.value.ttsSettings.model)
+const isModelSelected = computed(() => !!(form.value.ttsSettings as any).model || (isAmazonPolly.value && !!(form.value.ttsSettings as AmazonPollyTtsSettings).engine))
 
 const availableModels = computed(() => 
   selectedProviderCatalogInfo.value?.models || []
@@ -99,7 +100,7 @@ const availableVoices = computed(() => {
   if (!selectedProviderCatalogInfo.value) return []
   
   // If a model is selected, check for model-specific voices first
-  const modelId = (form.value.ttsSettings as any).model
+  const modelId = (form.value.ttsSettings as any).model || (isAmazonPolly.value ? (form.value.ttsSettings as AmazonPollyTtsSettings).engine : undefined)
   if (modelId) {
     const selectedModel = selectedProviderCatalogInfo.value.models.find(
       m => m.id === modelId
@@ -123,7 +124,7 @@ const availableAudioFormats = computed(() => {
   if (!selectedProviderCatalogInfo.value) return []
   
   // Get formats from the selected model
-  const modelId = (form.value.ttsSettings as any).model
+  const modelId = (form.value.ttsSettings as any).model || (isAmazonPolly.value ? (form.value.ttsSettings as AmazonPollyTtsSettings).engine : undefined)
   if (modelId) {
     const selectedModel = selectedProviderCatalogInfo.value.models.find(
       m => m.id === modelId
@@ -140,9 +141,19 @@ const availableAudioFormats = computed(() => {
 })
 
 // Computed properties for select bindings to handle undefined values
-const modelValue = computed({  get: () => (form.value.ttsSettings as any).model ?? '',
+const modelValue = computed({
+  get: () => {
+    const settings = form.value.ttsSettings as any
+    if (isAmazonPolly.value) {
+      return settings.model ?? (settings as AmazonPollyTtsSettings).engine ?? ''
+    }
+    return settings.model ?? ''
+  },
   set: (value) => {
-    form.value.ttsSettings.model = value
+    (form.value.ttsSettings as any).model = value
+    if (isAmazonPolly.value) {
+      (form.value.ttsSettings as AmazonPollyTtsSettings).engine = value as AmazonPollyTtsSettings['engine']
+    }
   }
 })
 
@@ -244,6 +255,15 @@ function handleTtsProviderChange() {
         removeExclamationMarks: false
       }
       break;
+    case 'amazon-polly':
+      form.value.ttsSettings = {
+        provider: 'amazon-polly',
+        voiceId: '',
+        noSpeechMarkers: [],
+        removeExclamationMarks: false,
+        useSentenceSplitter: false
+      }
+      break;
     default:
       form.value.ttsSettings = {} as TtsSettings
   }
@@ -319,7 +339,7 @@ async function handleSubmit() {
 
   // Validate required TTS fields when provider is selected
   if (form.value.ttsProviderId) {
-    if (!form.value.ttsSettings.model) {
+    if (!(form.value.ttsSettings as any).model && !isAmazonPolly.value) {
       error.value = 'Model is required when TTS provider is selected'
       isLoading.value = false
       activeTab.value = 'voice'
@@ -634,10 +654,10 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             </p>
           </div>
 
-          <!-- Model -->
+          <!-- Model / Engine -->
           <div v-if="form.ttsProviderId" class="form-group">
             <label class="form-label">
-              Model <span class="required">*</span>
+              {{ isAmazonPolly ? 'Engine' : 'Model' }} <span class="required">*</span>
             </label>
             <select
               v-if="availableModels.length > 0"
@@ -661,9 +681,11 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               required
             />
             <p class="form-help-text">
-              {{ availableModels.length > 0 
-                ? 'Select a model for speech synthesis'
-                : 'Model ID to use for speech synthesis' 
+              {{ isAmazonPolly
+                ? 'Select a Polly engine. Each engine has its own set of available voices.'
+                : (availableModels.length > 0
+                  ? 'Select a model for speech synthesis'
+                  : 'Model ID to use for speech synthesis')
               }}
             </p>
           </div>
@@ -709,6 +731,16 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 : 'Please select a model before choosing a voice'
               }}
             </p>
+            <template v-if="isAmazonPolly && availableVoices.length > 0">
+              <p class="form-help-text mt-1">
+                * This voice is bilingual. For more information, see
+                <a href="https://docs.aws.amazon.com/polly/latest/dg/bilingual-voices.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Bilingual voices</a>.
+              </p>
+              <p class="form-help-text mt-1">
+                ** These voices can be used with Newscaster speaking styles when used with the Neural format. For more information, see
+                <a href="https://docs.aws.amazon.com/polly/latest/dg/ntts-newscaster-style.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Applying the newscaster voice</a>.
+              </p>
+            </template>
           </div>
 
           <!-- Audio Format -->
@@ -1080,6 +1112,28 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               />
               <p class="form-help-text">
                 WebSocket inactivity timeout in seconds (defaults to 180)
+              </p>
+            </div>
+          </div>
+
+          <!-- Voice Settings Section (Amazon Polly) -->
+          <div v-if="form.ttsProviderId && isAmazonPolly" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Amazon Polly)</h3>
+
+            <!-- Language Code -->
+            <div class="form-group">
+              <label class="form-label">
+                Language Code <span class="text-gray-500">(optional)</span>
+              </label>
+              <input
+                v-model="(form.ttsSettings as AmazonPollyTtsSettings).languageCode"
+                type="text"
+                placeholder="e.g., en-US, en-GB, es-ES"
+                class="form-input"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                BCP-47 language code override. By default inferred from the selected voice.
               </p>
             </div>
           </div>
