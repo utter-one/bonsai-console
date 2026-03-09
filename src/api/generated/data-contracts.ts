@@ -485,6 +485,28 @@ export interface AzureTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface AmazonPollyTtsSettings {
+  /** TTS provider type identifier */
+  provider: "amazon-polly";
+  /** Voice ID to use for speech synthesis (e.g., "Joanna", "Matthew", "Amy"). Defaults to "Joanna" */
+  voiceId?: string;
+  /** Polly engine to use. "neural" provides higher quality, "long-form" supports longer texts, "generative" provides most natural speech. Defaults to "neural" */
+  engine?: "standard" | "neural" | "long-form" | "generative";
+  /** BCP-47 language code (e.g., "en-US", "en-GB", "es-ES"). By default inferred from the selected voice */
+  languageCode?: string;
+  /** Preferred audio output format. "mp3" for compressed audio, "pcm_8000" or "pcm_16000" for raw PCM. Defaults to "pcm_16000" */
+  audioFormat?: "mp3" | "pcm_8000" | "pcm_16000";
+  /** Whether to split text into sentences and synthesize each individually. Defaults to false (full text is synthesized when end() is called) */
+  useSentenceSplitter?: boolean;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    start: string;
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -1672,7 +1694,8 @@ export interface CreateAgentRequest {
     | OpenAiTtsSettings
     | DeepgramTtsSettings
     | CartesiaTtsSettings
-    | AzureTtsSettings;
+    | AzureTtsSettings
+    | AmazonPollyTtsSettings;
   /**
    * Tags for categorizing and filtering this agent
    * @default []
@@ -1705,7 +1728,8 @@ export interface UpdateAgentRequest {
     | OpenAiTtsSettings
     | DeepgramTtsSettings
     | CartesiaTtsSettings
-    | AzureTtsSettings;
+    | AzureTtsSettings
+    | AmazonPollyTtsSettings;
   /** Updated tags */
   tags?: string[];
   /** Updated metadata */
@@ -1746,7 +1770,8 @@ export interface AgentResponse {
     | OpenAiTtsSettings
     | DeepgramTtsSettings
     | CartesiaTtsSettings
-    | AzureTtsSettings;
+    | AzureTtsSettings
+    | AmazonPollyTtsSettings;
   /** Tags for categorizing and filtering this agent */
   tags: string[];
   /** Additional agent-specific metadata */
@@ -1790,7 +1815,8 @@ export interface AgentListResponse {
       | OpenAiTtsSettings
       | DeepgramTtsSettings
       | CartesiaTtsSettings
-      | AzureTtsSettings;
+      | AzureTtsSettings
+      | AmazonPollyTtsSettings;
     /** Tags for categorizing and filtering this agent */
     tags: string[];
     /** Additional agent-specific metadata */
