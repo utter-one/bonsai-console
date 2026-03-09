@@ -131,6 +131,7 @@ export function useAudioPlayback() {
 
       // Check if all buffers have finished playing
       if (scheduledSources.length === 0 && lastScheduledBufferIndex >= audioBuffers.value.length - 1) {
+        stopTimeTracking()
         state.value.playing = false
         state.value.currentTime = 0
         lastScheduledBufferIndex = -1
@@ -166,7 +167,7 @@ export function useAudioPlayback() {
   async function addChunk(chunk: AudioChunk) {
     try {
       state.value.error = null
-      
+
       // Skip processing if audio data is empty (e.g., in final messages with isFinal: true)
       if (!chunk.audioData || chunk.audioData.trim() === '') {
         // Add to queue for tracking but don't decode or create buffer
@@ -174,7 +175,7 @@ export function useAudioPlayback() {
         chunkQueue.value.sort((a, b) => a.ordinal - b.ordinal)
         return
       }
-      
+
       state.value.buffering = true
 
       // Add to queue in order
@@ -272,15 +273,18 @@ export function useAudioPlayback() {
         scheduleAllBuffers()
         startTimeTracking()
       } else if (!state.value.playing) {
-        // Start fresh from the current stream's start index
+        // Start fresh from the current stream's start index.
+        // If streamStartIndex is past all existing buffers (e.g. after natural playback end),
+        // fall back to 0 so the user can replay the audio from the beginning.
+        const startFrom = streamStartIndex < audioBuffers.value.length ? streamStartIndex : 0
         state.value.playing = true
         state.value.paused = false
         state.value.currentTime = 0
 
-        // Schedule buffers from the current stream start
+        // Schedule buffers from the determined start position
         nextScheduledTime = ctx.currentTime + 0.1 // Small buffer to prevent immediate playback issues
         playbackStartTime = nextScheduledTime
-        lastScheduledBufferIndex = streamStartIndex - 1
+        lastScheduledBufferIndex = startFrom - 1
         scheduleAllBuffers()
         startTimeTracking()
       }
