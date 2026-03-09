@@ -337,6 +337,19 @@
                 <Settings :size="20" />
               </button>
 
+              <!-- Audio Enhancement Indicators -->
+              <div class="flex flex-col gap-0.5 justify-center">
+                <Waves :size="12" :class="audioSettings.echoCancellation ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'" >
+                  <title>{{ `Echo Cancellation: ${audioSettings.echoCancellation ? 'Enabled' : 'Disabled'}` }}</title>
+                </Waves>
+                <Filter :size="12" :class="audioSettings.noiseSuppression ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
+                  <title>{{ `Noise Suppression: ${audioSettings.noiseSuppression ? 'Enabled' : 'Disabled'}` }}</title>
+                </Filter>
+                <Gauge :size="12" :class="audioSettings.autoGainControl ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
+                  <title>{{ `Auto Gain Control: ${audioSettings.autoGainControl ? 'Enabled' : 'Disabled'}` }}</title>
+                </Gauge>
+              </div>
+
               <!-- Audio Level Indicator -->
               <div v-if="recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
                 <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
@@ -425,7 +438,7 @@ import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Key, Braces, Bug } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'

@@ -49,6 +49,7 @@
                 type="checkbox"
                 class="form-checkbox"
               />
+              <Waves :size="16" :class="echoCancellation ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
               <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
                 <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
@@ -61,6 +62,7 @@
                 type="checkbox"
                 class="form-checkbox"
               />
+              <Filter :size="16" :class="noiseSuppression ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
               <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
                 <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
@@ -73,6 +75,7 @@
                 type="checkbox"
                 class="form-checkbox"
               />
+              <Gauge :size="16" :class="autoGainControl ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
               <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
                 <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
@@ -85,21 +88,30 @@
         <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Test Microphone</h3>
-            <button
-              v-if="!testRecording || testRecording.recordingState === 'idle'"
-              @click="startTest"
-              :disabled="!canTest"
-              class="btn-secondary text-sm"
-            >
-              Start Test
-            </button>
-            <button
-              v-else-if="testRecording.recordingState === 'recording'"
-              @click="stopTest"
-              class="btn-danger text-sm"
-            >
-              Stop Test
-            </button>
+            <div class="flex gap-2">
+              <button
+                v-if="playback.isReady.value && (!testRecording || testRecording.recordingState === 'idle')"
+                @click="clearRecording"
+                class="btn-secondary text-sm"
+              >
+                Clear
+              </button>
+              <button
+                v-if="!testRecording || testRecording.recordingState === 'idle'"
+                @click="startTest"
+                :disabled="!canTest"
+                class="btn-secondary text-sm"
+              >
+                Record
+              </button>
+              <button
+                v-else-if="testRecording.recordingState === 'recording'"
+                @click="stopTest"
+                class="btn-danger text-sm"
+              >
+                Stop
+              </button>
+            </div>
           </div>
 
           <!-- Audio Level Visualization -->
@@ -137,10 +149,23 @@
               <template v-else-if="testRecording?.recordingState === 'error'">
                 ❌ {{ testRecording.errorMessage }}
               </template>
-              <template v-else>
-                Click "Start Test" to preview your microphone input
+              <template v-else-if="!playback.isReady.value">
+                Click "Record" to capture and review your microphone audio
               </template>
             </p>
+
+            <!-- Recorded Audio Playback -->
+            <div v-if="playback.isReady.value" class="border-t border-gray-100 pt-3 dark:border-gray-600">
+              <p class="text-xs font-medium text-gray-600 mb-2 dark:text-gray-400">Recording Preview</p>
+              <AudioPlayer
+                :state="playback.state.value"
+                :is-ready="playback.isReady.value"
+                :progress="playback.progress.value"
+                @play="playback.play()"
+                @pause="playback.pause()"
+                @stop="playback.stop()"
+              />
+            </div>
           </div>
         </div>
 
@@ -177,7 +202,10 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useAudioDevices } from '@/composables/useAudioDevices'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Info } from 'lucide-vue-next'
+import { useAudioPlayback } from '@/composables/useAudioPlayback'
+import AudioPlayer from '@/components/AudioPlayer.vue'
+import { Info, Waves, Filter, Gauge } from 'lucide-vue-next'
+import type { AudioFormat } from '@/api/websocket/websocket-contracts'
 
 export interface AudioSettings {
   deviceId: string | null
@@ -212,8 +240,19 @@ const autoGainControl = ref(props.currentSettings?.autoGainControl ?? true)
 // Test recording instance - stored as ref so we can replace it
 const testRecording = ref<ReturnType<typeof useAudioRecording> | null>(null)
 
+// Playback instance for reviewing recordings
+const playback = useAudioPlayback()
+
+// Collected audio chunks from the current test recording session
+const recordedChunks = ref<Array<{ data: string; ordinal: number }>>([])
+
+let chunkOrdinalCounter = 0
+
 // Initialize test recording
 function createTestRecording() {
+  recordedChunks.value = []
+  chunkOrdinalCounter = 0
+
   return useAudioRecording({
     sampleRate: props.sampleRate,
     chunkDurationMs: 500, // Shorter chunks for testing
@@ -221,9 +260,8 @@ function createTestRecording() {
     echoCancellation: echoCancellation.value,
     noiseSuppression: noiseSuppression.value,
     autoGainControl: autoGainControl.value,
-    onChunk: () => {
-      // We don't need to do anything with chunks during testing
-      // Just monitoring the audio level
+    onChunk: (base64Audio: string) => {
+      recordedChunks.value.push({ data: base64Audio, ordinal: chunkOrdinalCounter++ })
     },
     onError: (error) => {
       console.error('Test recording error:', error)
@@ -231,12 +269,13 @@ function createTestRecording() {
   })
 }
 
-// Update test recording when settings change
+// Update test recording when settings change - stop recording and clear playback
 watch([selectedDeviceId, echoCancellation, noiseSuppression, autoGainControl], () => {
-  // Stop current test if running
   if (testRecording.value?.recordingState === 'recording') {
-    stopTest()
+    testRecording.value.stopRecording()
   }
+  recordedChunks.value = []
+  playback.clear()
 })
 
 const canTest = computed(() => {
@@ -268,10 +307,12 @@ async function startTest() {
     if (testRecording.value?.recordingState === 'recording') {
       testRecording.value.stopRecording()
     }
-    
+    // Clear previous recording data when starting fresh
+    playback.clear()
+
     // Create fresh recording instance with current settings
     testRecording.value = createTestRecording()
-    
+
     // Start recording
     if (testRecording.value) {
       await testRecording.value.startRecording()
@@ -281,17 +322,40 @@ async function startTest() {
   }
 }
 
-function stopTest() {
+async function stopTest() {
   if (testRecording.value) {
     testRecording.value.stopRecording()
   }
+
+  if (recordedChunks.value.length > 0) {
+    playback.clear()
+    const audioFormat = `pcm_${props.sampleRate}` as AudioFormat
+    for (const chunk of recordedChunks.value) {
+      await playback.addChunk({
+        audioData: chunk.data,
+        audioFormat,
+        ordinal: chunk.ordinal,
+        isFinal: false,
+        sampleRate: props.sampleRate,
+      })
+    }
+  }
+}
+
+function clearRecording() {
+  if (testRecording.value?.recordingState === 'recording') {
+    testRecording.value.stopRecording()
+  }
+  recordedChunks.value = []
+  playback.clear()
 }
 
 function handleSave() {
   // Stop test if running
   if (testRecording.value?.recordingState === 'recording') {
-    stopTest()
+    testRecording.value.stopRecording()
   }
+  playback.stop()
 
   emit('save', {
     deviceId: selectedDeviceId.value,
@@ -304,7 +368,8 @@ function handleSave() {
 // Cleanup
 onUnmounted(() => {
   if (testRecording.value?.recordingState === 'recording') {
-    stopTest()
+    testRecording.value.stopRecording()
   }
+  playback.stop()
 })
 </script>
