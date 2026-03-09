@@ -40,6 +40,7 @@ import {
   LocalStorageSettings,
   MigrationJob,
   MigrationPreview,
+  ModerationProviderInfo,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
@@ -741,6 +742,15 @@ export class Api<
           | GcsStorageSettings
           | LocalStorageSettings;
       };
+      /** Optional content moderation configuration */
+      moderationConfig?: {
+        /** Whether content moderation is enabled for this project */
+        enabled: boolean;
+        /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+        llmProviderId: string;
+        /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+        blockedCategories?: string[];
+      };
       /** Key-value store of constants used in templating and conversation logic */
       constants?: Record<string, ParameterValue>;
       /** Additional metadata for the project */
@@ -798,6 +808,15 @@ export class Api<
             | AzureBlobStorageSettings
             | GcsStorageSettings
             | LocalStorageSettings;
+        } | null;
+        /** Content moderation configuration */
+        moderationConfig: {
+          /** Whether content moderation is enabled for this project */
+          enabled: boolean;
+          /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+          llmProviderId: string;
+          /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+          blockedCategories?: string[];
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
@@ -926,6 +945,15 @@ export class Api<
               | GcsStorageSettings
               | LocalStorageSettings;
           } | null;
+          /** Content moderation configuration */
+          moderationConfig: {
+            /** Whether content moderation is enabled for this project */
+            enabled: boolean;
+            /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+            llmProviderId: string;
+            /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+            blockedCategories?: string[];
+          } | null;
           /** Key-value store of constants used in templating and conversation logic */
           constants: Record<string, ParameterValue>;
           /** Additional metadata for the project */
@@ -1017,6 +1045,15 @@ export class Api<
             | GcsStorageSettings
             | LocalStorageSettings;
         } | null;
+        /** Content moderation configuration */
+        moderationConfig: {
+          /** Whether content moderation is enabled for this project */
+          enabled: boolean;
+          /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+          llmProviderId: string;
+          /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+          blockedCategories?: string[];
+        } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1083,6 +1120,15 @@ export class Api<
       generateVoice?: boolean;
       /** Updated storage configuration settings */
       storageConfig?: StorageConfig;
+      /** Updated content moderation configuration */
+      moderationConfig?: {
+        /** Whether content moderation is enabled for this project */
+        enabled: boolean;
+        /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+        llmProviderId: string;
+        /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+        blockedCategories?: string[];
+      };
       /** Updated constants key-value store */
       constants?: Record<string, ParameterValue>;
       /** Updated metadata for the project */
@@ -1136,6 +1182,15 @@ export class Api<
             | AzureBlobStorageSettings
             | GcsStorageSettings
             | LocalStorageSettings;
+        } | null;
+        /** Content moderation configuration */
+        moderationConfig: {
+          /** Whether content moderation is enabled for this project */
+          enabled: boolean;
+          /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+          llmProviderId: string;
+          /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+          blockedCategories?: string[];
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
@@ -1249,6 +1304,15 @@ export class Api<
             | GcsStorageSettings
             | LocalStorageSettings;
         } | null;
+        /** Content moderation configuration */
+        moderationConfig: {
+          /** Whether content moderation is enabled for this project */
+          enabled: boolean;
+          /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+          llmProviderId: string;
+          /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+          blockedCategories?: string[];
+        } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1344,6 +1408,15 @@ export class Api<
             | AzureBlobStorageSettings
             | GcsStorageSettings
             | LocalStorageSettings;
+        } | null;
+        /** Content moderation configuration */
+        moderationConfig: {
+          /** Whether content moderation is enabled for this project */
+          enabled: boolean;
+          /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+          llmProviderId: string;
+          /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+          blockedCategories?: string[];
         } | null;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
@@ -2725,7 +2798,8 @@ export class Api<
             | "conversation_end"
             | "conversation_aborted"
             | "conversation_failed"
-            | "jump_to_stage";
+            | "jump_to_stage"
+            | "moderation";
           /** Event data payload */
           eventData:
             | {
@@ -2842,6 +2916,13 @@ export class Api<
                 fromStageId: string;
                 toStageId: string;
                 metadata?: Record<string, any>;
+              }
+            | {
+                input: string;
+                flagged: boolean;
+                categories: string[];
+                durationMs: number;
+                metadata?: Record<string, any>;
               };
           /**
            * Timestamp when the event occurred
@@ -2915,7 +2996,8 @@ export class Api<
           | "conversation_end"
           | "conversation_aborted"
           | "conversation_failed"
-          | "jump_to_stage";
+          | "jump_to_stage"
+          | "moderation";
         /** Event data payload */
         eventData:
           | {
@@ -3031,6 +3113,13 @@ export class Api<
           | {
               fromStageId: string;
               toStageId: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              input: string;
+              flagged: boolean;
+              categories: string[];
+              durationMs: number;
               metadata?: Record<string, any>;
             };
         /**
@@ -5271,6 +5360,8 @@ export class Api<
           /** List of supported features */
           features?: string[];
         }[];
+        /** Moderation providers */
+        moderation: ModerationProviderInfo[];
       },
       any
     >({
@@ -5415,6 +5506,29 @@ export class Api<
       ...params,
     });
   /**
+   * @description Returns information about all available content moderation providers including supported models and detectable categories. Category names listed here are the exact strings to use in moderationConfig.blockedCategories.
+   *
+   * @tags Provider Catalog
+   * @name ProviderCatalogModerationList
+   * @summary Get moderation providers
+   * @request GET:/api/provider-catalog/moderation
+   * @secure
+   */
+  providerCatalogModerationList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** List of moderation providers */
+        providers: ModerationProviderInfo[];
+      },
+      any
+    >({
+      path: `/api/provider-catalog/moderation`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns detailed information about a specific provider by type and API type
    *
    * @tags Provider Catalog
@@ -5424,7 +5538,7 @@ export class Api<
    * @secure
    */
   providerCatalogDetail = (
-    type: "asr" | "tts" | "llm" | "storage",
+    type: "asr" | "tts" | "llm" | "storage" | "moderation",
     apiType: string,
     params: RequestParams = {},
   ) =>

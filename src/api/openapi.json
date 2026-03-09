@@ -1719,6 +1719,31 @@
         },
         "description": "Speechmatics speech-to-text settings"
       },
+      "ModerationConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether content moderation is enabled for this project"
+          },
+          "llmProviderId": {
+            "type": "string",
+            "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+          },
+          "blockedCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+          }
+        },
+        "required": [
+          "enabled",
+          "llmProviderId"
+        ],
+        "description": "Content moderation configuration"
+      },
       "FillerSettings": {
         "type": "object",
         "properties": {
@@ -3078,6 +3103,31 @@
             },
             "description": "Optional storage configuration for conversation artifacts"
           },
+          "moderationConfig": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether content moderation is enabled for this project"
+              },
+              "llmProviderId": {
+                "type": "string",
+                "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+              },
+              "blockedCategories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              }
+            },
+            "required": [
+              "enabled",
+              "llmProviderId"
+            ],
+            "description": "Optional content moderation configuration"
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -3288,6 +3338,31 @@
           "storageConfig": {
             "$ref": "#/components/schemas/StorageConfig"
           },
+          "moderationConfig": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether content moderation is enabled for this project"
+              },
+              "llmProviderId": {
+                "type": "string",
+                "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+              },
+              "blockedCategories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              }
+            },
+            "required": [
+              "enabled",
+              "llmProviderId"
+            ],
+            "description": "Updated content moderation configuration"
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -3444,6 +3519,32 @@
             },
             "description": "Storage configuration for conversation artifacts"
           },
+          "moderationConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether content moderation is enabled for this project"
+              },
+              "llmProviderId": {
+                "type": "string",
+                "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+              },
+              "blockedCategories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              }
+            },
+            "required": [
+              "enabled",
+              "llmProviderId"
+            ],
+            "description": "Content moderation configuration"
+          },
           "constants": {
             "type": "object",
             "nullable": true,
@@ -3510,6 +3611,7 @@
           "description",
           "acceptVoice",
           "generateVoice",
+          "moderationConfig",
           "constants",
           "metadata",
           "timezone",
@@ -3618,6 +3720,32 @@
                   },
                   "description": "Storage configuration for conversation artifacts"
                 },
+                "moderationConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether content moderation is enabled for this project"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                    },
+                    "blockedCategories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "llmProviderId"
+                  ],
+                  "description": "Content moderation configuration"
+                },
                 "constants": {
                   "type": "object",
                   "nullable": true,
@@ -3684,6 +3812,7 @@
                 "description",
                 "acceptVoice",
                 "generateVoice",
+                "moderationConfig",
                 "constants",
                 "metadata",
                 "timezone",
@@ -5539,7 +5668,8 @@
               "conversation_end",
               "conversation_aborted",
               "conversation_failed",
-              "jump_to_stage"
+              "jump_to_stage",
+              "moderation"
             ],
             "description": "Type of the conversation event"
           },
@@ -6000,6 +6130,38 @@
                   "fromStageId",
                   "toStageId"
                 ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "type": "string"
+                  },
+                  "flagged": {
+                    "type": "boolean"
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "durationMs": {
+                    "type": "number"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "flagged",
+                  "categories",
+                  "durationMs"
+                ]
               }
             ],
             "description": "Event data payload"
@@ -6063,7 +6225,8 @@
                     "conversation_end",
                     "conversation_aborted",
                     "conversation_failed",
-                    "jump_to_stage"
+                    "jump_to_stage",
+                    "moderation"
                   ],
                   "description": "Type of the conversation event"
                 },
@@ -6523,6 +6686,38 @@
                       "required": [
                         "fromStageId",
                         "toStageId"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "input": {
+                          "type": "string"
+                        },
+                        "flagged": {
+                          "type": "boolean"
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "durationMs": {
+                          "type": "number"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "input",
+                        "flagged",
+                        "categories",
+                        "durationMs"
                       ]
                     }
                   ],
@@ -10599,6 +10794,89 @@
           "displayName"
         ]
       },
+      "ModerationCategoryInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Category identifier — use this exact string in moderationConfig.blockedCategories"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable category name"
+          },
+          "description": {
+            "type": "string",
+            "description": "What kind of content this category covers"
+          }
+        },
+        "required": [
+          "name",
+          "displayName"
+        ]
+      },
+      "ModerationModelInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Model identifier to use in configuration"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the model's capabilities"
+          },
+          "recommended": {
+            "type": "boolean",
+            "description": "Whether this is the recommended model for the provider"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModerationCategoryInfo"
+            },
+            "description": "Content categories detected by this model"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "categories"
+        ]
+      },
+      "ModerationProviderInfo": {
+        "type": "object",
+        "properties": {
+          "apiType": {
+            "type": "string",
+            "description": "Provider API type — must match an LLM provider configured in the system"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable provider name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional information"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModerationModelInfo"
+            },
+            "description": "Moderation models available for this provider"
+          }
+        },
+        "required": [
+          "apiType",
+          "displayName",
+          "models"
+        ]
+      },
       "ProviderCatalog": {
         "type": "object",
         "properties": {
@@ -10756,13 +11034,21 @@
               ]
             },
             "description": "Storage providers"
+          },
+          "moderation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModerationProviderInfo"
+            },
+            "description": "Moderation providers"
           }
         },
         "required": [
           "asr",
           "tts",
           "llm",
-          "storage"
+          "storage",
+          "moderation"
         ]
       },
       "AsrProvidersResponse": {
@@ -13163,6 +13449,31 @@
                     },
                     "description": "Optional storage configuration for conversation artifacts"
                   },
+                  "moderationConfig": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether content moderation is enabled for this project"
+                      },
+                      "llmProviderId": {
+                        "type": "string",
+                        "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                      },
+                      "blockedCategories": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                      }
+                    },
+                    "required": [
+                      "enabled",
+                      "llmProviderId"
+                    ],
+                    "description": "Optional content moderation configuration"
+                  },
                   "constants": {
                     "type": "object",
                     "additionalProperties": {
@@ -13298,6 +13609,32 @@
                       },
                       "description": "Storage configuration for conversation artifacts"
                     },
+                    "moderationConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether content moderation is enabled for this project"
+                        },
+                        "llmProviderId": {
+                          "type": "string",
+                          "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                        },
+                        "blockedCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "llmProviderId"
+                      ],
+                      "description": "Content moderation configuration"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -13364,6 +13701,7 @@
                     "description",
                     "acceptVoice",
                     "generateVoice",
+                    "moderationConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -13639,6 +13977,32 @@
                             },
                             "description": "Storage configuration for conversation artifacts"
                           },
+                          "moderationConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "Whether content moderation is enabled for this project"
+                              },
+                              "llmProviderId": {
+                                "type": "string",
+                                "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                              },
+                              "blockedCategories": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                              }
+                            },
+                            "required": [
+                              "enabled",
+                              "llmProviderId"
+                            ],
+                            "description": "Content moderation configuration"
+                          },
                           "constants": {
                             "type": "object",
                             "nullable": true,
@@ -13705,6 +14069,7 @@
                           "description",
                           "acceptVoice",
                           "generateVoice",
+                          "moderationConfig",
                           "constants",
                           "metadata",
                           "timezone",
@@ -13850,6 +14215,32 @@
                       },
                       "description": "Storage configuration for conversation artifacts"
                     },
+                    "moderationConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether content moderation is enabled for this project"
+                        },
+                        "llmProviderId": {
+                          "type": "string",
+                          "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                        },
+                        "blockedCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "llmProviderId"
+                      ],
+                      "description": "Content moderation configuration"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -13916,6 +14307,7 @@
                     "description",
                     "acceptVoice",
                     "generateVoice",
+                    "moderationConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -13990,6 +14382,31 @@
                   },
                   "storageConfig": {
                     "$ref": "#/components/schemas/StorageConfig"
+                  },
+                  "moderationConfig": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether content moderation is enabled for this project"
+                      },
+                      "llmProviderId": {
+                        "type": "string",
+                        "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                      },
+                      "blockedCategories": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                      }
+                    },
+                    "required": [
+                      "enabled",
+                      "llmProviderId"
+                    ],
+                    "description": "Updated content moderation configuration"
                   },
                   "constants": {
                     "type": "object",
@@ -14128,6 +14545,32 @@
                       },
                       "description": "Storage configuration for conversation artifacts"
                     },
+                    "moderationConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether content moderation is enabled for this project"
+                        },
+                        "llmProviderId": {
+                          "type": "string",
+                          "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                        },
+                        "blockedCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "llmProviderId"
+                      ],
+                      "description": "Content moderation configuration"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -14194,6 +14637,7 @@
                     "description",
                     "acceptVoice",
                     "generateVoice",
+                    "moderationConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -14381,6 +14825,32 @@
                       },
                       "description": "Storage configuration for conversation artifacts"
                     },
+                    "moderationConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether content moderation is enabled for this project"
+                        },
+                        "llmProviderId": {
+                          "type": "string",
+                          "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                        },
+                        "blockedCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "llmProviderId"
+                      ],
+                      "description": "Content moderation configuration"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -14447,6 +14917,7 @@
                     "description",
                     "acceptVoice",
                     "generateVoice",
+                    "moderationConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -14604,6 +15075,32 @@
                       },
                       "description": "Storage configuration for conversation artifacts"
                     },
+                    "moderationConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether content moderation is enabled for this project"
+                        },
+                        "llmProviderId": {
+                          "type": "string",
+                          "description": "ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral)"
+                        },
+                        "blockedCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "llmProviderId"
+                      ],
+                      "description": "Content moderation configuration"
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -14670,6 +15167,7 @@
                     "description",
                     "acceptVoice",
                     "generateVoice",
+                    "moderationConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -17832,7 +18330,8 @@
                               "conversation_end",
                               "conversation_aborted",
                               "conversation_failed",
-                              "jump_to_stage"
+                              "jump_to_stage",
+                              "moderation"
                             ],
                             "description": "Type of the conversation event"
                           },
@@ -18293,6 +18792,38 @@
                                   "fromStageId",
                                   "toStageId"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "input": {
+                                    "type": "string"
+                                  },
+                                  "flagged": {
+                                    "type": "boolean"
+                                  },
+                                  "categories": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "durationMs": {
+                                    "type": "number"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "input",
+                                  "flagged",
+                                  "categories",
+                                  "durationMs"
+                                ]
                               }
                             ],
                             "description": "Event data payload"
@@ -18436,7 +18967,8 @@
                         "conversation_end",
                         "conversation_aborted",
                         "conversation_failed",
-                        "jump_to_stage"
+                        "jump_to_stage",
+                        "moderation"
                       ],
                       "description": "Type of the conversation event"
                     },
@@ -18896,6 +19428,38 @@
                           "required": [
                             "fromStageId",
                             "toStageId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "input": {
+                              "type": "string"
+                            },
+                            "flagged": {
+                              "type": "boolean"
+                            },
+                            "categories": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "durationMs": {
+                              "type": "number"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "input",
+                            "flagged",
+                            "categories",
+                            "durationMs"
                           ]
                         }
                       ],
@@ -24407,13 +24971,21 @@
                         ]
                       },
                       "description": "Storage providers"
+                    },
+                    "moderation": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ModerationProviderInfo"
+                      },
+                      "description": "Moderation providers"
                     }
                   },
                   "required": [
                     "asr",
                     "tts",
                     "llm",
-                    "storage"
+                    "storage",
+                    "moderation"
                   ]
                 }
               }
@@ -24681,6 +25253,39 @@
         }
       }
     },
+    "/api/provider-catalog/moderation": {
+      "get": {
+        "tags": [
+          "Provider Catalog"
+        ],
+        "summary": "Get moderation providers",
+        "description": "Returns information about all available content moderation providers including supported models and detectable categories. Category names listed here are the exact strings to use in moderationConfig.blockedCategories.",
+        "responses": {
+          "200": {
+            "description": "List of moderation providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ModerationProviderInfo"
+                      },
+                      "description": "List of moderation providers"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/provider-catalog/{type}/{apiType}": {
       "get": {
         "tags": [
@@ -24696,12 +25301,13 @@
                 "asr",
                 "tts",
                 "llm",
-                "storage"
+                "storage",
+                "moderation"
               ],
-              "description": "Provider type (asr, tts, llm, or storage)"
+              "description": "Provider type (asr, tts, llm, storage, or moderation)"
             },
             "required": true,
-            "description": "Provider type (asr, tts, llm, or storage)",
+            "description": "Provider type (asr, tts, llm, storage, or moderation)",
             "name": "type",
             "in": "path"
           },

@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ChevronDown,
   MessageSquare,
+  ShieldAlert,
 } from 'lucide-vue-next'
 import ContentViewer from '@/components/ContentViewer.vue'
 
@@ -42,6 +43,7 @@ export interface NormalizedEvent {
     | 'conversation_aborted'
     | 'conversation_failed'
     | 'jump_to_stage'
+    | 'moderation'
   /** Event payload (same union shape from the API) */
   eventData: any
   /** Formatted timestamp string to display */
@@ -115,6 +117,10 @@ function isJumpToStageEvent(event: NormalizedEvent): boolean {
   return event.eventType === 'jump_to_stage'
 }
 
+function isModerationEvent(event: NormalizedEvent): boolean {
+  return event.eventType === 'moderation'
+}
+
 function getEventTypeColor(eventType: string): string {
   switch (eventType) {
     case 'message':
@@ -141,6 +147,8 @@ function getEventTypeColor(eventType: string): string {
       return 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
     case 'jump_to_stage':
       return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
+    case 'moderation':
+      return 'bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800'
     default:
       return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
   }
@@ -171,6 +179,10 @@ function getEventSummary(event: NormalizedEvent): string {
       return data.reason
     case 'jump_to_stage':
       return `${data.fromStageId} → ${data.toStageId}`
+    case 'moderation':
+      return data.flagged
+        ? `Flagged · ${data.categories?.join(', ') || 'no categories'}`
+        : 'Passed'
     default:
       return ''
   }
@@ -955,6 +967,64 @@ function onBugReport() {
             <div>
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
               <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toStageId }}</div>
+            </div>
+            <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+              <details class="group">
+                <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+                  Metadata ({{ Object.keys(event.eventData.metadata).length }})
+                </summary>
+                <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+                  <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Moderation Event -->
+    <div v-else-if="isModerationEvent(event)">
+      <div class="flex items-start gap-2">
+        <button @click.stop="toggle()" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <ChevronDown v-if="expanded" class="w-4 h-4" />
+          <ChevronRight v-else class="w-4 h-4" />
+        </button>
+        <ShieldAlert class="w-5 h-5 mt-0.5 shrink-0" :class="event.eventData.flagged ? 'text-red-600' : 'text-amber-600'" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+            <button @click="toggle()" class="font-semibold shrink-0 text-left" :class="event.eventData.flagged ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'">Moderation</button>
+            <span
+              class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0"
+              :class="event.eventData.flagged
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'"
+            >
+              {{ event.eventData.flagged ? 'Flagged' : 'Passed' }}
+            </span>
+            <span v-if="!expanded && event.eventData.flagged" class="text-xs text-gray-500 truncate">{{ event.eventData.categories?.join(', ') }}</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+          </div>
+          <div v-show="expanded" class="space-y-2">
+            <div>
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200 bg-white bg-opacity-60 rounded p-2 mt-1 dark:bg-gray-900 dark:bg-opacity-60">{{ event.eventData.input }}</div>
+            </div>
+            <div v-if="event.eventData.flagged && event.eventData.categories?.length">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Flagged categories:</span>
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span
+                  v-for="category in event.eventData.categories"
+                  :key="category"
+                  class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
+                >
+                  {{ category }}
+                </span>
+              </div>
+            </div>
+            <div v-if="event.eventData.durationMs != null">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Duration:</span>
+              <span class="text-sm text-gray-900 dark:text-gray-200 ml-1">{{ event.eventData.durationMs }}ms</span>
             </div>
             <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
               <details class="group">
