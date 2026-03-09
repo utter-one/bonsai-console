@@ -149,6 +149,7 @@ function getEventTypeColor(eventType: string): string {
       return 'bg-teal-50 border-teal-200 dark:bg-teal-900/10 dark:border-teal-800'
     case 'moderation':
       return 'bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800'
+    // Note: color is overridden inline in the template based on blocking state
     default:
       return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
   }
@@ -179,10 +180,13 @@ function getEventSummary(event: NormalizedEvent): string {
       return data.reason
     case 'jump_to_stage':
       return `${data.fromStageId} → ${data.toStageId}`
-    case 'moderation':
-      return data.flagged
-        ? `Flagged · ${data.categories?.join(', ') || 'no categories'}`
-        : 'Passed'
+    case 'moderation': {
+      const blocking: string[] = data.blockingCategories ?? []
+      const detected: string[] = data.detectedCategories ?? []
+      if (blocking.length > 0) return `Blocked · ${blocking.join(', ')}`
+      if (detected.length > 0) return `Detected · ${detected.join(', ')}`
+      return 'Passed'
+    }
     default:
       return ''
   }
@@ -990,19 +994,35 @@ function onBugReport() {
           <ChevronDown v-if="expanded" class="w-4 h-4" />
           <ChevronRight v-else class="w-4 h-4" />
         </button>
-        <ShieldAlert class="w-5 h-5 mt-0.5 shrink-0" :class="event.eventData.flagged ? 'text-red-600' : 'text-amber-600'" />
+        <ShieldAlert
+          class="w-5 h-5 mt-0.5 shrink-0"
+          :class="event.eventData.blockingCategories?.length > 0
+            ? 'text-red-600'
+            : event.eventData.detectedCategories?.length > 0
+              ? 'text-amber-500'
+              : 'text-green-600'"
+        />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
-            <button @click="toggle()" class="font-semibold shrink-0 text-left" :class="event.eventData.flagged ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'">Moderation</button>
+            <button
+              @click="toggle()"
+              class="font-semibold shrink-0 text-left"
+              :class="event.eventData.blockingCategories?.length > 0
+                ? 'text-red-900 dark:text-red-100'
+                : 'text-amber-900 dark:text-amber-100'"
+            >Moderation</button>
             <span
               class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0"
-              :class="event.eventData.flagged
+              :class="event.eventData.blockingCategories?.length > 0
                 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
-                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'"
+                : event.eventData.detectedCategories?.length > 0
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'"
             >
-              {{ event.eventData.flagged ? 'Flagged' : 'Passed' }}
+              {{ event.eventData.blockingCategories?.length > 0 ? 'Blocked' : event.eventData.detectedCategories?.length > 0 ? 'Detected' : 'Passed' }}
             </span>
-            <span v-if="!expanded && event.eventData.flagged" class="text-xs text-gray-500 truncate">{{ event.eventData.categories?.join(', ') }}</span>
+            <span v-if="!expanded && event.eventData.blockingCategories?.length > 0" class="text-xs text-gray-500 truncate">{{ event.eventData.blockingCategories.join(', ') }}</span>
+            <span v-else-if="!expanded && event.eventData.detectedCategories?.length > 0" class="text-xs text-gray-500 truncate">{{ event.eventData.detectedCategories.join(', ') }}</span>
             <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
           </div>
           <div v-show="expanded" class="space-y-2">
@@ -1010,13 +1030,25 @@ function onBugReport() {
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
               <div class="text-sm text-gray-900 dark:text-gray-200 bg-white bg-opacity-60 rounded p-2 mt-1 dark:bg-gray-900 dark:bg-opacity-60">{{ event.eventData.input }}</div>
             </div>
-            <div v-if="event.eventData.flagged && event.eventData.categories?.length">
-              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Flagged categories:</span>
+            <div v-if="event.eventData.blockingCategories?.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Blocking categories:</span>
               <div class="flex flex-wrap gap-1 mt-1">
                 <span
-                  v-for="category in event.eventData.categories"
+                  v-for="category in event.eventData.blockingCategories"
                   :key="category"
                   class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
+                >
+                  {{ category }}
+                </span>
+              </div>
+            </div>
+            <div v-if="event.eventData.detectedCategories?.length > 0">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Detected categories:</span>
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span
+                  v-for="category in event.eventData.detectedCategories"
+                  :key="category"
+                  class="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
                 >
                   {{ category }}
                 </span>

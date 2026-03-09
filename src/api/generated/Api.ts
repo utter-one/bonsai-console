@@ -2920,7 +2920,8 @@ export class Api<
             | {
                 input: string;
                 flagged: boolean;
-                categories: string[];
+                blockingCategories: string[];
+                detectedCategories: string[];
                 durationMs: number;
                 metadata?: Record<string, any>;
               };
@@ -3118,7 +3119,8 @@ export class Api<
           | {
               input: string;
               flagged: boolean;
-              categories: string[];
+              blockingCategories: string[];
+              detectedCategories: string[];
               durationMs: number;
               metadata?: Record<string, any>;
             };

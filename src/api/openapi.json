@@ -6140,7 +6140,13 @@
                   "flagged": {
                     "type": "boolean"
                   },
-                  "categories": {
+                  "blockingCategories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "detectedCategories": {
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -6159,7 +6165,8 @@
                 "required": [
                   "input",
                   "flagged",
-                  "categories",
+                  "blockingCategories",
+                  "detectedCategories",
                   "durationMs"
                 ]
               }
@@ -6697,7 +6704,13 @@
                         "flagged": {
                           "type": "boolean"
                         },
-                        "categories": {
+                        "blockingCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "detectedCategories": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -6716,7 +6729,8 @@
                       "required": [
                         "input",
                         "flagged",
-                        "categories",
+                        "blockingCategories",
+                        "detectedCategories",
                         "durationMs"
                       ]
                     }
@@ -18802,7 +18816,13 @@
                                   "flagged": {
                                     "type": "boolean"
                                   },
-                                  "categories": {
+                                  "blockingCategories": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "detectedCategories": {
                                     "type": "array",
                                     "items": {
                                       "type": "string"
@@ -18821,7 +18841,8 @@
                                 "required": [
                                   "input",
                                   "flagged",
-                                  "categories",
+                                  "blockingCategories",
+                                  "detectedCategories",
                                   "durationMs"
                                 ]
                               }
@@ -19439,7 +19460,13 @@
                             "flagged": {
                               "type": "boolean"
                             },
-                            "categories": {
+                            "blockingCategories": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "detectedCategories": {
                               "type": "array",
                               "items": {
                                 "type": "string"
@@ -19458,7 +19485,8 @@
                           "required": [
                             "input",
                             "flagged",
-                            "categories",
+                            "blockingCategories",
+                            "detectedCategories",
                             "durationMs"
                           ]
                         }

@@ -990,7 +990,8 @@ export interface ConversationEvent {
     | {
         input: string;
         flagged: boolean;
-        categories: string[];
+        blockingCategories: string[];
+        detectedCategories: string[];
         durationMs: number;
         metadata?: Record<string, unknown>;
       };
