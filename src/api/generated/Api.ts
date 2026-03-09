@@ -5187,6 +5187,29 @@ export class Api<
       ...params,
     });
   /**
+   * @description Enumerates available models for a configured LLM provider by querying the provider API. Falls back to a static model list when the API is unavailable.
+   *
+   * @tags Providers
+   * @name ProvidersModelsList
+   * @summary Enumerate LLM models
+   * @request GET:/api/providers/{id}/models
+   * @secure
+   */
+  providersModelsList = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Available models for the provider */
+        models: LlmModelInfo[];
+      },
+      void
+    >({
+      path: `/api/providers/${id}/models`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns information about all available ASR, TTS, and LLM providers including their models, capabilities, and supported features
    *
    * @tags Provider Catalog
