@@ -25,84 +25,12 @@ interface ProviderPreset {
 
 const providerPresets: ProviderPreset[] = [
   {
-    name: 'openai',
-    displayName: 'OpenAI',
-    baseUrl: 'https://api.openai.com/v1',
-    urlPattern: /openai\.com/i,
-    icon: 'O',
-    color: '#10a37f'
-  },
-  {
-    name: 'mistral',
-    displayName: 'Mistral AI',
-    baseUrl: 'https://api.mistral.ai/v1',
-    urlPattern: /mistral\.ai/i,
-    icon: 'M',
-    color: '#f2773d'
-  },
-  {
-    name: 'groq',
-    displayName: 'Groq',
-    baseUrl: 'https://api.groq.com/openai/v1',
-    urlPattern: /groq\.com/i,
-    icon: 'G',
-    color: '#f55036'
-  },
-  {
-    name: 'together',
-    displayName: 'Together AI',
-    baseUrl: 'https://api.together.xyz/v1',
-    urlPattern: /together\.xyz/i,
-    icon: 'T',
-    color: '#6366f1'
-  },
-  {
-    name: 'fireworks',
-    displayName: 'Fireworks AI',
-    baseUrl: 'https://api.fireworks.ai/inference/v1',
-    urlPattern: /fireworks\.ai/i,
-    icon: 'F',
-    color: '#ff6b35'
-  },
-  {
-    name: 'perplexity',
-    displayName: 'Perplexity AI',
-    baseUrl: 'https://api.perplexity.ai',
-    urlPattern: /perplexity\.ai/i,
-    icon: 'P',
-    color: '#20808d'
-  },
-  {
-    name: 'cohere',
-    displayName: 'Cohere',
-    baseUrl: 'https://api.cohere.ai/compatibility/v1',
-    urlPattern: /cohere\.ai/i,
-    icon: 'C',
-    color: '#d18ee2'
-  },
-  {
     name: 'ai21',
     displayName: 'AI21 Labs',
     baseUrl: 'https://api.ai21.com/studio/v1',
     urlPattern: /ai21\.com/i,
     icon: '21',
     color: '#4a9eff'
-  },
-  {
-    name: 'deepseek',
-    displayName: 'DeepSeek',
-    baseUrl: 'https://api.deepseek.com/v1',
-    urlPattern: /deepseek\.com/i,
-    icon: 'D',
-    color: '#1a73e8'
-  },
-  {
-    name: 'xai',
-    displayName: 'xAI (Grok)',
-    baseUrl: 'https://api.x.ai/v1',
-    urlPattern: /x\.ai/i,
-    icon: 'X',
-    color: '#000000'
   },
   {
     name: 'cerebras',
@@ -113,12 +41,52 @@ const providerPresets: ProviderPreset[] = [
     color: '#0066cc'
   },
   {
+    name: 'cohere',
+    displayName: 'Cohere',
+    baseUrl: 'https://api.cohere.ai/compatibility/v1',
+    urlPattern: /cohere\.ai/i,
+    icon: 'C',
+    color: '#d18ee2'
+  },
+  {
+    name: 'deepseek',
+    displayName: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com/v1',
+    urlPattern: /deepseek\.com/i,
+    icon: 'D',
+    color: '#1a73e8'
+  },
+  {
+    name: 'fireworks',
+    displayName: 'Fireworks AI',
+    baseUrl: 'https://api.fireworks.ai/inference/v1',
+    urlPattern: /fireworks\.ai/i,
+    icon: 'F',
+    color: '#ff6b35'
+  },
+  {
+    name: 'groq',
+    displayName: 'Groq',
+    baseUrl: 'https://api.groq.com/openai/v1',
+    urlPattern: /groq\.com/i,
+    icon: 'G',
+    color: '#f55036'
+  },
+  {
     name: 'lepton',
     displayName: 'Lepton AI',
     baseUrl: 'https://api.lepton.ai/api/v1',
     urlPattern: /lepton\.ai/i,
     icon: 'L',
     color: '#8b5cf6'
+  },
+  {
+    name: 'mistral',
+    displayName: 'Mistral AI',
+    baseUrl: 'https://api.mistral.ai/v1',
+    urlPattern: /mistral\.ai/i,
+    icon: 'M',
+    color: '#f2773d'
   },
   {
     name: 'novita',
@@ -129,12 +97,44 @@ const providerPresets: ProviderPreset[] = [
     color: '#22c55e'
   },
   {
+    name: 'openai',
+    displayName: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    urlPattern: /openai\.com/i,
+    icon: 'O',
+    color: '#10a37f'
+  },
+  {
     name: 'openrouter',
     displayName: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api/v1',
     urlPattern: /openrouter\.ai/i,
     icon: 'OR',
     color: '#8b5cf6'
+  },
+  {
+    name: 'perplexity',
+    displayName: 'Perplexity AI',
+    baseUrl: 'https://api.perplexity.ai',
+    urlPattern: /perplexity\.ai/i,
+    icon: 'P',
+    color: '#20808d'
+  },
+  {
+    name: 'together',
+    displayName: 'Together AI',
+    baseUrl: 'https://api.together.xyz/v1',
+    urlPattern: /together\.xyz/i,
+    icon: 'T',
+    color: '#6366f1'
+  },
+  {
+    name: 'xai',
+    displayName: 'xAI (Grok)',
+    baseUrl: 'https://api.x.ai/v1',
+    urlPattern: /x\.ai/i,
+    icon: 'X',
+    color: '#000000'
   }
 ]
 
@@ -175,11 +175,11 @@ const isEditMode = computed(() => !!providerId.value)
 const currentProvider = ref<ProviderResponse | null>(null)
 
 const providerTypes = [
-  { value: 'llm', label: 'LLM (Large Language Model)' },
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
-  { value: 'tts', label: 'TTS (Text-to-Speech)' },
   { value: 'embeddings', label: 'Embeddings' },
-  { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' }
+  { value: 'llm', label: 'LLM (Large Language Model)' },
+  { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' },
+  { value: 'tts', label: 'TTS (Text-to-Speech)' }
 ]
 
 // API type options from provider catalog based on provider type
@@ -212,8 +212,8 @@ const apiTypeOptions = computed(() => {
     label: p.displayName,
     description: p.description
   }))
-    
-  return options
+
+  return options.sort((a, b) => a.label.localeCompare(b.label))
 })
 
 // Get description for selected API type

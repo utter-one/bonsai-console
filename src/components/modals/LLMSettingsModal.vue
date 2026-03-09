@@ -499,7 +499,7 @@ async function loadModels(providerId: string) {
   availableModels.value = []
   try {
     const response = await apiClient.providersModelsList(providerId)
-    availableModels.value = response.models
+    availableModels.value = [...response.models].sort((a, b) => a.displayName.localeCompare(b.displayName))
   } catch (err) {
     console.error('Failed to load provider models:', err)
   } finally {
