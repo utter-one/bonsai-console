@@ -33,9 +33,9 @@
               v-model="form.model"
               required
               class="form-select"
-              :disabled="catalogStore.isLoading"
+              :disabled="isLoadingModels"
             >
-              <option value="">{{ catalogStore.isLoading ? 'Loading models...' : 'Select a model' }}</option>
+              <option value="">{{ isLoadingModels ? 'Loading models...' : 'Select a model' }}</option>
               <option
                 v-for="model in availableModels"
                 :key="model.id"
@@ -377,9 +377,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { ProviderResponse, LlmSettings } from '@/api/types'
-import { useProviderCatalogStore } from '@/stores'
+import type { LlmModelInfo } from '@/api/generated/data-contracts'
+import apiClient from '@/api/client'
 import { Wrench, Eye, FileJson, Zap, Brain, Image } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -393,7 +394,8 @@ const emit = defineEmits<{
   save: [settings: Record<string, any>]
 }>()
 
-const catalogStore = useProviderCatalogStore()
+const isLoadingModels = ref(false)
+const availableModels = ref<LlmModelInfo[]>([])
 
 interface LLMSettingsForm {
   model: string
@@ -450,7 +452,7 @@ const isAnthropic = computed(() =>
 )
 
 const isGemini = computed(() => 
-  providerApiType.value === 'google'
+  providerApiType.value === 'gemini' || providerApiType.value === 'google'
 )
 
 const hasReasoningCapability = computed(() => {
@@ -485,36 +487,36 @@ const temperatureRange = computed(() => {
   return isAnthropic.value ? '0-1' : '0-2'
 })
 
-// Get available models from catalog for the selected provider
-const availableModels = computed(() => {
-  if (!catalogStore.catalog || !providerApiType.value) return []
-  
-  const llmProvider = catalogStore.catalog.llm.find(
-    p => p.apiType.toLowerCase() === providerApiType.value
-  )
-  
-  return llmProvider?.models || []
-})
-
 // Get selected model info for capability display
 const selectedModelInfo = computed(() => {
   if (!form.value.model) return null
   return availableModels.value.find(m => m.id === form.value.model)
 })
 
-// Load catalog on mount
-onMounted(async () => {
-  if (!catalogStore.catalog) {
-    try {
-      await catalogStore.fetchCatalog()
-    } catch (err) {
-      console.error('Failed to load provider catalog:', err)
-    }
+async function loadModels(providerId: string) {
+  isLoadingModels.value = true
+  availableModels.value = []
+  try {
+    const response = await apiClient.providersModelsList(providerId)
+    availableModels.value = response.models
+  } catch (err) {
+    console.error('Failed to load provider models:', err)
+  } finally {
+    isLoadingModels.value = false
   }
-})
+}
+
+// Load models when provider changes
+watch(() => props.selectedProviderId, (providerId) => {
+  if (providerId) {
+    loadModels(providerId)
+  } else {
+    availableModels.value = []
+  }
+}, { immediate: true })
 
 // Initialize form when settings or provider changes
-watch([() => props.settings, selectedProvider, () => catalogStore.catalog], ([settings]) => {
+watch([() => props.settings, selectedProvider, availableModels], ([settings]) => {
   if (settings && typeof settings === 'object') {
     const modelName = settings.model || ''
     form.value = {
