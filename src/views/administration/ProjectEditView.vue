@@ -2290,7 +2290,7 @@ function handleVariablesPaste(indices: number[]) {
                 <label
                   v-for="cat in availableModerationCategories"
                   :key="cat.name"
-                  class="flex items-start gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                  class="flex items-start gap-3 cursor-pointer p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <input
                     type="checkbox"
