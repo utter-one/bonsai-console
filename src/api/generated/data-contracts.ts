@@ -4442,23 +4442,9 @@ export interface ProviderListResponse {
   limit?: number | null;
 }
 
-export interface AsrModelInfo {
-  /** Model identifier */
-  id: string;
-  /** Human-readable display name */
-  displayName: string;
-  /** Description of the model's capabilities and use cases */
-  description?: string;
-  /** Whether this is a recommended or default model */
-  recommended?: boolean;
-  /** Language codes supported by this model (if model-specific) */
-  languages?: string[];
-  /** Whether this model supports custom vocabulary/phrases */
-  supportsCustomVocabulary?: boolean;
-  /** Whether this model supports streaming transcription */
-  supportsStreaming?: boolean;
-  /** Audio input formats supported by this model */
-  supportedAudioFormats?: string[];
+export interface ProviderModelsResponse {
+  /** Available models for the provider */
+  models: LlmModelInfo[];
 }
 
 export interface LlmModelInfo {
@@ -4484,6 +4470,25 @@ export interface LlmModelInfo {
   supportsReasoning?: boolean;
   /** Context window size (in tokens) for this model */
   contextWindow?: number;
+}
+
+export interface AsrModelInfo {
+  /** Model identifier */
+  id: string;
+  /** Human-readable display name */
+  displayName: string;
+  /** Description of the model's capabilities and use cases */
+  description?: string;
+  /** Whether this is a recommended or default model */
+  recommended?: boolean;
+  /** Language codes supported by this model (if model-specific) */
+  languages?: string[];
+  /** Whether this model supports custom vocabulary/phrases */
+  supportsCustomVocabulary?: boolean;
+  /** Whether this model supports streaming transcription */
+  supportsStreaming?: boolean;
+  /** Audio input formats supported by this model */
+  supportedAudioFormats?: string[];
 }
 
 export interface VoiceInfo {
