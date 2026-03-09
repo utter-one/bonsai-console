@@ -505,6 +505,339 @@
           "model"
         ]
       },
+      "GroqLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., llama-3.3-70b-versatile, openai/gpt-oss-120b)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "MistralLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., mistral-large-latest, mistral-small-latest)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "DeepSeekLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., deepseek-chat, deepseek-reasoner)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "OpenRouterLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name in OpenRouter format (e.g., openai/gpt-4o, anthropic/claude-3-5-sonnet, meta-llama/llama-3.3-70b-instruct)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "TogetherAILlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., meta-llama/Llama-3.3-70B-Instruct-Turbo, mistralai/Mixtral-8x22B-Instruct-v0.1)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "FireworksAILlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name in Fireworks format (e.g., accounts/fireworks/models/llama-v3p3-70b-instruct)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "PerplexityLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., sonar-pro, sonar, sonar-reasoning-pro)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "CohereLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., command-a-03-2025, command-r-plus-08-2024)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "XAILlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., grok-3, grok-3-fast, grok-3-mini)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
       "LlmSettings": {
         "anyOf": [
           {

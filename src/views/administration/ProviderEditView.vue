@@ -224,7 +224,7 @@ const selectedApiTypeDescription = computed(() => {
 
 // Check which config fields to show based on API type
 const showOpenAIFields = computed(() => 
-  form.value.apiType === 'openai' || form.value.apiType === 'openai-legacy' || form.value.apiType === 'groq'
+  ['openai', 'openai-legacy', 'groq', 'mistral', 'deepseek', 'xai', 'openrouter', 'together', 'fireworks', 'perplexity', 'cohere'].includes(form.value.apiType)
 )
 const showAnthropicFields = computed(() => 
   form.value.apiType === 'anthropic'
@@ -290,6 +290,12 @@ const detectedProvider = computed(() => {
   return providerPresets.find(preset => preset.urlPattern.test(baseUrl))
 })
 
+// Get the default base URL for the current named provider (non-legacy)
+const defaultBaseUrl = computed(() => {
+  const preset = providerPresets.find(p => p.name === form.value.apiType)
+  return preset?.baseUrl ?? null
+})
+
 // Select a provider preset
 function selectProviderPreset(preset: ProviderPreset) {
   form.value.config.baseUrl = preset.baseUrl
@@ -297,6 +303,12 @@ function selectProviderPreset(preset: ProviderPreset) {
   // If creating a new provider and name is empty, suggest a name
   if (!isEditMode.value && !form.value.name) {
     form.value.name = preset.displayName
+  }
+}
+
+function resetBaseUrl() {
+  if (defaultBaseUrl.value) {
+    form.value.config.baseUrl = defaultBaseUrl.value
   }
 }
 
@@ -692,6 +704,10 @@ const metadataFields = computed(() => {
           </div>
 
           <TagsEditor v-model="form.tags" :disabled="isLoading" />
+        </div>
+
+        <!-- Configuration Tab -->
+        <div v-show="activeTab === 'config'" class="tab-content">
           <div class="form-group">
             <label class="form-label">
               Provider Type <span class="required">*</span>
@@ -749,7 +765,7 @@ const metadataFields = computed(() => {
           </div>
 
           <div v-else-if="!form.apiType" class="alert-info mb-6">
-            Please select an API Type above to configure provider settings.
+            Please select an API Type above to configure provider-specific settings below.
           </div>
 
           <!-- OpenAI Configuration -->
@@ -798,12 +814,13 @@ const metadataFields = computed(() => {
                   <input
                     v-model="form.config.baseUrl"
                     type="url"
-                    placeholder="https://api.openai.com/v1"
+                    :placeholder="defaultBaseUrl ?? 'https://api.openai.com/v1'"
                     class="form-input-mono"
                     :disabled="isLoading"
                   />
                 </div>
-                <div class="relative">
+                <!-- Dropdown only for openai-legacy (arbitrary compatible endpoints) -->
+                <div v-if="form.config.baseUrl !== undefined && form.apiType === 'openai-legacy'" class="relative">
                   <select
                     @change="(e) => { const preset = providerPresets.find(p => p.name === (e.target as HTMLSelectElement).value); if (preset) { selectProviderPreset(preset); (e.target as HTMLSelectElement).value = ''; } }"
                     class="form-select min-w-40"
@@ -815,9 +832,22 @@ const metadataFields = computed(() => {
                     </option>
                   </select>
                 </div>
+                <!-- Reset button for named providers with a known default URL -->
+                <button
+                  v-else-if="defaultBaseUrl"
+                  type="button"
+                  @click="resetBaseUrl"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading || form.config.baseUrl === defaultBaseUrl"
+                  title="Restore default URL"
+                >
+                  Reset
+                </button>
               </div>
               <p class="form-help-text">
-                Optional base URL for OpenAI-compatible APIs. Use the dropdown to quick-select popular providers.
+                <template v-if="form.apiType === 'openai-legacy'">Optional base URL for OpenAI-compatible APIs. Use the dropdown to quick-select popular providers.</template>
+                <template v-else-if="defaultBaseUrl">Override the default endpoint URL. Click Reset to restore the default.</template>
+                <template v-else>Optional custom base URL for this provider.</template>
               </p>
             </div>
           </template>

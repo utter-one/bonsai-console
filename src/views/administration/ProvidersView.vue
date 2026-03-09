@@ -104,6 +104,61 @@ function getProviderTypeBadgeClass(type: string) {
     default: return 'badge-default'
   }
 }
+
+const API_TYPE_COLORS: Record<string, string> = {
+  // LLM
+  'openai': '#10a37f',
+  'openai-legacy': '#6b7280',
+  'anthropic': '#d97706',
+  'gemini': '#4285F4',
+  'mistral': '#f2773d',
+  'groq': '#f55036',
+  'deepseek': '#1a73e8',
+  'xai': '#374151',
+  'openrouter': '#8b5cf6',
+  'together': '#6366f1',
+  'fireworks': '#ff6b35',
+  'perplexity': '#20808d',
+  'cohere': '#d18ee2',
+  // ASR / TTS
+  'deepgram': '#00d3d0',
+  'elevenlabs': '#7c3aed',
+  'cartesia': '#ec4899',
+  'azure': '#0078d4',
+  'speechmatics': '#00b09b',
+  'assemblyai': '#3d5afe',
+}
+
+const API_TYPE_LABELS: Record<string, string> = {
+  'openai': 'OpenAI',
+  'openai-legacy': 'OpenAI (Legacy)',
+  'anthropic': 'Anthropic',
+  'gemini': 'Google Gemini',
+  'mistral': 'Mistral AI',
+  'groq': 'Groq',
+  'deepseek': 'DeepSeek',
+  'xai': 'xAI (Grok)',
+  'openrouter': 'OpenRouter',
+  'together': 'Together AI',
+  'fireworks': 'Fireworks AI',
+  'perplexity': 'Perplexity',
+  'cohere': 'Cohere',
+  'deepgram': 'Deepgram',
+  'elevenlabs': 'ElevenLabs',
+  'cartesia': 'Cartesia',
+  'azure': 'Azure',
+  'speechmatics': 'Speechmatics',
+  'assemblyai': 'AssemblyAI',
+}
+
+function getApiTypeLabel(apiType: string) {
+  return API_TYPE_LABELS[apiType] ?? apiType
+}
+
+function getApiTypeBadgeStyle(apiType: string) {
+  const color = API_TYPE_COLORS[apiType] ?? '#6b7280'
+  return { backgroundColor: color, color: '#ffffff' }
+}
 </script>
 
 <template>
@@ -210,7 +265,12 @@ function getProviderTypeBadgeClass(type: string) {
                     {{ provider.providerType.toUpperCase() }}
                   </span>
                 </td>
-                <td class="table-cell-mono">{{ provider.apiType }}</td>
+                <td class="table-cell">
+                  <span
+                    class="badge"
+                    :style="getApiTypeBadgeStyle(provider.apiType)"
+                  >{{ getApiTypeLabel(provider.apiType) }}</span>
+                </td>
                 <td class="table-cell-muted">{{ formatDate(provider.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">

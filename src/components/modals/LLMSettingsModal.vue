@@ -22,6 +22,7 @@
                   v-model="useCustomModel"
                   type="checkbox"
                   class="form-checkbox mr-2"
+                  @change="onCustomModelToggle"
                 />
                 <span class="text-sm text-gray-700 dark:text-gray-300">Use custom model name</span>
               </label>
@@ -564,10 +565,10 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
   }
 }, { immediate: true })
 
-// Clear model field when toggling between custom and catalog mode
-watch(useCustomModel, () => {
+// Clear model field only when user manually toggles between custom and catalog mode
+function onCustomModelToggle() {
   form.value.model = ''
-})
+}
 
 const handleSubmit = () => {
   validationError.value = null

@@ -289,6 +289,294 @@ export interface GeminiLlmSettings {
   safetySettings?: any[];
 }
 
+export interface GroqLlmSettings {
+  /**
+   * Model name (e.g., llama-3.3-70b-versatile, openai/gpt-oss-120b)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface MistralLlmSettings {
+  /**
+   * Model name (e.g., mistral-large-latest, mistral-small-latest)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface DeepSeekLlmSettings {
+  /**
+   * Model name (e.g., deepseek-chat, deepseek-reasoner)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface OpenRouterLlmSettings {
+  /**
+   * Model name in OpenRouter format (e.g., openai/gpt-4o, anthropic/claude-3-5-sonnet, meta-llama/llama-3.3-70b-instruct)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface TogetherAILlmSettings {
+  /**
+   * Model name (e.g., meta-llama/Llama-3.3-70B-Instruct-Turbo, mistralai/Mixtral-8x22B-Instruct-v0.1)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface FireworksAILlmSettings {
+  /**
+   * Model name in Fireworks format (e.g., accounts/fireworks/models/llama-v3p3-70b-instruct)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface PerplexityLlmSettings {
+  /**
+   * Model name (e.g., sonar-pro, sonar, sonar-reasoning-pro)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface CohereLlmSettings {
+  /**
+   * Model name (e.g., command-a-03-2025, command-r-plus-08-2024)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
+export interface XAILlmSettings {
+  /**
+   * Model name (e.g., grok-3, grok-3-fast, grok-3-mini)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
