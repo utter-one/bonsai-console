@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, onUnmounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
-import { Zap, Search, X, Plus } from 'lucide-vue-next'
+import { Zap, Search, X, Plus, ChevronDown, ShieldAlert } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -97,6 +97,34 @@ function editGlobalAction(action: GlobalActionResponse) {
     params: { projectId: projectId.value, globalActionId: action.id } 
   })
 }
+
+// Special Actions dropdown
+const showSpecialMenu = ref(false)
+let outsideClickListener: (() => void) | null = null
+
+function toggleSpecialMenu() {
+  showSpecialMenu.value = !showSpecialMenu.value
+  if (showSpecialMenu.value) {
+    setTimeout(() => {
+      outsideClickListener = () => { showSpecialMenu.value = false }
+      document.addEventListener('click', outsideClickListener, { once: true })
+    }, 0)
+  }
+}
+
+function navigateToModerationBlocked() {
+  showSpecialMenu.value = false
+  router.push({
+    name: 'design.globalActions.edit',
+    params: { projectId: projectId.value, globalActionId: '__moderation_blocked' }
+  })
+}
+
+onUnmounted(() => {
+  if (outsideClickListener) {
+    document.removeEventListener('click', outsideClickListener)
+  }
+})
 </script>
 
 <template>
@@ -107,10 +135,37 @@ function editGlobalAction(action: GlobalActionResponse) {
           <h1 class="page-title">Global Actions</h1>
           <p class="page-subtitle">Define system-wide actions for this project</p>
         </div>
-        <button @click="createGlobalAction" class="btn-primary" :disabled="projectIsArchived">
-          <Plus class="inline-block mr-2 w-4 h-4" />
-          New Global Action
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- Special Actions dropdown -->
+          <div class="relative">
+            <button
+              @click.stop="toggleSpecialMenu"
+              :disabled="projectIsArchived"
+              class="btn-alt"
+            >
+              <ShieldAlert class="w-4 h-4 mr-2" />
+              Special Actions
+              <ChevronDown class="w-4 h-4 transition-transform" :class="showSpecialMenu ? 'rotate-180' : ''" />
+            </button>
+            <div
+              v-if="showSpecialMenu"
+              class="absolute right-0 top-full mt-1 z-10 min-w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 py-1"
+            >
+              <button
+                @click="navigateToModerationBlocked"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+              >
+                <ShieldAlert class="w-4 h-4 text-violet-500" />
+                Moderation Blocked
+              </button>
+            </div>
+          </div>
+
+          <button @click="createGlobalAction" class="btn-primary" :disabled="projectIsArchived">
+            <Plus class="inline-block mr-2 w-4 h-4" />
+            New Global Action
+          </button>
+        </div>
       </div>
 
       <!-- Search Bar -->
@@ -158,9 +213,7 @@ function editGlobalAction(action: GlobalActionResponse) {
                   </div>
                 </th>
                 <th class="table-header-cell">Prompt Trigger</th>
-                <th class="table-header-cell">Condition</th>
                 <th class="table-header-cell">Effects</th>
-                <th class="table-header-cell">Examples</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
@@ -181,18 +234,8 @@ function editGlobalAction(action: GlobalActionResponse) {
                   <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
                 </td>
                 <td class="table-cell">
-                  <span v-if="action.condition" class="truncate max-w-xs text-gray-600">{{ action.condition }}</span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
-                <td class="table-cell">
                   <span v-if="action.effects?.length" class="badge-info">
                     {{ action.effects.length }} effect(s)
-                  </span>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
-                <td class="table-cell">
-                  <span v-if="action.examples?.length" class="badge-secondary">
-                    {{ action.examples.length }} example(s)
                   </span>
                   <span v-else class="text-gray-400">—</span>
                 </td>

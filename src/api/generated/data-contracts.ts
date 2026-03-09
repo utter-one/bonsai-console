@@ -1060,6 +1060,16 @@ export interface SpeechmaticsAsrSettings {
   [key: string]: any;
 }
 
+/** Content moderation configuration */
+export interface ModerationConfig {
+  /** Whether content moderation is enabled for this project */
+  enabled: boolean;
+  /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+  llmProviderId: string;
+  /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+  blockedCategories?: string[];
+}
+
 export interface FillerSettings {
   /** ID of the LLM provider used to generate the filler sentence */
   llmProviderId: string;
@@ -1703,6 +1713,15 @@ export interface CreateProjectRequest {
       | GcsStorageSettings
       | LocalStorageSettings;
   };
+  /** Optional content moderation configuration */
+  moderationConfig?: {
+    /** Whether content moderation is enabled for this project */
+    enabled: boolean;
+    /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+    llmProviderId: string;
+    /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+    blockedCategories?: string[];
+  };
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;
   /** Additional metadata for the project */
@@ -1787,6 +1806,15 @@ export interface UpdateProjectRequest {
   generateVoice?: boolean;
   /** Updated storage configuration settings */
   storageConfig?: StorageConfig;
+  /** Updated content moderation configuration */
+  moderationConfig?: {
+    /** Whether content moderation is enabled for this project */
+    enabled: boolean;
+    /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+    llmProviderId: string;
+    /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+    blockedCategories?: string[];
+  };
   /** Updated constants key-value store */
   constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
@@ -1850,6 +1878,15 @@ export interface ProjectResponse {
       | AzureBlobStorageSettings
       | GcsStorageSettings
       | LocalStorageSettings;
+  } | null;
+  /** Content moderation configuration */
+  moderationConfig: {
+    /** Whether content moderation is enabled for this project */
+    enabled: boolean;
+    /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+    llmProviderId: string;
+    /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+    blockedCategories?: string[];
   } | null;
   /** Key-value store of constants used in templating and conversation logic */
   constants: Record<string, ParameterValue>;
@@ -1921,6 +1958,15 @@ export interface ProjectListResponse {
         | AzureBlobStorageSettings
         | GcsStorageSettings
         | LocalStorageSettings;
+    } | null;
+    /** Content moderation configuration */
+    moderationConfig: {
+      /** Whether content moderation is enabled for this project */
+      enabled: boolean;
+      /** ID of the LLM provider used for moderation (must support moderation API, e.g. OpenAI or Mistral) */
+      llmProviderId: string;
+      /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
+      blockedCategories?: string[];
     } | null;
     /** Key-value store of constants used in templating and conversation logic */
     constants: Record<string, ParameterValue>;
@@ -2895,7 +2941,8 @@ export interface ConversationEventResponse {
     | "conversation_end"
     | "conversation_aborted"
     | "conversation_failed"
-    | "jump_to_stage";
+    | "jump_to_stage"
+    | "moderation";
   /** Event data payload */
   eventData:
     | {
@@ -3012,6 +3059,14 @@ export interface ConversationEventResponse {
         fromStageId: string;
         toStageId: string;
         metadata?: Record<string, any>;
+      }
+    | {
+        input: string;
+        flagged: boolean;
+        blockingCategories: string[];
+        detectedCategories: string[];
+        durationMs: number;
+        metadata?: Record<string, any>;
       };
   /**
    * Timestamp when the event occurred
@@ -3044,7 +3099,8 @@ export interface ConversationEventListResponse {
       | "conversation_end"
       | "conversation_aborted"
       | "conversation_failed"
-      | "jump_to_stage";
+      | "jump_to_stage"
+      | "moderation";
     /** Event data payload */
     eventData:
       | {
@@ -3160,6 +3216,14 @@ export interface ConversationEventListResponse {
       | {
           fromStageId: string;
           toStageId: string;
+          metadata?: Record<string, any>;
+        }
+      | {
+          input: string;
+          flagged: boolean;
+          blockingCategories: string[];
+          detectedCategories: string[];
+          durationMs: number;
           metadata?: Record<string, any>;
         };
     /**
@@ -4848,6 +4912,39 @@ export interface TtsModelInfo {
   supportedAudioFormats?: string[];
 }
 
+export interface ModerationCategoryInfo {
+  /** Category identifier — use this exact string in moderationConfig.blockedCategories */
+  name: string;
+  /** Human-readable category name */
+  displayName: string;
+  /** What kind of content this category covers */
+  description?: string;
+}
+
+export interface ModerationModelInfo {
+  /** Model identifier to use in configuration */
+  id: string;
+  /** Human-readable display name */
+  displayName: string;
+  /** Description of the model's capabilities */
+  description?: string;
+  /** Whether this is the recommended model for the provider */
+  recommended?: boolean;
+  /** Content categories detected by this model */
+  categories: ModerationCategoryInfo[];
+}
+
+export interface ModerationProviderInfo {
+  /** Provider API type — must match an LLM provider configured in the system */
+  apiType: string;
+  /** Human-readable provider name */
+  displayName: string;
+  /** Additional information */
+  description?: string;
+  /** Moderation models available for this provider */
+  models: ModerationModelInfo[];
+}
+
 export interface ProviderCatalog {
   /** ASR providers */
   asr: {
@@ -4899,6 +4996,8 @@ export interface ProviderCatalog {
     /** List of supported features */
     features?: string[];
   }[];
+  /** Moderation providers */
+  moderation: ModerationProviderInfo[];
 }
 
 export interface AsrProvidersResponse {

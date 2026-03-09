@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useProviderCatalogStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig, ParameterValue } from '@/api/types'
@@ -17,12 +17,13 @@ const router = useRouter()
 const projectsStore = useProjectsStore()
 const apiKeysStore = useApiKeysStore()
 const providersStore = useProvidersStore()
+const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'constants' | 'memory' | 'apiKeys' | 'metadata' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'moderation' | 'constants' | 'memory' | 'apiKeys' | 'metadata' | 'danger'>('basic')
 type ConstantType = 'string' | 'number' | 'boolean' | 'json'
 
 interface ConstantEntry {
@@ -43,6 +44,11 @@ const form = ref({
   storageConfig: {
     storageProviderId: '',
     settings: {} as any
+  },
+  moderationConfig: {
+    enabled: false,
+    llmProviderId: '',
+    blockedCategories: [] as string[]
   },
   acceptVoice: false,
   generateVoice: false,
@@ -96,6 +102,39 @@ const selectedStorageProvider = computed(() => {
 const selectedAsrProvider = computed(() => {
   if (!form.value.asrConfig.asrProviderId) return null
   return asrProviders.value.find(p => p.id === form.value.asrConfig.asrProviderId) || null
+})
+
+const moderationLlmProviders = computed(() =>
+  providersStore.items.filter(
+    p => p.providerType === 'llm' && (p.apiType === 'openai' || p.apiType === 'mistral')
+  )
+)
+
+const selectedModerationProviderApiType = computed(() => {
+  if (!form.value.moderationConfig.llmProviderId) return null
+  return moderationLlmProviders.value.find(p => p.id === form.value.moderationConfig.llmProviderId)?.apiType ?? null
+})
+
+const availableModerationCategories = computed(() => {
+  const apiType = selectedModerationProviderApiType.value
+  if (!apiType || !providerCatalogStore.catalog?.moderation) return []
+  const providerInfo = providerCatalogStore.catalog.moderation.find(p => p.apiType === apiType)
+  if (!providerInfo) return []
+  const seen = new Set<string>()
+  const categories: { name: string; displayName: string; description?: string }[] = []
+  for (const model of providerInfo.models) {
+    for (const cat of model.categories) {
+      if (!seen.has(cat.name)) {
+        seen.add(cat.name)
+        categories.push(cat)
+      }
+    }
+  }
+  return categories
+})
+
+watch(() => form.value.moderationConfig.llmProviderId, () => {
+  form.value.moderationConfig.blockedCategories = []
 })
 
 const isAzureAsrProvider = computed(() => {
@@ -276,8 +315,11 @@ const metadataFields = computed(() => {
 
 // Lifecycle
 onMounted(async () => {
-  // Load providers for ASR dropdown
-  await providersStore.fetchAll()
+  // Load providers for ASR dropdown and moderation catalog
+  await Promise.all([
+    providersStore.fetchAll(),
+    providerCatalogStore.catalog ? Promise.resolve() : providerCatalogStore.fetchCatalog(),
+  ])
   
   if (isEditMode.value) {
     await loadProject()
@@ -397,6 +439,11 @@ async function loadProject() {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
           settings: currentProject.value.storageConfig?.settings || {}
         },
+        moderationConfig: {
+          enabled: currentProject.value.moderationConfig?.enabled ?? false,
+          llmProviderId: currentProject.value.moderationConfig?.llmProviderId || '',
+          blockedCategories: currentProject.value.moderationConfig?.blockedCategories ?? []
+        },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
@@ -464,6 +511,15 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         asrConfig,
         storageConfig,
+        moderationConfig: form.value.moderationConfig.enabled
+          ? {
+              enabled: true,
+              llmProviderId: form.value.moderationConfig.llmProviderId,
+              ...(form.value.moderationConfig.blockedCategories.length > 0 && {
+                blockedCategories: form.value.moderationConfig.blockedCategories
+              })
+            }
+          : { enabled: false, llmProviderId: form.value.moderationConfig.llmProviderId },
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
@@ -481,6 +537,15 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         asrConfig,
         storageConfig,
+        moderationConfig: form.value.moderationConfig.enabled
+          ? {
+              enabled: true,
+              llmProviderId: form.value.moderationConfig.llmProviderId,
+              ...(form.value.moderationConfig.blockedCategories.length > 0 && {
+                blockedCategories: form.value.moderationConfig.blockedCategories
+              })
+            }
+          : { enabled: false, llmProviderId: form.value.moderationConfig.llmProviderId },
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
@@ -943,6 +1008,13 @@ function handleVariablesPaste(indices: number[]) {
           type="button"
         >
           Storage
+        </button>
+        <button
+          @click="activeTab = 'moderation'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'moderation' }]"
+          type="button"
+        >
+          Moderation
         </button>
         <button
           @click="activeTab = 'constants'"
@@ -2157,6 +2229,94 @@ function handleVariablesPaste(indices: number[]) {
             <div v-else class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 No storage provider selected. Conversation artifacts will not be persisted to external storage.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moderation Tab -->
+        <div v-show="activeTab === 'moderation'" class="tab-content">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Content Moderation</h3>
+              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                Enable content moderation to automatically screen user messages for harmful content before processing. Only OpenAI and Mistral providers support the moderation API.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  v-model="form.moderationConfig.enabled"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="form-label mb-0">Enable content moderation</span>
+              </label>
+              <p class="form-help-text mt-1">
+                When enabled, each user message is screened by the moderation API before being processed
+              </p>
+            </div>
+
+            <div v-if="form.moderationConfig.enabled" class="form-group">
+              <label class="form-label">Moderation Provider <span class="text-red-500">*</span></label>
+              <select
+                v-model="form.moderationConfig.llmProviderId"
+                class="form-select-auto"
+                :disabled="isLoading"
+              >
+                <option value="">Select a provider...</option>
+                <option v-for="provider in moderationLlmProviders" :key="provider.id" :value="provider.id">
+                  {{ provider.name }} ({{ provider.apiType }})
+                </option>
+              </select>
+              <p class="form-help-text">
+                Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API
+              </p>
+              <div v-if="moderationLlmProviders.length === 0" class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
+                <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                  No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
+                </p>
+              </div>
+            </div>
+
+            <div v-if="form.moderationConfig.enabled && form.moderationConfig.llmProviderId" class="form-group">
+              <label class="form-label">Blocked Categories</label>
+              <p class="form-help-text mb-3">
+                Select which flagged categories will block the message. If none are selected, any flagged category will block it.
+              </p>
+              <div v-if="availableModerationCategories.length > 0" class="space-y-2">
+                <label
+                  v-for="cat in availableModerationCategories"
+                  :key="cat.name"
+                  class="flex items-start gap-3 cursor-pointer p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <input
+                    type="checkbox"
+                    :value="cat.name"
+                    v-model="form.moderationConfig.blockedCategories"
+                    class="form-checkbox mt-0.5 shrink-0"
+                    :disabled="isLoading"
+                  />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ cat.displayName }}</span>
+                    <span v-if="cat.description" class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ cat.description }}</span>
+                    <code class="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ cat.name }}</code>
+                  </span>
+                </label>
+                <p v-if="form.moderationConfig.blockedCategories.length === 0" class="text-xs text-amber-700 dark:text-amber-400 mt-2">
+                  No categories selected — any flagged category will block the message.
+                </p>
+              </div>
+              <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
+              </div>
+            </div>
+
+            <div v-if="!form.moderationConfig.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Content moderation is disabled. User messages will not be screened before processing.
               </p>
             </div>
           </div>

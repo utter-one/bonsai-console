@@ -848,7 +848,8 @@ export interface ConversationEvent {
     | 'conversation_end'
     | 'conversation_aborted'
     | 'conversation_failed'
-    | 'jump_to_stage';
+    | 'jump_to_stage'
+    | 'moderation';
   /**
    * Data associated with the conversation event
    */
@@ -984,6 +985,14 @@ export interface ConversationEvent {
     | {
         fromStageId: string;
         toStageId: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        input: string;
+        flagged: boolean;
+        blockingCategories: string[];
+        detectedCategories: string[];
+        durationMs: number;
         metadata?: Record<string, unknown>;
       };
 }

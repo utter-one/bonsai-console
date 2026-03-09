@@ -3,7 +3,7 @@ import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { ArrowLeft, Save, Check } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, ShieldAlert } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
@@ -18,10 +18,15 @@ const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
 
+const SPECIAL_ACTION_NAMES: Record<string, string> = {
+  '__moderation_blocked': 'Moderation Blocked'
+}
+
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
+const specialActionNotFound = ref(false)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook' | 'metadata'
 const activeTab = reactive({ value: 'basic' as TabType })
@@ -59,6 +64,10 @@ const currentGlobalAction = ref<GlobalActionResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentGlobalAction)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentGlobalAction.value?.archived)
+
+const isSpecialAction = computed(() => (globalActionId.value || '').startsWith('__'))
+
+const specialActionDisplayName = computed(() => SPECIAL_ACTION_NAMES[globalActionId.value || ''] ?? null)
 
 const projectClassifiers = computed(() => 
   classifiersStore.items.filter(() => true)
@@ -117,7 +126,11 @@ async function loadGlobalAction() {
       loadEffectsIntoOperations(currentGlobalAction.value.effects || [], operations.value)
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load global action'
+    if (err.response?.status === 404 && (globalActionId.value || '').startsWith('__')) {
+      specialActionNotFound.value = true
+    } else {
+      error.value = err.response?.data?.message || 'Failed to load global action'
+    }
   } finally {
     isLoading.value = false
   }
@@ -225,6 +238,31 @@ function goBack() {
   router.push({ name: 'design.globalActions', params: { projectId: projectId.value } })
 }
 
+async function initializeSpecialAction() {
+  const id = globalActionId.value!
+  const name = SPECIAL_ACTION_NAMES[id] || id
+  isLoading.value = true
+  error.value = null
+  try {
+    const created = await globalActionsStore.create(projectId.value, {
+      id,
+      name,
+      effects: [],
+      metadata: {}
+    })
+    currentGlobalAction.value = created
+    actionId.value = created.id
+    actionTags.value = []
+    actionMetadata.value = {}
+    form.value = { ...form.value, name: created.name }
+    specialActionNotFound.value = false
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Failed to initialize action'
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const metadataFields = computed(() => {
   if (!currentGlobalAction.value) return []
   return [
@@ -248,15 +286,19 @@ const metadataFields = computed(() => {
         </button>
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            {{ isEditMode ? 'Edit Global Action' : 'New Global Action' }}
+            {{ (isEditMode && !specialActionNotFound)
+                ? (specialActionDisplayName ? `Edit ${specialActionDisplayName}` : 'Edit Global Action')
+                : (specialActionDisplayName ? `Set Up ${specialActionDisplayName}` : 'New Global Action') }}
           </h1>
           <p class="text-sm text-gray-500 mt-1">
-            {{ isEditMode ? `Editing: ${currentGlobalAction?.name}` : 'Create a new system-wide action' }}
+            {{ (isEditMode && !specialActionNotFound)
+                ? `Editing: ${currentGlobalAction?.name}`
+                : (specialActionDisplayName ? `Configure the ${specialActionDisplayName} response` : 'Create a new system-wide action') }}
           </p>
         </div>
       </div>
       <button v-if="isReadOnly" class="btn-secondary" disabled>Read-only</button>
-      <button v-else 
+      <button v-else-if="!specialActionNotFound"
         @click="handleSubmit" 
         :disabled="isLoading || showSuccess"
         class="btn-primary"
@@ -284,13 +326,25 @@ const metadataFields = computed(() => {
       </div>
     </div>
 
+    <!-- Special Action Not Found -->
+    <div v-if="specialActionNotFound" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <ShieldAlert class="w-12 h-12 text-amber-400 mb-4" />
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Not Configured</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">
+        The <strong>{{ specialActionDisplayName || globalActionId }}</strong> action has not been set up for this project yet.
+      </p>
+      <button @click="initializeSpecialAction" class="btn-primary">
+        Initialize {{ specialActionDisplayName || 'Special Action' }}
+      </button>
+    </div>
+
     <!-- Form Content -->
-    <div class="flex-1 overflow-y-auto px-0 py-4 md:px-8 md:py-6 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
+    <div v-else class="flex-1 overflow-y-auto px-0 py-4 md:px-8 md:py-6 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
-          <!-- Action ID Field (only for create mode) -->
-          <div v-show="activeTab.value === 'basic' && !isEditMode" class="form-group">
+          <!-- Action ID Field (only for create mode, hidden for special actions) -->
+          <div v-show="activeTab.value === 'basic' && !isEditMode && !isSpecialAction" class="form-group">
             <label class="form-label">
               Action ID <span class="text-gray-500">(optional, auto-generated)</span>
             </label>
@@ -324,7 +378,8 @@ const metadataFields = computed(() => {
             :project-constants="projectConstants"
             :show-tabs="true"
             :show-key-field="false"
-            :show-parameters="true"
+            :show-trigger="!isSpecialAction"
+            :show-parameters="!isSpecialAction"
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
           />
