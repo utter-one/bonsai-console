@@ -10,15 +10,15 @@ const projectSelectionStore = useProjectSelectionStore()
 const hasProject = computed(() => !!projectSelectionStore.selectedProjectId)
 
 const menuItems = [
-  { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.agents', label: 'Agents', icon: Drama },
-  { name: 'design.moderation', label: 'Moderation', icon: Shield },
+  { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
+  { name: 'design.globalActions', label: 'Global Actions & Guardrails', icon: Zap },
+  { name: 'design.moderation', label: 'Moderation', icon: Shield },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
-  { name: 'design.tools', label: 'Tools', icon: Hammer },
-  { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
   { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },
+  { name: 'design.tools', label: 'Tools', icon: Hammer },
 ]
 </script>
 

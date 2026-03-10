@@ -50,7 +50,7 @@ export default defineConfig({
             { text: 'Actions & Effects', link: '/design/actions' },
             { text: 'Classifiers', link: '/design/classifiers' },
             { text: 'Context Transformers', link: '/design/context-transformers' },
-            { text: 'Global Actions', link: '/design/global-actions' },
+            { text: 'Global Actions & Guardrails', link: '/design/global-actions' },
             { text: 'Tools', link: '/design/tools' },
             { text: 'Knowledge Base', link: '/design/knowledge' },
           ],

@@ -11,7 +11,7 @@ At a high level, designing a conversation means defining:
 3. **What the AI can do when users say things** → [Actions & Effects](./actions)
 4. **How the AI understands user intent** → [Classifiers](./classifiers)
 5. **How data is extracted from the conversation** → [Context Transformers](./context-transformers)
-6. **Shared behaviors that work across stages** → [Global Actions](./global-actions)
+6. **Shared behaviors and guardrails that work across stages** → [Global Actions & Guardrails](./global-actions)
 7. **AI-powered utility functions** → [Tools](./tools)
 8. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
 9. **User profile schema and project constants** → [Global Memory](./global-memory)
@@ -27,7 +27,7 @@ If you're setting up a new project, a good order is:
 4. **Add actions to the stage** — Define what happens when users say specific things.
 5. **Add more stages** — Map out the full conversation flow and connect stages with "go to stage" effects.
 6. **Add knowledge** — Create FAQ categories to handle common questions.
-7. **Create global actions** — Factor out any behaviors that repeat across stages.
+7. **Create global actions and guardrails** — Factor out any behaviors that repeat across stages, including safety guardrails.
 8. **Set up global memory** — Define project constants and user profile schema.
 9. **Configure moderation** — Enable content moderation and select blocked categories.
 
