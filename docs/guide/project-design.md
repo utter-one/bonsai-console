@@ -42,7 +42,7 @@ Go to each stage's **Variables** tab:
 
 ### Constants (project-level)
 
-Go to **Administration > Projects**, open your project, and switch to the **Constants** tab:
+Go to **Design > Global Constants**:
 
 - Use constants for values that don't change per conversation — company name, policy limits, plan prices, support hours.
 - Access them in any prompt via <span v-pre>`{{constants.key}}`</span>.
@@ -126,9 +126,9 @@ Go to **Design > Knowledge** to create FAQ-style content the AI can use.
 
 See [Knowledge Base](../design/knowledge) for full reference.
 
-## 8. Configure Global Actions
+## 8. Configure Global Actions & Guardrails
 
-Go to **Design > Global Actions** to create project-wide actions that work across multiple stages.
+Go to **Design > Global Actions & Guardrails** to create project-wide actions that work across multiple stages.
 
 Good candidates for global actions:
 - "I want to speak to a manager" (escalation)
@@ -137,14 +137,41 @@ Good candidates for global actions:
 - Emergency or safety triggers
 - Language switching
 
+**Guardrails** — actions that enforce safety or consistency rules regardless of stage — are also defined here. For example, a guardrail might block off-topic requests or refuse policy-violating content.
+
 **Control which stages use them** in each stage's **Features** tab:
 - **Enable Global Actions** checked + empty list = all global actions active
 - **Enable Global Actions** checked + specific IDs selected = only those
 - **Enable Global Actions** unchecked = none (useful for stages where interruptions shouldn't happen, like a final goodbye)
 
-See [Global Actions](../design/global-actions) for full reference.
+### Special Actions
 
-## 9. Write Stage Prompts
+The **Special Actions** dropdown on the Global Actions page gives access to system-triggered actions like **Moderation Blocked** — the response that runs when user input is flagged by moderation. Click it, initialize the action, and configure its effects.
+
+See [Global Actions & Guardrails](../design/global-actions) for full reference.
+
+## 9. Set Up Global Constants and Memory
+
+Go to **Design > Global Memory**. This page has two tabs:
+
+- **Constants** tab — Define project-wide values (company name, support hours, etc.) accessible in all prompts via <span v-pre>`{{constants.key}}`</span>.
+- **User Profile** tab — Declare the user profile schema — the custom fields your conversations will read and write on user profiles. This enables autocomplete in the prompt editor.
+
+See [Global Memory](../design/global-memory) for details.
+
+## 10. Configure Moderation
+
+Go to **Design > Moderation** to enable content safety screening.
+
+1. Toggle **Enable content moderation**.
+2. Select a compatible provider (OpenAI or Mistral).
+3. Choose which content categories to block.
+
+Then go to **Design > Global Actions**, open the **Special Actions** dropdown, and set up the **Moderation Blocked** action to define what happens when a message is flagged.
+
+See [Moderation](../design/moderation) for full reference.
+
+## 11. Write Stage Prompts
 
 The stage prompt is the most important part of each stage. Open the **Prompt** tab and follow these principles:
 
@@ -161,7 +188,7 @@ The stage prompt is the most important part of each stage. Open the **Prompt** t
 
 The prompt editor supports syntax highlighting and auto-completion for template variables. See [Prompt Templating](./templating) for the full template reference.
 
-## 10. Choose Enter Behavior
+## 12. Choose Enter Behavior
 
 In each stage's **Basic** tab, set the **Default Enter Behavior**:
 
@@ -172,7 +199,7 @@ In each stage's **Basic** tab, set the **Default Enter Behavior**:
 
 Most stages use **Generate Response**. Use **Await User Input** when the stage transition itself serves as the prompt.
 
-## 11. Scripting Tips
+## 13. Scripting Tips
 
 When you add **Run Script** effects, keep these guidelines in mind:
 
@@ -183,7 +210,7 @@ When you add **Run Script** effects, keep these guidelines in mind:
 
 See [Scripting](./scripting) for the full scripting reference.
 
-## 12. Design Checklist
+## 14. Design Checklist
 
 Use this checklist to make sure you haven't missed anything:
 
@@ -191,12 +218,15 @@ Use this checklist to make sure you haven't missed anything:
 2. **Identify the happy path** and all exception paths
 3. **Create one agent** (add more only if the persona changes)
 4. **Create 1–3 classifiers** (general intent + specialized ones if needed)
-5. **List all data** the conversation collects → assign as stage variables or project constants
-6. **Create context transformers** for stages that extract structured data from free text
-7. **Design actions per stage** — triggers, conditions, effects, examples
-8. **Add lifecycle actions** (on enter, on leave, on fallback) where needed
-9. **Create knowledge categories** for FAQ-heavy stages
-10. **Create global actions** for cross-cutting intents
-11. **Write prompts** — agent first, then each stage
-12. **Configure providers** — LLM, TTS, ASR at appropriate levels
-13. **Test each stage in isolation** in the [Playground](./playground), then test full flows end-to-end
+5. **List all data** the conversation collects → assign as stage variables or global constants
+6. **Define global constants** for project-wide values (company name, hours, URLs)
+7. **Define the memory schema** for user profile fields your conversations will track
+8. **Create context transformers** for stages that extract structured data from free text
+9. **Design actions per stage** — triggers, conditions, effects, examples
+10. **Add lifecycle actions** (on enter, on leave, on fallback) where needed
+11. **Create knowledge categories** for FAQ-heavy stages
+12. **Create global actions** for cross-cutting intents
+13. **Configure moderation** — enable screening and set up the Moderation Blocked response
+14. **Write prompts** — agent first, then each stage
+15. **Configure providers** — LLM, TTS, ASR at appropriate levels
+16. **Test each stage in isolation** in the [Playground](./playground), then test full flows end-to-end

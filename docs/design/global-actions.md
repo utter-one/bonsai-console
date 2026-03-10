@@ -1,6 +1,8 @@
-# Global Actions
+# Global Actions & Guardrails
 
 **Global actions** are actions defined once at the project level and shared across multiple stages. They work just like regular stage actions, but you create them separately and then reference them in whichever stages need them.
+
+**Guardrails** are global actions whose purpose is to enforce safety or consistency rules — behaviors that should always be available regardless of which stage the conversation is in, such as handling offensive language, refusing off-topic requests, or enforcing usage policies.
 
 ## Why Use Global Actions?
 
@@ -13,10 +15,11 @@ Some behaviors need to be available everywhere in the conversation. Without glob
 - **Language switching** — _"Speak Spanish"_ should change the language globally.
 - **Navigation** — _"Go back to the main menu"_ should work from any stage.
 - **Error recovery** — Consistent error-handling behavior across all stages.
+- **Guardrails** — Blocking off-topic requests, refusing harmful content, or enforcing policy rules across the entire project.
 
 ## Creating a Global Action
 
-Go to **Design > Global Actions** and click **Create Global Action**.
+Go to **Design > Global Actions & Guardrails** and click **New Global Action**.
 
 The fields are the same as a regular stage action:
 
@@ -37,17 +40,33 @@ On the stage edit view:
 1. Enable **Use Global Actions**.
 2. Optionally select **specific global action IDs** to include. If you leave this empty, all project global actions are available in the stage.
 
+## Special Actions
+
+Besides regular global actions, there are **special actions** that are executed automatically by the system under specific conditions. You can configure their effects to control what happens when they're triggered.
+
+To set up a special action, click the **Special Actions** dropdown (the violet button next to **New Global Action**) and select the action you want to configure.
+
+### Moderation Blocked
+
+The **Moderation Blocked** action (ID: <code v-pre>__moderation_blocked</code>) runs when the moderation system flags a user's message. Use it to define how the assistant responds when a message is blocked — for example, generating a polite refusal or ending the conversation.
+
+Since the trigger is system-controlled, the edit view hides the **Trigger** and **Parameters** tabs — you only configure **Effects** (and optionally the name, examples, and tags).
+
+If the action hasn't been set up for the project yet, clicking it shows a **Not Configured** screen with an **Initialize** button that creates it for you.
+
 ## Global vs. Stage Actions
 
 | | Stage Actions | Global Actions |
 |---|---|---|
 | **Scope** | Defined inside a single stage | Defined at project level, shared across stages |
 | **Lifecycle actions** | Supports `__on_enter`, `__on_leave`, `__on_fallback` | No lifecycle actions |
+| **Special actions** | N/A | <code v-pre>__moderation_blocked</code> (system-triggered) |
 | **Best for** | Stage-specific behaviors | Cross-cutting behaviors |
 | **Maintenance** | Edited per-stage | Edit once, applies everywhere |
 
 ## Tips
 
 - **Start with "always available" behaviors** — Help, cancel, and navigation are the classic global actions.
+- **Use global actions as guardrails** — Behaviors that should fire regardless of stage (blocking off-topic requests, enforcing policies) are a natural fit for global actions. Give them clear classification triggers and use conditions to fine-tune when they apply.
 - **Use conditions** to control context — Even a global action can have a condition that limits when it's active. For example, "Transfer to human" might require `vars.escalationAllowed === true`.
 - **Don't overuse** — If an action only makes sense in one or two stages, it's simpler as a regular stage action. Reserve global actions for genuinely cross-cutting behaviors.

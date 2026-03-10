@@ -1,36 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useProviderCatalogStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, ParameterValue } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
-import VariableTreeNode from '@/components/VariableTreeNode.vue'
-import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectsStore = useProjectsStore()
 const apiKeysStore = useApiKeysStore()
 const providersStore = useProvidersStore()
-const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'moderation' | 'constants' | 'memory' | 'apiKeys' | 'metadata' | 'danger'>('basic')
-type ConstantType = 'string' | 'number' | 'boolean' | 'json'
-
-interface ConstantEntry {
-  key: string
-  type: ConstantType
-  value: string
-}
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -45,27 +35,12 @@ const form = ref({
     storageProviderId: '',
     settings: {} as any
   },
-  moderationConfig: {
-    enabled: false,
-    llmProviderId: '',
-    blockedCategories: [] as string[]
-  },
   acceptVoice: false,
   generateVoice: false,
   timezone: '',
   version: undefined as number | undefined,
-  constants: [] as ConstantEntry[],
-  autoCreateUsers: false,
-  userProfileVariableDescriptors: [] as Array<{
-    name: string
-    type: 'string' | 'number' | 'boolean' | 'object' | 'string[]' | 'number[]' | 'boolean[]' | 'object[]' | 'image' | 'image[]' | 'audio' | 'audio[]'
-    isArray: boolean
-    objectSchema?: Array<any>
-  }>,
 })
 
-const showVariablesPasteModal = ref(false)
-const clipboardVariables = ref<Array<any> | null>(null)
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
@@ -102,39 +77,6 @@ const selectedStorageProvider = computed(() => {
 const selectedAsrProvider = computed(() => {
   if (!form.value.asrConfig.asrProviderId) return null
   return asrProviders.value.find(p => p.id === form.value.asrConfig.asrProviderId) || null
-})
-
-const moderationLlmProviders = computed(() =>
-  providersStore.items.filter(
-    p => p.providerType === 'llm' && (p.apiType === 'openai' || p.apiType === 'mistral')
-  )
-)
-
-const selectedModerationProviderApiType = computed(() => {
-  if (!form.value.moderationConfig.llmProviderId) return null
-  return moderationLlmProviders.value.find(p => p.id === form.value.moderationConfig.llmProviderId)?.apiType ?? null
-})
-
-const availableModerationCategories = computed(() => {
-  const apiType = selectedModerationProviderApiType.value
-  if (!apiType || !providerCatalogStore.catalog?.moderation) return []
-  const providerInfo = providerCatalogStore.catalog.moderation.find(p => p.apiType === apiType)
-  if (!providerInfo) return []
-  const seen = new Set<string>()
-  const categories: { name: string; displayName: string; description?: string }[] = []
-  for (const model of providerInfo.models) {
-    for (const cat of model.categories) {
-      if (!seen.has(cat.name)) {
-        seen.add(cat.name)
-        categories.push(cat)
-      }
-    }
-  }
-  return categories
-})
-
-watch(() => form.value.moderationConfig.llmProviderId, () => {
-  form.value.moderationConfig.blockedCategories = []
 })
 
 const isAzureAsrProvider = computed(() => {
@@ -202,107 +144,6 @@ const filteredApiKeys = computed(() => {
   return apiKeysStore.items
 })
 
-const duplicateConstantKeys = computed(() => {
-  const keys = form.value.constants.map(c => c.key.trim()).filter(Boolean)
-  const seen = new Set<string>()
-  const duplicates: string[] = []
-  for (const key of keys) {
-    if (seen.has(key)) duplicates.push(key)
-    seen.add(key)
-  }
-  return [...new Set(duplicates)]
-})
-
-function inferConstantType(val: any): ConstantType {
-  if (typeof val === 'boolean') return 'boolean'
-  if (typeof val === 'number') return 'number'
-  if (typeof val === 'string') return 'string'
-  return 'json'
-}
-
-function constantEntryToValue(entry: ConstantEntry): ParameterValue {
-  switch (entry.type) {
-    case 'number': return Number(entry.value)
-    case 'boolean': return entry.value === 'true'
-    case 'json':
-      try { return JSON.parse(entry.value) } catch { return entry.value }
-    default: return entry.value
-  }
-}
-
-function constantsRecordToEntries(record: Record<string, ParameterValue>): ConstantEntry[] {
-  return Object.entries(record).map(([key, val]) => {
-    const type = inferConstantType(val)
-    const value = type === 'json' ? JSON.stringify(val, null, 2) : String(val)
-    return { key, type, value }
-  })
-}
-
-function entriesToConstantsRecord(entries: ConstantEntry[]): Record<string, ParameterValue> {
-  const result: Record<string, ParameterValue> = {}
-  for (const entry of entries) {
-    const trimmedKey = entry.key.trim()
-    if (trimmedKey) result[trimmedKey] = constantEntryToValue(entry)
-  }
-  return result
-}
-
-function addConstant() {
-  form.value.constants.push({ key: '', type: 'string', value: '' })
-}
-
-function deleteConstant(index: number) {
-  form.value.constants.splice(index, 1)
-}
-
-function copyAllConstants() {
-  if (form.value.constants.length === 0) {
-    alert('No constants to copy')
-    return
-  }
-  try {
-    const record = entriesToConstantsRecord(form.value.constants)
-    navigator.clipboard.writeText(JSON.stringify(record, null, 2))
-    alert(`Copied ${Object.keys(record).length} constant(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy constants to clipboard')
-  }
-}
-
-async function pasteConstants() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    if (!clipboardText) { alert('Clipboard is empty'); return }
-    let parsed: Record<string, any>
-    try { parsed = JSON.parse(clipboardText) } catch { alert('Clipboard does not contain valid JSON data'); return }
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      alert('Clipboard does not contain a valid constants object')
-      return
-    }
-    const incoming = constantsRecordToEntries(parsed as Record<string, ParameterValue>)
-    let addedCount = 0
-    let overwrittenCount = 0
-    for (const entry of incoming) {
-      const existing = form.value.constants.findIndex(c => c.key === entry.key)
-      if (existing !== -1) {
-        form.value.constants[existing] = entry
-        overwrittenCount++
-      } else {
-        form.value.constants.push(entry)
-        addedCount++
-      }
-    }
-    const msg = overwrittenCount > 0
-      ? `Pasted ${addedCount + overwrittenCount} constant(s) (${overwrittenCount} updated)`
-      : `Pasted ${addedCount} constant(s)`
-    alert(msg)
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
-  }
-}
-
 const metadataFields = computed(() => {
   if (!currentProject.value) return []
   return [
@@ -315,11 +156,7 @@ const metadataFields = computed(() => {
 
 // Lifecycle
 onMounted(async () => {
-  // Load providers for ASR dropdown and moderation catalog
-  await Promise.all([
-    providersStore.fetchAll(),
-    providerCatalogStore.catalog ? Promise.resolve() : providerCatalogStore.fetchCatalog(),
-  ])
+  await providersStore.fetchAll()
   
   if (isEditMode.value) {
     await loadProject()
@@ -439,18 +276,10 @@ async function loadProject() {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
           settings: currentProject.value.storageConfig?.settings || {}
         },
-        moderationConfig: {
-          enabled: currentProject.value.moderationConfig?.enabled ?? false,
-          llmProviderId: currentProject.value.moderationConfig?.llmProviderId || '',
-          blockedCategories: currentProject.value.moderationConfig?.blockedCategories ?? []
-        },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
         version: currentProject.value.version,
-        constants: constantsRecordToEntries(currentProject.value.constants || {}),
-        autoCreateUsers: currentProject.value.autoCreateUsers ?? false,
-        userProfileVariableDescriptors: currentProject.value.userProfileVariableDescriptors || [],
       }
       
       // Load API keys for edit mode
@@ -482,8 +311,6 @@ async function handleSubmit() {
   error.value = null
   isLoading.value = true
 
-  console.log(route.params.projectId, form.value, isEditMode.value, currentProject.value)
-
   try {
     // Build ASR config only if provider is selected
     const asrConfig: AsrConfig | undefined = form.value.asrConfig.asrProviderId ? {
@@ -511,21 +338,9 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         asrConfig,
         storageConfig,
-        moderationConfig: form.value.moderationConfig.enabled
-          ? {
-              enabled: true,
-              llmProviderId: form.value.moderationConfig.llmProviderId,
-              ...(form.value.moderationConfig.blockedCategories.length > 0 && {
-                blockedCategories: form.value.moderationConfig.blockedCategories
-              })
-            }
-          : { enabled: false, llmProviderId: form.value.moderationConfig.llmProviderId },
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
-        constants: entriesToConstantsRecord(form.value.constants),
-        autoCreateUsers: form.value.autoCreateUsers,
-        userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
       
       // Update currentProject with the response to get the new version
@@ -537,21 +352,9 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         asrConfig,
         storageConfig,
-        moderationConfig: form.value.moderationConfig.enabled
-          ? {
-              enabled: true,
-              llmProviderId: form.value.moderationConfig.llmProviderId,
-              ...(form.value.moderationConfig.blockedCategories.length > 0 && {
-                blockedCategories: form.value.moderationConfig.blockedCategories
-              })
-            }
-          : { enabled: false, llmProviderId: form.value.moderationConfig.llmProviderId },
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
-        constants: entriesToConstantsRecord(form.value.constants),
-        autoCreateUsers: form.value.autoCreateUsers,
-        userProfileVariableDescriptors: form.value.userProfileVariableDescriptors,
       })
 
       // Set currentProject to the newly created project
@@ -784,170 +587,6 @@ function handleStorageSettingsSave(settings: any) {
 function handleStorageSettingsClose() {
   showStorageSettingsModal.value = false
 }
-
-// User profile variable descriptor management
-const duplicateVariableNames = computed(() => {
-  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
-    const seen = new Set<string>()
-    const dupes: string[] = []
-    for (const d of descriptors) {
-      if (seen.has(d.name)) {
-        if (!dupes.includes(d.name)) dupes.push(d.name)
-      } else {
-        seen.add(d.name)
-      }
-    }
-    for (const d of descriptors) {
-      if (d.objectSchema && d.objectSchema.length > 0) {
-        dupes.push(...findDuplicates(d.objectSchema))
-      }
-    }
-    return dupes
-  }
-  return findDuplicates(form.value.userProfileVariableDescriptors)
-})
-
-const expandedNodes = ref<Set<string>>(new Set())
-
-function getDescriptorByPath(path: number[]): any {
-  let current: any = { objectSchema: form.value.userProfileVariableDescriptors }
-  for (const index of path) {
-    current = current.objectSchema[index]
-    if (!current) return null
-  }
-  return current
-}
-
-function addRootVariable() {
-  form.value.userProfileVariableDescriptors.push({
-    name: 'new_variable',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  })
-}
-
-function addNestedVariable(path: number[]) {
-  const parent = getDescriptorByPath(path)
-  if (!parent) return
-  if (!parent.objectSchema) {
-    parent.objectSchema = []
-  }
-  parent.objectSchema.push({
-    name: 'new_field',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  })
-  expandedNodes.value.add(path.join('-'))
-}
-
-function updateVariableName(data: { path: number[]; name: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.name = data.name
-  }
-}
-
-function updateVariableType(data: { path: number[]; type: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.type = data.type
-    descriptor.isArray = data.type.endsWith('[]')
-    const isObject = data.type === 'object' || data.type === 'object[]'
-    if (!isObject && descriptor.objectSchema) {
-      descriptor.objectSchema = []
-    }
-  }
-}
-
-function deleteVariable(path: number[]) {
-  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
-  if (path.length === 1) {
-    const index = path[0]
-    if (index !== undefined) {
-      form.value.userProfileVariableDescriptors.splice(index, 1)
-    }
-  } else {
-    const parentPath = path.slice(0, -1)
-    const index = path[path.length - 1]
-    const parent = getDescriptorByPath(parentPath)
-    if (parent?.objectSchema && index !== undefined) {
-      parent.objectSchema.splice(index, 1)
-    }
-  }
-}
-
-function toggleNode(path: number[]) {
-  const key = path.join('-')
-  if (expandedNodes.value.has(key)) {
-    expandedNodes.value.delete(key)
-  } else {
-    expandedNodes.value.add(key)
-  }
-}
-
-function copyAllVariables() {
-  if (form.value.userProfileVariableDescriptors.length === 0) {
-    alert('No variables to copy')
-    return
-  }
-  try {
-    const jsonData = JSON.stringify(form.value.userProfileVariableDescriptors, null, 2)
-    navigator.clipboard.writeText(jsonData)
-    alert(`Copied ${form.value.userProfileVariableDescriptors.length} variable(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy variables to clipboard')
-  }
-}
-
-async function pasteVariables() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    if (!clipboardText) { alert('Clipboard is empty'); return }
-    let parsedVariables: Array<any>
-    try {
-      parsedVariables = JSON.parse(clipboardText)
-    } catch {
-      alert('Clipboard does not contain valid JSON data'); return
-    }
-    if (!Array.isArray(parsedVariables)) {
-      alert('Clipboard does not contain valid variables data (must be an array)'); return
-    }
-    clipboardVariables.value = parsedVariables
-    showVariablesPasteModal.value = true
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
-  }
-}
-
-function handleVariablesPaste(indices: number[]) {
-  if (!clipboardVariables.value) return
-  let pastedCount = 0
-  let overwrittenCount = 0
-  for (const index of indices) {
-    const variable = clipboardVariables.value[index]
-    if (!variable) continue
-    const existingIndex = form.value.userProfileVariableDescriptors.findIndex(v => v.name === variable.name)
-    if (existingIndex !== -1) {
-      form.value.userProfileVariableDescriptors[existingIndex] = JSON.parse(JSON.stringify(variable))
-      overwrittenCount++
-    } else {
-      form.value.userProfileVariableDescriptors.push(JSON.parse(JSON.stringify(variable)))
-    }
-    pastedCount++
-  }
-  showVariablesPasteModal.value = false
-  clipboardVariables.value = null
-  if (pastedCount > 0) {
-    const message = overwrittenCount > 0
-      ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
-      : `Successfully pasted ${pastedCount} variable(s)`
-    alert(message)
-  }
-}
 </script>
 
 <template>
@@ -1008,27 +647,6 @@ function handleVariablesPaste(indices: number[]) {
           type="button"
         >
           Storage
-        </button>
-        <button
-          @click="activeTab = 'moderation'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'moderation' }]"
-          type="button"
-        >
-          Moderation
-        </button>
-        <button
-          @click="activeTab = 'constants'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'constants' }]"
-          type="button"
-        >
-          Constants
-        </button>
-        <button
-          @click="activeTab = 'memory'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'memory' }]"
-          type="button"
-        >
-          Memory
         </button>
         <button
           v-if="isEditMode"
@@ -2234,305 +1852,6 @@ function handleVariablesPaste(indices: number[]) {
           </div>
         </div>
 
-        <!-- Moderation Tab -->
-        <div v-show="activeTab === 'moderation'" class="tab-content">
-          <div class="space-y-6">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Content Moderation</h3>
-              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
-                Enable content moderation to automatically screen user messages for harmful content before processing. Only OpenAI and Mistral providers support the moderation API.
-              </p>
-            </div>
-
-            <div class="form-group">
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  v-model="form.moderationConfig.enabled"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="form-label mb-0">Enable content moderation</span>
-              </label>
-              <p class="form-help-text mt-1">
-                When enabled, each user message is screened by the moderation API before being processed
-              </p>
-            </div>
-
-            <div v-if="form.moderationConfig.enabled" class="form-group">
-              <label class="form-label">Moderation Provider <span class="text-red-500">*</span></label>
-              <select
-                v-model="form.moderationConfig.llmProviderId"
-                class="form-select-auto"
-                :disabled="isLoading"
-              >
-                <option value="">Select a provider...</option>
-                <option v-for="provider in moderationLlmProviders" :key="provider.id" :value="provider.id">
-                  {{ provider.name }} ({{ provider.apiType }})
-                </option>
-              </select>
-              <p class="form-help-text">
-                Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API
-              </p>
-              <div v-if="moderationLlmProviders.length === 0" class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
-                <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                  No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
-                </p>
-              </div>
-            </div>
-
-            <div v-if="form.moderationConfig.enabled && form.moderationConfig.llmProviderId" class="form-group">
-              <label class="form-label">Blocked Categories</label>
-              <p class="form-help-text mb-3">
-                Select which flagged categories will block the message. If none are selected, any flagged category will block it.
-              </p>
-              <div v-if="availableModerationCategories.length > 0" class="space-y-2">
-                <label
-                  v-for="cat in availableModerationCategories"
-                  :key="cat.name"
-                  class="flex items-start gap-3 cursor-pointer p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    :value="cat.name"
-                    v-model="form.moderationConfig.blockedCategories"
-                    class="form-checkbox mt-0.5 shrink-0"
-                    :disabled="isLoading"
-                  />
-                  <span class="min-w-0">
-                    <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ cat.displayName }}</span>
-                    <span v-if="cat.description" class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ cat.description }}</span>
-                    <code class="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ cat.name }}</code>
-                  </span>
-                </label>
-                <p v-if="form.moderationConfig.blockedCategories.length === 0" class="text-xs text-amber-700 dark:text-amber-400 mt-2">
-                  No categories selected — any flagged category will block the message.
-                </p>
-              </div>
-              <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
-              </div>
-            </div>
-
-            <div v-if="!form.moderationConfig.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Content moderation is disabled. User messages will not be screened before processing.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Constants Tab -->
-        <div v-show="activeTab === 'constants'" class="tab-content">
-          <div v-if="duplicateConstantKeys.length > 0" class="alert-error mb-4">
-            <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-            Duplicate constant keys detected: <strong>{{ duplicateConstantKeys.join(', ') }}</strong>. Keys must be unique.
-          </div>
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Constants</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Key-value constants available in templating and conversation logic
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                @click="copyAllConstants"
-                class="btn-secondary"
-                :disabled="isLoading || form.constants.length === 0"
-                title="Copy all constants to clipboard"
-              >
-                <Clipboard class="inline-block mr-1 w-4 h-4" />
-                Copy
-              </button>
-              <button
-                type="button"
-                @click="pasteConstants"
-                class="btn-secondary"
-                :disabled="isLoading"
-                title="Paste constants from clipboard"
-              >
-                <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
-                Paste
-              </button>
-              <button
-                type="button"
-                @click="addConstant"
-                class="btn-primary"
-                :disabled="isLoading"
-              >
-                <Plus class="inline-block mr-1 w-4 h-4" />
-                Add Constant
-              </button>
-            </div>
-          </div>
-
-          <!-- Empty State -->
-          <div v-if="form.constants.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-            <p class="text-gray-500 dark:text-gray-400 mb-4">No constants defined yet</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500">
-              Click "Add Constant" to define your first constant
-            </p>
-          </div>
-
-          <!-- Constants List -->
-          <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-            <div class="grid grid-cols-[1fr_auto_2fr_auto] gap-0 divide-y divide-gray-200 dark:divide-gray-700">
-              <!-- Header -->
-              <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] bg-gray-50 dark:bg-gray-700 px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <span>Key</span>
-                <span class="px-3">Type</span>
-                <span>Value</span>
-                <span></span>
-              </div>
-              <!-- Rows -->
-              <template v-for="(entry, index) in form.constants" :key="index">
-                <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <!-- Key -->
-                  <input
-                    v-model="entry.key"
-                    type="text"
-                    placeholder="constant_name"
-                    class="form-input py-1 px-2 text-sm font-mono"
-                    :disabled="isLoading"
-                    :class="{ 'border-red-400': duplicateConstantKeys.includes(entry.key.trim()) && entry.key.trim() }"
-                  />
-                  <!-- Type -->
-                  <select
-                    v-model="entry.type"
-                    class="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 h-[34px]"
-                    :disabled="isLoading"
-                  >
-                    <option value="string">String</option>
-                    <option value="number">Number</option>
-                    <option value="boolean">Boolean</option>
-                    <option value="json">JSON</option>
-                  </select>
-                  <!-- Value -->
-                  <div class="flex items-center">
-                    <input
-                      v-if="entry.type === 'string' || entry.type === 'number' || entry.type === 'json'"
-                      v-model="entry.value"
-                      :type="entry.type === 'number' ? 'number' : 'text'"
-                      :placeholder="entry.type === 'json' ? '{&quot;key&quot;: &quot;value&quot;}' : 'value'"
-                      :class="['form-input py-1 px-2 text-sm w-full', entry.type === 'json' ? 'font-mono' : '']"
-                      :disabled="isLoading"
-                    />
-                    <label v-else-if="entry.type === 'boolean'" class="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        :checked="entry.value === 'true'"
-                        @change="entry.value = ($event.target as HTMLInputElement).checked ? 'true' : 'false'"
-                        class="form-checkbox"
-                        :disabled="isLoading"
-                      />
-                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ entry.value === 'true' ? 'true' : 'false' }}</span>
-                    </label>
-                  </div>
-                  <!-- Delete -->
-                  <button
-                    type="button"
-                    @click="deleteConstant(index)"
-                    class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                    :disabled="isLoading"
-                    title="Delete constant"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-
-        <!-- Memory Tab -->
-        <div v-show="activeTab === 'memory'" class="tab-content">
-          <div class="form-group mb-6">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input
-                v-model="form.autoCreateUsers"
-                type="checkbox"
-                class="form-checkbox"
-                :disabled="isLoading"
-              />
-              <span class="form-label mb-0">Automatically create users</span>
-            </label>
-            <p class="form-help-text mt-1 ml-7">
-              When enabled, users are automatically created on first connection if they do not exist, using the provided user ID and an empty profile
-            </p>
-          </div>
-
-          <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
-            <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-            Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
-          </div>
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Define the schema for user profile variables available in conversations of this project
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                @click="copyAllVariables"
-                class="btn-secondary"
-                :disabled="isLoading || form.userProfileVariableDescriptors.length === 0"
-                title="Copy all variables to clipboard"
-              >
-                <Clipboard class="inline-block mr-1 w-4 h-4" />
-                Copy
-              </button>
-              <button
-                type="button"
-                @click="pasteVariables"
-                class="btn-secondary"
-                :disabled="isLoading"
-                title="Paste variables from clipboard"
-              >
-                <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
-                Paste
-              </button>
-              <button
-                type="button"
-                @click="addRootVariable"
-                class="btn-primary"
-                :disabled="isLoading"
-              >
-                <Plus class="inline-block mr-1 w-4 h-4" />
-                Add Variable
-              </button>
-            </div>
-          </div>
-
-          <!-- Empty State -->
-          <div v-if="form.userProfileVariableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-            <p class="text-gray-500 dark:text-gray-400 mb-4">No user profile variable descriptors defined yet</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500">
-              Click "Add Variable" to define your first variable
-            </p>
-          </div>
-
-          <!-- Tree View -->
-          <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-            <div class="divide-y divide-gray-200 dark:divide-gray-700">
-              <template v-for="(descriptor, index) in form.userProfileVariableDescriptors" :key="index">
-                <VariableTreeNode
-                  :descriptor="descriptor"
-                  :path="[index]"
-                  :expanded-nodes="expandedNodes"
-                  @toggle="toggleNode"
-                  @update-name="updateVariableName"
-                  @update-type="updateVariableType"
-                  @delete="deleteVariable"
-                  @add-nested="addNestedVariable"
-                />
-              </template>
-            </div>
-          </div>
-        </div>
         </fieldset>
 
         <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
@@ -2664,15 +1983,6 @@ function handleVariablesPaste(indices: number[]) {
       :settings="form.storageConfig.settings"
       @close="handleStorageSettingsClose"
       @save="handleStorageSettingsSave"
-    />
-
-    <!-- Variables Paste Modal -->
-    <VariablesPasteModal
-      v-if="showVariablesPasteModal && clipboardVariables"
-      :clipboard-variables="clipboardVariables"
-      :existing-names="form.userProfileVariableDescriptors.map(v => v.name)"
-      @close="showVariablesPasteModal = false"
-      @save="handleVariablesPaste"
     />
   </div>
   </AdministrationSectionLayout>
