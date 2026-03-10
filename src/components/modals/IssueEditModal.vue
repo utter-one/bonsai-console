@@ -47,12 +47,24 @@
 
             <div class="form-group">
               <label class="form-label">Conversation ID (optional)</label>
-              <input
-                v-model="form.sessionId"
-                type="text"
-                placeholder="Session/Conversation ID"
-                class="form-input"
-              />
+              <div class="relative">
+                <input
+                  v-model="form.sessionId"
+                  type="text"
+                  placeholder="Session/Conversation ID"
+                  class="form-input"
+                  :class="{ 'input-with-action': form.sessionId }"
+                />
+                <a
+                  v-if="form.sessionId && issue"
+                  href="#"
+                  @click.prevent="navigateToConversation"
+                  class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 hover:text-blue-600"
+                  title="View conversation"
+                >
+                  <ExternalLink class="w-4 h-4" />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -178,10 +190,12 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import { useProjectsStore } from '@/stores/projects'
 import { useEnvironmentsStore } from '@/stores/environments'
 import { useStagesStore } from '@/stores/stages'
+import { ExternalLink } from 'lucide-vue-next'
 
 interface PrefillData {
   projectId?: string
@@ -204,6 +218,21 @@ const emit = defineEmits<{
 const projectsStore = useProjectsStore()
 const environmentsStore = useEnvironmentsStore()
 const stagesStore = useStagesStore()
+const router = useRouter()
+
+function navigateToConversation() {
+  if (!form.value.sessionId) return
+  emit('close')
+  const query: Record<string, string> = {}
+  if (form.value.eventIndex !== null) {
+    query.highlightEventIndex = String(form.value.eventIndex)
+  }
+  router.push({
+    name: 'monitor.conversationDetail',
+    params: { conversationId: form.value.sessionId },
+    query,
+  })
+}
 
 const severityOptions = ['critical', 'major', 'minor', 'trivial']
 const categoryOptions = ['intent', 'ai answer', 'entity', 'tool']
@@ -342,6 +371,10 @@ const handleSubmit = () => {
 <style scoped>
 .max-w-4xl {
   max-width: 56rem;
+}
+
+.input-with-action {
+  padding-right: 2.25rem;
 }
 
 .required {
