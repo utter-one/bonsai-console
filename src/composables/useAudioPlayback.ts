@@ -1,4 +1,6 @@
 import { ref, computed, onUnmounted } from 'vue'
+import { create, ConverterType } from '@alexanderolsen/libsamplerate-js'
+import type { SRC } from '@alexanderolsen/libsamplerate-js/dist/src'
 import type { AudioFormat } from '@/api/websocket/websocket-contracts'
 
 interface AudioChunk {
@@ -50,6 +52,9 @@ export function useAudioPlayback() {
   const audioBuffers = ref<AudioBuffer[]>([])
   let lastScheduledBufferIndex = -1
 
+  // Cache resamplers by input sample rate to avoid recreating them per-chunk
+  const resamplerCache = new Map<number, SRC>()
+
   /**
    * Initialize AudioContext (must be called after user gesture for autoplay policy)
    */
@@ -75,7 +80,10 @@ export function useAudioPlayback() {
   }
 
   /**
-   * Decode base64 PCM audio data to AudioBuffer
+   * Decode base64 PCM audio data to AudioBuffer, resampling to the
+   * AudioContext's hardware rate via libsamplerate-js when needed.
+   * Chromium's real-time resampler produces crackling at certain ratios
+   * (e.g. 16000 -> 44100/48000 Hz); pre-resampling before scheduling avoids this.
    */
   async function decodePCMChunk(chunk: AudioChunk): Promise<AudioBuffer> {
     const ctx = initAudioContext()
@@ -88,24 +96,28 @@ export function useAudioPlayback() {
       bytes[i] = binaryString.charCodeAt(i)
     }
 
-    // Parse as 16-bit little-endian PCM
-    console.log(`Lenght of bytes:`, bytes.length, bytes.buffer.byteLength)
-    console.log(`Chunk info:`, { ...chunk, sampleRate2: sampleRate })
+    // Parse as 16-bit little-endian PCM and convert to float32 (-1.0 to 1.0)
     const samples = new Int16Array(bytes.buffer)
     const floatSamples = new Float32Array(samples.length)
-
-    // Convert to float32 (-1.0 to 1.0 range)
     for (let i = 0; i < samples.length; i++) {
       floatSamples[i] = (samples[i] ?? 0) / 32768.0
     }
 
-    console.log(`Start:`, { floatSamples: floatSamples.slice(0, 10) }) // Log first 10 samples for debugging
-    console.log(`End:`, { floatSamples: floatSamples.slice(-10) }) // Log last 10 samples for debugging
+    // Resample to the AudioContext's hardware rate if needed
+    let finalSamples: Float32Array<ArrayBufferLike> = floatSamples
+    if (sampleRate !== ctx.sampleRate) {
+      let resampler = resamplerCache.get(sampleRate)
+      if (!resampler) {
+        resampler = await create(1, sampleRate, ctx.sampleRate, {
+          converterType: ConverterType.SRC_SINC_BEST_QUALITY,
+        })
+        resamplerCache.set(sampleRate, resampler)
+      }
+      finalSamples = resampler.full(floatSamples)
+    }
 
-    // Create AudioBuffer
-    const audioBuffer = ctx.createBuffer(1, floatSamples.length, sampleRate)
-    audioBuffer.getChannelData(0).set(floatSamples)
-
+    const audioBuffer = ctx.createBuffer(1, finalSamples.length, ctx.sampleRate)
+    audioBuffer.getChannelData(0).set(finalSamples)
     return audioBuffer
   }
 
@@ -371,6 +383,10 @@ export function useAudioPlayback() {
       audioContext.close()
       audioContext = null
     }
+    for (const resampler of resamplerCache.values()) {
+      resampler.destroy()
+    }
+    resamplerCache.clear()
   })
 
   // Computed properties
