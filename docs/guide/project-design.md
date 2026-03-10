@@ -150,11 +150,12 @@ See [Global Actions](../design/global-actions) for full reference.
 
 ## 9. Set Up Global Constants and Memory
 
-Go to **Design > Global Constants** to define project-wide values (company name, support hours, etc.) accessible in all prompts via <span v-pre>`{{constants.key}}`</span>.
+Go to **Design > Global Memory**. This page has two tabs:
 
-Go to **Design > Global Memory** to declare the user profile schema — the custom fields your conversations will read and write on user profiles. This enables autocomplete in the prompt editor.
+- **Constants** tab — Define project-wide values (company name, support hours, etc.) accessible in all prompts via <span v-pre>`{{constants.key}}`</span>.
+- **User Profile** tab — Declare the user profile schema — the custom fields your conversations will read and write on user profiles. This enables autocomplete in the prompt editor.
 
-See [Global Constants](../design/global-constants) and [Global Memory](../design/global-memory) for details.
+See [Global Memory](../design/global-memory) for details.
 
 ## 10. Configure Moderation
 

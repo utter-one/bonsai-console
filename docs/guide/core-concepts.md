@@ -89,13 +89,13 @@ There are also **special actions** (like **Moderation Blocked**) that are trigge
 
 **Global constants** are key-value pairs defined at the project level and available in all prompts via <span v-pre>`{{constants.key}}`</span>. Use them for values that don't change per conversation — company name, support hours, policy limits, plan pricing.
 
-Constants support String, Number, Boolean, and JSON types. Manage them in **Design > Global Constants**.
+Constants support String, Number, Boolean, and JSON types. Manage them in **Design > Global Memory > Constants** tab.
 
 ## Global Memory — User Profile Schema
 
 **Global memory** defines the schema for custom fields stored on each end user's profile. Declaring fields here (with their types) enables autocomplete in the prompt editor and documents your data model for the team.
 
-Custom profile fields are accessed in prompts as <span v-pre>`{{userProfile.fieldName}}`</span> and set at runtime via `modify_user_profile` effects or scripts. Manage the schema in **Design > Global Memory**.
+Custom profile fields are accessed in prompts as <span v-pre>`{{userProfile.fieldName}}`</span> and set at runtime via `modify_user_profile` effects or scripts. Manage the schema in **Design > Global Memory > User Profile** tab.
 
 ## Moderation — Content Safety
 

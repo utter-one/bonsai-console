@@ -14,9 +14,8 @@ At a high level, designing a conversation means defining:
 6. **Shared behaviors that work across stages** → [Global Actions](./global-actions)
 7. **AI-powered utility functions** → [Tools](./tools)
 8. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
-9. **Project-wide key-value pairs** → [Global Constants](./global-constants)
-10. **User profile schema** → [Global Memory](./global-memory)
-11. **Content moderation settings** → [Moderation](./moderation)
+9. **User profile schema and project constants** → [Global Memory](./global-memory)
+10. **Content moderation settings** → [Moderation](./moderation)
 
 ## Where to Start
 
@@ -29,9 +28,8 @@ If you're setting up a new project, a good order is:
 5. **Add more stages** — Map out the full conversation flow and connect stages with "go to stage" effects.
 6. **Add knowledge** — Create FAQ categories to handle common questions.
 7. **Create global actions** — Factor out any behaviors that repeat across stages.
-8. **Set up global constants** — Company name, support hours, and other project-wide values.
-9. **Define global memory** — Declare the user profile schema for autocomplete and team documentation.
-10. **Configure moderation** — Enable content moderation and select blocked categories.
+8. **Set up global memory** — Define project constants and user profile schema.
+9. **Configure moderation** — Enable content moderation and select blocked categories.
 
 ## Cloning
 

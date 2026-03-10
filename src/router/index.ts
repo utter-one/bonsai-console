@@ -126,11 +126,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/KnowledgeView.vue'),
           },
           {
-            path: 'projects/:projectId/global-constants',
-            name: 'design.globalConstants',
-            component: () => import('@/views/design/GlobalConstantsView.vue'),
-          },
-          {
             path: 'projects/:projectId/global-memory',
             name: 'design.globalMemory',
             component: () => import('@/views/design/GlobalMemoryView.vue'),

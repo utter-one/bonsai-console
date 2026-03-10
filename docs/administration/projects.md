@@ -41,7 +41,7 @@ If no storage is configured, only inline data is preserved.
 Set a project-wide default timezone (IANA format, e.g., `Europe/Warsaw`, `America/New_York`). This is used in prompt templates via the `time` context and can be overridden per-conversation or per-user.
 
 ::: tip Constants, Memory, and Moderation
-Project-level constants, user-profile memory schema, and moderation settings are configured in the **Design** section — see [Global Constants](../design/global-constants), [Global Memory](../design/global-memory), and [Moderation](../design/moderation) in the Design sidebar. This keeps all conversation-design configuration in one place.
+Project-level constants, user-profile memory schema, and moderation settings are configured in the **Design** section — see [Global Memory](../design/global-memory) and [Moderation](../design/moderation) in the Design sidebar. This keeps all conversation-design configuration in one place.
 :::
 
 ## Child Resources
@@ -54,8 +54,7 @@ A project contains:
 - [Tools](../design/tools) — AI-powered functions
 - [Knowledge Base](../design/knowledge) — FAQ categories and items
 - [Global Actions](../design/global-actions) — Shared action definitions
-- [Global Constants](../design/global-constants) — Project-wide key-value pairs
-- [Global Memory](../design/global-memory) — User profile schema
+- [Global Memory](../design/global-memory) — User profile schema and project constants
 - [Moderation](../design/moderation) — Content moderation configuration
 - [API Keys](./api-keys) — Client authentication credentials
 - Conversations and Users (visible in the [Monitor](../monitor/) section)
