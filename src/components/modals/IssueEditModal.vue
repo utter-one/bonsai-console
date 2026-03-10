@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content max-w-4xl" @click.stop>
       <h2 class="modal-header">{{ issue ? (isReadOnly ? 'View Issue' : 'Edit Issue') : 'Create Issue' }}</h2>
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">

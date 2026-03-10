@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
       <div class="modal-header flex items-center justify-between">
         <h2 class="m-0 text-xl font-semibold">{{ modalTitle }}</h2>

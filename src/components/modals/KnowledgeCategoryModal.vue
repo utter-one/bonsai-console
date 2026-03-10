@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content" @click.stop>
       <h2 class="modal-header">{{ category ? 'Edit Category' : 'New Category' }}</h2>
       <div v-if="isReadOnly" class="alert-warning mb-4">

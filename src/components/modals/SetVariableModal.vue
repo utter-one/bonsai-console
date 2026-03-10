@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content max-w-3xl" @click.stop>
       <h2 class="modal-header">Set Variable</h2>
 
@@ -13,11 +13,19 @@
       <!-- Empty state: No stage -->
       <div v-if="!currentStage" class="py-12 text-center text-gray-500 dark:text-gray-400">
         <p>No active stage. Please start a conversation first.</p>
+        <div class="modal-footer mt-8">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
       </div>
 
       <!-- Empty state: No variables defined -->
-      <div v-else-if="availableVariables.length === 0" class="py-12 text-center text-gray-500 dark:text-gray-400">
-        <p>This stage has no variable descriptors defined.</p>
+      <div v-else-if="availableVariables.length === 0">
+        <div class="py-12 text-center text-gray-500 dark:text-gray-400">
+          <p>This stage has no variable descriptors defined.</p>
+        </div>
+        <div class="modal-footer mt-8">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
       </div>
 
       <!-- Variable selection and value input -->

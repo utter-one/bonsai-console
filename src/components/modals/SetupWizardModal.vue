@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
 import {
-  X,
   Brain,
   Mic,
   Volume2,
@@ -304,9 +303,7 @@ function navigateAndDismiss(name: string) {
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Let's get Bonsai up and running</p>
         </div>
-        <button @click="dismiss" class="btn-icon" title="Close">
-          <X :size="20" />
-        </button>
+
       </div>
 
       <!-- Step indicator -->
@@ -609,6 +606,14 @@ function navigateAndDismiss(name: string) {
           </button>
         </div>
         <div class="flex items-center gap-2">
+          <button
+            v-if="currentStep !== 'done'"
+            type="button"
+            class="btn-secondary"
+            @click="dismiss"
+          >
+            Cancel
+          </button>
           <button
             v-if="currentProviderType"
             class="btn-primary inline-flex items-center gap-2"
