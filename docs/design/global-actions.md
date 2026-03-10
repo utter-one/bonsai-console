@@ -16,7 +16,7 @@ Some behaviors need to be available everywhere in the conversation. Without glob
 
 ## Creating a Global Action
 
-Go to **Design > Global Actions** and click **Create Global Action**.
+Go to **Design > Global Actions** and click **New Global Action**.
 
 The fields are the same as a regular stage action:
 
@@ -37,12 +37,27 @@ On the stage edit view:
 1. Enable **Use Global Actions**.
 2. Optionally select **specific global action IDs** to include. If you leave this empty, all project global actions are available in the stage.
 
+## Special Actions
+
+Besides regular global actions, there are **special actions** that are executed automatically by the system under specific conditions. You can configure their effects to control what happens when they're triggered.
+
+To set up a special action, click the **Special Actions** dropdown (the violet button next to **New Global Action**) and select the action you want to configure.
+
+### Moderation Blocked
+
+The **Moderation Blocked** action (ID: <code v-pre>__moderation_blocked</code>) runs when the moderation system flags a user's message. Use it to define how the assistant responds when a message is blocked — for example, generating a polite refusal or ending the conversation.
+
+Since the trigger is system-controlled, the edit view hides the **Trigger** and **Parameters** tabs — you only configure **Effects** (and optionally the name, examples, and tags).
+
+If the action hasn't been set up for the project yet, clicking it shows a **Not Configured** screen with an **Initialize** button that creates it for you.
+
 ## Global vs. Stage Actions
 
 | | Stage Actions | Global Actions |
 |---|---|---|
 | **Scope** | Defined inside a single stage | Defined at project level, shared across stages |
 | **Lifecycle actions** | Supports `__on_enter`, `__on_leave`, `__on_fallback` | No lifecycle actions |
+| **Special actions** | N/A | <code v-pre>__moderation_blocked</code> (system-triggered) |
 | **Best for** | Stage-specific behaviors | Cross-cutting behaviors |
 | **Maintenance** | Edited per-stage | Edit once, applies everywhere |
 

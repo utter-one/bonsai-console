@@ -89,6 +89,7 @@ src/
 **Buttons:**
 - `.btn-primary` - Primary action (blue)
 - `.btn-secondary` - Secondary action (gray)
+- `.btn-alt` - Alternative action (violet) — also `.btn-alt-hardright`, `.btn-alt-hardleft` for split-button layouts
 - `.btn-danger` - Destructive action (red)
 - `.btn-icon` - Icon-only button
 

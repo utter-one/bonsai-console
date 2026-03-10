@@ -83,6 +83,26 @@ The **knowledge base** stores question-and-answer pairs organized into categorie
 - "Cancel" → End the conversation
 - "Switch to Spanish" → Change the language
 
+There are also **special actions** (like **Moderation Blocked**) that are triggered automatically by the system. You configure their effects but not their triggers.
+
+## Global Constants — Project-Wide Values
+
+**Global constants** are key-value pairs defined at the project level and available in all prompts via <span v-pre>`{{constants.key}}`</span>. Use them for values that don't change per conversation — company name, support hours, policy limits, plan pricing.
+
+Constants support String, Number, Boolean, and JSON types. Manage them in **Design > Global Constants**.
+
+## Global Memory — User Profile Schema
+
+**Global memory** defines the schema for custom fields stored on each end user's profile. Declaring fields here (with their types) enables autocomplete in the prompt editor and documents your data model for the team.
+
+Custom profile fields are accessed in prompts as <span v-pre>`{{userProfile.fieldName}}`</span> and set at runtime via `modify_user_profile` effects or scripts. Manage the schema in **Design > Global Memory**.
+
+## Moderation — Content Safety
+
+**Moderation** lets you enable automatic content safety checks on user messages. When enabled, each user message is evaluated by a moderation model and flagged if it matches any blocked category.
+
+Configure moderation in **Design > Moderation** by selecting an LLM provider (OpenAI or Mistral) and choosing which categories to block. To control what happens when a message is blocked, set up the **Moderation Blocked** special action in **Design > Global Actions**.
+
 ## Providers — External AI Services
 
 **Providers** are connections to external services that power the AI features:
@@ -116,6 +136,9 @@ Project
 ├── Tools (AI-powered functions)
 ├── Knowledge Categories → Items (FAQ)
 ├── Global Actions (shared actions)
+├── Global Constants (project-wide values)
+├── Global Memory (user profile schema)
+├── Moderation (content safety)
 └── API Keys (for client apps to connect)
 ```
 
