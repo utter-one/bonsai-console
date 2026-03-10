@@ -76,16 +76,20 @@ The **knowledge base** stores question-and-answer pairs organized into categorie
 
 **Tools** are callable AI functions that process input using a language model. They're useful for things like translation, summarization, or image analysis. Tools are invoked through action effects or directly by client applications.
 
-## Global Actions & Guardrails — Shared Behaviors
+## Global Actions — Shared Behaviors
 
 **Global actions** are actions defined once at the project level and shared across multiple stages. They're perfect for behaviors that should work the same way everywhere, like:
 - "I need help" → Escalate to a human
 - "Cancel" → End the conversation
 - "Switch to Spanish" → Change the language
 
-**Guardrails** are global actions that enforce safety or consistency rules across the entire project — for example, blocking off-topic requests or refusing policy-violating content.
-
 There are also **special actions** (like **Moderation Blocked**) that are triggered automatically by the system. You configure their effects but not their triggers.
+
+## Guardrails — Safety Enforcement
+
+**Guardrails** are project-wide safety rules that run on every user input turn using a dedicated project-level classifier. Unlike global actions (which must be enabled per stage), guardrails are always active and can't be bypassed by individual stage configuration.
+
+Use guardrails for zero-tolerance rules: blocking harmful language, refusing off-topic requests, or enforcing usage policies that should apply everywhere.
 
 ## Global Constants — Project-Wide Values
 
@@ -103,7 +107,7 @@ Custom profile fields are accessed in prompts as <span v-pre>`{{userProfile.fiel
 
 **Moderation** lets you enable automatic content safety checks on user messages. When enabled, each user message is evaluated by a moderation model and flagged if it matches any blocked category.
 
-Configure moderation in **Design > Moderation** by selecting an LLM provider (OpenAI or Mistral) and choosing which categories to block. To control what happens when a message is blocked, set up the **Moderation Blocked** special action in **Design > Global Actions & Guardrails**.
+Configure moderation in **Design > Guardrails & Moderation** (Moderation tab) by selecting an LLM provider (OpenAI or Mistral) and choosing which categories to block. To control what happens when a message is blocked, set up the **Moderation Blocked** special action in **Design > Global Actions**.
 
 ## Providers — External AI Services
 
@@ -129,7 +133,8 @@ Project
 │   ├── Context Transformers (for extracting data)
 │   ├── Actions → Effects (behaviors)
 │   ├── Variables (data tracked in this step)
-│   ├── Global Actions & Guardrails (shared behaviors)
+│   ├── Global Actions (shared behaviors)
+│   ├── Guardrails (safety rules)
 │   └── Knowledge tags (FAQ content to include)
 │
 ├── Agents (reusable across stages)
@@ -137,7 +142,8 @@ Project
 ├── Context Transformers (reusable across stages)
 ├── Tools (AI-powered functions)
 ├── Knowledge Categories → Items (FAQ)
-├── Global Actions & Guardrails (shared actions + safety rules)
+├── Global Actions (shared behaviors)
+├── Guardrails (safety rules + moderation config)
 ├── Global Constants (project-wide values)
 ├── Global Memory (user profile schema)
 ├── Moderation (content safety)

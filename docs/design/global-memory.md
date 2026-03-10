@@ -1,6 +1,8 @@
 # Global Memory
 
-The **Global Memory** page combines two related areas of project configuration: the **User Profile** schema and **Constants**. Both are accessed from **Design > Global Memory** and share a single Save button.
+The **Global Memory** page combines two related areas of project configuration in a tabbed view: the **User Profile** schema and **Constants**. Access it from **Design > Global Memory**.
+
+Both tabs share a single **Save Changes** button in the page header — remember to save after making changes in either tab.
 
 ## User Profile Tab
 

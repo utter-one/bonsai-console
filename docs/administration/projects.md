@@ -53,7 +53,8 @@ A project contains:
 - [Context Transformers](../design/context-transformers) — Data extraction
 - [Tools](../design/tools) — AI-powered functions
 - [Knowledge Base](../design/knowledge) — FAQ categories and items
-- [Global Actions & Guardrails](../design/global-actions) — Shared action definitions
+- [Global Actions](../design/global-actions) — Shared action definitions
+- [Guardrails](../design/guardrails) — Project-wide safety rules
 - [Global Memory](../design/global-memory) — User profile schema and project constants
 - [Moderation](../design/moderation) — Content moderation configuration
 - [API Keys](./api-keys) — Client authentication credentials

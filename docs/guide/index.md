@@ -17,7 +17,8 @@ In the **Design** section you build the brain of your AI assistant:
 - **Context Transformers** — Automatically pull structured data (like names, order numbers, dates) out of what users say.
 - **Knowledge Base** — Add FAQ-style content the AI can draw on to answer common questions accurately.
 - **Tools** — Register callable AI functions for tasks like translation, summarization, or data lookup.
-- **Global Actions & Guardrails** — Create reusable behaviors (like "cancel" or "help") that work the same way across multiple stages, and define guardrails that enforce safety rules project-wide.
+- **Global Actions** — Create reusable behaviors (like "cancel" or "help") that work the same way across multiple stages.
+- **Guardrails** — Define project-wide safety rules that evaluate on every turn using a classifier, enforcing policies across all stages automatically.
 
 ### Monitor Activity
 

@@ -126,9 +126,9 @@ Go to **Design > Knowledge** to create FAQ-style content the AI can use.
 
 See [Knowledge Base](../design/knowledge) for full reference.
 
-## 8. Configure Global Actions & Guardrails
+## 8. Configure Global Actions
 
-Go to **Design > Global Actions & Guardrails** to create project-wide actions that work across multiple stages.
+Go to **Design > Global Actions** to create project-wide actions that work across multiple stages.
 
 Good candidates for global actions:
 - "I want to speak to a manager" (escalation)
@@ -136,8 +136,6 @@ Good candidates for global actions:
 - "What time is it?" (meta-questions)
 - Emergency or safety triggers
 - Language switching
-
-**Guardrails** — actions that enforce safety or consistency rules regardless of stage — are also defined here. For example, a guardrail might block off-topic requests or refuse policy-violating content.
 
 **Control which stages use them** in each stage's **Features** tab:
 - **Enable Global Actions** checked + empty list = all global actions active
@@ -148,7 +146,18 @@ Good candidates for global actions:
 
 The **Special Actions** dropdown on the Global Actions page gives access to system-triggered actions like **Moderation Blocked** — the response that runs when user input is flagged by moderation. Click it, initialize the action, and configure its effects.
 
-See [Global Actions & Guardrails](../design/global-actions) for full reference.
+See [Global Actions](../design/global-actions) for full reference.
+
+## 8b. Configure Guardrails
+
+Go to **Design > Guardrails & Moderation** to set up project-wide safety rules.
+
+1. Select a **Guardrails Classifier** — the classifier used to evaluate all guardrails on every user turn. Train it with labels matching your guardrails' triggers.
+2. Click **New Guardrail** to define a rule — give it a classification trigger, set effects (e.g., generate a refusal), and optionally add a condition.
+
+Guardrails fire automatically on all stages — no per-stage opt-in required.
+
+See [Guardrails](../design/guardrails) for full reference.
 
 ## 9. Set Up Global Constants and Memory
 
