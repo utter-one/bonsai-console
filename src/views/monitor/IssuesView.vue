@@ -193,7 +193,7 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
           </button>
         </div>
         <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-          <span>Status:</span>
+          <span>Project status:</span>
           <select v-model="showArchived" class="form-select">
             <option :value="false">Active</option>
             <option :value="true">Archived</option>
