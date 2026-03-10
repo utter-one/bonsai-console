@@ -373,32 +373,33 @@ async function pasteConstants() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
-      <!-- Header -->
-      <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Global Memory</h1>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Configure user profile schema and project constants
-          </p>
-        </div>
-        <div class="flex gap-3 items-center">
-          <button
-            v-if="!projectIsArchived"
-            @click="handleSubmit"
-            class="btn-primary"
-            :disabled="isLoading || showSuccess"
-            type="button"
-          >
-            <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
-            <Save v-else class="inline-block mr-2 w-4 h-4" />
-            {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : 'Save Changes') }}
-          </button>
-        </div>
+  <div class="container-constrained">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Global Memory</h1>
+        <p class="page-subtitle">Configure user profile schema and project constants</p>
       </div>
+      <div class="flex gap-3 items-center">
+        <button
+          v-if="!projectIsArchived"
+          @click="handleSubmit"
+          class="btn-primary"
+          :disabled="isLoading || showSuccess"
+          type="button"
+        >
+          <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+          <Save v-else class="inline-block mr-2 w-4 h-4" />
+          {{ showSuccess ? 'Saved!' : (isLoading ? 'Saving...' : 'Save Changes') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Rounded panel -->
+    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
 
       <!-- Archived banner -->
-      <div v-if="projectIsArchived" class="alert-warning mb-4">
+      <div v-if="projectIsArchived" class="alert-warning rounded-none border-x-0 border-t-0 mb-0">
         This project is archived — editing is disabled.
       </div>
 
@@ -413,7 +414,7 @@ async function pasteConstants() {
       </div>
 
       <!-- Content -->
-      <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-900">
+      <div v-else class="bg-white dark:bg-gray-800">
         <div class="mx-auto">
           <!-- Tabs -->
           <div class="tabs-container">
@@ -660,7 +661,7 @@ async function pasteConstants() {
           </fieldset>
         </div>
       </div>
-    </div>
+    </div><!-- end rounded panel -->
 
     <!-- Variables Paste Modal -->
     <VariablesPasteModal
@@ -670,4 +671,5 @@ async function pasteConstants() {
       @close="showVariablesPasteModal = false"
       @save="handleVariablesPaste"
     />
+  </div>
 </template>

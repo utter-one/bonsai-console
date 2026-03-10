@@ -3158,6 +3158,11 @@
             },
             "default": [],
             "description": "Descriptors defining the data schema for user profile variables in this project"
+          },
+          "defaultGuardrailClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
           }
         },
         "required": [
@@ -3392,6 +3397,11 @@
             },
             "description": "Updated descriptors defining the data schema for user profile variables in this project"
           },
+          "defaultGuardrailClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -3577,6 +3587,11 @@
             },
             "description": "Descriptors defining the data schema for user profile variables in this project"
           },
+          "defaultGuardrailClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -3617,6 +3632,7 @@
           "timezone",
           "autoCreateUsers",
           "userProfileVariableDescriptors",
+          "defaultGuardrailClassifierId",
           "version",
           "createdAt",
           "updatedAt",
@@ -3778,6 +3794,11 @@
                   },
                   "description": "Descriptors defining the data schema for user profile variables in this project"
                 },
+                "defaultGuardrailClassifierId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -3818,6 +3839,7 @@
                 "timezone",
                 "autoCreateUsers",
                 "userProfileVariableDescriptors",
+                "defaultGuardrailClassifierId",
                 "version",
                 "createdAt",
                 "updatedAt",
@@ -13518,6 +13540,11 @@
                     },
                     "default": [],
                     "description": "Descriptors defining the data schema for user profile variables in this project"
+                  },
+                  "defaultGuardrailClassifierId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
                   }
                 },
                 "required": [
@@ -13681,6 +13708,11 @@
                       },
                       "description": "Descriptors defining the data schema for user profile variables in this project"
                     },
+                    "defaultGuardrailClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -13721,6 +13753,7 @@
                     "timezone",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
+                    "defaultGuardrailClassifierId",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -14049,6 +14082,11 @@
                             },
                             "description": "Descriptors defining the data schema for user profile variables in this project"
                           },
+                          "defaultGuardrailClassifierId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -14089,6 +14127,7 @@
                           "timezone",
                           "autoCreateUsers",
                           "userProfileVariableDescriptors",
+                          "defaultGuardrailClassifierId",
                           "version",
                           "createdAt",
                           "updatedAt",
@@ -14287,6 +14326,11 @@
                       },
                       "description": "Descriptors defining the data schema for user profile variables in this project"
                     },
+                    "defaultGuardrailClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -14327,6 +14371,7 @@
                     "timezone",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
+                    "defaultGuardrailClassifierId",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -14450,6 +14495,11 @@
                       "$ref": "#/components/schemas/FieldDescriptor"
                     },
                     "description": "Updated descriptors defining the data schema for user profile variables in this project"
+                  },
+                  "defaultGuardrailClassifierId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
                   },
                   "version": {
                     "type": "number",
@@ -14617,6 +14667,11 @@
                       },
                       "description": "Descriptors defining the data schema for user profile variables in this project"
                     },
+                    "defaultGuardrailClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -14657,6 +14712,7 @@
                     "timezone",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
+                    "defaultGuardrailClassifierId",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -14897,6 +14953,11 @@
                       },
                       "description": "Descriptors defining the data schema for user profile variables in this project"
                     },
+                    "defaultGuardrailClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -14937,6 +14998,7 @@
                     "timezone",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
+                    "defaultGuardrailClassifierId",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -15147,6 +15209,11 @@
                       },
                       "description": "Descriptors defining the data schema for user profile variables in this project"
                     },
+                    "defaultGuardrailClassifierId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -15187,6 +15254,7 @@
                     "timezone",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
+                    "defaultGuardrailClassifierId",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -27760,6 +27828,1056 @@
           },
           "404": {
             "description": "Global action not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/guardrails": {
+      "post": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Create a new guardrail",
+        "description": "Creates a new guardrail with specified name, classification trigger, and effects. Guardrails fire on every stage using the project-level classifier.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the guardrail (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the guardrail"
+                  },
+                  "condition": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional JavaScript condition expression — when provided, the guardrail is only active when it evaluates to truthy"
+                  },
+                  "classificationTrigger": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Classification label that the guardrail classifier should output to trigger this guardrail"
+                  },
+                  "effects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Effect"
+                    },
+                    "description": "Array of effects to execute when the guardrail is triggered"
+                  },
+                  "examples": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Example phrases that trigger this guardrail, used to help the classifier"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this guardrail"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional guardrail-specific metadata"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guardrail created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the guardrail"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this guardrail belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the guardrail"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Condition expression for guardrail activation"
+                    },
+                    "classificationTrigger": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Classification label that triggers this guardrail"
+                    },
+                    "effects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Effect"
+                      },
+                      "description": "Array of effects to execute"
+                    },
+                    "examples": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Example phrases that trigger this guardrail"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this guardrail"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "condition",
+                    "classificationTrigger",
+                    "effects",
+                    "examples",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "409": {
+            "description": "Guardrail already exists"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "List guardrails",
+        "description": "Retrieves a paginated list of guardrails with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of guardrails retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the guardrail"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this guardrail belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name of the guardrail"
+                          },
+                          "condition": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Condition expression for guardrail activation"
+                          },
+                          "classificationTrigger": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Classification label that triggers this guardrail"
+                          },
+                          "effects": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/Effect"
+                            },
+                            "description": "Array of effects to execute"
+                          },
+                          "examples": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Example phrases that trigger this guardrail"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this guardrail"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the guardrail was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the guardrail was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "condition",
+                          "classificationTrigger",
+                          "effects",
+                          "examples",
+                          "tags",
+                          "metadata",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of guardrails in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of guardrails matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/guardrails/{id}": {
+      "get": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Get guardrail by ID",
+        "description": "Retrieves a single guardrail by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Guardrail ID"
+            },
+            "required": true,
+            "description": "Guardrail ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Guardrail retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the guardrail"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this guardrail belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the guardrail"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Condition expression for guardrail activation"
+                    },
+                    "classificationTrigger": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Classification label that triggers this guardrail"
+                    },
+                    "effects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Effect"
+                      },
+                      "description": "Array of effects to execute"
+                    },
+                    "examples": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Example phrases that trigger this guardrail"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this guardrail"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "condition",
+                    "classificationTrigger",
+                    "effects",
+                    "examples",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Guardrail not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Update guardrail",
+        "description": "Updates an existing guardrail with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Guardrail ID"
+            },
+            "required": true,
+            "description": "Guardrail ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "condition": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated condition expression"
+                  },
+                  "classificationTrigger": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated classification trigger label"
+                  },
+                  "effects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Effect"
+                    },
+                    "description": "Updated effects array"
+                  },
+                  "examples": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated example phrases"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated metadata"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Guardrail updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the guardrail"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this guardrail belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the guardrail"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Condition expression for guardrail activation"
+                    },
+                    "classificationTrigger": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Classification label that triggers this guardrail"
+                    },
+                    "effects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Effect"
+                      },
+                      "description": "Array of effects to execute"
+                    },
+                    "examples": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Example phrases that trigger this guardrail"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this guardrail"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "condition",
+                    "classificationTrigger",
+                    "effects",
+                    "examples",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Guardrail not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Delete guardrail",
+        "description": "Deletes a guardrail with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Guardrail ID"
+            },
+            "required": true,
+            "description": "Guardrail ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardrail deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Guardrail not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/guardrails/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Get guardrail audit logs",
+        "description": "Retrieves audit logs for a specific guardrail",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Guardrail ID"
+            },
+            "required": true,
+            "description": "Guardrail ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Guardrail not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/guardrails/{id}/clone": {
+      "post": {
+        "tags": [
+          "Guardrails"
+        ],
+        "summary": "Clone guardrail",
+        "description": "Creates a copy of an existing guardrail with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Guardrail ID"
+            },
+            "required": true,
+            "description": "Guardrail ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned guardrail (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned guardrail (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guardrail cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the guardrail"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this guardrail belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the guardrail"
+                    },
+                    "condition": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Condition expression for guardrail activation"
+                    },
+                    "classificationTrigger": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Classification label that triggers this guardrail"
+                    },
+                    "effects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Effect"
+                      },
+                      "description": "Array of effects to execute"
+                    },
+                    "examples": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Example phrases that trigger this guardrail"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this guardrail"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the guardrail was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "condition",
+                    "classificationTrigger",
+                    "effects",
+                    "examples",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Guardrail not found"
           }
         }
       }

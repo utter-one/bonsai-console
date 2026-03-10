@@ -7,7 +7,7 @@ This page helps you find your way around the Bonsai Console interface.
 The left sidebar divides the console into three main areas:
 
 ### Design
-Where you build and configure your AI assistant's behavior. Everything here is scoped to the currently selected project. This includes stages, agents, moderation, classifiers, context transformers, tools, global actions & guardrails, global memory (with constants), and knowledge.
+Where you build and configure your AI assistant's behavior. Everything here is scoped to the currently selected project. This includes stages, agents, classifiers, context transformers, tools, global actions, guardrails, moderation, global memory (with constants), and knowledge.
 
 ### Monitor
 Where you observe what's happening in real time and review historical data. Browse conversations, view user profiles, review flagged issues, and check audit logs.

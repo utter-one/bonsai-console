@@ -132,7 +132,7 @@ onUnmounted(() => {
       <!-- Header -->
       <div class="page-header">
         <div>
-          <h1 class="page-title">Global Actions & Guardrails</h1>
+          <h1 class="page-title">Global Actions</h1>
           <p class="page-subtitle">Define system-wide actions for this project</p>
         </div>
         <div class="flex items-center gap-2">
@@ -166,12 +166,6 @@ onUnmounted(() => {
             New Global Action
           </button>
         </div>
-      </div>
-
-      <!-- Guardrails note -->
-      <div class="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 mb-3">
-        <strong class="text-gray-700 dark:text-gray-300">Guardrails tip:</strong>
-        Behaviors that should always trigger regardless of the current stage — such as handling offensive language or off-topic requests — can be implemented as global actions.
       </div>
 
       <!-- Search Bar -->

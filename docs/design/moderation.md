@@ -4,7 +4,7 @@
 
 ## Configuring Moderation
 
-Go to **Design > Moderation** to configure content moderation for the current project.
+Go to **Design > Guardrails & Moderation** and open the **Moderation** tab to configure content moderation for the current project.
 
 ### Enable Moderation
 
@@ -30,10 +30,12 @@ The available categories depend on the selected provider — switching providers
 When moderation flags a user message:
 
 1. The message is **not** sent to the AI for processing.
-2. If a **Moderation Blocked** special action is configured (in **Design > Global Actions & Guardrails**), its effects run instead — for example, generating a polite refusal message.
+2. If a **Moderation Blocked** special action is configured (in **Design > Global Actions**), its effects run instead — for example, generating a polite refusal message.
 3. If no Moderation Blocked action is set up, the default platform behavior applies.
 
 See [Global Actions — Special Actions](./global-actions#special-actions) for how to configure the Moderation Blocked response.
+
+For project-wide safety rules that run on every turn, see [Guardrails](./guardrails).
 
 ## Tips
 

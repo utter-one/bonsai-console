@@ -1738,6 +1738,8 @@ export interface CreateProjectRequest {
    * @default []
    */
   userProfileVariableDescriptors?: FieldDescriptor[];
+  /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
+  defaultGuardrailClassifierId?: string | null;
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -1825,6 +1827,8 @@ export interface UpdateProjectRequest {
   autoCreateUsers?: boolean;
   /** Updated descriptors defining the data schema for user profile variables in this project */
   userProfileVariableDescriptors?: FieldDescriptor[];
+  /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
+  defaultGuardrailClassifierId?: string | null;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -1898,6 +1902,8 @@ export interface ProjectResponse {
   autoCreateUsers: boolean;
   /** Descriptors defining the data schema for user profile variables in this project */
   userProfileVariableDescriptors: FieldDescriptor[];
+  /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+  defaultGuardrailClassifierId: string | null;
   /** The version number of the project */
   version: number;
   /**
@@ -1978,6 +1984,8 @@ export interface ProjectListResponse {
     autoCreateUsers: boolean;
     /** Descriptors defining the data schema for user profile variables in this project */
     userProfileVariableDescriptors: FieldDescriptor[];
+    /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+    defaultGuardrailClassifierId: string | null;
     /** The version number of the project */
     version: number;
     /**
@@ -5402,4 +5410,42 @@ export interface ExportBundle {
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
+}
+
+export interface GuardrailResponse {
+  id: string;
+  projectId: string;
+  name: string;
+  condition: string | null;
+  classificationTrigger: string | null;
+  effects: Effect[];
+  examples: string[] | null;
+  tags: string[];
+  metadata: Record<string, any>;
+  version: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+  archived?: boolean;
+}
+
+export interface CreateGuardrailRequest {
+  id?: string;
+  name: string;
+  condition?: string | null;
+  classificationTrigger?: string | null;
+  effects?: Effect[];
+  examples?: string[];
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateGuardrailRequest {
+  name?: string;
+  condition?: string | null;
+  classificationTrigger?: string | null;
+  effects?: Effect[];
+  examples?: string[];
+  tags?: string[];
+  metadata?: Record<string, any>;
+  version: number;
 }

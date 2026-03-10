@@ -1,8 +1,8 @@
-# Global Actions & Guardrails
+# Global Actions
 
 **Global actions** are actions defined once at the project level and shared across multiple stages. They work just like regular stage actions, but you create them separately and then reference them in whichever stages need them.
 
-**Guardrails** are global actions whose purpose is to enforce safety or consistency rules — behaviors that should always be available regardless of which stage the conversation is in, such as handling offensive language, refusing off-topic requests, or enforcing usage policies.
+For project-wide safety and policy rules that should fire on every turn regardless of stage, see [Guardrails](./guardrails).
 
 ## Why Use Global Actions?
 
@@ -15,11 +15,11 @@ Some behaviors need to be available everywhere in the conversation. Without glob
 - **Language switching** — _"Speak Spanish"_ should change the language globally.
 - **Navigation** — _"Go back to the main menu"_ should work from any stage.
 - **Error recovery** — Consistent error-handling behavior across all stages.
-- **Guardrails** — Blocking off-topic requests, refusing harmful content, or enforcing policy rules across the entire project.
+- **Safety shortcuts** — Quick exits from off-topic conversations ("Let's get back on track").
 
 ## Creating a Global Action
 
-Go to **Design > Global Actions & Guardrails** and click **New Global Action**.
+Go to **Design > Global Actions** and click **New Global Action**.
 
 The fields are the same as a regular stage action:
 
@@ -54,6 +54,8 @@ Since the trigger is system-controlled, the edit view hides the **Trigger** and 
 
 If the action hasn't been set up for the project yet, clicking it shows a **Not Configured** screen with an **Initialize** button that creates it for you.
 
+Content moderation is configured separately in **Design > Guardrails & Moderation** under the **Moderation** tab. See [Moderation](./moderation) for details.
+
 ## Global vs. Stage Actions
 
 | | Stage Actions | Global Actions |
@@ -67,6 +69,6 @@ If the action hasn't been set up for the project yet, clicking it shows a **Not 
 ## Tips
 
 - **Start with "always available" behaviors** — Help, cancel, and navigation are the classic global actions.
-- **Use global actions as guardrails** — Behaviors that should fire regardless of stage (blocking off-topic requests, enforcing policies) are a natural fit for global actions. Give them clear classification triggers and use conditions to fine-tune when they apply.
+- **Use [Guardrails](./guardrails) for zero-tolerance rules** — If something must be blocked regardless of which stage the user is in, use a guardrail instead of a global action. Guardrails can't be accidentally disabled by a stage.
 - **Use conditions** to control context — Even a global action can have a condition that limits when it's active. For example, "Transfer to human" might require `vars.escalationAllowed === true`.
 - **Don't overuse** — If an action only makes sense in one or two stages, it's simpler as a regular stage action. Reserve global actions for genuinely cross-cutting behaviors.
