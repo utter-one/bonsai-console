@@ -26,6 +26,11 @@ const events = ref<ConversationEventResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'events' | 'metadata'>('events')
+const highlightEventIndex = computed(() => {
+  const v = route.query.highlightEventIndex
+  return v !== undefined ? Number(v) : null
+})
+const eventRefs = ref<(HTMLElement | null)[]>([])
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
 const showVariablesPreviewModal = ref(false)
@@ -64,11 +69,19 @@ async function loadConversationData() {
     console.error('Failed to load conversation:', err)
   } finally {
     isLoading.value = false
+    setTimeout(scrollToHighlightedEvent, 200)
   }
 }
 
 function goBack() {
   router.push({ name: 'monitor.conversations' })
+}
+
+function scrollToHighlightedEvent() {
+  if (highlightEventIndex.value === null) return
+  const el = eventRefs.value[highlightEventIndex.value]
+  if (!el) return
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' })
 }
 
 function formatTime(date: string | null) {
@@ -93,11 +106,11 @@ function openVariablesPreview(variables: Record<string, any>) {
   showVariablesPreviewModal.value = true
 }
 
-function openBugReport(_event: ConversationEventResponse) {
+function openBugReport(_event: ConversationEventResponse, index?: number) {
   bugReportPrefillData.value = {
     projectId: projectId.value,
     sessionId: conversationId.value,
-    eventIndex: undefined,
+    eventIndex: index,
     stageId: conversation.value?.stageId || undefined
   }
   showBugReportModal.value = true
@@ -225,13 +238,18 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
             </div>
 
             <div v-else class="space-y-4">
-              <div v-for="event in events" :key="event.id">
+              <div
+                v-for="(event, index) in events"
+                :key="event.id"
+                :ref="(el) => { eventRefs[index] = el as HTMLElement | null }"
+              >
                 <ConversationEventCard
                   :event="toNormalizedEvent(event)"
                   :show-bug-report="!isArchived"
+                  :highlighted="highlightEventIndex === index"
                   @open-prompt="openPromptPreview"
                   @open-variables="openVariablesPreview"
-                  @open-bug-report="openBugReport(event)"
+                  @open-bug-report="openBugReport(event, index)"
                 />
               </div>
             </div>

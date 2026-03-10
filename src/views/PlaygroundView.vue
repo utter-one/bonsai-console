@@ -1009,11 +1009,13 @@ function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean
   return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
 }
 
-function openBugReport(_event: ConversationEvent) {
+function openBugReport(event: ConversationEvent) {
+  console.log('All Events:', conversationEvents.value)
+  const eventIndex = conversationEvents.value.filter(e=>e.type != 'System').indexOf(event)
   bugReportPrefillData.value = {
     projectId: projectId.value,
-    sessionId: wsSessionId.value || undefined,
-    eventIndex: undefined,
+    sessionId: currentConversationId.value || undefined,
+    eventIndex: eventIndex >= 0 ? eventIndex : undefined,
     stageId: currentStage.value?.id || undefined
   }
   showBugReportModal.value = true
@@ -1073,6 +1075,9 @@ function handleConversationEvent(event: WSConversationEvent) {
   }
 
   // Store the raw WebSocket event for rendering in ConversationDetailView style
+  if (!currentConversationId.value && event.conversationId) {
+    currentConversationId.value = event.conversationId
+  }
   addEvent({
     type: 'ConversationEvent',
     message: formatEventType(event.eventType as string),
@@ -1479,6 +1484,7 @@ const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
 const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
+const currentConversationId = ref<string | null>(null)
 
 // Audio settings
 const audioSettings = ref<AudioSettings>(loadAudioSettings())
@@ -1573,6 +1579,7 @@ async function handleStartConversation(stage: StageResponse) {
 
     // Clear conversation history when starting a new conversation
     conversationEvents.value = []
+    currentConversationId.value = null
     activeVoiceOutputs.value.clear()
 
     addEvent({
@@ -1635,6 +1642,7 @@ async function resumeConversation(convId: string) {
 
     // Clear conversation history and voice outputs
     conversationEvents.value = []
+    currentConversationId.value = convId
     activeVoiceOutputs.value.clear()
 
     addEvent({

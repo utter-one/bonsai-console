@@ -54,6 +54,8 @@ const props = defineProps<{
   event: NormalizedEvent
   /** Whether to show the bug report button on events */
   showBugReport?: boolean
+  /** Whether to highlight this event (e.g. when navigating from an issue report) */
+  highlighted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -63,9 +65,16 @@ const emit = defineEmits<{
 }>()
 
 const expanded = ref(false)
+const hasHovered = ref(false)
 
 function toggle() {
   expanded.value = !expanded.value
+}
+
+function onHighlightMouseEnter() {
+  if (props.highlighted && !hasHovered.value) {
+    hasHovered.value = true
+  }
 }
 
 // Type guards
@@ -237,8 +246,11 @@ function onBugReport() {
     class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md"
     :class="[
       getEventTypeColor(event.eventType),
-      { 'ml-8': !isMessageEvent(event) }
+      { 'ml-8': !isMessageEvent(event) },
+      { 'highlight-pulse': highlighted && !hasHovered },
+      { 'highlight-finish': highlighted && hasHovered }
     ]"
+    @mouseenter="onHighlightMouseEnter"
   >
     <!-- Message Event -->
     <div v-if="isMessageEvent(event)">
@@ -1115,5 +1127,39 @@ details summary::marker {
 
 details[open] summary {
   margin-bottom: 0.5rem;
+}
+
+@keyframes highlight-infinite {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.65);
+    outline: 2px solid rgba(59, 130, 246, 0.65);
+    outline-offset: 2px;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08);
+    outline: 2px solid rgba(59, 130, 246, 0.15);
+    outline-offset: 4px;
+  }
+}
+
+@keyframes highlight-finish {
+  0%, 60% {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.65);
+    outline: 2px solid rgba(59, 130, 246, 0.65);
+    outline-offset: 2px;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+}
+
+.highlight-pulse {
+  animation: highlight-infinite 1.5s ease-in-out infinite;
+}
+
+.highlight-finish {
+  animation: highlight-finish 5s ease-out forwards;
 }
 </style>
