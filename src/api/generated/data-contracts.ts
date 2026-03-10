@@ -5413,89 +5413,39 @@ export interface ExportBundle {
 }
 
 export interface GuardrailResponse {
-  /** Unique identifier for the guardrail */
   id: string;
-  /** ID of the project this guardrail belongs to */
   projectId: string;
-  /** Display name of the guardrail */
   name: string;
-  /** Condition expression for guardrail activation */
   condition: string | null;
-  /** Classification label that triggers this guardrail */
   classificationTrigger: string | null;
-  /** Array of effects to execute */
   effects: Effect[];
-  /** Example phrases that trigger this guardrail */
   examples: string[] | null;
-  /** Tags for categorizing and filtering this guardrail */
   tags: string[];
-  /** Additional metadata */
   metadata: Record<string, any>;
-  /** Version number for optimistic locking */
   version: number;
-  /**
-   * Timestamp when the guardrail was created
-   * @format date-time
-   */
   createdAt: string | null;
-  /**
-   * Timestamp when the guardrail was last updated
-   * @format date-time
-   */
   updatedAt: string | null;
-  /** Whether this entity belongs to an archived project */
   archived?: boolean;
 }
 
 export interface CreateGuardrailRequest {
-  /**
-   * Unique identifier for the guardrail (auto-generated if not provided)
-   * @minLength 1
-   */
   id?: string;
-  /**
-   * Display name of the guardrail
-   * @minLength 1
-   */
   name: string;
-  /** Optional JavaScript condition expression */
   condition?: string | null;
-  /** Classification label that the guardrail classifier should output to trigger this guardrail */
   classificationTrigger?: string | null;
-  /** Array of effects to execute when the guardrail is triggered */
   effects?: Effect[];
-  /** Example phrases that trigger this guardrail */
   examples?: string[];
-  /**
-   * Tags for categorizing and filtering this guardrail
-   * @default []
-   */
   tags?: string[];
-  /** Additional guardrail-specific metadata */
   metadata?: Record<string, any>;
 }
 
 export interface UpdateGuardrailRequest {
-  /**
-   * Updated display name
-   * @minLength 1
-   */
   name?: string;
-  /** Updated condition expression */
   condition?: string | null;
-  /** Updated classification trigger label */
   classificationTrigger?: string | null;
-  /** Updated effects array */
   effects?: Effect[];
-  /** Updated example phrases */
   examples?: string[];
-  /** Updated tags */
   tags?: string[];
-  /** Updated metadata */
   metadata?: Record<string, any>;
-  /**
-   * Current version number for optimistic locking
-   * @min 1
-   */
   version: number;
 }

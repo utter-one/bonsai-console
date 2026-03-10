@@ -270,6 +270,15 @@ function editGuardrail(guardrail: GuardrailResponse) {
       <!-- Guardrails Tab -->
       <div v-show="activeTab === 'guardrails'" class="tab-content">
 
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Guardrails</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Guardrails are safety rules that fire on every turn using a classifier. Select a classifier below to enable them, then define rules that trigger specific effects when a classification threshold is met.
+            </p>
+          </div>
+        </div>
+
         <!-- Guardrails Classifier Setting -->
         <div class="mb-6">
           <div class="form-group">
