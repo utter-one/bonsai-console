@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useProjectSelectionStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, Shield, ShieldCheck } from 'lucide-vue-next'
+import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, ShieldCheck } from 'lucide-vue-next'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
 const projectSelectionStore = useProjectSelectionStore()
@@ -14,8 +14,7 @@ const menuItems = [
   { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
   { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
-  { name: 'design.guardrails', label: 'Guardrails', icon: ShieldCheck },
-  { name: 'design.moderation', label: 'Moderation', icon: Shield },
+  { name: 'design.guardrails', label: 'Guardrails & Moderation', icon: ShieldCheck },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
   { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },

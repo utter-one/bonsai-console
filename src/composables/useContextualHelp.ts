@@ -24,10 +24,11 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   'design.globalActions.create':        '/design/global-actions',
   'design.globalActions.edit':          '/design/global-actions',
 
-  // Design — Guardrails
+  // Design — Guardrails & Moderation
   'design.guardrails':                   '/design/guardrails',
   'design.guardrails.create':           '/design/guardrails',
   'design.guardrails.edit':             '/design/guardrails',
+  'design.moderation':                   '/design/guardrails',
 
   // Design — Classifiers
   'design.classifiers':                  '/design/classifiers',

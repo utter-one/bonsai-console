@@ -126,6 +126,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/GuardrailsView.vue'),
           },
           {
+            path: 'projects/:projectId/moderation',
+            name: 'design.moderation',
+            redirect: (to) => ({ name: 'design.guardrails', params: to.params }),
+          },
+          {
             path: 'projects/:projectId/guardrails/new',
             name: 'design.guardrails.create',
             component: () => import('@/views/design/GuardrailEditView.vue'),
