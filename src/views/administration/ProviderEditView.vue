@@ -83,7 +83,7 @@ const providerPresets: ProviderPreset[] = [
   {
     name: 'mistral',
     displayName: 'Mistral AI',
-    baseUrl: 'https://api.mistral.ai/v1',
+    baseUrl: 'https://api.mistral.ai',
     urlPattern: /mistral\.ai/i,
     icon: 'M',
     color: '#f2773d'
