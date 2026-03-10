@@ -121,6 +121,21 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/GlobalActionEditView.vue'),
           },
           {
+            path: 'projects/:projectId/guardrails',
+            name: 'design.guardrails',
+            component: () => import('@/views/design/GuardrailsView.vue'),
+          },
+          {
+            path: 'projects/:projectId/guardrails/new',
+            name: 'design.guardrails.create',
+            component: () => import('@/views/design/GuardrailEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/guardrails/:guardrailId',
+            name: 'design.guardrails.edit',
+            component: () => import('@/views/design/GuardrailEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/knowledge',
             name: 'design.knowledge',
             component: () => import('@/views/design/KnowledgeView.vue'),

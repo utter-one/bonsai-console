@@ -767,6 +767,8 @@ export class Api<
        * @default []
        */
       userProfileVariableDescriptors?: FieldDescriptor[];
+      /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
+      defaultGuardrailClassifierId?: string | null;
     },
     params: RequestParams = {},
   ) =>
@@ -828,6 +830,8 @@ export class Api<
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
         userProfileVariableDescriptors: FieldDescriptor[];
+        /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+        defaultGuardrailClassifierId: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -964,6 +968,8 @@ export class Api<
           autoCreateUsers: boolean;
           /** Descriptors defining the data schema for user profile variables in this project */
           userProfileVariableDescriptors: FieldDescriptor[];
+          /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+          defaultGuardrailClassifierId: string | null;
           /** The version number of the project */
           version: number;
           /**
@@ -1064,6 +1070,8 @@ export class Api<
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
         userProfileVariableDescriptors: FieldDescriptor[];
+        /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+        defaultGuardrailClassifierId: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1139,6 +1147,8 @@ export class Api<
       autoCreateUsers?: boolean;
       /** Updated descriptors defining the data schema for user profile variables in this project */
       userProfileVariableDescriptors?: FieldDescriptor[];
+      /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
+      defaultGuardrailClassifierId?: string | null;
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -1202,6 +1212,8 @@ export class Api<
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
         userProfileVariableDescriptors: FieldDescriptor[];
+        /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+        defaultGuardrailClassifierId: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1323,6 +1335,8 @@ export class Api<
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
         userProfileVariableDescriptors: FieldDescriptor[];
+        /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+        defaultGuardrailClassifierId: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1428,6 +1442,8 @@ export class Api<
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
         userProfileVariableDescriptors: FieldDescriptor[];
+        /** ID of the classifier used to evaluate guardrails for all conversations in this project */
+        defaultGuardrailClassifierId: string | null;
         /** The version number of the project */
         version: number;
         /**
@@ -6560,6 +6576,461 @@ export class Api<
       void
     >({
       path: `/api/projects/${projectId}/global-actions/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new guardrail with specified name, classification trigger, and effects. Guardrails fire on every stage using the project-level classifier.
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsCreate
+   * @summary Create a new guardrail
+   * @request POST:/api/projects/{projectId}/guardrails
+   * @secure
+   */
+  projectsGuardrailsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the guardrail (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the guardrail
+       * @minLength 1
+       */
+      name: string;
+      /** Optional JavaScript condition expression — when provided, the guardrail is only active when it evaluates to truthy */
+      condition?: string | null;
+      /** Classification label that the guardrail classifier should output to trigger this guardrail */
+      classificationTrigger?: string | null;
+      /** Array of effects to execute when the guardrail is triggered */
+      effects?: Effect[];
+      /** Example phrases that trigger this guardrail, used to help the classifier */
+      examples?: string[];
+      /**
+       * Tags for categorizing and filtering this guardrail
+       * @default []
+       */
+      tags?: string[];
+      /** Additional guardrail-specific metadata */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the guardrail */
+        id: string;
+        /** ID of the project this guardrail belongs to */
+        projectId: string;
+        /** Display name of the guardrail */
+        name: string;
+        /** Condition expression for guardrail activation */
+        condition: string | null;
+        /** Classification label that triggers this guardrail */
+        classificationTrigger: string | null;
+        /** Array of effects to execute */
+        effects: Effect[];
+        /** Example phrases that trigger this guardrail */
+        examples: string[] | null;
+        /** Tags for categorizing and filtering this guardrail */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the guardrail was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the guardrail was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/guardrails`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of guardrails with optional filtering and sorting
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsList
+   * @summary List guardrails
+   * @request GET:/api/projects/{projectId}/guardrails
+   * @secure
+   */
+  projectsGuardrailsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of guardrails in the current page */
+        items: {
+          /** Unique identifier for the guardrail */
+          id: string;
+          /** ID of the project this guardrail belongs to */
+          projectId: string;
+          /** Display name of the guardrail */
+          name: string;
+          /** Condition expression for guardrail activation */
+          condition: string | null;
+          /** Classification label that triggers this guardrail */
+          classificationTrigger: string | null;
+          /** Array of effects to execute */
+          effects: Effect[];
+          /** Example phrases that trigger this guardrail */
+          examples: string[] | null;
+          /** Tags for categorizing and filtering this guardrail */
+          tags: string[];
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the guardrail was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the guardrail was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
+        }[];
+        /**
+         * Total number of guardrails matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/guardrails`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single guardrail by its unique identifier
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsDetail
+   * @summary Get guardrail by ID
+   * @request GET:/api/projects/{projectId}/guardrails/{id}
+   * @secure
+   */
+  projectsGuardrailsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the guardrail */
+        id: string;
+        /** ID of the project this guardrail belongs to */
+        projectId: string;
+        /** Display name of the guardrail */
+        name: string;
+        /** Condition expression for guardrail activation */
+        condition: string | null;
+        /** Classification label that triggers this guardrail */
+        classificationTrigger: string | null;
+        /** Array of effects to execute */
+        effects: Effect[];
+        /** Example phrases that trigger this guardrail */
+        examples: string[] | null;
+        /** Tags for categorizing and filtering this guardrail */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the guardrail was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the guardrail was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/guardrails/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing guardrail with optimistic locking
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsUpdate
+   * @summary Update guardrail
+   * @request PUT:/api/projects/{projectId}/guardrails/{id}
+   * @secure
+   */
+  projectsGuardrailsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated condition expression */
+      condition?: string | null;
+      /** Updated classification trigger label */
+      classificationTrigger?: string | null;
+      /** Updated effects array */
+      effects?: Effect[];
+      /** Updated example phrases */
+      examples?: string[];
+      /** Updated tags */
+      tags?: string[];
+      /** Updated metadata */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the guardrail */
+        id: string;
+        /** ID of the project this guardrail belongs to */
+        projectId: string;
+        /** Display name of the guardrail */
+        name: string;
+        /** Condition expression for guardrail activation */
+        condition: string | null;
+        /** Classification label that triggers this guardrail */
+        classificationTrigger: string | null;
+        /** Array of effects to execute */
+        effects: Effect[];
+        /** Example phrases that trigger this guardrail */
+        examples: string[] | null;
+        /** Tags for categorizing and filtering this guardrail */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the guardrail was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the guardrail was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/guardrails/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a guardrail with optimistic locking
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsDelete
+   * @summary Delete guardrail
+   * @request DELETE:/api/projects/{projectId}/guardrails/{id}
+   * @secure
+   */
+  projectsGuardrailsDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/guardrails/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific guardrail
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsAuditLogsList
+   * @summary Get guardrail audit logs
+   * @request GET:/api/projects/{projectId}/guardrails/{id}/audit-logs
+   * @secure
+   */
+  projectsGuardrailsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/guardrails/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing guardrail with a new ID and optional name override
+   *
+   * @tags Guardrails
+   * @name ProjectsGuardrailsCloneCreate
+   * @summary Clone guardrail
+   * @request POST:/api/projects/{projectId}/guardrails/{id}/clone
+   * @secure
+   */
+  projectsGuardrailsCloneCreate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned guardrail (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned guardrail (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the guardrail */
+        id: string;
+        /** ID of the project this guardrail belongs to */
+        projectId: string;
+        /** Display name of the guardrail */
+        name: string;
+        /** Condition expression for guardrail activation */
+        condition: string | null;
+        /** Classification label that triggers this guardrail */
+        classificationTrigger: string | null;
+        /** Array of effects to execute */
+        effects: Effect[];
+        /** Example phrases that trigger this guardrail */
+        examples: string[] | null;
+        /** Tags for categorizing and filtering this guardrail */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the guardrail was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the guardrail was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/guardrails/${id}/clone`,
       method: "POST",
       body: data,
       secure: true,
