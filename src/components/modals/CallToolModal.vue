@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content max-w-2xl" @click.stop>
       <h2 class="modal-header">Call Tool</h2>
       

@@ -264,7 +264,7 @@ onUnmounted(stopPolling)
 </script>
 
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content" style="max-width: 600px; width: 100%;" @click.stop>
 
       <!-- Header -->

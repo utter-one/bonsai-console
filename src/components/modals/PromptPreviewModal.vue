@@ -1,12 +1,9 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col" @click.stop>
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">System Prompt</h2>
-        <button @click="$emit('close')" class="btn-icon" title="Close">
-          <X class="w-5 h-5" />
-        </button>
       </div>
       
       <!-- Body -->
@@ -18,7 +15,7 @@
 
       <!-- Footer -->
       <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-        <button type="button" @click="copyToClipboard" class="btn-secondary">
+        <button type="button" @click="copyToClipboard" class="btn-secondary gap-2 py-2.5">
           <Copy class="w-4 h-4" />
           {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
         </button>
@@ -32,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { X, Copy } from 'lucide-vue-next'
+import { Copy } from 'lucide-vue-next'
 
 const props = defineProps<{
   prompt: string
