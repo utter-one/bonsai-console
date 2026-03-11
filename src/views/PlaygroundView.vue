@@ -439,7 +439,7 @@
 
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
@@ -646,6 +646,12 @@ onMounted(() => {
 
   return () => {
     document.removeEventListener('click', handleClickOutside)
+  }
+})
+
+onBeforeRouteLeave(() => {
+  for (const voiceOutput of activeVoiceOutputs.value.values()) {
+    voiceOutput.player.stop()
   }
 })
 
