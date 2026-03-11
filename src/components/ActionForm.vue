@@ -526,9 +526,9 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </nav>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto mt-4 px-6">
+    <div class="flex-1 min-h-0 overflow-y-auto">
     <!-- Basic Tab -->
-    <div v-show="activeTab.value === 'basic'" class="space-y-6">
+    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6">
       <div v-if="showKeyField && actionKey" class="form-group">
         <label class="form-label">
           Action Key <span class="required">*</span>
@@ -579,7 +579,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Trigger Tab (simplified mode) -->
-    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="space-y-4">
+    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4">
       <div class="form-group">
         <label class="form-label">
           Classification Trigger
@@ -596,13 +596,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </div>
       <div class="form-group">
         <label class="form-label">
-          Override Classifier ID <span class="text-gray-500">(optional)</span>
+          Override Classifier <span class="text-gray-500">(optional)</span>
         </label>
         <select
           v-model="form.overrideClassifierId"
           class="form-select-auto"
         >
-          <option value="">No override (use stage default classifier)</option>
+          <option value="">No override (use default classifier)</option>
           <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
             {{ classifier.name }}
           </option>
@@ -614,7 +614,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Trigger Tab (full mode) -->
-    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="space-y-4">
+    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4">
 
       <!-- Condition (always visible) -->
       <div class="form-group">
@@ -661,13 +661,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           </div>
           <div class="form-group mb-0">
             <label class="form-label">
-              Override Classifier ID <span class="text-gray-500">(optional)</span>
+              Override Classifier <span class="text-gray-500">(optional)</span>
             </label>
             <select
               v-model="form.overrideClassifierId"
               class="form-select-auto"
             >
-              <option value="">No override (use stage default classifier)</option>
+              <option value="">No override (use default classifier)</option>
               <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
                 {{ classifier.name }}
               </option>
@@ -797,7 +797,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Parameters Tab -->
-    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="space-y-6">
+    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Action Parameters</label>
         <p class="form-help-text mb-3">
@@ -894,7 +894,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Effects Tab -->
-    <div v-show="activeTab.value === 'effects'" class="space-y-6">
+    <div v-show="activeTab.value === 'effects'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Select Effects</label>
         <p class="form-help-text mb-3">
@@ -1025,7 +1025,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Generate Response Tab -->
-    <div v-show="activeTab.value === 'generateResponse'" class="space-y-6">
+    <div v-show="activeTab.value === 'generateResponse'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Response Mode</label>
         <select v-model="operations.generateResponse.responseMode" class="form-select-auto">
@@ -1080,7 +1080,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Go To Stage Tab -->
-    <div v-show="activeTab.value === 'goToStage'" class="space-y-6">
+    <div v-show="activeTab.value === 'goToStage'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">
           Target Stage <span class="required">*</span>
@@ -1102,7 +1102,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Run Script Tab -->
-    <div v-show="activeTab.value === 'runScript'" class="flex flex-col min-h-full">
+    <div v-show="activeTab.value === 'runScript'" class="tab-content flex flex-col min-h-full">
       <div class="form-group flex flex-col flex-1 min-h-0">
         <label class="form-label shrink-0">JavaScript Code <span class="required">*</span></label>
         <JavaScriptEditor
@@ -1125,7 +1125,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify User Input Tab -->
-    <div v-show="activeTab.value === 'modifyUserInput'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyUserInput'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">
           Template <span class="required">*</span>
@@ -1147,7 +1147,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify Variables Tab -->
-    <div v-show="activeTab.value === 'modifyVariables'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyVariables'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Variable Modifications</label>
         <div class="space-y-4">
@@ -1272,7 +1272,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Modify User Profile Tab -->
-    <div v-show="activeTab.value === 'modifyUserProfile'" class="space-y-6">
+    <div v-show="activeTab.value === 'modifyUserProfile'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Profile Modifications</label>
         <div class="space-y-4">
@@ -1338,7 +1338,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Call Tool Tab -->
-    <div v-show="activeTab.value === 'callTool'" class="space-y-6">
+    <div v-show="activeTab.value === 'callTool'" class="tab-content space-y-6">
       <!-- Tool Dropdown -->
       <div class="form-group">
         <label class="form-label">Tool <span class="required">*</span></label>
@@ -1573,7 +1573,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Call Webhook Tab -->
-    <div v-show="activeTab.value === 'callWebhook'" class="space-y-6">
+    <div v-show="activeTab.value === 'callWebhook'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">
           URL <span class="required">*</span>
