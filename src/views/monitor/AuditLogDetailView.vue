@@ -190,7 +190,18 @@ const changes = computed(() => {
                 <Hash :size="16" class="text-gray-400" />
                 <span>Version</span>
               </div>
-              <div class="metadata-value">{{ auditLog.version }}</div>
+              <div class="metadata-value">
+                <template v-if="auditLog.action === 'UPDATE' && (auditLog.oldEntity?.version != null || auditLog.newEntity?.version != null)">
+                  {{ auditLog.oldEntity?.version ?? 'N/A' }} &rarr; {{ auditLog.newEntity?.version ?? 'N/A' }}
+                </template>
+                <template v-else-if="auditLog.action === 'CREATE'">
+                  {{ auditLog.newEntity?.version ?? 1 }}
+                </template>
+                <template v-else-if="auditLog.oldEntity?.version != null">
+                  {{ auditLog.oldEntity.version }}
+                </template>
+                <template v-else>N/A</template>
+              </div>
             </div>
           </div>
         </div>
