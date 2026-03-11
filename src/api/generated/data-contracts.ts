@@ -1740,6 +1740,11 @@ export interface CreateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
   defaultGuardrailClassifierId?: string | null;
+  /**
+   * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
+   * @min 0
+   */
+  conversationTimeoutSeconds?: number;
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -1829,6 +1834,11 @@ export interface UpdateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
   defaultGuardrailClassifierId?: string | null;
+  /**
+   * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
+   * @min 0
+   */
+  conversationTimeoutSeconds?: number | null;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -1904,6 +1914,8 @@ export interface ProjectResponse {
   userProfileVariableDescriptors: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project */
   defaultGuardrailClassifierId: string | null;
+  /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
+  conversationTimeoutSeconds: number | null;
   /** The version number of the project */
   version: number;
   /**
@@ -1986,6 +1998,8 @@ export interface ProjectListResponse {
     userProfileVariableDescriptors: FieldDescriptor[];
     /** ID of the classifier used to evaluate guardrails for all conversations in this project */
     defaultGuardrailClassifierId: string | null;
+    /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
+    conversationTimeoutSeconds: number | null;
     /** The version number of the project */
     version: number;
     /**

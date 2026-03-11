@@ -38,6 +38,7 @@ const form = ref({
   acceptVoice: false,
   generateVoice: false,
   timezone: '',
+  conversationTimeoutSeconds: null as number | null,
   version: undefined as number | undefined,
 })
 
@@ -279,6 +280,7 @@ async function loadProject() {
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
+        conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         version: currentProject.value.version,
       }
       
@@ -341,6 +343,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
       })
       
       // Update currentProject with the response to get the new version
@@ -355,6 +358,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
       })
 
       // Set currentProject to the newly created project
@@ -736,6 +740,28 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
             />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Conversation Timeout (seconds)</label>
+            <input
+              :value="form.conversationTimeoutSeconds ?? ''"
+              @change="(e) => {
+                const raw = (e.target as HTMLInputElement).value
+                if (raw === '' || raw === null) { form.conversationTimeoutSeconds = null; return }
+                const n = parseInt(raw, 10)
+                if (isNaN(n) || n === 0) { form.conversationTimeoutSeconds = null; return }
+                form.conversationTimeoutSeconds = Math.min(3600, Math.max(60, n));
+                (e.target as HTMLInputElement).value = String(form.conversationTimeoutSeconds)
+              }"
+              type="number"
+              min="60"
+              max="3600"
+              placeholder="No timeout"
+              class="form-input"
+              :disabled="isLoading"
+            />
+            <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
           </div>
 
           <!-- Create Playground API Key Checkbox (only when creating) -->

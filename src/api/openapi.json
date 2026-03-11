@@ -3164,6 +3164,11 @@
             "type": "string",
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
+          },
+          "conversationTimeoutSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
           }
         },
         "required": [
@@ -3403,6 +3408,12 @@
             "nullable": true,
             "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
           },
+          "conversationTimeoutSeconds": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -3593,6 +3604,11 @@
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
           },
+          "conversationTimeoutSeconds": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -3634,6 +3650,7 @@
           "autoCreateUsers",
           "userProfileVariableDescriptors",
           "defaultGuardrailClassifierId",
+          "conversationTimeoutSeconds",
           "version",
           "createdAt",
           "updatedAt",
@@ -3800,6 +3817,11 @@
                   "nullable": true,
                   "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                 },
+                "conversationTimeoutSeconds": {
+                  "type": "integer",
+                  "nullable": true,
+                  "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -3841,6 +3863,7 @@
                 "autoCreateUsers",
                 "userProfileVariableDescriptors",
                 "defaultGuardrailClassifierId",
+                "conversationTimeoutSeconds",
                 "version",
                 "createdAt",
                 "updatedAt",
@@ -13902,6 +13925,11 @@
                     "type": "string",
                     "nullable": true,
                     "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
+                  },
+                  "conversationTimeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
                   }
                 },
                 "required": [
@@ -14070,6 +14098,11 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "conversationTimeoutSeconds": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -14111,6 +14144,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -14444,6 +14478,11 @@
                             "nullable": true,
                             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                           },
+                          "conversationTimeoutSeconds": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -14485,6 +14524,7 @@
                           "autoCreateUsers",
                           "userProfileVariableDescriptors",
                           "defaultGuardrailClassifierId",
+                          "conversationTimeoutSeconds",
                           "version",
                           "createdAt",
                           "updatedAt",
@@ -14688,6 +14728,11 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "conversationTimeoutSeconds": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -14729,6 +14774,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -14857,6 +14903,12 @@
                     "type": "string",
                     "nullable": true,
                     "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
+                  },
+                  "conversationTimeoutSeconds": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
                   },
                   "version": {
                     "type": "number",
@@ -15029,6 +15081,11 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "conversationTimeoutSeconds": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -15070,6 +15127,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -15315,6 +15373,11 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "conversationTimeoutSeconds": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -15356,6 +15419,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
                     "updatedAt",
@@ -15571,6 +15635,11 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "conversationTimeoutSeconds": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -15612,6 +15681,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
                     "updatedAt",
