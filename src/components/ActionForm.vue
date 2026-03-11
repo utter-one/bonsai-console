@@ -19,7 +19,7 @@ interface ActionParameter {
 
 interface WatchedVariable {
   path: string
-  changeType: 'new' | 'changed' | 'removed'
+  changeType: 'new' | 'changed' | 'removed' | 'any'
 }
 
 interface ActionFormData {
@@ -123,7 +123,7 @@ function removeParameter(index: number) {
 }
 
 function addWatchedVariable() {
-  props.form.watchedVariables.push({ path: '', changeType: 'changed' })
+  props.form.watchedVariables.push({ path: '', changeType: 'any' })
 }
 
 // allow parent to query the current script editor value (in case of sync issues)
@@ -779,6 +779,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
                     <option value="new">New (variable created)</option>
                     <option value="changed">Changed (value updated)</option>
                     <option value="removed">Removed (variable cleared)</option>
+                    <option value="any">Any (new, changed, or removed)</option>
                   </select>
                 </div>
               </div>
