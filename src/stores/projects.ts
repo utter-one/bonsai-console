@@ -87,6 +87,21 @@ export const useProjectsStore = defineStore('projects', () => {
     }
   }
 
+  // Wrap create/remove/update so we also refresh the unfiltered project cache
+  async function updateProject(id: string, data: UpdateProjectRequest) {
+    const result = await store.update(id, data)
+    // Patch all three cached lists in-place so the nav color circle stays current
+    // without doing a full network refetch
+    const patchList = (list: ProjectResponse[]) => {
+      const idx = list.findIndex(p => p.id === id)
+      if (idx !== -1) list.splice(idx, 1, result)
+    }
+    patchList(unfilteredProjects.value)
+    patchList(activeProjects.value)
+    patchList(archivedProjects.value)
+    return result
+  }
+
   // Wrap create/remove so we also refresh the unfiltered project cache
   async function createProject(data: CreateProjectRequest) {
     const result = await store.create(data)
@@ -113,5 +128,6 @@ export const useProjectsStore = defineStore('projects', () => {
     unarchive,
     create: createProject,
     remove: removeProject,
+    update: updateProject,
   }
 })
