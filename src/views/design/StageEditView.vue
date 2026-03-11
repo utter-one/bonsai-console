@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useTableSort } from '@/composables'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -614,13 +615,42 @@ function handleActionSave(data: { key: string; action: StageAction }) {
   showActionModal.value = false
 }
 
+const { sortKey: actionsSortKey, sortOrder: actionsSortOrder, toggleSort: toggleActionsSort, getSortIcon: getActionsSortIcon } = useTableSort('sort-stage-actions')
+
 const actionsList = computed(() => {
-  return Object.entries(form.value.actions)
+  const list = Object.entries(form.value.actions)
     .filter(([key]) => !isLifecycleAction(key))
     .map(([key, action]) => ({
       key,
       ...action
     }))
+
+  if (!actionsSortKey.value || !actionsSortOrder.value) return list
+
+  return [...list].sort((a, b) => {
+    let comparison = 0
+    switch (actionsSortKey.value) {
+      case 'key':
+        comparison = a.key.localeCompare(b.key)
+        break
+      case 'name':
+        comparison = (a.name || '').localeCompare(b.name || '')
+        break
+      case 'triggers': {
+        const countA = (a.triggerOnUserInput ? 1 : 0) + (a.triggerOnClientCommand ? 1 : 0) + (a.triggerOnTransformation ? 1 : 0)
+        const countB = (b.triggerOnUserInput ? 1 : 0) + (b.triggerOnClientCommand ? 1 : 0) + (b.triggerOnTransformation ? 1 : 0)
+        comparison = countA - countB
+        break
+      }
+      case 'classification':
+        comparison = (a.classificationTrigger || '').localeCompare(b.classificationTrigger || '')
+        break
+      case 'effects':
+        comparison = (a.effects?.length || 0) - (b.effects?.length || 0)
+        break
+    }
+    return actionsSortOrder.value === 'asc' ? comparison : -comparison
+  })
 })
 
 const lifecycleActions = computed(() => {
@@ -1216,11 +1246,36 @@ function toggleNode(path: number[]) {
                 <table class="table">
                   <thead class="table-header">
                     <tr>
-                      <th class="table-header-cell">Key</th>
-                      <th class="table-header-cell">Name</th>
-                      <th class="table-header-cell">Triggers</th>
-                      <th class="table-header-cell">Classification</th>
-                      <th class="table-header-cell">Effects</th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('key')">
+                        <div class="flex items-center gap-1">
+                          Key
+                          <component :is="getActionsSortIcon('key')" class="w-4 h-4" :class="actionsSortKey === 'key' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('name')">
+                        <div class="flex items-center gap-1">
+                          Name
+                          <component :is="getActionsSortIcon('name')" class="w-4 h-4" :class="actionsSortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('triggers')">
+                        <div class="flex items-center gap-1">
+                          Triggers
+                          <component :is="getActionsSortIcon('triggers')" class="w-4 h-4" :class="actionsSortKey === 'triggers' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('classification')">
+                        <div class="flex items-center gap-1">
+                          Classification
+                          <component :is="getActionsSortIcon('classification')" class="w-4 h-4" :class="actionsSortKey === 'classification' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('effects')">
+                        <div class="flex items-center gap-1">
+                          Effects
+                          <component :is="getActionsSortIcon('effects')" class="w-4 h-4" :class="actionsSortKey === 'effects' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
                       <th class="table-header-cell-right">Actions</th>
                     </tr>
                   </thead>
