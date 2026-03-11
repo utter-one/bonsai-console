@@ -304,6 +304,7 @@
                 :event="toNormalizedWsEvent(event, index)"
                 :show-bug-report="false"
                 @open-prompt="openPromptPreview"
+                @open-raw-response="openRawResponsePreview"
                 @open-variables="openVariablesPreview"
               />
             </div>
@@ -415,6 +416,12 @@
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+    
+    <PromptPreviewModal
+      v-if="showRawResponsePreviewModal"
+      :prompt="selectedRawResponse"
+      title="Raw Response"
+      @close="showRawResponsePreviewModal = false" />
     
     <VariablesPreviewModal
       v-if="showVariablesPreviewModal"
@@ -996,6 +1003,11 @@ function openPromptPreview(prompt: string) {
   showPromptPreviewModal.value = true
 }
 
+function openRawResponsePreview(rawResponse: string) {
+  selectedRawResponse.value = rawResponse
+  showRawResponsePreviewModal.value = true
+}
+
 function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
 }
@@ -1480,6 +1492,8 @@ const showSetVariableDialog = ref(false)
 const showAudioSettingsModal = ref(false)
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showRawResponsePreviewModal = ref(false)
+const selectedRawResponse = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)

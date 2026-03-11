@@ -33,6 +33,8 @@ const highlightEventIndex = computed(() => {
 const eventRefs = ref<(HTMLElement | null)[]>([])
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showRawResponsePreviewModal = ref(false)
+const selectedRawResponse = ref('')
 const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
@@ -99,6 +101,11 @@ function formatStatusLabel(status: string): string {
 function openPromptPreview(prompt: string) {
   selectedPrompt.value = prompt
   showPromptPreviewModal.value = true
+}
+
+function openRawResponsePreview(rawResponse: string) {
+  selectedRawResponse.value = rawResponse
+  showRawResponsePreviewModal.value = true
 }
 
 function openVariablesPreview(variables: Record<string, any>) {
@@ -248,6 +255,7 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
                   :show-bug-report="!isArchived"
                   :highlighted="highlightEventIndex === index"
                   @open-prompt="openPromptPreview"
+                  @open-raw-response="openRawResponsePreview"
                   @open-variables="openVariablesPreview"
                   @open-bug-report="openBugReport(event, index)"
                 />
@@ -266,6 +274,12 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+    
+    <PromptPreviewModal
+      v-if="showRawResponsePreviewModal"
+      :prompt="selectedRawResponse"
+      title="Raw Response"
+      @close="showRawResponsePreviewModal = false" />
     
     <!-- Variables Preview Modal -->
     <VariablesPreviewModal

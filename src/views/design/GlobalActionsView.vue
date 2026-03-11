@@ -98,6 +98,20 @@ function editGlobalAction(action: GlobalActionResponse) {
   })
 }
 
+const SPECIAL_ACTION_NAMES: Record<string, string> = {
+  '__moderation_blocked': 'Moderation Blocked'
+}
+
+function isSpecialAction(action: GlobalActionResponse): boolean {
+  return action.id.startsWith('__')
+}
+
+function getSpecialActionTooltip(action: GlobalActionResponse): string {
+  const name = SPECIAL_ACTION_NAMES[action.id]
+  const label = name ? `${name} — ` : ''
+  return `${label}special system`
+}
+
 // Special Actions dropdown
 const showSpecialMenu = ref(false)
 let outsideClickListener: (() => void) | null = null
@@ -227,8 +241,18 @@ onUnmounted(() => {
             <tbody class="table-body">
               <tr v-for="action in filteredGlobalActions" :key="action.id" class="table-row">
                 <td class="table-clickable-cell" @click="editGlobalAction(action)">
-                  {{ action.name }}
-                  <span v-if="action.archived" class="badge badge-error ml-2">Archived</span>
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ action.name }}
+                    <span
+                      v-if="isSpecialAction(action)"
+                      class="special-action-badge"
+                      @click.stop
+                    >
+                      <ShieldAlert class="w-3.5 h-3.5 text-violet-500" />
+                      <span class="special-action-tooltip">{{ getSpecialActionTooltip(action) }}</span>
+                    </span>
+                    <span v-if="action.archived" class="badge badge-error">Archived</span>
+                  </span>
                 </td>
                 <td class="table-cell">
                   <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
@@ -272,5 +296,46 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Additional custom styles if needed */
+.special-action-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.special-action-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #1f2937;
+  color: #f9fafb;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 5px;
+  pointer-events: none;
+  z-index: 9999;
+  max-width: 260px;
+  white-space: normal;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.special-action-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.special-action-badge:hover .special-action-tooltip {
+  display: block;
+}
 </style>

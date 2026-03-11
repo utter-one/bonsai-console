@@ -3,7 +3,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col" @click.stop>
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">System Prompt</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ title }}</h2>
       </div>
       
       <!-- Body -->
@@ -31,9 +31,12 @@
 import { ref } from 'vue'
 import { Copy } from 'lucide-vue-next'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   prompt: string
-}>()
+  title?: string
+}>(), {
+  title: 'System Prompt'
+})
 
 const emit = defineEmits<{
   close: []
