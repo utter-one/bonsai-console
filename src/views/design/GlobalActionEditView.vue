@@ -339,7 +339,7 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Form Content -->
-    <div v-else class="flex-1 overflow-y-auto px-0 py-4 md:px-8 md:py-6 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
+    <div v-else class="flex-1 overflow-y-auto px-0 pb-4 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
@@ -357,11 +357,6 @@ const metadataFields = computed(() => {
             <p class="form-help-text">
               Custom ID for the global action. Leave empty to auto-generate.
             </p>
-          </div>
-
-          <!-- Tags Field -->
-          <div v-show="activeTab.value === 'basic'">
-            <TagsEditor v-model="actionTags" />
           </div>
 
           <!-- Use shared ActionForm component with all tabs including metadata -->
@@ -383,6 +378,11 @@ const metadataFields = computed(() => {
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
           />
+
+          <!-- Tags Field -->
+          <div v-show="activeTab.value === 'basic'" class="px-6">
+            <TagsEditor v-model="actionTags" />
+          </div>
           </fieldset>
         </form>
       </div>
