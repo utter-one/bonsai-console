@@ -144,7 +144,16 @@ Good candidates for global actions:
 
 ### Special Actions
 
-The **Special Actions** dropdown on the Global Actions page gives access to system-triggered actions like **Moderation Blocked** — the response that runs when user input is flagged by moderation. Click it, initialize the action, and configure its effects.
+The **Special Actions** dropdown on the Global Actions page gives access to system-triggered actions:
+
+- **Moderation Blocked** — Runs when user input is flagged by the moderation guardrail.
+- **Conversation Start** — Runs once after the conversation and first stage are fully initialised.
+- **Conversation Resume** — Runs when a previously-interrupted conversation is resumed.
+- **Conversation End** — Runs when the conversation is gracefully ended.
+- **Conversation Abort** — Runs when the conversation is aborted immediately.
+- **Conversation Failed** — Runs when a fatal error occurs.
+
+Click any of them, initialize the action if it hasn't been configured yet, and set up the effects you want.
 
 See [Global Actions](../design/global-actions) for full reference.
 

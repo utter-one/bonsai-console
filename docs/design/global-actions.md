@@ -46,15 +46,49 @@ Besides regular global actions, there are **special actions** that are executed 
 
 To set up a special action, click the **Special Actions** dropdown (the violet button next to **New Global Action**) and select the action you want to configure.
 
+Since the trigger is system-controlled, the edit view hides the **Trigger** and **Parameters** tabs — you only configure **Effects** (and optionally the name and tags).
+
+If an action hasn't been set up for the project yet, clicking it shows a **Not Configured** screen with an **Initialize** button that creates it for you.
+
 ### Moderation Blocked
 
 The **Moderation Blocked** action (ID: <code v-pre>__moderation_blocked</code>) runs when the moderation system flags a user's message. Use it to define how the assistant responds when a message is blocked — for example, generating a polite refusal or ending the conversation.
 
-Since the trigger is system-controlled, the edit view hides the **Trigger** and **Parameters** tabs — you only configure **Effects** (and optionally the name, examples, and tags).
-
-If the action hasn't been set up for the project yet, clicking it shows a **Not Configured** screen with an **Initialize** button that creates it for you.
-
 Content moderation is configured separately in **Design > Guardrails & Moderation** under the **Moderation** tab. See [Moderation](./moderation) for details.
+
+### Conversation Lifecycle Actions
+
+The following special actions fire at key points in a conversation's lifecycle. They are grouped under **Lifecycle** in the Special Actions dropdown.
+
+#### Conversation Start
+
+The **Conversation Start** action (ID: <code v-pre>__conversation_start</code>) runs once after the conversation and its first stage are fully initialised. Use it to set up initial variable values, log session metadata, or call an external webhook to signal that a session has begun.
+
+**Restrictions:** cannot end or abort the conversation.
+
+#### Conversation Resume
+
+The **Conversation Resume** action (ID: <code v-pre>__conversation_resume</code>) runs when a previously-interrupted conversation is resumed by the user. Use it to restore context, greet the returning user, or re-synchronise external state.
+
+**Restrictions:** cannot end or abort the conversation.
+
+#### Conversation End
+
+The **Conversation End** action (ID: <code v-pre>__conversation_end</code>) runs when the conversation is **gracefully ended** (e.g. via an `end_conversation` effect). Use it to send a closing webhook, persist final variable values, or trigger a post-conversation workflow.
+
+**Restrictions:** cannot go to another stage, generate a response, or abort the conversation.
+
+#### Conversation Abort
+
+The **Conversation Abort** action (ID: <code v-pre>__conversation_abort</code>) runs when the conversation is **aborted** — an immediate, unclean stop (e.g. via an `abort_conversation` effect or a policy violation). Use it for urgent cleanup, alerting, or audit logging.
+
+**Restrictions:** cannot go to another stage, generate a response, or end the conversation gracefully.
+
+#### Conversation Failed
+
+The **Conversation Failed** action (ID: <code v-pre>__conversation_failed</code>) runs when the conversation encounters a **fatal error** from which it cannot recover. Use it to log the failure, notify an external system, or record diagnostic data.
+
+**Restrictions:** cannot go to another stage, generate a response, end, or abort the conversation.
 
 ## Global vs. Stage Actions
 
@@ -62,7 +96,7 @@ Content moderation is configured separately in **Design > Guardrails & Moderatio
 |---|---|---|
 | **Scope** | Defined inside a single stage | Defined at project level, shared across stages |
 | **Lifecycle actions** | Supports `__on_enter`, `__on_leave`, `__on_fallback` | No lifecycle actions |
-| **Special actions** | N/A | <code v-pre>__moderation_blocked</code> (system-triggered) |
+| **Special actions** | N/A | <code v-pre>__moderation_blocked</code>, <code v-pre>__conversation_start</code>, <code v-pre>__conversation_resume</code>, <code v-pre>__conversation_end</code>, <code v-pre>__conversation_abort</code>, <code v-pre>__conversation_failed</code> |
 | **Best for** | Stage-specific behaviors | Cross-cutting behaviors |
 | **Maintenance** | Edited per-stage | Edit once, applies everywhere |
 
