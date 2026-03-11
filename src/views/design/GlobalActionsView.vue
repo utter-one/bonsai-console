@@ -98,8 +98,36 @@ function editGlobalAction(action: GlobalActionResponse) {
   })
 }
 
-const SPECIAL_ACTION_NAMES: Record<string, string> = {
-  '__moderation_blocked': 'Moderation Blocked'
+const SPECIAL_ACTIONS: Record<string, { name: string; description: string; blockedEffects?: string[] }> = {
+  '__moderation_blocked': {
+    name: 'Moderation Blocked',
+    description: 'Triggered when a message is blocked by the moderation guardrail.',
+  },
+  '__conversation_start': {
+    name: 'Conversation Start',
+    description: 'Executed once after the conversation and first stage are initialised.',
+    blockedEffects: ['end_conversation', 'abort_conversation'],
+  },
+  '__conversation_resume': {
+    name: 'Conversation Resume',
+    description: 'Executed when a previously-interrupted conversation is resumed.',
+    blockedEffects: ['end_conversation', 'abort_conversation'],
+  },
+  '__conversation_end': {
+    name: 'Conversation End',
+    description: 'Executed when the conversation is gracefully ended.',
+    blockedEffects: ['go_to_stage', 'generate_response', 'abort_conversation'],
+  },
+  '__conversation_abort': {
+    name: 'Conversation Abort',
+    description: 'Executed when the conversation is aborted (immediate stop).',
+    blockedEffects: ['go_to_stage', 'generate_response', 'end_conversation'],
+  },
+  '__conversation_failed': {
+    name: 'Conversation Failed',
+    description: 'Executed when the conversation encounters a fatal error.',
+    blockedEffects: ['go_to_stage', 'generate_response', 'end_conversation', 'abort_conversation'],
+  },
 }
 
 function isSpecialAction(action: GlobalActionResponse): boolean {
@@ -107,9 +135,13 @@ function isSpecialAction(action: GlobalActionResponse): boolean {
 }
 
 function getSpecialActionTooltip(action: GlobalActionResponse): string {
-  const name = SPECIAL_ACTION_NAMES[action.id]
-  const label = name ? `${name} — ` : ''
-  return `${label}special system`
+  const info = SPECIAL_ACTIONS[action.id]
+  if (!info) return 'Special system action automatically triggered by the platform.'
+  let html = `<strong>${info.name}</strong><br>${info.description}`
+  if (info.blockedEffects?.length) {
+    html += `<br><span style="opacity:0.75">Blocked: ${info.blockedEffects.join(', ')}</span>`
+  }
+  return html
 }
 
 // Special Actions dropdown
@@ -126,11 +158,11 @@ function toggleSpecialMenu() {
   }
 }
 
-function navigateToModerationBlocked() {
+function navigateToSpecialAction(id: string) {
   showSpecialMenu.value = false
   router.push({
     name: 'design.globalActions.edit',
-    params: { projectId: projectId.value, globalActionId: '__moderation_blocked' }
+    params: { projectId: projectId.value, globalActionId: id }
   })
 }
 
@@ -163,14 +195,26 @@ onUnmounted(() => {
             </button>
             <div
               v-if="showSpecialMenu"
-              class="absolute right-0 top-full mt-1 z-10 min-w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 py-1"
+              class="absolute right-0 top-full mt-1 z-10 min-w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 py-1"
             >
+              <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Moderation</div>
               <button
-                @click="navigateToModerationBlocked"
+                @click="navigateToSpecialAction('__moderation_blocked')"
                 class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
               >
                 <ShieldAlert class="w-4 h-4 text-violet-500" />
                 Moderation Blocked
+              </button>
+              <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+              <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Lifecycle</div>
+              <button
+                v-for="id in ['__conversation_start', '__conversation_resume', '__conversation_end', '__conversation_abort', '__conversation_failed']"
+                :key="id"
+                @click="navigateToSpecialAction(id)"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+              >
+                <ShieldAlert class="w-4 h-4 text-violet-500" />
+                {{ SPECIAL_ACTIONS[id]?.name }}
               </button>
             </div>
           </div>
@@ -249,7 +293,7 @@ onUnmounted(() => {
                       @click.stop
                     >
                       <ShieldAlert class="w-3.5 h-3.5 text-violet-500" />
-                      <span class="special-action-tooltip">{{ getSpecialActionTooltip(action) }}</span>
+                      <span class="special-action-tooltip" v-html="getSpecialActionTooltip(action)"></span>
                     </span>
                     <span v-if="action.archived" class="badge badge-error">Archived</span>
                   </span>

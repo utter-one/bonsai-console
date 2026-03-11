@@ -19,7 +19,12 @@ const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
 
 const SPECIAL_ACTION_NAMES: Record<string, string> = {
-  '__moderation_blocked': 'Moderation Blocked'
+  '__moderation_blocked': 'Moderation Blocked',
+  '__conversation_start': 'Conversation Start',
+  '__conversation_resume': 'Conversation Resume',
+  '__conversation_end': 'Conversation End',
+  '__conversation_abort': 'Conversation Abort',
+  '__conversation_failed': 'Conversation Failed',
 }
 
 // State
