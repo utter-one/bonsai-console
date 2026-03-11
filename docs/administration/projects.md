@@ -40,6 +40,10 @@ If no storage is configured, only inline data is preserved.
 
 Set a project-wide default timezone (IANA format, e.g., `Europe/Warsaw`, `America/New_York`). This is used in prompt templates via the `time` context and can be overridden per-conversation or per-user.
 
+### Conversation Timeout
+
+Set a maximum inactivity period (in seconds) for active conversations. If a conversation receives no user input for longer than this value, it is automatically aborted. Accepted range is **60–3600 seconds**. Leave the field empty to disable the timeout entirely.
+
 ::: tip Constants, Memory, and Moderation
 Project-level constants, user-profile memory schema, and moderation settings are configured in the **Design** section — see [Global Memory](../design/global-memory) and [Moderation](../design/moderation) in the Design sidebar. This keeps all conversation-design configuration in one place.
 :::

@@ -38,7 +38,7 @@ const form = ref({
   acceptVoice: false,
   generateVoice: false,
   timezone: '',
-  conversationTimeoutSeconds: null as number | null,
+  conversationTimeoutSeconds: 120 as number | null,
   version: undefined as number | undefined,
 })
 
@@ -758,7 +758,7 @@ function handleStorageSettingsClose() {
               min="60"
               max="3600"
               placeholder="No timeout"
-              class="form-input"
+              class="form-input max-w-48"
               :disabled="isLoading"
             />
             <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
