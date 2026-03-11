@@ -1560,8 +1560,6 @@ export class Api<
           oldEntity: Record<string, any>;
           /** Entity state after the change */
           newEntity: Record<string, any>;
-          /** Version number for the audit log */
-          version: number;
           /**
            * Timestamp when the audit log was created
            * @format date-time
