@@ -13,6 +13,7 @@ import {
   Layers,
   Wrench,
   FileText,
+  ScrollText,
   Braces,
   Bug,
   ChevronRight,
@@ -60,6 +61,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'open-prompt', prompt: string): void
+  (e: 'open-raw-response', rawResponse: string): void
   (e: 'open-variables', variables: Record<string, any>): void
   (e: 'open-bug-report', event: NormalizedEvent): void
 }>()
@@ -212,6 +214,10 @@ function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
 }
 
+function hasRawResponse(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.rawResponse && typeof metadata.rawResponse === 'string')
+}
+
 function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
 }
@@ -230,6 +236,10 @@ function hasAssistantTiming(metadata: Record<string, any> | undefined): boolean 
 
 function onOpenPrompt(prompt: string) {
   emit('open-prompt', prompt)
+}
+
+function onOpenRawResponse(rawResponse: string) {
+  emit('open-raw-response', rawResponse)
 }
 
 function onOpenVariables(variables: Record<string, any>) {
@@ -273,6 +283,13 @@ function onBugReport() {
                 class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                 title="View system prompt">
                 <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
               </button>
               <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
@@ -349,6 +366,13 @@ function onBugReport() {
                 class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
                 title="View system prompt">
                 <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
               </button>
               <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
@@ -443,6 +467,13 @@ function onBugReport() {
                 <FileText class="w-4 h-4" />
               </button>
               <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
+              </button>
+              <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
                 @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
                 class="btn-icon p-1 hover:bg-violet-100 dark:hover:bg-violet-900/30"
@@ -513,6 +544,13 @@ function onBugReport() {
                 class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                 title="View system prompt">
                 <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
               </button>
               <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
@@ -598,6 +636,13 @@ function onBugReport() {
                 <FileText class="w-4 h-4" />
               </button>
               <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
+              </button>
+              <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
                 @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
                 class="btn-icon p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
@@ -674,6 +719,13 @@ function onBugReport() {
                 class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
                 title="View system prompt">
                 <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
               </button>
               <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
@@ -763,6 +815,13 @@ function onBugReport() {
                 class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
                 title="View system prompt">
                 <FileText class="w-4 h-4" />
+              </button>
+              <button
+                v-if="hasRawResponse(event.eventData.metadata)"
+                @click="onOpenRawResponse(event.eventData.metadata!.rawResponse as string)"
+                class="btn-icon p-1 hover:bg-green-100 dark:hover:bg-green-900/30"
+                title="View raw response">
+                <ScrollText class="w-4 h-4" />
               </button>
               <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
