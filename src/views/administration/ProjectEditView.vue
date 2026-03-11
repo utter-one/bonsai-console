@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-ne
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
 
@@ -39,6 +40,7 @@ const form = ref({
   generateVoice: false,
   timezone: '',
   conversationTimeoutSeconds: 120 as number | null,
+  primaryColor: null as string | null,
   version: undefined as number | undefined,
 })
 
@@ -281,6 +283,7 @@ async function loadProject() {
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
+        primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
       }
       
@@ -334,6 +337,12 @@ async function handleSubmit() {
 
     if (isEditMode.value && currentProject.value) {
       // Update existing project
+      const metadata: Record<string, any> = { ...(currentProject.value.metadata || {}) }
+      if (form.value.primaryColor) {
+        metadata.primaryColor = form.value.primaryColor
+      } else {
+        delete metadata.primaryColor
+      }
       const updated = await projectsStore.update(currentProject.value.id, {
         version: currentProject.value.version,
         name: form.value.name,
@@ -344,12 +353,21 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
+        metadata,
       })
       
       // Update currentProject with the response to get the new version
       currentProject.value = updated
+
+      // Sync colour into the project selection store when this is the active project
+      const projSel = useProjectSelectionStore()
+      if (projSel.selectedProjectId === currentProject.value?.id) {
+        projSel.selectedProject = currentProject.value
+      }
     } else {
       // Create new project
+      const createMetadata: Record<string, any> = {}
+      if (form.value.primaryColor) createMetadata.primaryColor = form.value.primaryColor
       const newProject = await projectsStore.create({
         name: form.value.name,
         description: form.value.description || undefined,
@@ -359,6 +377,7 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
+        ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
       })
 
       // Set currentProject to the newly created project
@@ -762,6 +781,67 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
             />
             <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
+          </div>
+
+          <!-- Project Color Picker -->
+          <div class="form-group">
+            <label class="form-label">Project Color</label>
+            <div class="mt-2">
+              <!-- Color swatch grid: columns = hue families, rows = shades (300 / 600 / 900) -->
+              <div class="flex gap-1 flex-wrap">
+                <!-- "No color" clear swatch -->
+                <div class="flex flex-col gap-1 mr-2">
+                  <button
+                    type="button"
+                    @click="form.primaryColor = null"
+                    :class="[
+                      'w-7 h-7 rounded border-2 flex items-center justify-center bg-white dark:bg-gray-700 transition-all',
+                      !form.primaryColor
+                        ? 'border-gray-900 dark:border-white scale-110'
+                        : 'border-gray-300 dark:border-gray-600 hover:scale-110 hover:border-gray-500'
+                    ]"
+                    title="No color"
+                  >
+                    <X :size="12" class="text-gray-400 dark:text-gray-500" />
+                  </button>
+                </div>
+
+                <div
+                  v-for="family in PROJECT_COLOR_FAMILIES"
+                  :key="family.name"
+                  class="flex flex-col gap-1"
+                >
+                  <button
+                    v-for="color in family.colors"
+                    :key="color.key"
+                    type="button"
+                    @click="form.primaryColor = color.key"
+                    :title="`${family.name} ${color.shade}`"
+                    :class="[
+                      'w-7 h-7 rounded transition-all',
+                      form.primaryColor === color.key
+                        ? 'ring-2 ring-offset-1 ring-gray-900 dark:ring-white scale-110'
+                        : 'hover:scale-110 hover:ring-1 hover:ring-gray-400 dark:hover:ring-gray-500'
+                    ]"
+                    :style="{ backgroundColor: color.hex }"
+                  />
+                </div>
+              </div>
+
+              <!-- Current selection label -->
+              <div class="mt-2 h-5 flex items-center gap-2">
+                <template v-if="form.primaryColor">
+                  <span
+                    class="inline-block w-4 h-4 rounded"
+                    :style="{ backgroundColor: getProjectColorHex(form.primaryColor) ?? undefined }"
+                  />
+                  <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ form.primaryColor }}</span>
+                  <button type="button" @click="form.primaryColor = null" class="text-xs text-red-500 underline">Clear</button>
+                </template>
+                <span v-else class="text-xs text-gray-400 dark:text-gray-500">No color selected</span>
+              </div>
+            </div>
+            <p class="form-help-text mt-1">Optional accent color shown in the top navigation bar when this project is active</p>
           </div>
 
           <!-- Create Playground API Key Checkbox (only when creating) -->
