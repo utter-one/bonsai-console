@@ -5433,6 +5433,49 @@ export interface ApiKeyListResponse {
   total: number;
 }
 
+export interface LatencyMetric {
+  /** Number of data points */
+  count: number;
+  /** Average value in milliseconds */
+  avg: number | null;
+  /** Median (p50) value in milliseconds */
+  median: number | null;
+  /** 95th percentile value in milliseconds */
+  p95: number | null;
+  /** Minimum value in milliseconds */
+  min: number | null;
+  /** Maximum value in milliseconds */
+  max: number | null;
+}
+
+export interface PercentileSet {
+  /** 50th percentile (median) in milliseconds */
+  p50: number | null;
+  /** 75th percentile in milliseconds */
+  p75: number | null;
+  /** 90th percentile in milliseconds */
+  p90: number | null;
+  /** 95th percentile in milliseconds */
+  p95: number | null;
+  /** 99th percentile in milliseconds */
+  p99: number | null;
+}
+
+export interface LatencyTrendPoint {
+  /** Time bucket start (ISO 8601) */
+  bucket: string;
+  /** Number of turns in this bucket */
+  turnCount: number;
+  /** Average total turn duration in this bucket */
+  avgTotalTurnDurationMs: number | null;
+  /** Average TTFT in this bucket */
+  avgTimeToFirstTokenMs: number | null;
+  /** Average LLM duration in this bucket */
+  avgLlmDurationMs: number | null;
+  /** Average time to first audio in this bucket */
+  avgTimeToFirstAudioMs: number | null;
+}
+
 export interface VersionResponse {
   /** First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes. */
   restSchemaHash: string;
@@ -5585,4 +5628,91 @@ export interface ExportBundle {
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
+}
+
+export interface LatencyStatsResponse {
+  /** Total number of turns matching the query */
+  totalTurns: number;
+  /** Total turn duration from start to completion */
+  totalTurnDurationMs: LatencyMetric;
+  /** Time from LLM call start to first token */
+  timeToFirstTokenMs: LatencyMetric;
+  /** Time from turn start to first LLM token */
+  timeToFirstTokenFromTurnStartMs: LatencyMetric;
+  /** Time from turn start to first audio chunk (voice only) */
+  timeToFirstAudioMs: LatencyMetric;
+  /** Total LLM call duration */
+  llmDurationMs: LatencyMetric;
+  /** TTS synthesis duration (voice only) */
+  ttsDurationMs: LatencyMetric;
+  /** Moderation API call duration */
+  moderationDurationMs: LatencyMetric;
+  /** Classification and transformation processing duration */
+  processingDurationMs: LatencyMetric;
+  /** Action execution duration */
+  actionsDurationMs: LatencyMetric;
+  /** ASR recognition duration (voice only) */
+  asrDurationMs: LatencyMetric;
+}
+
+export interface LatencyPercentilesResponse {
+  /** Total number of turns matching the query */
+  totalTurns: number;
+  /** Total turn duration percentiles */
+  totalTurnDurationMs: PercentileSet;
+  /** Time to first token percentiles */
+  timeToFirstTokenMs: PercentileSet;
+  /** Time to first token from turn start percentiles */
+  timeToFirstTokenFromTurnStartMs: PercentileSet;
+  /** Time to first audio percentiles (voice only) */
+  timeToFirstAudioMs: PercentileSet;
+  /** LLM duration percentiles */
+  llmDurationMs: PercentileSet;
+}
+
+export interface LatencyTrendResponse {
+  /** Aggregation interval used (hour, day, or week) */
+  interval: string;
+  /** Time-bucketed data points */
+  points: LatencyTrendPoint[];
+}
+
+export interface ConversationTimelineResponse {
+  /** Conversation ID */
+  conversationId: string;
+  /** Ordered list of turns with timing breakdowns */
+  turns: ConversationTimelineTurn[];
+}
+
+export interface ConversationTimelineTurn {
+  /** 1-based sequential turn number */
+  turnIndex: number;
+  /** Timestamp of the user message event (ISO 8601) */
+  timestamp: string;
+  /** Input source: text or voice */
+  source: string | null;
+  /** ASR transcription duration */
+  asrDurationMs: number | null;
+  /** Content moderation duration */
+  moderationDurationMs: number | null;
+  /** Classification and transformation duration */
+  processingDurationMs: number | null;
+  /** Knowledge base retrieval duration */
+  knowledgeRetrievalDurationMs: number | null;
+  /** Action execution duration */
+  actionsDurationMs: number | null;
+  /** Filler sentence generation duration */
+  fillerDurationMs: number | null;
+  /** LLM start to first token */
+  timeToFirstTokenMs: number | null;
+  /** Turn start to first LLM token */
+  timeToFirstTokenFromTurnStartMs: number | null;
+  /** Turn start to first audio chunk */
+  timeToFirstAudioMs: number | null;
+  /** Total LLM call duration */
+  llmDurationMs: number | null;
+  /** TTS synthesis duration */
+  ttsDurationMs: number | null;
+  /** Total turn duration from start to completion */
+  totalTurnDurationMs: number | null;
 }
