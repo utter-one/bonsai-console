@@ -81,6 +81,7 @@ const props = withDefaults(
     isKeyDisabled?: boolean
     showTabs?: boolean
     showMetadata?: boolean
+    simpleTrigger?: boolean
     metadataFields?: Array<{ label: string; value: any; format?: 'mono' | 'date' | 'default' }>
     stageVariables?: any[]
     actionParameters?: Record<string, any[]>
@@ -97,6 +98,7 @@ const props = withDefaults(
     isKeyDisabled: false,
     showTabs: true,
     showMetadata: false,
+    simpleTrigger: false,
     metadataFields: () => [],
     stageVariables: () => [],
     actionParameters: () => ({}),
@@ -524,7 +526,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </nav>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto mt-4">
+    <div class="flex-1 min-h-0 overflow-y-auto mt-4 px-6">
     <!-- Basic Tab -->
     <div v-show="activeTab.value === 'basic'" class="space-y-6">
       <div v-if="showKeyField && actionKey" class="form-group">
@@ -576,8 +578,43 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </div>
     </div>
 
-    <!-- Trigger Tab -->
-    <div v-show="activeTab.value === 'trigger'" class="space-y-4">
+    <!-- Trigger Tab (simplified mode) -->
+    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="space-y-4">
+      <div class="form-group">
+        <label class="form-label">
+          Classification Trigger
+        </label>
+        <input
+          v-model="form.classificationTrigger"
+          type="text"
+          placeholder="offensive_language"
+          class="form-input"
+        />
+        <p class="form-help-text">
+          Classification label that triggers this guardrail
+        </p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          Override Classifier ID <span class="text-gray-500">(optional)</span>
+        </label>
+        <select
+          v-model="form.overrideClassifierId"
+          class="form-select-auto"
+        >
+          <option value="">No override (use stage default classifier)</option>
+          <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
+            {{ classifier.name }}
+          </option>
+        </select>
+        <p class="form-help-text">
+          Override the stage's default classifier for this guardrail
+        </p>
+      </div>
+    </div>
+
+    <!-- Trigger Tab (full mode) -->
+    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="space-y-4">
 
       <!-- Condition (always visible) -->
       <div class="form-group">
@@ -610,7 +647,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div v-if="form.triggerOnUserInput" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
           <div class="form-group mb-0">
             <label class="form-label">
-              Classification Trigger <span class="text-gray-500">(optional)</span>
+              Classification Trigger
             </label>
             <input
               v-model="form.classificationTrigger"
