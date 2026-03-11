@@ -647,7 +647,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <div v-if="form.triggerOnUserInput" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
           <div class="form-group mb-0">
             <label class="form-label">
-              Classification Trigger <span class="text-gray-500">(optional)</span>
+              Classification Trigger
             </label>
             <input
               v-model="form.classificationTrigger"
