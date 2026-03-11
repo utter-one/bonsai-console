@@ -37,7 +37,7 @@ const form = ref({
   triggerOnUserInput: true,
   triggerOnClientCommand: false,
   triggerOnTransformation: false,
-  watchedVariables: [] as Array<{ path: string; changeType: 'new' | 'changed' | 'removed' }>,
+  watchedVariables: [] as Array<{ path: string; changeType: 'new' | 'changed' | 'removed' | 'any' }>,
   classificationTrigger: '',
   overrideClassifierId: '',
   examples: '',

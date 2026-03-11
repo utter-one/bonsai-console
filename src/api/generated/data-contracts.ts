@@ -1404,7 +1404,7 @@ export interface StageAction {
    */
   triggerOnTransformation?: boolean;
   /** Optional map of variable paths to watch for changes that trigger this action */
-  watchedVariables?: Record<string, "new" | "changed" | "removed">;
+  watchedVariables?: Record<string, "new" | "changed" | "removed" | "any">;
   /** Additional action-specific metadata */
   metadata?: Record<string, any>;
 }
@@ -5410,42 +5410,4 @@ export interface ExportBundle {
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
-}
-
-export interface GuardrailResponse {
-  id: string;
-  projectId: string;
-  name: string;
-  condition: string | null;
-  classificationTrigger: string | null;
-  effects: Effect[];
-  examples: string[] | null;
-  tags: string[];
-  metadata: Record<string, any>;
-  version: number;
-  createdAt: string | null;
-  updatedAt: string | null;
-  archived?: boolean;
-}
-
-export interface CreateGuardrailRequest {
-  id?: string;
-  name: string;
-  condition?: string | null;
-  classificationTrigger?: string | null;
-  effects?: Effect[];
-  examples?: string[];
-  tags?: string[];
-  metadata?: Record<string, any>;
-}
-
-export interface UpdateGuardrailRequest {
-  name?: string;
-  condition?: string | null;
-  classificationTrigger?: string | null;
-  effects?: Effect[];
-  examples?: string[];
-  tags?: string[];
-  metadata?: Record<string, any>;
-  version: number;
 }

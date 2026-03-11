@@ -2527,7 +2527,8 @@
               "enum": [
                 "new",
                 "changed",
-                "removed"
+                "removed",
+                "any"
               ],
               "description": "Condition for triggering an action based on variable changes: new (variable is created), changed (variable value changes), removed (variable is deleted)"
             },
