@@ -21,6 +21,7 @@ import {
   AzureBlobStorageSettings,
   AzureTtsSettings,
   CartesiaTtsSettings,
+  ConversationTimelineResponse,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   Effect,
@@ -33,6 +34,9 @@ import {
   GcsStorageSettings,
   GeminiLlmSettings,
   LanguageInfo,
+  LatencyPercentilesResponse,
+  LatencyStatsResponse,
+  LatencyTrendResponse,
   ListFilterOperation,
   LlmModelInfo,
   LlmSettings,
@@ -1590,6 +1594,143 @@ export class Api<
       path: `/api/audit-logs`,
       method: "GET",
       query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns aggregated latency statistics (avg, median, p95, min, max) for key turn-level metrics across conversations in the project. Supports filtering by date range, stage, and input source.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsLatencyList
+   * @summary Get aggregated latency statistics
+   * @request GET:/api/projects/{projectId}/analytics/latency
+   * @secure
+   */
+  projectsAnalyticsLatencyList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<LatencyStatsResponse, void>({
+      path: `/api/projects/${projectId}/analytics/latency`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns percentile distributions (p50, p75, p90, p95, p99) for key turn-level duration metrics. Useful for understanding latency spread and tail performance.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsLatencyPercentilesList
+   * @summary Get latency percentile distributions
+   * @request GET:/api/projects/{projectId}/analytics/latency/percentiles
+   * @secure
+   */
+  projectsAnalyticsLatencyPercentilesList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<LatencyPercentilesResponse, void>({
+      path: `/api/projects/${projectId}/analytics/latency/percentiles`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a time-series of average latency values bucketed by the specified interval (hour, day, or week). Useful for detecting latency regressions or improvements over time.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsLatencyTrendList
+   * @summary Get latency trend over time
+   * @request GET:/api/projects/{projectId}/analytics/latency/trend
+   * @secure
+   */
+  projectsAnalyticsLatencyTrendList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+      /**
+       * Time bucket interval for the trend (hour, day, or week)
+       * @default "day"
+       */
+      interval?: "hour" | "day" | "week";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<LatencyTrendResponse, void>({
+      path: `/api/projects/${projectId}/analytics/latency/trend`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns an ordered list of per-turn timing breakdowns for a specific conversation. Each turn combines user-side and assistant-side timing into a single row for waterfall visualization.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsConversationsTimelineList
+   * @summary Get conversation timeline
+   * @request GET:/api/projects/{projectId}/analytics/conversations/{conversationId}/timeline
+   * @secure
+   */
+  projectsAnalyticsConversationsTimelineList = (
+    projectId: string,
+    conversationId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<ConversationTimelineResponse, void>({
+      path: `/api/projects/${projectId}/analytics/conversations/${conversationId}/timeline`,
+      method: "GET",
       secure: true,
       format: "json",
       ...params,

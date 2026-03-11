@@ -12099,6 +12099,126 @@
           "total"
         ]
       },
+      "LatencyMetric": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of data points"
+          },
+          "avg": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average value in milliseconds"
+          },
+          "median": {
+            "type": "number",
+            "nullable": true,
+            "description": "Median (p50) value in milliseconds"
+          },
+          "p95": {
+            "type": "number",
+            "nullable": true,
+            "description": "95th percentile value in milliseconds"
+          },
+          "min": {
+            "type": "number",
+            "nullable": true,
+            "description": "Minimum value in milliseconds"
+          },
+          "max": {
+            "type": "number",
+            "nullable": true,
+            "description": "Maximum value in milliseconds"
+          }
+        },
+        "required": [
+          "count",
+          "avg",
+          "median",
+          "p95",
+          "min",
+          "max"
+        ]
+      },
+      "PercentileSet": {
+        "type": "object",
+        "properties": {
+          "p50": {
+            "type": "number",
+            "nullable": true,
+            "description": "50th percentile (median) in milliseconds"
+          },
+          "p75": {
+            "type": "number",
+            "nullable": true,
+            "description": "75th percentile in milliseconds"
+          },
+          "p90": {
+            "type": "number",
+            "nullable": true,
+            "description": "90th percentile in milliseconds"
+          },
+          "p95": {
+            "type": "number",
+            "nullable": true,
+            "description": "95th percentile in milliseconds"
+          },
+          "p99": {
+            "type": "number",
+            "nullable": true,
+            "description": "99th percentile in milliseconds"
+          }
+        },
+        "required": [
+          "p50",
+          "p75",
+          "p90",
+          "p95",
+          "p99"
+        ]
+      },
+      "LatencyTrendPoint": {
+        "type": "object",
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "description": "Time bucket start (ISO 8601)"
+          },
+          "turnCount": {
+            "type": "integer",
+            "description": "Number of turns in this bucket"
+          },
+          "avgTotalTurnDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average total turn duration in this bucket"
+          },
+          "avgTimeToFirstTokenMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average TTFT in this bucket"
+          },
+          "avgLlmDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average LLM duration in this bucket"
+          },
+          "avgTimeToFirstAudioMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Average time to first audio in this bucket"
+          }
+        },
+        "required": [
+          "bucket",
+          "turnCount",
+          "avgTotalTurnDurationMs",
+          "avgTimeToFirstTokenMs",
+          "avgLlmDurationMs",
+          "avgTimeToFirstAudioMs"
+        ]
+      },
       "VersionResponse": {
         "type": "object",
         "properties": {
@@ -12590,6 +12710,330 @@
           "knowledgeItems",
           "stages",
           "apiKeys"
+        ]
+      },
+      "LatencyStatsResponse": {
+        "type": "object",
+        "properties": {
+          "totalTurns": {
+            "type": "integer",
+            "description": "Total number of turns matching the query"
+          },
+          "totalTurnDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Total turn duration from start to completion"
+              }
+            ]
+          },
+          "timeToFirstTokenMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Time from LLM call start to first token"
+              }
+            ]
+          },
+          "timeToFirstTokenFromTurnStartMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Time from turn start to first LLM token"
+              }
+            ]
+          },
+          "timeToFirstAudioMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Time from turn start to first audio chunk (voice only)"
+              }
+            ]
+          },
+          "llmDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Total LLM call duration"
+              }
+            ]
+          },
+          "ttsDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "TTS synthesis duration (voice only)"
+              }
+            ]
+          },
+          "moderationDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Moderation API call duration"
+              }
+            ]
+          },
+          "processingDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Classification and transformation processing duration"
+              }
+            ]
+          },
+          "actionsDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Action execution duration"
+              }
+            ]
+          },
+          "asrDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "ASR recognition duration (voice only)"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalTurns",
+          "totalTurnDurationMs",
+          "timeToFirstTokenMs",
+          "timeToFirstTokenFromTurnStartMs",
+          "timeToFirstAudioMs",
+          "llmDurationMs",
+          "ttsDurationMs",
+          "moderationDurationMs",
+          "processingDurationMs",
+          "actionsDurationMs",
+          "asrDurationMs"
+        ]
+      },
+      "LatencyPercentilesResponse": {
+        "type": "object",
+        "properties": {
+          "totalTurns": {
+            "type": "integer",
+            "description": "Total number of turns matching the query"
+          },
+          "totalTurnDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PercentileSet"
+              },
+              {
+                "description": "Total turn duration percentiles"
+              }
+            ]
+          },
+          "timeToFirstTokenMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PercentileSet"
+              },
+              {
+                "description": "Time to first token percentiles"
+              }
+            ]
+          },
+          "timeToFirstTokenFromTurnStartMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PercentileSet"
+              },
+              {
+                "description": "Time to first token from turn start percentiles"
+              }
+            ]
+          },
+          "timeToFirstAudioMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PercentileSet"
+              },
+              {
+                "description": "Time to first audio percentiles (voice only)"
+              }
+            ]
+          },
+          "llmDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PercentileSet"
+              },
+              {
+                "description": "LLM duration percentiles"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalTurns",
+          "totalTurnDurationMs",
+          "timeToFirstTokenMs",
+          "timeToFirstTokenFromTurnStartMs",
+          "timeToFirstAudioMs",
+          "llmDurationMs"
+        ]
+      },
+      "LatencyTrendResponse": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "string",
+            "description": "Aggregation interval used (hour, day, or week)"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LatencyTrendPoint"
+            },
+            "description": "Time-bucketed data points"
+          }
+        },
+        "required": [
+          "interval",
+          "points"
+        ]
+      },
+      "ConversationTimelineResponse": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "description": "Conversation ID"
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversationTimelineTurn"
+            },
+            "description": "Ordered list of turns with timing breakdowns"
+          }
+        },
+        "required": [
+          "conversationId",
+          "turns"
+        ]
+      },
+      "ConversationTimelineTurn": {
+        "type": "object",
+        "properties": {
+          "turnIndex": {
+            "type": "integer",
+            "description": "1-based sequential turn number"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of the user message event (ISO 8601)"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "Input source: text or voice"
+          },
+          "asrDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "ASR transcription duration"
+          },
+          "moderationDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Content moderation duration"
+          },
+          "processingDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Classification and transformation duration"
+          },
+          "knowledgeRetrievalDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Knowledge base retrieval duration"
+          },
+          "actionsDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Action execution duration"
+          },
+          "fillerDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Filler sentence generation duration"
+          },
+          "timeToFirstTokenMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "LLM start to first token"
+          },
+          "timeToFirstTokenFromTurnStartMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Turn start to first LLM token"
+          },
+          "timeToFirstAudioMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Turn start to first audio chunk"
+          },
+          "llmDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Total LLM call duration"
+          },
+          "ttsDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "TTS synthesis duration"
+          },
+          "totalTurnDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Total turn duration from start to completion"
+          }
+        },
+        "required": [
+          "turnIndex",
+          "timestamp",
+          "source",
+          "asrDurationMs",
+          "moderationDurationMs",
+          "processingDurationMs",
+          "knowledgeRetrievalDurationMs",
+          "actionsDurationMs",
+          "fillerDurationMs",
+          "timeToFirstTokenMs",
+          "timeToFirstTokenFromTurnStartMs",
+          "timeToFirstAudioMs",
+          "llmDurationMs",
+          "ttsDurationMs",
+          "totalTurnDurationMs"
         ]
       }
     },
@@ -15942,6 +16386,280 @@
           },
           "403": {
             "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/latency": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get aggregated latency statistics",
+        "description": "Returns aggregated latency statistics (avg, median, p95, min, max) for key turn-level metrics across conversations in the project. Supports filtering by date range, stage, and input source.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by stage ID"
+            },
+            "required": false,
+            "description": "Filter by stage ID",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "voice"
+              ],
+              "description": "Filter by input source (text or voice)"
+            },
+            "required": false,
+            "description": "Filter by input source (text or voice)",
+            "name": "source",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregated latency statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatencyStatsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/latency/percentiles": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get latency percentile distributions",
+        "description": "Returns percentile distributions (p50, p75, p90, p95, p99) for key turn-level duration metrics. Useful for understanding latency spread and tail performance.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by stage ID"
+            },
+            "required": false,
+            "description": "Filter by stage ID",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "voice"
+              ],
+              "description": "Filter by input source (text or voice)"
+            },
+            "required": false,
+            "description": "Filter by input source (text or voice)",
+            "name": "source",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latency percentile distributions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatencyPercentilesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/latency/trend": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get latency trend over time",
+        "description": "Returns a time-series of average latency values bucketed by the specified interval (hour, day, or week). Useful for detecting latency regressions or improvements over time.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by stage ID"
+            },
+            "required": false,
+            "description": "Filter by stage ID",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "voice"
+              ],
+              "description": "Filter by input source (text or voice)"
+            },
+            "required": false,
+            "description": "Filter by input source (text or voice)",
+            "name": "source",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "week"
+              ],
+              "default": "day",
+              "description": "Time bucket interval for the trend (hour, day, or week)"
+            },
+            "required": false,
+            "description": "Time bucket interval for the trend (hour, day, or week)",
+            "name": "interval",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latency trend time series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatencyTrendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/conversations/{conversationId}/timeline": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get conversation timeline",
+        "description": "Returns an ordered list of per-turn timing breakdowns for a specific conversation. Each turn combines user-side and assistant-side timing into a single row for waterfall visualization.",
+        "responses": {
+          "200": {
+            "description": "Conversation timeline with per-turn timing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationTimelineResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Conversation not found"
           }
         }
       }
