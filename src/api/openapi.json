@@ -11770,10 +11770,6 @@
             },
             "description": "Entity state after the change"
           },
-          "version": {
-            "type": "integer",
-            "description": "Version number for the audit log"
-          },
           "createdAt": {
             "type": "string",
             "nullable": true,
@@ -11790,7 +11786,6 @@
           "projectId",
           "oldEntity",
           "newEntity",
-          "version",
           "createdAt"
         ]
       },
@@ -11844,10 +11839,6 @@
                   },
                   "description": "Entity state after the change"
                 },
-                "version": {
-                  "type": "integer",
-                  "description": "Version number for the audit log"
-                },
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
@@ -11864,7 +11855,6 @@
                 "projectId",
                 "oldEntity",
                 "newEntity",
-                "version",
                 "createdAt"
               ]
             },
@@ -15897,10 +15887,6 @@
                             },
                             "description": "Entity state after the change"
                           },
-                          "version": {
-                            "type": "integer",
-                            "description": "Version number for the audit log"
-                          },
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
@@ -15917,7 +15903,6 @@
                           "projectId",
                           "oldEntity",
                           "newEntity",
-                          "version",
                           "createdAt"
                         ]
                       },
