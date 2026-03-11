@@ -139,7 +139,7 @@ async function loadConversations() {
     
     const timeFilterDate = getTimeFilterDate()
     if (timeFilterDate) {
-      filters.updatedAt = {
+      filters.createdAt = {
         op: 'gte',
         value: timeFilterDate
       }
@@ -161,7 +161,7 @@ async function loadConversations() {
       projectSelectionStore.selectedProjectId || '',
       pagination.getParams({ 
         filters,
-        orderBy: '-updatedAt'
+        orderBy: '-createdAt'
       })
     )
   } catch (error) {
@@ -358,7 +358,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <tr>
                 <th class="table-header-cell">Conversation ID</th>
                 <th class="table-header-cell">Status</th>
-                <th class="table-header-cell">Updated</th>
+                <th class="table-header-cell">Started</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
             </thead>
@@ -379,7 +379,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     <span v-if="conversation.archived" class="badge-secondary">Archived</span>
                   </div>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(conversation.updatedAt) }}</td>
+                <td class="table-cell-muted">{{ formatDate(conversation.createdAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button 
