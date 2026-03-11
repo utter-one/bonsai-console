@@ -596,13 +596,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       </div>
       <div class="form-group">
         <label class="form-label">
-          Override Classifier ID <span class="text-gray-500">(optional)</span>
+          Override Classifier <span class="text-gray-500">(optional)</span>
         </label>
         <select
           v-model="form.overrideClassifierId"
           class="form-select-auto"
         >
-          <option value="">No override (use stage default classifier)</option>
+          <option value="">No override (use default classifier)</option>
           <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
             {{ classifier.name }}
           </option>
@@ -661,13 +661,13 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           </div>
           <div class="form-group mb-0">
             <label class="form-label">
-              Override Classifier ID <span class="text-gray-500">(optional)</span>
+              Override Classifier <span class="text-gray-500">(optional)</span>
             </label>
             <select
               v-model="form.overrideClassifierId"
               class="form-select-auto"
             >
-              <option value="">No override (use stage default classifier)</option>
+              <option value="">No override (use default classifier)</option>
               <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
                 {{ classifier.name }}
               </option>
