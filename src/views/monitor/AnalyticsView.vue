@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useStagesStore } from '@/stores'
-import { BarChart2 } from 'lucide-vue-next'
+import { BarChart2, Calendar, ChevronDown } from 'lucide-vue-next'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import LatencyTrendChart from '@/components/LatencyTrendChart.vue'
 import type { LatencyMetric, PercentileSet } from '@/api/generated/data-contracts'
@@ -12,18 +12,65 @@ const stagesStore = useStagesStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-const filterFrom = ref('')
-const filterTo = ref('')
+type TimeFilterValue = 'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'
+
+const timeFilter = ref<TimeFilterValue>('last-7d')
+const showTimeDropdown = ref(false)
 const filterStageId = ref('')
 const filterSource = ref<'' | 'text' | 'voice'>('')
 const filterInterval = ref<'hour' | 'day' | 'week'>('day')
 
+const timeFilterOptions: { value: TimeFilterValue; label: string }[] = [
+  { value: 'last-15m', label: 'Last 15 minutes' },
+  { value: 'last-30m', label: 'Last 30 minutes' },
+  { value: 'last-1h', label: 'Last 1 hour' },
+  { value: 'last-4h', label: 'Last 4 hours' },
+  { value: 'last-24h', label: 'Last 24 hours' },
+  { value: 'last-7d', label: 'Last 7 days' },
+  { value: 'last-30d', label: 'Last 30 days' },
+  { value: 'all', label: 'All time' },
+]
+
+const currentTimeFilterLabel = computed(
+  () => timeFilterOptions.find(o => o.value === timeFilter.value)?.label ?? 'Last 7 days'
+)
+
 const stages = computed(() => stagesStore.items)
+
+function getFromDate(): string | null {
+  const now = new Date()
+  switch (timeFilter.value) {
+    case 'last-15m': return new Date(now.getTime() - 15 * 60 * 1000).toISOString()
+    case 'last-30m': return new Date(now.getTime() - 30 * 60 * 1000).toISOString()
+    case 'last-1h':  return new Date(now.getTime() - 60 * 60 * 1000).toISOString()
+    case 'last-4h':  return new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
+    case 'last-24h': return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+    case 'last-7d':  return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    case 'last-30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    default: return null
+  }
+}
+
+function selectTimeFilter(value: TimeFilterValue) {
+  timeFilter.value = value
+  showTimeDropdown.value = false
+}
+
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  const dropdown = document.querySelector('.analytics-time-dropdown')
+  const button = document.querySelector('.analytics-time-button')
+  if (dropdown && !dropdown.contains(target) && !button?.contains(target)) {
+    showTimeDropdown.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 function buildQuery() {
   return {
-    from: filterFrom.value || undefined,
-    to: filterTo.value || undefined,
+    from: getFromDate() ?? undefined,
     stageId: filterStageId.value || undefined,
     source: (filterSource.value || undefined) as 'text' | 'voice' | undefined,
     interval: filterInterval.value,
@@ -103,174 +150,184 @@ const summaryCards = computed(() => {
 
 <template>
   <MonitorSectionLayout>
-    <div class="flex flex-col h-full md:border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div class="container-constrained">
       <!-- Header -->
-      <div class="flex items-center justify-between md:px-8 px-0 md:py-6 pb-6 border-b border-gray-200 md:bg-white bg-transparent flex-shrink-0 md:dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex items-center gap-3">
-          <BarChart2 class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Latency statistics for your project</p>
-          </div>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Latency statistics for your project</p>
         </div>
       </div>
 
       <!-- No project selected -->
-      <div v-if="!projectId" class="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500">
-        Select a project to view analytics
+      <div v-if="!projectId" class="empty-state">
+        <BarChart2 class="empty-state-icon" />
+        <p class="empty-state-title">No project selected</p>
+        <p>Select a project to view analytics</p>
       </div>
 
-      <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-        <div class="p-6 space-y-6">
-          <!-- Filter Bar -->
-          <div class="card">
-            <div class="flex flex-wrap gap-4 items-end">
-              <div class="form-group mb-0">
-                <label class="form-label">From</label>
-                <input v-model="filterFrom" type="datetime-local" class="form-input" />
-              </div>
-              <div class="form-group mb-0">
-                <label class="form-label">To</label>
-                <input v-model="filterTo" type="datetime-local" class="form-input" />
-              </div>
-              <div class="form-group mb-0">
-                <label class="form-label">Stage</label>
-                <select v-model="filterStageId" class="form-select">
-                  <option value="">All stages</option>
-                  <option v-for="stage in stages" :key="stage.id" :value="stage.id">{{ stage.name }}</option>
-                </select>
-              </div>
-              <div class="form-group mb-0">
-                <label class="form-label">Source</label>
-                <select v-model="filterSource" class="form-select">
-                  <option value="">All</option>
-                  <option value="text">Text</option>
-                  <option value="voice">Voice</option>
-                </select>
-              </div>
-              <div class="form-group mb-0">
-                <label class="form-label">Trend interval</label>
-                <select v-model="filterInterval" class="form-select">
-                  <option value="hour">Hourly</option>
-                  <option value="day">Daily</option>
-                  <option value="week">Weekly</option>
-                </select>
-              </div>
-              <button @click="applyFilters" class="btn-primary" :disabled="analyticsStore.isLoading">
-                {{ analyticsStore.isLoading ? 'Loading...' : 'Apply' }}
+      <template v-else>
+        <!-- Filter Bar -->
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <!-- Time range dropdown -->
+          <div class="relative">
+            <button
+              @click="showTimeDropdown = !showTimeDropdown"
+              class="analytics-time-button filter-btn !shadow-none"
+            >
+              <Calendar class="w-4 h-4 mr-2" />
+              <span>{{ currentTimeFilterLabel }}</span>
+              <ChevronDown class="w-4 h-4 ml-2" />
+            </button>
+            <div v-if="showTimeDropdown" class="analytics-time-dropdown filter-dropdown-panel min-w-[200px]">
+              <button
+                v-for="option in timeFilterOptions"
+                :key="option.value"
+                @click="selectTimeFilter(option.value)"
+                class="filter-dropdown-item !shadow-none"
+                :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
+              >
+                {{ option.label }}
               </button>
             </div>
           </div>
 
-          <!-- Error -->
-          <div v-if="analyticsStore.error" class="error-state">
-            {{ analyticsStore.error }}
-          </div>
+          <!-- Stage filter -->
+          <select v-model="filterStageId" class="form-select-auto">
+            <option value="">All stages</option>
+            <option v-for="stage in stages" :key="stage.id" :value="stage.id">{{ stage.name }}</option>
+          </select>
 
+          <!-- Source filter -->
+          <select v-model="filterSource" class="form-select-auto">
+            <option value="">All sources</option>
+            <option value="text">Text</option>
+            <option value="voice">Voice</option>
+          </select>
+
+          <!-- Trend interval -->
+          <select v-model="filterInterval" class="form-select-auto">
+            <option value="hour">Hourly</option>
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+          </select>
+
+          <button @click="applyFilters" class="btn-primary" :disabled="analyticsStore.isLoading">
+            {{ analyticsStore.isLoading ? 'Loading...' : 'Apply' }}
+          </button>
+        </div>
+
+        <!-- Error -->
+        <div v-if="analyticsStore.error" class="error-state mb-6">
+          {{ analyticsStore.error }}
+        </div>
+
+        <!-- Loading -->
+        <div v-if="analyticsStore.isLoading && !analyticsStore.latencyStats" class="loading-state">
+          Loading analytics data...
+        </div>
+
+        <template v-else-if="analyticsStore.latencyStats">
           <!-- Summary Cards -->
-          <div v-if="summaryCards" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="card text-center">
+           <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Summary</h2>
+          <div v-if="summaryCards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="card text-center py-4">
               <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ summaryCards.totalTurns.toLocaleString() }}</div>
               <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Total Turns</div>
             </div>
-            <div class="card text-center">
+            <div class="card text-center py-4">
               <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ fmtMs(summaryCards.avgTotal) }}</div>
               <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Turn Duration</div>
             </div>
-            <div class="card text-center">
+            <div class="card text-center p-4">
               <div class="text-2xl font-bold text-violet-600 dark:text-violet-400">{{ fmtMs(summaryCards.p95Total) }}</div>
               <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">P95 Turn Duration</div>
             </div>
-            <div class="card text-center">
+            <div class="card text-center py-4">
               <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ fmtMs(summaryCards.avgTtft) }}</div>
               <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Time to First Token</div>
             </div>
           </div>
 
-          <!-- Latency Stats Table -->
-          <div class="card" v-if="analyticsStore.latencyStats">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Latency Statistics</h2>
-            <div class="table-container">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left py-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Metric</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Count</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Avg</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Median</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P95</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Min</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">Max</th>
+          <!-- Latency Statistics -->
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Latency Statistics</h2>
+          <div class="table-container mb-6">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead class="table-header">
+                  <tr>
+                    <th class="table-header-cell">Metric</th>
+                    <th class="table-header-cell text-right">Count</th>
+                    <th class="table-header-cell text-right">Avg</th>
+                    <th class="table-header-cell text-right">Median</th>
+                    <th class="table-header-cell text-right">P95</th>
+                    <th class="table-header-cell text-right">Min</th>
+                    <th class="table-header-cell text-right">Max</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-body">
                   <tr
                     v-for="row in statRows"
                     :key="row.label"
-                    class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                    :class="{ 'opacity-50': row.voiceOnly && filterSource === 'text' }"
+                    class="table-row"
+                    :class="{ 'opacity-40': row.voiceOnly && filterSource === 'text' }"
                   >
-                    <td class="py-2 pr-4 text-gray-800 dark:text-gray-200">{{ row.label }}</td>
-                    <td class="text-right py-2 px-2 text-gray-600 dark:text-gray-400">{{ row.metric.count.toLocaleString() }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.metric.avg) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.metric.median) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.metric.p95) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-500 dark:text-gray-500">{{ fmtMs(row.metric.min) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-500 dark:text-gray-500">{{ fmtMs(row.metric.max) }}</td>
+                    <td class="table-cell">{{ row.label }}</td>
+                    <td class="table-cell-muted text-right">{{ row.metric.count.toLocaleString() }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.metric.avg) }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.metric.median) }}</td>
+                    <td class="table-cell text-right font-medium">{{ fmtMs(row.metric.p95) }}</td>
+                    <td class="table-cell-muted text-right">{{ fmtMs(row.metric.min) }}</td>
+                    <td class="table-cell-muted text-right">{{ fmtMs(row.metric.max) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Percentile Distribution Table -->
-          <div class="card" v-if="analyticsStore.latencyPercentiles">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Percentile Distribution</h2>
-            <div class="table-container">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left py-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Metric</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P50</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P75</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P90</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P95</th>
-                    <th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">P99</th>
+          <!-- Percentile Distribution -->
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Percentile Distribution</h2>
+          <div class="table-container mb-6">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead class="table-header">
+                  <tr>
+                    <th class="table-header-cell">Metric</th>
+                    <th class="table-header-cell text-right">P50</th>
+                    <th class="table-header-cell text-right">P75</th>
+                    <th class="table-header-cell text-right">P90</th>
+                    <th class="table-header-cell text-right">P95</th>
+                    <th class="table-header-cell text-right">P99</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-body">
                   <tr
                     v-for="row in percentileRows"
                     :key="row.label"
-                    class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    class="table-row"
                   >
-                    <td class="py-2 pr-4 text-gray-800 dark:text-gray-200">{{ row.label }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.set.p50) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.set.p75) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.set.p90) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.set.p95) }}</td>
-                    <td class="text-right py-2 px-2 text-gray-800 dark:text-gray-200">{{ fmtMs(row.set.p99) }}</td>
+                    <td class="table-cell">{{ row.label }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.set.p50) }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.set.p75) }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.set.p90) }}</td>
+                    <td class="table-cell text-right font-medium">{{ fmtMs(row.set.p95) }}</td>
+                    <td class="table-cell text-right">{{ fmtMs(row.set.p99) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Trend Chart -->
+          <!-- Latency Trend -->
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Latency Trend</h2>
           <div class="card">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Latency Trend</h2>
             <LatencyTrendChart
               :data="analyticsStore.latencyTrend"
               :is-loading="analyticsStore.isLoading"
             />
           </div>
-
-          <!-- Loading skeleton when no data yet -->
-          <div v-if="analyticsStore.isLoading && !analyticsStore.latencyStats" class="card text-center py-12 text-gray-400 dark:text-gray-500">
-            Loading analytics data...
-          </div>
-        </div>
-      </div>
+        </template>
+      </template>
     </div>
   </MonitorSectionLayout>
 </template>
