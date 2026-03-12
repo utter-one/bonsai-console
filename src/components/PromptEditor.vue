@@ -900,7 +900,7 @@ watch(
         href="/help/guide/templating.html"
         target="_blank"
         rel="noopener noreferrer"
-        class="toolbar-btn"
+        class="toolbar-btn toolbar-btn-help"
         title="Templating documentation"
         @click.stop
       >
