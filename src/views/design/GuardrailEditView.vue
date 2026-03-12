@@ -27,7 +27,6 @@ type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'mo
 const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
-const guardrailId = ref('')
 const guardrailTags = ref<string[]>([])
 const guardrailMetadata = ref<any>({})
 
@@ -88,7 +87,6 @@ async function loadGuardrail() {
   try {
     currentGuardrail.value = await guardrailsStore.fetchById(projectId.value, guardrailId_param.value)
     if (currentGuardrail.value) {
-      guardrailId.value = currentGuardrail.value.id
       guardrailTags.value = currentGuardrail.value.tags || []
       guardrailMetadata.value = currentGuardrail.value.metadata || {}
       form.value = {
@@ -144,10 +142,6 @@ async function handleSubmit() {
         name: form.value.name,
         effects: effectsArray,
         metadata: guardrailMetadata.value
-      }
-
-      if (guardrailId.value) {
-        createData.id = guardrailId.value
       }
 
       if (form.value.condition) {
@@ -254,22 +248,6 @@ const metadataFields = computed(() => {
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
-            <!-- Guardrail ID Field (only for create mode) -->
-            <div v-show="activeTab.value === 'basic' && !isEditMode" class="form-group">
-              <label class="form-label">
-                Guardrail ID <span class="text-gray-500">(optional, auto-generated)</span>
-              </label>
-              <input
-                v-model="guardrailId"
-                type="text"
-                placeholder="guardrail_offensive_language"
-                class="form-input font-mono"
-              />
-              <p class="form-help-text">
-                Custom ID for the guardrail. Leave empty to auto-generate.
-              </p>
-            </div>
-
             <!-- Use shared ActionForm component -->
             <ActionForm
               :form="form"
@@ -283,7 +261,6 @@ const metadataFields = computed(() => {
               :action-parameters="{}"
               :project-constants="projectConstants"
               :show-tabs="true"
-              :show-key-field="false"
               :show-trigger="true"
               :simple-trigger="true"
               :show-parameters="false"

@@ -37,9 +37,6 @@
           :stage-variables="stageVariables"
           :action-parameters="actionParameters"
           :project-constants="projectConstants"
-          :show-key-field="!isLifecycleAction"
-          :action-key="actionKey"
-          :is-key-disabled="!!editingKey"
           :show-parameters="!isLifecycleAction"
           :show-trigger="!isLifecycleAction"
           :show-tabs="true"
@@ -135,7 +132,7 @@ type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'r
 
 const activeTab = reactive({ value: 'basic' as TabType })
 
-// Action key is separate since ActionForm doesn't include it
+// Action key is managed internally (auto-generated for new actions, fixed for existing)
 const actionKey = reactive({ value: '' })
 
 const form = ref({
@@ -187,7 +184,7 @@ watch(() => props.action, (action) => {
     }
   } else {
     // Reset form for new action
-    actionKey.value = props.editingKey || ''
+    actionKey.value = props.editingKey || crypto.randomUUID()
     form.value = {
       name: '',
       condition: '',
@@ -210,7 +207,7 @@ watch(() => props.action, (action) => {
 }, { immediate: true })
 
 function handleSubmit() {
-  if (!actionKey.value || !form.value.name) {
+  if (!form.value.name) {
     return
   }
 

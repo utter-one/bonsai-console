@@ -37,7 +37,6 @@ type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'mo
 const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
-const actionId = ref('')
 const actionTags = ref<string[]>([])
 const actionMetadata = ref<any>({})
 
@@ -111,7 +110,6 @@ async function loadGlobalAction() {
   try {
     currentGlobalAction.value = await globalActionsStore.fetchById(projectId.value, globalActionId.value)
     if (currentGlobalAction.value) {
-      actionId.value = currentGlobalAction.value.id
       actionTags.value = currentGlobalAction.value.tags || []
       actionMetadata.value = currentGlobalAction.value.metadata || {}
       form.value = {
@@ -180,11 +178,6 @@ async function handleSubmit() {
         name: form.value.name,
         effects: effectsArray,
         metadata: actionMetadata.value
-      }
-
-      // Only include id if it's provided
-      if (actionId.value) {
-        createData.id = actionId.value
       }
 
       // Only include optional fields if they have values
@@ -348,22 +341,6 @@ const metadataFields = computed(() => {
       <div class="">
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
-          <!-- Action ID Field (only for create mode, hidden for special actions) -->
-          <div v-show="activeTab.value === 'basic' && !isEditMode && !isSpecialAction" class="form-group">
-            <label class="form-label">
-              Action ID <span class="text-gray-500">(optional, auto-generated)</span>
-            </label>
-            <input
-              v-model="actionId"
-              type="text"
-              placeholder="global_escalate"
-              class="form-input font-mono"
-            />
-            <p class="form-help-text">
-              Custom ID for the global action. Leave empty to auto-generate.
-            </p>
-          </div>
-
           <!-- Use shared ActionForm component with all tabs including metadata -->
           <ActionForm
             :form="form"
@@ -377,7 +354,6 @@ const metadataFields = computed(() => {
             :action-parameters="{}"
             :project-constants="projectConstants"
             :show-tabs="true"
-            :show-key-field="false"
             :show-trigger="!isSpecialAction"
             :show-parameters="!isSpecialAction"
             :show-metadata="isEditMode"

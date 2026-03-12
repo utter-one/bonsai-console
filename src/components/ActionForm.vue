@@ -76,9 +76,6 @@ const props = withDefaults(
     availableTools?: ToolResponse[]
     showParameters?: boolean
     showTrigger?: boolean
-    showKeyField?: boolean
-    actionKey?: { value: string }
-    isKeyDisabled?: boolean
     showTabs?: boolean
     showMetadata?: boolean
     simpleTrigger?: boolean
@@ -94,8 +91,6 @@ const props = withDefaults(
     availableTools: () => [],
     showParameters: false,
     showTrigger: true,
-    showKeyField: false,
-    isKeyDisabled: false,
     showTabs: true,
     showMetadata: false,
     simpleTrigger: false,
@@ -529,23 +524,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     <div class="flex-1 min-h-0 overflow-y-auto">
     <!-- Basic Tab -->
     <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6">
-      <div v-if="showKeyField && actionKey" class="form-group">
-        <label class="form-label">
-          Action Key <span class="required">*</span>
-        </label>
-        <input
-          v-model="actionKey.value"
-          type="text"
-          required
-          placeholder="transfer_to_agent"
-          :class="isKeyDisabled ? 'form-input-disabled font-mono' : 'form-input font-mono'"
-          :disabled="isKeyDisabled"
-        />
-        <p class="form-help-text">
-          Unique identifier for this action{{ isKeyDisabled ? ' (cannot be changed)' : '' }}
-        </p>
-      </div>
-
       <div class="form-group">
         <label class="form-label">
           Display Name <span class="required">*</span>
