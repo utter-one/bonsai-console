@@ -44,7 +44,7 @@ function navigateTo(routeName: string) {
   <div class="md:flex gap-6 h-full ">
     <!-- Sidebar Navigation -->
     <aside class="w-64 flex-shrink-0 hidden md:block">
-      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-24 dark:bg-gray-800 dark:border-gray-700">
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden sticky dark:bg-gray-800 dark:border-gray-700">
         <div class="px-4 py-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
           <h2 class="m-0 text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h2>
         </div>
