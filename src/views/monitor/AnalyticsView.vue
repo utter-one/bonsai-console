@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useStagesStore } from '@/stores'
-import { BarChart2, Calendar, ChevronDown } from 'lucide-vue-next'
+import { BarChart2, Calendar, ChevronDown, FlaskConical } from 'lucide-vue-next'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import LatencyTrendChart from '@/components/LatencyTrendChart.vue'
 import type { LatencyMetric, PercentileSet } from '@/api/generated/data-contracts'
@@ -167,6 +167,13 @@ const summaryCards = computed(() => {
       </div>
 
       <template v-else>
+        <!-- Experimental banner -->
+        <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
+          <p class="text-sm">
+            <span class="font-semibold">Experimental feature</span> — Analytics is under active development. Behaviour may change in future releases.
+          </p>
+        </div>
         <!-- Filter Bar -->
         <div class="mb-6 flex flex-wrap items-center gap-3">
           <!-- Time range dropdown -->

@@ -527,6 +527,9 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
                 >
                   <component v-if="item.icon" :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
                   <span>{{ item.label }}</span>
+                  <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+                    <FlaskConical class="w-3 h-3" />
+                  </span>
                 </button>
               </div>
             </div>

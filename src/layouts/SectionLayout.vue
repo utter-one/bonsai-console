@@ -2,12 +2,14 @@
 import { computed, watchEffect, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLayoutStore } from '@/stores'
+import { FlaskConical } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
 interface MenuItem {
   name: string
   label: string
   icon?: Component
+  experimental?: boolean
 }
 
 interface Props {
@@ -62,6 +64,9 @@ function navigateTo(routeName: string) {
           >
             <component v-if="item.icon" :is="item.icon" :size="18" class="flex-shrink-0" />
             <span>{{ item.label }}</span>
+            <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+              <FlaskConical class="w-3 h-3" />
+            </span>
           </button>
         </nav>
       </div>

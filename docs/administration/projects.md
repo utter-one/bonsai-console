@@ -30,6 +30,10 @@ Controls how user speech is transcribed:
 
 ### Storage Configuration
 
+::: warning Experimental Feature
+Storage is under active development. Behaviour may change in future releases.
+:::
+
 Controls where conversation artifacts (audio recordings, transcripts, images) are saved:
 
 - **Storage Provider** — Select a registered storage provider (S3, Azure Blob, Google Cloud Storage, etc.).
