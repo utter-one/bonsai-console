@@ -1246,12 +1246,6 @@ function toggleNode(path: number[]) {
                 <table class="table">
                   <thead class="table-header">
                     <tr>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('key')">
-                        <div class="flex items-center gap-1">
-                          Key
-                          <component :is="getActionsSortIcon('key')" class="w-4 h-4" :class="actionsSortKey === 'key' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
                       <th class="table-header-cell-sortable" @click="toggleActionsSort('name')">
                         <div class="flex items-center gap-1">
                           Name
@@ -1281,9 +1275,6 @@ function toggleNode(path: number[]) {
                   </thead>
                   <tbody class="table-body">
                     <tr v-for="action in actionsList" :key="action.key" class="table-row">
-                      <td class="table-cell">
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">{{ action.key }}</code>
-                      </td>
                       <td class="table-clickable-cell" @click="editAction(action.key)">
                         {{ action.name }}
                       </td>
