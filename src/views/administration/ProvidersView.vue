@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { CloudCog, Search, X, Plus } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
@@ -11,10 +11,8 @@ import PaginationControls from '@/components/PaginationControls.vue'
 const router = useRouter()
 const providersStore = useProvidersStore()
 
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => providersStore.items)
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-providers')
@@ -28,16 +26,6 @@ const pagination = usePagination({
 
 // Computed
 const filteredProviders = computed(() => providersStore.items)
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -58,7 +46,7 @@ onMounted(async () => {
 async function loadProviders() {
   try {
     const orderBy = getOrderBy()
-    await providersStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    await providersStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load providers:', error)
   }
@@ -88,10 +76,6 @@ function editProvider(provider: ProviderResponse) {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function getProviderTypeBadgeClass(type: string) {

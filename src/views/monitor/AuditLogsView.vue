@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useSearch } from '@/composables'
 import { ClipboardList, Search, X, Calendar, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -54,10 +54,8 @@ const currentProjectScopeLabel = computed(() => {
 // Mobile Filter State
 const showFilterDrawer = ref(false)
 
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => auditLogsStore.logs)
 
 // Pagination
 const pagination = usePagination({
@@ -80,16 +78,6 @@ const hasActiveFilters = computed(() => {
 })
 
 const filteredLogs = computed(() => auditLogsStore.logs)
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
 
 // Watch for search changes and reload data from backend
 watch(debouncedSearchQuery, () => {
@@ -116,8 +104,7 @@ watch(projectScopeFilter, () => {
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadAuditLogs()
 })
@@ -206,14 +193,10 @@ async function loadAuditLogs() {
       }
     }
 
-    await auditLogsStore.fetchAll(pagination.getParams({ filters, orderBy: '-createdAt', ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    await auditLogsStore.fetchAll(pagination.getParams({ filters, orderBy: '-createdAt', ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load audit logs:', error)
   }
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function viewLog(log: AuditLogResponse) {

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useSearch } from '@/composables'
 import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag } from 'lucide-vue-next'
 import type { KnowledgeCategoryResponse, KnowledgeItemResponse } from '@/api/types'
 import KnowledgeCategoryModal from '@/components/modals/KnowledgeCategoryModal.vue'
@@ -10,10 +11,8 @@ import KnowledgeItemModal from '@/components/modals/KnowledgeItemModal.vue'
 const knowledgeStore = useKnowledgeStore()
 const projectSelectionStore = useProjectSelectionStore()
 
-// UI state 
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => knowledgeStore.categories)
 
 const expandedCategories = ref<Set<string>>(new Set())
 
@@ -42,16 +41,8 @@ function categoryIsReadOnly(category: KnowledgeCategoryResponse) {
 }
 
 // Watchers 
-watch(searchQuery, (value) => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = value
-  }, 300)
-})
-
 watch(projectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   expandedCategories.value = new Set()
   loadCategories()
 })
@@ -71,7 +62,7 @@ async function loadCategories() {
     await knowledgeStore.fetchCategories(projectId.value, {
       filters: {},
       orderBy: 'order',
-      ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}),
+      ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}),
     })
   } catch {
     // error is handled in the store
@@ -193,10 +184,6 @@ async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
   }
 }
 
-// Helpers 
-function clearSearch() {
-  searchQuery.value = ''
-}
 </script>
 
 <template>

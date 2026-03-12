@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useSearch } from '@/composables'
 import { Bug, Search, X, Plus } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -12,13 +12,13 @@ const issuesStore = useIssuesStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
 
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => issuesStore.items)
+
 // UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
 const showModal = ref(false)
 const selectedIssue = ref<IssueResponse | null>(null)
 const showArchived = ref(false)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Whether a project is currently selected
 const hasProjectSelected = computed(() => !!projectSelectionStore.selectedProjectId)
@@ -38,16 +38,6 @@ function isIssueArchived(issue: IssueResponse): boolean {
   return !!project?.archivedAt
 }
 
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
-
 // Watch for search changes and reload data from backend
 watch(debouncedSearchQuery, () => {
   pagination.reset()
@@ -63,8 +53,7 @@ watch(showArchived, () => {
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
-  searchQuery.value = ''
-  debouncedSearchQuery.value = ''
+  clearSearch()
   pagination.reset()
   loadIssues()
 })
@@ -84,14 +73,10 @@ async function loadIssues() {
     } else {
       filters.projectStatus = projectStatus.value
     }
-    await issuesStore.fetchAll(pagination.getParams({ filters, ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    await issuesStore.fetchAll(pagination.getParams({ filters, ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load issues:', error)
   }
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function formatDate(date: string | null) {
