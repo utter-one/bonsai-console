@@ -20,6 +20,10 @@ const selectedIssue = ref<IssueResponse | null>(null)
 const showArchived = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
+// Whether a project is currently selected
+const hasProjectSelected = computed(() => !!projectSelectionStore.selectedProjectId)
+const projectStatus = computed(() => showArchived.value ? 'archived' : 'active')
+
 // Pagination
 const pagination = usePagination({
   store: issuesStore,
@@ -27,20 +31,12 @@ const pagination = usePagination({
   onPageChange: loadIssues
 })
 
-// Computed
-const archivedProjectIds = computed(() => {
-  const set = new Set<string>()
-  projectsStore.unfilteredProjects.forEach(p => { if (p.archivedAt) set.add(p.id) })
-  return set
-})
+const filteredIssues = computed(() => issuesStore.items)
 
 function isIssueArchived(issue: IssueResponse): boolean {
-  return archivedProjectIds.value.has(issue.projectId)
+  const project = projectsStore.unfilteredProjects.find(p => p.id === issue.projectId)
+  return !!project?.archivedAt
 }
-
-const filteredIssues = computed(() =>
-  issuesStore.items.filter(issue => showArchived.value ? isIssueArchived(issue) : !isIssueArchived(issue))
-)
 
 // Watch for search query changes with debounce
 watch(searchQuery, (newValue) => {
@@ -57,10 +53,13 @@ watch(debouncedSearchQuery, () => {
   pagination.reset()
 })
 
-// Watch for archived toggle changes
+// Watch for archived toggle changes (only relevant when no project is selected)
 watch(showArchived, () => {
-  pagination.reset()
+  if (!hasProjectSelected.value) {
+    pagination.reset()
+  }
 })
+
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
@@ -71,17 +70,20 @@ watch(() => projectSelectionStore.selectedProjectId, () => {
 })
 
 // Lifecycle
-onMounted(async () => {
-  await Promise.all([
-    loadIssues(),
-    projectsStore.fetchUnfilteredProjects()
-  ])
+onMounted(() => {
+  projectsStore.fetchUnfilteredProjects()
+  loadIssues()
 })
 
 // Methods
 async function loadIssues() {
   try {
     const filters: any = {}
+    if (projectSelectionStore.selectedProjectId) {
+      filters.projectId = projectSelectionStore.selectedProjectId
+    } else {
+      filters.projectStatus = projectStatus.value
+    }
     await issuesStore.fetchAll(pagination.getParams({ filters, ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load issues:', error)
@@ -192,7 +194,7 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
             <X class="w-5 h-5" />
           </button>
         </div>
-        <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+        <label v-if="!hasProjectSelected" class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
           <span>Project status:</span>
           <select v-model="showArchived" class="form-select">
             <option :value="false">Active</option>
