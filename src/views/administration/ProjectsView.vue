@@ -7,6 +7,7 @@ import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.v
 import PaginationControls from '@/components/PaginationControls.vue'
 import { Search, X, BriefcaseBusiness, Plus } from 'lucide-vue-next'
 import type { ProjectResponse } from '@/api/types'
+import { getProjectColorHex } from '@/assets/projectColors'
 
 const router = useRouter()
 const route = useRoute()
@@ -214,8 +215,16 @@ function formatDate(date: string | null) {
             <tbody class="table-body">
               <tr v-for="project in filteredProjects" :key="project.id" class="table-row">
                 <td class="table-clickable-cell" @click="editProject(project)">
-                  {{ project.name }}
-                  <span v-if="project.archivedAt" class="badge badge-error ml-2">Archived</span>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                      :style="getProjectColorHex(project.metadata?.primaryColor)
+                        ? { backgroundColor: getProjectColorHex(project.metadata?.primaryColor)! }
+                        : { backgroundColor: 'transparent', outline: '1px dashed #d1d5db', outlineOffset: '0', boxShadow: 'none' }"
+                    />
+                    {{ project.name }}
+                    <span v-if="project.archivedAt" class="badge badge-error ml-2">Archived</span>
+                  </div>
                 </td>
                 <td class="table-cell-muted">{{ formatDate(project.createdAt) }}</td>
                 <td class="table-cell-muted">{{ formatDate(project.updatedAt) }}</td>

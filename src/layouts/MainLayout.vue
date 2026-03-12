@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, useLayoutStore } from '@/stores'
 import { formatEnum, useContextualHelp } from '@/composables'
@@ -9,6 +9,7 @@ import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
 import logoUrl from '@/assets/logo.svg'
+import { getProjectColorHex } from '@/assets/projectColors'
 
 const router = useRouter()
 const route = useRoute()
@@ -61,6 +62,27 @@ const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
 const showProfileModal = ref(false)
 const showWizard = ref(false)
+const showProjectDropdown = ref(false)
+const projectSelectorRef = ref<HTMLElement | null>(null)
+
+function handleDocumentClick(e: MouseEvent) {
+  if (projectSelectorRef.value && !projectSelectorRef.value.contains(e.target as Node)) {
+    showProjectDropdown.value = false
+  }
+}
+
+const projectColorMap = computed(() => {
+  const map = new Map<string, string | null>()
+  for (const p of projectsStore.unfilteredProjects) {
+    map.set(p.id, getProjectColorHex(p.metadata?.primaryColor))
+  }
+  return map
+})
+
+function selectProject(id: string | null) {
+  selectedProjectId.value = id
+  showProjectDropdown.value = false
+}
 
 // Local ref for the select element binding
 const selectedProjectId = computed({
@@ -70,6 +92,7 @@ const selectedProjectId = computed({
 
 // Load projects on mount
 onMounted(async () => {
+  document.addEventListener('click', handleDocumentClick, true)
   await projectsStore.fetchUnfilteredProjects()
   
   // Validate that the saved project still exists
@@ -84,6 +107,10 @@ onMounted(async () => {
 // Keep selection in sync with the master project list – clears if current
 watch(() => projectsStore.unfilteredProjects, (list) => {
   projectSelectionStore.validateSelectedProject(list)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick, true)
 })
 
 // Watch route changes to update selected project
@@ -175,6 +202,10 @@ const formattedRoles = computed(() => {
   return authStore.currentOperator?.roles?.map(formatEnum).join(', ') || ''
 })
 
+const projectPrimaryColorHex = computed(() => {
+  return getProjectColorHex(projectSelectionStore.selectedProject?.metadata?.primaryColor)
+})
+
 // Sections for navigation. playground should be hidden when an archived project is selected
 const sections = computed((): Array<{ id: string; label: string; icon: Component }> => {
   const list = [
@@ -198,7 +229,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Top Navigation Bar -->
-    <header class="bg-white  shadow-sm sticky top-0 z-[100] dark:bg-gray-800 ">
+    <header class="bg-white shadow-sm sticky top-0 z-[100] dark:bg-gray-800">
       <div class="flex items-center px-6 h-16 max-w-[1920px] mx-auto">
         <!-- Mobile Menu Toggle -->
         <button 
@@ -237,37 +268,94 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         <!-- Right Side Actions -->
         <div class="flex items-center gap-4 ml-auto">
           <!-- Project Selector (only show if not in administration) -->
-          <div v-if="currentSection !== 'administration'" class="relative sm:block hidden">
-            <select 
-              v-model="selectedProjectId" 
+          <div
+            v-if="currentSection !== 'administration'"
+            ref="projectSelectorRef"
+            class="relative sm:block hidden"
+          >
+            <!-- Trigger button -->
+            <button
+              type="button"
               :disabled="isInEditOrDetailView"
               :class="[
-                'px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200',
-                isInEditOrDetailView 
-                  ? 'cursor-not-allowed opacity-60 bg-gray-50 dark:bg-gray-900' 
-                  : 'cursor-pointer focus:border-primary-500 dark:focus:border-primary-400'
+                'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
+                isInEditOrDetailView
+                  ? 'cursor-not-allowed opacity-60'
+                  : 'cursor-pointer hover:border-primary-500 dark:hover:border-primary-400'
               ]"
               :title="isInEditOrDetailView ? 'Cannot change project while editing or viewing details' : ''"
+              @click="!isInEditOrDetailView && (showProjectDropdown = !showProjectDropdown)"
             >
-              <option :value="null">Select Project...</option>
-              <option
-                v-for="project in projectsStore.activeProjects"
-                :key="project.id"
-                :value="project.id"
+              <span
+                class="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10 transition-colors"
+                :style="projectPrimaryColorHex ? { backgroundColor: projectPrimaryColorHex } : { backgroundColor: 'transparent', boxShadow: 'none' }"
+                :class="!projectPrimaryColorHex ? 'border border-dashed border-gray-300 dark:border-gray-600' : ''"
+              />
+              <span class="flex-1 text-left truncate text-gray-700 dark:text-gray-200">
+                {{ projectSelectionStore.selectedProject?.name ?? 'Select Project...' }}
+              </span>
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <!-- Dropdown panel -->
+            <div
+              v-if="showProjectDropdown"
+              class="absolute top-[calc(100%+4px)] right-0 z-[200] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[220px] max-h-80 overflow-y-auto dark:bg-gray-800 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                @click="selectProject(null)"
               >
-                {{ project.name }}
-              </option>
+                <span class="w-3 h-3 rounded-full flex-shrink-0 border border-dashed border-gray-300 dark:border-gray-600" />
+                <span>Select Project...</span>
+              </button>
+
+              <template v-if="projectsStore.activeProjects.length > 0">
+                <button
+                  v-for="project in projectsStore.activeProjects"
+                  :key="project.id"
+                  type="button"
+                  :class="[
+                    'flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700',
+                    selectedProjectId === project.id
+                      ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300'
+                      : 'text-gray-900 dark:text-gray-200'
+                  ]"
+                  @click="selectProject(project.id)"
+                >
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                    :style="projectColorMap.get(project.id) ? { backgroundColor: projectColorMap.get(project.id)! } : { backgroundColor: 'transparent', outline: '1px dashed #9ca3af', outlineOffset: '0px', boxShadow: 'none' }"
+                  />
+                  <span class="truncate">{{ project.name }}</span>
+                </button>
+              </template>
+
               <template v-if="projectsStore.archivedProjects.length > 0">
-                <option disabled value="">── Archived Projects ──</option>
-                <option
+                <div class="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700 mt-1 pt-2">Archived</div>
+                <button
                   v-for="project in projectsStore.archivedProjects"
                   :key="project.id"
-                  :value="project.id"
+                  type="button"
+                  :class="[
+                    'flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700',
+                    selectedProjectId === project.id
+                      ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300'
+                      : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                  @click="selectProject(project.id)"
                 >
-                  {{ project.name }} (archived)
-                </option>
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                    :style="projectColorMap.get(project.id) ? { backgroundColor: projectColorMap.get(project.id)! } : { backgroundColor: 'transparent', outline: '1px dashed #9ca3af', outlineOffset: '0px', boxShadow: 'none' }"
+                  />
+                  <span class="truncate">{{ project.name }}</span>
+                </button>
               </template>
-            </select>
+            </div>
           </div>
 
           <!-- Help -->
