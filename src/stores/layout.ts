@@ -6,6 +6,7 @@ export interface MenuItem {
     name: string
     label: string
     icon?: Component
+    experimental?: boolean
 }
 
 export const useLayoutStore = defineStore('layout', () => {

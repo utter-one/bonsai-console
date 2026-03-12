@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -670,6 +670,9 @@ function handleStorageSettingsClose() {
           type="button"
         >
           Storage
+          <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+            <FlaskConical class="w-3 h-3" />
+          </span>
         </button>
         <button
           v-if="isEditMode"
@@ -1901,6 +1904,12 @@ function handleStorageSettingsClose() {
 
         <!-- Storage Tab -->
         <div v-show="activeTab === 'storage'" class="tab-content">
+          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
+            <p class="text-sm">
+              <span class="font-semibold">Experimental feature</span> — Storage is under active development. Behaviour may change in future releases.
+            </p>
+          </div>
           <div class="space-y-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Storage Configuration</h3>
