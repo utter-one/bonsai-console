@@ -650,9 +650,7 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave(() => {
-  for (const voiceOutput of activeVoiceOutputs.value.values()) {
-    voiceOutput.player.stop()
-  }
+  stopAllAudioPlayback()
 })
 
 watch(() => route.params.projectId, (newProjectId) => {
@@ -1219,6 +1217,8 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
 
 async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value || !recording.value) return
+
+  stopAllAudioPlayback()
 
   try {
     // Start voice input phase on backend and get inputTurnId
@@ -1919,9 +1919,17 @@ async function endConversation() {
   }
 }
 
+function stopAllAudioPlayback() {
+  for (const voiceOutput of activeVoiceOutputs.value.values()) {
+    voiceOutput.player.stop()
+  }
+}
+
 async function sendMessage() {
   if (!messageInput.value.trim() || !wsClient.value) return
   if (!canSendMessage.value) return
+
+  stopAllAudioPlayback()
 
   const message = messageInput.value.trim()
 
