@@ -526,7 +526,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">
-          Display Name <span class="required">*</span>
+          Name <span class="required">*</span>
         </label>
         <input
           v-model="form.name"
@@ -536,7 +536,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           class="form-input"
         />
         <p class="form-help-text">
-          Human-readable name for this action
+          This name is used in templates and scripts to reference this action.
         </p>
       </div>
 
