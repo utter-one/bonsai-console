@@ -36,6 +36,8 @@ const highlightEventIndex = computed(() => {
 const eventRefs = ref<(HTMLElement | null)[]>([])
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showFillerPromptPreviewModal = ref(false)
+const selectedFillerPrompt = ref('')
 const showRawResponsePreviewModal = ref(false)
 const selectedRawResponse = ref('')
 const showVariablesPreviewModal = ref(false)
@@ -104,6 +106,11 @@ function formatStatusLabel(status: string): string {
 function openPromptPreview(prompt: string) {
   selectedPrompt.value = prompt
   showPromptPreviewModal.value = true
+}
+
+function openFillerPromptPreview(prompt: string) {
+  selectedFillerPrompt.value = prompt
+  showFillerPromptPreviewModal.value = true
 }
 
 function openRawResponsePreview(rawResponse: string) {
@@ -298,6 +305,7 @@ function fmtMs(value: number | null | undefined): string {
                   :show-bug-report="!isArchived"
                   :highlighted="highlightEventIndex === index"
                   @open-prompt="openPromptPreview"
+                  @open-filler-prompt="openFillerPromptPreview"
                   @open-raw-response="openRawResponsePreview"
                   @open-variables="openVariablesPreview"
                   @open-bug-report="openBugReport(event, index)"
@@ -385,6 +393,12 @@ function fmtMs(value: number | null | undefined): string {
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+
+    <PromptPreviewModal
+      v-if="showFillerPromptPreviewModal"
+      :prompt="selectedFillerPrompt"
+      title="Filler Prompt"
+      @close="showFillerPromptPreviewModal = false" />
     
     <PromptPreviewModal
       v-if="showRawResponsePreviewModal"
