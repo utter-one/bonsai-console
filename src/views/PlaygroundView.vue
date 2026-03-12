@@ -219,6 +219,17 @@
                           <FileText class="w-4 h-4" />
                         </button>
                         <button
+                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasFillerPrompt(event.wsEvent.eventData.metadata)"
+                          @click="openFillerPromptPreview(event.wsEvent.eventData.metadata!.fillerPrompt as string)"
+                          class="btn-icon p-1"
+                          :class="{
+                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
+                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
+                          }"
+                          title="View filler prompt">
+                          <Wand2 class="w-4 h-4" />
+                        </button>
+                        <button
                           v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasCurrentVariables(event.wsEvent.eventData.metadata)"
                           @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
                           class="btn-icon p-1"
@@ -304,6 +315,7 @@
                 :event="toNormalizedWsEvent(event, index)"
                 :show-bug-report="false"
                 @open-prompt="openPromptPreview"
+                @open-filler-prompt="openFillerPromptPreview"
                 @open-raw-response="openRawResponsePreview"
                 @open-variables="openVariablesPreview"
               />
@@ -416,6 +428,12 @@
       v-if="showPromptPreviewModal"
       :prompt="selectedPrompt"
       @close="showPromptPreviewModal = false" />
+
+    <PromptPreviewModal
+      v-if="showFillerPromptPreviewModal"
+      :prompt="selectedFillerPrompt"
+      title="Filler Prompt"
+      @close="showFillerPromptPreviewModal = false" />
     
     <PromptPreviewModal
       v-if="showRawResponsePreviewModal"
@@ -446,7 +464,7 @@ import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -1007,6 +1025,11 @@ function openPromptPreview(prompt: string) {
   showPromptPreviewModal.value = true
 }
 
+function openFillerPromptPreview(prompt: string) {
+  selectedFillerPrompt.value = prompt
+  showFillerPromptPreviewModal.value = true
+}
+
 function openRawResponsePreview(rawResponse: string) {
   selectedRawResponse.value = rawResponse
   showRawResponsePreviewModal.value = true
@@ -1014,6 +1037,10 @@ function openRawResponsePreview(rawResponse: string) {
 
 function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
   return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
+}
+
+function hasFillerPrompt(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata && metadata.fillerPrompt && typeof metadata.fillerPrompt === 'string')
 }
 
 function openVariablesPreview(variables: Record<string, any>) {
@@ -1498,6 +1525,8 @@ const showSetVariableDialog = ref(false)
 const showAudioSettingsModal = ref(false)
 const showPromptPreviewModal = ref(false)
 const selectedPrompt = ref('')
+const showFillerPromptPreviewModal = ref(false)
+const selectedFillerPrompt = ref('')
 const showRawResponsePreviewModal = ref(false)
 const selectedRawResponse = ref('')
 const showVariablesPreviewModal = ref(false)
