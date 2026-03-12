@@ -66,6 +66,7 @@ export default defineConfig({
             { text: 'Conversations', link: '/monitor/conversations' },
             { text: 'Users', link: '/monitor/users' },
             { text: 'Issues', link: '/monitor/issues' },
+            { text: 'Analytics (Experimental)', link: '/monitor/analytics' },
             { text: 'Audit Logs', link: '/monitor/audit-logs' },
           ],
         },
