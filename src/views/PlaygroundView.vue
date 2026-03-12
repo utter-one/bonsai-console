@@ -1061,10 +1061,30 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
   }
 }
 
+const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
+
 /**
  * Handle conversation event from WebSocket
  */
 function handleConversationEvent(event: WSConversationEvent) {
+  // Handle terminal events - conversation ended server-side
+  if (TERMINAL_CONVERSATION_EVENTS.has(event.eventType)) {
+    // Add the event to history first
+    addEvent({
+      type: 'ConversationEvent',
+      message: formatEventType(event.eventType as string),
+      timestamp: new Date(),
+      wsEvent: event
+    })
+    // Reset conversation state without calling endConversation() on the server
+    currentStage.value = null
+    if (wsClient.value) {
+      wsClient.value.isInConversation.value = false
+    }
+    disconnectWebSocket()
+    return
+  }
+
   // Handle message events - update existing events with final metadata
   if (isMessageEvent(event)) {
     // Find existing User or AI event by matching the text
