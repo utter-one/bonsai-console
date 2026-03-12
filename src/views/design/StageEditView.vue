@@ -333,9 +333,10 @@ const actionParametersForCompletion = computed(() => {
   const result: Record<string, any[]> = {}
   
   // Extract parameters from all actions (excluding lifecycle actions)
+  // Use action.name as key since the backend references actions by name, not UUID key
   for (const [key, action] of Object.entries(form.value.actions)) {
     if (!isLifecycleAction(key) && action.parameters && action.parameters.length > 0) {
-      result[key] = action.parameters
+      result[action.name] = action.parameters
     }
   }
   
@@ -387,21 +388,15 @@ function duplicateAction(key: string) {
   showDuplicateModal.value = true
 }
 
-function handleActionDuplicate(data: { key: string; name: string }) {
+function handleActionDuplicate(data: { name: string }) {
   if (!duplicatingActionKey.value) return
   
   const originalAction = form.value.actions[duplicatingActionKey.value]
   if (!originalAction) return
   
-  // Check if key already exists
-  if (form.value.actions[data.key]) {
-    alert(`Action with key "${data.key}" already exists. Please choose a different key.`)
-    return
-  }
-  
-  // Clone the action with new key and name
+  // Clone the action with a new UUID key and the provided name
   const newActions = { ...form.value.actions }
-  newActions[data.key] = {
+  newActions[crypto.randomUUID()] = {
     ...originalAction,
     name: data.name
   }
@@ -1451,6 +1446,7 @@ function toggleNode(path: number[]) {
       v-if="showDuplicateModal && duplicatingActionKey"
       :original-key="duplicatingActionKey"
       :original-name="form.actions[duplicatingActionKey]?.name || ''"
+      :existing-names="Object.values(form.actions).map(a => a.name)"
       @close="showDuplicateModal = false"
       @save="handleActionDuplicate"
     />

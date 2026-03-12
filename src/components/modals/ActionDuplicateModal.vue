@@ -8,24 +8,6 @@
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div class="form-group">
           <label class="form-label">
-            New Action Key <span class="required">*</span>
-          </label>
-          <input
-            v-model="form.key"
-            type="text"
-            required
-            class="form-input"
-            placeholder="e.g., action_key"
-            pattern="[a-zA-Z_][a-zA-Z0-9_]*"
-            title="Key must start with a letter or underscore and contain only letters, numbers, and underscores"
-          />
-          <p class="form-help-text">
-            Unique identifier for the new action (letters, numbers, underscores only)
-          </p>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
             New Action Name <span class="required">*</span>
           </label>
           <input
@@ -33,9 +15,13 @@
             type="text"
             required
             class="form-input"
+            :class="{ 'border-red-500': nameConflict }"
             placeholder="e.g., My Action"
           />
-          <p class="form-help-text">
+          <p v-if="nameConflict" class="text-red-500 text-sm mt-1">
+            An action with this name already exists. Please choose a different name.
+          </p>
+          <p v-else class="form-help-text">
             Display name for the new action
           </p>
         </div>
@@ -44,7 +30,7 @@
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
-          <button type="submit" class="btn-primary">
+          <button type="submit" class="btn-primary" :disabled="nameConflict">
             Duplicate Action
           </button>
         </div>
@@ -54,35 +40,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps<{
   originalKey: string
   originalName: string
+  existingNames: string[]
 }>()
 
 const emit = defineEmits<{
   close: []
-  save: [data: { key: string; name: string }]
+  save: [data: { name: string }]
 }>()
 
 const form = ref({
-  key: '',
   name: ''
 })
 
-// Initialize form with suggestions based on original values
-watch(() => props.originalKey, (key) => {
-  if (key) {
-    form.value.key = `${key}_copy`
-    form.value.name = `${props.originalName} (Copy)`
-  }
+const nameConflict = computed(() =>
+  props.existingNames.includes(form.value.name.trim())
+)
+
+watch(() => props.originalName, (name) => {
+  form.value.name = name ? `${name} (Copy)` : ''
 }, { immediate: true })
 
 function handleSubmit() {
-  emit('save', {
-    key: form.value.key,
-    name: form.value.name
-  })
+  emit('save', { name: form.value.name })
 }
 </script>
