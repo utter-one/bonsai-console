@@ -249,7 +249,6 @@ async function initializeSpecialAction() {
       metadata: {}
     })
     currentGlobalAction.value = created
-    actionId.value = created.id
     actionTags.value = []
     actionMetadata.value = {}
     form.value = { ...form.value, name: created.name }
