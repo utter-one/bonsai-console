@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore } from '@/stores'
 import { ArrowLeft, Play } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
@@ -18,6 +19,7 @@ const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 const issuesStore = useIssuesStore()
+const analyticsStore = useAnalyticsStore()
 
 const conversationId = computed(() => route.params.conversationId as string)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -25,7 +27,8 @@ const conversation = ref<ConversationResponse | null>(null)
 const events = ref<ConversationEventResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'events' | 'metadata'>('events')
+const activeTab = ref<'events' | 'performance' | 'metadata'>('events')
+const performanceTabActivated = ref(false)
 const highlightEventIndex = computed(() => {
   const v = route.query.highlightEventIndex
   return v !== undefined ? Number(v) : null
@@ -183,6 +186,42 @@ const metadataFields = computed(() => {
 
 const isArchived = computed(() => conversation.value?.archived ?? false)
 
+async function activatePerformanceTab() {
+  activeTab.value = 'performance'
+  if (!performanceTabActivated.value) {
+    performanceTabActivated.value = true
+    await analyticsStore.fetchConversationTimeline(projectId.value, conversationId.value)
+  }
+}
+
+watch(conversationId, () => {
+  performanceTabActivated.value = false
+  analyticsStore.clearTimeline()
+})
+
+const timelinePhases: { key: keyof ConversationTimelineTurn; label: string; color: string }[] = [
+  { key: 'asrDurationMs', label: 'ASR', color: 'bg-blue-400' },
+  { key: 'moderationDurationMs', label: 'Moderation', color: 'bg-yellow-400' },
+  { key: 'processingDurationMs', label: 'Processing', color: 'bg-purple-400' },
+  { key: 'knowledgeRetrievalDurationMs', label: 'Knowledge', color: 'bg-teal-400' },
+  { key: 'actionsDurationMs', label: 'Actions', color: 'bg-orange-400' },
+  { key: 'fillerDurationMs', label: 'Filler', color: 'bg-gray-400' },
+  { key: 'llmDurationMs', label: 'LLM', color: 'bg-emerald-400' },
+  { key: 'ttsDurationMs', label: 'TTS', color: 'bg-pink-400' },
+]
+
+function getPhaseWidth(turn: ConversationTimelineTurn, key: keyof ConversationTimelineTurn): number {
+  const total = turn.totalTurnDurationMs
+  const value = turn[key] as number | null
+  if (!total || !value) return 0
+  return Math.min(100, (value / total) * 100)
+}
+
+function fmtMs(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  return `${Math.round(value)} ms`
+}
+
 </script>
 
 <template>
@@ -214,6 +253,10 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
           <button @click="activeTab = 'events'" :class="['tab-button', { 'tab-button-active': activeTab === 'events' }]"
             type="button">
             Events Timeline
+          </button>
+          <button v-if="conversation" @click="activatePerformanceTab"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'performance' }]" type="button">
+            Performance
           </button>
           <button v-if="conversation" @click="activeTab = 'metadata'"
             :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" type="button">
@@ -265,6 +308,74 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
 
           <!-- Metadata Tab -->
           <MetadataTab v-if="conversation" v-show="activeTab === 'metadata'" :fields="metadataFields" />
+
+          <!-- Performance Tab -->
+          <div v-if="conversation" v-show="activeTab === 'performance'" class="tab-content">
+            <div v-if="analyticsStore.isLoadingTimeline" class="text-center py-12 text-gray-500 dark:text-gray-400">
+              Loading performance data...
+            </div>
+            <div v-else-if="analyticsStore.timelineError" class="error-state">
+              {{ analyticsStore.timelineError }}
+            </div>
+            <div v-else-if="!analyticsStore.conversationTimeline || analyticsStore.conversationTimeline.turns.length === 0" class="text-center py-12 text-gray-400 dark:text-gray-500">
+              No performance data available for this conversation
+            </div>
+            <div v-else class="space-y-6">
+              <!-- Phase legend -->
+              <div class="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+                <span v-for="phase in timelinePhases" :key="phase.key" class="flex items-center gap-1">
+                  <span :class="[phase.color, 'inline-block w-3 h-3 rounded-sm']" />
+                  {{ phase.label }}
+                </span>
+              </div>
+
+              <!-- Waterfall -->
+              <div class="space-y-3">
+                <div
+                  v-for="turn in analyticsStore.conversationTimeline.turns"
+                  :key="turn.turnIndex"
+                  class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Turn {{ turn.turnIndex }}</span>
+                      <span v-if="turn.source" class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{{ turn.source }}</span>
+                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ new Date(turn.timestamp).toLocaleTimeString() }}</span>
+                    </div>
+                    <span class="text-sm font-mono font-medium text-gray-700 dark:text-gray-300">{{ fmtMs(turn.totalTurnDurationMs) }}</span>
+                  </div>
+                  <!-- Phase bar -->
+                  <div class="h-5 w-full flex rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    <div
+                      v-for="phase in timelinePhases"
+                      :key="phase.key"
+                      :class="[phase.color]"
+                      :style="{ width: getPhaseWidth(turn, phase.key) + '%' }"
+                      :title="`${phase.label}: ${fmtMs(turn[phase.key] as number | null)}`"
+                    />
+                  </div>
+                  <!-- Metric details -->
+                  <div class="mt-3 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 text-xs">
+                    <div v-for="phase in timelinePhases" :key="'d-' + phase.key" class="flex items-center gap-1">
+                      <span :class="[phase.color, 'inline-block w-2 h-2 rounded-sm flex-shrink-0']" />
+                      <span class="text-gray-500 dark:text-gray-400">{{ phase.label }}:</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn[phase.key] as number | null) }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <span class="inline-block w-2 h-2 rounded-sm bg-blue-200 dark:bg-blue-800 flex-shrink-0" />
+                      <span class="text-gray-500 dark:text-gray-400">TTFT:</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn.timeToFirstTokenMs) }}</span>
+                    </div>
+                    <div v-if="turn.source === 'voice'" class="flex items-center gap-1">
+                      <span class="inline-block w-2 h-2 rounded-sm bg-orange-200 dark:bg-orange-800 flex-shrink-0" />
+                      <span class="text-gray-500 dark:text-gray-400">First audio:</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn.timeToFirstAudioMs) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
