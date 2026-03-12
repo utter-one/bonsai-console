@@ -398,7 +398,14 @@ function handleActionDuplicate(data: { key: string; name: string }) {
     alert(`Action with key "${data.key}" already exists. Please choose a different key.`)
     return
   }
-  
+
+  // Check if name already exists
+  const duplicateName = Object.values(form.value.actions).find(action => action.name === data.name)
+  if (duplicateName) {
+    alert(`An action with name "${data.name}" already exists. Please choose a different name.`)
+    return
+  }
+
   // Clone the action with new key and name
   const newActions = { ...form.value.actions }
   newActions[data.key] = {
@@ -609,6 +616,13 @@ function isLifecycleActionConfigured(key: string): boolean {
 }
 
 function handleActionSave(data: { key: string; action: StageAction }) {
+  const duplicate = Object.entries(form.value.actions).find(
+    ([key, action]) => key !== data.key && action.name === data.action.name
+  )
+  if (duplicate) {
+    alert(`An action with name "${data.action.name}" already exists. Please choose a different name.`)
+    return
+  }
   const newActions = { ...form.value.actions }
   newActions[data.key] = data.action
   form.value.actions = newActions
