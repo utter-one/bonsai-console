@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { Api } from './generated/Api'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
 // Create base axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: API_BASE_URL,
 })
 
 // Track token refresh to prevent concurrent refresh requests
@@ -58,8 +60,7 @@ axiosInstance.interceptors.response.use(
         // Start a new refresh
         isRefreshing = true
         refreshPromise = (async () => {
-          const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-          const response = await axios.post(`${baseURL}/api/auth/refresh`, {
+          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
             refreshToken,
           })
 
@@ -99,7 +100,7 @@ axiosInstance.interceptors.response.use(
 
 // Create and export the generated API client with the configured axios instance
 const apiClient = new Api({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: API_BASE_URL,
 })
 
 // Replace the instance with our enhanced axios instance
