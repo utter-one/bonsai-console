@@ -398,7 +398,14 @@ function handleActionDuplicate(data: { key: string; name: string }) {
     alert(`Action with key "${data.key}" already exists. Please choose a different key.`)
     return
   }
-  
+
+  // Check if name already exists
+  const duplicateName = Object.values(form.value.actions).find(action => action.name === data.name)
+  if (duplicateName) {
+    alert(`An action with name "${data.name}" already exists. Please choose a different name.`)
+    return
+  }
+
   // Clone the action with new key and name
   const newActions = { ...form.value.actions }
   newActions[data.key] = {
@@ -609,6 +616,13 @@ function isLifecycleActionConfigured(key: string): boolean {
 }
 
 function handleActionSave(data: { key: string; action: StageAction }) {
+  const duplicate = Object.entries(form.value.actions).find(
+    ([key, action]) => key !== data.key && action.name === data.action.name
+  )
+  if (duplicate) {
+    alert(`An action with name "${data.action.name}" already exists. Please choose a different name.`)
+    return
+  }
   const newActions = { ...form.value.actions }
   newActions[data.key] = data.action
   form.value.actions = newActions
@@ -1246,12 +1260,6 @@ function toggleNode(path: number[]) {
                 <table class="table">
                   <thead class="table-header">
                     <tr>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('key')">
-                        <div class="flex items-center gap-1">
-                          Key
-                          <component :is="getActionsSortIcon('key')" class="w-4 h-4" :class="actionsSortKey === 'key' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
                       <th class="table-header-cell-sortable" @click="toggleActionsSort('name')">
                         <div class="flex items-center gap-1">
                           Name
@@ -1281,9 +1289,6 @@ function toggleNode(path: number[]) {
                   </thead>
                   <tbody class="table-body">
                     <tr v-for="action in actionsList" :key="action.key" class="table-row">
-                      <td class="table-cell">
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">{{ action.key }}</code>
-                      </td>
                       <td class="table-clickable-cell" @click="editAction(action.key)">
                         {{ action.name }}
                       </td>
