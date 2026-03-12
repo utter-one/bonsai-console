@@ -7,7 +7,7 @@
           href="/help/design/actions.html"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400 bg-white dark:bg-gray-800 transition-colors"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-800 text-xs font-medium text-blue-500 dark:text-blue-400 hover:border-blue-400 hover:text-blue-600 dark:hover:border-blue-500 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 transition-colors"
         >
           <HelpCircle :size="16" />
         </a>

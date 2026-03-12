@@ -105,7 +105,7 @@
       <div class="h-4 w-px bg-gray-200 dark:bg-gray-600 mx-1 flex-shrink-0" />
 
       <a
-        class="toolbar-btn ml-auto"
+        class="toolbar-btn toolbar-btn-help ml-auto"
         href="/help/guide/scripting.html"
         target="_blank"
         rel="noopener noreferrer"

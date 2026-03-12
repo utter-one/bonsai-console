@@ -363,7 +363,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
             :href="helpUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="p-2 border-none bg-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            class="p-2 border-none bg-transparent text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
             title="Help & Documentation"
           >
             <HelpCircle :size="20" />

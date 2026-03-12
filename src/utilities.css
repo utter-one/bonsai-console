@@ -693,6 +693,20 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+.toolbar-btn-help {
+  color: #2563eb;
+}
+.dark .toolbar-btn-help {
+  color: #60a5fa;
+}
+.toolbar-btn-help:hover:not(:disabled) {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+.dark .toolbar-btn-help:hover:not(:disabled) {
+  color: #93c5fd;
+  background-color: rgba(30, 58, 138, 0.2);
+}
 .toolbar-btn-active {
   background-color: #e5e7eb;
   color: #ea580c;
