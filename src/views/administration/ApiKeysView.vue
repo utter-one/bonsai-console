@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useAllApiKeysStore, useProjectsStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import { Key, Search, X, Plus } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -12,10 +12,10 @@ const allApiKeysStore = useAllApiKeysStore()
 const apiKeysStore = useApiKeysStore()
 const projectsStore = useProjectsStore()
 
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => allApiKeysStore.items)
+
 // UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const showModal = ref(false)
 const editingApiKey = ref<ApiKeyResponse | null>(null)
 const selectedProjectId = ref<string>('')
@@ -44,16 +44,6 @@ const projectNamesMap = computed(() => {
 const filteredApiKeys = computed(() =>
   allApiKeysStore.items.filter(k => showArchived.value ? k.archived : !k.archived)
 )
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -88,7 +78,7 @@ async function loadProjects() {
 async function loadApiKeys() {
   try {
     const orderBy = getOrderBy()
-    await allApiKeysStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    await allApiKeysStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load API keys:', error)
   }
@@ -177,10 +167,6 @@ async function deleteApiKey(apiKey: ApiKeyResponse) {
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete API key')
   }
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function formatDate(date: string | null) {

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
@@ -12,12 +12,12 @@ import MigrationModal from '@/components/modals/MigrationModal.vue'
 const router = useRouter()
 const environmentsStore = useEnvironmentsStore()
 
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => environmentsStore.items)
+
 // UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
 const showMigrateModal = ref(false)
 const migratingEnvironment = ref<EnvironmentResponse | null>(null)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-environments')
@@ -31,14 +31,6 @@ const pagination = usePagination({
 
 // Computed
 const filteredEnvironments = computed(() => environmentsStore.items)
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -59,7 +51,7 @@ onMounted(async () => {
 async function loadEnvironments() {
   try {
     const orderBy = getOrderBy()
-    await environmentsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }))
+    await environmentsStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
   } catch (error) {
     console.error('Failed to load environments:', error)
   }
@@ -90,10 +82,6 @@ function editEnvironment(env: EnvironmentResponse) {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function openMigrateModal(env: EnvironmentResponse) {

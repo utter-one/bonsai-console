@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUsersStore, useProjectSelectionStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, useSearch } from '@/composables'
 import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -15,10 +15,8 @@ const projectSelectionStore = useProjectSelectionStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-// UI State
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => usersStore.items)
 
 // Pagination
 const pagination = usePagination({
@@ -29,16 +27,6 @@ const pagination = usePagination({
 
 // Computed
 const filteredUsers = computed(() => usersStore.items)
-
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
 
 // Watch for search changes and reload data from backend
 watch(debouncedSearchQuery, () => {
@@ -59,7 +47,7 @@ onMounted(async () => {
 // Methods
 async function loadUsers() {
   try {
-    await usersStore.fetchAll(projectId.value, pagination.getParams(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}))
+    await usersStore.fetchAll(projectId.value, pagination.getParams(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}))
   } catch (error) {
     console.error('Failed to load users:', error)
   }
@@ -75,10 +63,6 @@ function viewUser(user: UserResponse) {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function getProfileDisplay(profile: Record<string, any>): string {

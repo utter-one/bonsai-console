@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { Search, X, BriefcaseBusiness, Plus } from 'lucide-vue-next'
@@ -13,10 +13,8 @@ const router = useRouter()
 const route = useRoute()
 const projectsStore = useProjectsStore()
 
-// Search state
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+// Search
+const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => projectsStore.items)
 
 // archived toggle
 const showArchived = ref(route.query.archived === 'true')
@@ -42,14 +40,6 @@ const pagination = usePagination({
 // Computed
 const filteredProjects = computed(() => projectsStore.items)
 
-// Watch for search query changes with debounce
-watch(searchQuery, (newValue) => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    debouncedSearchQuery.value = newValue
-  }, 300)
-})
-
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
   loadProjects()
@@ -67,16 +57,12 @@ onMounted(async () => {
 async function loadProjects() {
   try {
     const orderBy = getOrderBy()
-    const params: any = { ...(orderBy ? { orderBy } : {}), ...(debouncedSearchQuery.value ? { textSearch: debouncedSearchQuery.value } : {}) }
+    const params: any = { ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }
     if (showArchived.value) params.archived = true
     await projectsStore.fetchAll(pagination.getParams(params))
   } catch (error) {
     console.error('Failed to load projects:', error)
   }
-}
-
-function clearSearch() {
-  searchQuery.value = ''
 }
 
 function createProject() {
