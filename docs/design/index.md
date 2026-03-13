@@ -12,30 +12,14 @@ At a high level, designing a conversation means defining:
 4. **How the AI understands user intent** → [Classifiers](./classifiers)
 5. **How data is extracted from the conversation** → [Context Transformers](./context-transformers)
 6. **Shared behaviors that work across stages** → [Global Actions](./global-actions)
-7. **Project-wide safety and policy enforcement** → [Guardrails](./guardrails)
+7. **Project-wide safety, guardrails, and moderation** → [Guardrails](./guardrails) & [Moderation](./moderation)
 8. **AI-powered utility functions** → [Tools](./tools)
 9. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
 10. **User profile schema and project constants** → [Global Memory](./global-memory)
-11. **Content moderation settings** → [Guardrails & Moderation](./guardrails)
 
 ## Where to Start
 
-If you're setting up a new project, a good order is:
-
-1. **Create a agent** — Even a simple personality prompt gets you started.
-2. **Create a classifier** — You'll need one for your stages to understand user input.
-3. **Create your first stage** — Assign the agent and classifier. Write a prompt that tells the AI what to do. Set the enter behavior to "Generate response" so the AI speaks first.
-4. **Add actions to the stage** — Define what happens when users say specific things.
-5. **Add more stages** — Map out the full conversation flow and connect stages with "go to stage" effects.
-6. **Add knowledge** — Create FAQ categories to handle common questions.
-7. **Create global actions** — Factor out any behaviors that repeat across stages.
-8. **Configure guardrails** — Define safety rules that fire on every turn. Select a classifier in **Design > Guardrails & Moderation** and add rules.
-9. **Set up global memory** — Define project constants and user profile schema.
-10. **Configure moderation** — Enable content moderation and select blocked categories in the Moderation tab of **Design > Guardrails & Moderation**.
-
-## Cloning
-
-Most design resources (agents, stages, classifiers, tools, etc.) can be **cloned** to create copies. This is handy when you want to create a variation of something without starting from scratch — for example, a slightly different agent for after-hours support, or a new stage based on an existing one.
+If you're setting up a new project, follow the [Project Design Guide](../guide/project-design) for a step-by-step walkthrough — from mapping the conversation flow to writing prompts and testing the finished result.
 
 ## Templating & Scripting
 

@@ -61,7 +61,11 @@ Use **Copy** to export the memory schema as JSON and **Paste** to import from th
 
 ## Constants Tab
 
-**Constants** are project-wide key-value pairs available in all stage prompts and conversation logic via <span v-pre>`{{constants.key}}`</span>. Use them for values that don't change per conversation — company name, support hours, URLs, policy limits.
+**Constants** are project-wide key-value pairs available in all stage prompts and conversation logic via <span v-pre>`{{consts.key}}`</span>. Use them for values that don't change per conversation — company name, support hours, URLs, policy limits.
+
+::: warning Template and script prefix is `consts`, not `constants`
+Even though the feature is called **Constants** in the UI, always reference individual values as <span v-pre>`{{consts.key}}`</span> in prompts and `consts.key` in scripts — not `constants.key`.
+:::
 
 ### Adding a Constant
 
@@ -97,8 +101,8 @@ Click **Add Constant** to create a new row. Each constant has three parts:
 Reference any constant in a stage prompt or agent prompt:
 
 ```handlebars
-Welcome to {{constants.companyName}} support!
-Our hours are {{constants.supportHours}}.
+Welcome to {{consts.companyName}} support!
+Our hours are {{consts.supportHours}}.
 ```
 
 See [Prompt Templating](../guide/templating) for all available template variables.

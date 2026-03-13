@@ -12,13 +12,13 @@ The knowledge base gives you a clean, manageable way to add FAQ content. The AI 
 
 ## How It Works
 
-1. You create **categories** — groups of related Q&A pairs (e.g., "Billing FAQ", "Product Features").
+1. You create **categories** — groups of related Q&A pairs (e.g., "Billing FAQ", "Product Features"). Each category must have a **Prompt Trigger** that describes when it is relevant — this is what the classifier uses to match user questions to the category.
 2. You add **items** to each category — specific question-and-answer pairs.
-3. You enable knowledge on a stage and optionally filter by **tags**.
-4. During a conversation, the classifier detects when the user asks a question that matches a category.
+3. You enable knowledge on a stage.
+4. During a conversation, the classifier detects when the user asks a question that matches a category's prompt trigger.
 5. The relevant Q&A pairs are included in the AI's context, and it generates an answer based on them.
 
-The key insight: Knowledge categories appear to the classifier as virtual actions. The classifier matches the user's question to the right category, and the AI then uses the specific Q&A items to form its response.
+The key insight: Knowledge categories appear to the classifier as virtual actions — the prompt trigger describes the intent, just like an action's classification trigger. The classifier matches the user's question to the right category, and the AI then uses the specific Q&A items to form its response.
 
 ## Creating Categories
 
@@ -27,8 +27,7 @@ Go to **Design > Knowledge** and click **Create Category**.
 ### Category Fields
 
 - **Name** — A descriptive label (e.g., "Return Policy", "Pricing FAQ").
-- **Prompt Trigger** — A phrase that describes when this category is relevant. This is what the classifier uses to match user questions. For example: _"The user is asking about returns, refunds, or exchanges."_
-- **Tags** — Labels used to filter categories per stage (e.g., `support`, `billing`, `general`).
+- **Prompt Trigger** — A phrase that describes when this category is relevant. This is what the classifier uses to match user questions. For example: _"The user is asking about returns, refunds, or exchanges."_ **This field is required** — without it, the classifier has no way to route questions to this category.
 - **Order** — Controls the display order in the console.
 
 ### Writing Good Prompt Triggers
@@ -56,21 +55,12 @@ Write answers that state facts clearly. The AI will use your answers as the sour
 
 On the stage edit view:
 
-1. Enable **Use Knowledge**.
-2. Optionally set **Knowledge Tags** to filter which categories are available. Leave empty to include all categories.
-
-### Tag-Based Filtering
-
-Tags let you control which FAQ content is available in each stage:
-
-- A "Billing FAQ" category tagged `["billing", "support"]` will be available in any stage that includes the `billing` or `support` tag (or has no tag filter at all).
-- This lets you reuse the same knowledge across stages while limiting what's relevant to each context.
+Enable **Use Knowledge** — this makes all knowledge categories available for classifier matching in this stage.
 
 ## Example
 
 **Category:** Return Policy
 - **Prompt Trigger:** _"The user is asking about returns, refunds, or exchanges"_
-- **Tags:** `["support", "returns"]`
 
 **Items:**
 
@@ -86,6 +76,5 @@ When a user asks _"How can I return something?"_, the classifier matches the Ret
 
 - **Use specific prompt triggers** — Help the classifier accurately match user questions to the right category.
 - **Keep items focused** — Each item should cover one specific question. Don't combine multiple topics in one item.
-- **Tag strategically** — Use tags to control knowledge availability per stage without duplicating content.
 - **Review periodically** — FAQ content goes stale. Update answers when policies, prices, or processes change.
 - **Don't over-rely on knowledge** — For complex scenarios that require multi-step interactions, use stages and actions instead.

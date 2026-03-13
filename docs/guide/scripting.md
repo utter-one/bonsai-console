@@ -46,6 +46,7 @@ This means scripts are safe to use — they can only read and modify conversatio
 | `originalUserInput` | The unmodified user input before any scripts changed it |
 | `userInputSource` | How the user communicated: `'text'`, `'voice'`, or `null` |
 | `stageVars` | Variables from all stages (keyed by stage ID) |
+| `consts` | Project-level constants defined in **Design > Global Memory > Constants** |
 
 ## Common Patterns
 
@@ -58,6 +59,19 @@ vars.order = {
   id: "ORD-123",
   status: "pending"
 };
+```
+
+### Reading Constants
+
+Project constants (defined in **Design > Global Memory > Constants**) are available as `consts`:
+
+```javascript
+const maxRetries = consts.maxRetries || 3;
+const companyName = consts.companyName;
+
+if (vars.retryCount >= maxRetries) {
+  vars.needsEscalation = true;
+}
 ```
 
 ### Conditional Logic
@@ -100,7 +114,7 @@ These functions let a script control the conversation flow. They take effect _af
 | `suppressResponse()` | Don't generate any response for this turn |
 
 ::: warning `goToStage` is ignored in lifecycle actions
-`goToStage()` has no effect when called from a script running inside `__on_enter` or `__on_leave`. If you need stage navigation, use a regular user-triggered action.
+`goToStage()` has no effect when called from a script running inside an **On Enter** or **On Leave** lifecycle action. If you need stage navigation, use a regular user-triggered action.
 :::
 
 ### Example — Smart Routing

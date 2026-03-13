@@ -38,9 +38,13 @@ Parameters define what data the tool needs to do its job:
 | **Description** | Explains what this parameter is for |
 | **Required** | Whether the parameter must be provided |
 
-## Using Tools in Actions
+## Using Tools
 
-Tools are invoked through the **Call Tool** effect in a stage action:
+Tools can be invoked in two ways:
+
+### Via Action Effects
+
+Invoke a tool through the **Call Tool** effect in a stage action:
 
 1. Select the tool to call.
 2. Map the parameters — you can use template syntax to pass conversation data:
@@ -48,6 +52,10 @@ Tools are invoked through the **Call Tool** effect in a stage action:
    - <code v-pre>Target language: {{vars.targetLanguage}}</code>
 
 The tool's result is stored in the execution context and can be used by subsequent effects and prompts.
+
+### Via Client Command
+
+Tools can also be invoked directly by the client application using a client command — without requiring a user utterance or classifier match. This is available in the **Playground** and is useful when the client application needs to steer the conversation flow programmatically (e.g., a button press in a custom UI that triggers an immediate tool call).
 
 ## Multimodal Support
 

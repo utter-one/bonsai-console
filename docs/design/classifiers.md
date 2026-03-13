@@ -59,7 +59,7 @@ You are a classification assistant. Your task is to analyze user input and extra
 {{#if stage}}
 Available actions in this stage:
 {{#each stage.availableActions}}
-- **{{name}}** (ID: {{id}})
+- **{{name}}** {{trigger}}
   {{#if examples}}
   Examples: {{join examples ", "}}
   {{/if}}
@@ -88,7 +88,7 @@ Instructions:
 Respond with a JSON object in the following format:
 {
   "actions": {
-    "actionId1": {
+    "ActionName1": {
       "parameter1": "value",
       "parameter2": "value"
     }
@@ -102,17 +102,17 @@ The classifier must return a JSON object. Keys are **action IDs** (not trigger l
 
 ```json
 {
-  "check_order_status": {
+  "CheckOrderStatus": {
     "orderId": "12345"
   },
-  "escalate_to_agent": {}
+  "EscalateToAgent": {}
 }
 ```
 
 Return an empty object `{}` if no actions match — for example, when the user sends a simple acknowledgment or an off-topic message.
 
-::: warning Action IDs, not trigger labels
-The LLM must return action **IDs** as keys (e.g., `check_order_status`) — not the classification trigger labels (e.g., "The user wants to check their order status"). The trigger label is only a hint shown to the LLM to help it understand what the action is for.
+::: warning Action Names, not trigger labels
+The LLM must return action **Names** as keys (e.g., `CheckOrderStatus`) — not the classification trigger labels (e.g., "The user wants to check their order status"). The trigger label is only a hint shown to the LLM to help it understand what the action is for.
 :::
 
 ::: tip Keep instructions concise
@@ -141,5 +141,5 @@ This means the classifier doesn't just match actions — it can also route to yo
 - **Write action triggers clearly** — The classifier is only as good as the descriptions you give it. _"The user wants to check their order status"_ is better than _"order"_.
 - **Provide examples on the actions** — Example user phrases help the classifier learn what real triggers look like.
 - **Don't over-classify** — If the user says _"thanks"_, it probably doesn't need to trigger an action. A well-written prompt that says "return no matches for simple acknowledgments" handles this gracefully.
-- **Use `__on_fallback`** on stages — When the classifier finds no match, the fallback action gives you control over what happens next, rather than leaving the AI to guess.
+- **Use On Fallback on stages** — When the classifier finds no match, the fallback action gives you control over what happens next, rather than leaving the AI to guess.
 - **Lower temperature for classification** — Classification benefits from deterministic responses. A temperature of 0 or close to it usually works best.

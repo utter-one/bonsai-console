@@ -42,10 +42,10 @@ Go to each stage's **Variables** tab:
 
 ### Constants (project-level)
 
-Go to **Design > Global Constants**:
+Go to **Design > Global Memory > Constants** tab:
 
 - Use constants for values that don't change per conversation — company name, policy limits, plan prices, support hours.
-- Access them in any prompt via <span v-pre>`{{constants.key}}`</span>.
+- Access them in any prompt via <span v-pre>`{{consts.key}}`</span> and in scripts via `consts.key`.
 - Constants support types: String, Number, Boolean, and JSON (for structured data).
 
 See [Prompt Templating](./templating) for all available template variables.
@@ -91,28 +91,28 @@ Switch to each stage's **Actions** tab and define what happens when the user spe
 
 Every stage has three special built-in actions (find them in the **Lifecycle** tab):
 
-- **On Enter** (`__on_enter`) — Runs when the conversation enters this stage. Use it to initialize variables, call setup webhooks, or log analytics. Cannot navigate away or end the conversation.
-- **On Leave** (`__on_leave`) — Runs when the conversation leaves this stage. Use it for cleanup or saving state externally. Cannot navigate to another stage.
-- **On Fallback** (`__on_fallback`) — Runs when no action matches the user's input. Almost every stage should have one — typically a `Generate response` (generated) effect so the AI handles the miss gracefully.
+- **On Enter** — Runs when the conversation enters this stage. Use it to initialize variables, call setup webhooks, or log analytics. Cannot navigate away or end the conversation.
+- **On Leave** — Runs when the conversation leaves this stage. Use it for cleanup or saving state externally. Cannot navigate to another stage.
+- **On Fallback** — Runs when no action matches the user's input. Almost every stage should have one — typically a `Generate response` (generated) effect so the AI handles the miss gracefully.
 
 See [Actions & Effects](../design/actions) for full reference.
 
 ## 6. Set Up Context Transformers
 
-Go to **Design > Context Transformers**. Transformers extract structured data from free-form user input.
+Go to **Design > Context Transformers**. Transformers run an LLM prompt on every user turn and can do much more than just extract data:
 
-**Use transformers when:**
-- You need to pull out specific fields (email, phone, date, name) from what the user says.
-- You want extraction to happen in parallel with classification — transformers and classifiers run simultaneously, so there's no extra latency.
-- You want to decouple extraction logic from action logic.
+- **Data extraction** — Pull out specific fields (email, phone, date, name) from what the user says, in parallel with classification (no added latency).
+- **Whispers** — Inject bracketed hints like `[customer seems confused]` into the user's utterance to subtly steer the AI's response without the user seeing them.
+- **Prompt additions** — Generate a piece of text that gets appended to the stage prompt, dynamically enriching the context the AI sees on each turn.
+- **Helper variables** — Compute and store values (sentiment score, detected topic, etc.) that conditions and scripts can use to control the flow.
 
 **In the stage's Features tab**, attach transformers by checking them in the **Attached Transformers** list.
 
 **Design tips:**
-- Be explicit about what to extract — name each field and describe the expected format in the transformer prompt.
+- Be explicit about what to extract or generate — name each field and describe the expected format in the transformer prompt.
 - Use **context fields** to declare which variables the transformer writes to.
 - Pair transformers with actions that have **Trigger on Transformation** enabled and **watched variables** set. When a transformer fills in a variable, matching actions fire automatically — enabling reactive, event-driven flows.
-- Only attach transformers to stages where extraction is needed. Each one consumes an LLM call.
+- Only attach transformers to stages where they are needed. Each one consumes an LLM call.
 
 See [Context Transformers](../design/context-transformers) for full reference.
 
@@ -157,7 +157,7 @@ Click any of them, initialize the action if it hasn't been configured yet, and s
 
 See [Global Actions](../design/global-actions) for full reference.
 
-## 8b. Configure Guardrails
+## 9. Configure Guardrails (Optional)
 
 Go to **Design > Guardrails & Moderation** to set up project-wide safety rules.
 
@@ -168,18 +168,18 @@ Guardrails fire automatically on all stages — no per-stage opt-in required.
 
 See [Guardrails](../design/guardrails) for full reference.
 
-## 9. Set Up Global Constants and Memory
+## 10. Set Up Global Memory
 
-Go to **Design > Global Memory**. This page has two tabs:
+Go to **Design > Global Memory**. This integrated page combines two related areas of project configuration in a tabbed view:
 
-- **Constants** tab — Define project-wide values (company name, support hours, etc.) accessible in all prompts via <span v-pre>`{{constants.key}}`</span>.
+- **Constants** tab — Define project-wide values (company name, support hours, etc.) accessible in all prompts via <span v-pre>`{{consts.key}}`</span> and in scripts via `consts.key`.
 - **User Profile** tab — Declare the user profile schema — the custom fields your conversations will read and write on user profiles. This enables autocomplete in the prompt editor.
 
 See [Global Memory](../design/global-memory) for details.
 
-## 10. Configure Moderation
+## 11. Configure Moderation (Optional)
 
-Go to **Design > Moderation** to enable content safety screening.
+Go to **Design > Guardrails & Moderation** to enable content safety screening.
 
 1. Toggle **Enable content moderation**.
 2. Select a compatible provider (OpenAI or Mistral).
@@ -189,7 +189,7 @@ Then go to **Design > Global Actions**, open the **Special Actions** dropdown, a
 
 See [Moderation](../design/moderation) for full reference.
 
-## 11. Write Stage Prompts
+## 12. Write Stage Prompts
 
 The stage prompt is the most important part of each stage. Open the **Prompt** tab and follow these principles:
 
@@ -205,17 +205,6 @@ The stage prompt is the most important part of each stage. Open the **Prompt** t
 7. **Use time context for temporal awareness.** <span v-pre>`{{time.dateTime}}`</span> grounds the AI in the current moment.
 
 The prompt editor supports syntax highlighting and auto-completion for template variables. See [Prompt Templating](./templating) for the full template reference.
-
-## 12. Choose Enter Behavior
-
-In each stage's **Basic** tab, set the **Default Enter Behavior**:
-
-| Value | When to Use |
-|---|---|
-| **Generate Response** | The AI should speak first upon entering the stage — greeting, presenting an offer, summarizing results |
-| **Await User Input** | The AI should wait for the user — use this when the previous stage's response already set up the transition (e.g., after a question that ends with "what do you think?") |
-
-Most stages use **Generate Response**. Use **Await User Input** when the stage transition itself serves as the prompt.
 
 ## 13. Scripting Tips
 
@@ -237,14 +226,15 @@ Use this checklist to make sure you haven't missed anything:
 3. **Create one agent** (add more only if the persona changes)
 4. **Create 1–3 classifiers** (general intent + specialized ones if needed)
 5. **List all data** the conversation collects → assign as stage variables or global constants
-6. **Define global constants** for project-wide values (company name, hours, URLs)
-7. **Define the memory schema** for user profile fields your conversations will track
-8. **Create context transformers** for stages that extract structured data from free text
+6. **Define global constants** for project-wide values (company name, hours, URLs) in **Design > Global Memory > Constants**
+7. **Define the memory schema** for user profile fields in **Design > Global Memory > User Profile**
+8. **Create context transformers** for stages that need data extraction, whispers, prompt additions, or helper variables
 9. **Design actions per stage** — triggers, conditions, effects, examples
 10. **Add lifecycle actions** (on enter, on leave, on fallback) where needed
 11. **Create knowledge categories** for FAQ-heavy stages
 12. **Create global actions** for cross-cutting intents
-13. **Configure moderation** — enable screening and set up the Moderation Blocked response
-14. **Write prompts** — agent first, then each stage
-15. **Configure providers** — LLM, TTS, ASR at appropriate levels
-16. **Test each stage in isolation** in the [Playground](./playground), then test full flows end-to-end
+13. **Configure guardrails** (optional) — add safety rules and select a guardrails classifier
+14. **Configure moderation** (optional) — enable screening and set up the Moderation Blocked response
+15. **Write prompts** — agent first, then each stage
+16. **Configure providers** — LLM, TTS, ASR at appropriate levels
+17. **Test each stage in isolation** in the [Playground](./playground), then test full flows end-to-end

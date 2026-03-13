@@ -4,11 +4,13 @@
 
 ## How Actions Work
 
-1. The user says something.
-2. The stage's **classifier** analyzes the message and decides which actions match.
-3. Matched actions fire in order.
-4. Each action's **effects** execute sequentially.
-5. After all effects run, the AI generates its response (unless an effect says otherwise).
+Actions can be triggered in three ways:
+
+- **User input** — The classifier detects a matching intent in what the user said.
+- **Client command** — The client application sends a specific command (e.g., a button press).
+- **Transformer variable change** — A context transformer sets or changes a watched variable.
+
+When one or more actions are triggered in the same turn, their effects are **collected together, sorted by priority, and executed in that order** — not action-by-action. This means effects from multiple triggered actions interleave globally based on their type priority, ensuring a consistent, predictable execution order regardless of how many actions fired.
 
 ## Anatomy of an Action
 
@@ -16,8 +18,7 @@ Each action has these key parts:
 
 ### Identification
 
-- **Action ID** — A unique key within the stage (e.g., `check_order_status`).
-- **Name** — A display name for your reference.
+- **Name** — A unique identifier within the stage (e.g., `CheckOrderStatus`). It is recommended to avoid spaces in action names.
 
 ### Triggers
 
@@ -37,8 +38,8 @@ The **classification trigger** is a human-readable label that **the LLM reads** 
 - _"The user is asking about return policy"_
 - _"The user wants to speak to a human"_
 
-::: tip Labels for the LLM, IDs in the response
-The classification trigger is a hint *for* the language model — it explains an action's purpose so the LLM can decide whether it matches. When the LLM decides an action matches, it returns the action's **ID** (e.g., `check_order_status`) in its JSON response — not the trigger label. See [Classifiers](./classifiers#required-output-format) for the output format.
+::: tip Labels for the LLM, Names in the response
+The classification trigger is a hint *for* the language model — it explains an action's purpose so the LLM can decide whether it matches. When the LLM decides an action matches, it returns the action's **Name** (e.g., `CheckOrderStatus`) in its JSON response — not the trigger label. See [Classifiers](./classifiers#required-output-format) for the output format.
 :::
 
 ### Examples
@@ -74,6 +75,7 @@ If the action is triggered by variable changes, you specify which variables to w
 | `new` | The variable was just set for the first time |
 | `changed` | The variable's value was updated |
 | `removed` | The variable was cleared |
+| `any` | The variable was set, updated, or cleared |
 
 ## Effects
 
@@ -81,7 +83,7 @@ Effects are the building blocks of action behavior. They run in order within an 
 
 ### Go to Stage
 
-Move the conversation to a different stage. Triggers lifecycle actions (`__on_leave` on the current stage, `__on_enter` on the new one).
+Move the conversation to a different stage. Triggers lifecycle actions (On Leave on the current stage, On Enter on the new one).
 
 ### Run Script
 
@@ -108,7 +110,7 @@ Send an HTTP request to an external service. You can use template values in the 
 
 - **Method** — GET, POST, PUT, DELETE
 - **URL** — e.g., <code v-pre>https://api.example.com/orders/{{vars.orderId}}</code>
-- **Headers** — e.g., <code v-pre>Authorization: Bearer {{constants.apiToken}}</code>
+- **Headers** — e.g., <code v-pre>Authorization: Bearer {{consts.apiToken}}</code>
 - **Body** — JSON payload
 - **Result Key** — Name under which the response is stored for use in later effects
 
@@ -148,11 +150,11 @@ Stages support three special actions that run automatically:
 
 | Action | When | Restrictions |
 |---|---|---|
-| `__on_enter` | Entering the stage | Cannot end, abort, or navigate to another stage (including via `goToStage()` in scripts) |
-| `__on_leave` | Leaving the stage | Cannot navigate to another stage or generate a response (including via `goToStage()` in scripts) |
-| `__on_fallback` | No user-triggered action matched | No restrictions |
+| **On Enter** | Entering the stage | Cannot end, abort, or navigate to another stage (including via `goToStage()` in scripts) |
+| **On Leave** | Leaving the stage | Cannot navigate to another stage or generate a response (including via `goToStage()` in scripts) |
+| **On Fallback** | No user-triggered action matched | No restrictions |
 
-`__on_fallback` is especially useful — it defines what happens when the user says something the classifier doesn't recognize. Without it, the AI just generates a response based on the prompt alone.
+**On Fallback** is especially useful — it defines what happens when the user says something the classifier doesn't recognize. Without it, the AI just generates a response based on the prompt alone.
 
 ## Execution Order
 
@@ -161,8 +163,8 @@ When the user sends a message, here's what happens in detail:
 1. All classifiers run **in parallel** (the default one plus any action-specific overrides).
 2. All context transformers run **in parallel** with the classifiers.
 3. Results are merged — matched actions are identified.
-4. If nothing matched and `__on_fallback` exists, it runs instead.
-5. Matched actions' effects execute **sequentially**.
+4. If nothing matched and **On Fallback** is defined, it runs instead.
+5. Effects from all matched actions are **collected, sorted by their priority**, and executed in that order.
 6. If any effect triggers navigation, conversation end, or abort, it takes effect after all current effects finish.
 
 ### Effect Execution Priority
@@ -171,28 +173,28 @@ When multiple actions are triggered in the same turn, the system **collects all 
 
 | Priority | Effect Type |
 |---|---|
-| 1 | `call_webhook` |
-| 2 | `call_tool` |
-| 3 | `modify_variables` |
-| 4 | `modify_user_profile` |
-| 5 | `modify_user_input` |
-| 6 | `run_script` |
-| 7 | `generate_response` |
-| 8 | `end_conversation` |
-| 9 | `abort_conversation` |
-| 10 | `go_to_stage` |
+| 1 | Call Webhook |
+| 2 | Call Tool |
+| 3 | Modify Variables |
+| 4 | Modify User Profile |
+| 5 | Modify User Input |
+| 6 | Run Script |
+| 7 | Generate Response |
+| 8 | End Conversation |
+| 9 | Abort Conversation |
+| 10 | Go to Stage |
 
 #### Conflict Resolution
 
 When multiple matched actions contribute the same effect type, these rules apply:
 
-- **`go_to_stage`** — Only the **first** matched action's target stage wins. Subsequent `go_to_stage` effects from other actions are discarded.
-- **`abort_conversation`** vs **`end_conversation`** — `abort_conversation` always wins and suppresses any `end_conversation` effects.
-- **`modify_user_input`** — All `modify_user_input` effects are **chained**: each one transforms the output of the previous, so the AI sees the result of all of them applied in order.
+- **Go to Stage** — Only the **first** matched action's target stage wins. Subsequent Go to Stage effects from other actions are discarded.
+- **Abort Conversation** vs **End Conversation** — Abort Conversation always wins and suppresses any End Conversation effects.
+- **Modify User Input** — All Modify User Input effects are **chained**: each one transforms the output of the previous, so the AI sees the result of all of them applied in order.
 
 ## Tips
 
-- **Name actions descriptively** — `check_order_status` is better than `action_1`.
+- **Name actions descriptively** — `CheckOrderStatus` is better than `action_1`.
 - **Write clear classification triggers** — Think of them as labels that describe user intent.
 - **Provide examples** — The more example phrases you give, the better the classifier can match.
 - **Use conditions** to hide actions that don't make sense yet (e.g., don't offer "confirm booking" until all required fields are collected).

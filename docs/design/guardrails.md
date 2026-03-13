@@ -26,7 +26,7 @@ Click **New Guardrail** to open the guardrail editor. The form shares the same s
 
 ### Basic Fields
 
-- **Name** — A descriptive label (e.g., "Block Offensive Language").
+- **Name** — A descriptive, ID-like label (e.g., `offensive_language`, `off_topic_request`). Avoid spaces; use underscores instead. The name should match the format of the classification trigger your guardrails classifier will return for this rule.
 - **Condition** — An optional JavaScript expression. The guardrail only fires when this evaluates to truthy. Leave blank to always fire on a classification match.
 - **Examples** — Sample phrases that should trigger this guardrail. These help train and document the classifier.
 - **Tags** — Optional labels for filtering and organization.
@@ -63,3 +63,31 @@ See [Actions & Effects](./actions) for the full list of effect types.
 - **Use conditions for context-dependent rules** — A guardrail that should only apply to authenticated users could have `vars.isAuthenticated === true` as a condition.
 - **Order matters less than coverage** — All matching guardrails on a given turn fire, not just the first one. Design effects that compose well.
 - **Prefer guardrails for zero-tolerance rules** — If something should never be allowed regardless of stage, make it a guardrail, not a global action. No stage can accidentally opt out.
+
+## Moderation
+
+**Moderation** enables an additional layer of automatic content safety screening that runs before the conversation engine processes the user's message. It complements guardrails: guardrails use a project-level classifier with custom rules, while moderation uses the provider's built-in safety API.
+
+Go to **Design > Guardrails & Moderation** and open the **Moderation** tab.
+
+### Enabling Moderation
+
+Toggle **Enable content moderation** to turn screening on or off. When enabled, every user message is evaluated by the moderation API before classification and action processing.
+
+### Selecting a Provider
+
+Choose a **Moderation Provider** from the dropdown. Only **OpenAI** and **Mistral** LLM providers support the moderation API. If no compatible provider is configured, add one in **Administration > Providers** first.
+
+### Blocked Categories
+
+After selecting a provider, choose which content categories to block (e.g., hate speech, self-harm, violence). Leave all unchecked to block any flagged content regardless of category. The available categories depend on the selected provider.
+
+### Handling Blocked Messages
+
+When moderation flags a user message:
+
+1. The message is **not** passed to the AI for processing.
+2. If a **Moderation Blocked** special action is configured in **Design > Global Actions**, its effects run instead (e.g., a polite refusal message).
+3. If no Moderation Blocked action is set up, the default platform behavior applies.
+
+See [Global Actions — Special Actions](./global-actions#special-actions) for how to configure the Moderation Blocked response.

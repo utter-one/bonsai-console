@@ -7,7 +7,7 @@ The **Administration** section is where you manage the infrastructure that power
 | View | Purpose |
 |---|---|
 | [Projects](./projects) | Create and configure self-contained AI experiences |
-| [Environments](./environments) | Manage deployment targets (dev, staging, production) |
+| [Environments](./environments) | Connect to other Bonsai server instances to pull data from them |
 | [Operators & Roles](./operators) | Control who has access and what they can do |
 | [API Keys](./api-keys) | Issue credentials for client applications |
 | [Providers](./providers) | Set up connections to external AI services |
