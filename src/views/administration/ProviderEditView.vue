@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
@@ -224,7 +224,13 @@ const selectedApiTypeDescription = computed(() => {
 
 // Check which config fields to show based on API type
 const showOpenAIFields = computed(() => 
-  ['openai', 'openai-legacy', 'groq', 'mistral', 'deepseek', 'xai', 'openrouter', 'together', 'fireworks', 'perplexity', 'cohere'].includes(form.value.apiType)
+  ['openai', 'openai-legacy', 'groq', 'mistral', 'deepseek', 'xai', 'openrouter', 'perplexity', 'cohere'].includes(form.value.apiType)
+)
+const showFireworksFields = computed(() => 
+  form.value.apiType === 'fireworks-ai'
+)
+const showTogetherFields = computed(() => 
+  form.value.apiType === 'together-ai'
 )
 const showAnthropicFields = computed(() => 
   form.value.apiType === 'anthropic'
@@ -277,6 +283,12 @@ watch(() => form.value.providerType, () => {
 
 // Handle API type change to initialize defaults
 function handleApiTypeChange() {
+  // Auto-populate baseUrl from known presets when creating a new provider
+  if (!isEditMode.value) {
+    const preset = providerPresets.find(p => p.name === form.value.apiType)
+    form.value.config.baseUrl = preset?.baseUrl ?? ''
+  }
+
   // Initialize region defaults for providers that require it
   if (form.value.apiType === 'speechmatics') {
     form.value.config.region = 'us'
@@ -391,6 +403,20 @@ async function handleSubmit() {
     }
     if (form.value.config.organizationId) {
       config.organizationId = form.value.config.organizationId
+    }
+    if (form.value.config.baseUrl) {
+      config.baseUrl = form.value.config.baseUrl
+    }
+  } else if (showFireworksFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
+    }
+    if (form.value.config.baseUrl) {
+      config.baseUrl = form.value.config.baseUrl
+    }
+  } else if (showTogetherFields.value) {
+    config = {
+      apiKey: form.value.config.apiKey
     }
     if (form.value.config.baseUrl) {
       config.baseUrl = form.value.config.baseUrl
@@ -866,6 +892,110 @@ const metadataFields = computed(() => {
                 <template v-if="form.apiType === 'openai-legacy'">Optional base URL for OpenAI-compatible APIs. Use the dropdown to quick-select popular providers.</template>
                 <template v-else-if="defaultBaseUrl">Override the default endpoint URL. Click Reset to restore the default.</template>
                 <template v-else>Optional custom base URL for this provider.</template>
+              </p>
+            </div>
+          </template>
+
+          <!-- Fireworks AI Configuration -->
+          <template v-if="showFireworksFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Fireworks AI Configuration</h3>
+
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="fw-..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Fireworks AI API key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Base URL <span class="text-gray-500">(optional)</span>
+              </label>
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <input
+                    v-model="form.config.baseUrl"
+                    type="url"
+                    placeholder="https://api.fireworks.ai/inference/v1"
+                    class="form-input-mono"
+                    :disabled="isLoading"
+                  />
+                </div>
+                <button
+                  v-if="form.config.baseUrl !== 'https://api.fireworks.ai/inference/v1'"
+                  type="button"
+                  @click="resetBaseUrl"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading"
+                  title="Restore default URL"
+                >
+                  Reset
+                </button>
+              </div>
+              <p class="form-help-text">
+                Override the default Fireworks AI endpoint URL.
+              </p>
+            </div>
+          </template>
+
+          <!-- Together AI Configuration -->
+          <template v-if="showTogetherFields">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Together AI Configuration</h3>
+
+            <div class="form-group">
+              <label class="form-label">
+                API Key <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.config.apiKey"
+                type="password"
+                required
+                placeholder="..."
+                class="form-input-mono"
+                :disabled="isLoading"
+              />
+              <p class="form-help-text">
+                Your Together AI API key
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Base URL <span class="text-gray-500">(optional)</span>
+              </label>
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <input
+                    v-model="form.config.baseUrl"
+                    type="url"
+                    placeholder="https://api.together.xyz/v1"
+                    class="form-input-mono"
+                    :disabled="isLoading"
+                  />
+                </div>
+                <button
+                  v-if="form.config.baseUrl !== 'https://api.together.xyz/v1'"
+                  type="button"
+                  @click="resetBaseUrl"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading"
+                  title="Restore default URL"
+                >
+                  Reset
+                </button>
+              </div>
+              <p class="form-help-text">
+                Override the default Together AI endpoint URL.
               </p>
             </div>
           </template>
