@@ -1,8 +1,8 @@
 # What is Bonsai?
 
-Bonsai is a platform for building conversational AI experiences — both voice and text. It lets you design AI-powered assistants that can talk to your customers, answer questions, collect information, and perform actions, all in real time.
+Bonsai is a platform for building customer-facing AI agents that sound like your brand, follow your rules, and improve over time. It helps teams create voice and chat experiences with structured conversation journeys, approved knowledge, and built-in guardrails, so assistants can answer questions, collect information, and take action in real time without drifting off-brand.
 
-**Bonsai Console** is the web-based control panel where you set everything up and keep an eye on how things are going.
+**Bonsai Console** is the web-based control panel where teams design conversations, monitor live and historical sessions, review issues, and refine the system over time. More than a chatbot builder, Bonsai gives you an operating system for brand-grade conversational AI that is easier to launch, safer to operate, and more consistent across every customer touchpoint.
 
 ## What Can You Do With It?
 
