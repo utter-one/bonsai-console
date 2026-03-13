@@ -37,8 +37,11 @@ See [Actions & Effects](./actions) for details on all these fields.
 
 On the stage edit view:
 
-1. Enable **Use Global Actions**.
-2. Optionally select **specific global action IDs** to include. If you leave this empty, all project global actions are available in the stage.
+1. Enable **Use Global Actions** — this makes all project-level global actions available in the stage.
+
+::: tip Selecting specific global actions
+Filtering to only specific global actions per stage is not yet available in the UI. When Use Global Actions is enabled, all global actions are active in that stage.
+:::
 
 ## Special Actions
 
@@ -95,7 +98,7 @@ The **Conversation Failed** action (ID: <code v-pre>__conversation_failed</code>
 | | Stage Actions | Global Actions |
 |---|---|---|
 | **Scope** | Defined inside a single stage | Defined at project level, shared across stages |
-| **Lifecycle actions** | Supports `__on_enter`, `__on_leave`, `__on_fallback` | No lifecycle actions |
+| **Lifecycle actions** | Supports On Enter, On Leave, On Fallback | No stage lifecycle actions — global lifecycle is handled by Special Actions |
 | **Special actions** | N/A | <code v-pre>__moderation_blocked</code>, <code v-pre>__conversation_start</code>, <code v-pre>__conversation_resume</code>, <code v-pre>__conversation_end</code>, <code v-pre>__conversation_abort</code>, <code v-pre>__conversation_failed</code> |
 | **Best for** | Stage-specific behaviors | Cross-cutting behaviors |
 | **Maintenance** | Edited per-stage | Edit once, applies everywhere |

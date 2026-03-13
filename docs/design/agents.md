@@ -91,10 +91,6 @@ Generate only the first short sentence of the response. The rest will be generat
 Use a small, fast model for the filler LLM — the whole point is speed. A large model defeats the purpose.
 :::
 
-::: tip Voice Required
-Filler Responses only make sense when a TTS provider is configured on the agent. Without a voice, the generated sentence is never spoken.
-:::
-
 ## Using Agents in Stages
 
 Every stage references exactly one agent. When the AI generates a response in that stage, it combines:

@@ -91,20 +91,23 @@ See [Knowledge Base](./knowledge) for more.
 
 ### Global Actions
 
-- **Use Global Actions** — Enable this to make project-level global actions available in this stage.
-- **Specific Actions** — Optionally pick only certain global actions rather than all of them.
+- **Use Global Actions** — Enable this to make all project-level global actions available in this stage.
+
+::: tip Selecting specific global actions
+Filtering to only specific global actions per stage is not yet available in the UI. When Use Global Actions is enabled, all global actions are active in that stage.
+:::
 
 See [Global Actions](./global-actions) for more.
 
 ### Context Transformers
 
-Select which **context transformers** should run on each user input in this stage. Transformers automatically extract structured data (like names or order numbers) from what the user says.
+Select which **context transformers** should run on each user input in this stage. Transformers run an LLM prompt on every turn and can extract structured data, inject hints into the user's utterance, generate prompt additions, or compute helper variables.
 
 See [Context Transformers](./context-transformers) for more.
 
-## Variables
+## Memory (Variables)
 
-Each stage can define **variables** — named pieces of data that are tracked during the conversation. Variables are used in prompts, action conditions, and scripts.
+Each stage's **Memory** tab is where you define **variables** — named pieces of data that are tracked during the conversation. Variables are used in prompts, action conditions, and scripts.
 
 ### Defining Variable Descriptors
 
@@ -134,7 +137,7 @@ Variables are available in:
 - **Scripts** — `vars.retryCount = (vars.retryCount || 0) + 1`
 
 ::: tip Memory (User Profile Variables)
-Stage variables (`vars.*`) are scoped to a single conversation. For data that persists across all of a user's conversations (e.g., account tier, preferences), use **user profile variables** instead. The schema for custom `userProfile.*` fields is defined at the project level in **Administration > Projects > Memory** tab.
+Stage variables (`vars.*`) are scoped to a single conversation. For data that persists across all of a user's conversations (e.g., account tier, preferences), use **user profile variables** instead. The schema for custom `userProfile.*` fields is defined at the project level in **Design > Global Memory > User Profile** tab.
 :::
 
 ## Actions
@@ -145,9 +148,9 @@ Actions define what happens when the user triggers them. Each stage has its own 
 
 Conversations move between stages through the **go to stage** action effect. When a stage transition happens:
 
-1. The current stage's `__on_leave` lifecycle action runs (if defined).
+1. The current stage's **On Leave** lifecycle action runs (if defined).
 2. The new stage loads with its own prompt, agent, classifier, and actions.
-3. The new stage's `__on_enter` lifecycle action runs (if defined).
+3. The new stage's **On Enter** lifecycle action runs (if defined).
 4. The new stage's enter behavior activates (generate response or await input).
 
 ### Lifecycle Actions
@@ -156,13 +159,13 @@ Stages support three special actions that run automatically at specific moments:
 
 | Action | When It Runs | Good For |
 |---|---|---|
-| `__on_enter` | When the conversation enters the stage | Initialization, setting default variable values |
-| `__on_leave` | When the conversation is about to leave the stage | Cleanup, saving state |
-| `__on_fallback` | When no user-triggered action matches | Default response for unrecognized input |
+| **On Enter** | When the conversation enters the stage | Initialization, setting default variable values |
+| **On Leave** | When the conversation is about to leave the stage | Cleanup, saving state |
+| **On Fallback** | When no user-triggered action matches | Default response for unrecognized input |
 
 ## Tips
 
 - **Start simple** — Begin with a few stages and add complexity as you learn what's needed.
 - **Name stages clearly** — Other team members (and future you) should instantly know what each stage does.
 - **Use enter behaviors intentionally** — "Generate response" creates a proactive AI that guides the conversation; "Await user input" lets the user lead.
-- **Use `__on_fallback`** — Define it on stages to handle cases where the classifier doesn't find a match, rather than leaving the AI to improvise.
+- **Use On Fallback** — Define it on stages to handle cases where the classifier doesn't find a match, rather than leaving the AI to improvise.

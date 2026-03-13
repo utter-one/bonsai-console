@@ -1,6 +1,13 @@
 # Context Transformers
 
-A **context transformer** is an LLM-powered component that extracts structured data from a conversation turn and writes it into stage variables. Think of it as an AI-powered form filler that works in the background of every conversation turn. Transformers run in parallel with classifiers on each user input.
+A **context transformer** is an LLM-powered component that runs on every conversation turn and can do much more than just extract data. Common uses include:
+
+- **Data extraction** — Pull structured values out of what the user says (e.g., `customerName`, `orderNumber`).
+- **Whispers** — Inject bracketed hints like `[customer sounds frustrated]` directly into the user's utterance to subtly influence the AI's response.
+- **Prompt additions** — Generate a piece of text that gets appended to the stage prompt, dynamically enriching the context the AI sees.
+- **Helper variables** — Compute and store values (sentiment score, detected topic, etc.) that conditions and scripts can use to control the flow.
+
+Transformers run in parallel with classifiers on each user input — no added latency.
 
 ## Why Use Transformers?
 
@@ -9,7 +16,7 @@ Instead of writing explicit actions to ask for and capture every piece of inform
 - `customerName` → `"Sarah"`
 - `city` → `"London"`
 
-...without any special action being triggered. The data just gets collected as the conversation flows naturally.
+...without any special action being triggered. The data just gets collected as the conversation flows naturally. Beyond data collection, transformers can also steer the conversation through whispers, prompt additions, and trigger reactive flows via watched variables.
 
 ## How They Work
 
@@ -105,11 +112,7 @@ For example, you could have an action that fires when `orderNumber` is newly set
 | **New** | The variable was unset before and now has a value |
 | **Changed** | The variable already existed and its value was updated |
 | **Removed** | The variable was cleared (set to null) |
-
-## Cloning
-
-Context transformers can be cloned to create variations for different stages or extraction requirements. Use the clone action from the transformer list or detail view.
-
+| **Any** | The variable was set, updated, or cleared |
 ## Use Cases
 
 - **Progressive form filling** — Collect name, email, phone number naturally over the course of a conversation, without asking each question in turn.
