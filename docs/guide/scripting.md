@@ -114,7 +114,7 @@ These functions let a script control the conversation flow. They take effect _af
 | `suppressResponse()` | Don't generate any response for this turn |
 
 ::: warning `goToStage` is ignored in lifecycle actions
-`goToStage()` has no effect when called from a script running inside `__on_enter` or `__on_leave`. If you need stage navigation, use a regular user-triggered action.
+`goToStage()` has no effect when called from a script running inside an **On Enter** or **On Leave** lifecycle action. If you need stage navigation, use a regular user-triggered action.
 :::
 
 ### Example — Smart Routing

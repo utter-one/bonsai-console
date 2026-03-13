@@ -36,7 +36,7 @@ Go to **Design > Context Transformers** and click **Create Context Transformer**
 
 - **Name** — A clear label (e.g., "Customer Info Extractor").
 - **Description** — Optional notes.
-- **Prompt** — Instructions telling the AI what to look for (see below).
+- **Prompt** — Instructions for the AI — what to extract, generate, or compute (see below).
 - **Context Fields** — The list of variable names to populate. These should correspond to the variable descriptors defined on the stage. Only fields listed here are written; any extra fields the LLM returns are silently discarded.
 - **LLM Provider** — Which language model performs the extraction.
 - **LLM Settings** — Model-specific settings.

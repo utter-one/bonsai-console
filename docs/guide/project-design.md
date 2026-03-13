@@ -91,9 +91,9 @@ Switch to each stage's **Actions** tab and define what happens when the user spe
 
 Every stage has three special built-in actions (find them in the **Lifecycle** tab):
 
-- **On Enter** (`__on_enter`) — Runs when the conversation enters this stage. Use it to initialize variables, call setup webhooks, or log analytics. Cannot navigate away or end the conversation.
-- **On Leave** (`__on_leave`) — Runs when the conversation leaves this stage. Use it for cleanup or saving state externally. Cannot navigate to another stage.
-- **On Fallback** (`__on_fallback`) — Runs when no action matches the user's input. Almost every stage should have one — typically a `Generate response` (generated) effect so the AI handles the miss gracefully.
+- **On Enter** — Runs when the conversation enters this stage. Use it to initialize variables, call setup webhooks, or log analytics. Cannot navigate away or end the conversation.
+- **On Leave** — Runs when the conversation leaves this stage. Use it for cleanup or saving state externally. Cannot navigate to another stage.
+- **On Fallback** — Runs when no action matches the user's input. Almost every stage should have one — typically a `Generate response` (generated) effect so the AI handles the miss gracefully.
 
 See [Actions & Effects](../design/actions) for full reference.
 
