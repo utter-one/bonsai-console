@@ -35,9 +35,15 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
     if (newId) {
       try {
         const projectsStore = useProjectsStore()
-        selectedProject.value = await projectsStore.fetchById(newId)
+        const project = await projectsStore.fetchById(newId)
+        // Discard stale responses if the selected project changed while fetching
+        if (selectedProjectId.value === newId) {
+          selectedProject.value = project
+        }
       } catch {
-        selectedProject.value = null
+        if (selectedProjectId.value === newId) {
+          selectedProject.value = null
+        }
       }
     } else {
       selectedProject.value = null

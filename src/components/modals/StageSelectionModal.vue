@@ -80,8 +80,6 @@ function selectStage(stage: StageResponse) {
 
 // Load stages on mount
 onMounted(async () => {
-  if (!stagesStore.items.length) {
-    await stagesStore.fetchAll(props.projectId)
-  }
+  await stagesStore.fetchAll(props.projectId)
 })
 </script>

@@ -459,7 +459,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useProjectSelectionStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
+import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
@@ -636,6 +636,7 @@ function savePlaygroundPreferences(projectId: string, prefs: PlaygroundPreferenc
 const router = useRouter()
 const route = useRoute()
 const projectSelectionStore = useProjectSelectionStore()
+const playgroundStore = usePlaygroundStore()
 const globalActionsStore = useGlobalActionsStore()
 const apiKeysStore = useApiKeysStore()
 const authStore = useAuthStore()
@@ -670,16 +671,30 @@ onMounted(() => {
 
 onBeforeRouteLeave(() => {
   stopAllAudioPlayback()
-})
-
-watch(() => route.params.projectId, (newProjectId) => {
-  if (newProjectId) {
-    projectSelectionStore.setSelectedProjectId(newProjectId as string)
-  }
+  playgroundStore.setConversationActive(false)
 })
 
 // Load global actions and API keys when project changes
-watch(projectId, async (newProjectId) => {
+watch(projectId, async (newProjectId, oldProjectId) => {
+  // Clean up previous project's state when switching projects
+  if (oldProjectId && oldProjectId !== newProjectId) {
+    stopAllAudioPlayback()
+    wsClient.value?.disconnect()
+    wsClient.value = null
+    conversationEvents.value = []
+    currentStage.value = null
+    currentConversationId.value = null
+    resumeConversationId.value = null
+    selectedApiKeyId.value = null
+    messageInput.value = ''
+    showStartConversationModal.value = false
+    showRunActionDialog.value = false
+    showJumpToStageDialog.value = false
+    showCallToolDialog.value = false
+    showSetVariableDialog.value = false
+    showBugReportModal.value = false
+  }
+
   if (newProjectId) {
     await Promise.all([
       globalActionsStore.fetchAll(newProjectId),
@@ -720,9 +735,10 @@ watch(projectId, async (newProjectId) => {
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
 
-      // If no saved preference, auto-select first active API key
+      // Auto-select first active API key if saved preference doesn't match any key in this project
       const firstActiveKey = activeApiKeys.value[0]
-      if (firstActiveKey && !selectedApiKeyId.value) {
+      const savedKeyExists = selectedApiKeyId.value && activeApiKeys.value.some(k => k.id === selectedApiKeyId.value)
+      if (firstActiveKey && !savedKeyExists) {
         selectedApiKeyId.value = firstActiveKey.id
       }
     }
@@ -1164,6 +1180,11 @@ const isCallingTool = ref(false)
 const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
 const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
 const isConversationActive = computed(() => wsClient.value?.isInConversation.value || false)
+
+// Sync conversation active state with the store so MainLayout can block project changes
+watch(isConversationActive, (active) => {
+  playgroundStore.setConversationActive(active)
+})
 
 const canConnectWebSocket = computed(() => {
   return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value

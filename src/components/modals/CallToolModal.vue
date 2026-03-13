@@ -561,8 +561,6 @@ function handleCallTool() {
 
 // Load tools on mount
 onMounted(async () => {
-  if (!toolsStore.items.length) {
-    await toolsStore.fetchAll(props.projectId)
-  }
+  await toolsStore.fetchAll(props.projectId)
 })
 </script>

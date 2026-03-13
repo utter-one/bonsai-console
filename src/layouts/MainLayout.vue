@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore, useProjectsStore, useProjectSelectionStore, useLayoutStore } from '@/stores'
+import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore, useLayoutStore } from '@/stores'
 import { formatEnum, useContextualHelp } from '@/composables'
 import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
@@ -16,6 +16,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const playgroundStore = usePlaygroundStore()
 const layoutStore = useLayoutStore()
 
 const { helpUrl } = useContextualHelp()
@@ -31,6 +32,17 @@ const currentSection = computed(() => {
 
 // determine when selected project is archived so we can adjust UI
 const projectIsArchived = computed(() => !!projectSelectionStore.selectedProject?.archivedAt)
+
+const isProjectSelectorDisabled = computed(() => {
+  if (playgroundStore.isConversationActive) return true
+  return isInEditOrDetailView.value
+})
+
+const projectSelectorDisabledTitle = computed(() => {
+  if (playgroundStore.isConversationActive) return 'Cannot change project while a conversation is active'
+  if (isInEditOrDetailView.value) return 'Cannot change project while editing or viewing details'
+  return ''
+})
 
 // Check if we're in an edit or detail view where project selection should be disabled
 const isInEditOrDetailView = computed(() => {
@@ -140,7 +152,7 @@ watch(() => projectSelectionStore.selectedProject, (proj) => {
   if (currentSection.value === 'playground') {
     if (proj.archivedAt) {
       router.push({ name: 'dashboard' })
-    } else {
+    } else if (route.params.projectId !== proj.id) {
       router.push({ name: 'playground', params: { projectId: proj.id } })
     }
   }
@@ -276,15 +288,15 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
             <!-- Trigger button -->
             <button
               type="button"
-              :disabled="isInEditOrDetailView"
+              :disabled="isProjectSelectorDisabled"
               :class="[
                 'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
-                isInEditOrDetailView
+                isProjectSelectorDisabled
                   ? 'cursor-not-allowed opacity-60'
                   : 'cursor-pointer hover:border-primary-500 dark:hover:border-primary-400'
               ]"
-              :title="isInEditOrDetailView ? 'Cannot change project while editing or viewing details' : ''"
-              @click="!isInEditOrDetailView && (showProjectDropdown = !showProjectDropdown)"
+              :title="projectSelectorDisabledTitle"
+              @click="!isProjectSelectorDisabled && (showProjectDropdown = !showProjectDropdown)"
             >
               <span
                 class="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10 transition-colors"
