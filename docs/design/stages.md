@@ -39,7 +39,7 @@ The prompt tells the AI what to do at this particular step. It's a [Handlebars t
 | <code v-pre>{{time.anchor}}</code> | Current date/time context sentence |
 | <code v-pre>{{vars.*}}</code> | Stage variables collected during the conversation |
 | <code v-pre>{{userProfile.*}}</code> | The end user's profile fields |
-| <code v-pre>{{constants.*}}</code> | Project-level constants |
+| <code v-pre>{{consts.*}}</code> | Project-level constants |
 
 ::: warning These variables are not auto-injected
 Without <code v-pre>{{agent}}</code> in the prompt, the agent's personality is silently absent. Without the `faq` block, matched knowledge results are silently discarded even when the classifier found relevant content. Always include both on stages that use an agent and/or knowledge lookup.

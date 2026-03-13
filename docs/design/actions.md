@@ -108,7 +108,7 @@ Send an HTTP request to an external service. You can use template values in the 
 
 - **Method** — GET, POST, PUT, DELETE
 - **URL** — e.g., <code v-pre>https://api.example.com/orders/{{vars.orderId}}</code>
-- **Headers** — e.g., <code v-pre>Authorization: Bearer {{constants.apiToken}}</code>
+- **Headers** — e.g., <code v-pre>Authorization: Bearer {{consts.apiToken}}</code>
 - **Body** — JSON payload
 - **Result Key** — Name under which the response is stored for use in later effects
 

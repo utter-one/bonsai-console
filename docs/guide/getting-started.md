@@ -11,7 +11,7 @@ This page walks you through your first login and the basic steps to get a projec
 You'll land on the Dashboard.
 
 ::: tip First-Time Setup
-If this is a brand-new installation with no operator accounts yet, you'll see a one-time setup screen where you create the first super admin account.
+If this is a brand-new installation with no operator accounts yet, you'll see a one-time setup screen where you create the first super admin account. After that, a guided setup wizard walks you through configuring your first AI service provider and creating your first project.
 :::
 
 ## Selecting a Project
@@ -66,7 +66,7 @@ Go to **Design > Stages** and create your first stage. Think of a stage as a ste
 
 ### 3. Create an API Key
 
-Go to **Administration > API Keys** (or the project's API Keys section) and create a key. Client applications will use this key to connect to your project and start conversations.
+An API key is created automatically when you create a project, so you may already have one. If you need an additional key, go to **Administration > API Keys** and create one. Client applications use this key to connect to your project and start conversations.
 
 ### 4. Test It
 
@@ -76,6 +76,7 @@ Use the **Playground** to start a test conversation and see your AI in action. Y
 
 Now that you have a working conversation, explore the more powerful features:
 
+- [Project Design Guide](./project-design) — A step-by-step walkthrough for designing a complete project.
 - [Stages](../design/stages) — Add more steps to your conversation flow.
 - [Actions & Effects](../design/actions) — Make the AI _do_ things beyond just talking.
 - [Classifiers](../design/classifiers) — Teach the system to understand user intent.

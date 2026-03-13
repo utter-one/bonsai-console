@@ -10,7 +10,7 @@ The left sidebar divides the console into three main areas:
 Where you build and configure your AI assistant's behavior. Everything here is scoped to the currently selected project. This includes stages, agents, classifiers, context transformers, tools, global actions, guardrails, moderation, global memory (with constants), and knowledge.
 
 ### Monitor
-Where you observe what's happening in real time and review historical data. Browse conversations, view user profiles, review flagged issues, and check audit logs.
+Where you observe what's happening in real time and review historical data. Browse conversations, view user profiles, review flagged issues, track analytics and performance metrics, and check audit logs.
 
 ### Administration
 Where you manage the platform itself. Create projects, set up environments, configure AI service providers, manage API keys, and control operator access.

@@ -9,7 +9,7 @@ You'll encounter templates in stage prompts, agent prompts, tool prompts, and se
 Use double curly braces <code v-pre>{{ }}</code> to insert a value:
 
 ```handlebars
-Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
+Hello {{userProfile.name}}, welcome to {{consts.companyName}}.
 ```
 
 ### Available Data
@@ -17,8 +17,9 @@ Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
 | Variable | Description |
 |---|---|
 | `vars` | Current stage variables (data collected during the conversation) |
+| `stageVars` | Variables from all stages, keyed by stage ID — e.g. <code v-pre>{{stageVars.stage-id.field}}</code> |
 | `userProfile` | The end user's profile information (custom fields defined in the project) |
-| `constants` | Project-level constants (company name, support hours, etc.) |
+| `consts` | Project-level constants (company name, support hours, etc.) |
 | `userInput` | What the user just said |
 | `time` | Current date and time (timezone-aware) |
 | `context.results` | Results from tool calls and webhooks |
@@ -27,7 +28,7 @@ Hello {{userProfile.name}}, welcome to {{constants.companyName}}.
 
 ### User Profile Fields
 
-Custom fields can be declared per-project in **Administration > Projects > Memory** tab. Custom fields show up in the prompt editor's autocomplete and can be accessed the same way:
+Custom fields can be declared per-project in **Design > Global Memory > User Profile** tab. Custom fields show up in the prompt editor's autocomplete and can be accessed the same way:
 
 ```handlebars
 {{userProfile.tier}}
@@ -36,6 +37,17 @@ Custom fields can be declared per-project in **Administration > Projects > Memor
 ```
 
 See [Projects](../administration/projects#user-profile-variables) for details on defining custom fields.
+
+### Cross-Stage Variables
+
+To read variables collected in a different stage, use `stageVars` with the stage's ID:
+
+```handlebars
+{{stageVars.identify-customer.email}}
+{{stageVars.order-lookup.orderId}}
+```
+
+This is useful when a later stage needs data that was captured earlier without duplicating variable definitions.
 
 ### Nested Properties
 
@@ -146,7 +158,7 @@ The timezone is determined once when a conversation starts:
 ```handlebars
 {{time.anchor}}
 
-You are a booking assistant for {{constants.companyName}}.
+You are a booking assistant for {{consts.companyName}}.
 When the user says "next Tuesday", that means {{time.nextTuesday}}.
 When the user says "this Friday", that means {{time.nextFriday}}.
 ```
@@ -200,7 +212,7 @@ Here's a realistic stage prompt combining several template features:
 ```handlebars
 {{time.anchor}}
 
-You are a {{constants.agentRole}} for {{constants.companyName}}.
+You are a {{consts.agentRole}} for {{consts.companyName}}.
 
 {{#exists vars.customerName}}
 You are speaking with {{vars.customerName}}.
@@ -223,6 +235,7 @@ offer to transfer to a human agent.
 ## Tips
 
 - **Use `exists` guards** around variables that might not be set yet.
-- **Put shared values in project constants** (like your company name) instead of repeating them in every prompt.
+- **Put shared values in project constants** (like your company name) instead of repeating them in every prompt. Access them as <code v-pre>{{consts.key}}</code>.
+- **Use `stageVars`** to reference data collected in earlier stages without duplicating variable definitions.
 - **Use variables** to build up context across conversation turns — the prompt can reference everything collected so far.
 - **Test with edge cases** — think about what happens when a variable is empty or hasn't been set.

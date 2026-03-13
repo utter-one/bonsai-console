@@ -36,20 +36,20 @@ You can have multiple agents in a project (e.g., a casual helper and a formal es
 
 ## Actions & Effects — Making Things Happen
 
-**Actions** are how the AI does more than just talk. An action is triggered when a user says something that matches it (via a classifier), or by other events. Each action contains a list of **effects** — the actual things that happen:
+**Actions** are how the AI does more than just talk. An action is triggered when a user says something that matches it (via a classifier), or by other events. Each action contains a list of **effects** — the actual things that happen. Effects are listed here in the order they execute:
 
 | Effect | What It Does |
 |---|---|
-| **Go to stage** | Move the conversation to a different stage |
-| **Run script** | Execute custom logic (JavaScript) |
-| **Modify variables** | Set, reset, or update conversation data |
 | **Call webhook** | Send a request to an external API |
 | **Call tool** | Invoke an AI-powered tool (translation, lookup, etc.) |
-| **Generate response** | Produce an AI reply (or a fixed, pre-written message) |
-| **Modify user input** | Change what the AI "sees" as the user's message |
+| **Modify variables** | Set, reset, or update conversation data |
 | **Modify user profile** | Update the end user's stored profile data |
+| **Modify user input** | Change what the AI "sees" as the user's message |
+| **Run script** | Execute custom logic (JavaScript) |
+| **Generate response** | Produce an AI reply (or a fixed, pre-written message) |
 | **End conversation** | Gracefully close the conversation |
 | **Abort conversation** | Immediately terminate the conversation |
+| **Go to stage** | Move the conversation to a different stage |
 
 Effects run in order within an action. You can chain them — for example: _call a webhook to check an order status → store the result in a variable → generate a response that includes the status._
 
@@ -57,16 +57,18 @@ Effects run in order within an action. You can chain them — for example: _call
 
 A **classifier** is an AI-powered component that looks at what the user said and decides which action (if any) should be triggered. Behind the scenes, it sends the user's message plus a list of available actions to a language model, which picks the best match.
 
-Each stage has a default classifier. You can also create specialized classifiers for specific actions.
+Each stage has a default classifier. Classifiers are also used in **global actions** (a separate project-level classifier routes cross-stage intents) and in **guardrails** (a dedicated classifier evaluates safety rules on every turn). You can create specialized classifiers for specific tasks and assign them where needed.
 
-## Context Transformers — Extracting Data
+## Context Transformers — Processing Each Turn
 
-**Context transformers** automatically extract structured information from the conversation. For example, if a user says _"My name is Sarah and my order number is 12345"_, a transformer can pull out:
+**Context transformers** run an LLM prompt on every conversation turn and can do more than just extract data. Common uses include:
 
-- `customerName` → "Sarah"
-- `orderNumber` → "12345"
+- **Data extraction** — Pull structured values out of what the user says. For example: `customerName` → "Sarah", `orderNumber` → "12345".
+- **Whispers** — Inject bracketed comments like `[customer sounds frustrated]` directly into the user's utterance, giving the AI subtle cues without the user seeing them.
+- **Prompt additions** — Generate a chunk of text that gets appended to the stage prompt, letting the transformer dynamically shape what context the AI sees.
+- **Helper variables** — Compute and set variables (e.g., detected intent score, sentiment) that conditions and scripts can use to steer the flow.
 
-This data is stored in the stage's variables and can be used in prompts, conditions, and scripts.
+Extracted values are stored in the stage's variables and are available in prompts, conditions, and scripts.
 
 ## Knowledge Base — FAQ Content
 
@@ -91,17 +93,12 @@ There are also **special actions** (like **Moderation Blocked**) that are trigge
 
 Use guardrails for zero-tolerance rules: blocking harmful language, refusing off-topic requests, or enforcing usage policies that should apply everywhere.
 
-## Global Constants — Project-Wide Values
+## Global Memory — Constants and User Profile
 
-**Global constants** are key-value pairs defined at the project level and available in all prompts via <span v-pre>`{{constants.key}}`</span>. Use them for values that don't change per conversation — company name, support hours, policy limits, plan pricing.
+**Global Memory** is a single, integrated page (**Design > Global Memory**) that manages two complementary areas:
 
-Constants support String, Number, Boolean, and JSON types. Manage them in **Design > Global Memory > Constants** tab.
-
-## Global Memory — User Profile Schema
-
-**Global memory** defines the schema for custom fields stored on each end user's profile. Declaring fields here (with their types) enables autocomplete in the prompt editor and documents your data model for the team.
-
-Custom profile fields are accessed in prompts as <span v-pre>`{{userProfile.fieldName}}`</span> and set at runtime via `modify_user_profile` effects or scripts. Manage the schema in **Design > Global Memory > User Profile** tab.
+- **Constants** — Project-wide key-value pairs that never change per conversation (company name, support hours, policy limits, plan pricing). Accessed in both prompts and scripts as `consts.key` (e.g. <span v-pre>`{{consts.key}}`</span> in templates). Manage them on the **Constants** tab.
+- **User Profile schema** — The custom fields stored on each end user's profile. Declaring fields here enables autocomplete in the prompt editor and documents your data model for the team. Accessed as <span v-pre>`{{userProfile.fieldName}}`</span> in prompts and set at runtime via `modify_user_profile` effects or scripts. Manage the schema on the **User Profile** tab.
 
 ## Moderation — Content Safety
 
