@@ -54,7 +54,7 @@
             v-model.number="form.order"
             type="number"
             min="0"
-            class="form-input"
+            class="form-input max-w-32"
             :disabled="disabled"
           />
         </div>

@@ -23,7 +23,7 @@
           <select
             :value="selectedStageId"
             @change="handleStageChange($event)"
-            class="form-select flex-1"
+            class="form-select-auto min-w-64"
           >
             <option value="">— Select a stage —</option>
             <option

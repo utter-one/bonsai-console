@@ -640,7 +640,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <select
               v-model="form.ttsProviderId"
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isLoading"
               @change="handleTtsProviderChange"
             >
@@ -662,7 +662,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             <select
               v-if="availableModels.length > 0"
               v-model="modelValue"
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isLoading"
               required
             >
@@ -698,7 +698,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             <select
               v-if="availableVoices.length > 0 && isModelSelected"
               v-model="form.ttsSettings.voiceId"
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isLoading"
               required
             >
@@ -719,7 +719,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             <input
               v-else
               type="text"
-              class="form-input-disabled"
+              class="form-input-disabled max-w-64"
               placeholder="Select model first"
               disabled
             />
@@ -750,7 +750,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <select
               v-model="audioFormatValue"
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isLoading"
             >
               <option value="">Default</option>
@@ -795,7 +795,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0.25"
                 max="4.0"
                 step="0.01"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -813,7 +813,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               <label class="form-label">Sample Rate (Hz)</label>
               <select
                 v-model.number="(form.ttsSettings as DeepgramTtsSettings).sampleRate"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option :value="undefined">Default</option>
@@ -834,7 +834,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               </label>
               <select
                 v-model.number="(form.ttsSettings as DeepgramTtsSettings).bitRate"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option :value="undefined">Default</option>
@@ -855,7 +855,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               <label class="form-label">Container Format</label>
               <select
                 v-model="(form.ttsSettings as DeepgramTtsSettings).container"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="none">None (raw audio)</option>
@@ -877,7 +877,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               <label class="form-label">Language</label>
               <select
                 v-model="(form.ttsSettings as CartesiaTtsSettings).language"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="en">English (en)</option>
@@ -911,7 +911,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
               <label class="form-label">Speed</label>
               <select
                 v-model="(form.ttsSettings as CartesiaTtsSettings).speed"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="slowest">Slowest</option>
@@ -953,7 +953,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0"
                 max="5000"
                 step="100"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -977,7 +977,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0"
                 max="1"
                 step="0.01"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -996,7 +996,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0"
                 max="1"
                 step="0.01"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1015,7 +1015,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0"
                 max="1"
                 step="0.01"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1034,7 +1034,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 min="0.7"
                 max="1.2"
                 step="0.01"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1073,7 +1073,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 v-model="(form.ttsSettings as AzureTtsSettings).rate"
                 type="text"
                 placeholder="1.0 or +10% or -5%"
-                class="form-input"
+                class="form-input max-w-64"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1090,7 +1090,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 v-model="(form.ttsSettings as AzureTtsSettings).pitch"
                 type="text"
                 placeholder="0% or +5% or -10%"
-                class="form-input"
+                class="form-input max-w-64"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1107,7 +1107,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 v-model.number="(form.ttsSettings as ElevenLabsTtsSettings).inactivityTimeout"
                 type="number"
                 min="1"
-                class="form-input"
+                class="form-input max-w-xs"
                 :disabled="isLoading"
               />
               <p class="form-help-text">

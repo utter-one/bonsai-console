@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
@@ -270,6 +270,10 @@ const showGcsFields = computed(() =>
 const showLocalStorageFields = computed(() => 
   form.value.apiType === 'local' && form.value.providerType === 'storage'
 )
+
+watch(() => form.value.providerType, () => {
+  form.value.apiType = ''
+})
 
 // Handle API type change to initialize defaults
 function handleApiTypeChange() {
@@ -729,7 +733,7 @@ const metadataFields = computed(() => {
             <select
               v-model="form.providerType"
               required
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isEditMode || isLoading"
             >
               <option v-for="type in providerTypes" :key="type.value" :value="type.value">
@@ -751,7 +755,7 @@ const metadataFields = computed(() => {
             <select
               v-model="form.apiType"
               required
-              class="form-select"
+              class="form-select-auto min-w-64"
               :disabled="isLoading || providerCatalogStore.isLoading"
               @change="handleApiTypeChange"
             >
@@ -1019,7 +1023,7 @@ const metadataFields = computed(() => {
               </label>
               <select
                 v-model="form.config.region"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 required
                 :disabled="isLoading"
               >
@@ -1098,7 +1102,7 @@ const metadataFields = computed(() => {
               </label>
               <select
                 v-model="form.config.region"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 required
                 :disabled="isLoading"
               >
