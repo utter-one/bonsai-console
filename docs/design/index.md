@@ -12,7 +12,7 @@ At a high level, designing a conversation means defining:
 4. **How the AI understands user intent** → [Classifiers](./classifiers)
 5. **How data is extracted from the conversation** → [Context Transformers](./context-transformers)
 6. **Shared behaviors that work across stages** → [Global Actions](./global-actions)
-7. **Project-wide safety, guardrails, and moderation** → [Guardrails & Moderation](./guardrails)
+7. **Project-wide safety, guardrails, and moderation** → [Guardrails](./guardrails) & [Moderation](./moderation)
 8. **AI-powered utility functions** → [Tools](./tools)
 9. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
 10. **User profile schema and project constants** → [Global Memory](./global-memory)

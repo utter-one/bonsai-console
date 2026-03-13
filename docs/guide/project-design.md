@@ -179,7 +179,7 @@ See [Global Memory](../design/global-memory) for details.
 
 ## 11. Configure Moderation (Optional)
 
-Go to **Design > Moderation** to enable content safety screening.
+Go to **Design > Guardrails & Moderation** to enable content safety screening.
 
 1. Toggle **Enable content moderation**.
 2. Select a compatible provider (OpenAI or Mistral).
