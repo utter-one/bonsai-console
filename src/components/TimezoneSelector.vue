@@ -12,18 +12,20 @@ const props = withDefaults(defineProps<{
    */
   placeholder?: string
   disabled?: boolean
-  /**
-   * 'button' — compact btn-secondary trigger suitable for toolbars/headers.
-   * 'form'   — full-width form-select-like trigger suitable for form fields.
-   */
-  variant?: 'button' | 'form'
-  /** Show a globe icon in the trigger (useful for toolbar buttons). */
+  /** Show a globe icon in the trigger. */
   showIcon?: boolean
+  /**
+   * Controls how the component sizes itself.
+   * 'auto'     — shrinks to fit content like a native select (default).
+   * 'full'     — stretches to 100% of the parent.
+   * 'override' — imposes no width; caller controls it via a class on the component element.
+   */
+  width?: 'auto' | 'full' | 'override'
 }>(), {
   placeholder: 'UTC (default)',
   disabled: false,
-  variant: 'button',
   showIcon: false,
+  width: 'auto',
 })
 
 const emit = defineEmits<{
@@ -46,16 +48,22 @@ const filteredTimezones = computed(() => timezonesStore.search(searchQuery.value
 
 const displayLabel = computed(() => props.modelValue || props.placeholder)
 
+const containerClass = computed(() => {
+  if (props.width === 'auto') return 'relative inline-flex'
+  if (props.width === 'full') return 'relative flex w-full'
+  return 'relative flex'
+})
+
 function updateDropdownPosition() {
   if (!containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()
-  dropdownStyle.value = {
-    top: `${rect.bottom + window.scrollY + 4}px`,
-    left: `${rect.left + window.scrollX}px`,
-    ...(props.variant === 'form'
-      ? { width: `${rect.width}px` }
-      : { minWidth: '280px' }),
+  const base = {
+    top: `${rect.bottom + 4}px`,
+    left: `${rect.left}px`,
   }
+  dropdownStyle.value = props.width === 'auto'
+    ? { ...base, minWidth: `${rect.width}px` }
+    : { ...base, width: `${rect.width}px` }
 }
 
 function open() {
@@ -100,33 +108,19 @@ onUnmounted(() => {
 <template>
   <div
     ref="containerRef"
-    :class="variant === 'form' ? 'relative block' : 'relative inline-flex'"
+    :class="containerClass"
   >
-    <!-- Trigger: button variant -->
     <button
-      v-if="variant === 'button'"
       type="button"
-      class="btn-secondary flex items-center gap-2 whitespace-nowrap"
+      class="flex-1 btn-secondary flex items-center gap-2 whitespace-nowrap justify-between pr-0!"
       :disabled="disabled"
       @click="toggle"
     >
-      <Globe v-if="showIcon" :size="18" />
-      <span class="hidden md:inline">{{ displayLabel }}</span>
-      <ChevronDown :size="16" class="ml-1 text-gray-500" />
-    </button>
-
-    <!-- Trigger: form variant -->
-    <button
-      v-else
-      type="button"
-      class="flex items-center justify-between w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      :disabled="disabled"
-      @click="toggle"
-    >
-      <span :class="modelValue ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-400'">
-        {{ displayLabel }}
-      </span>
-      <ChevronDown :size="16" class="text-gray-400 flex-shrink-0 ml-2" />
+      <div class="flex flex-row gap-2 items-center">
+        <Globe v-if="showIcon" :size="18" />
+        <span>{{ displayLabel }}</span>
+      </div>
+      <ChevronDown :size="15" class="ml-1 text-white stroke-3" />
     </button>
 
     <!-- Dropdown -->
@@ -141,7 +135,7 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg dark:bg-gray-800 dark:border-gray-700"
+        class="fixed z-9999 bg-white border border-gray-200 rounded-md shadow-lg dark:bg-gray-800 dark:border-gray-700"
         :style="dropdownStyle"
         @click.stop
         @mousedown.stop
@@ -158,7 +152,7 @@ onUnmounted(() => {
         </div>
 
         <!-- List -->
-        <div class="max-h-[260px] overflow-y-auto">
+        <div class="max-h-65 overflow-y-auto">
           <!-- Default / no-selection option -->
           <button
             type="button"

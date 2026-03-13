@@ -287,7 +287,7 @@ const metadataFields = computed(() => {
                   type="text"
                   required
                   placeholder="admin"
-                  class="form-input"
+                  class="form-input max-w-xs"
                   :disabled="isLoading"
                 />
                 <p class="form-help-text">Authentication username for this environment</p>
@@ -304,7 +304,7 @@ const metadataFields = computed(() => {
                   type="password"
                   :required="!isEditMode"
                   placeholder="••••••••"
-                  class="form-input-mono"
+                  class="form-input-mono max-w-xs"
                   :disabled="isLoading"
                 />
                 <p class="form-help-text">

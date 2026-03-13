@@ -590,7 +590,7 @@ const metadataFields = computed(() => {
                 <button
                   type="button"
                   @click="addParameter"
-                  class="btn-secondary w-full"
+                  class="btn-secondary"
                   :disabled="isLoading"
                 >
                   + Add Parameter

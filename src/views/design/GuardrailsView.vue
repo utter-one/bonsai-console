@@ -286,7 +286,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
             <div class="flex items-center gap-3">
               <select
                 v-model="defaultGuardrailClassifierId"
-                class="form-select-auto"
+                class="form-select-auto min-w-64"
                 :disabled="projectIsArchived || settingsLoading"
               >
                 <option value="">None — guardrails disabled</option>

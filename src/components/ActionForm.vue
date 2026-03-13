@@ -643,7 +643,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
             </label>
             <select
               v-model="form.overrideClassifierId"
-              class="form-select-auto"
+              class="form-select-auto min-w-64"
             >
               <option value="">No override (use default classifier)</option>
               <option v-for="classifier in availableClassifiers" :key="classifier.id" :value="classifier.id">
@@ -863,7 +863,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           <button
             type="button"
             @click="addParameter"
-            class="btn-secondary w-full"
+            class="btn-secondary"
           >
             + Add Parameter
           </button>
@@ -1006,7 +1006,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     <div v-show="activeTab.value === 'generateResponse'" class="tab-content space-y-6">
       <div class="form-group">
         <label class="form-label">Response Mode</label>
-        <select v-model="operations.generateResponse.responseMode" class="form-select-auto">
+        <select v-model="operations.generateResponse.responseMode" class="form-select-auto min-w-64">
           <option value="generated">Generated (AI-generated)</option>
           <option value="prescripted">Prescripted (predefined responses)</option>
         </select>
@@ -1018,7 +1018,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       <template v-if="operations.generateResponse.responseMode === 'prescripted'">
         <div class="form-group">
           <label class="form-label">Selection Strategy</label>
-          <select v-model="operations.generateResponse.prescriptedSelectionStrategy" class="form-select-auto">
+          <select v-model="operations.generateResponse.prescriptedSelectionStrategy" class="form-select-auto min-w-64">
             <option value="random">Random</option>
             <option value="round_robin">Round Robin</option>
           </select>
@@ -1066,7 +1066,7 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
         <select
           v-model="operations.goToStage.stageId"
           :required="operations.goToStage.enabled"
-          class="form-select-auto"
+          class="form-select-auto min-w-64"
         >
           <option value="">Select a stage...</option>
           <option v-for="stage in availableStages" :key="stage.id" :value="stage.id">

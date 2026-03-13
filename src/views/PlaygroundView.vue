@@ -72,6 +72,7 @@
                   placeholder="Project Default"
                   :show-icon="true"
                   :disabled="wsIsConnected"
+                  :width="'full'"
                 />
               </div>
             </div>

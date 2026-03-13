@@ -757,9 +757,10 @@ function handleStorageSettingsClose() {
             <label class="form-label">Timezone</label>
             <TimezoneSelector
               v-model="form.timezone"
-              variant="form"
+              width="override"
               placeholder="Default (UTC)"
               :disabled="isLoading"
+              class="max-w-96"
             />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
           </div>
@@ -780,7 +781,7 @@ function handleStorageSettingsClose() {
               min="60"
               max="3600"
               placeholder="No timeout"
-              class="form-input max-w-48"
+              class="form-input max-w-64"
               :disabled="isLoading"
             />
             <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
@@ -956,7 +957,7 @@ function handleStorageSettingsClose() {
                 </label>
                 <select
                   v-model="form.asrConfig.asrProviderId"
-                  class="form-select"
+                  class="form-select-auto min-w-64"
                   :disabled="isLoading"
                   :required="form.acceptVoice"
                   @change="handleAsrProviderChange"
@@ -995,7 +996,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
                     <option :value="undefined">Default</option>
@@ -1028,7 +1029,7 @@ function handleStorageSettingsClose() {
                       v-model="newPhrase"
                       type="text"
                       placeholder="Add a phrase"
-                      class="form-input"
+                      class="form-input max-w-64"
                       :disabled="isLoading"
                       @keyup.enter="addDictionaryPhrase"
                     />
@@ -1090,7 +1091,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
                     <option :value="undefined">Default (PCM 16kHz)</option>
@@ -1161,7 +1162,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.commitStrategy"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
                     <option :value="undefined">Default (Manual)</option>
@@ -1187,7 +1188,7 @@ function handleStorageSettingsClose() {
                       min="0.3"
                       max="3"
                       step="0.1"
-                      class="form-input"
+                      class="form-input max-w-xs"
                       placeholder="1.5"
                       :disabled="isLoading"
                     />
@@ -1206,7 +1207,7 @@ function handleStorageSettingsClose() {
                       min="0.1"
                       max="0.9"
                       step="0.05"
-                      class="form-input"
+                      class="form-input max-w-xs"
                       placeholder="0.4"
                       :disabled="isLoading"
                     />
@@ -1225,7 +1226,7 @@ function handleStorageSettingsClose() {
                       min="50"
                       max="2000"
                       step="10"
-                      class="form-input"
+                      class="form-input max-w-xs"
                       placeholder="100"
                       :disabled="isLoading"
                     />
@@ -1244,7 +1245,7 @@ function handleStorageSettingsClose() {
                       min="50"
                       max="2000"
                       step="10"
-                      class="form-input"
+                      class="form-input max-w-xs"
                       placeholder="100"
                       :disabled="isLoading"
                     />
@@ -1280,7 +1281,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.modelId"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
                     <option :value="undefined">Default (nova-3)</option>
@@ -1326,7 +1327,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
                     <option :value="undefined">Default (PCM 16kHz)</option>
@@ -1399,7 +1400,7 @@ function handleStorageSettingsClose() {
                       min="10"
                       required
                       placeholder="300"
-                      class="form-input"
+                      class="form-input max-w-xs"
                       :disabled="isLoading"
                     />
                     <p class="form-help-text">
@@ -1468,7 +1469,7 @@ function handleStorageSettingsClose() {
                     type="number"
                     min="10"
                     placeholder="Leave empty for default"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1502,7 +1503,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model.number="form.asrConfig.settings.sampleRate"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     required
                     :disabled="isLoading"
                   >
@@ -1523,7 +1524,7 @@ function handleStorageSettingsClose() {
                   </label>
                   <select
                     v-model="form.asrConfig.settings.speechModel"
-                    class="form-select"
+                    class="form-select-auto min-w-64"
                     required
                     :disabled="isLoading"
                   >
@@ -1579,7 +1580,7 @@ function handleStorageSettingsClose() {
                     max="1"
                     step="0.05"
                     placeholder="0.4"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1598,7 +1599,7 @@ function handleStorageSettingsClose() {
                     max="1"
                     step="0.05"
                     placeholder="0.4"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1615,7 +1616,7 @@ function handleStorageSettingsClose() {
                     type="number"
                     min="0"
                     placeholder="400"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1632,7 +1633,7 @@ function handleStorageSettingsClose() {
                     type="number"
                     min="0"
                     placeholder="1280"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1650,7 +1651,7 @@ function handleStorageSettingsClose() {
                     min="5"
                     max="3600"
                     placeholder="No timeout"
-                    class="form-input"
+                    class="form-input max-w-xs"
                     :disabled="isLoading"
                   />
                   <p class="form-help-text">
@@ -1662,7 +1663,7 @@ function handleStorageSettingsClose() {
                   <label class="form-label">
                     Custom Keywords <span class="text-gray-500">(optional)</span>
                   </label>
-                  <div class="flex gap-2 mb-2">
+                  <div class="flex gap-2 mb-2 max-w-xs">
                     <input
                       v-model="newKeyterm"
                       type="text"
@@ -1726,7 +1727,7 @@ function handleStorageSettingsClose() {
               </label>
               <select
                 v-model="form.asrConfig.settings.audioFormat"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 required
                 :disabled="isLoading"
               >
@@ -1746,7 +1747,7 @@ function handleStorageSettingsClose() {
               </label>
               <select
                 v-model="form.asrConfig.settings.transcriptionMode"
-                class="form-select"
+                class="form-select-auto min-w-64"
                 required
                 :disabled="isLoading"
               >
@@ -1787,7 +1788,7 @@ function handleStorageSettingsClose() {
                 max="10"
                 step="0.1"
                 placeholder="0-10"
-                class="form-input"
+                class="form-input max-w-xs"
                 :disabled="isLoading"
               />
               <p class="form-help-text">
@@ -1857,7 +1858,7 @@ function handleStorageSettingsClose() {
                 Custom Vocabulary <span class="text-gray-500">(optional)</span>
               </label>
               <div class="space-y-3">
-                <div class="flex gap-2">
+                <div class="flex gap-2 max-w-xs">
                   <input
                     v-model="newVocabWord"
                     type="text"
@@ -1924,7 +1925,7 @@ function handleStorageSettingsClose() {
               </label>
               <select
                 v-model="form.storageConfig.storageProviderId"
-                class="form-select-auto"
+                class="form-select-auto min-w-64Tags for categorizing and filtering. Press Enter or comma to add a tag."
                 :disabled="isLoading"
               >
                 <option value="">None</option>

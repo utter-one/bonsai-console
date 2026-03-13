@@ -25,7 +25,7 @@
         v-model="tagInput"
         type="text"
         placeholder="Add a tag..."
-        class="form-input"
+        class="form-input max-w-64"
         :disabled="disabled"
         @keydown="handleKeydown"
       />
