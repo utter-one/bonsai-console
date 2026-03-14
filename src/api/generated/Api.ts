@@ -49,6 +49,8 @@ import {
   OpenAILlmSettings,
   OpenAiTtsSettings,
   ParameterValue,
+  ProjectExchangeBundleV1,
+  ProjectExchangeImportResult,
   S3StorageConfig,
   S3StorageSettings,
   SpeechmaticsAsrSettings,
@@ -9549,6 +9551,45 @@ export class Api<
       method: "GET",
       query: query,
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Produces a self-contained, provider-agnostic exchange bundle for the specified project. All child entities (agents, stages, classifiers, context transformers, tools, global actions, guardrails, knowledge base) are included. Provider UUID references are replaced by provider hints (`type` + `apiType`) so the bundle can be imported into any environment. Credentials are never included. Entity IDs in the bundle are preserved as local cross-references and remapped to fresh UUIDs on import.
+   *
+   * @tags Projects
+   * @name ProjectsExportList
+   * @summary Export a project as an exchange bundle
+   * @request GET:/api/projects/{id}/export
+   * @secure
+   */
+  projectsExportList = (id: string, params: RequestParams = {}) =>
+    this.request<ProjectExchangeBundleV1, void>({
+      path: `/api/projects/${id}/export`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Imports a project from a provider-agnostic exchange bundle. All entity IDs are remapped to fresh UUIDs so repeated imports never overwrite existing data. Provider hints are resolved to local provider IDs by matching `type` + `apiType` (first match wins). If no matching local provider is found for a hint, the corresponding provider field is set to null. Returns the newly assigned project ID and a count of created entities.
+   *
+   * @tags Projects
+   * @name ProjectsImportCreate
+   * @summary Import a project from an exchange bundle
+   * @request POST:/api/projects/import
+   * @secure
+   */
+  projectsImportCreate = (
+    data: ProjectExchangeBundleV1,
+    params: RequestParams = {},
+  ) =>
+    this.request<ProjectExchangeImportResult, void>({
+      path: `/api/projects/import`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });
