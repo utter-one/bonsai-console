@@ -6,6 +6,8 @@ import type {
   ProjectResponse,
   CreateProjectRequest,
   UpdateProjectRequest,
+  ProjectExchangeBundleV1,
+  ProjectExchangeImportResult,
 } from '@/api/types'
 
 export const useProjectsStore = defineStore('projects', () => {
@@ -115,6 +117,16 @@ export const useProjectsStore = defineStore('projects', () => {
     return result
   }
 
+  async function exportProject(id: string): Promise<ProjectExchangeBundleV1> {
+    return (apiClient as any).projectsExportList(id)
+  }
+
+  async function importProject(bundle: ProjectExchangeBundleV1): Promise<ProjectExchangeImportResult> {
+    const result = await (apiClient as any).projectsImportCreate(bundle)
+    await fetchUnfilteredProjects()
+    return result
+  }
+
   return {
     ...store,
     count,
@@ -129,5 +141,7 @@ export const useProjectsStore = defineStore('projects', () => {
     create: createProject,
     remove: removeProject,
     update: updateProject,
+    exportProject,
+    importProject,
   }
 })

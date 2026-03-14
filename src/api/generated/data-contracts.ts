@@ -5630,6 +5630,502 @@ export interface ExportBundle {
   apiKeys: Record<string, any>[];
 }
 
+/** Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID */
+export interface ProviderHint {
+  /** Category of the provider (llm, tts, asr, storage, embeddings) */
+  type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+  /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+  apiType: string;
+  /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+  preferredModel?: string;
+}
+
+/** Entity field that references a particular provider hint */
+export interface ProviderHintResolutionTarget {
+  /** Type of entity that references this provider hint */
+  entityType:
+    | "project"
+    | "agent"
+    | "stage"
+    | "classifier"
+    | "contextTransformer"
+    | "tool";
+  /** New ID assigned to the entity on import */
+  entityId: string;
+  /** Display name of the entity */
+  entityName: string;
+  /** Field that holds the provider reference, e.g. "ttsProviderId", "llmProviderId", "asrConfig.asrProviderId", "fillerSettings.llmProviderId" */
+  field: string;
+}
+
+/** Resolution report for a single provider hint encountered during import */
+export interface ProviderHintResolution {
+  /** The provider hint as it appeared in the bundle */
+  hint: ProviderHint;
+  /** Local provider ID the hint resolved to, or null when no matching provider was found */
+  resolvedProviderId: string | null;
+  /** True when a matching local provider was found; false means the corresponding provider field was set to null after import */
+  resolved: boolean;
+  /** Entity fields that reference this hint — shows exactly which entities were affected and which field was mapped (or left null) */
+  targets: ProviderHintResolutionTarget[];
+}
+
+/** ASR configuration with provider hint instead of provider UUID */
+export interface AsrConfigExchangeV1 {
+  /** Provider hint identifying the ASR provider type used at export time */
+  asrHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  };
+  /** ASR-specific settings including model, language preferences, etc. */
+  settings?:
+    | AzureAsrSettings
+    | ElevenLabsAsrSettings
+    | DeepgramAsrSettings
+    | AssemblyAiAsrSettings
+    | SpeechmaticsAsrSettings;
+  /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+  unintelligiblePlaceholder?: string;
+  /** Whether to enable voice activity detection */
+  voiceActivityDetection?: boolean;
+}
+
+/** Storage configuration with provider hint instead of provider UUID */
+export interface StorageConfigExchangeV1 {
+  /** Provider hint identifying the storage provider type used at export time */
+  storageHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  };
+  /** Storage-specific settings including bucket, prefix, etc. */
+  settings?: Record<string, any>;
+}
+
+/** Content moderation configuration with provider hint instead of provider UUID */
+export interface ModerationConfigExchangeV1 {
+  /** Whether content moderation is enabled for this project */
+  enabled: boolean;
+  /** Provider hint identifying the LLM provider used for moderation */
+  llmHint: ProviderHint;
+  /** List of category names that should cause the input to be blocked */
+  blockedCategories?: string[];
+}
+
+/** Filler response settings with provider hint instead of provider UUID */
+export interface FillerSettingsExchangeV1 {
+  /** Provider hint identifying the LLM provider used to generate filler sentences */
+  llmHint: ProviderHint;
+  /** LLM provider-specific settings for filler generation */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /**
+   * Prompt instructing the LLM to produce a short neutral filler sentence
+   * @minLength 1
+   */
+  prompt: string;
+}
+
+/** Project entity in the exchange format */
+export interface ProjectExchangeV1 {
+  /** Local document ID used as a cross-reference by child entities; remapped to a fresh UUID on import */
+  id: string;
+  /**
+   * The name of the project
+   * @minLength 1
+   */
+  name: string;
+  /** A description of the project */
+  description?: string | null;
+  /** ASR configuration with provider hint */
+  asrConfig?: AsrConfigExchangeV1;
+  /** Whether conversations can accept voice input */
+  acceptVoice?: boolean;
+  /** Whether conversations generate voice responses */
+  generateVoice?: boolean;
+  /** Storage configuration with provider hint */
+  storageConfig?: StorageConfigExchangeV1;
+  /** Content moderation configuration with provider hint */
+  moderationConfig?: {
+    /** Whether content moderation is enabled for this project */
+    enabled: boolean;
+    /** Provider hint identifying the LLM provider used for moderation */
+    llmHint: ProviderHint;
+    /** List of category names that should cause the input to be blocked */
+    blockedCategories?: string[];
+  } | null;
+  /** Key-value store of constants used in templating and conversation logic */
+  constants?: Record<string, ParameterValue>;
+  /** Additional metadata for the project */
+  metadata?: Record<string, any>;
+  /** IANA timezone identifier, e.g. Europe/Warsaw or America/New_York */
+  timezone?: string | null;
+  /** When enabled, users are automatically created on first WebSocket connection */
+  autoCreateUsers?: boolean;
+  /** Descriptors defining the data schema for user profile variables */
+  userProfileVariableDescriptors?: FieldDescriptor[];
+  /** Local document ID of the classifier used to evaluate guardrails; remapped on import */
+  defaultGuardrailClassifierId?: string | null;
+  /**
+   * Timeout in seconds for active conversations with no activity
+   * @min 0
+   */
+  conversationTimeoutSeconds?: number | null;
+}
+
+/** Agent entity in the exchange format */
+export interface AgentExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the agent */
+  name: string;
+  /** Detailed description of the agent purpose */
+  description?: string | null;
+  /** Prompt defining the agent's characteristics and behavior */
+  prompt: string;
+  /** Provider hint identifying the TTS provider used at export time */
+  ttsHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** TTS provider-specific settings */
+  ttsSettings?:
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings
+    | AzureTtsSettings
+    | AmazonPollyTtsSettings;
+  /** Tags for categorizing and filtering this agent */
+  tags?: string[];
+  /** Additional agent-specific metadata */
+  metadata?: Record<string, any>;
+  /** Filler response settings with provider hint */
+  fillerSettings?: {
+    /** Provider hint identifying the LLM provider used to generate filler sentences */
+    llmHint: ProviderHint;
+    /** LLM provider-specific settings for filler generation */
+    llmSettings?:
+      | OpenAILlmSettings
+      | OpenAILegacyLlmSettings
+      | AnthropicLlmSettings
+      | GeminiLlmSettings;
+    /**
+     * Prompt instructing the LLM to produce a short neutral filler sentence
+     * @minLength 1
+     */
+    prompt: string;
+  } | null;
+}
+
+/** Stage entity in the exchange format */
+export interface StageExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the stage */
+  name: string;
+  /** Detailed description of the stage purpose */
+  description?: string | null;
+  /** System prompt defining the stage behavior */
+  prompt: string;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this stage */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Local document ID of the associated agent; remapped on import */
+  agentId: string;
+  /** What happens when entering this stage */
+  enterBehavior?: "generate_response" | "await_user_input";
+  /** Whether knowledge base is enabled in this stage */
+  useKnowledge?: boolean;
+  /** Knowledge tags included in this stage */
+  knowledgeTags?: string[];
+  /** Whether global actions are enabled in this stage */
+  useGlobalActions?: boolean;
+  /** Local document IDs of global actions available in this stage; remapped on import */
+  globalActions?: string[];
+  /** Variable descriptor definitions for this stage */
+  variableDescriptors?: FieldDescriptor[];
+  /** Action definitions for this stage */
+  actions?: Record<string, StageAction>;
+  /** Local document ID of the default classifier; remapped on import */
+  defaultClassifierId?: string | null;
+  /** Local document IDs of context transformers; remapped on import */
+  transformerIds?: string[];
+  /** Tags for categorizing and filtering this stage */
+  tags?: string[];
+  /** Additional stage-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Classifier entity in the exchange format */
+export interface ClassifierExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the classifier */
+  name: string;
+  /** Detailed description of the classifier */
+  description?: string | null;
+  /** Prompt defining the classification logic */
+  prompt: string;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this classifier */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Tags for categorizing and filtering this classifier */
+  tags?: string[];
+  /** Additional classifier-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Context transformer entity in the exchange format */
+export interface ContextTransformerExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the context transformer */
+  name: string;
+  /** Detailed description of the transformer */
+  description?: string | null;
+  /** Prompt defining the transformation logic */
+  prompt: string;
+  /** Context field names to be transformed */
+  contextFields?: string[] | null;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this transformer */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Tags for categorizing and filtering this context transformer */
+  tags?: string[];
+  /** Additional transformer-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Tool entity in the exchange format */
+export interface ToolExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the tool */
+  name: string;
+  /** Detailed description of the tool */
+  description?: string | null;
+  /** Handlebars template for tool invocation */
+  prompt: string;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this tool */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Expected input format for the tool */
+  inputType: "text" | "image" | "multi-modal";
+  /** Expected output format from the tool */
+  outputType: "text" | "image" | "multi-modal";
+  /** Parameters that this tool expects to receive */
+  parameters?: ToolParameter[];
+  /** Tags for categorizing and filtering this tool */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Global action entity in the exchange format */
+export interface GlobalActionExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the global action */
+  name: string;
+  /** Optional condition expression for action activation */
+  condition?: string | null;
+  /** Whether this action is triggered on user input */
+  triggerOnUserInput?: boolean;
+  /** Whether this action is triggered on client commands */
+  triggerOnClientCommand?: boolean;
+  /** Classification label that triggers this action */
+  classificationTrigger?: string | null;
+  /** Local document ID of an override classifier; remapped on import */
+  overrideClassifierId?: string | null;
+  /** Parameters to extract from user input */
+  parameters?: StageActionParameter[];
+  /** Effects to execute when action is triggered */
+  effects?: Effect[];
+  /** Example phrases that trigger this action */
+  examples?: string[] | null;
+  /** Tags for categorizing and filtering this global action */
+  tags?: string[];
+  /** Additional action-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Guardrail entity in the exchange format */
+export interface GuardrailExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the guardrail */
+  name: string;
+  /** Condition expression for guardrail activation */
+  condition?: string | null;
+  /** Classification label that triggers this guardrail */
+  classificationTrigger?: string | null;
+  /** Effects to execute when the guardrail is triggered */
+  effects?: Effect[];
+  /** Example phrases that trigger this guardrail */
+  examples?: string[] | null;
+  /** Tags for categorizing and filtering this guardrail */
+  tags?: string[];
+  /** Additional guardrail-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Knowledge category entity in the exchange format */
+export interface KnowledgeCategoryExchangeV1 {
+  /** Local document ID used by knowledge items; remapped to a fresh UUID on import */
+  id: string;
+  /** Name of the knowledge category */
+  name: string;
+  /** Trigger phrase that activates this category in conversations */
+  promptTrigger: string;
+  /** Array of knowledge tags this category belongs to */
+  tags?: string[];
+  /**
+   * Display order for the category
+   * @min 0
+   */
+  order?: number;
+}
+
+/** Knowledge item entity in the exchange format */
+export interface KnowledgeItemExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Local document ID of the parent knowledge category; remapped on import */
+  categoryId: string;
+  /** Question text for this knowledge item */
+  question: string;
+  /** Answer text for this knowledge item */
+  answer: string;
+  /**
+   * Display order within the category
+   * @min 0
+   */
+  order?: number;
+}
+
+/** Version 1 project exchange bundle — self-contained, provider-agnostic snapshot of a complete project */
+export interface ProjectExchangeBundleV1 {
+  /** Exchange format version. Always 1 for this schema revision. */
+  formatVersion: 1;
+  /**
+   * ISO 8601 timestamp of when this bundle was produced
+   * @format date-time
+   */
+  exportedAt: string;
+  /** Project configuration and settings */
+  project: ProjectExchangeV1;
+  /** Agent entities belonging to this project */
+  agents: AgentExchangeV1[];
+  /** Stage entities belonging to this project */
+  stages: StageExchangeV1[];
+  /** Classifier entities belonging to this project */
+  classifiers: ClassifierExchangeV1[];
+  /** Context transformer entities belonging to this project */
+  contextTransformers: ContextTransformerExchangeV1[];
+  /** Tool entities belonging to this project */
+  tools: ToolExchangeV1[];
+  /** Global action entities belonging to this project */
+  globalActions: GlobalActionExchangeV1[];
+  /** Guardrail entities belonging to this project */
+  guardrails: GuardrailExchangeV1[];
+  /** Knowledge category entities belonging to this project */
+  knowledgeCategories: KnowledgeCategoryExchangeV1[];
+  /** Knowledge item entities belonging to this project */
+  knowledgeItems: KnowledgeItemExchangeV1[];
+}
+
+/** Summary of a completed project import operation */
+export interface ProjectExchangeImportResult {
+  /** Newly assigned ID of the imported project */
+  projectId: string;
+  /** Count of each entity type that was created */
+  counts: {
+    /** Number of agents imported */
+    agents: number;
+    /** Number of stages imported */
+    stages: number;
+    /** Number of classifiers imported */
+    classifiers: number;
+    /** Number of context transformers imported */
+    contextTransformers: number;
+    /** Number of tools imported */
+    tools: number;
+    /** Number of global actions imported */
+    globalActions: number;
+    /** Number of guardrails imported */
+    guardrails: number;
+    /** Number of knowledge categories imported */
+    knowledgeCategories: number;
+    /** Number of knowledge items imported */
+    knowledgeItems: number;
+  };
+  /** Resolution report for every unique provider hint found in the bundle. Each entry shows what the hint requested and which local provider it mapped to. Entries with resolved=false indicate provider fields that were set to null — the affected entities will need their provider re-configured manually. */
+  providerResolution: ProviderHintResolution[];
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;

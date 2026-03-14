@@ -12712,6 +12712,1414 @@
           "apiKeys"
         ]
       },
+      "ProviderHint": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "tts",
+              "asr",
+              "storage",
+              "embeddings"
+            ],
+            "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+          },
+          "apiType": {
+            "type": "string",
+            "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+          },
+          "preferredModel": {
+            "type": "string",
+            "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+          }
+        },
+        "required": [
+          "type",
+          "apiType"
+        ],
+        "description": "Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID"
+      },
+      "ProviderHintResolutionTarget": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "project",
+              "agent",
+              "stage",
+              "classifier",
+              "contextTransformer",
+              "tool"
+            ],
+            "description": "Type of entity that references this provider hint"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "New ID assigned to the entity on import"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "Display name of the entity"
+          },
+          "field": {
+            "type": "string",
+            "description": "Field that holds the provider reference, e.g. \"ttsProviderId\", \"llmProviderId\", \"asrConfig.asrProviderId\", \"fillerSettings.llmProviderId\""
+          }
+        },
+        "required": [
+          "entityType",
+          "entityId",
+          "entityName",
+          "field"
+        ],
+        "description": "Entity field that references a particular provider hint"
+      },
+      "ProviderHintResolution": {
+        "type": "object",
+        "properties": {
+          "hint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "The provider hint as it appeared in the bundle"
+              }
+            ]
+          },
+          "resolvedProviderId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local provider ID the hint resolved to, or null when no matching provider was found"
+          },
+          "resolved": {
+            "type": "boolean",
+            "description": "True when a matching local provider was found; false means the corresponding provider field was set to null after import"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderHintResolutionTarget"
+            },
+            "description": "Entity fields that reference this hint — shows exactly which entities were affected and which field was mapped (or left null)"
+          }
+        },
+        "required": [
+          "hint",
+          "resolvedProviderId",
+          "resolved",
+          "targets"
+        ],
+        "description": "Resolution report for a single provider hint encountered during import"
+      },
+      "AsrConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "asrHint": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the ASR provider type used at export time"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AzureAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+              }
+            ],
+            "description": "ASR-specific settings including model, language preferences, etc."
+          },
+          "unintelligiblePlaceholder": {
+            "type": "string",
+            "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+          },
+          "voiceActivityDetection": {
+            "type": "boolean",
+            "description": "Whether to enable voice activity detection"
+          }
+        },
+        "description": "ASR configuration with provider hint instead of provider UUID"
+      },
+      "StorageConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "storageHint": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the storage provider type used at export time"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Storage-specific settings including bucket, prefix, etc."
+          }
+        },
+        "description": "Storage configuration with provider hint instead of provider UUID"
+      },
+      "ModerationConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether content moderation is enabled for this project"
+          },
+          "llmHint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "Provider hint identifying the LLM provider used for moderation"
+              }
+            ]
+          },
+          "blockedCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of category names that should cause the input to be blocked"
+          }
+        },
+        "required": [
+          "enabled",
+          "llmHint"
+        ],
+        "description": "Content moderation configuration with provider hint instead of provider UUID"
+      },
+      "FillerSettingsExchangeV1": {
+        "type": "object",
+        "properties": {
+          "llmHint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "Provider hint identifying the LLM provider used to generate filler sentences"
+              }
+            ]
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for filler generation"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+          }
+        },
+        "required": [
+          "llmHint",
+          "prompt"
+        ],
+        "description": "Filler response settings with provider hint instead of provider UUID"
+      },
+      "ProjectExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID used as a cross-reference by child entities; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The name of the project"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "A description of the project"
+          },
+          "asrConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AsrConfigExchangeV1"
+              },
+              {
+                "description": "ASR configuration with provider hint"
+              }
+            ]
+          },
+          "acceptVoice": {
+            "type": "boolean",
+            "description": "Whether conversations can accept voice input"
+          },
+          "generateVoice": {
+            "type": "boolean",
+            "description": "Whether conversations generate voice responses"
+          },
+          "storageConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageConfigExchangeV1"
+              },
+              {
+                "description": "Storage configuration with provider hint"
+              }
+            ]
+          },
+          "moderationConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether content moderation is enabled for this project"
+              },
+              "llmHint": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProviderHint"
+                  },
+                  {
+                    "description": "Provider hint identifying the LLM provider used for moderation"
+                  }
+                ]
+              },
+              "blockedCategories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of category names that should cause the input to be blocked"
+              }
+            },
+            "required": [
+              "enabled",
+              "llmHint"
+            ],
+            "description": "Content moderation configuration with provider hint"
+          },
+          "constants": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterValue"
+            },
+            "description": "Key-value store of constants used in templating and conversation logic"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for the project"
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true,
+            "description": "IANA timezone identifier, e.g. Europe/Warsaw or America/New_York"
+          },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection"
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Descriptors defining the data schema for user profile variables"
+          },
+          "defaultGuardrailClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the classifier used to evaluate guardrails; remapped on import"
+          },
+          "conversationTimeoutSeconds": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "description": "Timeout in seconds for active conversations with no activity"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Project entity in the exchange format"
+      },
+      "AgentExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the agent"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the agent purpose"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the agent's characteristics and behavior"
+          },
+          "ttsHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the TTS provider used at export time"
+          },
+          "ttsSettings": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ElevenLabsTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAiTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CartesiaTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AzureTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AmazonPollyTtsSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "TTS provider-specific settings"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this agent"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional agent-specific metadata"
+          },
+          "fillerSettings": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "llmHint": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProviderHint"
+                  },
+                  {
+                    "description": "Provider hint identifying the LLM provider used to generate filler sentences"
+                  }
+                ]
+              },
+              "llmSettings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnthropicLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ],
+                "description": "LLM provider-specific settings for filler generation"
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+              }
+            },
+            "required": [
+              "llmHint",
+              "prompt"
+            ],
+            "description": "Filler response settings with provider hint"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Agent entity in the exchange format"
+      },
+      "StageExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the stage"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the stage purpose"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "System prompt defining the stage behavior"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this stage"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "Local document ID of the associated agent; remapped on import"
+          },
+          "enterBehavior": {
+            "type": "string",
+            "enum": [
+              "generate_response",
+              "await_user_input"
+            ],
+            "description": "What happens when entering this stage"
+          },
+          "useKnowledge": {
+            "type": "boolean",
+            "description": "Whether knowledge base is enabled in this stage"
+          },
+          "knowledgeTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Knowledge tags included in this stage"
+          },
+          "useGlobalActions": {
+            "type": "boolean",
+            "description": "Whether global actions are enabled in this stage"
+          },
+          "globalActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Local document IDs of global actions available in this stage; remapped on import"
+          },
+          "variableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Variable descriptor definitions for this stage"
+          },
+          "actions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StageAction"
+            },
+            "description": "Action definitions for this stage"
+          },
+          "defaultClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the default classifier; remapped on import"
+          },
+          "transformerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Local document IDs of context transformers; remapped on import"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this stage"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional stage-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt",
+          "agentId"
+        ],
+        "description": "Stage entity in the exchange format"
+      },
+      "ClassifierExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the classifier"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the classifier"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the classification logic"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this classifier"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this classifier"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional classifier-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Classifier entity in the exchange format"
+      },
+      "ContextTransformerExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the context transformer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the transformer"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the transformation logic"
+          },
+          "contextFields": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Context field names to be transformed"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this transformer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this context transformer"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional transformer-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Context transformer entity in the exchange format"
+      },
+      "ToolExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Handlebars template for tool invocation"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this tool"
+          },
+          "inputType": {
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
+            "description": "Expected input format for the tool"
+          },
+          "outputType": {
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "multi-modal"
+            ],
+            "description": "Expected output format from the tool"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt",
+          "inputType",
+          "outputType"
+        ],
+        "description": "Tool entity in the exchange format"
+      },
+      "GlobalActionExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the global action"
+          },
+          "condition": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional condition expression for action activation"
+          },
+          "triggerOnUserInput": {
+            "type": "boolean",
+            "description": "Whether this action is triggered on user input"
+          },
+          "triggerOnClientCommand": {
+            "type": "boolean",
+            "description": "Whether this action is triggered on client commands"
+          },
+          "classificationTrigger": {
+            "type": "string",
+            "nullable": true,
+            "description": "Classification label that triggers this action"
+          },
+          "overrideClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of an override classifier; remapped on import"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageActionParameter"
+            },
+            "description": "Parameters to extract from user input"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Effect"
+            },
+            "description": "Effects to execute when action is triggered"
+          },
+          "examples": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Example phrases that trigger this action"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this global action"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional action-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Global action entity in the exchange format"
+      },
+      "GuardrailExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the guardrail"
+          },
+          "condition": {
+            "type": "string",
+            "nullable": true,
+            "description": "Condition expression for guardrail activation"
+          },
+          "classificationTrigger": {
+            "type": "string",
+            "nullable": true,
+            "description": "Classification label that triggers this guardrail"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Effect"
+            },
+            "description": "Effects to execute when the guardrail is triggered"
+          },
+          "examples": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Example phrases that trigger this guardrail"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this guardrail"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional guardrail-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Guardrail entity in the exchange format"
+      },
+      "KnowledgeCategoryExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID used by knowledge items; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the knowledge category"
+          },
+          "promptTrigger": {
+            "type": "string",
+            "description": "Trigger phrase that activates this category in conversations"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of knowledge tags this category belongs to"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order for the category"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "promptTrigger"
+        ],
+        "description": "Knowledge category entity in the exchange format"
+      },
+      "KnowledgeItemExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Local document ID of the parent knowledge category; remapped on import"
+          },
+          "question": {
+            "type": "string",
+            "description": "Question text for this knowledge item"
+          },
+          "answer": {
+            "type": "string",
+            "description": "Answer text for this knowledge item"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order within the category"
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "question",
+          "answer"
+        ],
+        "description": "Knowledge item entity in the exchange format"
+      },
+      "ProjectExchangeBundleV1": {
+        "type": "object",
+        "properties": {
+          "formatVersion": {
+            "type": "number",
+            "enum": [
+              1
+            ],
+            "description": "Exchange format version. Always 1 for this schema revision."
+          },
+          "exportedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when this bundle was produced"
+          },
+          "project": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectExchangeV1"
+              },
+              {
+                "description": "Project configuration and settings"
+              }
+            ]
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentExchangeV1"
+            },
+            "description": "Agent entities belonging to this project"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageExchangeV1"
+            },
+            "description": "Stage entities belonging to this project"
+          },
+          "classifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassifierExchangeV1"
+            },
+            "description": "Classifier entities belonging to this project"
+          },
+          "contextTransformers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextTransformerExchangeV1"
+            },
+            "description": "Context transformer entities belonging to this project"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolExchangeV1"
+            },
+            "description": "Tool entities belonging to this project"
+          },
+          "globalActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GlobalActionExchangeV1"
+            },
+            "description": "Global action entities belonging to this project"
+          },
+          "guardrails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuardrailExchangeV1"
+            },
+            "description": "Guardrail entities belonging to this project"
+          },
+          "knowledgeCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeCategoryExchangeV1"
+            },
+            "description": "Knowledge category entities belonging to this project"
+          },
+          "knowledgeItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeItemExchangeV1"
+            },
+            "description": "Knowledge item entities belonging to this project"
+          }
+        },
+        "required": [
+          "formatVersion",
+          "exportedAt",
+          "project",
+          "agents",
+          "stages",
+          "classifiers",
+          "contextTransformers",
+          "tools",
+          "globalActions",
+          "guardrails",
+          "knowledgeCategories",
+          "knowledgeItems"
+        ],
+        "description": "Version 1 project exchange bundle — self-contained, provider-agnostic snapshot of a complete project"
+      },
+      "ProjectExchangeImportResult": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Newly assigned ID of the imported project"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "agents": {
+                "type": "integer",
+                "description": "Number of agents imported"
+              },
+              "stages": {
+                "type": "integer",
+                "description": "Number of stages imported"
+              },
+              "classifiers": {
+                "type": "integer",
+                "description": "Number of classifiers imported"
+              },
+              "contextTransformers": {
+                "type": "integer",
+                "description": "Number of context transformers imported"
+              },
+              "tools": {
+                "type": "integer",
+                "description": "Number of tools imported"
+              },
+              "globalActions": {
+                "type": "integer",
+                "description": "Number of global actions imported"
+              },
+              "guardrails": {
+                "type": "integer",
+                "description": "Number of guardrails imported"
+              },
+              "knowledgeCategories": {
+                "type": "integer",
+                "description": "Number of knowledge categories imported"
+              },
+              "knowledgeItems": {
+                "type": "integer",
+                "description": "Number of knowledge items imported"
+              }
+            },
+            "required": [
+              "agents",
+              "stages",
+              "classifiers",
+              "contextTransformers",
+              "tools",
+              "globalActions",
+              "guardrails",
+              "knowledgeCategories",
+              "knowledgeItems"
+            ],
+            "description": "Count of each entity type that was created"
+          },
+          "providerResolution": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderHintResolution"
+            },
+            "description": "Resolution report for every unique provider hint found in the bundle. Each entry shows what the hint requested and which local provider it mapped to. Entries with resolved=false indicate provider fields that were set to null — the affected entities will need their provider re-configured manually."
+          }
+        },
+        "required": [
+          "projectId",
+          "counts",
+          "providerResolution"
+        ],
+        "description": "Summary of a completed project import operation"
+      },
       "LatencyStatsResponse": {
         "type": "object",
         "properties": {
@@ -35737,6 +37145,82 @@
           },
           "400": {
             "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/export": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Export a project as an exchange bundle",
+        "description": "Produces a self-contained, provider-agnostic exchange bundle for the specified project. All child entities (agents, stages, classifiers, context transformers, tools, global actions, guardrails, knowledge base) are included. Provider UUID references are replaced by provider hints (`type` + `apiType`) so the bundle can be imported into any environment. Credentials are never included. Entity IDs in the bundle are preserved as local cross-references and remapped to fresh UUIDs on import.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project exchange bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectExchangeBundleV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/projects/import": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Import a project from an exchange bundle",
+        "description": "Imports a project from a provider-agnostic exchange bundle. All entity IDs are remapped to fresh UUIDs so repeated imports never overwrite existing data. Provider hints are resolved to local provider IDs by matching `type` + `apiType` (first match wins). If no matching local provider is found for a hint, the corresponding provider field is set to null. Returns the newly assigned project ID and a count of created entities.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectExchangeBundleV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Import summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectExchangeImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exchange bundle"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }
