@@ -5,7 +5,7 @@ import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { Search, X, BriefcaseBusiness, Plus, Upload, MoreHorizontal } from 'lucide-vue-next'
+import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
 
@@ -195,7 +195,7 @@ async function exportProject(project: ProjectResponse) {
             @change="handleImportFile"
           />
           <button @click="triggerImport" class="btn-secondary" :disabled="isImporting">
-            <Upload class="inline-block mr-2 w-4 h-4" />
+            <Import class="inline-block mr-2 w-4 h-4" />
             {{ isImporting ? 'Importing...' : 'Import Project' }}
           </button>
           <button @click="createProject" class="btn-primary" :disabled="showArchived">
