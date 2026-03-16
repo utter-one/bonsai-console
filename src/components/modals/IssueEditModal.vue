@@ -195,6 +195,7 @@ import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/ap
 import { useProjectsStore } from '@/stores/projects'
 import { useEnvironmentsStore } from '@/stores/environments'
 import { useStagesStore } from '@/stores/stages'
+import { useVersionStore } from '@/stores'
 import { ExternalLink } from 'lucide-vue-next'
 
 interface PrefillData {
@@ -218,6 +219,7 @@ const emit = defineEmits<{
 const projectsStore = useProjectsStore()
 const environmentsStore = useEnvironmentsStore()
 const stagesStore = useStagesStore()
+const versionStore = useVersionStore()
 const router = useRouter()
 
 function navigateToConversation() {
@@ -242,7 +244,7 @@ const statusOptions = ['awaiting', 'in-progress', 'ready-to-test', 'still-occurs
 const form = ref({
   projectId: '',
   environment: '',
-  buildVersion: '',
+  buildVersion: versionStore.versionData?.version ?? '',
   stage: '',
   sessionId: '',
   eventIndex: null as number | null,
@@ -313,7 +315,7 @@ watch(
       form.value = {
         projectId: props.prefillData?.projectId || '',
         environment: '',
-        buildVersion: '',
+        buildVersion: versionStore.versionData?.version ?? '',
         stage: props.prefillData?.stageId || '',
         sessionId: props.prefillData?.sessionId || '',
         eventIndex: props.prefillData?.eventIndex ?? null,
