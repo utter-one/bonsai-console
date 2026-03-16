@@ -6,6 +6,7 @@ import { formatEnum, useContextualHelp } from '@/composables'
 import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
+import AboutModal from '@/components/modals/AboutModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import type { Component } from 'vue'
 import logoUrl from '@/assets/logo.svg'
@@ -74,6 +75,7 @@ const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
 const showProfileModal = ref(false)
 const showWizard = ref(false)
+const showAbout = ref(false)
 const showProjectDropdown = ref(false)
 const projectSelectorRef = ref<HTMLElement | null>(null)
 
@@ -207,6 +209,11 @@ function handleEditProfile() {
 
 function handleOpenWizard() {
   showWizard.value = true
+  showUserMenu.value = false
+}
+
+function handleOpenAbout() {
+  showAbout.value = true
   showUserMenu.value = false
 }
 
@@ -421,6 +428,12 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
                 Setup Wizard
               </button>
               <button 
+                @click="handleOpenAbout" 
+                class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                About
+              </button>
+              <button 
                 @click="handleLogout" 
                 class="w-full px-4 py-2.5 border-none bg-transparent text-left text-sm text-gray-900 cursor-pointer transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
               >
@@ -577,6 +590,12 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
               <span>Setup Wizard</span>
             </button>
             <button 
+              @click="handleOpenAbout" 
+              class="flex items-center gap-3 w-full px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium text-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              <span>About</span>
+            </button>
+            <button 
               @click="handleLogout" 
               class="flex items-center gap-3 w-full px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium text-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
@@ -607,6 +626,12 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
       v-if="showWizard"
       @close="showWizard = false"
       @project-created="showWizard = false"
+    />
+
+    <!-- About Modal -->
+    <AboutModal
+      v-if="showAbout"
+      @close="showAbout = false"
     />
   </div>
 </template>

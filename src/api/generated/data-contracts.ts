@@ -5477,6 +5477,8 @@ export interface LatencyTrendPoint {
 }
 
 export interface VersionResponse {
+  /** Semantic version of the application as defined in package.json (e.g. "1.2.3"). */
+  version: string;
   /** First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes. */
   restSchemaHash: string;
   /** First 12 hex chars of the SHA-256 hash of the WebSocket contracts schema. Changes only when a WebSocket contract changes. */

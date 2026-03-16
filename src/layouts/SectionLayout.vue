@@ -3,6 +3,7 @@ import { computed, watchEffect, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLayoutStore } from '@/stores'
 import { FlaskConical } from 'lucide-vue-next'
+import AppVersion from '@/components/AppVersion.vue'
 import type { Component } from 'vue'
 
 interface MenuItem {
@@ -70,6 +71,7 @@ function navigateTo(routeName: string) {
           </button>
         </nav>
       </div>
+      <AppVersion />
     </aside>
 
     <!-- Main Content -->
