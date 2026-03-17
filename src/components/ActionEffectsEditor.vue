@@ -330,7 +330,7 @@ function selectStageVariable(modIndex: number, variableName: string) {
 </script>
 
 <template>
-  <div class="flex min-h-[32rem] bg-white dark:bg-gray-800">
+  <div class="flex h-full bg-white dark:bg-gray-800">
     <!-- Left Panel: Effects List -->
     <div class="w-52 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-gray-50 dark:bg-gray-900/50">
       <div class="flex-1 overflow-y-auto">

@@ -192,9 +192,9 @@ function getTypeBadgeColor(type: string): string {
       </nav>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto">
+    <div class="flex-1 min-h-0 flex flex-col">
     <!-- Basic Tab -->
-    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6">
+    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6 overflow-y-auto">
       <div class="form-group">
         <label class="form-label">
           Name <span class="required">*</span>
@@ -228,7 +228,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Trigger Tab (simplified mode) -->
-    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4">
+    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto">
       <div class="form-group">
         <label class="form-label">
           Classification Trigger
@@ -263,7 +263,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Trigger Tab (full mode) -->
-    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4">
+    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto">
 
       <!-- Condition (always visible) -->
       <div class="form-group">
@@ -446,7 +446,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Parameters Tab -->
-    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6">
+    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6 overflow-y-auto">
       <div class="form-group">
         <label class="form-label">Action Parameters</label>
         <p class="form-help-text mb-3">
@@ -543,7 +543,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Effects Tab -->
-    <div v-show="activeTab.value === 'effects'" class="tab-content p-0 md:p-0">
+    <div v-show="activeTab.value === 'effects'" class="flex-1 min-h-0 flex flex-col">
       <ActionEffectsEditor
         :operations="operations"
         :available-classifiers="availableClassifiers"
@@ -556,7 +556,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Metadata Tab -->
-    <div v-show="activeTab.value === 'metadata'" class="space-y-6">
+    <div v-show="activeTab.value === 'metadata'" class="space-y-6 tab-content overflow-y-auto">
       <MetadataTab
         v-if="showMetadata && metadataFields.length > 0"
         :fields="metadataFields"
