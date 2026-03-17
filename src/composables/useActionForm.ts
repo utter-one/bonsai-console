@@ -19,7 +19,7 @@ export interface ActionOperations {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
-  callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
+  callTools: Array<{ toolId: string; parameters: Record<string, any> }>
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -31,15 +31,20 @@ export function createDefaultOperations(): ActionOperations {
     modifyUserInput: { enabled: false, template: '' },
     modifyVariables: { enabled: false, modifications: [] },
     modifyUserProfile: { enabled: false, modifications: [] },
-    callTool: { enabled: false, toolId: '', parameters: {} }
+    callTools: []
   }
 }
 
 export function loadEffectsIntoOperations(effects: Effect[], operations: ActionOperations) {
-  // Reset all effects
-  Object.keys(operations).forEach(key => {
-    operations[key as keyof ActionOperations].enabled = false
-  })
+  // Reset all single-instance effects
+  operations.generateResponse.enabled = false
+  operations.endConversation.enabled = false
+  operations.abortConversation.enabled = false
+  operations.goToStage.enabled = false
+  operations.modifyUserInput.enabled = false
+  operations.modifyVariables.enabled = false
+  operations.modifyUserProfile.enabled = false
+  operations.callTools = []
 
   // Load existing effects
   effects.forEach(effect => {
@@ -77,13 +82,11 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.modifyUserProfile.modifications = effect.modifications || []
         break
       case 'call_tool':
-        operations.callTool.enabled = true
-        if ('toolId' in effect) {
-          operations.callTool.toolId = effect.toolId || ''
+        const callToolEntry: { toolId: string; parameters: Record<string, any> } = {
+          toolId: 'toolId' in effect ? (effect.toolId || '') : '',
+          parameters: 'parameters' in effect ? (effect.parameters || {}) : {},
         }
-        if ('parameters' in effect) {
-          operations.callTool.parameters = effect.parameters || {}
-        }
+        operations.callTools.push(callToolEntry)
         break
     }
   })
@@ -91,7 +94,6 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
 
 export function buildEffectsFromOperations(operations: ActionOperations): { effects: Effect[]; error: string | null } {
   const effectsArray: Effect[] = []
-  let error: string | null = null
 
   if (operations.generateResponse.enabled) {
     const generateEffect: Record<string, any> = {
@@ -161,25 +163,25 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     })
   }
 
-  if (operations.callTool.enabled) {
-    // Build parameters object, accepting all values as-is
-    const params: Record<string, any> = {}
-    
-    for (const [key, value] of Object.entries(operations.callTool.parameters)) {
-      // Skip null, undefined, or empty string values
-      if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
-        continue
-      }
-      
-      // Accept all values as-is without validation or parsing
-      params[key] = value
-    }
+  if (operations.callTools && operations.callTools.length > 0) {
+    for (const callTool of operations.callTools) {
+      if (!callTool.toolId) continue
 
-    effectsArray.push({
-      type: 'call_tool',
-      toolId: operations.callTool.toolId,
-      parameters: params
-    })
+      const params: Record<string, any> = {}
+
+      for (const [key, value] of Object.entries(callTool.parameters)) {
+        if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
+          continue
+        }
+        params[key] = value
+      }
+
+      effectsArray.push({
+        type: 'call_tool',
+        toolId: callTool.toolId,
+        parameters: params
+      })
+    }
   }
 
   return { effects: effectsArray, error: null }

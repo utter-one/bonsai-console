@@ -128,7 +128,7 @@ const emit = defineEmits<{
 // reference to inner ActionForm for flushing code
 const actionFormRef = ref<any>(null)
 
-type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool'
+type TabType = 'basic' | 'trigger' | 'parameters' | 'effects'
 
 const activeTab = reactive({ value: 'basic' as TabType })
 
@@ -246,7 +246,7 @@ function handleSubmit() {
 }
 
 .fixed-height-modal {
-  height: 90vh;
+  height: 60vh;
   max-height: 1200px;
   display: flex;
   flex-direction: column;
