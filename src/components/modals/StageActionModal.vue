@@ -128,7 +128,7 @@ const emit = defineEmits<{
 // reference to inner ActionForm for flushing code
 const actionFormRef = ref<any>(null)
 
-type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook'
+type TabType = 'basic' | 'trigger' | 'parameters' | 'effects' | 'goToStage' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool'
 
 const activeTab = reactive({ value: 'basic' as TabType })
 
@@ -209,12 +209,6 @@ watch(() => props.action, (action) => {
 function handleSubmit() {
   if (!form.value.name) {
     return
-  }
-
-  // Always pull the latest value directly from the live editor before building effects.
-  // This ensures the code is not empty even if the reactive v-model update was delayed.
-  if (operations.value.runScript.enabled && actionFormRef.value?.getRunScriptCode) {
-    operations.value.runScript.code = actionFormRef.value.getRunScriptCode()
   }
 
   // Build effects array using shared utility

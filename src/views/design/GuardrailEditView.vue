@@ -23,7 +23,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
 
-type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook' | 'metadata'
+type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'metadata'
 const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData

@@ -44,7 +44,6 @@ interface ActionOperations {
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
-  runScript: { enabled: boolean; code: string }
   modifyUserInput: { enabled: boolean; template: string }
   modifyVariables: {
     enabled: boolean
@@ -55,14 +54,6 @@ interface ActionOperations {
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
-  callWebhook: {
-    enabled: boolean
-    url: string
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-    headers: string
-    body: string
-    resultKey: string
-  }
 }
 
 const props = withDefaults(
@@ -126,7 +117,7 @@ const runScriptEditor = ref<any>(null)
 
 function getRunScriptCode() {
   // read from the live CodeMirror editor if available, fall back to prop value
-  return runScriptEditor.value?.getValue?.() ?? props.operations.runScript.code
+  return runScriptEditor.value?.getValue?.() ?? ''
 }
 
 defineExpose({ getRunScriptCode })
@@ -463,14 +454,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           Go To Stage
         </button>
         <button
-          v-if="operations.runScript.enabled"
-          type="button"
-          @click="activeTab.value = 'runScript'"
-          :class="['tab-button', activeTab.value === 'runScript' ? 'tab-button-active' : '']"
-        >
-          Run Script
-        </button>
-        <button
           v-if="operations.modifyUserInput.enabled"
           type="button"
           @click="activeTab.value = 'modifyUserInput'"
@@ -501,14 +484,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
           :class="['tab-button', activeTab.value === 'callTool' ? 'tab-button-active' : '']"
         >
           Call Tool
-        </button>
-        <button
-          v-if="operations.callWebhook.enabled"
-          type="button"
-          @click="activeTab.value = 'callWebhook'"
-          :class="['tab-button', activeTab.value === 'callWebhook' ? 'tab-button-active' : '']"
-        >
-          Call Webhook
         </button>
         <button
           v-if="showMetadata"
@@ -929,18 +904,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
 
           <label class="flex items-start cursor-pointer">
             <input
-              v-model="operations.runScript.enabled"
-              type="checkbox"
-              class="form-checkbox mt-0.5"
-            />
-            <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Run Script</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Execute custom JavaScript code (adds tab for configuration)</p>
-            </div>
-          </label>
-
-          <label class="flex items-start cursor-pointer">
-            <input
               v-model="operations.modifyUserInput.enabled"
               type="checkbox"
               class="form-checkbox mt-0.5"
@@ -984,18 +947,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
             <div class="ml-3">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Call Tool</span>
               <p class="text-xs text-gray-500 dark:text-gray-400">Invoke a registered tool (adds tab for configuration)</p>
-            </div>
-          </label>
-
-          <label class="flex items-start cursor-pointer">
-            <input
-              v-model="operations.callWebhook.enabled"
-              type="checkbox"
-              class="form-checkbox mt-0.5"
-            />
-            <div class="ml-3">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Call Webhook</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Make an HTTP request to an external endpoint (adds tab for configuration)</p>
             </div>
           </label>
         </div>
@@ -1080,28 +1031,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
     </div>
 
     <!-- Run Script Tab -->
-    <div v-show="activeTab.value === 'runScript'" class="tab-content flex flex-col min-h-full">
-      <div class="form-group flex flex-col flex-1 min-h-0">
-        <label class="form-label shrink-0">JavaScript Code <span class="required">*</span></label>
-        <JavaScriptEditor
-          ref="runScriptEditor"
-          v-model="operations.runScript.code"
-          :disabled="!operations.runScript.enabled"
-          :stage-variables="stageVariables"
-          :global-variables="bonsaiDefaultGlobalVariables"
-          :function-list="bonsaiDefaultFunctions"
-          :project-constants="projectConstants"
-          :fluid="true"
-          show-toolbar
-          placeholder="// Available: context, user, conversation\nconst result = context.variables.count + 1;\nreturn { count: result };"
-          aria-label="JavaScript code"
-        />
-        <p class="form-help-text shrink-0">
-          JavaScript code to execute. Available objects: context, user, conversation
-        </p>
-      </div>
-    </div>
-
     <!-- Modify User Input Tab -->
     <div v-show="activeTab.value === 'modifyUserInput'" class="tab-content space-y-6">
       <div class="form-group">
@@ -1547,95 +1476,6 @@ function handleAudioArrayUpload(event: Event, paramName: string, index: number) 
       <div v-else-if="availableTools.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-4 border border-gray-200 rounded-lg p-4 dark:border-gray-700">
         <p class="font-medium mb-1">No tools available</p>
         <p class="text-xs">Create tools for this project first before using the Call Tool action.</p>
-      </div>
-    </div>
-
-    <!-- Call Webhook Tab -->
-    <div v-show="activeTab.value === 'callWebhook'" class="tab-content space-y-6">
-      <div class="form-group">
-        <label class="form-label">
-          URL <span class="required">*</span>
-        </label>
-        <PromptEditor
-          v-model="operations.callWebhook.url"
-          :disabled="!operations.callWebhook.enabled"
-          :stage-variables="stageVariables"
-          :action-parameters="actionParameters"
-          :project-constants="projectConstants"
-          placeholder="https://api.example.com/webhook"
-          min-height="3rem"
-          aria-label="Webhook URL"
-        />
-        <p class="form-help-text">
-          The webhook endpoint URL (supports template variables)
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          HTTP Method <span class="required">*</span>
-        </label>
-        <select v-model="operations.callWebhook.method" class="form-select-auto" :required="operations.callWebhook.enabled">
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-          <option value="PUT">PUT</option>
-          <option value="PATCH">PATCH</option>
-          <option value="DELETE">DELETE</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Headers <span class="text-gray-500">(optional, JSON)</span>
-        </label>
-        <PromptEditor
-          v-model="operations.callWebhook.headers"
-          :disabled="!operations.callWebhook.enabled"
-          :stage-variables="stageVariables"
-          :action-parameters="actionParameters"
-          :project-constants="projectConstants"
-          placeholder='{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer {{token}}"\n}'
-          min-height="6rem"
-          aria-label="Webhook headers"
-        />
-        <p class="form-help-text">
-          JSON object with HTTP headers (supports template variables)
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Body <span class="text-gray-500">(optional, JSON)</span>
-        </label>
-        <PromptEditor
-          v-model="operations.callWebhook.body"
-          :disabled="!operations.callWebhook.enabled"
-          :stage-variables="stageVariables"
-          :action-parameters="actionParameters"
-          :project-constants="projectConstants"
-          placeholder='{\n  "userId": "{{user.id}}",\n  "message": "{{user.input}}"\n}'
-          min-height="9rem"
-          aria-label="Webhook body"
-        />
-        <p class="form-help-text">
-          JSON body for the request. Supports template variables.
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          Result Key <span class="required">*</span>
-        </label>
-        <input
-          v-model="operations.callWebhook.resultKey"
-          type="text"
-          :required="operations.callWebhook.enabled"
-          placeholder="webhookResult"
-          class="form-input font-mono"
-        />
-        <p class="form-help-text">
-          Variable name to store the webhook response
-        </p>
       </div>
     </div>
 
