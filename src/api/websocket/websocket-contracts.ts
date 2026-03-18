@@ -249,6 +249,21 @@ export interface GenerateResponseEffect {
   prescriptedResponses?: string[];
 }
 
+export interface ChangeVisibilityEffect {
+  /**
+   * Effect type
+   */
+  type: 'change_visibility';
+  /**
+   * Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)
+   */
+  visibility: 'always' | 'stage' | 'never' | 'conditional';
+  /**
+   * JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional"
+   */
+  condition?: string;
+}
+
 
 // ============================================================================
 // Authentication and Project Settings
