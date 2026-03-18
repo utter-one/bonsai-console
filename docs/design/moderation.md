@@ -4,7 +4,7 @@
 
 ## Configuring Moderation
 
-Go to **Design > Guardrails & Moderation** and open the **Moderation** tab to configure content moderation for the current project.
+Go to **Design > Guardrails** and open the **Moderation** tab to configure content moderation for the current project.
 
 ### Enable Moderation
 

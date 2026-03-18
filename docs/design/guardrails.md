@@ -16,7 +16,7 @@ Guardrails can also have an optional **Condition** expression (JavaScript). If t
 
 ## Setting Up the Guardrail Classifier
 
-Go to **Design > Guardrails & Moderation** and select a classifier from the **Guardrails Classifier** dropdown. This classifier is shared by all guardrails in the project. Choosing **None** disables all guardrails.
+Go to **Design > Guardrails** and select a classifier from the **Guardrails Classifier** dropdown. This classifier is shared by all guardrails in the project. Choosing **None** disables all guardrails.
 
 The selected classifier should be trained with labels that map to your guardrails' classification triggers. For example, if you have a guardrail triggered by `offensive_language`, that label must exist in the classifier.
 
@@ -68,7 +68,7 @@ See [Actions & Effects](./actions) for the full list of effect types.
 
 **Moderation** enables an additional layer of automatic content safety screening that runs before the conversation engine processes the user's message. It complements guardrails: guardrails use a project-level classifier with custom rules, while moderation uses the provider's built-in safety API.
 
-Go to **Design > Guardrails & Moderation** and open the **Moderation** tab.
+Go to **Design > Guardrails** and open the **Moderation** tab.
 
 ### Enabling Moderation
 

@@ -231,7 +231,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Guardrails &amp; Moderation</h1>
+        <h1 class="page-title">Guardrails</h1>
         <p class="page-subtitle">Safety rules and content moderation for this project</p>
       </div>
     </div>

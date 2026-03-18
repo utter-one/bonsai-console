@@ -15389,6 +15389,9 @@
           },
           "401": {
             "description": "Invalid credentials"
+          },
+          "429": {
+            "description": "Too many login attempts, please try again later"
           }
         }
       }
@@ -15448,6 +15451,9 @@
           },
           "401": {
             "description": "Invalid or expired refresh token"
+          },
+          "429": {
+            "description": "Too many requests, please slow down"
           }
         }
       }
