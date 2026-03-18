@@ -2187,6 +2187,36 @@
           "operation"
         ]
       },
+      "ChangeVisibilityEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "change_visibility"
+            ],
+            "description": "Effect type"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "always",
+              "stage",
+              "never",
+              "conditional"
+            ],
+            "description": "Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)"
+          },
+          "condition": {
+            "type": "string",
+            "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
+          }
+        },
+        "required": [
+          "type",
+          "visibility"
+        ]
+      },
       "CallToolEffect": {
         "type": "object",
         "properties": {
@@ -2300,36 +2330,6 @@
             "change_visibility": "#/components/schemas/ChangeVisibilityEffect"
           }
         }
-      },
-      "ChangeVisibilityEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "change_visibility"
-            ],
-            "description": "Effect type"
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "always",
-              "stage",
-              "never",
-              "conditional"
-            ],
-            "description": "Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)"
-          },
-          "condition": {
-            "type": "string",
-            "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
-          }
-        },
-        "required": [
-          "type",
-          "visibility"
-        ]
       },
       "StageActionParameter": {
         "type": "object",
