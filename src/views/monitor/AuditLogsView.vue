@@ -3,29 +3,19 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
-import { ClipboardList, Search, X, Calendar, ChevronDown, Filter } from 'lucide-vue-next'
+import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
+import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 
 const router = useRouter()
 const auditLogsStore = useAuditLogsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
-// Time filter state
-const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-7d')
-const showTimeDropdown = ref(false)
-
-const timeFilterOptions = [
-  { value: 'last-15m', label: 'Last 15 minutes' },
-  { value: 'last-30m', label: 'Last 30 minutes' },
-  { value: 'last-1h', label: 'Last 1 hour' },
-  { value: 'last-4h', label: 'Last 4 hours' },
-  { value: 'last-24h', label: 'Last 24 hours' },
-  { value: 'last-7d', label: 'Last 7 days' },
-  { value: 'last-30d', label: 'Last 30 days' },
-  { value: 'all', label: 'All time' },
-] as const
+// Date/time range filter
+const dateTimeRange = ref<DateTimeRange>(null)
 
 // Action filter state
 const actionFilter = ref<'all' | 'CREATE' | 'UPDATE' | 'DELETE'>('all')
@@ -65,16 +55,12 @@ const pagination = usePagination({
 })
 
 // Computed
-const currentTimeFilterLabel = computed(() => {
-  return timeFilterOptions.find(opt => opt.value === timeFilter.value)?.label || 'Last 24 hours'
-})
-
 const currentActionFilterLabel = computed(() => {
   return actionFilterOptions.find(opt => opt.value === actionFilter.value)?.label || 'All Actions'
 })
 
 const hasActiveFilters = computed(() => {
-  return timeFilter.value !== 'last-7d' || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
+  return dateTimeRange.value !== null || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
 })
 
 const filteredLogs = computed(() => auditLogsStore.logs)
@@ -84,8 +70,8 @@ watch(debouncedSearchQuery, () => {
   pagination.reset()
 })
 
-// Watch for time filter changes
-watch(timeFilter, () => {
+// Watch for date range changes
+watch(dateTimeRange, () => {
   pagination.reset()
   loadAuditLogs()
 })
@@ -122,16 +108,10 @@ onBeforeUnmount(() => {
 // Methods
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  const timeDropdown = document.querySelector('.time-filter-dropdown')
-  const timeButton = document.querySelector('.time-filter-button')
   const actionDropdown = document.querySelector('.action-filter-dropdown')
   const actionButton = document.querySelector('.action-filter-button')
   const projectScopeDropdown = document.querySelector('.project-scope-filter-dropdown')
   const projectScopeButton = document.querySelector('.project-scope-filter-button')
-
-  if (timeDropdown && !timeDropdown.contains(target) && !timeButton?.contains(target)) {
-    showTimeDropdown.value = false
-  }
 
   if (actionDropdown && !actionDropdown.contains(target) && !actionButton?.contains(target)) {
     showActionDropdown.value = false
@@ -142,40 +122,12 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-function getTimeFilterDate(): string | null {
-  const now = new Date()
-
-  switch (timeFilter.value) {
-    case 'last-15m':
-      return new Date(now.getTime() - 15 * 60 * 1000).toISOString()
-    case 'last-30m':
-      return new Date(now.getTime() - 30 * 60 * 1000).toISOString()
-    case 'last-1h':
-      return new Date(now.getTime() - 60 * 60 * 1000).toISOString()
-    case 'last-4h':
-      return new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
-    case 'last-24h':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
-    case 'last-7d':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    case 'last-30d':
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    case 'all':
-    default:
-      return null
-  }
-}
-
 async function loadAuditLogs() {
   try {
     const filters: any = {}
 
-    const timeFilterDate = getTimeFilterDate()
-    if (timeFilterDate) {
-      filters.createdAt = {
-        op: 'gte',
-        value: timeFilterDate
-      }
+    if (dateTimeRange.value) {
+      filters.createdAt = dateTimeRange.value
     }
 
     if (actionFilter.value !== 'all') {
@@ -218,11 +170,6 @@ function getActionBadgeClass(action: string): string {
   return 'badge-secondary'
 }
 
-function selectTimeFilter(value: typeof timeFilter.value) {
-  timeFilter.value = value
-  showTimeDropdown.value = false
-}
-
 function selectActionFilter(value: typeof actionFilter.value) {
   actionFilter.value = value
   showActionDropdown.value = false
@@ -249,28 +196,8 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
       <div class="mb-6 flex items-center gap-3">
         <!-- Desktop Filters (Hidden on Mobile) -->
         <div class="hidden md:flex items-center gap-3">
-          <!-- Time Filter -->
-          <div class="relative">
-            <button
-              @click="showTimeDropdown = !showTimeDropdown"
-              class="time-filter-button filter-btn !shadow-none">
-              <Calendar class="w-4 h-4 mr-2" />
-              <span>{{ currentTimeFilterLabel }}</span>
-              <ChevronDown class="w-4 h-4 ml-2" />
-            </button>
-
-            <!-- Time Dropdown -->
-            <div v-if="showTimeDropdown" class="time-filter-dropdown filter-dropdown-panel min-w-[200px]">
-              <button
-                v-for="option in timeFilterOptions"
-                :key="option.value"
-                @click="selectTimeFilter(option.value)"
-                class="filter-dropdown-item"
-                :class="{ 'filter-dropdown-item-active': timeFilter === option.value }">
-                {{ option.label }}
-              </button>
-            </div>
-          </div>
+          <!-- Date/Time Range Picker -->
+          <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
           <!-- Action Filter -->
           <div class="relative">
@@ -377,23 +304,6 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
             </div>
 
             <div class="flex flex-col gap-6">
-              <!-- Time Filter -->
-              <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range</label>
-                <div class="flex flex-col gap-1">
-                  <button 
-                    v-for="option in timeFilterOptions" 
-                    :key="option.value" 
-                    @click="timeFilter = option.value"
-                    class="flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left"
-                    :class="timeFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
-                  >
-                    {{ option.label }}
-                    <span v-if="timeFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
-                  </button>
-                </div>
-              </div>
-
               <!-- Action Filter -->
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Action Type</label>
@@ -431,7 +341,7 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
 
             <div class="mt-auto pt-6 flex gap-3">
               <button 
-                @click="() => { timeFilter = 'last-7d'; actionFilter = 'all'; projectScopeFilter = 'selected' }"
+                @click="() => { actionFilter = 'all'; projectScopeFilter = 'selected' }"
                 class="btn-secondary flex-1 justify-center"
               >
                 Reset
