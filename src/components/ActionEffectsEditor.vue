@@ -29,11 +29,11 @@ const EFFECT_PRIORITY = {
   modifyVariables: 3,
   modifyUserProfile: 4,
   modifyUserInput: 5,
-  changeVisibility: 6,
-  generateResponse: 7,
-  endConversation: 8,
-  abortConversation: 9,
-  goToStage: 10,
+  changeVisibility: 50,
+  generateResponse: 100,
+  endConversation: 200,
+  abortConversation: 201,
+  goToStage: 202,
 } as const
 
 const effectsList = computed(() => {

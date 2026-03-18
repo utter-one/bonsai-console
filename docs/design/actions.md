@@ -165,10 +165,11 @@ When multiple actions are triggered in the same turn, the system **collects all 
 | 4 | Modify User Profile |
 | 5 | Modify User Input |
 | 6 | Call Tool (Script) |
-| 7 | Generate Response |
-| 8 | End Conversation |
-| 9 | Abort Conversation |
-| 10 | Go to Stage |
+| 50 | Change Visibility |
+| 100 | Generate Response (if not aborted) |
+| 200 | End Conversation |
+| 201 | Abort Conversation |
+| 202 | Go to Stage (if not aborted/endeds) |
 
 #### Conflict Resolution
 
