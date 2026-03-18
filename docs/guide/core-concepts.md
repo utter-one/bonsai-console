@@ -40,18 +40,16 @@ You can have multiple agents in a project (e.g., a casual helper and a formal es
 
 | Effect | What It Does |
 |---|---|
-| **Call webhook** | Send a request to an external API |
-| **Call tool** | Invoke an AI-powered tool (translation, lookup, etc.) |
+| **Call tool** | Invoke a tool (Smart Function, Webhook, or Script) |
 | **Modify variables** | Set, reset, or update conversation data |
 | **Modify user profile** | Update the end user's stored profile data |
 | **Modify user input** | Change what the AI "sees" as the user's message |
-| **Run script** | Execute custom logic (JavaScript) |
 | **Generate response** | Produce an AI reply (or a fixed, pre-written message) |
 | **End conversation** | Gracefully close the conversation |
 | **Abort conversation** | Immediately terminate the conversation |
 | **Go to stage** | Move the conversation to a different stage |
 
-Effects run in order within an action. You can chain them — for example: _call a webhook to check an order status → store the result in a variable → generate a response that includes the status._
+Effects run in order within an action. You can chain them — for example: _call a webhook tool to check an order status → store the result in a variable → generate a response that includes the status._
 
 ## Classifiers — Understanding Intent
 
@@ -74,9 +72,13 @@ Extracted values are stored in the stage's variables and are available in prompt
 
 The **knowledge base** stores question-and-answer pairs organized into categories. When knowledge is enabled on a stage, the AI can draw on this content to give accurate, consistent answers to common questions — without you having to write specific actions for each one.
 
-## Tools — AI-Powered Functions
+## Tools — Callable Functions
 
-**Tools** are callable AI functions that process input using a language model. They're useful for things like translation, summarization, or image analysis. Tools are invoked through action effects or directly by client applications.
+**Tools** are callable functions that can be invoked during a conversation via action effects or directly by client applications. There are three types:
+
+- **Smart Functions** — Use a language model to process input and produce output (translation, summarization, image analysis, etc.).
+- **Webhooks** — Send HTTP requests to external APIs and return the response.
+- **Scripts** — Run custom JavaScript in a secure sandbox for data processing or complex logic.
 
 ## Global Actions — Shared Behaviors
 

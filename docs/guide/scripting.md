@@ -83,10 +83,10 @@ if (vars.retryCount >= 3) {
 }
 ```
 
-### Processing Webhook Results
+### Processing Tool Results
 
 ```javascript
-const response = results.webhooks?.orderLookup;
+const response = results.tools?.orderLookup;
 if (response) {
   vars.customerName = response.firstName + " " + response.lastName;
   vars.accountTier = response.subscription?.tier || "free";
@@ -172,5 +172,5 @@ console.log("Retry count:", vars.retryCount);
 - Scripts are **synchronous** — no `async`/`await` or promises.
 - No external modules or `require()` / `import`.
 - No `setTimeout` or `setInterval`.
-- For network calls, use a webhook or `call_tool` effect instead of scripts.
+- For network calls, create a **Webhook tool** and invoke it via the Call Tool effect instead of scripts.
 - Always check if variables exist before using them to avoid errors.
