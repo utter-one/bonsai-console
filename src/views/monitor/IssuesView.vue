@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
-import { Bug, Search, X, Plus } from 'lucide-vue-next'
+import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -94,6 +94,34 @@ function getProjectName(projectId: string): string {
   return project ? project.name : projectId
 }
 
+const STATUS_OPTIONS = [
+  { value: 'awaiting', label: 'Awaiting' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'ready-to-test', label: 'Ready to Test' },
+  { value: 'still-occurs', label: 'Still Occurs' },
+  { value: 'done', label: 'Done' },
+  { value: 'cannot-reproduce', label: 'Cannot Reproduce' },
+  { value: 'wont-fix', label: "Won't Fix" },
+]
+
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  'awaiting': { bg: '#fb923c', color: '#fff' },
+  'in-progress': { bg: '#fbbf24', color: '#fff' },
+  'ready-to-test': { bg: '#86efac', color: '#fff' },
+  'still-occurs': { bg: '#fca5a5', color: '#fff' },
+  'done': { bg: '#16a34a', color: '#fff' },
+  'cannot-reproduce': { bg: '#ea580c', color: '#fff' },
+  'wont-fix': { bg: '#b91c1c', color: '#fff' },
+}
+
+function getStatusStyle(status: string) {
+  const c = STATUS_COLORS[status.toLowerCase()] || { bg: '#6b7280', color: '#fff' }
+  return {
+    backgroundColor: c.bg,
+    color: c.color,
+  }
+}
+
 function getSeverityClass(severity: string): string {
   const severityMap: Record<string, string> = {
     critical: 'badge-error',
@@ -104,17 +132,15 @@ function getSeverityClass(severity: string): string {
   return severityMap[severity.toLowerCase()] || 'badge-inactive'
 }
 
-function getStatusClass(status: string): string {
-  const statusMap: Record<string, string> = {
-    'awaiting': 'badge-awaiting',
-    'in-progress': 'badge-in-progress',
-    'ready-to-test': 'badge-ready',
-    'still-occurs': 'badge-still-occurs',
-    'done': 'badge-done',
-    'cannot-reproduce': 'badge-cannot-reproduce',
-    'wont-fix': 'badge-wont-fix'
+async function handleStatusChange(issue: IssueResponse, newStatus: string) {
+  const previousStatus = issue.status
+  issue.status = newStatus
+  try {
+    await issuesStore.update(issue.id.toString(), { status: newStatus })
+  } catch (error) {
+    issue.status = previousStatus
+    console.error('Failed to update issue status:', error)
   }
-  return statusMap[status.toLowerCase()] || 'badge-inactive'
 }
 
 function openCreateModal() {
@@ -233,7 +259,18 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
                 <td class="table-cell font-medium">{{ getProjectName(issue.projectId) }}</td>
                 <td class="table-cell">{{ truncateText(issue.bugDescription) }}</td>
                 <td class="table-cell">
-                  <span :class="getStatusClass(issue.status)">{{ issue.status }}</span>
+                  <div class="relative inline-block" @click.stop>
+                    <select
+                      :value="issue.status"
+                      :style="getStatusStyle(issue.status)"
+                      :disabled="isIssueArchived(issue)"
+                      class="appearance-none border-none outline-none rounded text-xs font-semibold cursor-pointer pl-2 pr-6 py-1 min-w-24 disabled:cursor-default disabled:opacity-85"
+                      @change="handleStatusChange(issue, ($event.target as HTMLSelectElement).value)"
+                    >
+                      <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
+                    </select>
+                    <ChevronDown class="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 text-white" />
+                  </div>
                 </td>
                 <td class="table-cell">
                   <span :class="getSeverityClass(issue.severity)">{{ issue.severity }}</span>
@@ -276,6 +313,17 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+select option {
+  background-color: #fff;
+  color: #111827;
+}
+
+:root.dark select option,
+.dark select option {
+  background-color: var(--color-gray-700);
+  color: #f9fafb;
 }
 
 /* Base badge style */
