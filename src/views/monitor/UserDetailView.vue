@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, User, MessageSquare } from 'lucide-vue-next'
+import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check } from 'lucide-vue-next'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -21,6 +21,11 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'profile' | 'conversations' | 'metadata'>('profile')
 
+const editableProfile = ref<Array<{ key: string; value: string }>>([])
+const isSaving = ref(false)
+const saveError = ref<string | null>(null)
+const showSuccess = ref(false)
+
 onMounted(async () => {
   await loadUserData()
 })
@@ -32,6 +37,7 @@ async function loadUserData() {
   try {
     // Load user details
     user.value = await usersStore.fetchById(projectId.value, userId.value)
+    initEditableProfile()
 
     // Load user's conversations
     const conversationsResponse = await conversationsStore.fetchAll(
@@ -53,6 +59,61 @@ async function loadUserData() {
     console.error('Failed to load user:', err)
   } finally {
     isLoading.value = false
+  }
+}
+
+function initEditableProfile() {
+  if (!user.value || !user.value.profile) {
+    editableProfile.value = []
+    return
+  }
+  editableProfile.value = Object.entries(user.value.profile)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => ({
+      key,
+      value: typeof value === 'object' && value !== null ? JSON.stringify(value, null, 2) : String(value)
+    }))
+}
+
+function addField() {
+  editableProfile.value.push({ key: '', value: '' })
+}
+
+function removeField(index: number) {
+  editableProfile.value.splice(index, 1)
+}
+
+async function saveProfile() {
+  saveError.value = null
+
+  const keys = editableProfile.value.map(e => e.key.trim()).filter(Boolean)
+  const uniqueKeys = new Set(keys)
+  if (uniqueKeys.size !== keys.length) {
+    saveError.value = 'Profile field names must be unique'
+    return
+  }
+
+  const profile: Record<string, any> = {}
+  for (const entry of editableProfile.value) {
+    const key = entry.key.trim()
+    if (!key) continue
+    try {
+      profile[key] = JSON.parse(entry.value)
+    } catch {
+      profile[key] = entry.value
+    }
+  }
+
+  isSaving.value = true
+  try {
+    user.value = await usersStore.update(projectId.value, userId.value, { profile })
+    initEditableProfile()
+    showSuccess.value = true
+    setTimeout(() => { showSuccess.value = false }, 3000)
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to save profile'
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -103,25 +164,15 @@ const metadataFields = computed(() => {
   ]
 })
 
-const profileEntries = computed(() => {
-  if (!user.value || !user.value.profile) return []
-  return Object.entries(user.value.profile)
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .map(([key, value]) => ({
-      key,
-      value,
-      displayValue: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value),
-      isComplex: typeof value === 'object' && value !== null
-    }))
-})
+
 </script>
 
 <template>
   <MonitorSectionLayout>
     <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
       <!-- Header -->
-      <div class="flex items-center justify-between px-0 py-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
-        <div class="md:flex items-center gap-4 flex-1">
+      <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+        <div class="md:flex items-center gap-4 flex-1 mb-3 md:mb-0">
           <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to users">
             <ArrowLeft class="w-5 h-5" />
           </button>
@@ -129,6 +180,13 @@ const profileEntries = computed(() => {
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">User Details</h1>
             <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ userId }}</p>
           </div>
+        </div>
+        <div v-if="activeTab === 'profile'" class="flex gap-3 items-center">
+          <button @click="saveProfile" class="btn-primary" :disabled="isSaving" type="button">
+            <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
+            <Save v-else class="inline-block mr-2 w-4 h-4" />
+            {{ showSuccess ? 'Saved!' : (isSaving ? 'Saving...' : 'Save Changes') }}
+          </button>
         </div>
       </div>
 
@@ -181,14 +239,23 @@ const profileEntries = computed(() => {
         <div class="mx-auto">
           <!-- Profile Tab -->
           <div v-show="activeTab === 'profile'" class="tab-content">
-            <div class="">
-              <div class="flex items-center gap-3 mb-6 ">
+            <div>
+              <div v-if="saveError" class="alert-error mb-4">{{ saveError }}</div>
+
+              <div class="flex items-center gap-3 mb-6">
                 <User class="w-6 h-6 text-gray-600" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Profile</h2>
               </div>
 
-              <div v-if="profileEntries.length === 0" class="text-center py-8 text-gray-500">
-                No profile data available
+              <div class="flex justify-end mb-3">
+                <button @click="addField" class="btn-secondary" type="button">
+                  <Plus class="inline-block mr-1 w-4 h-4" />
+                  Add Field
+                </button>
+              </div>
+
+              <div v-if="editableProfile.length === 0" class="text-center py-8 text-gray-500">
+                No profile fields. Click "Add Field" to add one.
               </div>
 
               <div v-else class="table-container">
@@ -198,20 +265,36 @@ const profileEntries = computed(() => {
                       <tr>
                         <th class="table-header-cell w-1/3">Field</th>
                         <th class="table-header-cell">Value</th>
+                        <th class="table-header-cell w-16"></th>
                       </tr>
                     </thead>
                     <tbody class="table-body">
-                      <tr v-for="entry in profileEntries" :key="entry.key" class="table-row">
-                        <td class="table-cell font-medium text-gray-700">
-                          {{ entry.key }}
+                      <tr v-for="(entry, index) in editableProfile" :key="index" class="table-row">
+                        <td class="table-cell">
+                          <input
+                            v-model="entry.key"
+                            type="text"
+                            class="form-input"
+                            placeholder="field name"
+                          />
                         </td>
                         <td class="table-cell">
-                          <div v-if="entry.isComplex" class="bg-gray-100 dark:bg-gray-700 rounded p-3 font-mono text-xs overflow-x-auto max-w-2xl">
-                            <pre class="whitespace-pre-wrap break-words text-black dark:text-gray-200">{{ entry.displayValue }}</pre>
-                          </div>
-                          <div v-else class="text-gray-900 dark:text-gray-200">
-                            {{ entry.displayValue }}
-                          </div>
+                          <input
+                            v-model="entry.value"
+                            type="text"
+                            class="form-input font-mono"
+                            placeholder="value"
+                          />
+                        </td>
+                        <td class="table-cell">
+                          <button
+                            @click="removeField(index)"
+                            class="btn-icon text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            title="Remove field"
+                            type="button"
+                          >
+                            <Trash2 class="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     </tbody>
