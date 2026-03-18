@@ -3,30 +3,20 @@ import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, Calendar, ChevronDown, MessageSquare } from 'lucide-vue-next'
+import { RefreshCw, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 
-// Time filter state
-const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-7d')
-const showTimeDropdown = ref(false)
-
-const timeFilterOptions = [
-  { value: 'last-15m', label: 'Last 15 minutes' },
-  { value: 'last-30m', label: 'Last 30 minutes' },
-  { value: 'last-1h', label: 'Last 1 hour' },
-  { value: 'last-4h', label: 'Last 4 hours' },
-  { value: 'last-24h', label: 'Last 24 hours' },
-  { value: 'last-7d', label: 'Last 7 days' },
-  { value: 'last-30d', label: 'Last 30 days' },
-  { value: 'all', label: 'All time' },
-] as const
+// Date/time range filter
+const dateTimeRange = ref<DateTimeRange>(null)
 
 // Status filter state
 const statusFilter = ref<'all' | 'initialized' | 'awaiting_user_input' | 'receiving_user_voice' | 'processing_user_input' | 'generating_response' | 'finished' | 'aborted' | 'failed'>('all')
@@ -52,10 +42,6 @@ const pagination = usePagination({
 })
 
 // Computed
-const currentTimeFilterLabel = computed(() => {
-  return timeFilterOptions.find(opt => opt.value === timeFilter.value)?.label || 'Last 24 hours'
-})
-
 const currentStatusFilterLabel = computed(() => {
   return statusFilterOptions.find(opt => opt.value === statusFilter.value)?.label || 'All Statuses'
 })
@@ -64,8 +50,8 @@ const filteredConversations = computed(() => {
   return conversationsStore.conversations
 })
 
-// Watch for time filter changes
-watch(timeFilter, () => {
+// Watch for date range changes
+watch(dateTimeRange, () => {
   pagination.reset()
   loadConversations()
 })
@@ -95,71 +81,29 @@ onBeforeUnmount(() => {
 // Methods
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  const timeDropdown = document.querySelector('.time-filter-dropdown')
-  const timeButton = document.querySelector('.time-filter-button')
   const statusDropdown = document.querySelector('.status-filter-dropdown')
   const statusButton = document.querySelector('.status-filter-button')
-  
-  if (timeDropdown && !timeDropdown.contains(target) && !timeButton?.contains(target)) {
-    showTimeDropdown.value = false
-  }
-  
+
   if (statusDropdown && !statusDropdown.contains(target) && !statusButton?.contains(target)) {
     showStatusDropdown.value = false
-  }
-}
-
-function getTimeFilterDate(): string | null {
-  const now = new Date()
-  
-  switch (timeFilter.value) {
-    case 'last-15m':
-      return new Date(now.getTime() - 15 * 60 * 1000).toISOString()
-    case 'last-30m':
-      return new Date(now.getTime() - 30 * 60 * 1000).toISOString()
-    case 'last-1h':
-      return new Date(now.getTime() - 60 * 60 * 1000).toISOString()
-    case 'last-4h':
-      return new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
-    case 'last-24h':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
-    case 'last-7d':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    case 'last-30d':
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    case 'all':
-    default:
-      return null
   }
 }
 
 async function loadConversations() {
   try {
     const filters: any = {}
-    
-    const timeFilterDate = getTimeFilterDate()
-    if (timeFilterDate) {
-      filters.createdAt = {
-        op: 'gte',
-        value: timeFilterDate
-      }
+
+    if (dateTimeRange.value) {
+      filters.createdAt = dateTimeRange.value
     }
-    
+
     if (statusFilter.value !== 'all') {
-      filters.status = {
-        op: 'eq',
-        value: statusFilter.value
-      }
+      filters.status = { op: 'eq', value: statusFilter.value }
     }
-    
-    // Add project filter if a project is selected
-    if (projectSelectionStore.selectedProjectId) {
-      // projectId is now in the URL, remove from filters
-    }
-    
+
     await conversationsStore.fetchAll(
       projectSelectionStore.selectedProjectId || '',
-      pagination.getParams({ 
+      pagination.getParams({
         filters,
         orderBy: '-createdAt'
       })
@@ -216,11 +160,6 @@ function formatStatusLabel(status: string): string {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
-}
-
-function selectTimeFilter(value: typeof timeFilter.value) {
-  timeFilter.value = value
-  showTimeDropdown.value = false
 }
 
 function selectStatusFilter(value: typeof statusFilter.value) {
@@ -283,30 +222,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 
       <!-- Filter Bar -->
       <div class="mb-6 flex items-center gap-3">
-        <!-- Time Filter -->
-        <div class="relative">
-          <button
-            @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button filter-btn !shadow-none"
-          >
-            <Calendar class="w-4 h-4 mr-2" />
-            <span>{{ currentTimeFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2" />
-          </button>
-
-          <!-- Time Dropdown -->
-          <div v-if="showTimeDropdown" class="time-filter-dropdown filter-dropdown-panel min-w-[200px]">
-            <button
-              v-for="option in timeFilterOptions"
-              :key="option.value"
-              @click="selectTimeFilter(option.value)"
-              class="filter-dropdown-item !shadow-none"
-              :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
+        <!-- Date/Time Range Picker -->
+        <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
         <!-- Status Filter -->
         <div class="relative">
