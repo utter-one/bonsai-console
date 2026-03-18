@@ -11,6 +11,7 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -1308,6 +1309,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
                 <Settings class="inline-block mr-1 w-4 h-4" />
                 Settings...
               </button>
+              <LLMModelBadge :settings="form.fillerLlmSettings" />
             </div>
             <p class="form-help-text">
               The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.
