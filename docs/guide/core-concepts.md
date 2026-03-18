@@ -104,7 +104,7 @@ Use guardrails for zero-tolerance rules: blocking harmful language, refusing off
 
 **Moderation** lets you enable automatic content safety checks on user messages. When enabled, each user message is evaluated by a moderation model and flagged if it matches any blocked category.
 
-Configure moderation in **Design > Guardrails & Moderation** (Moderation tab) by selecting an LLM provider (OpenAI or Mistral) and choosing which categories to block. To control what happens when a message is blocked, set up the **Moderation Blocked** special action in **Design > Global Actions**.
+Configure moderation in **Design > Guardrails** (Moderation tab) by selecting an LLM provider (OpenAI or Mistral) and choosing which categories to block. To control what happens when a message is blocked, set up the **Moderation Blocked** special action in **Design > Global Actions**.
 
 ## Providers — External AI Services
 
