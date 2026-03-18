@@ -52,7 +52,10 @@ export type Effect =
     } & CallToolEffect)
   | ({
       type: "generate_response";
-    } & GenerateResponseEffect);
+    } & GenerateResponseEffect)
+  | ({
+      type: "change_visibility";
+    } & ChangeVisibilityEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1294,6 +1297,15 @@ export interface GenerateResponseEffect {
   prescriptedSelectionStrategy?: "random" | "round_robin";
   /** Optional array of prescripted responses to use */
   prescriptedResponses?: string[];
+}
+
+export interface ChangeVisibilityEffect {
+  /** Effect type */
+  type: "change_visibility";
+  /** Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression) */
+  visibility: "always" | "stage" | "never" | "conditional";
+  /** JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional" */
+  condition?: string;
 }
 
 export interface StageActionParameter {
@@ -2949,6 +2961,12 @@ export interface ConversationEventResponse {
         role: "user" | "assistant";
         text: string;
         originalText: string;
+        visibility?: {
+          /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+          visibility: "always" | "stage" | "never" | "conditional";
+          /** Condition for visibility, evaluated against conversation variables */
+          condition?: string;
+        };
         metadata?: Record<string, any>;
       }
     | {
@@ -3076,6 +3094,12 @@ export interface ConversationEventListResponse {
           role: "user" | "assistant";
           text: string;
           originalText: string;
+          visibility?: {
+            /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+            visibility: "always" | "stage" | "never" | "conditional";
+            /** Condition for visibility, evaluated against conversation variables */
+            condition?: string;
+          };
           metadata?: Record<string, any>;
         }
       | {
@@ -5992,9 +6016,14 @@ export interface ToolExchangeV1 {
   name: string;
   /** Detailed description of the tool */
   description?: string | null;
-  /** Handlebars template for tool invocation */
-  prompt: string;
-  /** Provider hint identifying the LLM provider used at export time */
+  /**
+   * Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)
+   * @default "smart_function"
+   */
+  type?: "smart_function" | "webhook" | "script";
+  /** Handlebars template for tool invocation (smart_function only) */
+  prompt?: string | null;
+  /** Provider hint identifying the LLM provider used at export time (smart_function only) */
   llmHint?: {
     /** Category of the provider (llm, tts, asr, storage, embeddings) */
     type: "llm" | "tts" | "asr" | "storage" | "embeddings";
@@ -6003,16 +6032,26 @@ export interface ToolExchangeV1 {
     /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
     preferredModel?: string;
   } | null;
-  /** LLM provider-specific settings for this tool */
+  /** LLM provider-specific settings for this tool (smart_function only) */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** Expected input format for the tool */
-  inputType: "text" | "image" | "multi-modal";
-  /** Expected output format from the tool */
-  outputType: "text" | "image" | "multi-modal";
+  /** Expected input format for the tool (smart_function only) */
+  inputType?: "text" | "image" | "multi-modal" | null;
+  /** Expected output format from the tool (smart_function only) */
+  outputType?: "text" | "image" | "multi-modal" | null;
+  /** Target URL — supports Handlebars templating (webhook only) */
+  url?: string | null;
+  /** HTTP method to use (webhook only) */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | null;
+  /** HTTP headers to send; values support Handlebars templating (webhook only) */
+  webhookHeaders?: Record<string, string>;
+  /** Request body template (Handlebars); used for POST/PUT/PATCH (webhook only) */
+  webhookBody?: string | null;
+  /** JavaScript code to execute in an isolated VM context (script only) */
+  code?: string | null;
   /** Parameters that this tool expects to receive */
   parameters?: ToolParameter[];
   /** Tags for categorizing and filtering this tool */

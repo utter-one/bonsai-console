@@ -2281,6 +2281,9 @@
           },
           {
             "$ref": "#/components/schemas/GenerateResponseEffect"
+          },
+          {
+            "$ref": "#/components/schemas/ChangeVisibilityEffect"
           }
         ],
         "discriminator": {
@@ -2293,9 +2296,40 @@
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
-            "generate_response": "#/components/schemas/GenerateResponseEffect"
+            "generate_response": "#/components/schemas/GenerateResponseEffect",
+            "change_visibility": "#/components/schemas/ChangeVisibilityEffect"
           }
         }
+      },
+      "ChangeVisibilityEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "change_visibility"
+            ],
+            "description": "Effect type"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "always",
+              "stage",
+              "never",
+              "conditional"
+            ],
+            "description": "Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)"
+          },
+          "condition": {
+            "type": "string",
+            "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
+          }
+        },
+        "required": [
+          "type",
+          "visibility"
+        ]
       },
       "StageActionParameter": {
         "type": "object",
@@ -5658,6 +5692,28 @@
                   "originalText": {
                     "type": "string"
                   },
+                  "visibility": {
+                    "type": "object",
+                    "properties": {
+                      "visibility": {
+                        "type": "string",
+                        "enum": [
+                          "always",
+                          "stage",
+                          "never",
+                          "conditional"
+                        ],
+                        "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                      },
+                      "condition": {
+                        "type": "string",
+                        "description": "Condition for visibility, evaluated against conversation variables"
+                      }
+                    },
+                    "required": [
+                      "visibility"
+                    ]
+                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -6117,6 +6173,28 @@
                         },
                         "originalText": {
                           "type": "string"
+                        },
+                        "visibility": {
+                          "type": "object",
+                          "properties": {
+                            "visibility": {
+                              "type": "string",
+                              "enum": [
+                                "always",
+                                "stage",
+                                "never",
+                                "conditional"
+                              ],
+                              "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                            },
+                            "condition": {
+                              "type": "string",
+                              "description": "Condition for visibility, evaluated against conversation variables"
+                            }
+                          },
+                          "required": [
+                            "visibility"
+                          ]
                         },
                         "metadata": {
                           "type": "object",
@@ -13661,9 +13739,20 @@
             "nullable": true,
             "description": "Detailed description of the tool"
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function",
+              "webhook",
+              "script"
+            ],
+            "default": "smart_function",
+            "description": "Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)"
+          },
           "prompt": {
             "type": "string",
-            "description": "Handlebars template for tool invocation"
+            "nullable": true,
+            "description": "Handlebars template for tool invocation (smart_function only)"
           },
           "llmHint": {
             "type": "object",
@@ -13693,7 +13782,7 @@
               "type",
               "apiType"
             ],
-            "description": "Provider hint identifying the LLM provider used at export time"
+            "description": "Provider hint identifying the LLM provider used at export time (smart_function only)"
           },
           "llmSettings": {
             "anyOf": [
@@ -13713,25 +13802,65 @@
                 "nullable": true
               }
             ],
-            "description": "LLM provider-specific settings for this tool"
+            "description": "LLM provider-specific settings for this tool (smart_function only)"
           },
           "inputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected input format for the tool"
+            "description": "Expected input format for the tool (smart_function only)"
           },
           "outputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected output format from the tool"
+            "description": "Expected output format from the tool (smart_function only)"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target URL — supports Handlebars templating (webhook only)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              null
+            ],
+            "description": "HTTP method to use (webhook only)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers to send; values support Handlebars templating (webhook only)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Request body template (Handlebars); used for POST/PUT/PATCH (webhook only)"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "JavaScript code to execute in an isolated VM context (script only)"
           },
           "parameters": {
             "type": "array",
@@ -13758,10 +13887,7 @@
         },
         "required": [
           "id",
-          "name",
-          "prompt",
-          "inputType",
-          "outputType"
+          "name"
         ],
         "description": "Tool entity in the exchange format"
       },
@@ -21008,6 +21134,28 @@
                                   "originalText": {
                                     "type": "string"
                                   },
+                                  "visibility": {
+                                    "type": "object",
+                                    "properties": {
+                                      "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                          "always",
+                                          "stage",
+                                          "never",
+                                          "conditional"
+                                        ],
+                                        "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                                      },
+                                      "condition": {
+                                        "type": "string",
+                                        "description": "Condition for visibility, evaluated against conversation variables"
+                                      }
+                                    },
+                                    "required": [
+                                      "visibility"
+                                    ]
+                                  },
                                   "metadata": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -21547,6 +21695,28 @@
                             },
                             "originalText": {
                               "type": "string"
+                            },
+                            "visibility": {
+                              "type": "object",
+                              "properties": {
+                                "visibility": {
+                                  "type": "string",
+                                  "enum": [
+                                    "always",
+                                    "stage",
+                                    "never",
+                                    "conditional"
+                                  ],
+                                  "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                                },
+                                "condition": {
+                                  "type": "string",
+                                  "description": "Condition for visibility, evaluated against conversation variables"
+                                }
+                              },
+                              "required": [
+                                "visibility"
+                              ]
                             },
                             "metadata": {
                               "type": "object",
