@@ -2984,6 +2984,7 @@ export interface ConversationEventResponse {
     | {
         toolId: string;
         toolName: string;
+        toolType?: "smart_function" | "webhook" | "script";
         parameters: Record<string, ParameterValue>;
         success: boolean;
         result?: any;
@@ -3110,6 +3111,7 @@ export interface ConversationEventListResponse {
       | {
           toolId: string;
           toolName: string;
+          toolType?: "smart_function" | "webhook" | "script";
           parameters: Record<string, ParameterValue>;
           success: boolean;
           result?: any;

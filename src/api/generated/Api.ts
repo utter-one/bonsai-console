@@ -3021,6 +3021,7 @@ export class Api<
             | {
                 toolId: string;
                 toolName: string;
+                toolType?: "smart_function" | "webhook" | "script";
                 parameters: Record<string, ParameterValue>;
                 success: boolean;
                 result?: any;
@@ -3188,6 +3189,7 @@ export class Api<
           | {
               toolId: string;
               toolName: string;
+              toolType?: "smart_function" | "webhook" | "script";
               parameters: Record<string, ParameterValue>;
               success: boolean;
               result?: any;

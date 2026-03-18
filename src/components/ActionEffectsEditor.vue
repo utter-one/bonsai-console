@@ -24,21 +24,32 @@ const props = withDefaults(defineProps<{
 
 const selectedEffectId = ref<string | null>(null)
 
+const EFFECT_PRIORITY = {
+  callTool: 2,
+  modifyVariables: 3,
+  modifyUserProfile: 4,
+  modifyUserInput: 5,
+  generateResponse: 7,
+  endConversation: 8,
+  abortConversation: 9,
+  goToStage: 10,
+} as const
+
 const effectsList = computed(() => {
   const ops = props.operations
-  const list: Array<{ id: string; label: string }> = []
-  if (ops.generateResponse.enabled) list.push({ id: 'generateResponse', label: 'Generate Response' })
-  if (ops.endConversation.enabled) list.push({ id: 'endConversation', label: 'End Conversation' })
-  if (ops.abortConversation.enabled) list.push({ id: 'abortConversation', label: 'Abort Conversation' })
-  if (ops.goToStage.enabled) list.push({ id: 'goToStage', label: 'Go to Stage' })
-  if (ops.modifyUserInput.enabled) list.push({ id: 'modifyUserInput', label: 'Modify User Input' })
-  if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables' })
-  if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile' })
+  const list: Array<{ id: string; label: string; priority: number }> = []
+  if (ops.generateResponse.enabled) list.push({ id: 'generateResponse', label: 'Generate Response', priority: EFFECT_PRIORITY.generateResponse })
+  if (ops.endConversation.enabled) list.push({ id: 'endConversation', label: 'End Conversation', priority: EFFECT_PRIORITY.endConversation })
+  if (ops.abortConversation.enabled) list.push({ id: 'abortConversation', label: 'Abort Conversation', priority: EFFECT_PRIORITY.abortConversation })
+  if (ops.goToStage.enabled) list.push({ id: 'goToStage', label: 'Go to Stage', priority: EFFECT_PRIORITY.goToStage })
+  if (ops.modifyUserInput.enabled) list.push({ id: 'modifyUserInput', label: 'Modify User Input', priority: EFFECT_PRIORITY.modifyUserInput })
+  if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: EFFECT_PRIORITY.modifyVariables })
+  if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
-    list.push({ id: `callTool_${i}`, label: tool ? `Call Tool: ${tool.name}` : 'Call Tool' })
+    list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
   })
-  return list
+  return list.sort((a, b) => a.priority - b.priority)
 })
 
 watch(effectsList, (list) => {

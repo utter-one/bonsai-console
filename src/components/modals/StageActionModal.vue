@@ -126,7 +126,6 @@ const emit = defineEmits<{
 }>()
 
 // reference to inner ActionForm for flushing code
-const actionFormRef = ref<any>(null)
 
 type TabType = 'basic' | 'trigger' | 'parameters' | 'effects'
 

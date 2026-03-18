@@ -853,6 +853,7 @@ export interface ConversationEvent {
     | {
         toolId: string;
         toolName: string;
+        toolType?: 'smart_function' | 'webhook' | 'script';
         parameters: {
           [k: string]: ParameterValue;
         };
