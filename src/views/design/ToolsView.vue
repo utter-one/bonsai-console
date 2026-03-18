@@ -163,7 +163,7 @@ function getTypeIcon(type: string) {
           :class="[
             'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all',
             typeFilter === opt.value
-              ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
+              ? 'bg-primary-500 text-white border-primary-500 dark:bg-primary-600 dark:border-primary-600'
               : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:border-gray-500'
           ]"
         >
