@@ -20,6 +20,11 @@ export interface ActionOperations {
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   callTools: Array<{ toolId: string; parameters: Record<string, any> }>
+  changeVisibility: {
+    enabled: boolean
+    visibility: 'always' | 'stage' | 'never' | 'conditional'
+    condition: string
+  }
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -31,7 +36,8 @@ export function createDefaultOperations(): ActionOperations {
     modifyUserInput: { enabled: false, template: '' },
     modifyVariables: { enabled: false, modifications: [] },
     modifyUserProfile: { enabled: false, modifications: [] },
-    callTools: []
+    callTools: [],
+    changeVisibility: { enabled: false, visibility: 'always', condition: '' },
   }
 }
 
@@ -45,6 +51,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.modifyVariables.enabled = false
   operations.modifyUserProfile.enabled = false
   operations.callTools = []
+  operations.changeVisibility.enabled = false
 
   // Load existing effects
   effects.forEach(effect => {
@@ -87,6 +94,11 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
           parameters: 'parameters' in effect ? (effect.parameters || {}) : {},
         }
         operations.callTools.push(callToolEntry)
+        break
+      case 'change_visibility':
+        operations.changeVisibility.enabled = true
+        operations.changeVisibility.visibility = effect.visibility || 'always'
+        operations.changeVisibility.condition = effect.condition || ''
         break
     }
   })
@@ -182,6 +194,17 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
         parameters: params
       })
     }
+  }
+
+  if (operations.changeVisibility.enabled) {
+    const cvEffect: Record<string, any> = {
+      type: 'change_visibility',
+      visibility: operations.changeVisibility.visibility,
+    }
+    if (operations.changeVisibility.visibility === 'conditional') {
+      cvEffect.condition = operations.changeVisibility.condition
+    }
+    effectsArray.push(cvEffect as Effect)
   }
 
   return { effects: effectsArray, error: null }

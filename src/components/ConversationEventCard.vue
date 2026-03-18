@@ -24,6 +24,7 @@ import {
   ChevronDown,
   MessageSquare,
   ShieldAlert,
+  Eye,
 } from 'lucide-vue-next'
 import ContentViewer from '@/components/ContentViewer.vue'
 
@@ -358,6 +359,25 @@ function onBugReport() {
             class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
             <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Original:</span>
             <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}</div>
+          </div>
+          <div v-if="event.eventData.visibility" class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600 flex items-center gap-1.5">
+            <Eye class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span class="text-xs text-gray-600 dark:text-gray-400">Visibility:</span>
+            <span
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+              :class="{
+                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300': event.eventData.visibility.visibility === 'always',
+                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300': event.eventData.visibility.visibility === 'stage',
+                'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400': event.eventData.visibility.visibility === 'never',
+                'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300': event.eventData.visibility.visibility === 'conditional',
+              }"
+            >
+              {{ event.eventData.visibility.visibility }}
+            </span>
+            <span v-if="event.eventData.visibility.visibility === 'conditional' && event.eventData.visibility.condition"
+              class="font-mono text-xs text-gray-600 dark:text-gray-400 truncate">
+              {{ event.eventData.visibility.condition }}
+            </span>
           </div>
           <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0"
             class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">

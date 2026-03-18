@@ -49,6 +49,11 @@ interface ActionOperations {
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
   callTools: Array<{ toolId: string; parameters: Record<string, any> }>
+  changeVisibility: {
+    enabled: boolean
+    visibility: 'always' | 'stage' | 'never' | 'conditional'
+    condition: string
+  }
 }
 
 const props = withDefaults(

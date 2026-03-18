@@ -29,10 +29,11 @@ const EFFECT_PRIORITY = {
   modifyVariables: 3,
   modifyUserProfile: 4,
   modifyUserInput: 5,
-  generateResponse: 7,
-  endConversation: 8,
-  abortConversation: 9,
-  goToStage: 10,
+  changeVisibility: 50,
+  generateResponse: 100,
+  endConversation: 200,
+  abortConversation: 201,
+  goToStage: 202,
 } as const
 
 const effectsList = computed(() => {
@@ -45,6 +46,7 @@ const effectsList = computed(() => {
   if (ops.modifyUserInput.enabled) list.push({ id: 'modifyUserInput', label: 'Modify User Input', priority: EFFECT_PRIORITY.modifyUserInput })
   if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: EFFECT_PRIORITY.modifyVariables })
   if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
+  if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
     list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
@@ -81,6 +83,7 @@ const addableEffects = computed(() => {
     { key: 'modifyUserInput', label: 'Modify User Input' },
     { key: 'modifyVariables', label: 'Modify Variables' },
     { key: 'modifyUserProfile', label: 'Modify User Profile' },
+    { key: 'changeVisibility', label: 'Change Visibility' },
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
@@ -703,6 +706,36 @@ function selectStageVariable(modIndex: number, variableName: string) {
               + Add Modification
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Change Visibility Editor -->
+      <div v-else-if="selectedEffectType === 'changeVisibility'" class="space-y-6">
+        <div class="form-group">
+          <label class="form-label">Visibility <span class="required">*</span></label>
+          <select v-model="operations.changeVisibility.visibility" class="form-select-auto min-w-48">
+            <option value="always">Always</option>
+            <option value="stage">Stage only</option>
+            <option value="never">Never</option>
+            <option value="conditional">Conditional</option>
+          </select>
+          <p class="form-help-text">
+            <template v-if="operations.changeVisibility.visibility === 'always'">Always visible regardless of context</template>
+            <template v-else-if="operations.changeVisibility.visibility === 'stage'">Visible only while in the current stage</template>
+            <template v-else-if="operations.changeVisibility.visibility === 'never'">Never visible</template>
+            <template v-else>Visible based on a JavaScript condition expression</template>
+          </p>
+        </div>
+
+        <div v-if="operations.changeVisibility.visibility === 'conditional'" class="form-group">
+          <label class="form-label">Condition <span class="required">*</span></label>
+          <input
+            v-model="operations.changeVisibility.condition"
+            type="text"
+            placeholder="vars.count > 0"
+            class="form-input font-mono"
+          />
+          <p class="form-help-text">JavaScript expression evaluated against the conversation context; must return a boolean</p>
         </div>
       </div>
 

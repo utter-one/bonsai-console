@@ -106,7 +106,8 @@ export type Effect =
   | ModifyVariablesEffect
   | ModifyUserProfileEffect
   | CallToolEffect
-  | GenerateResponseEffect;
+  | GenerateResponseEffect
+  | ChangeVisibilityEffect;
 
 export interface EndConversationEffect {
   /**
@@ -246,6 +247,21 @@ export interface GenerateResponseEffect {
    * Optional array of prescripted responses to use
    */
   prescriptedResponses?: string[];
+}
+
+export interface ChangeVisibilityEffect {
+  /**
+   * Effect type
+   */
+  type: 'change_visibility';
+  /**
+   * Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)
+   */
+  visibility: 'always' | 'stage' | 'never' | 'conditional';
+  /**
+   * JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional"
+   */
+  condition?: string;
 }
 
 
@@ -814,6 +830,16 @@ export interface ConversationEvent {
         role: 'user' | 'assistant';
         text: string;
         originalText: string;
+        visibility?: {
+          /**
+           * Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)
+           */
+          visibility: 'always' | 'stage' | 'never' | 'conditional';
+          /**
+           * Condition for visibility, evaluated against conversation variables
+           */
+          condition?: string;
+        };
         metadata?: Record<string, unknown>;
       }
     | {

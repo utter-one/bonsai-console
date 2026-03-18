@@ -2986,6 +2986,12 @@ export class Api<
                 role: "user" | "assistant";
                 text: string;
                 originalText: string;
+                visibility?: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
                 metadata?: Record<string, any>;
               }
             | {
@@ -3154,6 +3160,12 @@ export class Api<
               role: "user" | "assistant";
               text: string;
               originalText: string;
+              visibility?: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
               metadata?: Record<string, any>;
             }
           | {
