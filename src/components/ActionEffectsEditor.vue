@@ -356,14 +356,14 @@ function selectStageVariable(modIndex: number, variableName: string) {
             <div
               class="flex items-center gap-1 px-3 py-2 cursor-pointer select-none group border-l-2"
               :class="selectedEffectId === effect.id
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400'
+                ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 dark:border-primary-400'
                 : 'border-transparent hover:bg-gray-100 dark:hover:bg-gray-800'"
               @click="selectedEffectId = effect.id"
             >
               <span
                 class="text-sm flex-1 truncate"
                 :class="selectedEffectId === effect.id
-                  ? 'text-blue-700 dark:text-blue-300 font-medium'
+                  ? 'text-primary-700 dark:text-primary-300 font-medium'
                   : 'text-gray-700 dark:text-gray-300'"
               >
                 {{ effect.label }}
@@ -420,7 +420,7 @@ function selectStageVariable(modIndex: number, variableName: string) {
     </div>
 
     <!-- Right Panel: Effect Editor -->
-    <div class="flex-1 min-w-0 overflow-y-auto p-6">
+    <div class="flex-1 min-w-0 overflow-y-auto px-6 py-4">
       <!-- Empty state -->
       <div v-if="!selectedEffectId" class="flex items-center justify-center h-full min-h-[20rem]">
         <p class="text-sm text-gray-400 dark:text-gray-500">
