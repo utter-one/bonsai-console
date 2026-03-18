@@ -14,7 +14,7 @@ const menuItems = [
   { name: 'design.stages', label: 'Stages', icon: Route },
   { name: 'design.classifiers', label: 'Classifiers', icon: Target },
   { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
-  { name: 'design.guardrails', label: 'Guardrails & Moderation', icon: ShieldCheck },
+  { name: 'design.guardrails', label: 'Guardrails', icon: ShieldCheck },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
   { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },

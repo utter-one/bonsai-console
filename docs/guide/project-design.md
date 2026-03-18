@@ -159,7 +159,7 @@ See [Global Actions](../design/global-actions) for full reference.
 
 ## 9. Configure Guardrails (Optional)
 
-Go to **Design > Guardrails & Moderation** to set up project-wide safety rules.
+Go to **Design > Guardrails** to set up project-wide safety rules.
 
 1. Select a **Guardrails Classifier** — the classifier used to evaluate all guardrails on every user turn. Train it with labels matching your guardrails' triggers.
 2. Click **New Guardrail** to define a rule — give it a classification trigger, set effects (e.g., generate a refusal), and optionally add a condition.
@@ -179,7 +179,7 @@ See [Global Memory](../design/global-memory) for details.
 
 ## 11. Configure Moderation (Optional)
 
-Go to **Design > Guardrails & Moderation** to enable content safety screening.
+Go to **Design > Guardrails** to enable content safety screening.
 
 1. Toggle **Enable content moderation**.
 2. Select a compatible provider (OpenAI or Mistral).
