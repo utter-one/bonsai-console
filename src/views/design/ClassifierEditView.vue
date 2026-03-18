@@ -8,6 +8,7 @@ import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -373,6 +374,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
                 <Settings class="inline-block mr-1 w-4 h-4" />
                 Settings...
               </button>
+              <LLMModelBadge :settings="form.llmSettings" />
             </div>
             <p class="form-help-text">
               The LLM provider to use for this classifier.
