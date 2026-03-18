@@ -420,7 +420,7 @@ function selectStageVariable(modIndex: number, variableName: string) {
     </div>
 
     <!-- Right Panel: Effect Editor -->
-    <div class="flex-1 min-w-0 overflow-y-auto p-6">
+    <div class="flex-1 min-w-0 overflow-y-auto px-6 py-4">
       <!-- Empty state -->
       <div v-if="!selectedEffectId" class="flex items-center justify-center h-full min-h-[20rem]">
         <p class="text-sm text-gray-400 dark:text-gray-500">

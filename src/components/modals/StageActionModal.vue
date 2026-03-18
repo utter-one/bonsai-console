@@ -42,7 +42,7 @@
           :show-tabs="true"
         />
 
-        <div class="modal-footer border-t border-gray-200 mt-auto py-0">
+        <div class="flex gap-3 justify-end border-t border-gray-200 mt-auto pt-4">
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
