@@ -43,7 +43,7 @@ Define what happens when the guardrail fires. Common effects:
 - **Generate Response** — Reply with a message explaining the restriction.
 - **End Conversation** — Terminate the conversation immediately.
 - **Go To Stage** — Redirect to a specific stage (e.g., a polite refusal stage).
-- **Run Script** — Execute custom logic.
+- **Call Tool** — Invoke a script, smart function or webhook tool for custom logic.
 
 See [Actions & Effects](./actions) for the full list of effect types.
 
