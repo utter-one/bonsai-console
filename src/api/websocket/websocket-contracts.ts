@@ -102,12 +102,10 @@ export type Effect =
   | EndConversationEffect
   | AbortConversationEffect
   | GoToStageEffect
-  | RunScriptEffect
   | ModifyUserInputEffect
   | ModifyVariablesEffect
   | ModifyUserProfileEffect
   | CallToolEffect
-  | CallWebhookEffect
   | GenerateResponseEffect;
 
 export interface EndConversationEffect {
@@ -141,17 +139,6 @@ export interface GoToStageEffect {
    * ID of the stage to switch to
    */
   stageId: string;
-}
-
-export interface RunScriptEffect {
-  /**
-   * Effect type
-   */
-  type: 'run_script';
-  /**
-   * JavaScript code to execute in isolated context
-   */
-  code: string;
 }
 
 export interface ModifyUserInputEffect {
@@ -240,37 +227,6 @@ export interface CallToolEffect {
   parameters: {
 
   };
-}
-
-export interface CallWebhookEffect {
-  /**
-   * Effect type
-   */
-  type: 'call_webhook';
-  /**
-   * HTTP(S) URL to call
-   */
-  url: string;
-  /**
-   * HTTP method to use
-   */
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  /**
-   * HTTP headers to send with the request
-   */
-  headers?: {
-    [k: string]: string;
-  };
-  /**
-   * Request body for POST/PUT/PATCH requests
-   */
-  body?: {
-
-  };
-  /**
-   * Key name to store the webhook result under in context.results.webhooks
-   */
-  resultKey: string;
 }
 
 export interface GenerateResponseEffect {
@@ -897,53 +853,14 @@ export interface ConversationEvent {
     | {
         toolId: string;
         toolName: string;
+        toolType?: 'smart_function' | 'webhook' | 'script';
         parameters: {
           [k: string]: ParameterValue;
         };
         success: boolean;
-        result?: (
-          | {
-              contentType: 'text';
-              text: string;
-            }
-          | {
-              contentType: 'image';
-              /**
-               * Base64-encoded image data
-               */
-              data: string;
-              /**
-               * MIME type (e.g., image/png, image/jpeg)
-               */
-              mimeType: string;
-              metadata?: {
-                width?: number;
-                height?: number;
+        result?: {
 
-              };
-            }
-          | {
-              contentType: 'audio';
-              /**
-               * Base64-encoded audio data
-               */
-              data: string;
-              /**
-               * Audio format
-               */
-              format: 'pcm' | 'mp3' | 'wav' | 'opus';
-              /**
-               * MIME type (e.g., audio/pcm, audio/mpeg)
-               */
-              mimeType: string;
-              metadata?: {
-                sampleRate?: number;
-                channels?: number;
-                bitDepth?: number;
-
-              };
-            }
-        )[];
+        };
         error?: string;
         metadata?: Record<string, unknown>;
       }

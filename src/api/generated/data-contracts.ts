@@ -10,6 +10,24 @@
  * ---------------------------------------------------------------
  */
 
+/** Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript) */
+export enum ToolType {
+  SmartFunction = "smart_function",
+  Webhook = "webhook",
+  Script = "script",
+}
+
+export type CreateToolRequest =
+  | ({
+      type: "smart_function";
+    } & CreateSmartFunctionTool)
+  | ({
+      type: "webhook";
+    } & CreateWebhookTool)
+  | ({
+      type: "script";
+    } & CreateScriptTool);
+
 export type Effect =
   | ({
       type: "end_conversation";
@@ -20,9 +38,6 @@ export type Effect =
   | ({
       type: "go_to_stage";
     } & GoToStageEffect)
-  | ({
-      type: "run_script";
-    } & RunScriptEffect)
   | ({
       type: "modify_user_input";
     } & ModifyUserInputEffect)
@@ -35,9 +50,6 @@ export type Effect =
   | ({
       type: "call_tool";
     } & CallToolEffect)
-  | ({
-      type: "call_webhook";
-    } & CallWebhookEffect)
   | ({
       type: "generate_response";
     } & GenerateResponseEffect);
@@ -1201,16 +1213,6 @@ export interface GoToStageEffect {
   stageId: string;
 }
 
-export interface RunScriptEffect {
-  /** Effect type */
-  type: "run_script";
-  /**
-   * JavaScript code to execute in isolated context
-   * @minLength 1
-   */
-  code: string;
-}
-
 export interface ModifyUserInputEffect {
   /** Effect type */
   type: "modify_user_input";
@@ -1275,30 +1277,6 @@ export interface CallToolEffect {
   toolId: string;
   /** Parameters to pass to the tool */
   parameters: Record<string, any>;
-}
-
-export interface CallWebhookEffect {
-  /** Effect type */
-  type: "call_webhook";
-  /**
-   * HTTP(S) URL to call
-   * @format uri
-   */
-  url: string;
-  /**
-   * HTTP method to use
-   * @default "GET"
-   */
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  /** HTTP headers to send with the request */
-  headers?: Record<string, string>;
-  /** Request body for POST/PUT/PATCH requests */
-  body?: any;
-  /**
-   * Key name to store the webhook result under in context.results.webhooks
-   * @minLength 1
-   */
-  resultKey: string;
 }
 
 export interface GenerateResponseEffect {
@@ -3006,41 +2984,10 @@ export interface ConversationEventResponse {
     | {
         toolId: string;
         toolName: string;
+        toolType?: "smart_function" | "webhook" | "script";
         parameters: Record<string, ParameterValue>;
         success: boolean;
-        result?: (
-          | {
-              contentType: "text";
-              text: string;
-            }
-          | {
-              contentType: "image";
-              /** Base64-encoded image data */
-              data: string;
-              /** MIME type (e.g., image/png, image/jpeg) */
-              mimeType: string;
-              metadata?: {
-                width?: number;
-                height?: number;
-                [key: string]: any;
-              };
-            }
-          | {
-              contentType: "audio";
-              /** Base64-encoded audio data */
-              data: string;
-              /** Audio format */
-              format: "pcm" | "mp3" | "wav" | "opus";
-              /** MIME type (e.g., audio/pcm, audio/mpeg) */
-              mimeType: string;
-              metadata?: {
-                sampleRate?: number;
-                channels?: number;
-                bitDepth?: number;
-                [key: string]: any;
-              };
-            }
-        )[];
+        result?: any;
         error?: string;
         metadata?: Record<string, any>;
       }
@@ -3164,41 +3111,10 @@ export interface ConversationEventListResponse {
       | {
           toolId: string;
           toolName: string;
+          toolType?: "smart_function" | "webhook" | "script";
           parameters: Record<string, ParameterValue>;
           success: boolean;
-          result?: (
-            | {
-                contentType: "text";
-                text: string;
-              }
-            | {
-                contentType: "image";
-                /** Base64-encoded image data */
-                data: string;
-                /** MIME type (e.g., image/png, image/jpeg) */
-                mimeType: string;
-                metadata?: {
-                  width?: number;
-                  height?: number;
-                  [key: string]: any;
-                };
-              }
-            | {
-                contentType: "audio";
-                /** Base64-encoded audio data */
-                data: string;
-                /** Audio format */
-                format: "pcm" | "mp3" | "wav" | "opus";
-                /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                mimeType: string;
-                metadata?: {
-                  sampleRate?: number;
-                  channels?: number;
-                  bitDepth?: number;
-                  [key: string]: any;
-                };
-              }
-          )[];
+          result?: any;
           error?: string;
           metadata?: Record<string, any>;
         }
@@ -3907,7 +3823,7 @@ export interface ContextTransformerListResponse {
   limit?: number | null;
 }
 
-export interface CreateToolRequest {
+export interface CreateSmartFunctionTool {
   /**
    * Unique identifier for the tool (auto-generated if not provided)
    * @minLength 1
@@ -3921,7 +3837,21 @@ export interface CreateToolRequest {
   /** Detailed description of the tool's purpose and behavior */
   description?: string | null;
   /**
-   * Handlebars template for tool invocation
+   * Parameters that this tool expects to receive
+   * @default []
+   */
+  parameters?: ToolParameter[];
+  /**
+   * Tags for categorizing and filtering this tool
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+  /** Tool executes an LLM call */
+  type: "smart_function";
+  /**
+   * Handlebars template rendered before being sent to the LLM
    * @minLength 1
    */
   prompt: string;
@@ -3937,6 +3867,21 @@ export interface CreateToolRequest {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
   outputType: "text" | "image" | "multi-modal";
+}
+
+export interface CreateWebhookTool {
+  /**
+   * Unique identifier for the tool (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tool
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tool's purpose and behavior */
+  description?: string | null;
   /**
    * Parameters that this tool expects to receive
    * @default []
@@ -3949,6 +3894,56 @@ export interface CreateToolRequest {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
+  /** Tool makes an HTTP request */
+  type: "webhook";
+  /**
+   * Target URL — supports Handlebars templating
+   * @format uri
+   */
+  url: string;
+  /**
+   * HTTP method to use
+   * @default "GET"
+   */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** HTTP headers to send; values support Handlebars templating */
+  webhookHeaders?: Record<string, string>;
+  /** Request body template (Handlebars); used for POST/PUT/PATCH */
+  webhookBody?: string;
+}
+
+export interface CreateScriptTool {
+  /**
+   * Unique identifier for the tool (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tool
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tool's purpose and behavior */
+  description?: string | null;
+  /**
+   * Parameters that this tool expects to receive
+   * @default []
+   */
+  parameters?: ToolParameter[];
+  /**
+   * Tags for categorizing and filtering this tool
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+  /** Tool executes isolated JavaScript code */
+  type: "script";
+  /**
+   * JavaScript code to execute in an isolated VM context
+   * @minLength 1
+   */
+  code: string;
 }
 
 export interface UpdateToolRequest {
@@ -3960,22 +3955,38 @@ export interface UpdateToolRequest {
   /** Updated description */
   description?: string | null;
   /**
-   * Updated tool prompt template
+   * Updated Handlebars prompt template (smart_function)
    * @minLength 1
    */
   prompt?: string;
-  /** Updated LLM provider ID */
+  /** Updated LLM provider ID (smart_function) */
   llmProviderId?: string | null;
-  /** Updated LLM provider-specific settings */
+  /** Updated LLM provider-specific settings (smart_function) */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** Updated input format */
+  /** Updated input format (smart_function) */
   inputType?: "text" | "image" | "multi-modal";
-  /** Updated output format */
+  /** Updated output format (smart_function) */
   outputType?: "text" | "image" | "multi-modal";
+  /**
+   * Updated target URL (webhook)
+   * @format uri
+   */
+  url?: string;
+  /** Updated HTTP method (webhook) */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** Updated HTTP headers (webhook) */
+  webhookHeaders?: Record<string, string>;
+  /** Updated request body template (webhook) */
+  webhookBody?: string | null;
+  /**
+   * Updated JavaScript code (script)
+   * @minLength 1
+   */
+  code?: string;
   /** Updated parameters for the tool */
   parameters?: ToolParameter[];
   /** Updated tags */
@@ -4006,20 +4017,32 @@ export interface ToolResponse {
   name: string;
   /** Detailed description of the tool */
   description: string | null;
-  /** Handlebars template for tool invocation */
-  prompt: string;
-  /** ID of the LLM provider */
+  /** Tool execution type */
+  type: "smart_function" | "webhook" | "script";
+  /** Handlebars prompt template (smart_function only) */
+  prompt: string | null;
+  /** ID of the LLM provider (smart_function only) */
   llmProviderId: string | null;
-  /** LLM provider-specific settings */
+  /** LLM provider-specific settings (smart_function only) */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** Expected input format */
-  inputType: "text" | "image" | "multi-modal";
-  /** Expected output format */
-  outputType: "text" | "image" | "multi-modal";
+  /** Expected input format (smart_function only) */
+  inputType: "text" | "image" | "multi-modal" | null;
+  /** Expected output format (smart_function only) */
+  outputType: "text" | "image" | "multi-modal" | null;
+  /** Target URL (webhook only) */
+  url: string | null;
+  /** HTTP method (webhook only) */
+  webhookMethod: string | null;
+  /** HTTP headers (webhook only) */
+  webhookHeaders: Record<string, string>;
+  /** Request body template (webhook only) */
+  webhookBody: string | null;
+  /** JavaScript code (script only) */
+  code: string | null;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
   /** Tags for categorizing and filtering this tool */
@@ -4053,20 +4076,32 @@ export interface ToolListResponse {
     name: string;
     /** Detailed description of the tool */
     description: string | null;
-    /** Handlebars template for tool invocation */
-    prompt: string;
-    /** ID of the LLM provider */
+    /** Tool execution type */
+    type: "smart_function" | "webhook" | "script";
+    /** Handlebars prompt template (smart_function only) */
+    prompt: string | null;
+    /** ID of the LLM provider (smart_function only) */
     llmProviderId: string | null;
-    /** LLM provider-specific settings */
+    /** LLM provider-specific settings (smart_function only) */
     llmSettings?:
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings;
-    /** Expected input format */
-    inputType: "text" | "image" | "multi-modal";
-    /** Expected output format */
-    outputType: "text" | "image" | "multi-modal";
+    /** Expected input format (smart_function only) */
+    inputType: "text" | "image" | "multi-modal" | null;
+    /** Expected output format (smart_function only) */
+    outputType: "text" | "image" | "multi-modal" | null;
+    /** Target URL (webhook only) */
+    url: string | null;
+    /** HTTP method (webhook only) */
+    webhookMethod: string | null;
+    /** HTTP headers (webhook only) */
+    webhookHeaders: Record<string, string>;
+    /** Request body template (webhook only) */
+    webhookBody: string | null;
+    /** JavaScript code (script only) */
+    code: string | null;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];
     /** Tags for categorizing and filtering this tool */

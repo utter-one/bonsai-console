@@ -2062,27 +2062,6 @@
           "stageId"
         ]
       },
-      "RunScriptEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "run_script"
-            ],
-            "description": "Effect type"
-          },
-          "code": {
-            "type": "string",
-            "minLength": 1,
-            "description": "JavaScript code to execute in isolated context"
-          }
-        },
-        "required": [
-          "type",
-          "code"
-        ]
-      },
       "ModifyUserInputEffect": {
         "type": "object",
         "properties": {
@@ -2237,56 +2216,6 @@
           "parameters"
         ]
       },
-      "CallWebhookEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "call_webhook"
-            ],
-            "description": "Effect type"
-          },
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "HTTP(S) URL to call"
-          },
-          "method": {
-            "type": "string",
-            "enum": [
-              "GET",
-              "POST",
-              "PUT",
-              "PATCH",
-              "DELETE"
-            ],
-            "default": "GET",
-            "description": "HTTP method to use"
-          },
-          "headers": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "HTTP headers to send with the request"
-          },
-          "body": {
-            "nullable": true,
-            "description": "Request body for POST/PUT/PATCH requests"
-          },
-          "resultKey": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Key name to store the webhook result under in context.results.webhooks"
-          }
-        },
-        "required": [
-          "type",
-          "url",
-          "resultKey"
-        ]
-      },
       "GenerateResponseEffect": {
         "type": "object",
         "properties": {
@@ -2339,9 +2268,6 @@
             "$ref": "#/components/schemas/GoToStageEffect"
           },
           {
-            "$ref": "#/components/schemas/RunScriptEffect"
-          },
-          {
             "$ref": "#/components/schemas/ModifyUserInputEffect"
           },
           {
@@ -2354,9 +2280,6 @@
             "$ref": "#/components/schemas/CallToolEffect"
           },
           {
-            "$ref": "#/components/schemas/CallWebhookEffect"
-          },
-          {
             "$ref": "#/components/schemas/GenerateResponseEffect"
           }
         ],
@@ -2366,12 +2289,10 @@
             "end_conversation": "#/components/schemas/EndConversationEffect",
             "abort_conversation": "#/components/schemas/AbortConversationEffect",
             "go_to_stage": "#/components/schemas/GoToStageEffect",
-            "run_script": "#/components/schemas/RunScriptEffect",
             "modify_user_input": "#/components/schemas/ModifyUserInputEffect",
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
-            "call_webhook": "#/components/schemas/CallWebhookEffect",
             "generate_response": "#/components/schemas/GenerateResponseEffect"
           }
         }
@@ -5900,6 +5821,14 @@
                   "toolName": {
                     "type": "string"
                   },
+                  "toolType": {
+                    "type": "string",
+                    "enum": [
+                      "smart_function",
+                      "webhook",
+                      "script"
+                    ]
+                  },
                   "parameters": {
                     "type": "object",
                     "additionalProperties": {
@@ -5910,119 +5839,7 @@
                     "type": "boolean"
                   },
                   "result": {
-                    "type": "array",
-                    "items": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "text"
-                              ]
-                            },
-                            "text": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "text"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "image"
-                              ]
-                            },
-                            "data": {
-                              "type": "string",
-                              "description": "Base64-encoded image data"
-                            },
-                            "mimeType": {
-                              "type": "string",
-                              "description": "MIME type (e.g., image/png, image/jpeg)"
-                            },
-                            "metadata": {
-                              "type": "object",
-                              "properties": {
-                                "width": {
-                                  "type": "number"
-                                },
-                                "height": {
-                                  "type": "number"
-                                }
-                              },
-                              "additionalProperties": {
-                                "nullable": true
-                              }
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "data",
-                            "mimeType"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "audio"
-                              ]
-                            },
-                            "data": {
-                              "type": "string",
-                              "description": "Base64-encoded audio data"
-                            },
-                            "format": {
-                              "type": "string",
-                              "enum": [
-                                "pcm",
-                                "mp3",
-                                "wav",
-                                "opus"
-                              ],
-                              "description": "Audio format"
-                            },
-                            "mimeType": {
-                              "type": "string",
-                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                            },
-                            "metadata": {
-                              "type": "object",
-                              "properties": {
-                                "sampleRate": {
-                                  "type": "number"
-                                },
-                                "channels": {
-                                  "type": "number"
-                                },
-                                "bitDepth": {
-                                  "type": "number"
-                                }
-                              },
-                              "additionalProperties": {
-                                "nullable": true
-                              }
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "data",
-                            "format",
-                            "mimeType"
-                          ]
-                        }
-                      ]
-                    }
+                    "nullable": true
                   },
                   "error": {
                     "type": "string"
@@ -6464,6 +6281,14 @@
                         "toolName": {
                           "type": "string"
                         },
+                        "toolType": {
+                          "type": "string",
+                          "enum": [
+                            "smart_function",
+                            "webhook",
+                            "script"
+                          ]
+                        },
                         "parameters": {
                           "type": "object",
                           "additionalProperties": {
@@ -6474,119 +6299,7 @@
                           "type": "boolean"
                         },
                         "result": {
-                          "type": "array",
-                          "items": {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "text"
-                                    ]
-                                  },
-                                  "text": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "text"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "image"
-                                    ]
-                                  },
-                                  "data": {
-                                    "type": "string",
-                                    "description": "Base64-encoded image data"
-                                  },
-                                  "mimeType": {
-                                    "type": "string",
-                                    "description": "MIME type (e.g., image/png, image/jpeg)"
-                                  },
-                                  "metadata": {
-                                    "type": "object",
-                                    "properties": {
-                                      "width": {
-                                        "type": "number"
-                                      },
-                                      "height": {
-                                        "type": "number"
-                                      }
-                                    },
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "data",
-                                  "mimeType"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "audio"
-                                    ]
-                                  },
-                                  "data": {
-                                    "type": "string",
-                                    "description": "Base64-encoded audio data"
-                                  },
-                                  "format": {
-                                    "type": "string",
-                                    "enum": [
-                                      "pcm",
-                                      "mp3",
-                                      "wav",
-                                      "opus"
-                                    ],
-                                    "description": "Audio format"
-                                  },
-                                  "mimeType": {
-                                    "type": "string",
-                                    "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                  },
-                                  "metadata": {
-                                    "type": "object",
-                                    "properties": {
-                                      "sampleRate": {
-                                        "type": "number"
-                                      },
-                                      "channels": {
-                                        "type": "number"
-                                      },
-                                      "bitDepth": {
-                                        "type": "number"
-                                      }
-                                    },
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "data",
-                                  "format",
-                                  "mimeType"
-                                ]
-                              }
-                            ]
-                          }
+                          "nullable": true
                         },
                         "error": {
                           "type": "string"
@@ -8215,7 +7928,7 @@
           "offset"
         ]
       },
-      "CreateToolRequest": {
+      "CreateSmartFunctionTool": {
         "type": "object",
         "properties": {
           "id": {
@@ -8233,10 +7946,40 @@
             "nullable": true,
             "description": "Detailed description of the tool's purpose and behavior"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "default": [],
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function"
+            ],
+            "description": "Tool executes an LLM call"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Handlebars template for tool invocation"
+            "description": "Handlebars template rendered before being sent to the LLM"
           },
           "llmProviderId": {
             "type": "string",
@@ -8280,6 +8023,33 @@
               "multi-modal"
             ],
             "description": "Expected output format from the tool"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "prompt",
+          "inputType",
+          "outputType"
+        ]
+      },
+      "CreateWebhookTool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the tool (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool's purpose and behavior"
           },
           "parameters": {
             "type": "array",
@@ -8303,14 +8073,138 @@
               "nullable": true
             },
             "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "webhook"
+            ],
+            "description": "Tool makes an HTTP request"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Target URL — supports Handlebars templating"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "default": "GET",
+            "description": "HTTP method to use"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers to send; values support Handlebars templating"
+          },
+          "webhookBody": {
+            "type": "string",
+            "description": "Request body template (Handlebars); used for POST/PUT/PATCH"
           }
         },
         "required": [
           "name",
-          "prompt",
-          "inputType",
-          "outputType"
+          "type",
+          "url"
         ]
+      },
+      "CreateScriptTool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the tool (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool's purpose and behavior"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "default": [],
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "script"
+            ],
+            "description": "Tool executes isolated JavaScript code"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "JavaScript code to execute in an isolated VM context"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "code"
+        ]
+      },
+      "ToolType": {
+        "type": "string",
+        "enum": [
+          "smart_function",
+          "webhook",
+          "script"
+        ],
+        "description": "Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)"
+      },
+      "CreateToolRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CreateSmartFunctionTool"
+          },
+          {
+            "$ref": "#/components/schemas/CreateWebhookTool"
+          },
+          {
+            "$ref": "#/components/schemas/CreateScriptTool"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "smart_function": "#/components/schemas/CreateSmartFunctionTool",
+            "webhook": "#/components/schemas/CreateWebhookTool",
+            "script": "#/components/schemas/CreateScriptTool"
+          }
+        }
       },
       "UpdateToolRequest": {
         "type": "object",
@@ -8328,12 +8222,12 @@
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated tool prompt template"
+            "description": "Updated Handlebars prompt template (smart_function)"
           },
           "llmProviderId": {
             "type": "string",
             "nullable": true,
-            "description": "Updated LLM provider ID"
+            "description": "Updated LLM provider ID (smart_function)"
           },
           "llmSettings": {
             "anyOf": [
@@ -8353,7 +8247,7 @@
                 "nullable": true
               }
             ],
-            "description": "Updated LLM provider-specific settings"
+            "description": "Updated LLM provider-specific settings (smart_function)"
           },
           "inputType": {
             "type": "string",
@@ -8362,7 +8256,7 @@
               "image",
               "multi-modal"
             ],
-            "description": "Updated input format"
+            "description": "Updated input format (smart_function)"
           },
           "outputType": {
             "type": "string",
@@ -8371,7 +8265,41 @@
               "image",
               "multi-modal"
             ],
-            "description": "Updated output format"
+            "description": "Updated output format (smart_function)"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Updated target URL (webhook)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "description": "Updated HTTP method (webhook)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Updated HTTP headers (webhook)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated request body template (webhook)"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated JavaScript code (script)"
           },
           "parameters": {
             "type": "array",
@@ -8437,14 +8365,24 @@
             "nullable": true,
             "description": "Detailed description of the tool"
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function",
+              "webhook",
+              "script"
+            ],
+            "description": "Tool execution type"
+          },
           "prompt": {
             "type": "string",
-            "description": "Handlebars template for tool invocation"
+            "nullable": true,
+            "description": "Handlebars prompt template (smart_function only)"
           },
           "llmProviderId": {
             "type": "string",
             "nullable": true,
-            "description": "ID of the LLM provider"
+            "description": "ID of the LLM provider (smart_function only)"
           },
           "llmSettings": {
             "anyOf": [
@@ -8464,25 +8402,57 @@
                 "nullable": true
               }
             ],
-            "description": "LLM provider-specific settings"
+            "description": "LLM provider-specific settings (smart_function only)"
           },
           "inputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected input format"
+            "description": "Expected input format (smart_function only)"
           },
           "outputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected output format"
+            "description": "Expected output format (smart_function only)"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target URL (webhook only)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "nullable": true,
+            "description": "HTTP method (webhook only)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers (webhook only)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Request body template (webhook only)"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "JavaScript code (script only)"
           },
           "parameters": {
             "type": "array",
@@ -8532,10 +8502,16 @@
           "projectId",
           "name",
           "description",
+          "type",
           "prompt",
           "llmProviderId",
           "inputType",
           "outputType",
+          "url",
+          "webhookMethod",
+          "webhookHeaders",
+          "webhookBody",
+          "code",
           "parameters",
           "tags",
           "metadata",
@@ -8569,14 +8545,24 @@
                   "nullable": true,
                   "description": "Detailed description of the tool"
                 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "smart_function",
+                    "webhook",
+                    "script"
+                  ],
+                  "description": "Tool execution type"
+                },
                 "prompt": {
                   "type": "string",
-                  "description": "Handlebars template for tool invocation"
+                  "nullable": true,
+                  "description": "Handlebars prompt template (smart_function only)"
                 },
                 "llmProviderId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "ID of the LLM provider"
+                  "description": "ID of the LLM provider (smart_function only)"
                 },
                 "llmSettings": {
                   "anyOf": [
@@ -8596,25 +8582,57 @@
                       "nullable": true
                     }
                   ],
-                  "description": "LLM provider-specific settings"
+                  "description": "LLM provider-specific settings (smart_function only)"
                 },
                 "inputType": {
                   "type": "string",
+                  "nullable": true,
                   "enum": [
                     "text",
                     "image",
-                    "multi-modal"
+                    "multi-modal",
+                    null
                   ],
-                  "description": "Expected input format"
+                  "description": "Expected input format (smart_function only)"
                 },
                 "outputType": {
                   "type": "string",
+                  "nullable": true,
                   "enum": [
                     "text",
                     "image",
-                    "multi-modal"
+                    "multi-modal",
+                    null
                   ],
-                  "description": "Expected output format"
+                  "description": "Expected output format (smart_function only)"
+                },
+                "url": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Target URL (webhook only)"
+                },
+                "webhookMethod": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "HTTP method (webhook only)"
+                },
+                "webhookHeaders": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "HTTP headers (webhook only)"
+                },
+                "webhookBody": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Request body template (webhook only)"
+                },
+                "code": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "JavaScript code (script only)"
                 },
                 "parameters": {
                   "type": "array",
@@ -8664,10 +8682,16 @@
                 "projectId",
                 "name",
                 "description",
+                "type",
                 "prompt",
                 "llmProviderId",
                 "inputType",
                 "outputType",
+                "url",
+                "webhookMethod",
+                "webhookHeaders",
+                "webhookBody",
+                "code",
                 "parameters",
                 "tags",
                 "metadata",
@@ -21147,6 +21171,14 @@
                                   "toolName": {
                                     "type": "string"
                                   },
+                                  "toolType": {
+                                    "type": "string",
+                                    "enum": [
+                                      "smart_function",
+                                      "webhook",
+                                      "script"
+                                    ]
+                                  },
                                   "parameters": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -21157,119 +21189,7 @@
                                     "type": "boolean"
                                   },
                                   "result": {
-                                    "type": "array",
-                                    "items": {
-                                      "oneOf": [
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "text"
-                                              ]
-                                            },
-                                            "text": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "text"
-                                          ]
-                                        },
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "image"
-                                              ]
-                                            },
-                                            "data": {
-                                              "type": "string",
-                                              "description": "Base64-encoded image data"
-                                            },
-                                            "mimeType": {
-                                              "type": "string",
-                                              "description": "MIME type (e.g., image/png, image/jpeg)"
-                                            },
-                                            "metadata": {
-                                              "type": "object",
-                                              "properties": {
-                                                "width": {
-                                                  "type": "number"
-                                                },
-                                                "height": {
-                                                  "type": "number"
-                                                }
-                                              },
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "data",
-                                            "mimeType"
-                                          ]
-                                        },
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "audio"
-                                              ]
-                                            },
-                                            "data": {
-                                              "type": "string",
-                                              "description": "Base64-encoded audio data"
-                                            },
-                                            "format": {
-                                              "type": "string",
-                                              "enum": [
-                                                "pcm",
-                                                "mp3",
-                                                "wav",
-                                                "opus"
-                                              ],
-                                              "description": "Audio format"
-                                            },
-                                            "mimeType": {
-                                              "type": "string",
-                                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                            },
-                                            "metadata": {
-                                              "type": "object",
-                                              "properties": {
-                                                "sampleRate": {
-                                                  "type": "number"
-                                                },
-                                                "channels": {
-                                                  "type": "number"
-                                                },
-                                                "bitDepth": {
-                                                  "type": "number"
-                                                }
-                                              },
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "data",
-                                            "format",
-                                            "mimeType"
-                                          ]
-                                        }
-                                      ]
-                                    }
+                                    "nullable": true
                                   },
                                   "error": {
                                     "type": "string"
@@ -21791,6 +21711,14 @@
                             "toolName": {
                               "type": "string"
                             },
+                            "toolType": {
+                              "type": "string",
+                              "enum": [
+                                "smart_function",
+                                "webhook",
+                                "script"
+                              ]
+                            },
                             "parameters": {
                               "type": "object",
                               "additionalProperties": {
@@ -21801,119 +21729,7 @@
                               "type": "boolean"
                             },
                             "result": {
-                              "type": "array",
-                              "items": {
-                                "oneOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "text"
-                                        ]
-                                      },
-                                      "text": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "text"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "image"
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "string",
-                                        "description": "Base64-encoded image data"
-                                      },
-                                      "mimeType": {
-                                        "type": "string",
-                                        "description": "MIME type (e.g., image/png, image/jpeg)"
-                                      },
-                                      "metadata": {
-                                        "type": "object",
-                                        "properties": {
-                                          "width": {
-                                            "type": "number"
-                                          },
-                                          "height": {
-                                            "type": "number"
-                                          }
-                                        },
-                                        "additionalProperties": {
-                                          "nullable": true
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "data",
-                                      "mimeType"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "audio"
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "string",
-                                        "description": "Base64-encoded audio data"
-                                      },
-                                      "format": {
-                                        "type": "string",
-                                        "enum": [
-                                          "pcm",
-                                          "mp3",
-                                          "wav",
-                                          "opus"
-                                        ],
-                                        "description": "Audio format"
-                                      },
-                                      "mimeType": {
-                                        "type": "string",
-                                        "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                      },
-                                      "metadata": {
-                                        "type": "object",
-                                        "properties": {
-                                          "sampleRate": {
-                                            "type": "number"
-                                          },
-                                          "channels": {
-                                            "type": "number"
-                                          },
-                                          "bitDepth": {
-                                            "type": "number"
-                                          }
-                                        },
-                                        "additionalProperties": {
-                                          "nullable": true
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "data",
-                                      "format",
-                                      "mimeType"
-                                    ]
-                                  }
-                                ]
-                              }
+                              "nullable": true
                             },
                             "error": {
                               "type": "string"
@@ -33866,101 +33682,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Unique identifier for the tool (auto-generated if not provided)"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateSmartFunctionTool"
                   },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Display name of the tool"
+                  {
+                    "$ref": "#/components/schemas/CreateWebhookTool"
                   },
-                  "description": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Detailed description of the tool's purpose and behavior"
-                  },
-                  "prompt": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Handlebars template for tool invocation"
-                  },
-                  "llmProviderId": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "ID of the LLM provider to use for this tool"
-                  },
-                  "llmSettings": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ],
-                    "description": "LLM provider-specific settings for this tool"
-                  },
-                  "inputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Expected input format for the tool"
-                  },
-                  "outputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Expected output format from the tool"
-                  },
-                  "parameters": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/ToolParameter"
-                    },
-                    "default": [],
-                    "description": "Parameters that this tool expects to receive"
-                  },
-                  "tags": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "default": [],
-                    "description": "Tags for categorizing and filtering this tool"
-                  },
-                  "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    },
-                    "description": "Additional tool-specific metadata"
+                  {
+                    "$ref": "#/components/schemas/CreateScriptTool"
                   }
-                },
-                "required": [
-                  "name",
-                  "prompt",
-                  "inputType",
-                  "outputType"
-                ]
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "smart_function": "#/components/schemas/CreateSmartFunctionTool",
+                    "webhook": "#/components/schemas/CreateWebhookTool",
+                    "script": "#/components/schemas/CreateScriptTool"
+                  }
+                }
               }
             }
           }
@@ -33990,14 +33730,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -34017,25 +33767,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -34085,10 +33867,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -34275,14 +34063,24 @@
                             "nullable": true,
                             "description": "Detailed description of the tool"
                           },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "smart_function",
+                              "webhook",
+                              "script"
+                            ],
+                            "description": "Tool execution type"
+                          },
                           "prompt": {
                             "type": "string",
-                            "description": "Handlebars template for tool invocation"
+                            "nullable": true,
+                            "description": "Handlebars prompt template (smart_function only)"
                           },
                           "llmProviderId": {
                             "type": "string",
                             "nullable": true,
-                            "description": "ID of the LLM provider"
+                            "description": "ID of the LLM provider (smart_function only)"
                           },
                           "llmSettings": {
                             "anyOf": [
@@ -34302,25 +34100,57 @@
                                 "nullable": true
                               }
                             ],
-                            "description": "LLM provider-specific settings"
+                            "description": "LLM provider-specific settings (smart_function only)"
                           },
                           "inputType": {
                             "type": "string",
+                            "nullable": true,
                             "enum": [
                               "text",
                               "image",
-                              "multi-modal"
+                              "multi-modal",
+                              null
                             ],
-                            "description": "Expected input format"
+                            "description": "Expected input format (smart_function only)"
                           },
                           "outputType": {
                             "type": "string",
+                            "nullable": true,
                             "enum": [
                               "text",
                               "image",
-                              "multi-modal"
+                              "multi-modal",
+                              null
                             ],
-                            "description": "Expected output format"
+                            "description": "Expected output format (smart_function only)"
+                          },
+                          "url": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Target URL (webhook only)"
+                          },
+                          "webhookMethod": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "HTTP method (webhook only)"
+                          },
+                          "webhookHeaders": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "HTTP headers (webhook only)"
+                          },
+                          "webhookBody": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Request body template (webhook only)"
+                          },
+                          "code": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "JavaScript code (script only)"
                           },
                           "parameters": {
                             "type": "array",
@@ -34370,10 +34200,16 @@
                           "projectId",
                           "name",
                           "description",
+                          "type",
                           "prompt",
                           "llmProviderId",
                           "inputType",
                           "outputType",
+                          "url",
+                          "webhookMethod",
+                          "webhookHeaders",
+                          "webhookBody",
+                          "code",
                           "parameters",
                           "tags",
                           "metadata",
@@ -34475,14 +34311,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -34502,25 +34348,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -34570,10 +34448,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -34639,12 +34523,12 @@
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Updated tool prompt template"
+                    "description": "Updated Handlebars prompt template (smart_function)"
                   },
                   "llmProviderId": {
                     "type": "string",
                     "nullable": true,
-                    "description": "Updated LLM provider ID"
+                    "description": "Updated LLM provider ID (smart_function)"
                   },
                   "llmSettings": {
                     "anyOf": [
@@ -34664,7 +34548,7 @@
                         "nullable": true
                       }
                     ],
-                    "description": "Updated LLM provider-specific settings"
+                    "description": "Updated LLM provider-specific settings (smart_function)"
                   },
                   "inputType": {
                     "type": "string",
@@ -34673,7 +34557,7 @@
                       "image",
                       "multi-modal"
                     ],
-                    "description": "Updated input format"
+                    "description": "Updated input format (smart_function)"
                   },
                   "outputType": {
                     "type": "string",
@@ -34682,7 +34566,41 @@
                       "image",
                       "multi-modal"
                     ],
-                    "description": "Updated output format"
+                    "description": "Updated output format (smart_function)"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Updated target URL (webhook)"
+                  },
+                  "webhookMethod": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "POST",
+                      "PUT",
+                      "PATCH",
+                      "DELETE"
+                    ],
+                    "description": "Updated HTTP method (webhook)"
+                  },
+                  "webhookHeaders": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Updated HTTP headers (webhook)"
+                  },
+                  "webhookBody": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated request body template (webhook)"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated JavaScript code (script)"
                   },
                   "parameters": {
                     "type": "array",
@@ -34743,14 +34661,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -34770,25 +34698,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -34838,10 +34798,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -35047,14 +35013,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -35074,25 +35050,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -35142,10 +35150,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",

@@ -22,6 +22,7 @@ import {
   AzureTtsSettings,
   CartesiaTtsSettings,
   ConversationTimelineResponse,
+  CreateToolRequest,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   Effect,
@@ -3020,41 +3021,10 @@ export class Api<
             | {
                 toolId: string;
                 toolName: string;
+                toolType?: "smart_function" | "webhook" | "script";
                 parameters: Record<string, ParameterValue>;
                 success: boolean;
-                result?: (
-                  | {
-                      contentType: "text";
-                      text: string;
-                    }
-                  | {
-                      contentType: "image";
-                      /** Base64-encoded image data */
-                      data: string;
-                      /** MIME type (e.g., image/png, image/jpeg) */
-                      mimeType: string;
-                      metadata?: {
-                        width?: number;
-                        height?: number;
-                        [key: string]: any;
-                      };
-                    }
-                  | {
-                      contentType: "audio";
-                      /** Base64-encoded audio data */
-                      data: string;
-                      /** Audio format */
-                      format: "pcm" | "mp3" | "wav" | "opus";
-                      /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                      mimeType: string;
-                      metadata?: {
-                        sampleRate?: number;
-                        channels?: number;
-                        bitDepth?: number;
-                        [key: string]: any;
-                      };
-                    }
-                )[];
+                result?: any;
                 error?: string;
                 metadata?: Record<string, any>;
               }
@@ -3219,41 +3189,10 @@ export class Api<
           | {
               toolId: string;
               toolName: string;
+              toolType?: "smart_function" | "webhook" | "script";
               parameters: Record<string, ParameterValue>;
               success: boolean;
-              result?: (
-                | {
-                    contentType: "text";
-                    text: string;
-                  }
-                | {
-                    contentType: "image";
-                    /** Base64-encoded image data */
-                    data: string;
-                    /** MIME type (e.g., image/png, image/jpeg) */
-                    mimeType: string;
-                    metadata?: {
-                      width?: number;
-                      height?: number;
-                      [key: string]: any;
-                    };
-                  }
-                | {
-                    contentType: "audio";
-                    /** Base64-encoded audio data */
-                    data: string;
-                    /** Audio format */
-                    format: "pcm" | "mp3" | "wav" | "opus";
-                    /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                    mimeType: string;
-                    metadata?: {
-                      sampleRate?: number;
-                      channels?: number;
-                      bitDepth?: number;
-                      [key: string]: any;
-                    };
-                  }
-              )[];
+              result?: any;
               error?: string;
               metadata?: Record<string, any>;
             }
@@ -8295,49 +8234,7 @@ export class Api<
    */
   projectsToolsCreate = (
     projectId: string,
-    data: {
-      /**
-       * Unique identifier for the tool (auto-generated if not provided)
-       * @minLength 1
-       */
-      id?: string;
-      /**
-       * Display name of the tool
-       * @minLength 1
-       */
-      name: string;
-      /** Detailed description of the tool's purpose and behavior */
-      description?: string | null;
-      /**
-       * Handlebars template for tool invocation
-       * @minLength 1
-       */
-      prompt: string;
-      /** ID of the LLM provider to use for this tool */
-      llmProviderId?: string | null;
-      /** LLM provider-specific settings for this tool */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
-      /** Expected input format for the tool */
-      inputType: "text" | "image" | "multi-modal";
-      /** Expected output format from the tool */
-      outputType: "text" | "image" | "multi-modal";
-      /**
-       * Parameters that this tool expects to receive
-       * @default []
-       */
-      parameters?: ToolParameter[];
-      /**
-       * Tags for categorizing and filtering this tool
-       * @default []
-       */
-      tags?: string[];
-      /** Additional tool-specific metadata */
-      metadata?: Record<string, any>;
-    },
+    data: CreateToolRequest,
     params: RequestParams = {},
   ) =>
     this.request<
@@ -8350,20 +8247,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8452,20 +8361,32 @@ export class Api<
           name: string;
           /** Detailed description of the tool */
           description: string | null;
-          /** Handlebars template for tool invocation */
-          prompt: string;
-          /** ID of the LLM provider */
+          /** Tool execution type */
+          type: "smart_function" | "webhook" | "script";
+          /** Handlebars prompt template (smart_function only) */
+          prompt: string | null;
+          /** ID of the LLM provider (smart_function only) */
           llmProviderId: string | null;
-          /** LLM provider-specific settings */
+          /** LLM provider-specific settings (smart_function only) */
           llmSettings?:
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings;
-          /** Expected input format */
-          inputType: "text" | "image" | "multi-modal";
-          /** Expected output format */
-          outputType: "text" | "image" | "multi-modal";
+          /** Expected input format (smart_function only) */
+          inputType: "text" | "image" | "multi-modal" | null;
+          /** Expected output format (smart_function only) */
+          outputType: "text" | "image" | "multi-modal" | null;
+          /** Target URL (webhook only) */
+          url: string | null;
+          /** HTTP method (webhook only) */
+          webhookMethod: string | null;
+          /** HTTP headers (webhook only) */
+          webhookHeaders: Record<string, string>;
+          /** Request body template (webhook only) */
+          webhookBody: string | null;
+          /** JavaScript code (script only) */
+          code: string | null;
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
           /** Tags for categorizing and filtering this tool */
@@ -8539,20 +8460,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8603,22 +8536,38 @@ export class Api<
       /** Updated description */
       description?: string | null;
       /**
-       * Updated tool prompt template
+       * Updated Handlebars prompt template (smart_function)
        * @minLength 1
        */
       prompt?: string;
-      /** Updated LLM provider ID */
+      /** Updated LLM provider ID (smart_function) */
       llmProviderId?: string | null;
-      /** Updated LLM provider-specific settings */
+      /** Updated LLM provider-specific settings (smart_function) */
       llmSettings?:
         | OpenAILlmSettings
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
-      /** Updated input format */
+      /** Updated input format (smart_function) */
       inputType?: "text" | "image" | "multi-modal";
-      /** Updated output format */
+      /** Updated output format (smart_function) */
       outputType?: "text" | "image" | "multi-modal";
+      /**
+       * Updated target URL (webhook)
+       * @format uri
+       */
+      url?: string;
+      /** Updated HTTP method (webhook) */
+      webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+      /** Updated HTTP headers (webhook) */
+      webhookHeaders?: Record<string, string>;
+      /** Updated request body template (webhook) */
+      webhookBody?: string | null;
+      /**
+       * Updated JavaScript code (script)
+       * @minLength 1
+       */
+      code?: string;
       /** Updated parameters for the tool */
       parameters?: ToolParameter[];
       /** Updated tags */
@@ -8643,20 +8592,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8773,20 +8734,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */

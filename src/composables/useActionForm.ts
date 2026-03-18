@@ -10,7 +10,6 @@ export interface ActionOperations {
   endConversation: { enabled: boolean; reason: string }
   abortConversation: { enabled: boolean; reason: string }
   goToStage: { enabled: boolean; stageId: string }
-  runScript: { enabled: boolean; code: string }
   modifyUserInput: { enabled: boolean; template: string }
   modifyVariables: {
     enabled: boolean
@@ -20,15 +19,7 @@ export interface ActionOperations {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
-  callTool: { enabled: boolean; toolId: string; parameters: Record<string, any> }
-  callWebhook: {
-    enabled: boolean
-    url: string
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-    headers: string
-    body: string
-    resultKey: string
-  }
+  callTools: Array<{ toolId: string; parameters: Record<string, any> }>
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -37,20 +28,23 @@ export function createDefaultOperations(): ActionOperations {
     endConversation: { enabled: false, reason: '' },
     abortConversation: { enabled: false, reason: '' },
     goToStage: { enabled: false, stageId: '' },
-    runScript: { enabled: false, code: '' },
     modifyUserInput: { enabled: false, template: '' },
     modifyVariables: { enabled: false, modifications: [] },
     modifyUserProfile: { enabled: false, modifications: [] },
-    callTool: { enabled: false, toolId: '', parameters: {} },
-    callWebhook: { enabled: false, url: '', method: 'POST', headers: '', body: '', resultKey: '' }
+    callTools: []
   }
 }
 
 export function loadEffectsIntoOperations(effects: Effect[], operations: ActionOperations) {
-  // Reset all effects
-  Object.keys(operations).forEach(key => {
-    operations[key as keyof ActionOperations].enabled = false
-  })
+  // Reset all single-instance effects
+  operations.generateResponse.enabled = false
+  operations.endConversation.enabled = false
+  operations.abortConversation.enabled = false
+  operations.goToStage.enabled = false
+  operations.modifyUserInput.enabled = false
+  operations.modifyVariables.enabled = false
+  operations.modifyUserProfile.enabled = false
+  operations.callTools = []
 
   // Load existing effects
   effects.forEach(effect => {
@@ -75,12 +69,6 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
           operations.goToStage.stageId = effect.stageId || ''
         }
         break
-      case 'run_script':
-        operations.runScript.enabled = true
-        if ('code' in effect) {
-          operations.runScript.code = effect.code || ''
-        }
-        break
       case 'modify_user_input':
         operations.modifyUserInput.enabled = true
         operations.modifyUserInput.template = effect.template || ''
@@ -94,21 +82,11 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.modifyUserProfile.modifications = effect.modifications || []
         break
       case 'call_tool':
-        operations.callTool.enabled = true
-        if ('toolId' in effect) {
-          operations.callTool.toolId = effect.toolId || ''
+        const callToolEntry: { toolId: string; parameters: Record<string, any> } = {
+          toolId: 'toolId' in effect ? (effect.toolId || '') : '',
+          parameters: 'parameters' in effect ? (effect.parameters || {}) : {},
         }
-        if ('parameters' in effect) {
-          operations.callTool.parameters = effect.parameters || {}
-        }
-        break
-      case 'call_webhook':
-        operations.callWebhook.enabled = true
-        operations.callWebhook.url = effect.url || ''
-        operations.callWebhook.method = effect.method || 'POST'
-        operations.callWebhook.headers = effect.headers ? JSON.stringify(effect.headers, null, 2) : ''
-        operations.callWebhook.body = effect.body ? JSON.stringify(effect.body, null, 2) : ''
-        operations.callWebhook.resultKey = effect.resultKey || ''
+        operations.callTools.push(callToolEntry)
         break
     }
   })
@@ -116,7 +94,6 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
 
 export function buildEffectsFromOperations(operations: ActionOperations): { effects: Effect[]; error: string | null } {
   const effectsArray: Effect[] = []
-  let error: string | null = null
 
   if (operations.generateResponse.enabled) {
     const generateEffect: Record<string, any> = {
@@ -148,13 +125,6 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     effectsArray.push({
       type: 'go_to_stage',
       stageId: operations.goToStage.stageId
-    })
-  }
-
-  if (operations.runScript.enabled) {
-    effectsArray.push({
-      type: 'run_script',
-      code: operations.runScript.code
     })
   }
 
@@ -193,57 +163,25 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     })
   }
 
-  if (operations.callTool.enabled) {
-    // Build parameters object, accepting all values as-is
-    const params: Record<string, any> = {}
-    
-    for (const [key, value] of Object.entries(operations.callTool.parameters)) {
-      // Skip null, undefined, or empty string values
-      if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
-        continue
+  if (operations.callTools && operations.callTools.length > 0) {
+    for (const callTool of operations.callTools) {
+      if (!callTool.toolId) continue
+
+      const params: Record<string, any> = {}
+
+      for (const [key, value] of Object.entries(callTool.parameters)) {
+        if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
+          continue
+        }
+        params[key] = value
       }
-      
-      // Accept all values as-is without validation or parsing
-      params[key] = value
+
+      effectsArray.push({
+        type: 'call_tool',
+        toolId: callTool.toolId,
+        parameters: params
+      })
     }
-
-    effectsArray.push({
-      type: 'call_tool',
-      toolId: operations.callTool.toolId,
-      parameters: params
-    })
-  }
-
-  if (operations.callWebhook.enabled) {
-    let headers: Record<string, string> | undefined
-    let body: any | undefined
-
-    if (operations.callWebhook.headers) {
-      try {
-        headers = JSON.parse(operations.callWebhook.headers)
-      } catch (e) {
-        error = 'Invalid JSON in webhook headers'
-        return { effects: [], error }
-      }
-    }
-
-    if (operations.callWebhook.body) {
-      try {
-        body = JSON.parse(operations.callWebhook.body)
-      } catch (e) {
-        error = 'Invalid JSON in webhook body'
-        return { effects: [], error }
-      }
-    }
-
-    effectsArray.push({
-      type: 'call_webhook',
-      url: operations.callWebhook.url,
-      method: operations.callWebhook.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-      headers,
-      body,
-      resultKey: operations.callWebhook.resultKey
-    })
   }
 
   return { effects: effectsArray, error: null }
