@@ -245,8 +245,8 @@ function handleSubmit() {
 }
 
 .fixed-height-modal {
-  height: 60vh;
-  max-height: 1200px;
+  height: 80vh;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
