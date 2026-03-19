@@ -1,41 +1,18 @@
 import { defineStore } from 'pinia'
-import availableLocales from 'cldr-core/availableLocales.json'
-
-/**
- * Expand a bare 2-letter language code (e.g. "pl") to its most-likely regional
- * form (e.g. "pl-PL") using Unicode's likely-subtags algorithm via Intl.Locale.maximize().
- * 3-letter codes (minority / extinct languages) and codes that already carry any
- * subtag (region, script, …) are returned unchanged — maximize() gives unreliable
- * regional assignments for those.
- */
-function expandToRegional(code: string): string {
-  if (code.includes('-')) return code       // already has a subtag
-  if (code.length !== 2) return code        // 3-letter or special — skip
-  try {
-    const locale = new Intl.Locale(code).maximize()
-    if (locale.region) return `${locale.language}-${locale.region}`
-  } catch {
-    // unrecognised code — keep as-is
-  }
-  return code
-}
-
-/**
- * Full list of BCP 47 language tags sourced from Unicode CLDR (cldr-core package),
- * with bare language codes expanded to their most-likely xx-YY regional form so
- * that ASR/TTS systems that require a region subtag work out of the box.
- * Display names are resolved via the browser's Intl.DisplayNames API (always in English).
- */
-const LANGUAGE_CODES: readonly string[] = [
-  ...new Set(availableLocales.availableLocales.full.map(expandToRegional)),
-]
+import localeCodes from 'locale-codes'
 
 export interface LanguageOption {
   code: string
   name: string
 }
 
-// Resolve display names once at module load time using the browser Intl API
+const ALL_LANGUAGES: LanguageOption[] = localeCodes.all
+  .map(locale => ({
+    code: locale.tag,
+    name: locale.location ? `${locale.name} (${locale.location})` : locale.name,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name))
+
 const _displayNames = new Intl.DisplayNames(['en'], { type: 'language' })
 
 function resolveDisplayName(code: string): string {
@@ -45,11 +22,6 @@ function resolveDisplayName(code: string): string {
     return code
   }
 }
-
-const ALL_LANGUAGES: LanguageOption[] = LANGUAGE_CODES.map(code => ({
-  code,
-  name: resolveDisplayName(code),
-})).sort((a, b) => a.name.localeCompare(b.name))
 
 export const useLanguagesStore = defineStore('languages', () => {
   function search(query: string): LanguageOption[] {
