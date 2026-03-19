@@ -90,6 +90,20 @@ function isMessageEvent(event: NormalizedEvent): boolean {
   return event.eventType === 'message'
 }
 
+const TOP_LEVEL_EVENT_TYPES = new Set([
+  'message',
+  'command',
+  'conversation_start',
+  'conversation_resume',
+  'conversation_end',
+  'conversation_aborted',
+  'conversation_failed',
+])
+
+function isTopLevelEvent(event: NormalizedEvent): boolean {
+  return TOP_LEVEL_EVENT_TYPES.has(event.eventType)
+}
+
 function isClassificationEvent(event: NormalizedEvent): boolean {
   return event.eventType === 'classification'
 }
@@ -281,7 +295,7 @@ function onBugReport() {
     class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md"
     :class="[
       getEventTypeColor(event.eventType),
-      { 'ml-8': !isMessageEvent(event) },
+      { 'ml-8': !isTopLevelEvent(event) },
       { 'highlight-pulse': highlighted && !hasHovered },
       { 'highlight-finish': highlighted && hasHovered }
     ]"
