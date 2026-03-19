@@ -32,7 +32,7 @@ export const useLanguagesStore = defineStore('languages', () => {
     )
   }
 
-  function getDisplayName(code: string): string {
+  function getDisplayName(code: string | null): string {
     if (!code) return ''
     const found = ALL_LANGUAGES.find(l => l.code === code)
     return found?.name ?? resolveDisplayName(code)

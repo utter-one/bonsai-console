@@ -3349,11 +3349,13 @@
           },
           "timezone": {
             "type": "string",
-            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+            "nullable": true,
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
           },
           "languageCode": {
             "type": "string",
-            "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
           },
           "autoCreateUsers": {
             "type": "boolean",
@@ -16936,11 +16938,13 @@
                   },
                   "timezone": {
                     "type": "string",
-                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                    "nullable": true,
+                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
                   },
                   "languageCode": {
                     "type": "string",
-                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
+                    "nullable": true,
+                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
                   },
                   "autoCreateUsers": {
                     "type": "boolean",

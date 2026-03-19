@@ -4,8 +4,8 @@ import { useLanguagesStore } from '@/stores'
 import { Languages, ChevronDown } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
-  /** The selected BCP 47 language code. Empty string means "no override / not set". */
-  modelValue: string
+  /** The selected BCP 47 language code. null means "no override / not set". */
+  modelValue: string | null
   /**
    * Label shown when nothing is selected and as the first option in the list.
    * @default 'Not set'
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | null]
 }>()
 
 const languagesStore = useLanguagesStore()
@@ -85,7 +85,7 @@ function toggle() {
   isOpen.value ? close() : open()
 }
 
-function select(code: string) {
+function select(code: string | null) {
   emit('update:modelValue', code)
   close()
 }
@@ -157,8 +157,8 @@ onUnmounted(() => {
             <button
               type="button"
               class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-              :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': modelValue === '' }"
-              @click="select('')"
+              :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': modelValue === null || modelValue === '' }"
+              @click="select(null)"
             >
               {{ placeholder }}
             </button>

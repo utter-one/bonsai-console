@@ -4,10 +4,10 @@ import { useTimezonesStore } from '@/stores'
 import { Globe, ChevronDown } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
-  /** The selected IANA timezone string. Empty string means "use default / no override". */
-  modelValue: string
+  /** The selected IANA timezone string. null means "use default / no override". */
+  modelValue: string | null
   /**
-   * Label shown when nothing is selected (empty string value) and as the first option in the list.
+   * Label shown when nothing is selected (null value) and as the first option in the list.
    * @default 'UTC (default)'
    */
   placeholder?: string
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | null]
 }>()
 
 const timezonesStore = useTimezonesStore()
@@ -82,7 +82,7 @@ function toggle() {
   isOpen.value ? close() : open()
 }
 
-function select(tz: string) {
+function select(tz: string | null) {
   emit('update:modelValue', tz)
   close()
 }
@@ -157,8 +157,8 @@ onUnmounted(() => {
           <button
             type="button"
             class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
-            :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': modelValue === '' }"
-            @click="select('')"
+            :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': !modelValue }"
+            @click="select(null)"
           >
             {{ placeholder }}
           </button>
