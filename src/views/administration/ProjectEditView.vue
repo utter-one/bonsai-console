@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
+import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -770,15 +771,15 @@ function handleStorageSettingsClose() {
           </div>
 
           <div class="form-group">
-            <label class="form-label">Language Code</label>
-            <input
+            <label class="form-label">Language</label>
+            <LanguageSelector
               v-model="form.languageCode"
-              type="text"
-              placeholder="e.g. en-US, pl-PL"
-              class="form-input max-w-64"
+              width="override"
+              placeholder="Not set"
               :disabled="isLoading"
+              class="max-w-96"
             />
-            <p class="form-help-text">ISO language code for this project (e.g. en-US, pl-PL). Exposed in script and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
+            <p class="form-help-text">Default language for this project. Exposed in scripts and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
           </div>
 
           <div class="form-group">
