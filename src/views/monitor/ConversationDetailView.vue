@@ -193,6 +193,40 @@ const metadataFields = computed(() => {
 
 const isArchived = computed(() => conversation.value?.archived ?? false)
 
+const INTERIM_EVENT_TYPES = new Set([
+  'transformation', 'classification', 'action',
+  'moderation', 'tool_call',
+])
+
+const orderedEvents = computed(() => {
+  const result: ConversationEventResponse[] = []
+  const buffer: ConversationEventResponse[] = []
+
+  for (const event of events.value) {
+    if (event.eventType === 'message' || event.eventType === 'command') {
+      const role = (event.eventData as any)?.role
+      if (role === 'user' || event.eventType === 'command') {
+        result.push(event)
+        result.push(...buffer)
+        buffer.length = 0
+      } else {
+        result.push(...buffer)
+        buffer.length = 0
+        result.push(event)
+      }
+    } else if (INTERIM_EVENT_TYPES.has(event.eventType)) {
+      buffer.push(event)
+    } else {
+      result.push(...buffer)
+      buffer.length = 0
+      result.push(event)
+    }
+  }
+
+  result.push(...buffer)
+  return result
+})
+
 async function activatePerformanceTab() {
   activeTab.value = 'performance'
   if (!performanceTabActivated.value) {
@@ -296,7 +330,7 @@ function fmtMs(value: number | null | undefined): string {
 
             <div v-else class="space-y-4">
               <div
-                v-for="(event, index) in events"
+                v-for="(event, index) in orderedEvents"
                 :key="event.id"
                 :ref="(el) => { eventRefs[index] = el as HTMLElement | null }"
               >
