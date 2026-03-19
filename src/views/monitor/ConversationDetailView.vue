@@ -195,7 +195,7 @@ const isArchived = computed(() => conversation.value?.archived ?? false)
 
 const INTERIM_EVENT_TYPES = new Set([
   'transformation', 'classification', 'action',
-  'moderation', 'tool_call', 'command',
+  'moderation', 'tool_call',
 ])
 
 const orderedEvents = computed(() => {
@@ -203,9 +203,9 @@ const orderedEvents = computed(() => {
   const buffer: ConversationEventResponse[] = []
 
   for (const event of events.value) {
-    if (event.eventType === 'message') {
+    if (event.eventType === 'message' || event.eventType === 'command') {
       const role = (event.eventData as any)?.role
-      if (role === 'user') {
+      if (role === 'user' || event.eventType === 'command') {
         result.push(event)
         result.push(...buffer)
         buffer.length = 0
