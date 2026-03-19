@@ -2982,6 +2982,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "A description of the project"
           },
           "asrConfig": {
@@ -3100,10 +3101,12 @@
           },
           "timezone": {
             "type": "string",
+            "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
           },
           "languageCode": {
             "type": "string",
+            "nullable": true,
             "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
           },
           "autoCreateUsers": {
@@ -3285,6 +3288,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "The updated description of the project"
           },
           "asrConfig": {
@@ -15818,6 +15822,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "A description of the project"
                   },
                   "asrConfig": {
@@ -15936,10 +15941,12 @@
                   },
                   "timezone": {
                     "type": "string",
+                    "nullable": true,
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
                   },
                   "languageCode": {
                     "type": "string",
+                    "nullable": true,
                     "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
                   },
                   "autoCreateUsers": {
@@ -16874,6 +16881,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "The updated description of the project"
                   },
                   "asrConfig": {

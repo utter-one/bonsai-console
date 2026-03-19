@@ -1665,7 +1665,7 @@ export interface CreateProjectRequest {
    */
   name: string;
   /** A description of the project */
-  description?: string;
+  description?: string | null;
   /** Optional ASR configuration settings */
   asrConfig?: {
     /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -1717,9 +1717,9 @@ export interface CreateProjectRequest {
   /** Additional metadata for the project */
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-  timezone?: string;
+  timezone?: string | null;
   /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
-  languageCode?: string;
+  languageCode?: string | null;
   /**
    * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
    * @default false
@@ -1796,7 +1796,7 @@ export interface UpdateProjectRequest {
    */
   name?: string;
   /** The updated description of the project */
-  description?: string;
+  description?: string | null;
   /** Updated ASR configuration settings */
   asrConfig?: AsrConfig;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
