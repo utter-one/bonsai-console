@@ -1718,6 +1718,8 @@ export interface CreateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
+  languageCode?: string;
   /**
    * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
    * @default false
@@ -1818,6 +1820,8 @@ export interface UpdateProjectRequest {
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
   timezone?: string;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
+  languageCode?: string;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers?: boolean;
   /** Updated descriptors defining the data schema for user profile variables in this project */
@@ -1898,6 +1902,8 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+  languageCode: string | null;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers: boolean;
   /** Descriptors defining the data schema for user profile variables in this project */
@@ -1982,6 +1988,8 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+    languageCode: string | null;
     /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
     autoCreateUsers: boolean;
     /** Descriptors defining the data schema for user profile variables in this project */
@@ -5831,6 +5839,8 @@ export interface ProjectExchangeV1 {
   metadata?: Record<string, any>;
   /** IANA timezone identifier, e.g. Europe/Warsaw or America/New_York */
   timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL */
+  languageCode?: string | null;
   /** When enabled, users are automatically created on first WebSocket connection */
   autoCreateUsers?: boolean;
   /** Descriptors defining the data schema for user profile variables */

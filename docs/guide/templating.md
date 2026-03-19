@@ -22,6 +22,7 @@ Hello {{userProfile.name}}, welcome to {{consts.companyName}}.
 | `consts` | Project-level constants (company name, support hours, etc.) |
 | `userInput` | What the user just said |
 | `time` | Current date and time (timezone-aware) |
+| `project` | Project-level settings exposed at runtime (timezone, languageCode, language) |
 | `context.results` | Results from tool calls and webhooks |
 | <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** (see below) |
 | `faq` | Array of matched Q&A pairs — **must be explicitly included** via <code v-pre>{{#hasItems faq}}</code> (see below) |
@@ -161,6 +162,24 @@ The timezone is determined once when a conversation starts:
 You are a booking assistant for {{consts.companyName}}.
 When the user says "next Tuesday", that means {{time.nextTuesday}}.
 When the user says "this Friday", that means {{time.nextFriday}}.
+```
+
+## Project Context
+
+The `project` object exposes project-level settings in every conversation:
+
+| Field | Description |
+|---|---|
+| `project.timezone` | IANA timezone configured on the project — e.g. `"Europe/Warsaw"`. `null` if not set. |
+| `project.languageCode` | ISO language code configured on the project — e.g. `"en-US"` or `"pl-PL"`. `null` if not set. |
+| `project.language` | Human-readable language name derived from `languageCode` — e.g. `"American English"`. `null` if not set. |
+
+Example usage in a prompt:
+
+```handlebars
+{{#exists project.language}}
+Please respond in {{project.language}}.
+{{/exists}}
 ```
 
 ## Agent and Knowledge Variables

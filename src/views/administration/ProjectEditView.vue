@@ -39,6 +39,7 @@ const form = ref({
   acceptVoice: false,
   generateVoice: false,
   timezone: '',
+  languageCode: '',
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
@@ -282,6 +283,7 @@ async function loadProject() {
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
         timezone: currentProject.value.timezone ?? '',
+        languageCode: currentProject.value.languageCode ?? '',
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
@@ -352,6 +354,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        languageCode: form.value.languageCode || undefined,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
       })
@@ -376,6 +379,7 @@ async function handleSubmit() {
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone || undefined,
+        languageCode: form.value.languageCode || undefined,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
       })
@@ -763,6 +767,18 @@ function handleStorageSettingsClose() {
               class="max-w-96"
             />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Language Code</label>
+            <input
+              v-model="form.languageCode"
+              type="text"
+              placeholder="e.g. en-US, pl-PL"
+              class="form-input max-w-64"
+              :disabled="isLoading"
+            />
+            <p class="form-help-text">ISO language code for this project (e.g. en-US, pl-PL). Exposed in script and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
           </div>
 
           <div class="form-group">

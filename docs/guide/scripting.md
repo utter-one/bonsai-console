@@ -47,6 +47,7 @@ This means scripts are safe to use — they can only read and modify conversatio
 | `userInputSource` | How the user communicated: `'text'`, `'voice'`, or `null` |
 | `stageVars` | Variables from all stages (keyed by stage ID) |
 | `consts` | Project-level constants defined in **Design > Global Memory > Constants** |
+| `project` | Project-level settings: `project.timezone`, `project.languageCode`, `project.language` |
 
 ## Common Patterns
 
