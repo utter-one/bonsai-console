@@ -13,7 +13,6 @@
 import {
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
-  AsrConfig,
   AsrModelInfo,
   AssemblyAiAsrSettings,
   AzureAsrSettings,
@@ -57,7 +56,6 @@ import {
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
-  StorageConfig,
   ToolParameter,
   TtsModelInfo,
   VoiceInfo,
@@ -1147,13 +1145,36 @@ export class Api<
       /** The updated description of the project */
       description?: string | null;
       /** Updated ASR configuration settings */
-      asrConfig?: AsrConfig;
+      asrConfig?: {
+        /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
+        asrProviderId?: string;
+        /** ASR-specific settings including model, language preferences, etc. */
+        settings?:
+          | AzureAsrSettings
+          | ElevenLabsAsrSettings
+          | DeepgramAsrSettings
+          | AssemblyAiAsrSettings
+          | SpeechmaticsAsrSettings;
+        /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+        unintelligiblePlaceholder?: string;
+        /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+        voiceActivityDetection?: boolean;
+      } | null;
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
       /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
       generateVoice?: boolean;
       /** Updated storage configuration settings */
-      storageConfig?: StorageConfig;
+      storageConfig?: {
+        /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+        storageProviderId?: string;
+        /** Storage-specific settings including bucket, prefix, etc. */
+        settings?:
+          | S3StorageSettings
+          | AzureBlobStorageSettings
+          | GcsStorageSettings
+          | LocalStorageSettings;
+      } | null;
       /** Updated content moderation configuration */
       moderationConfig?: {
         /** Whether content moderation is enabled for this project */
@@ -1162,7 +1183,7 @@ export class Api<
         llmProviderId: string;
         /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
         blockedCategories?: string[];
-      };
+      } | null;
       /** Updated constants key-value store */
       constants?: Record<string, ParameterValue>;
       /** Updated metadata for the project */
@@ -1517,6 +1538,22 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific project
+   *
+   * @tags Projects
+   * @name ProjectsAuditLogsList
+   * @summary Get project audit logs
+   * @request GET:/api/projects/{id}/audit-logs
+   * @secure
+   */
+  projectsAuditLogsList = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/projects/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**
@@ -4146,6 +4183,46 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves audit logs for a specific knowledge category
+   *
+   * @tags Knowledge
+   * @name ProjectsKnowledgeCategoriesAuditLogsList
+   * @summary Get knowledge category audit logs
+   * @request GET:/api/projects/{projectId}/knowledge/categories/{id}/audit-logs
+   * @secure
+   */
+  projectsKnowledgeCategoriesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/knowledge/categories/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific knowledge item
+   *
+   * @tags Knowledge
+   * @name ProjectsKnowledgeItemsAuditLogsList
+   * @summary Get knowledge item audit logs
+   * @request GET:/api/projects/{projectId}/knowledge/items/{id}/audit-logs
+   * @secure
+   */
+  projectsKnowledgeItemsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/knowledge/items/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
    * @description Creates a new AI agent with specified characteristics and voice configuration
    *
    * @tags Agents
@@ -4451,14 +4528,14 @@ export class Api<
        */
       name?: string;
       /** Updated detailed description of the agent */
-      description?: string;
+      description?: string | null;
       /**
        * Updated prompt defining behavior
        * @minLength 1
        */
       prompt?: string;
       /** Updated TTS provider ID */
-      ttsProviderId?: string;
+      ttsProviderId?: string | null;
       /** Updated TTS provider-specific settings */
       ttsSettings?:
         | ElevenLabsTtsSettings
@@ -4472,7 +4549,21 @@ export class Api<
       /** Updated metadata */
       metadata?: Record<string, any>;
       /** Updated filler response settings */
-      fillerSettings?: FillerSettings;
+      fillerSettings?: {
+        /** ID of the LLM provider used to generate the filler sentence */
+        llmProviderId: string;
+        /** LLM provider-specific settings for filler generation */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /**
+         * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
+         * @minLength 1
+         */
+        prompt: string;
+      } | null;
       /**
        * Current version number for optimistic locking
        * @min 1
@@ -5189,7 +5280,7 @@ export class Api<
        */
       name?: string;
       /** Updated description of provider purpose */
-      description?: string;
+      description?: string | null;
       /** Updated provider category */
       providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
       /** Updated specific provider implementation */
@@ -5265,7 +5356,7 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig;
       /** Updated searchable tags */
-      tags?: string[];
+      tags?: string[] | null;
     },
     params: RequestParams = {},
   ) =>
@@ -7990,7 +8081,7 @@ export class Api<
        */
       name?: string;
       /** Updated detailed description of the stage */
-      description?: string;
+      description?: string | null;
       /**
        * Updated system prompt
        * @minLength 1
@@ -9469,6 +9560,26 @@ export class Api<
       query: query,
       secure: true,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific API key
+   *
+   * @tags API Keys
+   * @name ProjectsApiKeysAuditLogsList
+   * @summary Get API key audit logs
+   * @request GET:/api/projects/{projectId}/api-keys/{id}/audit-logs
+   * @secure
+   */
+  projectsApiKeysAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/api-keys/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**

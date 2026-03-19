@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import { providerPresets } from './provider-configuration/providerPresets'
 import { lookupProvider } from './provider-configuration/providerRegistry'
@@ -19,7 +20,7 @@ const providerCatalogStore = useProviderCatalogStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'config' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'config' | 'metadata' | 'history'>('basic')
 const form = ref({
   id: '',
   name: '',
@@ -202,8 +203,8 @@ async function handleSubmit() {
       const updated = await providersStore.update(currentProvider.value.id, {
         version: currentProvider.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
-        tags: form.value.tags.length > 0 ? form.value.tags : undefined,
+        description: form.value.description || null,
+        tags: form.value.tags.length > 0 ? form.value.tags : null,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
         config: config
@@ -330,6 +331,14 @@ const metadataFields = computed(() => {
           type="button"
         >
           Metadata
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
         </button>
       </nav>
     </div>
@@ -469,6 +478,19 @@ const metadataFields = computed(() => {
           v-if="isEditMode && currentProvider"
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
+        />
+        <!-- History Tab -->
+        <EntityHistoryView
+          v-if="isEditMode && currentProvider"
+          v-show="activeTab === 'history'"
+          :load-history="() => providersStore.fetchAuditLogs(currentProvider!.id)"
+          :current-version="currentProvider.version"
+          :current-object="currentProvider"
+          :active="activeTab === 'history'"
+          :update-fn="(data) => providersStore.update(currentProvider!.id, data)"
+          :create-fn="(data) => providersStore.create(data)"
+          :ignore-fields="['createdAt', 'updatedAt', 'version']"
+          @recover-success="() => router.go(0)"
         />
         </form>
       </div>

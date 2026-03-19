@@ -171,6 +171,13 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
     console.error('Failed to save issue:', error)
   }
 }
+
+async function handleRecoverSuccess() {
+  await loadIssues()
+  if (selectedIssue.value) {
+    selectedIssue.value = await issuesStore.fetchById(selectedIssue.value.id.toString())
+  }
+}
 </script>
 
 <template>
@@ -304,8 +311,12 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
       :issue="selectedIssue"
       :prefill-data="selectedIssue ? undefined : { projectId: projectSelectionStore.selectedProjectId || undefined }"
       :is-read-only="selectedIssue ? isIssueArchived(selectedIssue) : false"
+      :load-history="selectedIssue ? () => issuesStore.fetchAuditLogs(selectedIssue!.id.toString()) : undefined"
+      :update-fn="selectedIssue ? (data) => issuesStore.update(selectedIssue!.id.toString(), data) : undefined"
+      :create-fn="selectedIssue ? (data) => issuesStore.create(data) : undefined"
       @close="closeModal"
       @save="handleSave"
+      @recover-success="handleRecoverSuccess"
     />
   </MonitorSectionLayout>
 </template>

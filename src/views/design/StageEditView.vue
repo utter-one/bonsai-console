@@ -7,6 +7,7 @@ import { useTableSort } from '@/composables'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
@@ -62,7 +63,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
@@ -229,7 +230,7 @@ async function handleSubmit() {
       const updated = await stagesStore.update(projectId.value, currentStage.value.id, {
         version: currentStage.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
+        description: form.value.description || null,
         tags: form.value.tags,
         agentId: form.value.agentId,
         prompt: form.value.prompt,
@@ -888,6 +889,14 @@ function toggleNode(path: number[]) {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
       </nav>
     </div>
 
@@ -1453,6 +1462,19 @@ function toggleNode(path: number[]) {
             v-if="isEditMode && currentStage"
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
+          />
+          <!-- History Tab -->
+          <EntityHistoryView
+            v-if="isEditMode && currentStage"
+            v-show="activeTab === 'history'"
+            :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
+            :current-version="currentStage.version"
+            :current-object="currentStage"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
+            :create-fn="(data) => stagesStore.create(projectId, data)"
+            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+            @recover-success="() => router.go(0)"
           />
           </fieldset>
         </form>

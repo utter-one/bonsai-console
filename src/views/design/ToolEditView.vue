@@ -6,6 +6,7 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import JavaScriptEditor from '@/components/JavaScriptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -22,7 +23,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'config' | 'parameters' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'config' | 'parameters' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
@@ -330,6 +331,14 @@ const metadataFields = computed(() => {
           type="button"
         >
           Metadata
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
         </button>
       </nav>
     </div>
@@ -830,6 +839,19 @@ const metadataFields = computed(() => {
             v-if="isEditMode && currentTool"
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
+          />
+          <!-- History Tab -->
+          <EntityHistoryView
+            v-if="isEditMode && currentTool"
+            v-show="activeTab === 'history'"
+            :load-history="() => toolsStore.fetchAuditLogs(projectId, currentTool!.id)"
+            :current-version="currentTool.version"
+            :current-object="currentTool"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => toolsStore.update(projectId, currentTool!.id, data)"
+            :create-fn="(data) => toolsStore.create(projectId, data)"
+            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+            @recover-success="() => router.go(0)"
           />
           </fieldset>
         </form>

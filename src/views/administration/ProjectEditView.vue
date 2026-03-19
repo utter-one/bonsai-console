@@ -8,6 +8,7 @@ import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
@@ -22,7 +23,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -349,9 +350,9 @@ async function handleSubmit() {
       const updated = await projectsStore.update(currentProject.value.id, {
         version: currentProject.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
-        asrConfig,
-        storageConfig,
+        description: form.value.description || null,
+        asrConfig: asrConfig || null,
+        storageConfig: storageConfig || null,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone,
@@ -694,6 +695,14 @@ function handleStorageSettingsClose() {
           type="button"
         >
           Metadata
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
         </button>
         <button
           v-if="isEditMode"
@@ -2074,7 +2083,19 @@ function handleStorageSettingsClose() {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-
+        <!-- History Tab -->
+        <EntityHistoryView
+          v-if="isEditMode && currentProject"
+          v-show="activeTab === 'history'"
+          :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
+          :current-version="currentProject.version"
+          :current-object="currentProject"
+          :active="activeTab === 'history'"
+          :update-fn="(data) => projectsStore.update(currentProject!.id, data)"
+          :create-fn="(data) => projectsStore.create(data)"
+          :ignore-fields="['updatedAt', 'version', 'archivedAt', 'archivedBy']"
+          @recover-success="loadProject"
+        />
         <!-- Danger Zone Tab -->
         <div v-if="isEditMode" v-show="activeTab === 'danger'" class="tab-content">
           <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>

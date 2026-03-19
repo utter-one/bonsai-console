@@ -3292,14 +3292,43 @@
             "description": "The updated description of the project"
           },
           "asrConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AsrConfig"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "asrProviderId": {
+                "type": "string",
+                "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
-              {
-                "description": "Updated ASR configuration settings"
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AzureAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DeepgramAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                  }
+                ],
+                "description": "ASR-specific settings including model, language preferences, etc."
+              },
+              "unintelligiblePlaceholder": {
+                "type": "string",
+                "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+              },
+              "voiceActivityDetection": {
+                "type": "boolean",
+                "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               }
-            ]
+            },
+            "description": "Updated ASR configuration settings"
           },
           "acceptVoice": {
             "type": "boolean",
@@ -3310,10 +3339,36 @@
             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
           },
           "storageConfig": {
-            "$ref": "#/components/schemas/StorageConfig"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "storageProviderId": {
+                "type": "string",
+                "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/S3StorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GcsStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LocalStorageSettings"
+                  }
+                ],
+                "description": "Storage-specific settings including bucket, prefix, etc."
+              }
+            },
+            "description": "Updated storage configuration settings"
           },
           "moderationConfig": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "enabled": {
                 "type": "boolean",
@@ -3391,33 +3446,6 @@
         "required": [
           "version"
         ]
-      },
-      "StorageConfig": {
-        "type": "object",
-        "properties": {
-          "storageProviderId": {
-            "type": "string",
-            "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
-          },
-          "settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/S3StorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AzureBlobStorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GcsStorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/LocalStorageSettings"
-              }
-            ],
-            "description": "Storage-specific settings including bucket, prefix, etc."
-          }
-        },
-        "description": "Updated storage configuration settings"
       },
       "ProjectResponse": {
         "type": "object",
@@ -3957,6 +3985,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated detailed description of the agent"
           },
           "prompt": {
@@ -3966,6 +3995,7 @@
           },
           "ttsProviderId": {
             "type": "string",
+            "nullable": true,
             "description": "Updated TTS provider ID"
           },
           "ttsSettings": {
@@ -4009,14 +4039,44 @@
             "description": "Updated metadata"
           },
           "fillerSettings": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FillerSettings"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "llmProviderId": {
+                "type": "string",
+                "description": "ID of the LLM provider used to generate the filler sentence"
               },
-              {
-                "description": "Updated filler response settings"
+              "llmSettings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnthropicLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ],
+                "description": "LLM provider-specific settings for filler generation"
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
               }
-            ]
+            },
+            "required": [
+              "llmProviderId",
+              "prompt"
+            ],
+            "description": "Updated filler response settings"
           },
           "version": {
             "type": "integer",
@@ -6785,6 +6845,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated detailed description of the stage"
           },
           "prompt": {
@@ -10141,6 +10202,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated description of provider purpose"
           },
           "providerType": {
@@ -10408,6 +10470,7 @@
           },
           "tags": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             },
@@ -16885,14 +16948,43 @@
                     "description": "The updated description of the project"
                   },
                   "asrConfig": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/AsrConfig"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "asrProviderId": {
+                        "type": "string",
+                        "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                       },
-                      {
-                        "description": "Updated ASR configuration settings"
+                      "settings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/AzureAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DeepgramAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                          }
+                        ],
+                        "description": "ASR-specific settings including model, language preferences, etc."
+                      },
+                      "unintelligiblePlaceholder": {
+                        "type": "string",
+                        "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                      },
+                      "voiceActivityDetection": {
+                        "type": "boolean",
+                        "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       }
-                    ]
+                    },
+                    "description": "Updated ASR configuration settings"
                   },
                   "acceptVoice": {
                     "type": "boolean",
@@ -16903,10 +16995,36 @@
                     "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
                   },
                   "storageConfig": {
-                    "$ref": "#/components/schemas/StorageConfig"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "storageProviderId": {
+                        "type": "string",
+                        "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                      },
+                      "settings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/S3StorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GcsStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/LocalStorageSettings"
+                          }
+                        ],
+                        "description": "Storage-specific settings including bucket, prefix, etc."
+                      }
+                    },
+                    "description": "Updated storage configuration settings"
                   },
                   "moderationConfig": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "enabled": {
                         "type": "boolean",
@@ -17784,6 +17902,35 @@
           },
           "409": {
             "description": "Version conflict"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get project audit logs",
+        "description": "Retrieves audit logs for a specific project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The project ID"
+            },
+            "required": true,
+            "description": "The project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Project not found"
           }
         }
       }
@@ -23977,6 +24124,86 @@
         }
       }
     },
+    "/api/projects/{projectId}/knowledge/categories/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get knowledge category audit logs",
+        "description": "Retrieves audit logs for a specific knowledge category",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge category ID"
+            },
+            "required": true,
+            "description": "Knowledge category ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Knowledge category not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/knowledge/items/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get knowledge item audit logs",
+        "description": "Retrieves audit logs for a specific knowledge item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge item ID"
+            },
+            "required": true,
+            "description": "Knowledge item ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Knowledge item not found"
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/agents": {
       "post": {
         "tags": [
@@ -24709,6 +24936,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated detailed description of the agent"
                   },
                   "prompt": {
@@ -24718,6 +24946,7 @@
                   },
                   "ttsProviderId": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated TTS provider ID"
                   },
                   "ttsSettings": {
@@ -24761,14 +24990,44 @@
                     "description": "Updated metadata"
                   },
                   "fillerSettings": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/FillerSettings"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "llmProviderId": {
+                        "type": "string",
+                        "description": "ID of the LLM provider used to generate the filler sentence"
                       },
-                      {
-                        "description": "Updated filler response settings"
+                      "llmSettings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/OpenAILlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AnthropicLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GeminiLlmSettings"
+                          },
+                          {
+                            "nullable": true
+                          }
+                        ],
+                        "description": "LLM provider-specific settings for filler generation"
+                      },
+                      "prompt": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
                       }
-                    ]
+                    },
+                    "required": [
+                      "llmProviderId",
+                      "prompt"
+                    ],
+                    "description": "Updated filler response settings"
                   },
                   "version": {
                     "type": "integer",
@@ -26758,6 +27017,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated description of provider purpose"
                   },
                   "providerType": {
@@ -27025,6 +27285,7 @@
                   },
                   "tags": {
                     "type": "array",
+                    "nullable": true,
                     "items": {
                       "type": "string"
                     },
@@ -33280,6 +33541,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated detailed description of the stage"
                   },
                   "prompt": {
@@ -36947,6 +37209,46 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/api-keys/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Get API key audit logs",
+        "description": "Retrieves audit logs for a specific API key",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The unique identifier of the API key"
+            },
+            "required": true,
+            "description": "The unique identifier of the API key",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "API key not found"
           }
         }
       }
