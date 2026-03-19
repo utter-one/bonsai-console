@@ -6,6 +6,7 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check, ShieldAlert } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
 import TagsEditor from '@/components/TagsEditor.vue'
 
@@ -33,7 +34,7 @@ const error = ref<string | null>(null)
 const showSuccess = ref(false)
 const specialActionNotFound = ref(false)
 
-type TabType = 'basic' | 'trigger' | 'effects' | 'metadata'
+type TabType = 'basic' | 'trigger' | 'effects' | 'metadata' | 'history'
 const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
@@ -357,7 +358,22 @@ const metadataFields = computed(() => {
             :show-parameters="!isSpecialAction"
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
-          />
+            :show-history="isEditMode"
+          >
+            <template #history>
+              <EntityHistoryView
+                v-if="isEditMode && currentGlobalAction"
+                :load-history="() => globalActionsStore.fetchAuditLogs(projectId, currentGlobalAction!.id)"
+                :current-version="currentGlobalAction.version"
+                :current-object="currentGlobalAction"
+                :active="activeTab.value === 'history'"
+                :update-fn="(data) => globalActionsStore.update(projectId, currentGlobalAction!.id, data)"
+                :create-fn="(data) => globalActionsStore.create(projectId, data)"
+                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+            </template>
+          </ActionForm>
 
           <!-- Tags Field -->
           <div v-show="activeTab.value === 'basic'" class="px-6">

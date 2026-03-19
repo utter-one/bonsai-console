@@ -69,6 +69,7 @@ const props = withDefaults(
     showTrigger?: boolean
     showTabs?: boolean
     showMetadata?: boolean
+    showHistory?: boolean
     simpleTrigger?: boolean
     metadataFields?: Array<{ label: string; value: any; format?: 'mono' | 'date' | 'default' }>
     stageVariables?: any[]
@@ -84,6 +85,7 @@ const props = withDefaults(
     showTrigger: true,
     showTabs: true,
     showMetadata: false,
+    showHistory: false,
     simpleTrigger: false,
     metadataFields: () => [],
     stageVariables: () => [],
@@ -193,6 +195,14 @@ function getTypeBadgeColor(type: string): string {
           :class="['tab-button', activeTab.value === 'metadata' ? 'tab-button-active' : '']"
         >
           Metadata
+        </button>
+        <button
+          v-if="showHistory"
+          type="button"
+          @click="activeTab.value = 'history'"
+          :class="['tab-button', activeTab.value === 'history' ? 'tab-button-active' : '']"
+        >
+          History
         </button>
       </nav>
     </div>
@@ -566,6 +576,10 @@ function getTypeBadgeColor(type: string): string {
         v-if="showMetadata && metadataFields.length > 0"
         :fields="metadataFields"
       />
+    </div>
+    <!-- History Tab -->
+    <div v-show="activeTab.value === 'history'">
+      <slot name="history" />
     </div>
     </div>
   </div>

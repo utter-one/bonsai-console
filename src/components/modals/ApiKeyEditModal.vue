@@ -1,8 +1,16 @@
 <template>
   <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content-lg" @click.stop>
       <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
       
+      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+        <nav class="tabs-nav">
+          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
+          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
+        </nav>
+      </div>
+
+      <div v-show="!apiKey || activeTab === 'details'">
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This API key is read-only because its project is archived.
       </div>
@@ -94,6 +102,24 @@
           </button>
         </div>
       </form>
+      </div>
+
+      <div v-if="apiKey" v-show="activeTab === 'history'">
+        <EntityHistoryView
+          v-if="loadHistory"
+          :load-history="loadHistory"
+          :current-object="apiKey"
+          :current-version="apiKey.version"
+          :active="activeTab === 'history'"
+          :update-fn="updateFn"
+          :create-fn="createFn"
+          :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
+          @recover-success="emit('recoverSuccess')"
+        />
+        <div class="modal-footer">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -102,11 +128,15 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import { useProjectsStore } from '@/stores/projects'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 const props = defineProps<{
   apiKey: ApiKeyResponse | null
   projectId: string
   isReadOnly?: boolean
+  loadHistory?: () => Promise<any>
+  updateFn?: (data: any) => Promise<any>
+  createFn?: (data: any) => Promise<any>
 }>()
 
 const emit = defineEmits<{
@@ -114,6 +144,7 @@ const emit = defineEmits<{
   (e: 'save', data: CreateApiKeyRequest | UpdateApiKeyRequest): void
   (e: 'created', key: string): void
   (e: 'project-selected', projectId: string): void
+  (e: 'recoverSuccess'): void
 }>()
 
 const form = ref({
@@ -134,6 +165,11 @@ const projectOptions = computed(() =>
 const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
+const activeTab = ref<'details' | 'history'>('details')
+
+watch(() => props.apiKey, () => {
+  activeTab.value = 'details'
+})
 
 watch(
   () => form.value.projectId,

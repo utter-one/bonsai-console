@@ -5,6 +5,7 @@ import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '
 import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check } from 'lucide-vue-next'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 
 const route = useRoute()
@@ -19,7 +20,7 @@ const user = ref<UserResponse | null>(null)
 const conversations = ref<ConversationResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'profile' | 'conversations' | 'metadata'>('profile')
+const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history'>('profile')
 
 const editableProfile = ref<Array<{ key: string; value: string }>>([])
 const isSaving = ref(false)
@@ -218,6 +219,14 @@ const metadataFields = computed(() => {
           >
             Metadata
           </button>
+          <button 
+            v-if="user" 
+            @click="activeTab = 'history'"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" 
+            type="button"
+          >
+            History
+          </button>
         </nav>
       </div>
 
@@ -375,6 +384,18 @@ const metadataFields = computed(() => {
             v-if="user" 
             v-show="activeTab === 'metadata'" 
             :fields="metadataFields" 
+          />
+          <!-- History Tab -->
+          <EntityHistoryView
+            v-if="user"
+            v-show="activeTab === 'history'"
+            :load-history="() => usersStore.fetchAuditLogs(projectId, userId)"
+            :current-object="user"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => usersStore.update(projectId, userId, data)"
+            :create-fn="(data) => usersStore.create(projectId, data)"
+            :ignore-fields="['createdAt', 'archived', 'updatedAt']"
+            @recover-success="() => router.go(0)"
           />
         </div>
       </div>

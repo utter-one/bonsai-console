@@ -133,6 +133,13 @@ async function handleSave(data: CreateApiKeyRequest | UpdateApiKeyRequest) {
   }
 }
 
+async function handleRecoverSuccess() {
+  await loadApiKeys()
+  if (editingApiKey.value) {
+    editingApiKey.value = await apiKeysStore.fetchById(editingApiKey.value.projectId, editingApiKey.value.id)
+  }
+}
+
 function handleCreated() {
   // This is emitted after the key is shown - close modal
   showModal.value = false
@@ -331,10 +338,14 @@ function getProjectName(projectId: string): string {
       :api-key="editingApiKey"
       :project-id="selectedProjectId"
       :is-read-only="editingApiKey ? editingApiKey.archived : false"
+      :load-history="editingApiKey ? () => apiKeysStore.fetchAuditLogs(editingApiKey!.projectId, editingApiKey!.id) : undefined"
+      :update-fn="editingApiKey ? (data) => apiKeysStore.update(editingApiKey!.projectId, editingApiKey!.id, data) : undefined"
+      :create-fn="editingApiKey ? (data) => apiKeysStore.create(editingApiKey!.projectId, data) : undefined"
       @close="closeModal"
       @save="handleSave"
       @created="handleCreated"
       @project-selected="selectedProjectId = $event"
+      @recover-success="handleRecoverSuccess"
     />
   </AdministrationSectionLayout>
 </template>

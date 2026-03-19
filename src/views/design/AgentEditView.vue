@@ -8,6 +8,7 @@ import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramT
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | AmazonPollyTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -24,7 +25,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata' | 'history'>('basic')
 const showFillerLLMSettingsModal = ref(false)
 const form = ref<{
   id: string
@@ -356,10 +357,10 @@ async function handleSubmit() {
   }
 
   try {
-    // Clean up ttsSettings - remove empty optional fields
+    // Clean up ttsSettings - only send if provider is set and settings have data
     const ttsSettings = form.value.ttsProviderId && Object.keys(form.value.ttsSettings).length > 0
       ? form.value.ttsSettings
-      : undefined
+      : null
 
     const fillerSettings: FillerSettings | undefined =
       form.value.fillerLlmProviderId && form.value.fillerPrompt
@@ -375,11 +376,11 @@ async function handleSubmit() {
       const updatedAgent = await agentsStore.update(projectId.value, currentAgent.value.id, {
         version: currentAgent.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
+        description: form.value.description || null,
         prompt: form.value.prompt,
-        tags: form.value.tags.length > 0 ? form.value.tags : undefined,
-        ...(form.value.ttsProviderId && { ttsProviderId: form.value.ttsProviderId }),
-        ...(ttsSettings && { ttsSettings }),
+        tags: form.value.tags,
+        ttsProviderId: form.value.ttsProviderId || null,
+        ttsSettings,
         metadata: form.value.metadata,
         ...(fillerSettings ? { fillerSettings } : {})
       })
@@ -557,6 +558,14 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           type="button"
         >
           Metadata
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
         </button>
       </nav>
     </div>
@@ -1339,6 +1348,19 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           v-if="isEditMode && currentAgent"
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
+        />
+        <!-- History Tab -->
+        <EntityHistoryView
+          v-if="isEditMode && currentAgent"
+          v-show="activeTab === 'history'"
+          :load-history="() => agentsStore.fetchAuditLogs(projectId, currentAgent!.id)"
+          :current-version="currentAgent.version"
+          :current-object="currentAgent"
+          :active="activeTab === 'history'"
+          :update-fn="(data) => agentsStore.update(projectId, currentAgent!.id, data)"
+          :create-fn="(data) => agentsStore.create(projectId, data)"
+          :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+          @recover-success="() => router.go(0)"
         />
         </fieldset>
         </form>

@@ -1,11 +1,20 @@
 <template>
   <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content-lg" @click.stop>
       <h2 class="modal-header">{{ category ? 'Edit Category' : 'New Category' }}</h2>
+
+      <div v-if="category" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+        <nav class="tabs-nav">
+          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
+          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
+        </nav>
+      </div>
+
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This category is read-only because the project is archived.
       </div>
 
+      <div v-show="!category || activeTab === 'details'">
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">Name <span class="required">*</span></label>
@@ -68,6 +77,24 @@
           </button>
         </div>
       </form>
+      </div>
+
+      <div v-if="category" v-show="activeTab === 'history'">
+        <EntityHistoryView
+          v-if="loadHistory"
+          :load-history="loadHistory"
+          :current-object="category"
+          :current-version="category.version"
+          :active="activeTab === 'history'"
+          :update-fn="updateFn"
+          :create-fn="createFn"
+          :ignore-fields="['archived', 'updatedAt', 'version', 'items']"
+          @recover-success="emit('recoverSuccess')"
+        />
+        <div class="modal-footer">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -76,15 +103,26 @@
 import { ref, watch, computed } from 'vue'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import type { KnowledgeCategoryResponse } from '@/api/types'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 const props = defineProps<{
   category: KnowledgeCategoryResponse | null
+  loadHistory?: () => Promise<any>
+  updateFn?: (data: any) => Promise<any>
+  createFn?: (data: any) => Promise<any>
 }>()
 
 const emit = defineEmits<{
   close: []
   save: [data: { name: string; promptTrigger: string; tags: string[]; order: number }]
+  recoverSuccess: []
 }>()
+
+const activeTab = ref<'details' | 'history'>('details')
+
+watch(() => props.category, () => {
+  activeTab.value = 'details'
+})
 
 const form = ref({
   name: '',

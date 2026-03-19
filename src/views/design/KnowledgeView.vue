@@ -184,6 +184,21 @@ async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
   }
 }
 
+async function handleCategoryRecoverSuccess() {
+  await loadCategories()
+  if (editingCategory.value) {
+    editingCategory.value = knowledgeStore.categories.find(c => c.id === editingCategory.value!.id) ?? editingCategory.value
+  }
+}
+
+async function handleItemRecoverSuccess() {
+  await loadCategories()
+  if (editingItem.value) {
+    const cat = knowledgeStore.categories.find(c => c.id === itemModalCategoryId.value)
+    editingItem.value = cat?.items?.find(i => i.id === editingItem.value!.id) ?? editingItem.value
+  }
+}
+
 </script>
 
 <template>
@@ -352,8 +367,12 @@ async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
     <KnowledgeCategoryModal
       v-if="showCategoryModal"
       :category="editingCategory"
+      :load-history="editingCategory ? () => knowledgeStore.fetchCategoryAuditLogs(projectId, editingCategory!.id) : undefined"
+      :update-fn="editingCategory ? (data) => knowledgeStore.updateCategory(projectId, editingCategory!.id, data) : undefined"
+      :create-fn="editingCategory ? (data) => knowledgeStore.createCategory(projectId, data) : undefined"
       @close="showCategoryModal = false"
       @save="handleCategorySubmit"
+      @recover-success="handleCategoryRecoverSuccess"
     />
 
     <!-- Item Modal -->
@@ -361,8 +380,12 @@ async function deleteItem(item: KnowledgeItemResponse, categoryId: string) {
       v-if="showItemModal"
       :item="editingItem"
       :category-archived="activeCategory ? activeCategory.archived : false"
+      :load-history="editingItem ? () => knowledgeStore.fetchItemAuditLogs(projectId, editingItem!.id) : undefined"
+      :update-fn="editingItem ? (data) => knowledgeStore.updateItem(projectId, editingItem!.id, itemModalCategoryId, data) : undefined"
+      :create-fn="editingItem ? (data) => knowledgeStore.createItem(projectId, data) : undefined"
       @close="showItemModal = false"
       @save="handleItemSubmit"
+      @recover-success="handleItemRecoverSuccess"
     />
   </div>
 </template>
