@@ -1665,7 +1665,7 @@ export interface CreateProjectRequest {
    */
   name: string;
   /** A description of the project */
-  description?: string;
+  description?: string | null;
   /** Optional ASR configuration settings */
   asrConfig?: {
     /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -1717,7 +1717,9 @@ export interface CreateProjectRequest {
   /** Additional metadata for the project */
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-  timezone?: string;
+  timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
+  languageCode?: string | null;
   /**
    * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
    * @default false
@@ -1794,7 +1796,7 @@ export interface UpdateProjectRequest {
    */
   name?: string;
   /** The updated description of the project */
-  description?: string;
+  description?: string | null;
   /** Updated ASR configuration settings */
   asrConfig?: AsrConfig;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
@@ -1816,8 +1818,10 @@ export interface UpdateProjectRequest {
   constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
   metadata?: Record<string, any>;
-  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-  timezone?: string;
+  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set. */
+  timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear. */
+  languageCode?: string | null;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers?: boolean;
   /** Updated descriptors defining the data schema for user profile variables in this project */
@@ -1898,6 +1902,8 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+  languageCode: string | null;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers: boolean;
   /** Descriptors defining the data schema for user profile variables in this project */
@@ -1982,6 +1988,8 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+    languageCode: string | null;
     /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
     autoCreateUsers: boolean;
     /** Descriptors defining the data schema for user profile variables in this project */
@@ -5831,6 +5839,8 @@ export interface ProjectExchangeV1 {
   metadata?: Record<string, any>;
   /** IANA timezone identifier, e.g. Europe/Warsaw or America/New_York */
   timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL */
+  languageCode?: string | null;
   /** When enabled, users are automatically created on first WebSocket connection */
   autoCreateUsers?: boolean;
   /** Descriptors defining the data schema for user profile variables */

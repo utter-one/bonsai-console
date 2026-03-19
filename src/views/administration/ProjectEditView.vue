@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
+import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -38,7 +39,8 @@ const form = ref({
   },
   acceptVoice: false,
   generateVoice: false,
-  timezone: '',
+  timezone: null as string | null,
+  languageCode: null as string | null,
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
@@ -281,7 +283,8 @@ async function loadProject() {
         },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
-        timezone: currentProject.value.timezone ?? '',
+        timezone: currentProject.value.timezone ?? null,
+        languageCode: currentProject.value.languageCode ?? null,
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
@@ -351,7 +354,8 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
-        timezone: form.value.timezone || undefined,
+        timezone: form.value.timezone,
+        languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
       })
@@ -375,7 +379,8 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
-        timezone: form.value.timezone || undefined,
+        timezone: form.value.timezone,
+        languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
       })
@@ -763,6 +768,18 @@ function handleStorageSettingsClose() {
               class="max-w-96"
             />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Language</label>
+            <LanguageSelector
+              v-model="form.languageCode"
+              width="override"
+              placeholder="Not set"
+              :disabled="isLoading"
+              class="max-w-96"
+            />
+            <p class="form-help-text">Default language for this project. Exposed in scripts and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
           </div>
 
           <div class="form-group">

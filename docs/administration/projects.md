@@ -44,6 +44,10 @@ If no storage is configured, only inline data is preserved.
 
 Set a project-wide default timezone (IANA format, e.g., `Europe/Warsaw`, `America/New_York`). This is used in prompt templates via the `time` context and can be overridden per-conversation or per-user.
 
+### Language Code
+
+Set an ISO language code for this project (e.g., `en-US`, `pl-PL`, `de-DE`). This is exposed in the conversation context as `project.languageCode` (the raw code) and `project.language` (a human-readable name such as `"American English"`). Use it in prompts or scripts to instruct the AI to respond in a specific language.
+
 ### Conversation Timeout
 
 Set a maximum inactivity period (in seconds) for active conversations. If a conversation receives no user input for longer than this value, it is automatically aborted. Accepted range is **60–3600 seconds**. Leave the field empty to disable the timeout entirely.

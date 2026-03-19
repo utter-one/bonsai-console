@@ -36,6 +36,7 @@ export const bonsaiDefaultGlobalVariables: GlobalVariable[] = [
   { path: 'vars', detail: 'object' },
   { path: 'stageVars', detail: 'object|null' },
   { path: 'consts', detail: 'object — project constants' },
+  { path: 'project', detail: 'object — project-level settings (timezone, languageCode, language)' },
 ]
 
 export const bonsaiDefaultFunctions: ToolbarFunction[] = [

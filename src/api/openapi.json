@@ -2982,6 +2982,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "A description of the project"
           },
           "asrConfig": {
@@ -3100,7 +3101,13 @@
           },
           "timezone": {
             "type": "string",
+            "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
           },
           "autoCreateUsers": {
             "type": "boolean",
@@ -3281,6 +3288,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "The updated description of the project"
           },
           "asrConfig": {
@@ -3345,7 +3353,13 @@
           },
           "timezone": {
             "type": "string",
-            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+            "nullable": true,
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
           },
           "autoCreateUsers": {
             "type": "boolean",
@@ -3543,6 +3557,11 @@
             "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
           },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+          },
           "autoCreateUsers": {
             "type": "boolean",
             "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -3602,6 +3621,7 @@
           "constants",
           "metadata",
           "timezone",
+          "languageCode",
           "autoCreateUsers",
           "userProfileVariableDescriptors",
           "defaultGuardrailClassifierId",
@@ -3756,6 +3776,11 @@
                   "nullable": true,
                   "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                 },
+                "languageCode": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                },
                 "autoCreateUsers": {
                   "type": "boolean",
                   "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -3815,6 +3840,7 @@
                 "constants",
                 "metadata",
                 "timezone",
+                "languageCode",
                 "autoCreateUsers",
                 "userProfileVariableDescriptors",
                 "defaultGuardrailClassifierId",
@@ -13201,6 +13227,11 @@
             "nullable": true,
             "description": "IANA timezone identifier, e.g. Europe/Warsaw or America/New_York"
           },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL"
+          },
           "autoCreateUsers": {
             "type": "boolean",
             "description": "When enabled, users are automatically created on first WebSocket connection"
@@ -15791,6 +15822,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "A description of the project"
                   },
                   "asrConfig": {
@@ -15909,7 +15941,13 @@
                   },
                   "timezone": {
                     "type": "string",
+                    "nullable": true,
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "languageCode": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
                   },
                   "autoCreateUsers": {
                     "type": "boolean",
@@ -16085,6 +16123,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -16144,6 +16187,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -16465,6 +16509,11 @@
                             "nullable": true,
                             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                           },
+                          "languageCode": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                          },
                           "autoCreateUsers": {
                             "type": "boolean",
                             "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -16524,6 +16573,7 @@
                           "constants",
                           "metadata",
                           "timezone",
+                          "languageCode",
                           "autoCreateUsers",
                           "userProfileVariableDescriptors",
                           "defaultGuardrailClassifierId",
@@ -16715,6 +16765,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -16774,6 +16829,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -16825,6 +16881,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "The updated description of the project"
                   },
                   "asrConfig": {
@@ -16889,7 +16946,13 @@
                   },
                   "timezone": {
                     "type": "string",
-                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                    "nullable": true,
+                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
+                  },
+                  "languageCode": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
                   },
                   "autoCreateUsers": {
                     "type": "boolean",
@@ -17068,6 +17131,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -17127,6 +17195,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -17360,6 +17429,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -17419,6 +17493,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -17622,6 +17697,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -17681,6 +17761,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
