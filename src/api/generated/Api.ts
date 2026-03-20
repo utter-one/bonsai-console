@@ -2805,6 +2805,10 @@ export class Api<
         clientId: string;
         /** Current stage identifier for the conversation */
         stageId: string;
+        /** Stage identifier at the start of the conversation */
+        startingStageId: string | null;
+        /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+        endingStageId: string | null;
         /** Variables stored per stage in the conversation */
         stageVars: Record<string, Record<string, any>>;
         /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -2913,6 +2917,10 @@ export class Api<
           clientId: string;
           /** Current stage identifier for the conversation */
           stageId: string;
+          /** Stage identifier at the start of the conversation */
+          startingStageId: string | null;
+          /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+          endingStageId: string | null;
           /** Variables stored per stage in the conversation */
           stageVars: Record<string, Record<string, any>>;
           /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -3073,7 +3081,13 @@ export class Api<
                 metadata?: Record<string, any>;
               }
             | {
-                command: string;
+                command:
+                  | "go_to_stage"
+                  | "set_var"
+                  | "get_var"
+                  | "get_all_vars"
+                  | "run_action"
+                  | "call_tool";
                 parameters?: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
               }
@@ -3247,7 +3261,13 @@ export class Api<
               metadata?: Record<string, any>;
             }
           | {
-              command: string;
+              command:
+                | "go_to_stage"
+                | "set_var"
+                | "get_var"
+                | "get_all_vars"
+                | "run_action"
+                | "call_tool";
               parameters?: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
             }
@@ -7574,7 +7594,7 @@ export class Api<
       /** Event index in session */
       eventIndex?: number;
       /** User ID who reported the issue */
-      userId?: string;
+      userId?: string | null;
       /**
        * Issue severity level
        * @minLength 1

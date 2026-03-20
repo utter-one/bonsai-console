@@ -870,7 +870,7 @@ export interface ConversationEvent {
         metadata?: Record<string, unknown>;
       }
     | {
-        command: string;
+        command: 'go_to_stage' | 'set_var' | 'get_var' | 'get_all_vars' | 'run_action' | 'call_tool';
         parameters?: {
           [k: string]: ParameterValue;
         };
