@@ -189,6 +189,8 @@ const metadataFields = computed(() => {
     { label: 'Status Details', value: conversation.value.statusDetails },
     { label: 'Created', value: conversation.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: conversation.value.updatedAt, format: 'date' as const },
+    { label: 'Starting Stage ID', value: conversation.value.startingStageId, format: 'mono' as const },
+    { label: 'Ending Stage ID', value: conversation.value.endingStageId, format: 'mono' as const },
   ]
 })
 

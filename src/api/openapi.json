@@ -5553,6 +5553,16 @@
             "type": "string",
             "description": "Current stage identifier for the conversation"
           },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stage identifier at the start of the conversation"
+          },
+          "endingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+          },
           "stageVars": {
             "type": "object",
             "nullable": true,
@@ -5604,6 +5614,8 @@
           "userId",
           "clientId",
           "stageId",
+          "startingStageId",
+          "endingStageId",
           "stageVars",
           "status",
           "statusDetails",
@@ -5639,6 +5651,16 @@
                 "stageId": {
                   "type": "string",
                   "description": "Current stage identifier for the conversation"
+                },
+                "startingStageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Stage identifier at the start of the conversation"
+                },
+                "endingStageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
                 },
                 "stageVars": {
                   "type": "object",
@@ -5691,6 +5713,8 @@
                 "userId",
                 "clientId",
                 "stageId",
+                "startingStageId",
+                "endingStageId",
                 "stageVars",
                 "status",
                 "statusDetails",
@@ -20785,6 +20809,16 @@
                       "type": "string",
                       "description": "Current stage identifier for the conversation"
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Stage identifier at the start of the conversation"
+                    },
+                    "endingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+                    },
                     "stageVars": {
                       "type": "object",
                       "nullable": true,
@@ -20836,6 +20870,8 @@
                     "userId",
                     "clientId",
                     "stageId",
+                    "startingStageId",
+                    "endingStageId",
                     "stageVars",
                     "status",
                     "statusDetails",
@@ -21062,6 +21098,16 @@
                             "type": "string",
                             "description": "Current stage identifier for the conversation"
                           },
+                          "startingStageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Stage identifier at the start of the conversation"
+                          },
+                          "endingStageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+                          },
                           "stageVars": {
                             "type": "object",
                             "nullable": true,
@@ -21113,6 +21159,8 @@
                           "userId",
                           "clientId",
                           "stageId",
+                          "startingStageId",
+                          "endingStageId",
                           "stageVars",
                           "status",
                           "statusDetails",
