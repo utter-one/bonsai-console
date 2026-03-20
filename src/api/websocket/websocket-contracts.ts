@@ -940,13 +940,6 @@ export interface ConversationEvent {
       };
 }
 
-export type ConversationEventUpdate = Omit<ConversationEvent, 'type'> & {
-  /**
-   * Message type for conversation event updates
-   */
-  type: 'conversation_event_update';
-};
-
 
 // ============================================================================
 // User Input (Voice and Text)
