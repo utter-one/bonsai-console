@@ -1349,19 +1349,21 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-        <!-- History Tab -->
-        <EntityHistoryView
-          v-if="isEditMode && currentAgent"
-          v-show="activeTab === 'history'"
-          :load-history="() => agentsStore.fetchAuditLogs(projectId, currentAgent!.id)"
-          :current-version="currentAgent.version"
-          :current-object="currentAgent"
-          :active="activeTab === 'history'"
-          :update-fn="(data) => agentsStore.update(projectId, currentAgent!.id, data)"
-          :create-fn="(data) => agentsStore.create(projectId, data)"
-          :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-          @recover-success="() => router.go(0)"
-        />
+        <div class="tab-content">
+          <!-- History Tab -->
+          <EntityHistoryView
+            v-if="isEditMode && currentAgent"
+            v-show="activeTab === 'history'"
+            :load-history="() => agentsStore.fetchAuditLogs(projectId, currentAgent!.id)"
+            :current-version="currentAgent.version"
+            :current-object="currentAgent"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => agentsStore.update(projectId, currentAgent!.id, data)"
+            :create-fn="(data) => agentsStore.create(projectId, data)"
+            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+            @recover-success="() => router.go(0)"
+          />
+        </div>
         </fieldset>
         </form>
       </div>

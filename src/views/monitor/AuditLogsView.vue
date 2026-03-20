@@ -257,7 +257,7 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
         <!-- Mobile Filter Button -->
         <button 
           @click="showFilterDrawer = true"
-          class="md:hidden filter-btn-icon relative"
+          class="inline-block md:hidden filter-btn-icon relative"
         >
           <Filter class="w-5 h-5" />
           <span v-if="hasActiveFilters" class="absolute top-1 right-1 w-2.5 h-2.5 bg-primary-500 rounded-full border border-white dark:border-gray-800"></span>
