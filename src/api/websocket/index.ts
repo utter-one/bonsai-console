@@ -42,5 +42,6 @@ export type {
   GetAllVarsResponse,
   RunActionRequest,
   RunActionResponse,
+  ConversationEventUpdate,
   AudioFormat,
 } from './websocket-contracts'
