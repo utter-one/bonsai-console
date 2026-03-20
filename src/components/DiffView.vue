@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { computeStringDiff, countStringDiffChanges } from '@/utils/stringDiff'
 
 interface Props {
   objectA: Record<string, any> | null
@@ -147,6 +148,8 @@ const allNodes = computed<FlatDiffNode[]>(() =>
 )
 
 const collapsedSet = ref(new Set<string>())
+const currentChangeIdx = ref(0)
+const diffViewRef = ref<HTMLElement | null>(null)
 
 watch(allNodes, (nodes) => {
   const collapsed = new Set<string>()
@@ -154,6 +157,7 @@ watch(allNodes, (nodes) => {
     if (node.isCollapsible && node.status === 'same') collapsed.add(node.id)
   }
   collapsedSet.value = collapsed
+  currentChangeIdx.value = 0
 }, { immediate: true })
 
 const nodeMap = computed(() => {
@@ -179,6 +183,63 @@ function toggleCollapse(node: FlatDiffNode) {
   if (next.has(node.id)) next.delete(node.id)
   else next.add(node.id)
   collapsedSet.value = next
+}
+
+interface ChangeEntry {
+  nodeId: string
+  stringLineIdx: number | null
+}
+
+const allChanges = computed<ChangeEntry[]>(() => {
+  const entries: ChangeEntry[] = []
+  for (const node of visibleNodes.value) {
+    if (node.status === 'same') continue
+    if (isStringDiffNode(node)) {
+      const count = countStringDiffChanges(node.leftValue as string, node.rightValue as string)
+      for (let i = 0; i < count; i++) entries.push({ nodeId: node.id, stringLineIdx: i })
+    } else {
+      entries.push({ nodeId: node.id, stringLineIdx: null })
+    }
+  }
+  return entries
+})
+
+const activeDiffHtmlMap = computed(() => {
+  const entry = allChanges.value[currentChangeIdx.value]
+  const map = new Map<string, { leftHtml: string; rightHtml: string }>()
+  for (const node of visibleNodes.value) {
+    if (!isStringDiffNode(node)) continue
+    const activeLine = (entry?.nodeId === node.id && entry?.stringLineIdx !== null)
+      ? (entry.stringLineIdx ?? undefined)
+      : undefined
+    map.set(node.id, computeStringDiff(node.leftValue as string, node.rightValue as string, stringDiffColors, activeLine))
+  }
+  return map
+})
+
+function scrollToChange(idx: number) {
+  const entry = allChanges.value[idx]
+  if (!entry || !diffViewRef.value) return
+  const row = diffViewRef.value.querySelector(`[data-diff-id="${entry.nodeId}"]`)
+  if (!row) return
+  if (entry.stringLineIdx !== null) {
+    const span = row.querySelector(`[data-sdiff-line="${entry.stringLineIdx}"]`)
+    ;(span ?? row).scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  } else {
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+}
+
+function navigatePrev() {
+  if (currentChangeIdx.value <= 0) return
+  currentChangeIdx.value--
+  scrollToChange(currentChangeIdx.value)
+}
+
+function navigateNext() {
+  if (currentChangeIdx.value >= allChanges.value.length - 1) return
+  currentChangeIdx.value++
+  scrollToChange(currentChangeIdx.value)
 }
 
 function formatPrimitive(val: any): string {
@@ -224,7 +285,26 @@ function valueClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
   }
 }
 
-function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): string {
+function isStringDiffNode(node: FlatDiffNode): boolean {
+  return (
+    node.status === 'modified' &&
+    !node.leftIsComplex &&
+    !node.rightIsComplex &&
+    typeof node.leftValue === 'string' &&
+    typeof node.rightValue === 'string'
+  )
+}
+
+const stringDiffColors = {
+  lineRemove: 'bg-red-500/20 dark:bg-red-700/20',
+  lineAdd: 'bg-green-500/20 dark:bg-green-700/20',
+  lineModified: 'bg-yellow-400/10 dark:bg-yellow-600/10',
+  markRemove: 'bg-red-300/40 dark:bg-red-500/40 rounded',
+  markAdd: 'bg-green-500/45 dark:bg-green-700/45 rounded',
+}
+
+function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right', node?: FlatDiffNode): string {
+  if (node && isStringDiffNode(node)) return ''
   if (status === 'modified') return 'bg-yellow-50 dark:bg-yellow-900/10'
   if (side === 'left' && status === 'deleted') return 'bg-red-50 dark:bg-red-900/10'
   if (side === 'right' && status === 'added') return 'bg-green-50 dark:bg-green-900/10'
@@ -233,7 +313,8 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
 </script>
 
 <template>
-  <div class="diff-view font-mono text-sm select-text overflow-x-auto">
+  <div class="relative">
+  <div ref="diffViewRef" class="diff-view font-mono text-sm select-text overflow-x-auto" :class="{ 'pb-14': allChanges.length > 0 }">
     <!-- Column headers -->
     <div class="grid grid-cols-2 gap-px mb-1">
       <div class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-tl rounded-bl text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -248,14 +329,18 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
     <div
       v-for="node in visibleNodes"
       :key="node.id"
+      :data-diff-id="node.id"
       class="grid grid-cols-2 gap-px"
-      :class="{ 'cursor-pointer': node.isCollapsible }"
+      :class="{
+        'cursor-pointer': node.isCollapsible,
+        'outline outline-blue-400/70 dark:outline-blue-500/70 -outline-offset-1': allChanges[currentChangeIdx]?.nodeId === node.id && allChanges[currentChangeIdx]?.stringLineIdx === null,
+      }"
       @click="node.isCollapsible ? toggleCollapse(node) : undefined"
     >
       <!-- Left cell -->
       <div
         class="flex items-baseline gap-1 px-2 py-0.5 min-h-6 transition-colors"
-        :class="rowBgClass(node.status, 'left')"
+        :class="rowBgClass(node.status, 'left', node)"
       >
         <!-- Indentation -->
         <span class="shrink-0 select-none" :style="{ width: `${node.depth * 1.25}rem`, display: 'inline-block' }" />
@@ -269,9 +354,13 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
               {{ collapsedLabel(node, 'left') }}
             </span>
           </template>
+          <!-- String diff (modified strings with line+char level highlighting) -->
+          <template v-else-if="isStringDiffNode(node)">
+            <div v-html="activeDiffHtmlMap.get(node.id)?.leftHtml" class="ml-1 min-w-0 flex-1 leading-5 text-orange-500 dark:text-orange-400" />
+          </template>
           <!-- Primitive -->
           <template v-else-if="!node.leftIsComplex">
-            <span :class="valueClass(node.status, 'left')" class="ml-1 break-all">
+            <span :class="valueClass(node.status, 'left')" class="ml-1" style="white-space: pre-wrap; word-break: break-all;">
               {{ formatPrimitive(node.leftValue) }}
             </span>
           </template>
@@ -286,7 +375,7 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
       <!-- Right cell -->
       <div
         class="flex items-baseline gap-1 px-2 py-0.5 min-h-6 transition-colors"
-        :class="rowBgClass(node.status, 'right')"
+        :class="rowBgClass(node.status, 'right', node)"
       >
         <!-- Indentation -->
         <span class="shrink-0 select-none" :style="{ width: `${node.depth * 1.25}rem`, display: 'inline-block' }" />
@@ -300,9 +389,13 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
               {{ collapsedLabel(node, 'right') }}
             </span>
           </template>
+          <!-- String diff (modified strings with line+char level highlighting) -->
+          <template v-else-if="isStringDiffNode(node)">
+            <div v-html="activeDiffHtmlMap.get(node.id)?.rightHtml" class="ml-1 min-w-0 flex-1 leading-5 text-orange-500 dark:text-orange-400" />
+          </template>
           <!-- Primitive -->
           <template v-else-if="!node.rightIsComplex">
-            <span :class="valueClass(node.status, 'right')" class="ml-1 break-all">
+            <span :class="valueClass(node.status, 'right')" class="ml-1" style="white-space: pre-wrap; word-break: break-all;">
               {{ formatPrimitive(node.rightValue) }}
             </span>
           </template>
@@ -328,5 +421,37 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right'): str
     <div v-if="visibleNodes.length === 0" class="text-center py-6 text-gray-400 dark:text-gray-600 text-xs">
       No properties to display
     </div>
+  </div>
+
+  <!-- Change navigation widget -->
+  <div
+    v-if="allChanges.length > 0"
+    class="fixed bottom-6 right-8 z-10 flex flex-col items-center bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-0.5"
+  >
+    <button
+      type="button"
+      class="btn-icon"
+      :disabled="currentChangeIdx <= 0"
+      title="Previous change"
+      @click="navigatePrev"
+    >
+      <ChevronUp class="w-4 h-4" />
+    </button>
+    <span
+      class="text-xs font-mono font-semibold text-gray-700 dark:text-gray-200 cursor-pointer select-none px-2 py-0.5 leading-5"
+      title="Scroll to current change"
+      @click="scrollToChange(currentChangeIdx)"
+    >{{ currentChangeIdx + 1 }}/{{ allChanges.length }}</span>
+    <button
+      type="button"
+      class="btn-icon"
+      :disabled="currentChangeIdx >= allChanges.length - 1"
+      title="Next change"
+      @click="navigateNext"
+    >
+      <ChevronDown class="w-4 h-4" />
+    </button>
+  </div>
+
   </div>
 </template>
