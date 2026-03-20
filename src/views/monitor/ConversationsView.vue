@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { RefreshCw, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
@@ -14,6 +14,9 @@ const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
+const stagesStore = useStagesStore()
+
+const stageMap = ref<Map<string, string>>(new Map())
 
 // Date/time range filter
 const dateTimeRange = ref<DateTimeRange>(null)
@@ -108,9 +111,45 @@ async function loadConversations() {
         orderBy: '-createdAt'
       })
     )
+
+    await loadStagesForConversations()
   } catch (error) {
     console.error('Failed to load conversations:', error)
   }
+}
+
+async function loadStagesForConversations() {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId) return
+
+  const stageIds = new Set<string>()
+  for (const conv of conversationsStore.conversations) {
+    if (conv.startingStageId) stageIds.add(conv.startingStageId)
+    if (conv.endingStageId) stageIds.add(conv.endingStageId)
+  }
+
+  const missingIds = [...stageIds].filter(id => !stageMap.value.has(id))
+  if (missingIds.length === 0) return
+
+  try {
+    await stagesStore.fetchAll(projectId, { limit: 1000 })
+    const map = new Map(stageMap.value)
+    for (const stage of stagesStore.items) {
+      map.set(stage.id, stage.name)
+    }
+    stageMap.value = map
+  } catch {
+    // Stage names will fall back to IDs
+  }
+}
+
+function getStageName(id: string | null | undefined): string {
+  if (!id) return '—'
+  return stageMap.value.get(id) ?? id.slice(-6)
+}
+
+function shortenConversationId(id: string): string {
+  return `conv_...${id.slice(-6)}`
 }
 
 function viewConversation(conversation: ConversationResponse) {
@@ -275,6 +314,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <tr>
                 <th class="table-header-cell">Conversation ID</th>
                 <th class="table-header-cell">Status</th>
+                <th class="table-header-cell">Starting Stage</th>
+                <th class="table-header-cell">Ending Stage</th>
                 <th class="table-header-cell">Started</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
@@ -282,7 +323,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             <tbody class="table-body">
               <tr v-for="conversation in filteredConversations" :key="conversation.id" class="table-row">
                 <td class="table-clickable-cell" @click="viewConversation(conversation)">
-                  <span class="font-mono text-sm">{{ conversation.id }}</span>
+                  <span class="font-mono text-sm" :title="conversation.id">{{ shortenConversationId(conversation.id) }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex items-center gap-2">
@@ -296,6 +337,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     <span v-if="conversation.archived" class="badge-secondary">Archived</span>
                   </div>
                 </td>
+                <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
+                <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
                 <td class="table-cell-muted">{{ formatDate(conversation.createdAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
