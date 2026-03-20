@@ -1030,7 +1030,7 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
 }
 
 // Type guard used for User/AI message cards in the playground
-function isMessageEvent(event: WSConversationEvent): event is WSConversationEvent & {
+function isMessageEvent(event: WSConversationEvent | WSConversationEventUpdate): event is (WSConversationEvent | WSConversationEventUpdate) & {
   eventType: 'message'
   eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
 } {
