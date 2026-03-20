@@ -77,7 +77,7 @@ async function generateTypes() {
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',
       'end-conversation-request', 'end-conversation-response',
-      'conversation-event'
+      'conversation-event', 'conversation-event-update'
     ],
     userInput: [
       'start-user-voice-input-request', 'start-user-voice-input-response',

@@ -940,6 +940,166 @@ export interface ConversationEvent {
       };
 }
 
+export interface ConversationEventUpdate {
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Message type for conversation events
+   */
+  type: 'conversation_event_update';
+  /**
+   * Session ID containing the conversation
+   */
+  sessionId: string;
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  /**
+   * Identifier of the input turn associated with the event, if applicable
+   */
+  inputTurnId?: string;
+  /**
+   * Identifier of the output turn associated with the event, if applicable
+   */
+  outputTurnId?: string;
+  /**
+   * Type of the conversation event
+   */
+  eventType:
+    | 'message'
+    | 'classification'
+    | 'transformation'
+    | 'action'
+    | 'command'
+    | 'tool_call'
+    | 'conversation_start'
+    | 'conversation_resume'
+    | 'conversation_end'
+    | 'conversation_aborted'
+    | 'conversation_failed'
+    | 'jump_to_stage'
+    | 'moderation';
+  /**
+   * Data associated with the conversation event
+   */
+  eventData:
+    | {
+        role: 'user' | 'assistant';
+        text: string;
+        originalText: string;
+        visibility?: {
+          /**
+           * Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)
+           */
+          visibility: 'always' | 'stage' | 'never' | 'conditional';
+          /**
+           * Condition for visibility, evaluated against conversation variables
+           */
+          condition?: string;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        classifierId: string;
+        input: string;
+        actions: {
+          classifierId: string;
+          classifierName: string;
+          actions: {
+            name: string;
+            parameters: {
+              [k: string]: ParameterValue;
+            };
+          }[];
+        }[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        transformerId: string;
+        input: string;
+        appliedFields: string[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        actionName: string;
+        stageId: string;
+        effects: Effect[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        command: 'go_to_stage' | 'set_var' | 'get_var' | 'get_all_vars' | 'run_action' | 'call_tool';
+        parameters?: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        toolId: string;
+        toolName: string;
+        toolType?: 'smart_function' | 'webhook' | 'script';
+        parameters: {
+          [k: string]: ParameterValue;
+        };
+        success: boolean;
+        result?: {
+
+        };
+        error?: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        stageId: string;
+        initialVariables?: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        previousStatus:
+          | 'initialized'
+          | 'awaiting_user_input'
+          | 'receiving_user_voice'
+          | 'processing_user_input'
+          | 'generating_response'
+          | 'finished'
+          | 'aborted'
+          | 'failed';
+        stageId: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        reason?: string;
+        stageId: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        reason: string;
+        stageId: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        reason: string;
+        stageId?: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        fromStageId: string;
+        toStageId: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        input: string;
+        flagged: boolean;
+        blockingCategories: string[];
+        detectedCategories: string[];
+        durationMs: number;
+        metadata?: Record<string, unknown>;
+      };
+}
+
 
 // ============================================================================
 // User Input (Voice and Text)

@@ -22,6 +22,7 @@ import type {
   EndAiGenerationOutput,
   AiTranscribedChunk,
   ConversationEvent,
+  ConversationEventUpdate,
   GoToStageRequest,
   GoToStageResponse,
   SetVarRequest,
@@ -59,6 +60,7 @@ type ServerMessage =
   | EndAiGenerationOutput
   | AiTranscribedChunk
   | ConversationEvent
+  | ConversationEventUpdate
   | GoToStageResponse
   | SetVarResponse
   | GetVarResponse
@@ -81,6 +83,8 @@ export interface WebSocketEventHandlers {
   onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
   /** Called when a conversation event occurs (messages, actions, commands, etc.) */
   onConversationEvent?: (message: ConversationEvent) => void
+  /** Called when a conversation event is updated with new data */
+  onConversationEventUpdate?: (message: ConversationEventUpdate) => void
   /** Called when a server error occurs */
   onError?: (message: ErrorMessage) => void
   /** Called when the WebSocket connection is established */
@@ -700,6 +704,9 @@ export class NexusWebSocketClient {
         break
       case 'conversation_event':
         this.config.handlers.onConversationEvent?.(message as ConversationEvent)
+        break
+      case 'conversation_event_update':
+        this.config.handlers.onConversationEventUpdate?.(message as ConversationEventUpdate)
         break
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
