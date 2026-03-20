@@ -1105,7 +1105,7 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
   }
 }
 
-const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
+const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
 
 /**
  * Handle conversation event from WebSocket
@@ -1125,6 +1125,7 @@ function handleConversationEvent(event: WSConversationEvent) {
     if (wsClient.value) {
       wsClient.value.isInConversation.value = false
     }
+    recording.value?.stopRecording()
     disconnectWebSocket()
     return
   }
@@ -2042,6 +2043,9 @@ async function sendMessage() {
     await wsClient.value.sendTextInput(message)
     messageInput.value = ''
   } catch (error) {
+    // If the conversation ended server-side while the message was in flight,
+    // the WS teardown rejects all pending requests — suppress the noise.
+    if (!isConversationActive.value) return
     addEvent({
       type: 'Error',
       message: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
