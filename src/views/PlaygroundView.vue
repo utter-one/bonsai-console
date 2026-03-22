@@ -75,6 +75,16 @@
                   :width="'full'"
                 />
               </div>
+              <!-- Channel -->
+              <div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+                  Channel
+                </div>
+                <select v-model="connectionType" class="form-select w-full text-sm" :disabled="wsIsConnected">
+                  <option value="websocket">WebSocket</option>
+                  <option value="webrtc">WebRTC (lower audio latency)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -463,6 +473,7 @@ import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, us
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
+import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
 import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
@@ -540,6 +551,7 @@ interface PlaygroundPreferences {
   showConversationEvents: boolean
   conversationMode: ConversationMode
   timezone: string
+  connectionType?: 'websocket' | 'webrtc'
 }
 
 interface PlaygroundPreferencesStorage {
@@ -619,6 +631,7 @@ function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
     showConversationEvents: true,
     conversationMode: 'full-voice', // Default to full voice
     timezone: '',
+    connectionType: 'websocket',
   }
 }
 
@@ -716,6 +729,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       showConversationEvents.value = prefs.showConversationEvents
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
+      connectionType.value = prefs.connectionType ?? 'websocket'
 
       // Clear query params from URL
       router.replace({ 
@@ -734,6 +748,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       showConversationEvents.value = prefs.showConversationEvents
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
+      connectionType.value = prefs.connectionType ?? 'websocket'
 
       // Auto-select first active API key if saved preference doesn't match any key in this project
       const firstActiveKey = activeApiKeys.value[0]
@@ -776,6 +791,7 @@ const isResuming = ref(false)
 // Conversation mode and preferences
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
+const connectionType = ref<'websocket' | 'webrtc'>('websocket')
 const showPresetMenu = ref(false)
 const showSettingsMenu = ref(false)
 const showSystemEvents = ref(false)
@@ -784,15 +800,16 @@ const showConversationEvents = ref(true)
 // Note: Preferences loading is now handled in the main projectId watch above to avoid conflicts with resume flow
 
 // Save preferences when they change
-watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone], () => {
+watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone, connectionType], () => {
   if (projectId.value) {
     const prefs: PlaygroundPreferences = {
       lastApiKeyId: selectedApiKeyId.value,
-      lastStageId: null, // Will be implemented when stage is selected
+      lastStageId: null,
       showSystemEvents: showSystemEvents.value,
       showConversationEvents: showConversationEvents.value,
       conversationMode: selectedConversationMode.value,
       timezone: selectedTimezone.value,
+      connectionType: connectionType.value,
     }
     savePlaygroundPreferences(projectId.value, prefs)
   }
@@ -1197,7 +1214,7 @@ function handleConversationEventUpdate(event: WSConversationEventUpdate) {
 }
 
 // WebSocket client setup
-const wsClient = shallowRef<ReturnType<typeof useWebSocketClient> | null>(null)
+const wsClient = shallowRef<ReturnType<typeof useWebSocketClient> | ReturnType<typeof useWebRtcClient> | null>(null)
 const isWsConnecting = ref(false)
 const isWsDisconnecting = ref(false)
 const isConversationStarting = ref(false)
@@ -1289,21 +1306,39 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     echoCancellation: audioSettings.value.echoCancellation,
     noiseSuppression: audioSettings.value.noiseSuppression,
     autoGainControl: audioSettings.value.autoGainControl,
-    onChunk: async (base64Audio: string) => {
-      if (!wsClient.value) return
-
-      try {
-        // Stream audio chunk to backend
-        await wsClient.value.sendVoiceChunk(base64Audio)
-      } catch (error) {
-        console.error('Failed to send voice chunk:', error)
-        addEvent({
-          type: 'Error',
-          message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-          timestamp: new Date()
-        })
-      }
-    },
+    ...(connectionType.value === 'webrtc'
+      ? {
+          onRawChunk: (buffer: ArrayBuffer) => {
+            const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
+            if (!client) return
+            try {
+              client.sendVoiceChunkRaw(buffer)
+            } catch (error) {
+              console.error('Failed to send voice chunk:', error)
+              addEvent({
+                type: 'Error',
+                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                timestamp: new Date()
+              })
+            }
+          },
+        }
+      : {
+          onChunk: async (base64Audio: string) => {
+            const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+            if (!client) return
+            try {
+              await client.sendVoiceChunk(base64Audio)
+            } catch (error) {
+              console.error('Failed to send voice chunk:', error)
+              addEvent({
+                type: 'Error',
+                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                timestamp: new Date()
+              })
+            }
+          },
+        }),
     onError: (error: Error) => {
       addEvent({
         type: 'Error',
@@ -1396,19 +1431,39 @@ function handleAudioSettingsSave(settings: AudioSettings) {
       echoCancellation: settings.echoCancellation,
       noiseSuppression: settings.noiseSuppression,
       autoGainControl: settings.autoGainControl,
-      onChunk: async (base64Audio: string) => {
-        if (!wsClient.value) return
-        try {
-          await wsClient.value.sendVoiceChunk(base64Audio)
-        } catch (error) {
-          console.error('Failed to send voice chunk:', error)
-          addEvent({
-            type: 'Error',
-            message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-            timestamp: new Date()
-          })
-        }
-      },
+      ...(connectionType.value === 'webrtc'
+        ? {
+            onRawChunk: (buffer: ArrayBuffer) => {
+              const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
+              if (!client) return
+              try {
+                client.sendVoiceChunkRaw(buffer)
+              } catch (error) {
+                console.error('Failed to send voice chunk:', error)
+                addEvent({
+                  type: 'Error',
+                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                  timestamp: new Date()
+                })
+              }
+            },
+          }
+        : {
+            onChunk: async (base64Audio: string) => {
+              const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+              if (!client) return
+              try {
+                await client.sendVoiceChunk(base64Audio)
+              } catch (error) {
+                console.error('Failed to send voice chunk:', error)
+                addEvent({
+                  type: 'Error',
+                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                  timestamp: new Date()
+                })
+              }
+            },
+          }),
       onError: (error: Error) => {
         addEvent({
           type: 'Error',
@@ -1421,6 +1476,10 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 }
 
 async function connectWebSocket() {
+  if (connectionType.value === 'webrtc') {
+    return connectWebRTC()
+  }
+
   if (!canConnectWebSocket.value) return
 
   const apiKey = selectedApiKey.value?.key
@@ -1554,6 +1613,133 @@ async function connectWebSocket() {
     addEvent({
       type: 'Error',
       message: `Failed to connect: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+    wsClient.value?.disconnect()
+    wsClient.value = null
+  } finally {
+    isWsConnecting.value = false
+  }
+}
+
+async function connectWebRTC() {
+  if (!canConnectWebSocket.value) return
+
+  const apiKey = selectedApiKey.value?.key
+  if (!apiKey) return
+
+  try {
+    isWsConnecting.value = true
+
+    addEvent({
+      type: 'System',
+      message: 'Connecting via WebRTC...',
+      timestamp: new Date()
+    })
+
+    const client = useWebRtcClient(apiKey, {
+      sessionSettings: currentSessionSettings.value,
+      onConnect: () => {
+        addEvent({
+          type: 'System',
+          message: 'Connected via WebRTC',
+          timestamp: new Date()
+        })
+      },
+      onDisconnect: () => {
+        addEvent({
+          type: 'System',
+          message: 'Disconnected from WebRTC',
+          timestamp: new Date()
+        })
+      },
+      onError: (error) => {
+        addEvent({
+          type: 'Error',
+          message: error.error,
+          timestamp: new Date()
+        })
+      },
+      onUserTranscribedChunk: (msg: UserTranscribedChunk) => {
+        updateUserTranscript(msg)
+      },
+      onAiOutputStart: (msg: StartAiGenerationOutput) => {
+        let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
+
+        if (!event) {
+          event = {
+            type: 'AI',
+            message: '',
+            timestamp: new Date(),
+            outputTurnId: msg.outputTurnId
+          }
+          conversationEvents.value.push(event)
+        }
+
+        if (msg.expectVoice) {
+          event.voiceOutputId = msg.outputTurnId
+          const player = useAudioPlayback()
+          activeVoiceOutputs.value.set(msg.outputTurnId, {
+            player: player as any,
+            transcript: null
+          })
+        }
+
+        nextTick(() => scrollHistoryToBottom())
+      },
+      onAiAudioFrame: (turnId: string, audioData: ArrayBuffer) => {
+        const voiceOutput = activeVoiceOutputs.value.get(turnId)
+        if (!voiceOutput) {
+          console.warn('Received WebRTC audio frame for unknown output turn:', turnId)
+          return
+        }
+        // Use the project's ASR sample rate as a proxy; defaults to 16000 for PCM
+        const sampleRate = parseSampleRate(client.projectSettings.value?.asrConfig?.settings?.audioFormat)
+        voiceOutput.player.addRawChunk(audioData, sampleRate)
+      },
+      onAiOutputEnd: (msg: EndAiGenerationOutput) => {
+        const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)
+        if (voiceOutput) {
+          voiceOutput.transcript = msg.fullText?.trim() || null
+        }
+
+        const event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
+        if (event && msg.fullText) {
+          event.message = msg.fullText.trim()
+          event.isRealTime = false
+          nextTick(() => scrollHistoryToBottom())
+        }
+      },
+      onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
+        updateAiTranscript(msg)
+      },
+      onConversationEvent: (event: WSConversationEvent) => {
+        handleConversationEvent(event)
+      },
+      onConversationEventUpdate: (event: WSConversationEventUpdate) => {
+        handleConversationEventUpdate(event)
+      }
+    })
+
+    wsClient.value = client
+    await client.connect()
+
+    if (wsSessionId.value) {
+      addEvent({
+        type: 'System',
+        message: 'WebRTC session established',
+        timestamp: new Date(),
+        details: `Session ID: ${wsSessionId.value}`
+      })
+    }
+
+    if (resumeConversationId.value && !isResuming.value) {
+      await resumeConversation(resumeConversationId.value)
+    }
+  } catch (error) {
+    addEvent({
+      type: 'Error',
+      message: `Failed to connect via WebRTC: ${error instanceof Error ? error.message : String(error)}`,
       timestamp: new Date()
     })
     wsClient.value?.disconnect()

@@ -11,7 +11,9 @@ export interface AudioRecordingOptions {
   echoCancellation?: boolean // Default: true
   noiseSuppression?: boolean // Default: true
   autoGainControl?: boolean // Default: true
-  onChunk?: (base64Audio: string) => void // Callback when chunk is ready
+  onChunk?: (base64Audio: string) => void // Callback when chunk is ready (WebSocket path)
+  /** Alternative to onChunk: called with raw Int16 LE PCM bytes, skipping base64 encoding (WebRTC path) */
+  onRawChunk?: (buffer: ArrayBuffer) => void
   onError?: (error: Error) => void
 }
 
@@ -31,6 +33,7 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
     noiseSuppression = true,
     autoGainControl = true,
     onChunk,
+    onRawChunk,
     onError,
   } = options
 
@@ -102,11 +105,18 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
     // Resample to the target ASR sample rate if the device runs at a different rate
     const samplesToEncode = resampler ? resampler.full(combinedSamples) : combinedSamples
 
-    // Encode to base64 PCM
-    const base64Audio = encodePCMToBase64(samplesToEncode)
-
-    // Send to callback
-    if (onChunk) {
+    // Deliver audio to whichever callback is configured
+    if (onRawChunk) {
+      // Convert Float32 → Int16 LE PCM and hand off the raw buffer (WebRTC path)
+      const int16Samples = new Int16Array(samplesToEncode.length)
+      for (let i = 0; i < samplesToEncode.length; i++) {
+        const clamped = Math.max(-1, Math.min(1, samplesToEncode[i] ?? 0))
+        int16Samples[i] = Math.round(clamped * 32767)
+      }
+      onRawChunk(int16Samples.buffer.slice(0))
+    } else if (onChunk) {
+      // Encode to base64 PCM (WebSocket path)
+      const base64Audio = encodePCMToBase64(samplesToEncode)
       onChunk(base64Audio)
     }
 
