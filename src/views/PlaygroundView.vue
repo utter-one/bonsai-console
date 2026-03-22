@@ -1110,7 +1110,7 @@ const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_
 /**
  * Handle conversation event from WebSocket
  */
-function handleConversationEvent(event: WSConversationEvent) {
+async function handleConversationEvent(event: WSConversationEvent) {
   // Handle terminal events - conversation ended server-side
   if (TERMINAL_CONVERSATION_EVENTS.has(event.eventType)) {
     // Add the event to history first
@@ -1126,7 +1126,12 @@ function handleConversationEvent(event: WSConversationEvent) {
       wsClient.value.isInConversation.value = false
     }
     recording.value?.stopRecording()
-    disconnectWebSocket()
+    // If endConversation() is already in flight, skip disconnecting here — the terminal
+    // event arrived before the end_conversation_response. Let endConversation() handle
+    // cleanup so it doesn't get an unexpected "WebSocket connection closed" rejection.
+    if (!isConversationEnding.value) {
+      await disconnectWebSocket()
+    }
     return
   }
 
@@ -2008,6 +2013,21 @@ async function endConversation() {
     // Auto-disconnect WebSocket
     await disconnectWebSocket()
   } catch (error) {
+    // If the WS connection closed during our end request it means the server-side
+    // conversation_end event arrived first and triggered cleanup — the conversation
+    // did actually end, so treat this as a success rather than an error.
+    if (!wsIsConnected.value) {
+      currentStage.value = null
+      addEvent({
+        type: 'System',
+        message: 'Conversation ended successfully',
+        timestamp: new Date()
+      })
+      if (wsClient.value) {
+        await disconnectWebSocket()
+      }
+      return
+    }
     addEvent({
       type: 'Error',
       message: `Failed to end conversation: ${error instanceof Error ? error.message : String(error)}`,
