@@ -125,7 +125,7 @@ export interface StartConversationOptions {
 }
 
 /**
- * WebSocket client for real-time conversation management with the Nexus Backend.
+ * WebSocket client for real-time conversation management with the Bonsai Backend.
  * 
  * This client handles:
  * - Authentication with API keys
@@ -136,7 +136,7 @@ export interface StartConversationOptions {
  * 
  * @example
  * ```typescript
- * const client = new NexusWebSocketClient({
+ * const client = new BonsaiWebSocketClient({
  *   url: 'ws://localhost:3000/ws',
  *   apiKey: 'your-api-key',
  *   handlers: {
@@ -159,7 +159,7 @@ export interface StartConversationOptions {
  * client.disconnect();
  * ```
  */
-export class NexusWebSocketClient {
+export class BonsaiWebSocketClient {
   private ws: WebSocket | null = null
   private sessionId: string | null = null
   private conversationId: string | null = null
@@ -782,7 +782,7 @@ export class NexusWebSocketClient {
    */
   private log(...args: any[]): void {
     if (this.config.debug) {
-      console.log('[NexusWebSocketClient]', ...args)
+      console.log('[BonsaiWebSocketClient]', ...args)
     }
   }
 }

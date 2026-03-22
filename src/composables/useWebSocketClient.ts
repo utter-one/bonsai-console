@@ -1,5 +1,5 @@
 import { ref, onUnmounted, type Ref } from 'vue'
-import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, type StartConversationOptions } from '@/api/websocket'
+import { BonsaiWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, type StartConversationOptions } from '@/api/websocket'
 
 /**
  * Composable for managing a WebSocket conversation client.
@@ -51,7 +51,7 @@ export function useWebSocketClient(
     }
   }
 ) {
-  const client: Ref<NexusWebSocketClient | null> = ref(null)
+  const client: Ref<BonsaiWebSocketClient | null> = ref(null)
   const isConnected = ref(false)
   const isInConversation = ref(false)
   const error = ref<Error | null>(null)
@@ -68,7 +68,7 @@ export function useWebSocketClient(
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
       const wsUrl = createWebSocketUrl(apiBaseUrl)
 
-      client.value = new NexusWebSocketClient({
+      client.value = new BonsaiWebSocketClient({
         url: wsUrl,
         apiKey,
         sessionSettings: options?.sessionSettings,

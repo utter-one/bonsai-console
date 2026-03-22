@@ -1,5 +1,5 @@
 import { ref, onUnmounted, type Ref } from 'vue'
-import { NexusWebRTCClient, type WebRTCEventHandlers, type StartConversationOptions } from '@/api/webrtc'
+import { BonsaiWebRTCClient, type WebRTCEventHandlers, type StartConversationOptions } from '@/api/webrtc'
 
 export function useWebRtcClient(
   apiKey: string,
@@ -13,7 +13,7 @@ export function useWebRtcClient(
     }
   }
 ) {
-  const client: Ref<NexusWebRTCClient | null> = ref(null)
+  const client: Ref<BonsaiWebRTCClient | null> = ref(null)
   const isConnected = ref(false)
   const isInConversation = ref(false)
   const error = ref<Error | null>(null)
@@ -26,7 +26,7 @@ export function useWebRtcClient(
       error.value = null
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
-      client.value = new NexusWebRTCClient({
+      client.value = new BonsaiWebRTCClient({
         apiBaseUrl,
         apiKey,
         sessionSettings: options?.sessionSettings,

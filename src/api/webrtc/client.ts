@@ -93,6 +93,7 @@ export interface WebRTCClientConfig {
 }
 
 import type { StartConversationOptions } from '../websocket/client'
+export type { StartConversationOptions } from '../websocket/client'
 
 export class BonsaiWebRTCClient {
   private pc: RTCPeerConnection | null = null
