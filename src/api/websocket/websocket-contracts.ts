@@ -635,24 +635,13 @@ export interface SpeechmaticsAsrSettings {
 // ============================================================================
 
 export interface StartConversationRequest {
-  /**
-   * Unique identifier for request correlation and tracking
-   */
-  requestId: string;
-  /**
-   * Message type for starting a new conversation
-   */
   type: 'start_conversation';
   /**
-   * Session ID in which to start the conversation
-   */
-  sessionId: string;
-  /**
-   * User ID initiating the conversation
+   * Identifier of the user initiating the conversation
    */
   userId: string;
   /**
-   * Optional agent ID for the conversation
+   * Optional agent identifier to use for the conversation
    */
   agentId?: string;
   /**
@@ -663,113 +652,102 @@ export interface StartConversationRequest {
    * IANA timezone identifier for this conversation (e.g. America/New_York, Europe/Warsaw). Overrides user profile and project timezone settings. Defaults to UTC when not provided by any source.
    */
   timezone?: string;
-}
-
-export interface StartConversationResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier for request correlation and tracking
    */
-  requestId?: string;
-  /**
-   * Message type for start conversation response
-   */
-  type: 'start_conversation';
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface StartConversationResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'start_conversation';
   /**
    * Whether conversation was successfully started
    */
   success: boolean;
   /**
-   * Unique identifier for the created conversation
-   */
-  conversationId?: string;
-  /**
    * Error message if conversation creation failed
    */
   error?: string;
-}
-
-export interface ResumeConversationRequest {
-  /**
-   * Unique identifier for request correlation and tracking
-   */
-  requestId: string;
-  /**
-   * Message type for resuming a conversation
-   */
-  type: 'resume_conversation';
-  /**
-   * Session ID in which to resume the conversation
-   */
-  sessionId: string;
-  /**
-   * Unique identifier of the conversation to resume
-   */
-  conversationId: string;
-}
-
-export interface ResumeConversationResponse {
   /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for resume conversation response
+   * Unique identifier for the session
    */
+  sessionId: string;
+}
+
+export interface ResumeConversationRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
   type: 'resume_conversation';
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface ResumeConversationResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'resume_conversation';
   /**
    * Whether conversation was successfully resumed
    */
   success: boolean;
   /**
-   * Unique identifier of the resumed conversation
-   */
-  conversationId?: string;
-  /**
    * Error message if conversation resumption failed
    */
   error?: string;
-}
-
-export interface EndConversationRequest {
-  /**
-   * Unique identifier for request correlation and tracking
-   */
-  requestId: string;
-  /**
-   * Message type for ending a conversation
-   */
-  type: 'end_conversation';
-  /**
-   * Session ID containing the conversation
-   */
-  sessionId: string;
-  /**
-   * Unique identifier of the conversation to end
-   */
-  conversationId: string;
-}
-
-export interface EndConversationResponse {
   /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for end conversation response
+   * Unique identifier for the session
    */
+  sessionId: string;
+}
+
+export interface EndConversationRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
   type: 'end_conversation';
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface EndConversationResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'end_conversation';
   /**
    * Whether conversation was successfully ended
    */
@@ -778,31 +756,28 @@ export interface EndConversationResponse {
    * Error message if conversation termination failed
    */
   error?: string;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 export interface ConversationEvent {
   /**
-   * Optional request ID for correlating responses with requests
-   */
-  requestId?: string;
-  /**
-   * Message type for conversation events
-   */
-  type: 'conversation_event';
-  /**
-   * Session ID containing the conversation
-   */
-  sessionId: string;
-  /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'conversation_event';
   /**
-   * Identifier of the input turn associated with the event, if applicable
+   * Identifier of the input turn associated with this event, when applicable
    */
   inputTurnId?: string;
   /**
-   * Identifier of the output turn associated with the event, if applicable
+   * Identifier of the output turn associated with this event, when applicable
    */
   outputTurnId?: string;
   /**
@@ -938,31 +913,28 @@ export interface ConversationEvent {
         durationMs: number;
         metadata?: Record<string, unknown>;
       };
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 export interface ConversationEventUpdate {
   /**
-   * Optional request ID for correlating responses with requests
-   */
-  requestId?: string;
-  /**
-   * Message type for conversation events
-   */
-  type: 'conversation_event_update';
-  /**
-   * Session ID containing the conversation
-   */
-  sessionId: string;
-  /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'conversation_event_update';
   /**
-   * Identifier of the input turn associated with the event, if applicable
+   * Identifier of the input turn associated with this event, when applicable
    */
   inputTurnId?: string;
   /**
-   * Identifier of the output turn associated with the event, if applicable
+   * Identifier of the output turn associated with this event, when applicable
    */
   outputTurnId?: string;
   /**
@@ -983,7 +955,7 @@ export interface ConversationEventUpdate {
     | 'jump_to_stage'
     | 'moderation';
   /**
-   * Data associated with the conversation event
+   * Updated data for the conversation event
    */
   eventData:
     | {
@@ -1098,6 +1070,14 @@ export interface ConversationEventUpdate {
         durationMs: number;
         metadata?: Record<string, unknown>;
       };
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 
@@ -1107,48 +1087,46 @@ export interface ConversationEventUpdate {
 
 export interface StartUserVoiceInputRequest {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'start_user_voice_input';
+  /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
   /**
-   * Message type for starting user voice input
-   */
-  type: 'start_user_voice_input';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
 }
 
 export interface StartUserVoiceInputResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier of the conversation
    */
-  requestId?: string;
-  /**
-   * Message type for start user voice input response
-   */
+  conversationId: string;
   type: 'start_user_voice_input';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
   /**
    * Whether voice input was successfully started
    */
   success: boolean;
   /**
+   * Identifier for the new voice input turn. Present when success is true
+   */
+  inputTurnId?: string;
+  /**
    * Error message if voice input start failed
    */
   error?: string;
   /**
-   * Unique identifier for the input turn
+   * Optional request ID for correlating responses with requests
    */
-  inputTurnId: string;
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 export interface SendUserVoiceChunkRequest {
@@ -1211,141 +1189,134 @@ export interface SendUserVoiceChunkResponse {
 
 export interface EndUserVoiceInputRequest {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'end_user_voice_input';
+  /**
+   * Identifier of the input turn to close, as returned by the corresponding result message
+   */
+  inputTurnId: string;
+  /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
   /**
-   * Message type for ending user voice input
-   */
-  type: 'end_user_voice_input';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier for the input turn
-   */
-  inputTurnId: string;
 }
 
 export interface EndUserVoiceInputResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier of the conversation
    */
-  requestId?: string;
-  /**
-   * Message type for end user voice input response
-   */
+  conversationId: string;
   type: 'end_user_voice_input';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
   /**
    * Whether voice input was successfully ended
    */
   success: boolean;
   /**
+   * Identifier of the voice input turn that was closed
+   */
+  inputTurnId: string;
+  /**
    * Error message if voice input ending failed
    */
   error?: string;
   /**
-   * Unique identifier for the input turn
+   * Optional request ID for correlating responses with requests
    */
-  inputTurnId: string;
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 export interface SendUserTextInputRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'send_user_text_input';
+  /**
+   * Text content submitted by the user
+   */
+  text: string;
   /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
   /**
-   * Message type for sending user text input
-   */
-  type: 'send_user_text_input';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Text content from the user
-   */
-  text: string;
 }
 
 export interface SendUserTextInputResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier of the conversation
    */
-  requestId?: string;
-  /**
-   * Message type for send user text input response
-   */
+  conversationId: string;
   type: 'send_user_text_input';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
   /**
    * Whether text input was successfully received
    */
   success: boolean;
   /**
+   * Identifier of the input turn created for this text submission, can be used to correlate with conversation events
+   */
+  inputTurnId: string;
+  /**
    * Error message if text input processing failed
    */
   error?: string;
-  /**
-   * Unique identifier for the input turn, can be used to correlate with voice input if applicable
-   */
-  inputTurnId: string;
-}
-
-export interface UserTranscribedChunk {
   /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for user text chunk
-   */
-  type: 'user_transcribed_chunk';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface UserTranscribedChunk {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'user_transcribed_chunk';
   /**
-   * Unique identifier for the input turn this chunk belongs to
+   * Input turn this transcription chunk belongs to
    */
   inputTurnId: string;
   /**
-   * Unique identifier for this text chunk
+   * Unique identifier for this chunk
    */
   chunkId: string;
   /**
-   * Chunk of transcribed text input from the user
+   * Transcribed text content
    */
   chunkText: string;
   /**
-   * Sequential order of this chunk in the transcription sequence
+   * Sequential 0-based position within the transcription stream
    */
   ordinal: number;
   /**
-   * Whether this is the final version of the chunk of text input
+   * True once ASR has finalised its transcript for this chunk
    */
   isFinal: boolean;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 
@@ -1355,50 +1326,36 @@ export interface UserTranscribedChunk {
 
 export interface StartAiGenerationOutput {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'start_ai_generation_output';
+  /**
+   * Unique identifier for this generation turn; used to correlate all subsequent output messages
+   */
+  outputTurnId: string;
+  /**
+   * Whether the response will include synthesised voice audio
+   */
+  expectVoice: boolean;
+  /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for starting AI voice output
-   */
-  type: 'start_ai_generation_output';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier for this voice output sequence for correlation
-   */
-  outputTurnId: string;
-  /**
-   * Whether the AI response will include voice output
-   */
-  expectVoice: boolean;
 }
 
 export interface SendAiVoiceChunk {
   /**
-   * Optional request ID for correlating responses with requests
-   */
-  requestId?: string;
-  /**
-   * Message type for sending AI voice chunk
-   */
-  type: 'send_ai_voice_chunk';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
-  /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'send_ai_voice_chunk';
   /**
-   * Unique identifier for this voice output sequence for correlation
+   * Generation turn this chunk belongs to
    */
   outputTurnId: string;
   /**
@@ -1406,7 +1363,7 @@ export interface SendAiVoiceChunk {
    */
   audioData: string;
   /**
-   * Audio format of the chunk data
+   * Encoding of audioData
    */
   audioFormat:
     | 'mp3'
@@ -1424,112 +1381,103 @@ export interface SendAiVoiceChunk {
     | 'alaw'
     | 'linear16';
   /**
-   * Unique identifier for this specific audio chunk
+   * Unique identifier for this specific chunk
    */
   chunkId: string;
   /**
-   * Sequential order of this chunk in the voice output sequence
+   * Sequential 0-based position within the output turn's audio stream
    */
   ordinal: number;
   /**
-   * Whether this is the final chunk in the voice output sequence
+   * Whether this is the final audio chunk for this output turn
    */
   isFinal: boolean;
   /**
-   * Sample rate of the audio chunk (e.g., 24000)
+   * Sample rate in Hz (e.g. 24000)
    */
   sampleRate?: number;
   /**
-   * Bit rate of the audio chunk in bits per second (e.g., 64000)
+   * Bit rate in bits per second (e.g. 64000)
    */
   bitRate?: number;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 export interface EndAiGenerationOutput {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'end_ai_generation_output';
+  /**
+   * Generation turn that has ended
+   */
+  outputTurnId: string;
+  /**
+   * Full text that was synthesised to speech (or generated, when voice is disabled)
+   */
+  fullText: string;
+  /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for ending AI voice output
-   */
-  type: 'end_ai_generation_output';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier for this voice output sequence for correlation
-   */
-  outputTurnId: string;
-  /**
-   * The full text that was converted to speech, if available
-   */
-  fullText: string;
 }
 
 export interface AiTranscribedChunk {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'ai_transcribed_chunk';
+  /**
+   * Generation turn this chunk belongs to
+   */
+  outputTurnId: string;
+  /**
+   * Unique identifier for this chunk
+   */
+  chunkId: string;
+  /**
+   * Transcribed text content
+   */
+  chunkText: string;
+  /**
+   * Sequential 0-based position within the transcription stream
+   */
+  ordinal: number;
+  /**
+   * Whether this is the final transcription chunk for this output turn
+   */
+  isFinal: boolean;
+  /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for AI transcribed text chunk
-   */
-  type: 'ai_transcribed_chunk';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier for the output turn this chunk belongs to
-   */
-  outputTurnId: string;
-  /**
-   * Unique identifier for this text chunk
-   */
-  chunkId: string;
-  /**
-   * Chunk of transcribed text output from the AI
-   */
-  chunkText: string;
-  /**
-   * Sequential order of this chunk in the transcription sequence
-   */
-  ordinal: number;
-  /**
-   * Whether this is the final chunk of text output
-   */
-  isFinal: boolean;
 }
 
 export interface SendAiAudioOutput {
   /**
-   * Optional request ID for correlating responses with requests
-   */
-  requestId?: string;
-  /**
-   * Message type for sending AI-generated audio
-   */
-  type: 'send_ai_audio_output';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
-  /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'send_ai_audio_output';
   /**
-   * Unique identifier for this output sequence for correlation
+   * Generation turn this audio belongs to
    */
   outputTurnId: string;
   /**
@@ -1537,19 +1485,33 @@ export interface SendAiAudioOutput {
    */
   audioData: string;
   /**
-   * Audio format identifier
+   * Encoding of audioData
    */
-  audioFormat: 'pcm' | 'mp3' | 'wav' | 'opus';
+  audioFormat:
+    | 'mp3'
+    | 'opus'
+    | 'aac'
+    | 'flac'
+    | 'wav'
+    | 'pcm_8000'
+    | 'pcm_16000'
+    | 'pcm_22050'
+    | 'pcm_24000'
+    | 'pcm_44100'
+    | 'pcm_48000'
+    | 'mulaw'
+    | 'alaw'
+    | 'linear16';
   /**
-   * MIME type of the audio (e.g., audio/pcm, audio/mpeg)
+   * MIME type of audioData (e.g. audio/mpeg, audio/wav)
    */
   mimeType: string;
   /**
-   * Sequence number if multiple audio blocks in response
+   * 0-based index when multiple audio blocks are produced in a single response
    */
   sequenceNumber: number;
   /**
-   * Audio metadata
+   * Optional low-level audio metadata
    */
   metadata?: {
     /**
@@ -1565,27 +1527,24 @@ export interface SendAiAudioOutput {
      */
     bitDepth?: number;
   };
-}
-
-export interface SendAiImageOutput {
   /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for sending AI-generated image
-   */
-  type: 'send_ai_image_output';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface SendAiImageOutput {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'send_ai_image_output';
   /**
-   * Unique identifier for this output sequence for correlation
+   * Generation turn this image belongs to
    */
   outputTurnId: string;
   /**
@@ -1593,13 +1552,21 @@ export interface SendAiImageOutput {
    */
   imageData: string;
   /**
-   * MIME type of the image (e.g., image/png, image/jpeg)
+   * MIME type of imageData (e.g. image/png, image/jpeg)
    */
   mimeType: string;
   /**
-   * Sequence number if multiple images in response
+   * 0-based index when multiple images are produced in a single response
    */
   sequenceNumber: number;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
 
@@ -1609,40 +1576,30 @@ export interface SendAiImageOutput {
 
 export interface GoToStageRequest {
   /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'go_to_stage';
+  /**
+   * Identifier of the target stage
+   */
+  stageId: string;
+  /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
   /**
-   * Message type for navigating to a stage
-   */
-  type: 'go_to_stage';
-  /**
    * Unique identifier for the session
    */
   sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier of the target stage
-   */
-  stageId: string;
 }
 
 export interface GoToStageResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier of the conversation
    */
-  requestId?: string;
-  /**
-   * Message type for go to stage response
-   */
+  conversationId: string;
   type: 'go_to_stage';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
   /**
    * Whether navigation to the stage was successful
    */
@@ -1651,27 +1608,24 @@ export interface GoToStageResponse {
    * Error message if navigation failed
    */
   error?: string;
-}
-
-export interface SetVarRequest {
   /**
-   * Unique identifier for request correlation and tracking
+   * Optional request ID for correlating responses with requests
    */
-  requestId: string;
-  /**
-   * Message type for setting a variable
-   */
-  type: 'set_var';
+  requestId?: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface SetVarRequest {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'set_var';
   /**
-   * Unique identifier of the stage
+   * Identifier of the stage that owns the variable
    */
   stageId: string;
   /**
@@ -1681,21 +1635,22 @@ export interface SetVarRequest {
   variableValue: ParameterValue & {
 
   };
-}
-
-export interface SetVarResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier for request correlation and tracking
    */
-  requestId?: string;
-  /**
-   * Message type for set variable response
-   */
-  type: 'set_var';
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface SetVarResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'set_var_result';
   /**
    * Whether the variable was successfully set
    */
@@ -1704,48 +1659,46 @@ export interface SetVarResponse {
    * Error message if setting the variable failed
    */
   error?: string;
-}
-
-export interface GetVarRequest {
   /**
-   * Unique identifier for request correlation and tracking
+   * Optional request ID for correlating responses with requests
    */
-  requestId: string;
-  /**
-   * Message type for getting a variable
-   */
-  type: 'get_var';
+  requestId?: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface GetVarRequest {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'get_var';
   /**
-   * Unique identifier of the stage
+   * Identifier of the stage that owns the variable
    */
   stageId: string;
   /**
    * Name of the variable to retrieve
    */
   variableName: string;
-}
-
-export interface GetVarResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier for request correlation and tracking
    */
-  requestId?: string;
-  /**
-   * Message type for get variable response
-   */
-  type: 'get_var';
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface GetVarResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'get_var';
   /**
    * Whether the variable was successfully retrieved
    */
@@ -1755,7 +1708,7 @@ export interface GetVarResponse {
    */
   variableName: string;
   /**
-   * Value of the variable (undefined if not found)
+   * Value of the variable (absent when not found or success is false)
    */
   variableValue?:
     | string
@@ -1776,44 +1729,42 @@ export interface GetVarResponse {
    * Error message if retrieving the variable failed
    */
   error?: string;
-}
-
-export interface GetAllVarsRequest {
-  /**
-   * Unique identifier for request correlation and tracking
-   */
-  requestId: string;
-  /**
-   * Message type for getting all variables
-   */
-  type: 'get_all_vars';
-  /**
-   * Unique identifier for the session
-   */
-  sessionId: string;
-  /**
-   * Unique identifier of the conversation
-   */
-  conversationId: string;
-  /**
-   * Unique identifier of the stage
-   */
-  stageId: string;
-}
-
-export interface GetAllVarsResponse {
   /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;
   /**
-   * Message type for get all variables response
+   * Unique identifier for the session
    */
+  sessionId: string;
+}
+
+export interface GetAllVarsRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
   type: 'get_all_vars';
+  /**
+   * Identifier of the stage whose variables should be retrieved
+   */
+  stageId: string;
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface GetAllVarsResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'get_all_vars';
   /**
    * Whether the variables were successfully retrieved
    */
@@ -1828,25 +1779,22 @@ export interface GetAllVarsResponse {
    * Error message if retrieving variables failed
    */
   error?: string;
-}
-
-export interface RunActionRequest {
   /**
-   * Unique identifier for request correlation and tracking
+   * Optional request ID for correlating responses with requests
    */
-  requestId: string;
-  /**
-   * Message type for running an action
-   */
-  type: 'run_action';
+  requestId?: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface RunActionRequest {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'run_action';
   /**
    * Name of the global action to execute
    */
@@ -1857,21 +1805,22 @@ export interface RunActionRequest {
   parameters: {
     [k: string]: ParameterValue;
   };
-}
-
-export interface RunActionResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier for request correlation and tracking
    */
-  requestId?: string;
-  /**
-   * Message type for run action response
-   */
-  type: 'run_action';
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface RunActionResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'run_action';
   /**
    * Whether the action was successfully executed
    */
@@ -1926,25 +1875,22 @@ export interface RunActionResponse {
    * Error message if action execution failed
    */
   error?: string;
-}
-
-export interface CallToolRequest {
   /**
-   * Unique identifier for request correlation and tracking
+   * Optional request ID for correlating responses with requests
    */
-  requestId: string;
-  /**
-   * Message type for calling a tool
-   */
-  type: 'call_tool';
+  requestId?: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface CallToolRequest {
   /**
    * Unique identifier of the conversation
    */
   conversationId: string;
+  type: 'call_tool';
   /**
    * Unique identifier of the tool to execute
    */
@@ -1955,21 +1901,22 @@ export interface CallToolRequest {
   parameters: {
     [k: string]: ParameterValue;
   };
-}
-
-export interface CallToolResponse {
   /**
-   * Optional request ID for correlating responses with requests
+   * Unique identifier for request correlation and tracking
    */
-  requestId?: string;
-  /**
-   * Message type for call tool response
-   */
-  type: 'call_tool';
+  requestId: string;
   /**
    * Unique identifier for the session
    */
   sessionId: string;
+}
+
+export interface CallToolResponse {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'call_tool';
   /**
    * Whether the tool was successfully executed
    */
@@ -2024,5 +1971,13 @@ export interface CallToolResponse {
    * Error message if tool execution failed
    */
   error?: string;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
 }
 
