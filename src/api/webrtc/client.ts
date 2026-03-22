@@ -92,10 +92,9 @@ export interface WebRTCClientConfig {
   debug?: boolean
 }
 
-export type { StartConversationOptions } from '../websocket/client'
 import type { StartConversationOptions } from '../websocket/client'
 
-export class NexusWebRTCClient {
+export class BonsaiWebRTCClient {
   private pc: RTCPeerConnection | null = null
   private controlChannel: RTCDataChannel | null = null
   private audioChannel: RTCDataChannel | null = null

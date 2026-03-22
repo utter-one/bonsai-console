@@ -1,5 +1,5 @@
 export {
-  NexusWebRTCClient,
+  BonsaiWebRTCClient as NexusWebRTCClient,
   type WebRTCClientConfig,
   type WebRTCEventHandlers,
   type StartConversationOptions,
