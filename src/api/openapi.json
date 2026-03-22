@@ -5545,9 +5545,9 @@
             "type": "string",
             "description": "Identifier of the user associated with this conversation"
           },
-          "clientId": {
+          "sessionId": {
             "type": "string",
-            "description": "Client identifier for the conversation"
+            "description": "ID of the WebSocket session that initiated this conversation"
           },
           "stageId": {
             "type": "string",
@@ -5612,7 +5612,7 @@
           "id",
           "projectId",
           "userId",
-          "clientId",
+          "sessionId",
           "stageId",
           "startingStageId",
           "endingStageId",
@@ -5644,9 +5644,9 @@
                   "type": "string",
                   "description": "Identifier of the user associated with this conversation"
                 },
-                "clientId": {
+                "sessionId": {
                   "type": "string",
-                  "description": "Client identifier for the conversation"
+                  "description": "ID of the WebSocket session that initiated this conversation"
                 },
                 "stageId": {
                   "type": "string",
@@ -5711,7 +5711,7 @@
                 "id",
                 "projectId",
                 "userId",
-                "clientId",
+                "sessionId",
                 "stageId",
                 "startingStageId",
                 "endingStageId",
@@ -20801,9 +20801,9 @@
                       "type": "string",
                       "description": "Identifier of the user associated with this conversation"
                     },
-                    "clientId": {
+                    "sessionId": {
                       "type": "string",
-                      "description": "Client identifier for the conversation"
+                      "description": "ID of the WebSocket session that initiated this conversation"
                     },
                     "stageId": {
                       "type": "string",
@@ -20868,7 +20868,7 @@
                     "id",
                     "projectId",
                     "userId",
-                    "clientId",
+                    "sessionId",
                     "stageId",
                     "startingStageId",
                     "endingStageId",
@@ -20933,7 +20933,7 @@
           "Conversations"
         ],
         "summary": "List conversations",
-        "description": "Retrieves a paginated list of conversations with optional filtering, sorting, and search. Supports filtering by userId, clientId, stageId, status, and timestamps.",
+        "description": "Retrieves a paginated list of conversations with optional filtering, sorting, and search. Supports filtering by userId, sessionId, stageId, status, and timestamps.",
         "parameters": [
           {
             "schema": {
@@ -21090,9 +21090,9 @@
                             "type": "string",
                             "description": "Identifier of the user associated with this conversation"
                           },
-                          "clientId": {
+                          "sessionId": {
                             "type": "string",
-                            "description": "Client identifier for the conversation"
+                            "description": "ID of the WebSocket session that initiated this conversation"
                           },
                           "stageId": {
                             "type": "string",
@@ -21157,7 +21157,7 @@
                           "id",
                           "projectId",
                           "userId",
-                          "clientId",
+                          "sessionId",
                           "stageId",
                           "startingStageId",
                           "endingStageId",

@@ -183,7 +183,7 @@ const metadataFields = computed(() => {
     { label: 'Conversation ID', value: conversation.value.id, format: 'mono' as const },
     { label: 'Project ID', value: conversation.value.projectId, format: 'mono' as const },
     { label: 'User ID', value: conversation.value.userId, format: 'mono' as const },
-    { label: 'Client ID', value: conversation.value.clientId, format: 'mono' as const },
+    { label: 'Session ID', value: conversation.value.sessionId, format: 'mono' as const },
     { label: 'Stage ID', value: conversation.value.stageId, format: 'mono' as const },
     { label: 'Status', value: formatStatusLabel(conversation.value.status) },
     { label: 'Status Details', value: conversation.value.statusDetails },
