@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import { RefreshCw, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
@@ -15,8 +15,15 @@ const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 const stagesStore = useStagesStore()
+const usersStore = useUsersStore()
 
-const stageMap = ref<Map<string, string>>(new Map())
+const stageMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const stage of stagesStore.items) {
+    map.set(stage.id, stage.name)
+  }
+  return map
+})
 
 // Date/time range filter
 const dateTimeRange = ref<DateTimeRange>(null)
@@ -24,6 +31,18 @@ const dateTimeRange = ref<DateTimeRange>(null)
 // Status filter state
 const statusFilter = ref<'all' | 'initialized' | 'awaiting_user_input' | 'receiving_user_voice' | 'processing_user_input' | 'generating_response' | 'finished' | 'aborted' | 'failed'>('all')
 const showStatusDropdown = ref(false)
+
+// User filter
+const userFilter = ref<string | null>(null)
+const showUserDropdown = ref(false)
+
+// Starting stage filter
+const startingStageFilter = ref<string | null>(null)
+const showStartingStageDropdown = ref(false)
+
+// Ending stage filter
+const endingStageFilter = ref<string | null>(null)
+const showEndingStageDropdown = ref(false)
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -49,31 +68,52 @@ const currentStatusFilterLabel = computed(() => {
   return statusFilterOptions.find(opt => opt.value === statusFilter.value)?.label || 'All Statuses'
 })
 
+const userOptions = computed(() => {
+  return [...usersStore.items].sort((a, b) => a.id.localeCompare(b.id))
+})
+
+const stageOptions = computed(() => {
+  return [...stagesStore.items].sort((a, b) => a.name.localeCompare(b.name))
+})
+
+const currentUserFilterLabel = computed(() => {
+  if (!userFilter.value) return 'All Users'
+  return userFilter.value
+})
+
+const currentStartingStageLabel = computed(() => {
+  if (!startingStageFilter.value) return 'All Starting Stages'
+  return stageMap.value.get(startingStageFilter.value) ?? startingStageFilter.value
+})
+
+const currentEndingStageLabel = computed(() => {
+  if (!endingStageFilter.value) return 'All Ending Stages'
+  return stageMap.value.get(endingStageFilter.value) ?? endingStageFilter.value
+})
+
 const filteredConversations = computed(() => {
   return conversationsStore.conversations
 })
 
-// Watch for date range changes
-watch(dateTimeRange, () => {
-  pagination.reset()
-  loadConversations()
-})
-
-// Watch for status filter changes
-watch(statusFilter, () => {
-  pagination.reset()
-  loadConversations()
-})
+// Watch for filter changes
+watch(dateTimeRange, () => { pagination.reset(); loadConversations() })
+watch(statusFilter, () => { pagination.reset(); loadConversations() })
+watch(userFilter, () => { pagination.reset(); loadConversations() })
+watch(startingStageFilter, () => { pagination.reset(); loadConversations() })
+watch(endingStageFilter, () => { pagination.reset(); loadConversations() })
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
+  userFilter.value = null
+  startingStageFilter.value = null
+  endingStageFilter.value = null
   pagination.reset()
-  loadConversations()
+  loadProjectData()
 })
 
 // Lifecycle
 onMounted(async () => {
-  await loadConversations()
+  await loadProjectData()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -84,12 +124,23 @@ onBeforeUnmount(() => {
 // Methods
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  const statusDropdown = document.querySelector('.status-filter-dropdown')
-  const statusButton = document.querySelector('.status-filter-button')
-
-  if (statusDropdown && !statusDropdown.contains(target) && !statusButton?.contains(target)) {
-    showStatusDropdown.value = false
+  const dropdownPairs = [
+    { panel: '.status-filter-dropdown', button: '.status-filter-button', hide: () => { showStatusDropdown.value = false } },
+    { panel: '.user-filter-dropdown', button: '.user-filter-button', hide: () => { showUserDropdown.value = false } },
+    { panel: '.starting-stage-dropdown', button: '.starting-stage-button', hide: () => { showStartingStageDropdown.value = false } },
+    { panel: '.ending-stage-dropdown', button: '.ending-stage-button', hide: () => { showEndingStageDropdown.value = false } },
+  ]
+  for (const { panel, button, hide } of dropdownPairs) {
+    const panelEl = document.querySelector(panel)
+    const buttonEl = document.querySelector(button)
+    if (panelEl && !panelEl.contains(target) && !buttonEl?.contains(target)) {
+      hide()
+    }
   }
+}
+
+async function loadProjectData() {
+  await Promise.all([loadConversations(), loadStages(), loadUsers()])
 }
 
 async function loadConversations() {
@@ -104,6 +155,18 @@ async function loadConversations() {
       filters.status = { op: 'eq', value: statusFilter.value }
     }
 
+    if (userFilter.value) {
+      filters.userId = { op: 'eq', value: userFilter.value }
+    }
+
+    if (startingStageFilter.value) {
+      filters.startingStageId = { op: 'eq', value: startingStageFilter.value }
+    }
+
+    if (endingStageFilter.value) {
+      filters.endingStageId = { op: 'eq', value: endingStageFilter.value }
+    }
+
     await conversationsStore.fetchAll(
       projectSelectionStore.selectedProjectId || '',
       pagination.getParams({
@@ -111,36 +174,33 @@ async function loadConversations() {
         orderBy: '-createdAt'
       })
     )
-
-    await loadStagesForConversations()
   } catch (error) {
     console.error('Failed to load conversations:', error)
   }
 }
 
-async function loadStagesForConversations() {
+async function loadStages() {
   const projectId = projectSelectionStore.selectedProjectId
   if (!projectId) return
-
-  const stageIds = new Set<string>()
-  for (const conv of conversationsStore.conversations) {
-    if (conv.startingStageId) stageIds.add(conv.startingStageId)
-    if (conv.endingStageId) stageIds.add(conv.endingStageId)
-  }
-
-  const missingIds = [...stageIds].filter(id => !stageMap.value.has(id))
-  if (missingIds.length === 0) return
-
   try {
     await stagesStore.fetchAll(projectId, { limit: 1000 })
-    const map = new Map(stageMap.value)
-    for (const stage of stagesStore.items) {
-      map.set(stage.id, stage.name)
-    }
-    stageMap.value = map
   } catch {
     // Stage names will fall back to IDs
   }
+}
+
+async function loadUsers() {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId) return
+  try {
+    await usersStore.fetchAll(projectId, { limit: 1000 })
+  } catch {
+    // User names not available
+  }
+}
+
+function getUserDisplayById(userId: string): string {
+  return userId || '—'
 }
 
 function getStageName(id: string | null | undefined): string {
@@ -207,7 +267,7 @@ function selectStatusFilter(value: typeof statusFilter.value) {
 }
 
 async function refreshData() {
-  await loadConversations()
+  await loadProjectData()
 }
 
 function isResumable(status: string): boolean {
@@ -222,7 +282,6 @@ async function handleResumeConversation(conversation: ConversationResponse) {
   }
 
   try {
-    // Fetch active API keys for the project
     await apiKeysStore.fetchAll(projectId, { filters: { isActive: true } })
     const activeKeys = apiKeysStore.items.filter(k => k.isActive && k.projectId === projectId)
 
@@ -231,7 +290,6 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       return
     }
 
-    // Auto-select the first available key for this project
     const key = activeKeys[0]!
     router.push({
       name: 'playground',
@@ -260,7 +318,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       </div>
 
       <!-- Filter Bar -->
-      <div class="mb-6 flex items-center gap-3">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
         <!-- Date/Time Range Picker -->
         <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
@@ -268,14 +326,12 @@ async function handleResumeConversation(conversation: ConversationResponse) {
         <div class="relative">
           <button
             @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button filter-btn  !shadow-none"
+            class="status-filter-button filter-btn shadow-none!"
           >
             <span>{{ currentStatusFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
-
-          <!-- Status Dropdown -->
-          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-[180px]">
+          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-45">
             <button
               v-for="option in statusFilterOptions"
               :key="option.value"
@@ -284,6 +340,93 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
             >
               {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- User Filter -->
+        <div class="relative">
+          <button
+            @click="showUserDropdown = !showUserDropdown"
+            class="user-filter-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentUserFilterLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showUserDropdown" class="user-filter-dropdown filter-dropdown-panel min-w-55 max-h-64 overflow-y-auto">
+            <button
+              @click="userFilter = null; showUserDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === null }"
+            >
+              All Users
+            </button>
+            <button
+              v-for="user in userOptions"
+              :key="user.id"
+              @click="userFilter = user.id; showUserDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
+            >
+              {{ user.id }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Starting Stage Filter -->
+        <div class="relative">
+          <button
+            @click="showStartingStageDropdown = !showStartingStageDropdown"
+            class="starting-stage-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentStartingStageLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showStartingStageDropdown" class="starting-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
+            <button
+              @click="startingStageFilter = null; showStartingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
+            >
+              All Starting Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              @click="startingStageFilter = stage.id; showStartingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Ending Stage Filter -->
+        <div class="relative">
+          <button
+            @click="showEndingStageDropdown = !showEndingStageDropdown"
+            class="ending-stage-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentEndingStageLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showEndingStageDropdown" class="ending-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
+            <button
+              @click="endingStageFilter = null; showEndingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
+            >
+              All Ending Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              @click="endingStageFilter = stage.id; showEndingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
             </button>
           </div>
         </div>
@@ -314,6 +457,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <tr>
                 <th class="table-header-cell">Conversation ID</th>
                 <th class="table-header-cell">Status</th>
+                <th class="table-header-cell">User</th>
                 <th class="table-header-cell">Starting Stage</th>
                 <th class="table-header-cell">Ending Stage</th>
                 <th class="table-header-cell">Started</th>
@@ -336,6 +480,9 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     </span>
                     <span v-if="conversation.archived" class="badge-secondary">Archived</span>
                   </div>
+                </td>
+                <td class="table-cell">
+                  <span class="text-sm" :title="conversation.userId">{{ getUserDisplayById(conversation.userId) }}</span>
                 </td>
                 <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
                 <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
