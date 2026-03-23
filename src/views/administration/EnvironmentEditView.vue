@@ -331,19 +331,21 @@ const metadataFields = computed(() => {
               v-show="activeTab === 'metadata'"
               :fields="metadataFields"
             />
-            <!-- History Tab -->
-            <EntityHistoryView
-              v-if="isEditMode && currentEnvironment"
-              v-show="activeTab === 'history'"
-              :load-history="() => environmentsStore.fetchAuditLogs(currentEnvironment!.id)"
-              :current-version="currentEnvironment.version"
-              :current-object="currentEnvironment"
-              :active="activeTab === 'history'"
-              :update-fn="(data) => environmentsStore.update(currentEnvironment!.id, data)"
-              :create-fn="(data) => environmentsStore.create(data)"
-              :ignore-fields="['createdAt', 'updatedAt', 'version']"
-              @recover-success="() => router.go(0)"
-            />
+            <div class="tab-content">
+              <!-- History Tab -->
+              <EntityHistoryView
+                v-if="isEditMode && currentEnvironment"
+                v-show="activeTab === 'history'"
+                :load-history="() => environmentsStore.fetchAuditLogs(currentEnvironment!.id)"
+                :current-version="currentEnvironment.version"
+                :current-object="currentEnvironment"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => environmentsStore.update(currentEnvironment!.id, data)"
+                :create-fn="(data) => environmentsStore.create(data)"
+                :ignore-fields="['createdAt', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+            </div>
           </form>
         </div>
       </div>

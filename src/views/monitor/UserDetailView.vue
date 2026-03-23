@@ -385,18 +385,20 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'" 
             :fields="metadataFields" 
           />
+          <div class="tab-content">
           <!-- History Tab -->
-          <EntityHistoryView
-            v-if="user"
-            v-show="activeTab === 'history'"
-            :load-history="() => usersStore.fetchAuditLogs(projectId, userId)"
-            :current-object="user"
-            :active="activeTab === 'history'"
-            :update-fn="(data) => usersStore.update(projectId, userId, data)"
-            :create-fn="(data) => usersStore.create(projectId, data)"
-            :ignore-fields="['createdAt', 'archived', 'updatedAt']"
-            @recover-success="() => router.go(0)"
-          />
+            <EntityHistoryView
+              v-if="user"
+              v-show="activeTab === 'history'"
+              :load-history="() => usersStore.fetchAuditLogs(projectId, userId)"
+              :current-object="user"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => usersStore.update(projectId, userId, data)"
+              :create-fn="(data) => usersStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
         </div>
       </div>
     </div>
