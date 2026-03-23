@@ -625,7 +625,6 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
     <SetupWizardModal
       v-if="showWizard"
       @close="showWizard = false"
-      @project-created="showWizard = false"
     />
 
     <!-- About Modal -->
