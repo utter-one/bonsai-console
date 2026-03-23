@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useTableSort } from '@/composables'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X, ChevronDown } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -74,6 +74,8 @@ const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
 const clipboardActions = ref<Record<string, StageAction> | null>(null)
 const actionsSearchQuery = ref('')
+const actionsClassifierFilter = ref('')
+const showClassifierDropdown = ref(false)
 const clipboardVariables = ref<Array<any> | null>(null)
 const isLifecycleActionKey = ref(false)
 const form = ref({
@@ -143,8 +145,23 @@ watch(() => form.value.llmProviderId, (newVal) => {
   }
 })
 
+function selectClassifierFilter(value: string) {
+  actionsClassifierFilter.value = value
+  showClassifierDropdown.value = false
+}
+
+function handleActionsClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  const dropdown = document.querySelector('.classifier-filter-dropdown')
+  const button = document.querySelector('.classifier-filter-button')
+  if (dropdown && !dropdown.contains(target) && !button?.contains(target)) {
+    showClassifierDropdown.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
+  document.addEventListener('click', handleActionsClickOutside)
   // Load related data
   await Promise.all([
     providersStore.fetchAll(),
@@ -160,6 +177,10 @@ onMounted(async () => {
   if (isEditMode.value) {
     await loadStage()
   }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleActionsClickOutside)
 })
 
 // Methods
@@ -635,8 +656,42 @@ function handleActionSave(data: { key: string; action: StageAction }) {
 
 const { sortKey: actionsSortKey, sortOrder: actionsSortOrder, toggleSort: toggleActionsSort, getSortIcon: getActionsSortIcon } = useTableSort('sort-stage-actions')
 
+const classifierNameById = computed(() => {
+  const map: Record<string, string> = {}
+  for (const c of classifiersStore.items) {
+    map[c.id] = c.name
+  }
+  return map
+})
+
+const currentClassifierFilterLabel = computed(() => {
+  if (!actionsClassifierFilter.value) return 'All Classifiers'
+  if (actionsClassifierFilter.value === '__default') return 'Default'
+  return classifierNameById.value[actionsClassifierFilter.value] ?? actionsClassifierFilter.value
+})
+
+const actionsClassifierOptions = computed(() => {
+  const ids = new Set<string | null>()
+  for (const [key, action] of Object.entries(form.value.actions)) {
+    if (!isLifecycleAction(key)) {
+      ids.add(action.overrideClassifierId ?? null)
+    }
+  }
+  const options: { value: string; label: string }[] = []
+  if (ids.has(null)) {
+    options.push({ value: '__default', label: 'Default' })
+  }
+  for (const id of ids) {
+    if (id !== null) {
+      options.push({ value: id, label: classifierNameById.value[id] ?? id })
+    }
+  }
+  return options
+})
+
 const actionsList = computed(() => {
   const query = actionsSearchQuery.value.toLowerCase().trim()
+  const classifierFilter = actionsClassifierFilter.value
   const list = Object.entries(form.value.actions)
     .filter(([key]) => !isLifecycleAction(key))
     .map(([key, action]) => ({
@@ -644,11 +699,22 @@ const actionsList = computed(() => {
       ...action
     }))
     .filter(action => {
-      if (!query) return true
-      return (
-        (action.name || '').toLowerCase().includes(query) ||
-        (action.classificationTrigger || '').toLowerCase().includes(query)
-      )
+      if (query) {
+        const matchesQuery = (
+          (action.name || '').toLowerCase().includes(query) ||
+          (action.classificationTrigger || '').toLowerCase().includes(query) ||
+          (action.overrideClassifierId ? (classifierNameById.value[action.overrideClassifierId] ?? '').toLowerCase().includes(query) : false)
+        )
+        if (!matchesQuery) return false
+      }
+      if (classifierFilter) {
+        if (classifierFilter === '__default') {
+          if (action.overrideClassifierId) return false
+        } else {
+          if (action.overrideClassifierId !== classifierFilter) return false
+        }
+      }
+      return true
     })
 
   if (!actionsSortKey.value || !actionsSortOrder.value) return list
@@ -671,6 +737,12 @@ const actionsList = computed(() => {
       case 'classification':
         comparison = (a.classificationTrigger || '').localeCompare(b.classificationTrigger || '')
         break
+      case 'classifier': {
+        const nameA = a.overrideClassifierId ? (classifierNameById.value[a.overrideClassifierId] ?? a.overrideClassifierId) : ''
+        const nameB = b.overrideClassifierId ? (classifierNameById.value[b.overrideClassifierId] ?? b.overrideClassifierId) : ''
+        comparison = nameA.localeCompare(nameB)
+        break
+      }
       case 'effects':
         comparison = (a.effects?.length || 0) - (b.effects?.length || 0)
         break
@@ -1270,28 +1342,60 @@ function toggleNode(path: number[]) {
               </div>
             </div>
 
-            <!-- Search -->
-            <div class="search-container">
-              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <input
-                v-model="actionsSearchQuery"
-                type="text"
-                placeholder="Search by name or classification..."
-                class="search-input"
-              />
-              <button
-                v-if="actionsSearchQuery"
-                type="button"
-                @click="actionsSearchQuery = ''"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-              >
-                <X class="w-4 h-4" />
-              </button>
+            <!-- Search & Filters -->
+            <div class="mb-6 flex items-center gap-3">
+              <div class="relative">
+                <button
+                  type="button"
+                  @click="showClassifierDropdown = !showClassifierDropdown"
+                  class="classifier-filter-button filter-btn shadow-none!"
+                >
+                  <span>{{ currentClassifierFilterLabel }}</span>
+                  <ChevronDown class="w-4 h-4 ml-2" />
+                </button>
+                <div v-if="showClassifierDropdown" class="classifier-filter-dropdown filter-dropdown-panel min-w-50">
+                  <button
+                    type="button"
+                    @click="selectClassifierFilter('')"
+                    class="filter-dropdown-item"
+                    :class="{ 'filter-dropdown-item-active': actionsClassifierFilter === '' }"
+                  >
+                    All Classifiers
+                  </button>
+                  <button
+                    v-for="opt in actionsClassifierOptions"
+                    :key="opt.value"
+                    type="button"
+                    @click="selectClassifierFilter(opt.value)"
+                    class="filter-dropdown-item"
+                    :class="{ 'filter-dropdown-item-active': actionsClassifierFilter === opt.value }"
+                  >
+                    {{ opt.label }}
+                  </button>
+                </div>
+              </div>
+              <div class="relative min-w-25 grow">
+                <Search class="input-icon-left" />
+                <input
+                  v-model="actionsSearchQuery"
+                  type="text"
+                  placeholder="Search by name or classification..."
+                  class="search-input"
+                />
+                <button
+                  v-if="actionsSearchQuery"
+                  type="button"
+                  @click="actionsSearchQuery = ''"
+                  class="input-icon-right"
+                >
+                  <X class="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <!-- Empty State -->
             <div v-if="actionsList.length === 0" class="text-center py-12">
-              <p class="text-gray-500 mb-4">{{ actionsSearchQuery ? 'No actions match your search' : 'No actions defined yet' }}</p>
+              <p class="text-gray-500 mb-4">{{ actionsSearchQuery || actionsClassifierFilter ? 'No actions match your filters' : 'No actions defined yet' }}</p>
             </div>
 
             <!-- Actions Table -->
@@ -1316,6 +1420,12 @@ function toggleNode(path: number[]) {
                         <div class="flex items-center gap-1">
                           Classification
                           <component :is="getActionsSortIcon('classification')" class="w-4 h-4" :class="actionsSortKey === 'classification' ? 'text-primary-600' : 'text-gray-400'" />
+                        </div>
+                      </th>
+                      <th class="table-header-cell-sortable" @click="toggleActionsSort('classifier')">
+                        <div class="flex items-center gap-1">
+                          Classifier
+                          <component :is="getActionsSortIcon('classifier')" class="w-4 h-4" :class="actionsSortKey === 'classifier' ? 'text-primary-600' : 'text-gray-400'" />
                         </div>
                       </th>
                       <th class="table-header-cell-sortable" @click="toggleActionsSort('effects')">
@@ -1344,6 +1454,12 @@ function toggleNode(path: number[]) {
                           {{ action.classificationTrigger }}
                         </code>
                         <span v-else class="text-gray-400 text-sm">—</span>
+                      </td>
+                      <td class="table-cell">
+                        <span v-if="action.overrideClassifierId" class="text-sm text-gray-700 dark:text-gray-300">
+                          {{ classifierNameById[action.overrideClassifierId] ?? action.overrideClassifierId }}
+                        </span>
+                        <span v-else class="text-gray-400 text-sm">Default</span>
                       </td>
                       <td class="table-cell-muted">
                         {{ action.effects?.length || 0 }}
