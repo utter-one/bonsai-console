@@ -1,3 +1,7 @@
+<script lang="ts">
+export type { NormalizedEvent } from './events/eventHelpers'
+</script>
+
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
@@ -69,9 +73,7 @@ export interface NormalizedEvent {
 
 const props = defineProps<{
   event: NormalizedEvent
-  /** Whether to show the bug report button on events */
   showBugReport?: boolean
-  /** Whether to highlight this event (e.g. when navigating from an issue report) */
   highlighted?: boolean
   /** Optional ID-to-name lookup maps for resolving stage/classifier/transformer IDs */
   entityNames?: {
@@ -96,10 +98,6 @@ const svgUrlBase = computed(() => window.location.origin + route.fullPath.replac
 
 const expanded = ref(false)
 const hasHovered = ref(false)
-
-function toggle() {
-  expanded.value = !expanded.value
-}
 
 function onHighlightMouseEnter() {
   if (props.highlighted && !hasHovered.value) {

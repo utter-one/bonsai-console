@@ -158,7 +158,7 @@
 }
 
 .modal-header {
-  @apply m-0 mb-5 text-xl font-semibold;
+  @apply flex flex-row justify-between items-center m-0 mb-5 text-xl font-semibold;
 }
 
 .modal-footer {

@@ -1,21 +1,15 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content-lg" @click.stop>
-      <h2 class="modal-header">{{ category ? 'Edit Category' : 'New Category' }}</h2>
+  <BaseModal size="lg" :title="category ? 'Edit Category' : 'New Category'" @close="emit('close')">
+    <div v-if="category" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
+    </div>
 
-      <div v-if="category" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <nav class="tabs-nav">
-          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
-        </nav>
-      </div>
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This category is read-only because the project is archived.
+    </div>
 
-      <div v-if="isReadOnly" class="alert-warning mb-4">
-        This category is read-only because the project is archived.
-      </div>
-
-      <div v-show="!category || activeTab === 'details'">
-      <form @submit.prevent="handleSubmit">
+    <TabPanel name="details" :active-tab="activeTab">
+      <form id="category-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">Name <span class="required">*</span></label>
           <input
@@ -67,36 +61,35 @@
             :disabled="disabled"
           />
         </div>
-
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">
-            Cancel
-          </button>
-          <button v-if="!disabled" type="submit" class="btn-primary">
-            {{ category ? 'Save Changes' : 'Create Category' }}
-          </button>
-        </div>
       </form>
-      </div>
+    </TabPanel>
 
-      <div v-if="category" v-show="activeTab === 'history'">
-        <EntityHistoryView
-          v-if="loadHistory"
-          :load-history="loadHistory"
-          :current-object="category"
-          :current-version="category.version"
-          :active="activeTab === 'history'"
-          :update-fn="updateFn"
-          :create-fn="createFn"
-          :ignore-fields="['archived', 'updatedAt', 'version', 'items']"
-          @recover-success="emit('recoverSuccess')"
-        />
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
-        </div>
+    <TabPanel v-if="category" name="history" :active-tab="activeTab">
+      <EntityHistoryView
+        v-if="loadHistory"
+        :load-history="loadHistory"
+        :current-object="category"
+        :current-version="category.version"
+        :active="activeTab === 'history'"
+        :update-fn="updateFn"
+        :create-fn="createFn"
+        :ignore-fields="['archived', 'updatedAt', 'version', 'items']"
+        @recover-success="emit('recoverSuccess')"
+      />
+    </TabPanel>
+
+    <template #footer>
+      <div v-if="!category || activeTab === 'details'" class="modal-footer">
+        <button type="button" @click="emit('close')" class="btn-secondary">Cancel</button>
+        <button v-if="!disabled" type="submit" form="category-form" class="btn-primary">
+          {{ category ? 'Save Changes' : 'Create Category' }}
+        </button>
       </div>
-    </div>
-  </div>
+      <div v-else class="modal-footer">
+        <button type="button" @click="emit('close')" class="btn-secondary">Close</button>
+      </div>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -104,6 +97,10 @@ import { ref, watch, computed } from 'vue'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import type { KnowledgeCategoryResponse } from '@/api/types'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import TabPanel from '@/components/TabPanel.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const props = defineProps<{
   category: KnowledgeCategoryResponse | null
@@ -118,11 +115,16 @@ const emit = defineEmits<{
   recoverSuccess: []
 }>()
 
-const activeTab = ref<'details' | 'history'>('details')
+const activeTab = ref('details')
 
 watch(() => props.category, () => {
   activeTab.value = 'details'
 })
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'details', label: 'Details' },
+  { key: 'history', label: 'History', show: !!props.loadHistory },
+])
 
 const form = ref({
   name: '',

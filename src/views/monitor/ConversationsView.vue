@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, ChevronDown, MessageSquare } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -30,19 +31,15 @@ const dateTimeRange = ref<DateTimeRange>(null)
 
 // Status filter state
 const statusFilter = ref<'all' | 'initialized' | 'awaiting_user_input' | 'receiving_user_voice' | 'processing_user_input' | 'generating_response' | 'finished' | 'aborted' | 'failed'>('all')
-const showStatusDropdown = ref(false)
 
 // User filter
 const userFilter = ref<string | null>(null)
-const showUserDropdown = ref(false)
 
 // Starting stage filter
 const startingStageFilter = ref<string | null>(null)
-const showStartingStageDropdown = ref(false)
 
 // Ending stage filter
 const endingStageFilter = ref<string | null>(null)
-const showEndingStageDropdown = ref(false)
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -114,31 +111,9 @@ watch(() => projectSelectionStore.selectedProjectId, () => {
 // Lifecycle
 onMounted(async () => {
   await loadProjectData()
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
 })
 
 // Methods
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  const dropdownPairs = [
-    { panel: '.status-filter-dropdown', button: '.status-filter-button', hide: () => { showStatusDropdown.value = false } },
-    { panel: '.user-filter-dropdown', button: '.user-filter-button', hide: () => { showUserDropdown.value = false } },
-    { panel: '.starting-stage-dropdown', button: '.starting-stage-button', hide: () => { showStartingStageDropdown.value = false } },
-    { panel: '.ending-stage-dropdown', button: '.ending-stage-button', hide: () => { showEndingStageDropdown.value = false } },
-  ]
-  for (const { panel, button, hide } of dropdownPairs) {
-    const panelEl = document.querySelector(panel)
-    const buttonEl = document.querySelector(button)
-    if (panelEl && !panelEl.contains(target) && !buttonEl?.contains(target)) {
-      hide()
-    }
-  }
-}
-
 async function loadProjectData() {
   await Promise.all([loadConversations(), loadStages(), loadUsers()])
 }
@@ -261,11 +236,6 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function selectStatusFilter(value: typeof statusFilter.value) {
-  statusFilter.value = value
-  showStatusDropdown.value = false
-}
-
 async function refreshData() {
   await loadProjectData()
 }
@@ -323,113 +293,77 @@ async function handleResumeConversation(conversation: ConversationResponse) {
         <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
         <!-- Status Filter -->
-        <div class="relative">
+        <FilterDropdown :label="currentStatusFilterLabel" :active="statusFilter !== 'all'">
           <button
-            @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button filter-btn shadow-none!"
+            v-for="option in statusFilterOptions"
+            :key="option.value"
+            @click="statusFilter = option.value"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
           >
-            <span>{{ currentStatusFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2" />
+            {{ option.label }}
           </button>
-          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-45">
-            <button
-              v-for="option in statusFilterOptions"
-              :key="option.value"
-              @click="selectStatusFilter(option.value)"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
+        </FilterDropdown>
 
         <!-- User Filter -->
-        <div class="relative">
+        <FilterDropdown :label="currentUserFilterLabel" :active="userFilter !== null">
           <button
-            @click="showUserDropdown = !showUserDropdown"
-            class="user-filter-button filter-btn shadow-none!"
+            @click="userFilter = null"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': userFilter === null }"
           >
-            <span class="max-w-40 truncate">{{ currentUserFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+            All Users
           </button>
-          <div v-if="showUserDropdown" class="user-filter-dropdown filter-dropdown-panel min-w-55 max-h-64 overflow-y-auto">
-            <button
-              @click="userFilter = null; showUserDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': userFilter === null }"
-            >
-              All Users
-            </button>
-            <button
-              v-for="user in userOptions"
-              :key="user.id"
-              @click="userFilter = user.id; showUserDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
-            >
-              {{ user.id }}
-            </button>
-          </div>
-        </div>
+          <button
+            v-for="user in userOptions"
+            :key="user.id"
+            @click="userFilter = user.id"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
+          >
+            {{ user.id }}
+          </button>
+        </FilterDropdown>
 
         <!-- Starting Stage Filter -->
-        <div class="relative">
+        <FilterDropdown :label="currentStartingStageLabel" :active="startingStageFilter !== null">
           <button
-            @click="showStartingStageDropdown = !showStartingStageDropdown"
-            class="starting-stage-button filter-btn shadow-none!"
+            @click="startingStageFilter = null"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
           >
-            <span class="max-w-40 truncate">{{ currentStartingStageLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+            All Starting Stages
           </button>
-          <div v-if="showStartingStageDropdown" class="starting-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
-            <button
-              @click="startingStageFilter = null; showStartingStageDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
-            >
-              All Starting Stages
-            </button>
-            <button
-              v-for="stage in stageOptions"
-              :key="stage.id"
-              @click="startingStageFilter = stage.id; showStartingStageDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
-            >
-              {{ stage.name }}
-            </button>
-          </div>
-        </div>
+          <button
+            v-for="stage in stageOptions"
+            :key="stage.id"
+            @click="startingStageFilter = stage.id"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
+          >
+            {{ stage.name }}
+          </button>
+        </FilterDropdown>
 
         <!-- Ending Stage Filter -->
-        <div class="relative">
+        <FilterDropdown :label="currentEndingStageLabel" :active="endingStageFilter !== null">
           <button
-            @click="showEndingStageDropdown = !showEndingStageDropdown"
-            class="ending-stage-button filter-btn shadow-none!"
+            @click="endingStageFilter = null"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
           >
-            <span class="max-w-40 truncate">{{ currentEndingStageLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+            All Ending Stages
           </button>
-          <div v-if="showEndingStageDropdown" class="ending-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
-            <button
-              @click="endingStageFilter = null; showEndingStageDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
-            >
-              All Ending Stages
-            </button>
-            <button
-              v-for="stage in stageOptions"
-              :key="stage.id"
-              @click="endingStageFilter = stage.id; showEndingStageDropdown = false"
-              class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
-            >
-              {{ stage.name }}
-            </button>
-          </div>
-        </div>
+          <button
+            v-for="stage in stageOptions"
+            :key="stage.id"
+            @click="endingStageFilter = stage.id"
+            class="filter-dropdown-item"
+            :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
+          >
+            {{ stage.name }}
+          </button>
+        </FilterDropdown>
       </div>
 
       <!-- Loading State -->
