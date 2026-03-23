@@ -100,6 +100,12 @@ const baseVariableCompletions: Completion[] = [
   },
   { label: 'stage.metadata', type: 'property', detail: 'Custom stage metadata' },
 
+  // Project context
+  { label: 'project', type: 'variable', detail: 'Project-level settings (object)' },
+  { label: 'project.timezone', type: 'property', detail: 'IANA timezone configured on the project — string | null' },
+  { label: 'project.languageCode', type: 'property', detail: 'ISO language code configured on the project — e.g. "en-US" | null' },
+  { label: 'project.language', type: 'property', detail: 'Human-readable language name — e.g. "American English" | null' },
+
   // Time context
   { label: 'time', type: 'variable', detail: 'Current date/time context (timezone-aware)' },
   { label: 'time.anchor', type: 'property', detail: 'Pre-formatted LLM grounding sentence' },

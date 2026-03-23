@@ -152,6 +152,22 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
+  async function fetchCategoryAuditLogs(projectId: string, id: string) {
+    try {
+      return await (apiClient as any).projectsKnowledgeCategoriesAuditLogsList(projectId, id)
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  async function fetchItemAuditLogs(projectId: string, id: string) {
+    try {
+      return await (apiClient as any).projectsKnowledgeItemsAuditLogsList(projectId, id)
+    } catch (err: any) {
+      throw err
+    }
+  }
+
   return {
     categories,
     isLoading,
@@ -164,5 +180,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     createItem,
     updateItem,
     deleteItem,
+    fetchCategoryAuditLogs,
+    fetchItemAuditLogs,
   }
 })

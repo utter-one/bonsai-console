@@ -13,7 +13,6 @@
 import {
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
-  AsrConfig,
   AsrModelInfo,
   AssemblyAiAsrSettings,
   AzureAsrSettings,
@@ -22,6 +21,7 @@ import {
   AzureTtsSettings,
   CartesiaTtsSettings,
   ConversationTimelineResponse,
+  CreateToolRequest,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   Effect,
@@ -49,12 +49,13 @@ import {
   OpenAILlmSettings,
   OpenAiTtsSettings,
   ParameterValue,
+  ProjectExchangeBundleV1,
+  ProjectExchangeImportResult,
   S3StorageConfig,
   S3StorageSettings,
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
-  StorageConfig,
   ToolParameter,
   TtsModelInfo,
   VoiceInfo,
@@ -708,7 +709,7 @@ export class Api<
        */
       name: string;
       /** A description of the project */
-      description?: string;
+      description?: string | null;
       /** Optional ASR configuration settings */
       asrConfig?: {
         /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -760,7 +761,9 @@ export class Api<
       /** Additional metadata for the project */
       metadata?: Record<string, any>;
       /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-      timezone?: string;
+      timezone?: string | null;
+      /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
+      languageCode?: string | null;
       /**
        * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
        * @default false
@@ -835,6 +838,8 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+        languageCode: string | null;
         /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
@@ -975,6 +980,8 @@ export class Api<
           metadata: Record<string, any>;
           /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
           timezone: string | null;
+          /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+          languageCode: string | null;
           /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
           autoCreateUsers: boolean;
           /** Descriptors defining the data schema for user profile variables in this project */
@@ -1079,6 +1086,8 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+        languageCode: string | null;
         /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
@@ -1134,15 +1143,38 @@ export class Api<
        */
       name?: string;
       /** The updated description of the project */
-      description?: string;
+      description?: string | null;
       /** Updated ASR configuration settings */
-      asrConfig?: AsrConfig;
+      asrConfig?: {
+        /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
+        asrProviderId?: string;
+        /** ASR-specific settings including model, language preferences, etc. */
+        settings?:
+          | AzureAsrSettings
+          | ElevenLabsAsrSettings
+          | DeepgramAsrSettings
+          | AssemblyAiAsrSettings
+          | SpeechmaticsAsrSettings;
+        /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+        unintelligiblePlaceholder?: string;
+        /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+        voiceActivityDetection?: boolean;
+      } | null;
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
       /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
       generateVoice?: boolean;
       /** Updated storage configuration settings */
-      storageConfig?: StorageConfig;
+      storageConfig?: {
+        /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+        storageProviderId?: string;
+        /** Storage-specific settings including bucket, prefix, etc. */
+        settings?:
+          | S3StorageSettings
+          | AzureBlobStorageSettings
+          | GcsStorageSettings
+          | LocalStorageSettings;
+      } | null;
       /** Updated content moderation configuration */
       moderationConfig?: {
         /** Whether content moderation is enabled for this project */
@@ -1151,13 +1183,15 @@ export class Api<
         llmProviderId: string;
         /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
         blockedCategories?: string[];
-      };
+      } | null;
       /** Updated constants key-value store */
       constants?: Record<string, ParameterValue>;
       /** Updated metadata for the project */
       metadata?: Record<string, any>;
-      /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-      timezone?: string;
+      /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set. */
+      timezone?: string | null;
+      /** ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear. */
+      languageCode?: string | null;
       /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
       autoCreateUsers?: boolean;
       /** Updated descriptors defining the data schema for user profile variables in this project */
@@ -1228,6 +1262,8 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+        languageCode: string | null;
         /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
@@ -1353,6 +1389,8 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+        languageCode: string | null;
         /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
@@ -1462,6 +1500,8 @@ export class Api<
         metadata: Record<string, any>;
         /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
         timezone: string | null;
+        /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+        languageCode: string | null;
         /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
         autoCreateUsers: boolean;
         /** Descriptors defining the data schema for user profile variables in this project */
@@ -1498,6 +1538,22 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific project
+   *
+   * @tags Projects
+   * @name ProjectsAuditLogsList
+   * @summary Get project audit logs
+   * @request GET:/api/projects/{id}/audit-logs
+   * @secure
+   */
+  projectsAuditLogsList = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/projects/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**
@@ -2749,6 +2805,10 @@ export class Api<
         clientId: string;
         /** Current stage identifier for the conversation */
         stageId: string;
+        /** Stage identifier at the start of the conversation */
+        startingStageId: string | null;
+        /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+        endingStageId: string | null;
         /** Variables stored per stage in the conversation */
         stageVars: Record<string, Record<string, any>>;
         /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -2857,6 +2917,10 @@ export class Api<
           clientId: string;
           /** Current stage identifier for the conversation */
           stageId: string;
+          /** Stage identifier at the start of the conversation */
+          startingStageId: string | null;
+          /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+          endingStageId: string | null;
           /** Variables stored per stage in the conversation */
           stageVars: Record<string, Record<string, any>>;
           /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -2983,6 +3047,12 @@ export class Api<
                 role: "user" | "assistant";
                 text: string;
                 originalText: string;
+                visibility?: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
                 metadata?: Record<string, any>;
               }
             | {
@@ -3011,48 +3081,23 @@ export class Api<
                 metadata?: Record<string, any>;
               }
             | {
-                command: string;
+                command:
+                  | "go_to_stage"
+                  | "set_var"
+                  | "get_var"
+                  | "get_all_vars"
+                  | "run_action"
+                  | "call_tool";
                 parameters?: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
               }
             | {
                 toolId: string;
                 toolName: string;
+                toolType?: "smart_function" | "webhook" | "script";
                 parameters: Record<string, ParameterValue>;
                 success: boolean;
-                result?: (
-                  | {
-                      contentType: "text";
-                      text: string;
-                    }
-                  | {
-                      contentType: "image";
-                      /** Base64-encoded image data */
-                      data: string;
-                      /** MIME type (e.g., image/png, image/jpeg) */
-                      mimeType: string;
-                      metadata?: {
-                        width?: number;
-                        height?: number;
-                        [key: string]: any;
-                      };
-                    }
-                  | {
-                      contentType: "audio";
-                      /** Base64-encoded audio data */
-                      data: string;
-                      /** Audio format */
-                      format: "pcm" | "mp3" | "wav" | "opus";
-                      /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                      mimeType: string;
-                      metadata?: {
-                        sampleRate?: number;
-                        channels?: number;
-                        bitDepth?: number;
-                        [key: string]: any;
-                      };
-                    }
-                )[];
+                result?: any;
                 error?: string;
                 metadata?: Record<string, any>;
               }
@@ -3182,6 +3227,12 @@ export class Api<
               role: "user" | "assistant";
               text: string;
               originalText: string;
+              visibility?: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
               metadata?: Record<string, any>;
             }
           | {
@@ -3210,48 +3261,23 @@ export class Api<
               metadata?: Record<string, any>;
             }
           | {
-              command: string;
+              command:
+                | "go_to_stage"
+                | "set_var"
+                | "get_var"
+                | "get_all_vars"
+                | "run_action"
+                | "call_tool";
               parameters?: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
             }
           | {
               toolId: string;
               toolName: string;
+              toolType?: "smart_function" | "webhook" | "script";
               parameters: Record<string, ParameterValue>;
               success: boolean;
-              result?: (
-                | {
-                    contentType: "text";
-                    text: string;
-                  }
-                | {
-                    contentType: "image";
-                    /** Base64-encoded image data */
-                    data: string;
-                    /** MIME type (e.g., image/png, image/jpeg) */
-                    mimeType: string;
-                    metadata?: {
-                      width?: number;
-                      height?: number;
-                      [key: string]: any;
-                    };
-                  }
-                | {
-                    contentType: "audio";
-                    /** Base64-encoded audio data */
-                    data: string;
-                    /** Audio format */
-                    format: "pcm" | "mp3" | "wav" | "opus";
-                    /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                    mimeType: string;
-                    metadata?: {
-                      sampleRate?: number;
-                      channels?: number;
-                      bitDepth?: number;
-                      [key: string]: any;
-                    };
-                  }
-              )[];
+              result?: any;
               error?: string;
               metadata?: Record<string, any>;
             }
@@ -4177,6 +4203,46 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves audit logs for a specific knowledge category
+   *
+   * @tags Knowledge
+   * @name ProjectsKnowledgeCategoriesAuditLogsList
+   * @summary Get knowledge category audit logs
+   * @request GET:/api/projects/{projectId}/knowledge/categories/{id}/audit-logs
+   * @secure
+   */
+  projectsKnowledgeCategoriesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/knowledge/categories/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific knowledge item
+   *
+   * @tags Knowledge
+   * @name ProjectsKnowledgeItemsAuditLogsList
+   * @summary Get knowledge item audit logs
+   * @request GET:/api/projects/{projectId}/knowledge/items/{id}/audit-logs
+   * @secure
+   */
+  projectsKnowledgeItemsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/knowledge/items/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
    * @description Creates a new AI agent with specified characteristics and voice configuration
    *
    * @tags Agents
@@ -4482,14 +4548,14 @@ export class Api<
        */
       name?: string;
       /** Updated detailed description of the agent */
-      description?: string;
+      description?: string | null;
       /**
        * Updated prompt defining behavior
        * @minLength 1
        */
       prompt?: string;
       /** Updated TTS provider ID */
-      ttsProviderId?: string;
+      ttsProviderId?: string | null;
       /** Updated TTS provider-specific settings */
       ttsSettings?:
         | ElevenLabsTtsSettings
@@ -4503,7 +4569,21 @@ export class Api<
       /** Updated metadata */
       metadata?: Record<string, any>;
       /** Updated filler response settings */
-      fillerSettings?: FillerSettings;
+      fillerSettings?: {
+        /** ID of the LLM provider used to generate the filler sentence */
+        llmProviderId: string;
+        /** LLM provider-specific settings for filler generation */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
+        /**
+         * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
+         * @minLength 1
+         */
+        prompt: string;
+      } | null;
       /**
        * Current version number for optimistic locking
        * @min 1
@@ -5220,7 +5300,7 @@ export class Api<
        */
       name?: string;
       /** Updated description of provider purpose */
-      description?: string;
+      description?: string | null;
       /** Updated provider category */
       providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
       /** Updated specific provider implementation */
@@ -5296,7 +5376,7 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig;
       /** Updated searchable tags */
-      tags?: string[];
+      tags?: string[] | null;
     },
     params: RequestParams = {},
   ) =>
@@ -7514,7 +7594,7 @@ export class Api<
       /** Event index in session */
       eventIndex?: number;
       /** User ID who reported the issue */
-      userId?: string;
+      userId?: string | null;
       /**
        * Issue severity level
        * @minLength 1
@@ -8021,7 +8101,7 @@ export class Api<
        */
       name?: string;
       /** Updated detailed description of the stage */
-      description?: string;
+      description?: string | null;
       /**
        * Updated system prompt
        * @minLength 1
@@ -8293,49 +8373,7 @@ export class Api<
    */
   projectsToolsCreate = (
     projectId: string,
-    data: {
-      /**
-       * Unique identifier for the tool (auto-generated if not provided)
-       * @minLength 1
-       */
-      id?: string;
-      /**
-       * Display name of the tool
-       * @minLength 1
-       */
-      name: string;
-      /** Detailed description of the tool's purpose and behavior */
-      description?: string | null;
-      /**
-       * Handlebars template for tool invocation
-       * @minLength 1
-       */
-      prompt: string;
-      /** ID of the LLM provider to use for this tool */
-      llmProviderId?: string | null;
-      /** LLM provider-specific settings for this tool */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
-      /** Expected input format for the tool */
-      inputType: "text" | "image" | "multi-modal";
-      /** Expected output format from the tool */
-      outputType: "text" | "image" | "multi-modal";
-      /**
-       * Parameters that this tool expects to receive
-       * @default []
-       */
-      parameters?: ToolParameter[];
-      /**
-       * Tags for categorizing and filtering this tool
-       * @default []
-       */
-      tags?: string[];
-      /** Additional tool-specific metadata */
-      metadata?: Record<string, any>;
-    },
+    data: CreateToolRequest,
     params: RequestParams = {},
   ) =>
     this.request<
@@ -8348,20 +8386,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8450,20 +8500,32 @@ export class Api<
           name: string;
           /** Detailed description of the tool */
           description: string | null;
-          /** Handlebars template for tool invocation */
-          prompt: string;
-          /** ID of the LLM provider */
+          /** Tool execution type */
+          type: "smart_function" | "webhook" | "script";
+          /** Handlebars prompt template (smart_function only) */
+          prompt: string | null;
+          /** ID of the LLM provider (smart_function only) */
           llmProviderId: string | null;
-          /** LLM provider-specific settings */
+          /** LLM provider-specific settings (smart_function only) */
           llmSettings?:
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings;
-          /** Expected input format */
-          inputType: "text" | "image" | "multi-modal";
-          /** Expected output format */
-          outputType: "text" | "image" | "multi-modal";
+          /** Expected input format (smart_function only) */
+          inputType: "text" | "image" | "multi-modal" | null;
+          /** Expected output format (smart_function only) */
+          outputType: "text" | "image" | "multi-modal" | null;
+          /** Target URL (webhook only) */
+          url: string | null;
+          /** HTTP method (webhook only) */
+          webhookMethod: string | null;
+          /** HTTP headers (webhook only) */
+          webhookHeaders: Record<string, string>;
+          /** Request body template (webhook only) */
+          webhookBody: string | null;
+          /** JavaScript code (script only) */
+          code: string | null;
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
           /** Tags for categorizing and filtering this tool */
@@ -8537,20 +8599,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8601,22 +8675,38 @@ export class Api<
       /** Updated description */
       description?: string | null;
       /**
-       * Updated tool prompt template
+       * Updated Handlebars prompt template (smart_function)
        * @minLength 1
        */
       prompt?: string;
-      /** Updated LLM provider ID */
+      /** Updated LLM provider ID (smart_function) */
       llmProviderId?: string | null;
-      /** Updated LLM provider-specific settings */
+      /** Updated LLM provider-specific settings (smart_function) */
       llmSettings?:
         | OpenAILlmSettings
         | OpenAILegacyLlmSettings
         | AnthropicLlmSettings
         | GeminiLlmSettings;
-      /** Updated input format */
+      /** Updated input format (smart_function) */
       inputType?: "text" | "image" | "multi-modal";
-      /** Updated output format */
+      /** Updated output format (smart_function) */
       outputType?: "text" | "image" | "multi-modal";
+      /**
+       * Updated target URL (webhook)
+       * @format uri
+       */
+      url?: string;
+      /** Updated HTTP method (webhook) */
+      webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+      /** Updated HTTP headers (webhook) */
+      webhookHeaders?: Record<string, string>;
+      /** Updated request body template (webhook) */
+      webhookBody?: string | null;
+      /**
+       * Updated JavaScript code (script)
+       * @minLength 1
+       */
+      code?: string;
       /** Updated parameters for the tool */
       parameters?: ToolParameter[];
       /** Updated tags */
@@ -8641,20 +8731,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -8771,20 +8873,32 @@ export class Api<
         name: string;
         /** Detailed description of the tool */
         description: string | null;
-        /** Handlebars template for tool invocation */
-        prompt: string;
-        /** ID of the LLM provider */
+        /** Tool execution type */
+        type: "smart_function" | "webhook" | "script";
+        /** Handlebars prompt template (smart_function only) */
+        prompt: string | null;
+        /** ID of the LLM provider (smart_function only) */
         llmProviderId: string | null;
-        /** LLM provider-specific settings */
+        /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings;
-        /** Expected input format */
-        inputType: "text" | "image" | "multi-modal";
-        /** Expected output format */
-        outputType: "text" | "image" | "multi-modal";
+        /** Expected input format (smart_function only) */
+        inputType: "text" | "image" | "multi-modal" | null;
+        /** Expected output format (smart_function only) */
+        outputType: "text" | "image" | "multi-modal" | null;
+        /** Target URL (webhook only) */
+        url: string | null;
+        /** HTTP method (webhook only) */
+        webhookMethod: string | null;
+        /** HTTP headers (webhook only) */
+        webhookHeaders: Record<string, string>;
+        /** Request body template (webhook only) */
+        webhookBody: string | null;
+        /** JavaScript code (script only) */
+        code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -9469,6 +9583,26 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves audit logs for a specific API key
+   *
+   * @tags API Keys
+   * @name ProjectsApiKeysAuditLogsList
+   * @summary Get API key audit logs
+   * @request GET:/api/projects/{projectId}/api-keys/{id}/audit-logs
+   * @secure
+   */
+  projectsApiKeysAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/api-keys/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
    * @description Returns lightweight stubs (id + name) for every entity that would be included in an export with the given selection — same query params as GET /api/migration/export. Use this to review what will be migrated before committing to an actual pull. No data is written and the full entity records are never serialised.
    *
    * @tags Migration
@@ -9549,6 +9683,45 @@ export class Api<
       method: "GET",
       query: query,
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Produces a self-contained, provider-agnostic exchange bundle for the specified project. All child entities (agents, stages, classifiers, context transformers, tools, global actions, guardrails, knowledge base) are included. Provider UUID references are replaced by provider hints (`type` + `apiType`) so the bundle can be imported into any environment. Credentials are never included. Entity IDs in the bundle are preserved as local cross-references and remapped to fresh UUIDs on import.
+   *
+   * @tags Projects
+   * @name ProjectsExportList
+   * @summary Export a project as an exchange bundle
+   * @request GET:/api/projects/{id}/export
+   * @secure
+   */
+  projectsExportList = (id: string, params: RequestParams = {}) =>
+    this.request<ProjectExchangeBundleV1, void>({
+      path: `/api/projects/${id}/export`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Imports a project from a provider-agnostic exchange bundle. All entity IDs are remapped to fresh UUIDs so repeated imports never overwrite existing data. Provider hints are resolved to local provider IDs by matching `type` + `apiType` (first match wins). If no matching local provider is found for a hint, the corresponding provider field is set to null. Returns the newly assigned project ID and a count of created entities.
+   *
+   * @tags Projects
+   * @name ProjectsImportCreate
+   * @summary Import a project from an exchange bundle
+   * @request POST:/api/projects/import
+   * @secure
+   */
+  projectsImportCreate = (
+    data: ProjectExchangeBundleV1,
+    params: RequestParams = {},
+  ) =>
+    this.request<ProjectExchangeImportResult, void>({
+      path: `/api/projects/import`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });

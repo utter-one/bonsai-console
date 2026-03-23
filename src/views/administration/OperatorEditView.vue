@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { OperatorResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,7 +17,7 @@ const adminsStore = useOperatorsStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'roles' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'roles' | 'metadata' | 'history'>('basic')
 const form = ref({
   id: '',
   name: '',
@@ -232,6 +233,14 @@ const metadataFields = computed(() => {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
       </nav>
     </div>
 
@@ -359,7 +368,22 @@ const metadataFields = computed(() => {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-        </form>
+        <div class="tab-content">
+            <!-- History Tab -->
+            <EntityHistoryView
+              v-if="isEditMode && currentOperator"
+              v-show="activeTab === 'history'"
+              :load-history="() => adminsStore.fetchAuditLogs(currentOperator!.id)"
+              :current-version="currentOperator.version"
+              :current-object="currentOperator"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => adminsStore.update(currentOperator!.id, data)"
+              :create-fn="(data) => adminsStore.create(data)"
+              :ignore-fields="['createdAt', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
+          </form>
       </div>
     </div>
   </div>

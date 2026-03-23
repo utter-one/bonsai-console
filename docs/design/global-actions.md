@@ -57,7 +57,7 @@ If an action hasn't been set up for the project yet, clicking it shows a **Not C
 
 The **Moderation Blocked** action runs when the moderation system flags a user's message. Use it to define how the assistant responds when a message is blocked — for example, generating a polite refusal or ending the conversation.
 
-Content moderation is configured separately in **Design > Guardrails & Moderation** under the **Moderation** tab. See [Moderation](./moderation) for details.
+Content moderation is configured separately in **Design > Guardrails** under the **Moderation** tab. See [Moderation](./moderation) for details.
 
 ### Conversation Lifecycle Actions
 

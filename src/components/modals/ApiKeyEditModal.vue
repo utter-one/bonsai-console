@@ -1,12 +1,20 @@
 <template>
   <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content-lg" @click.stop>
       <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
       
+      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+        <nav class="tabs-nav">
+          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
+          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
+        </nav>
+      </div>
+
+      <div v-show="!apiKey || activeTab === 'details'">
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This API key is read-only because its project is archived.
       </div>
-      <div v-if="showNewKeyAlert && newKeyValue" class="alert-success">
+      <div v-if="showNewKeyAlert && newKeyValue" class="alert-success mb-4">
         <div class="flex items-start gap-3">
           <svg class="w-5 h-5 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
@@ -71,7 +79,7 @@
           <p class="form-hint">Inactive keys cannot be used for authentication</p>
         </div>
 
-        <div v-if="apiKey" class="card-info">
+        <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
           <div class="text-sm space-y-1">
             <div class="flex justify-between">
               <span class="text-gray-600 dark:text-gray-400">Created:</span>
@@ -94,6 +102,24 @@
           </button>
         </div>
       </form>
+      </div>
+
+      <div v-if="apiKey" v-show="activeTab === 'history'">
+        <EntityHistoryView
+          v-if="loadHistory"
+          :load-history="loadHistory"
+          :current-object="apiKey"
+          :current-version="apiKey.version"
+          :active="activeTab === 'history'"
+          :update-fn="updateFn"
+          :create-fn="createFn"
+          :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
+          @recover-success="emit('recoverSuccess')"
+        />
+        <div class="modal-footer">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -102,11 +128,15 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import { useProjectsStore } from '@/stores/projects'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 const props = defineProps<{
   apiKey: ApiKeyResponse | null
   projectId: string
   isReadOnly?: boolean
+  loadHistory?: () => Promise<any>
+  updateFn?: (data: any) => Promise<any>
+  createFn?: (data: any) => Promise<any>
 }>()
 
 const emit = defineEmits<{
@@ -114,6 +144,7 @@ const emit = defineEmits<{
   (e: 'save', data: CreateApiKeyRequest | UpdateApiKeyRequest): void
   (e: 'created', key: string): void
   (e: 'project-selected', projectId: string): void
+  (e: 'recoverSuccess'): void
 }>()
 
 const form = ref({
@@ -134,6 +165,11 @@ const projectOptions = computed(() =>
 const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
+const activeTab = ref<'details' | 'history'>('details')
+
+watch(() => props.apiKey, () => {
+  activeTab.value = 'details'
+})
 
 watch(
   () => form.value.projectId,
@@ -211,31 +247,3 @@ async function copyToClipboard() {
   }
 }
 </script>
-
-<style scoped>
-.required {
-  color: #ef4444;
-}
-
-.card-info {
-  background: rgb(55 65 81 / 0.5);
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 16px;
-}
-
-.form-hint {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 4px;
-}
-
-.alert-success {
-  background-color: rgb(6 78 59 / 0.2);
-  border: 1px solid #10b981;
-  color: #10b981;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-</style>

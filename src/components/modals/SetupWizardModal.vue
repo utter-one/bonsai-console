@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProvidersStore, useProjectsStore, useProjectSelectionStore } from '@/stores'
+import { useProvidersStore, useProjectsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
 import {
   Brain,
   Mic,
@@ -249,6 +249,8 @@ async function submitProvider(type: ProviderType) {
 
 const hasLlmProvider = computed(() => addedProviders.value.some(p => p.providerType === 'llm'))
 
+const apiKeysStore = useApiKeysStore()
+
 // Project form
 const projectForm = ref({ name: '', description: '' })
 const projectError = ref<string | null>(null)
@@ -266,14 +268,26 @@ async function submitProject() {
   try {
     const newProject = await projectsStore.create({
       name: projectForm.value.name.trim(),
-      description: projectForm.value.description.trim() || undefined,
+      description: projectForm.value.description.trim() || null,
+      acceptVoice: false,
+      generateVoice: false,
+      metadata: {},
     })
     projectSelectionStore.setSelectedProjectId(newProject.id)
     projectCreated.value = true
     emit('projectCreated')
+    try {
+      await apiKeysStore.create(newProject.id, {
+        name: 'Playground',
+        metadata: { autoCreated: true, createdDuring: 'projectCreation' },
+      })
+    } catch {
+      // Don't fail project creation if API key creation fails
+    }
     currentStep.value = 'done'
   } catch (err: any) {
-    projectError.value = err.response?.data?.message || 'Failed to create project'
+    const data = err.response?.data
+    projectError.value = data?.message || data?.error || (typeof data === 'string' ? data : null) || 'Failed to create project'
   } finally {
     isCreatingProject.value = false
   }
@@ -291,8 +305,8 @@ function navigateAndDismiss(name: string) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="dismiss">
-    <div class="modal-content max-w-2xl w-full max-h-[90vh] flex flex-col">
+  <div class="modal-overlay">
+    <div class="modal-content-lg max-w-2xl w-full max-h-[90vh] flex flex-col">
 
       <!-- Header -->
       <div class="modal-header flex items-center justify-between">

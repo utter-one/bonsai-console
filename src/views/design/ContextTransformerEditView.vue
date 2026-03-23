@@ -6,8 +6,10 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
 import type { ContextTransformerResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 
@@ -22,7 +24,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
@@ -286,6 +288,14 @@ const metadataFields = computed(() => {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
       </nav>
     </div>
 
@@ -410,6 +420,7 @@ const metadataFields = computed(() => {
                   <Settings class="inline-block mr-1 w-4 h-4" />
                   Settings...
                 </button>
+                <LLMModelBadge :settings="form.llmSettings" />
               </div>
               <p class="form-help-text">
                 The LLM provider to use for this transformer.
@@ -440,6 +451,21 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+          <div class="tab-content">
+            <!-- History Tab -->
+            <EntityHistoryView
+              v-if="isEditMode && currentTransformer"
+              v-show="activeTab === 'history'"
+              :load-history="() => transformersStore.fetchAuditLogs(projectId, currentTransformer!.id)"
+              :current-version="currentTransformer.version"
+              :current-object="currentTransformer"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => transformersStore.update(projectId, currentTransformer!.id, data)"
+              :create-fn="(data) => transformersStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
           </fieldset>
         </form>
       </div>

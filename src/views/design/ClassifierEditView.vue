@@ -6,8 +6,10 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -21,7 +23,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
@@ -285,10 +287,16 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
       </nav>
     </div>
-
-    <!-- Loading State -->
     <div v-if="isLoading && isEditMode" class="loading-state">
       Loading classifier...
     </div>
@@ -373,6 +381,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
                 <Settings class="inline-block mr-1 w-4 h-4" />
                 Settings...
               </button>
+              <LLMModelBadge :settings="form.llmSettings" />
             </div>
             <p class="form-help-text">
               The LLM provider to use for this classifier.
@@ -402,6 +411,19 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
           v-if="isEditMode && currentClassifier"
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
+        />
+        <!-- History Tab -->
+        <EntityHistoryView
+          v-if="isEditMode && currentClassifier"
+          v-show="activeTab === 'history'"
+          :load-history="() => classifiersStore.fetchAuditLogs(projectId, currentClassifier!.id)"
+          :current-version="currentClassifier.version"
+          :current-object="currentClassifier"
+          :active="activeTab === 'history'"
+          :update-fn="(data) => classifiersStore.update(projectId, currentClassifier!.id, data)"
+          :create-fn="(data) => classifiersStore.create(projectId, data)"
+          :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+          @recover-success="() => router.go(0)"
         />
         </fieldset>
         </form>

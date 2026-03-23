@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter, HelpCircle } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter, HelpCircle, FolderOpen } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -92,6 +92,7 @@ const contextVariables: ToolbarVariable[] = [
   { label: 'stage', path: 'stage', isArray: false, detail: 'object' },
   { label: 'time', path: 'time', isArray: false, detail: 'object' },
   { label: 'time.calendar', path: 'time.calendar', isArray: true, detail: 'array' },
+  { label: 'project', path: 'project', isArray: false, detail: 'object' },
 ]
 
 const defaultUserProfileFields = [
@@ -141,6 +142,12 @@ const timeFields = [
   { key: 'nextSaturday', detail: 'Date of next or current Saturday' },
   { key: 'nextSunday', detail: 'Date of next or current Sunday' },
   { key: 'calendar', detail: 'Array of next 14 days' },
+]
+
+const projectFields = [
+  { key: 'timezone', detail: 'IANA timezone configured on the project — string | null' },
+  { key: 'languageCode', detail: 'ISO language code — e.g. "en-US" | null' },
+  { key: 'language', detail: 'Human-readable language name — e.g. "American English" | null' },
 ]
 
 const flattenedStageVariables = computed<ToolbarVariable[]>(() =>
@@ -703,6 +710,33 @@ watch(
             @click.stop="insertVariable(`time.${f.key}`)"
           >
             <span class="font-mono text-blue-600 dark:text-blue-400">time.{{ f.key }}</span>
+            <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Insert project field -->
+      <div class="relative">
+        <button
+          type="button"
+          :disabled="disabled"
+          class="toolbar-btn"
+          title="Insert project field"
+          @click.stop="toggleDropdown('project')"
+        >
+          <FolderOpen :size="13" />
+          <span>Project</span>
+          <ChevronDown :size="11" />
+        </button>
+        <div v-if="openDropdown === 'project'" class="toolbar-dropdown">
+          <button
+            v-for="f in projectFields"
+            :key="f.key"
+            type="button"
+            class="toolbar-dropdown-item"
+            @click.stop="insertVariable(`project.${f.key}`)"
+          >
+            <span class="font-mono text-blue-600 dark:text-blue-400">project.{{ f.key }}</span>
             <span class="text-gray-400 dark:text-gray-500 ml-auto pl-3 flex-shrink-0">{{ f.detail }}</span>
           </button>
         </div>

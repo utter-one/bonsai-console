@@ -79,11 +79,11 @@ Switch to each stage's **Actions** tab and define what happens when the user spe
 | Pattern | When to Use |
 |---|---|
 | `Go to stage` | Conversation needs to move to a new phase |
-| `Call webhook` → `Run script` | Fetch external data, then process or branch based on the result |
+| `Call tool` (Webhook) → `Call tool` (Script) | Fetch external data, then process or branch based on the result |
 | `Modify variables` → `Generate response` | Update state, then let the AI respond with awareness of new data |
 | `Generate response` (prescripted) | Exact wording matters (legal disclaimers, confirmation messages) |
 | `Generate response` (generated) | Flexible, context-aware response |
-| `Run script` with `goToStage()` | Dynamic routing based on complex logic |
+| `Call tool` (Script) with `goToStage()` | Dynamic routing based on complex logic |
 | `End conversation` | Graceful ending (AI says goodbye first) |
 | `Abort conversation` | Immediate termination (no AI response) |
 
@@ -159,7 +159,7 @@ See [Global Actions](../design/global-actions) for full reference.
 
 ## 9. Configure Guardrails (Optional)
 
-Go to **Design > Guardrails & Moderation** to set up project-wide safety rules.
+Go to **Design > Guardrails** to set up project-wide safety rules.
 
 1. Select a **Guardrails Classifier** — the classifier used to evaluate all guardrails on every user turn. Train it with labels matching your guardrails' triggers.
 2. Click **New Guardrail** to define a rule — give it a classification trigger, set effects (e.g., generate a refusal), and optionally add a condition.
@@ -179,7 +179,7 @@ See [Global Memory](../design/global-memory) for details.
 
 ## 11. Configure Moderation (Optional)
 
-Go to **Design > Guardrails & Moderation** to enable content safety screening.
+Go to **Design > Guardrails** to enable content safety screening.
 
 1. Toggle **Enable content moderation**.
 2. Select a compatible provider (OpenAI or Mistral).
@@ -208,12 +208,12 @@ The prompt editor supports syntax highlighting and auto-completion for template 
 
 ## 13. Scripting Tips
 
-When you add **Run Script** effects, keep these guidelines in mind:
+When you add **Script tools**, keep these guidelines in mind:
 
-- Scripts run JavaScript in a sandbox — no network or filesystem access. External calls go through **Call Webhook** effects.
+- Scripts run JavaScript in a sandbox — no network or filesystem access. External calls go through **Webhook tools** (invoked via the Call Tool effect).
 - Flow control functions (`goToStage`, `endConversation`, etc.) are queued and execute after the script completes. Only the last call of each type takes effect.
 - Mutate `vars` and `userProfile` directly — changes persist automatically.
-- Keep scripts short. Complex logic is better handled by an external service via webhooks.
+- Keep scripts short. Complex logic is better handled by an external service via a Webhook tool.
 
 See [Scripting](./scripting) for the full scripting reference.
 

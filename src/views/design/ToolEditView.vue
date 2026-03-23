@@ -3,11 +3,14 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check } from 'lucide-vue-next'
+import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
+import JavaScriptEditor from '@/components/JavaScriptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -20,18 +23,28 @@ const projectSelectionStore = useProjectSelectionStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'parameters' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'config' | 'parameters' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
   name: '',
   description: '',
+  type: 'smart_function' as 'smart_function' | 'webhook' | 'script',
   tags: [] as string[],
+  // smart_function fields
   prompt: '',
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
-  inputType: '',
-  outputType: '',
+  inputType: '' as 'text' | 'image' | 'multi-modal' | '',
+  outputType: '' as 'text' | 'image' | 'multi-modal' | '',
+  // webhook fields
+  url: '',
+  webhookMethod: 'POST' as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  webhookHeaderPairs: [] as { key: string; value: string }[],
+  webhookBody: '',
+  // script fields
+  code: '',
+  // common
   parameters: [] as ToolParameter[],
   metadata: {}
 })
@@ -48,6 +61,13 @@ const isReadOnly = computed(() => projectIsArchived.value || !!currentTool.value
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
 )
+
+const configTabLabel = computed(() => {
+  const type = isEditMode.value ? currentTool.value?.type : form.value.type
+  if (type === 'webhook') return 'Webhook'
+  if (type === 'script') return 'Script'
+  return 'Prompt'
+})
 
 // Lifecycle
 onMounted(async () => {
@@ -73,12 +93,18 @@ async function loadTool() {
         id: currentTool.value.id,
         name: currentTool.value.name,
         description: currentTool.value.description || '',
+        type: currentTool.value.type,
         tags: currentTool.value.tags || [],
-        prompt: currentTool.value.prompt,
+        prompt: currentTool.value.prompt || '',
         llmProviderId: currentTool.value.llmProviderId || '',
         llmSettings: currentTool.value.llmSettings || null,
-        inputType: currentTool.value.inputType,
-        outputType: currentTool.value.outputType,
+        inputType: currentTool.value.inputType || '',
+        outputType: currentTool.value.outputType || '',
+        url: currentTool.value.url || '',
+        webhookMethod: (currentTool.value.webhookMethod as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') || 'POST',
+        webhookHeaderPairs: recordToHeaderPairs(currentTool.value.webhookHeaders),
+        webhookBody: currentTool.value.webhookBody || '',
+        code: currentTool.value.code || '',
         parameters: currentTool.value.parameters || [],
         metadata: currentTool.value.metadata || {}
       }
@@ -97,48 +123,71 @@ async function handleSubmit() {
   try {
     if (isEditMode.value && currentTool.value) {
       // Update existing tool
-      const updated = await toolsStore.update(projectId.value, currentTool.value.id, {
+      const updateData: any = {
         version: currentTool.value.version,
         name: form.value.name,
         description: form.value.description || null,
         tags: form.value.tags,
-        prompt: form.value.prompt,
-        llmProviderId: form.value.llmProviderId,
-        llmSettings: form.value.llmSettings || undefined,
-        inputType: form.value.inputType as "text" | "image" | "multi-modal" | undefined,
-        outputType: form.value.outputType as "text" | "image" | "multi-modal" | undefined,
         parameters: form.value.parameters,
         metadata: form.value.metadata
-      })
+      }
+
+      if (currentTool.value.type === 'smart_function') {
+        updateData.prompt = form.value.prompt
+        updateData.llmProviderId = form.value.llmProviderId || null
+        updateData.llmSettings = form.value.llmSettings || undefined
+        updateData.inputType = form.value.inputType as 'text' | 'image' | 'multi-modal' | undefined
+        updateData.outputType = form.value.outputType as 'text' | 'image' | 'multi-modal' | undefined
+      } else if (currentTool.value.type === 'webhook') {
+        updateData.url = form.value.url
+        updateData.webhookMethod = form.value.webhookMethod
+        updateData.webhookHeaders = headerPairsToRecord(form.value.webhookHeaderPairs)
+        updateData.webhookBody = form.value.webhookBody || null
+      } else if (currentTool.value.type === 'script') {
+        updateData.code = form.value.code
+      }
+
+      const updated = await toolsStore.update(projectId.value, currentTool.value.id, updateData)
       
       // Update currentTool with the response to get the new version
       currentTool.value = updated
     } else {
-      // Create new tool
-      const createData: any = {
+      // Create new tool — discriminated union on type
+      const common: any = {
         name: form.value.name,
-        prompt: form.value.prompt,
-        llmProviderId: form.value.llmProviderId,
-        llmSettings: form.value.llmSettings,
-        inputType: form.value.inputType,
-        outputType: form.value.outputType,
         parameters: form.value.parameters,
         metadata: form.value.metadata
       }
+      if (form.value.id) common.id = form.value.id
+      if (form.value.description) common.description = form.value.description
+      if (form.value.tags.length > 0) common.tags = form.value.tags
 
-      // Only include id if it's provided
-      if (form.value.id) {
-        createData.id = form.value.id
-      }
-
-      // Only include description if it's not empty
-      if (form.value.description) {
-        createData.description = form.value.description
-      }
-
-      // Only include tags if not empty
-      if (form.value.tags.length > 0) {
-        createData.tags = form.value.tags
+      let createData: any
+      if (form.value.type === 'smart_function') {
+        createData = {
+          ...common,
+          type: 'smart_function',
+          prompt: form.value.prompt,
+          llmProviderId: form.value.llmProviderId || null,
+          llmSettings: form.value.llmSettings || undefined,
+          inputType: (form.value.inputType || 'text') as 'text' | 'image' | 'multi-modal',
+          outputType: (form.value.outputType || 'text') as 'text' | 'image' | 'multi-modal'
+        }
+      } else if (form.value.type === 'webhook') {
+        createData = {
+          ...common,
+          type: 'webhook',
+          url: form.value.url,
+          webhookMethod: form.value.webhookMethod,
+          webhookHeaders: headerPairsToRecord(form.value.webhookHeaderPairs),
+          webhookBody: form.value.webhookBody || undefined
+        }
+      } else {
+        createData = {
+          ...common,
+          type: 'script',
+          code: form.value.code
+        }
       }
 
       const created = await toolsStore.create(projectId.value, createData)
@@ -172,6 +221,27 @@ function goBack() {
 function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
+}
+
+function recordToHeaderPairs(record: Record<string, string> | null | undefined): { key: string; value: string }[] {
+  if (!record) return []
+  return Object.entries(record).map(([key, value]) => ({ key, value }))
+}
+
+function headerPairsToRecord(pairs: { key: string; value: string }[]): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const pair of pairs) {
+    if (pair.key.trim()) result[pair.key.trim()] = pair.value
+  }
+  return result
+}
+
+function addHeader() {
+  form.value.webhookHeaderPairs.push({ key: '', value: '' })
+}
+
+function removeHeader(index: number) {
+  form.value.webhookHeaderPairs.splice(index, 1)
 }
 
 function addParameter() {
@@ -241,11 +311,11 @@ const metadataFields = computed(() => {
           General
         </button>
         <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
+          @click="activeTab = 'config'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'config' }]"
           type="button"
         >
-          Prompt
+          {{ configTabLabel }}
         </button>
         <button
           @click="activeTab = 'parameters'"
@@ -261,6 +331,14 @@ const metadataFields = computed(() => {
           type="button"
         >
           Metadata
+        </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
         </button>
       </nav>
     </div>
@@ -290,6 +368,72 @@ const metadataFields = computed(() => {
 
           <!-- General Tab -->
           <div v-show="activeTab === 'basic'" class="tab-content">
+            <!-- Type Selector (create) / Type Badge (edit) -->
+            <div class="form-group">
+              <label class="form-label">Tool Type <span v-if="!isEditMode" class="required">*</span></label>
+              <div v-if="!isEditMode" class="flex gap-2">
+                <button
+                  type="button"
+                  @click="form.type = 'smart_function'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.type === 'smart_function'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <Sparkles class="w-5 h-5" />
+                  Smart Function
+                </button>
+                <button
+                  type="button"
+                  @click="form.type = 'webhook'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.type === 'webhook'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <Globe class="w-5 h-5" />
+                  Webhook
+                </button>
+                <button
+                  type="button"
+                  @click="form.type = 'script'"
+                  :class="[
+                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    form.type === 'script'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                  ]"
+                  :disabled="isLoading"
+                >
+                  <Code2 class="w-5 h-5" />
+                  Script
+                </button>
+              </div>
+              <div v-else class="flex items-center gap-2">
+                <span
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium',
+                    currentTool?.type === 'smart_function' ? 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300' :
+                    currentTool?.type === 'webhook' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                  ]"
+                >
+                  <Sparkles v-if="currentTool?.type === 'smart_function'" class="w-3.5 h-3.5" />
+                  <Globe v-else-if="currentTool?.type === 'webhook'" class="w-3.5 h-3.5" />
+                  <Code2 v-else class="w-3.5 h-3.5" />
+                  {{ currentTool?.type === 'smart_function' ? 'Smart Function' : currentTool?.type === 'webhook' ? 'Webhook' : 'Script' }}
+                </span>
+                <span class="text-xs text-gray-500">Type cannot be changed after creation.</span>
+              </div>
+              <p v-if="!isEditMode" class="form-help-text">Select how this tool processes requests</p>
+            </div>
+
             <div class="form-group">
               <label class="form-label">
                 Tool ID <span class="text-gray-500">(optional)</span>
@@ -342,163 +486,254 @@ const metadataFields = computed(() => {
             </div>
 
             <TagsEditor v-model="form.tags" :disabled="isLoading" />
-
-            <div class="form-group">
-              <label class="form-label">
-                Input Type <span class="required">*</span>
-              </label>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  @click="form.inputType = 'text'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.inputType === 'text'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <FileText class="w-5 h-5" />
-                  Text
-                </button>
-                <button
-                  type="button"
-                  @click="form.inputType = 'image'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.inputType === 'image'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <ImageIcon class="w-5 h-5" />
-                  Image
-                </button>
-                <button
-                  type="button"
-                  @click="form.inputType = 'multi-modal'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.inputType === 'multi-modal'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <Layers class="w-5 h-5" />
-                  Multi-modal
-                </button>
-              </div>
-              <p class="form-help-text">
-                The expected data type for tool input
-              </p>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                Output Type <span class="required">*</span>
-              </label>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  @click="form.outputType = 'text'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.outputType === 'text'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <FileText class="w-5 h-5" />
-                  Text
-                </button>
-                <button
-                  type="button"
-                  @click="form.outputType = 'image'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.outputType === 'image'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <ImageIcon class="w-5 h-5" />
-                  Image
-                </button>
-                <button
-                  type="button"
-                  @click="form.outputType = 'multi-modal'"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                    form.outputType === 'multi-modal'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                  ]"
-                  :disabled="isLoading"
-                >
-                  <Layers class="w-5 h-5" />
-                  Multi-modal
-                </button>
-              </div>
-              <p class="form-help-text">
-                The expected data type for tool output
-              </p>
-            </div>
           </div>
 
-          <!-- Prompt Tab -->
-          <div v-show="activeTab === 'prompt'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">
-                LLM Provider <span class="required">*</span>
-              </label>
-              <div class="flex flex-col md:flex-row gap-2">
-                <select
-                  v-model="form.llmProviderId"
-                  required
-                  class="form-select-auto min-w-64"
-                  :disabled="isLoading"
-                >
-                  <option value="">Select an LLM provider</option>
-                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                    {{ provider.name }}
-                  </option>
-                </select>
-                <button
-                  type="button"
-                  @click="showLLMSettingsModal = true"
-                  class="btn-secondary whitespace-nowrap"
-                  :disabled="isLoading"
-                >
-                  <Settings class="inline-block mr-1 w-4 h-4" />
-                  Settings...
-                </button>
-              </div>
-              <p class="form-help-text">
-                The LLM provider to use for this tool
-              </p>
-            </div>
+          <!-- Config Tab (Prompt / Webhook / Script) -->
+          <div v-show="activeTab === 'config'" class="tab-content">
 
-            <div class="form-group">
-              <label class="form-label">
-                Tool Prompt <span class="required">*</span>
-              </label>
-              <PromptEditor
-                v-model="form.prompt"
-                :disabled="isLoading || isReadOnly"
-                show-toolbar
-                placeholder="You are a tool that analyzes data and provides insights..."
-                aria-label="Tool prompt"
-                min-height="28rem"
-              />
-              <p class="form-help-text">
-                The system prompt or instructions for this tool's operation
-              </p>
-            </div>
+            <!-- Smart Function: input/output types, LLM provider + prompt -->
+            <template v-if="(!isEditMode && form.type === 'smart_function') || (isEditMode && currentTool?.type === 'smart_function')">
+              <div class="form-group">
+                <label class="form-label">Input Type <span class="required">*</span></label>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    @click="form.inputType = 'text'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.inputType === 'text'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <FileText class="w-5 h-5" />
+                    Text
+                  </button>
+                  <button
+                    type="button"
+                    @click="form.inputType = 'image'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.inputType === 'image'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <ImageIcon class="w-5 h-5" />
+                    Image
+                  </button>
+                  <button
+                    type="button"
+                    @click="form.inputType = 'multi-modal'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.inputType === 'multi-modal'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <Layers class="w-5 h-5" />
+                    Multi-modal
+                  </button>
+                </div>
+                <p class="form-help-text">The expected data type for tool input</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Output Type <span class="required">*</span></label>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    @click="form.outputType = 'text'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.outputType === 'text'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <FileText class="w-5 h-5" />
+                    Text
+                  </button>
+                  <button
+                    type="button"
+                    @click="form.outputType = 'image'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.outputType === 'image'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <ImageIcon class="w-5 h-5" />
+                    Image
+                  </button>
+                  <button
+                    type="button"
+                    @click="form.outputType = 'multi-modal'"
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                      form.outputType === 'multi-modal'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
+                    ]"
+                    :disabled="isLoading"
+                  >
+                    <Layers class="w-5 h-5" />
+                    Multi-modal
+                  </button>
+                </div>
+                <p class="form-help-text">The expected data type for tool output</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  LLM Provider <span class="required">*</span>
+                </label>
+                <div class="flex flex-col md:flex-row gap-2">
+                  <select
+                    v-model="form.llmProviderId"
+                    class="form-select-auto min-w-64"
+                    :disabled="isLoading"
+                  >
+                    <option value="">Select an LLM provider</option>
+                    <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                      {{ provider.name }}
+                    </option>
+                  </select>
+                  <button
+                    type="button"
+                    @click="showLLMSettingsModal = true"
+                    class="btn-secondary whitespace-nowrap"
+                    :disabled="isLoading"
+                  >
+                    <Settings class="inline-block mr-1 w-4 h-4" />
+                    Settings...
+                  </button>
+                  <LLMModelBadge :settings="form.llmSettings" />
+                </div>
+                <p class="form-help-text">
+                  The LLM provider to use for this tool
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  Tool Prompt <span class="required">*</span>
+                </label>
+                <PromptEditor
+                  v-model="form.prompt"
+                  :disabled="isLoading || isReadOnly"
+                  show-toolbar
+                  placeholder="You are a tool that analyzes data and provides insights..."
+                  aria-label="Tool prompt"
+                  min-height="28rem"
+                />
+                <p class="form-help-text">
+                  The system prompt or instructions for this tool's operation
+                </p>
+              </div>
+            </template>
+
+            <!-- Webhook: url, method, headers, body -->
+            <template v-else-if="(!isEditMode && form.type === 'webhook') || (isEditMode && currentTool?.type === 'webhook')">
+              <div class="form-group">
+                <label class="form-label">URL <span class="required">*</span></label>
+                <input
+                  v-model="form.url"
+                  type="url"
+                  required
+                  placeholder="https://example.com/webhook"
+                  class="form-input font-mono"
+                  :disabled="isLoading"
+                />
+                <p class="form-help-text">The endpoint URL to call when this tool is invoked</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">HTTP Method</label>
+                <select v-model="form.webhookMethod" class="form-select-auto" :disabled="isLoading">
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Headers <span class="text-gray-500">(optional)</span></label>
+                <div class="space-y-2">
+                  <div
+                    v-for="(header, index) in form.webhookHeaderPairs"
+                    :key="index"
+                    class="flex gap-2 items-center"
+                  >
+                    <input
+                      v-model="header.key"
+                      type="text"
+                      placeholder="Header name"
+                      class="form-input font-mono flex-1"
+                      :disabled="isLoading"
+                    />
+                    <input
+                      v-model="header.value"
+                      type="text"
+                      placeholder="Value"
+                      class="form-input font-mono flex-1"
+                      :disabled="isLoading"
+                    />
+                    <button
+                      type="button"
+                      @click="removeHeader(index)"
+                      class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 shrink-0"
+                      :disabled="isLoading"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    @click="addHeader"
+                    class="btn-secondary"
+                    :disabled="isLoading"
+                  >
+                    + Add Header
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Request Body Template <span class="text-gray-500">(optional)</span></label>
+                <textarea
+                  v-model="form.webhookBody"
+                  rows="6"
+                  class="form-textarea font-mono"
+                  placeholder='{{"param": context.params.myParam}}'
+                  :disabled="isLoading"
+                ></textarea>
+                <p class="form-help-text">Template for the request body sent to the webhook endpoint</p>
+              </div>
+            </template>
+
+            <!-- Script: code editor -->
+            <template v-else>
+              <div class="form-group">
+                <label class="form-label">Script Code <span class="required">*</span></label>
+                <JavaScriptEditor
+                  v-model="form.code"
+                  :disabled="isLoading || isReadOnly"
+                  show-toolbar
+                  min-height="28rem"
+                />
+                <p class="form-help-text">JavaScript code to execute when this tool is invoked. Has full flow control (stage navigation, end/abort conversation).</p>
+              </div>
+            </template>
+
           </div>
 
           <!-- Parameters Tab -->
@@ -605,6 +840,21 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+          <div class="tab-content">
+            <!-- History Tab -->
+            <EntityHistoryView
+              v-if="isEditMode && currentTool"
+              v-show="activeTab === 'history'"
+              :load-history="() => toolsStore.fetchAuditLogs(projectId, currentTool!.id)"
+              :current-version="currentTool.version"
+              :current-object="currentTool"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => toolsStore.update(projectId, currentTool!.id, data)"
+              :create-fn="(data) => toolsStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
           </fieldset>
         </form>
       </div>

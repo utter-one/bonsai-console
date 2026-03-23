@@ -1,36 +1,48 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, Calendar, ChevronDown, MessageSquare } from 'lucide-vue-next'
+import { RefreshCw, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
+const stagesStore = useStagesStore()
+const usersStore = useUsersStore()
 
-// Time filter state
-const timeFilter = ref<'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'>('last-7d')
-const showTimeDropdown = ref(false)
+const stageMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const stage of stagesStore.items) {
+    map.set(stage.id, stage.name)
+  }
+  return map
+})
 
-const timeFilterOptions = [
-  { value: 'last-15m', label: 'Last 15 minutes' },
-  { value: 'last-30m', label: 'Last 30 minutes' },
-  { value: 'last-1h', label: 'Last 1 hour' },
-  { value: 'last-4h', label: 'Last 4 hours' },
-  { value: 'last-24h', label: 'Last 24 hours' },
-  { value: 'last-7d', label: 'Last 7 days' },
-  { value: 'last-30d', label: 'Last 30 days' },
-  { value: 'all', label: 'All time' },
-] as const
+// Date/time range filter
+const dateTimeRange = ref<DateTimeRange>(null)
 
 // Status filter state
 const statusFilter = ref<'all' | 'initialized' | 'awaiting_user_input' | 'receiving_user_voice' | 'processing_user_input' | 'generating_response' | 'finished' | 'aborted' | 'failed'>('all')
 const showStatusDropdown = ref(false)
+
+// User filter
+const userFilter = ref<string | null>(null)
+const showUserDropdown = ref(false)
+
+// Starting stage filter
+const startingStageFilter = ref<string | null>(null)
+const showStartingStageDropdown = ref(false)
+
+// Ending stage filter
+const endingStageFilter = ref<string | null>(null)
+const showEndingStageDropdown = ref(false)
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -52,39 +64,56 @@ const pagination = usePagination({
 })
 
 // Computed
-const currentTimeFilterLabel = computed(() => {
-  return timeFilterOptions.find(opt => opt.value === timeFilter.value)?.label || 'Last 24 hours'
-})
-
 const currentStatusFilterLabel = computed(() => {
   return statusFilterOptions.find(opt => opt.value === statusFilter.value)?.label || 'All Statuses'
+})
+
+const userOptions = computed(() => {
+  return [...usersStore.items].sort((a, b) => a.id.localeCompare(b.id))
+})
+
+const stageOptions = computed(() => {
+  return [...stagesStore.items].sort((a, b) => a.name.localeCompare(b.name))
+})
+
+const currentUserFilterLabel = computed(() => {
+  if (!userFilter.value) return 'All Users'
+  return userFilter.value
+})
+
+const currentStartingStageLabel = computed(() => {
+  if (!startingStageFilter.value) return 'All Starting Stages'
+  return stageMap.value.get(startingStageFilter.value) ?? startingStageFilter.value
+})
+
+const currentEndingStageLabel = computed(() => {
+  if (!endingStageFilter.value) return 'All Ending Stages'
+  return stageMap.value.get(endingStageFilter.value) ?? endingStageFilter.value
 })
 
 const filteredConversations = computed(() => {
   return conversationsStore.conversations
 })
 
-// Watch for time filter changes
-watch(timeFilter, () => {
-  pagination.reset()
-  loadConversations()
-})
-
-// Watch for status filter changes
-watch(statusFilter, () => {
-  pagination.reset()
-  loadConversations()
-})
+// Watch for filter changes
+watch(dateTimeRange, () => { pagination.reset(); loadConversations() })
+watch(statusFilter, () => { pagination.reset(); loadConversations() })
+watch(userFilter, () => { pagination.reset(); loadConversations() })
+watch(startingStageFilter, () => { pagination.reset(); loadConversations() })
+watch(endingStageFilter, () => { pagination.reset(); loadConversations() })
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
+  userFilter.value = null
+  startingStageFilter.value = null
+  endingStageFilter.value = null
   pagination.reset()
-  loadConversations()
+  loadProjectData()
 })
 
 // Lifecycle
 onMounted(async () => {
-  await loadConversations()
+  await loadProjectData()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -95,71 +124,52 @@ onBeforeUnmount(() => {
 // Methods
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  const timeDropdown = document.querySelector('.time-filter-dropdown')
-  const timeButton = document.querySelector('.time-filter-button')
-  const statusDropdown = document.querySelector('.status-filter-dropdown')
-  const statusButton = document.querySelector('.status-filter-button')
-  
-  if (timeDropdown && !timeDropdown.contains(target) && !timeButton?.contains(target)) {
-    showTimeDropdown.value = false
-  }
-  
-  if (statusDropdown && !statusDropdown.contains(target) && !statusButton?.contains(target)) {
-    showStatusDropdown.value = false
+  const dropdownPairs = [
+    { panel: '.status-filter-dropdown', button: '.status-filter-button', hide: () => { showStatusDropdown.value = false } },
+    { panel: '.user-filter-dropdown', button: '.user-filter-button', hide: () => { showUserDropdown.value = false } },
+    { panel: '.starting-stage-dropdown', button: '.starting-stage-button', hide: () => { showStartingStageDropdown.value = false } },
+    { panel: '.ending-stage-dropdown', button: '.ending-stage-button', hide: () => { showEndingStageDropdown.value = false } },
+  ]
+  for (const { panel, button, hide } of dropdownPairs) {
+    const panelEl = document.querySelector(panel)
+    const buttonEl = document.querySelector(button)
+    if (panelEl && !panelEl.contains(target) && !buttonEl?.contains(target)) {
+      hide()
+    }
   }
 }
 
-function getTimeFilterDate(): string | null {
-  const now = new Date()
-  
-  switch (timeFilter.value) {
-    case 'last-15m':
-      return new Date(now.getTime() - 15 * 60 * 1000).toISOString()
-    case 'last-30m':
-      return new Date(now.getTime() - 30 * 60 * 1000).toISOString()
-    case 'last-1h':
-      return new Date(now.getTime() - 60 * 60 * 1000).toISOString()
-    case 'last-4h':
-      return new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
-    case 'last-24h':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
-    case 'last-7d':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    case 'last-30d':
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    case 'all':
-    default:
-      return null
-  }
+async function loadProjectData() {
+  await Promise.all([loadConversations(), loadStages(), loadUsers()])
 }
 
 async function loadConversations() {
   try {
     const filters: any = {}
-    
-    const timeFilterDate = getTimeFilterDate()
-    if (timeFilterDate) {
-      filters.createdAt = {
-        op: 'gte',
-        value: timeFilterDate
-      }
+
+    if (dateTimeRange.value) {
+      filters.createdAt = dateTimeRange.value
     }
-    
+
     if (statusFilter.value !== 'all') {
-      filters.status = {
-        op: 'eq',
-        value: statusFilter.value
-      }
+      filters.status = { op: 'eq', value: statusFilter.value }
     }
-    
-    // Add project filter if a project is selected
-    if (projectSelectionStore.selectedProjectId) {
-      // projectId is now in the URL, remove from filters
+
+    if (userFilter.value) {
+      filters.userId = { op: 'eq', value: userFilter.value }
     }
-    
+
+    if (startingStageFilter.value) {
+      filters.startingStageId = { op: 'eq', value: startingStageFilter.value }
+    }
+
+    if (endingStageFilter.value) {
+      filters.endingStageId = { op: 'eq', value: endingStageFilter.value }
+    }
+
     await conversationsStore.fetchAll(
       projectSelectionStore.selectedProjectId || '',
-      pagination.getParams({ 
+      pagination.getParams({
         filters,
         orderBy: '-createdAt'
       })
@@ -167,6 +177,39 @@ async function loadConversations() {
   } catch (error) {
     console.error('Failed to load conversations:', error)
   }
+}
+
+async function loadStages() {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId) return
+  try {
+    await stagesStore.fetchAll(projectId, { limit: 1000 })
+  } catch {
+    // Stage names will fall back to IDs
+  }
+}
+
+async function loadUsers() {
+  const projectId = projectSelectionStore.selectedProjectId
+  if (!projectId) return
+  try {
+    await usersStore.fetchAll(projectId, { limit: 1000 })
+  } catch {
+    // User names not available
+  }
+}
+
+function getUserDisplayById(userId: string): string {
+  return userId || '—'
+}
+
+function getStageName(id: string | null | undefined): string {
+  if (!id) return '—'
+  return stageMap.value.get(id) ?? id.slice(-6)
+}
+
+function shortenConversationId(id: string): string {
+  return `conv_...${id.slice(-6)}`
 }
 
 function viewConversation(conversation: ConversationResponse) {
@@ -218,18 +261,13 @@ function formatDate(date: string | null) {
   return new Date(date).toLocaleString()
 }
 
-function selectTimeFilter(value: typeof timeFilter.value) {
-  timeFilter.value = value
-  showTimeDropdown.value = false
-}
-
 function selectStatusFilter(value: typeof statusFilter.value) {
   statusFilter.value = value
   showStatusDropdown.value = false
 }
 
 async function refreshData() {
-  await loadConversations()
+  await loadProjectData()
 }
 
 function isResumable(status: string): boolean {
@@ -244,7 +282,6 @@ async function handleResumeConversation(conversation: ConversationResponse) {
   }
 
   try {
-    // Fetch active API keys for the project
     await apiKeysStore.fetchAll(projectId, { filters: { isActive: true } })
     const activeKeys = apiKeysStore.items.filter(k => k.isActive && k.projectId === projectId)
 
@@ -253,7 +290,6 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       return
     }
 
-    // Auto-select the first available key for this project
     const key = activeKeys[0]!
     router.push({
       name: 'playground',
@@ -282,44 +318,20 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       </div>
 
       <!-- Filter Bar -->
-      <div class="mb-6 flex items-center gap-3">
-        <!-- Time Filter -->
-        <div class="relative">
-          <button
-            @click="showTimeDropdown = !showTimeDropdown"
-            class="time-filter-button filter-btn !shadow-none"
-          >
-            <Calendar class="w-4 h-4 mr-2" />
-            <span>{{ currentTimeFilterLabel }}</span>
-            <ChevronDown class="w-4 h-4 ml-2" />
-          </button>
-
-          <!-- Time Dropdown -->
-          <div v-if="showTimeDropdown" class="time-filter-dropdown filter-dropdown-panel min-w-[200px]">
-            <button
-              v-for="option in timeFilterOptions"
-              :key="option.value"
-              @click="selectTimeFilter(option.value)"
-              class="filter-dropdown-item !shadow-none"
-              :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <!-- Date/Time Range Picker -->
+        <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
         <!-- Status Filter -->
         <div class="relative">
           <button
             @click="showStatusDropdown = !showStatusDropdown"
-            class="status-filter-button filter-btn  !shadow-none"
+            class="status-filter-button filter-btn shadow-none!"
           >
             <span>{{ currentStatusFilterLabel }}</span>
             <ChevronDown class="w-4 h-4 ml-2" />
           </button>
-
-          <!-- Status Dropdown -->
-          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-[180px]">
+          <div v-if="showStatusDropdown" class="status-filter-dropdown filter-dropdown-panel min-w-45">
             <button
               v-for="option in statusFilterOptions"
               :key="option.value"
@@ -328,6 +340,93 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
             >
               {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- User Filter -->
+        <div class="relative">
+          <button
+            @click="showUserDropdown = !showUserDropdown"
+            class="user-filter-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentUserFilterLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showUserDropdown" class="user-filter-dropdown filter-dropdown-panel min-w-55 max-h-64 overflow-y-auto">
+            <button
+              @click="userFilter = null; showUserDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === null }"
+            >
+              All Users
+            </button>
+            <button
+              v-for="user in userOptions"
+              :key="user.id"
+              @click="userFilter = user.id; showUserDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
+            >
+              {{ user.id }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Starting Stage Filter -->
+        <div class="relative">
+          <button
+            @click="showStartingStageDropdown = !showStartingStageDropdown"
+            class="starting-stage-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentStartingStageLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showStartingStageDropdown" class="starting-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
+            <button
+              @click="startingStageFilter = null; showStartingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
+            >
+              All Starting Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              @click="startingStageFilter = stage.id; showStartingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Ending Stage Filter -->
+        <div class="relative">
+          <button
+            @click="showEndingStageDropdown = !showEndingStageDropdown"
+            class="ending-stage-button filter-btn shadow-none!"
+          >
+            <span class="max-w-40 truncate">{{ currentEndingStageLabel }}</span>
+            <ChevronDown class="w-4 h-4 ml-2 shrink-0" />
+          </button>
+          <div v-if="showEndingStageDropdown" class="ending-stage-dropdown filter-dropdown-panel min-w-50 max-h-64 overflow-y-auto">
+            <button
+              @click="endingStageFilter = null; showEndingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
+            >
+              All Ending Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              @click="endingStageFilter = stage.id; showEndingStageDropdown = false"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
             </button>
           </div>
         </div>
@@ -358,6 +457,9 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <tr>
                 <th class="table-header-cell">Conversation ID</th>
                 <th class="table-header-cell">Status</th>
+                <th class="table-header-cell">User</th>
+                <th class="table-header-cell">Starting Stage</th>
+                <th class="table-header-cell">Ending Stage</th>
                 <th class="table-header-cell">Started</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
@@ -365,7 +467,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             <tbody class="table-body">
               <tr v-for="conversation in filteredConversations" :key="conversation.id" class="table-row">
                 <td class="table-clickable-cell" @click="viewConversation(conversation)">
-                  <span class="font-mono text-sm">{{ conversation.id }}</span>
+                  <span class="font-mono text-sm" :title="conversation.id">{{ shortenConversationId(conversation.id) }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex items-center gap-2">
@@ -379,6 +481,11 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     <span v-if="conversation.archived" class="badge-secondary">Archived</span>
                   </div>
                 </td>
+                <td class="table-cell">
+                  <span class="text-sm" :title="conversation.userId">{{ getUserDisplayById(conversation.userId) }}</span>
+                </td>
+                <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
+                <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
                 <td class="table-cell-muted">{{ formatDate(conversation.createdAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">

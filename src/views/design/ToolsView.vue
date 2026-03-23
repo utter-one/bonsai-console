@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToolsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
-import { Hammer, Search, X, Plus, FileText, Image as ImageIcon, Layers } from 'lucide-vue-next'
+import { Hammer, Search, X, Plus, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -27,8 +27,17 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const { projectIsArchived } = useProjectReadOnly()
 
 // Search
-const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredTools, clearSearch } = useSearch(
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: textFilteredTools, clearSearch } = useSearch(
   () => toolsStore.items
+)
+
+// Type filter
+const typeFilter = ref<'all' | 'smart_function' | 'webhook' | 'script'>('all')
+
+const filteredTools = computed(() =>
+  typeFilter.value === 'all'
+    ? textFilteredTools.value
+    : textFilteredTools.value.filter(t => t.type === typeFilter.value)
 )
 
 // Watch for sort changes and reload data
@@ -92,13 +101,22 @@ function editTool(tool: ToolResponse) {
   router.push({ name: 'design.tools.edit', params: { projectId: projectId.value, toolId: tool.id } })
 }
 
+function getTypeBadgeClass(type: string) {
+  if (type === 'webhook') return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+  if (type === 'script') return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+  return 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300'
+}
+
+function getTypeLabel(type: string) {
+  if (type === 'webhook') return 'Webhook'
+  if (type === 'script') return 'Script'
+  return 'Smart Function'
+}
+
 function getTypeIcon(type: string) {
-  switch (type) {
-    case 'text': return FileText
-    case 'image': return ImageIcon
-    case 'multi-modal': return Layers
-    default: return FileText
-  }
+  if (type === 'webhook') return Globe
+  if (type === 'script') return Code2
+  return Sparkles
 }
 </script>
 
@@ -127,6 +145,30 @@ function getTypeIcon(type: string) {
         />
         <button v-if="searchQuery" @click="clearSearch" class="input-icon-right">
           <X class="w-5 h-5" />
+        </button>
+      </div>
+
+      <!-- Type Filter -->
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button
+          v-for="opt in [
+            { value: 'all', label: 'All' },
+            { value: 'smart_function', label: 'Smart Function', icon: Sparkles },
+            { value: 'webhook', label: 'Webhook', icon: Globe },
+            { value: 'script', label: 'Script', icon: Code2 },
+          ]"
+          :key="opt.value"
+          type="button"
+          @click="typeFilter = opt.value as 'all' | 'smart_function' | 'webhook' | 'script'"
+          :class="[
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all',
+            typeFilter === opt.value
+              ? 'bg-primary-500 text-white border-primary-500 dark:bg-primary-600 dark:border-primary-600'
+              : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:border-gray-500'
+          ]"
+        >
+          <component v-if="opt.icon" :is="opt.icon" class="w-3.5 h-3.5" />
+          {{ opt.label }}
         </button>
       </div>
 
@@ -160,7 +202,7 @@ function getTypeIcon(type: string) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell">Input/Output Types</th>
+                <th class="table-header-cell">Type</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
@@ -175,13 +217,10 @@ function getTypeIcon(type: string) {
               <tr v-for="tool in filteredTools" :key="tool.id" class="table-row">
                 <td class="table-clickable-cell" @click="editTool(tool)">{{ tool.name }}<span v-if="tool.archived" class="badge badge-error ml-2">Archived</span></td>
                 <td class="table-cell">
-                  <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-1.5 text-xs text-gray-600">
-                      <component :is="getTypeIcon(tool.inputType)" class="w-4 h-4" />
-                      <span>⇒</span>
-                      <component :is="getTypeIcon(tool.outputType)" class="w-4 h-4" />
-                    </div>
-                  </div>
+                  <span :class="['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', getTypeBadgeClass(tool.type)]">
+                    <component :is="getTypeIcon(tool.type)" class="w-3 h-3" />
+                    {{ getTypeLabel(tool.type) }}
+                  </span>
                 </td>
                 <td class="table-cell">
                   <div v-if="tool.tags?.length" class="tag-list">

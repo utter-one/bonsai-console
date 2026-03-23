@@ -1,13 +1,13 @@
 {
   "name": "bonsai-console",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "npm run docs:build && node ./scripts/fetch-contracts.js && npm run generate:api && npm run generate:ws-types && vite",
     "build": "vue-tsc -b && vite build && npm run docs:build",
     "preview": "vite preview",
-    "generate:api": "npx swagger-typescript-api generate -p ./src/api/openapi.json -o ./src/api/generated -n api.ts --axios --unwrap-response-data --modular",
+    "generate:api": "npx swagger-typescript-api generate -p ./src/api/openapi.json -o ./src/api/generated -n api.ts --axios --unwrap-response-data --modular && node ./scripts/patch-contracts.js",
     "generate:ws-types": "node scripts/generate-ws-types.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -26,6 +26,7 @@
     "chart.js": "^4.5.1",
     "codemirror": "^6.0.1",
     "handlebars": "^4.7.8",
+    "locale-codes": "^1.3.1",
     "lucide-vue-next": "^0.563.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.24",

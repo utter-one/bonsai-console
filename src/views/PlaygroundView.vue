@@ -477,7 +477,7 @@ import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
 import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -837,7 +837,7 @@ interface ConversationEvent {
   outputTurnId?: string // Link to output turn for real-time transcription
   isRealTime?: boolean // Whether this is a real-time updating text
   transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }> // Array to maintain insertion order
-  wsEvent?: WSConversationEvent // Raw WebSocket conversation event for detailed display
+  wsEvent?: WSConversationEvent | WSConversationEventUpdate // Raw WebSocket conversation event for detailed display
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -1030,7 +1030,7 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
 }
 
 // Type guard used for User/AI message cards in the playground
-function isMessageEvent(event: WSConversationEvent): event is WSConversationEvent & {
+function isMessageEvent(event: WSConversationEvent | WSConversationEventUpdate): event is (WSConversationEvent | WSConversationEventUpdate) & {
   eventType: 'message'
   eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
 } {
@@ -1105,7 +1105,7 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
   }
 }
 
-const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
+const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
 
 /**
  * Handle conversation event from WebSocket
@@ -1125,6 +1125,7 @@ function handleConversationEvent(event: WSConversationEvent) {
     if (wsClient.value) {
       wsClient.value.isInConversation.value = false
     }
+    recording.value?.stopRecording()
     disconnectWebSocket()
     return
   }
@@ -1164,6 +1165,30 @@ function handleConversationEvent(event: WSConversationEvent) {
     timestamp: new Date(),
     wsEvent: event
   })
+}
+
+/**
+ * Handle conversation event update from WebSocket — updates the wsEvent of an
+ * existing playground event matched by outputTurnId or inputTurnId.
+ */
+function handleConversationEventUpdate(event: WSConversationEventUpdate) {
+  let existingEvent: ConversationEvent | undefined
+
+  if (event.outputTurnId) {
+    existingEvent = conversationEvents.value.find(e =>
+      e.outputTurnId === event.outputTurnId ||
+      e.wsEvent?.outputTurnId === event.outputTurnId
+    )
+  } else if (event.inputTurnId) {
+    existingEvent = conversationEvents.value.find(e =>
+      e.inputTurnId === event.inputTurnId ||
+      e.wsEvent?.inputTurnId === event.inputTurnId
+    )
+  }
+
+  if (existingEvent) {
+    existingEvent.wsEvent = event
+  }
 }
 
 // WebSocket client setup
@@ -1498,6 +1523,9 @@ async function connectWebSocket() {
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
+      },
+      onConversationEventUpdate: (event: WSConversationEventUpdate) => {
+        handleConversationEventUpdate(event)
       }
     })
 
@@ -2015,6 +2043,9 @@ async function sendMessage() {
     await wsClient.value.sendTextInput(message)
     messageInput.value = ''
   } catch (error) {
+    // If the conversation ended server-side while the message was in flight,
+    // the WS teardown rejects all pending requests — suppress the noise.
+    if (!isConversationActive.value) return
     addEvent({
       type: 'Error',
       message: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,

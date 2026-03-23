@@ -10,6 +10,24 @@
  * ---------------------------------------------------------------
  */
 
+/** Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript) */
+export enum ToolType {
+  SmartFunction = "smart_function",
+  Webhook = "webhook",
+  Script = "script",
+}
+
+export type CreateToolRequest =
+  | ({
+      type: "smart_function";
+    } & CreateSmartFunctionTool)
+  | ({
+      type: "webhook";
+    } & CreateWebhookTool)
+  | ({
+      type: "script";
+    } & CreateScriptTool);
+
 export type Effect =
   | ({
       type: "end_conversation";
@@ -20,9 +38,6 @@ export type Effect =
   | ({
       type: "go_to_stage";
     } & GoToStageEffect)
-  | ({
-      type: "run_script";
-    } & RunScriptEffect)
   | ({
       type: "modify_user_input";
     } & ModifyUserInputEffect)
@@ -36,11 +51,11 @@ export type Effect =
       type: "call_tool";
     } & CallToolEffect)
   | ({
-      type: "call_webhook";
-    } & CallWebhookEffect)
-  | ({
       type: "generate_response";
-    } & GenerateResponseEffect);
+    } & GenerateResponseEffect)
+  | ({
+      type: "change_visibility";
+    } & ChangeVisibilityEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1201,16 +1216,6 @@ export interface GoToStageEffect {
   stageId: string;
 }
 
-export interface RunScriptEffect {
-  /** Effect type */
-  type: "run_script";
-  /**
-   * JavaScript code to execute in isolated context
-   * @minLength 1
-   */
-  code: string;
-}
-
 export interface ModifyUserInputEffect {
   /** Effect type */
   type: "modify_user_input";
@@ -1265,6 +1270,15 @@ export interface UserProfileOperation {
   value?: any;
 }
 
+export interface ChangeVisibilityEffect {
+  /** Effect type */
+  type: "change_visibility";
+  /** Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression) */
+  visibility: "always" | "stage" | "never" | "conditional";
+  /** JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional" */
+  condition?: string;
+}
+
 export interface CallToolEffect {
   /** Effect type */
   type: "call_tool";
@@ -1275,30 +1289,6 @@ export interface CallToolEffect {
   toolId: string;
   /** Parameters to pass to the tool */
   parameters: Record<string, any>;
-}
-
-export interface CallWebhookEffect {
-  /** Effect type */
-  type: "call_webhook";
-  /**
-   * HTTP(S) URL to call
-   * @format uri
-   */
-  url: string;
-  /**
-   * HTTP method to use
-   * @default "GET"
-   */
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  /** HTTP headers to send with the request */
-  headers?: Record<string, string>;
-  /** Request body for POST/PUT/PATCH requests */
-  body?: any;
-  /**
-   * Key name to store the webhook result under in context.results.webhooks
-   * @minLength 1
-   */
-  resultKey: string;
 }
 
 export interface GenerateResponseEffect {
@@ -1675,7 +1665,7 @@ export interface CreateProjectRequest {
    */
   name: string;
   /** A description of the project */
-  description?: string;
+  description?: string | null;
   /** Optional ASR configuration settings */
   asrConfig?: {
     /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -1727,7 +1717,9 @@ export interface CreateProjectRequest {
   /** Additional metadata for the project */
   metadata?: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-  timezone?: string;
+  timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts. */
+  languageCode?: string | null;
   /**
    * When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile
    * @default false
@@ -1804,15 +1796,38 @@ export interface UpdateProjectRequest {
    */
   name?: string;
   /** The updated description of the project */
-  description?: string;
+  description?: string | null;
   /** Updated ASR configuration settings */
-  asrConfig?: AsrConfig;
+  asrConfig?: {
+    /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
+    asrProviderId?: string;
+    /** ASR-specific settings including model, language preferences, etc. */
+    settings?:
+      | AzureAsrSettings
+      | ElevenLabsAsrSettings
+      | DeepgramAsrSettings
+      | AssemblyAiAsrSettings
+      | SpeechmaticsAsrSettings;
+    /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+    unintelligiblePlaceholder?: string;
+    /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
+    voiceActivityDetection?: boolean;
+  } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice?: boolean;
   /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
   generateVoice?: boolean;
   /** Updated storage configuration settings */
-  storageConfig?: StorageConfig;
+  storageConfig?: {
+    /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
+    storageProviderId?: string;
+    /** Storage-specific settings including bucket, prefix, etc. */
+    settings?:
+      | S3StorageSettings
+      | AzureBlobStorageSettings
+      | GcsStorageSettings
+      | LocalStorageSettings;
+  } | null;
   /** Updated content moderation configuration */
   moderationConfig?: {
     /** Whether content moderation is enabled for this project */
@@ -1821,13 +1836,15 @@ export interface UpdateProjectRequest {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
-  };
+  } | null;
   /** Updated constants key-value store */
   constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
   metadata?: Record<string, any>;
-  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set. */
-  timezone?: string;
+  /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set. */
+  timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear. */
+  languageCode?: string | null;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers?: boolean;
   /** Updated descriptors defining the data schema for user profile variables in this project */
@@ -1841,18 +1858,6 @@ export interface UpdateProjectRequest {
   conversationTimeoutSeconds?: number | null;
   /** The current version number for optimistic locking */
   version: number;
-}
-
-/** Updated storage configuration settings */
-export interface StorageConfig {
-  /** ID of the storage provider (e.g., "s3-provider", "azure-blob-provider") */
-  storageProviderId?: string;
-  /** Storage-specific settings including bucket, prefix, etc. */
-  settings?:
-    | S3StorageSettings
-    | AzureBlobStorageSettings
-    | GcsStorageSettings
-    | LocalStorageSettings;
 }
 
 export interface ProjectResponse {
@@ -1908,6 +1913,8 @@ export interface ProjectResponse {
   metadata: Record<string, any>;
   /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
   timezone: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+  languageCode: string | null;
   /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
   autoCreateUsers: boolean;
   /** Descriptors defining the data schema for user profile variables in this project */
@@ -1992,6 +1999,8 @@ export interface ProjectListResponse {
     metadata: Record<string, any>;
     /** IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC. */
     timezone: string | null;
+    /** ISO language code for the project, e.g. en-US or pl-PL. Null if not set. */
+    languageCode: string | null;
     /** When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile */
     autoCreateUsers: boolean;
     /** Descriptors defining the data schema for user profile variables in this project */
@@ -2070,14 +2079,14 @@ export interface UpdateAgentRequest {
    */
   name?: string;
   /** Updated detailed description of the agent */
-  description?: string;
+  description?: string | null;
   /**
    * Updated prompt defining behavior
    * @minLength 1
    */
   prompt?: string;
   /** Updated TTS provider ID */
-  ttsProviderId?: string;
+  ttsProviderId?: string | null;
   /** Updated TTS provider-specific settings */
   ttsSettings?:
     | ElevenLabsTtsSettings
@@ -2085,13 +2094,28 @@ export interface UpdateAgentRequest {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | null;
   /** Updated tags */
   tags?: string[];
   /** Updated metadata */
   metadata?: Record<string, any>;
   /** Updated filler response settings */
-  fillerSettings?: FillerSettings;
+  fillerSettings?: {
+    /** ID of the LLM provider used to generate the filler sentence */
+    llmProviderId: string;
+    /** LLM provider-specific settings for filler generation */
+    llmSettings?:
+      | OpenAILlmSettings
+      | OpenAILegacyLlmSettings
+      | AnthropicLlmSettings
+      | GeminiLlmSettings;
+    /**
+     * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
+     * @minLength 1
+     */
+    prompt: string;
+  } | null;
   /**
    * Current version number for optimistic locking
    * @min 1
@@ -2723,7 +2747,7 @@ export interface UpdateIssueRequest {
   /** Event index in session */
   eventIndex?: number;
   /** User ID who reported the issue */
-  userId?: string;
+  userId?: string | null;
   /**
    * Issue severity level
    * @minLength 1
@@ -2867,6 +2891,10 @@ export interface ConversationResponse {
   clientId: string;
   /** Current stage identifier for the conversation */
   stageId: string;
+  /** Stage identifier at the start of the conversation */
+  startingStageId: string | null;
+  /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+  endingStageId: string | null;
   /** Variables stored per stage in the conversation */
   stageVars: Record<string, Record<string, any>>;
   /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -2902,6 +2930,10 @@ export interface ConversationListResponse {
     clientId: string;
     /** Current stage identifier for the conversation */
     stageId: string;
+    /** Stage identifier at the start of the conversation */
+    startingStageId: string | null;
+    /** Stage identifier when the conversation reached a terminal state (finished/failed/aborted) */
+    endingStageId: string | null;
     /** Variables stored per stage in the conversation */
     stageVars: Record<string, Record<string, any>>;
     /** Current status of the conversation (e.g., initialized, active, completed, failed) */
@@ -2971,6 +3003,12 @@ export interface ConversationEventResponse {
         role: "user" | "assistant";
         text: string;
         originalText: string;
+        visibility?: {
+          /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+          visibility: "always" | "stage" | "never" | "conditional";
+          /** Condition for visibility, evaluated against conversation variables */
+          condition?: string;
+        };
         metadata?: Record<string, any>;
       }
     | {
@@ -2999,48 +3037,23 @@ export interface ConversationEventResponse {
         metadata?: Record<string, any>;
       }
     | {
-        command: string;
+        command:
+          | "go_to_stage"
+          | "set_var"
+          | "get_var"
+          | "get_all_vars"
+          | "run_action"
+          | "call_tool";
         parameters?: Record<string, ParameterValue>;
         metadata?: Record<string, any>;
       }
     | {
         toolId: string;
         toolName: string;
+        toolType?: "smart_function" | "webhook" | "script";
         parameters: Record<string, ParameterValue>;
         success: boolean;
-        result?: (
-          | {
-              contentType: "text";
-              text: string;
-            }
-          | {
-              contentType: "image";
-              /** Base64-encoded image data */
-              data: string;
-              /** MIME type (e.g., image/png, image/jpeg) */
-              mimeType: string;
-              metadata?: {
-                width?: number;
-                height?: number;
-                [key: string]: any;
-              };
-            }
-          | {
-              contentType: "audio";
-              /** Base64-encoded audio data */
-              data: string;
-              /** Audio format */
-              format: "pcm" | "mp3" | "wav" | "opus";
-              /** MIME type (e.g., audio/pcm, audio/mpeg) */
-              mimeType: string;
-              metadata?: {
-                sampleRate?: number;
-                channels?: number;
-                bitDepth?: number;
-                [key: string]: any;
-              };
-            }
-        )[];
+        result?: any;
         error?: string;
         metadata?: Record<string, any>;
       }
@@ -3129,6 +3142,12 @@ export interface ConversationEventListResponse {
           role: "user" | "assistant";
           text: string;
           originalText: string;
+          visibility?: {
+            /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+            visibility: "always" | "stage" | "never" | "conditional";
+            /** Condition for visibility, evaluated against conversation variables */
+            condition?: string;
+          };
           metadata?: Record<string, any>;
         }
       | {
@@ -3157,48 +3176,23 @@ export interface ConversationEventListResponse {
           metadata?: Record<string, any>;
         }
       | {
-          command: string;
+          command:
+            | "go_to_stage"
+            | "set_var"
+            | "get_var"
+            | "get_all_vars"
+            | "run_action"
+            | "call_tool";
           parameters?: Record<string, ParameterValue>;
           metadata?: Record<string, any>;
         }
       | {
           toolId: string;
           toolName: string;
+          toolType?: "smart_function" | "webhook" | "script";
           parameters: Record<string, ParameterValue>;
           success: boolean;
-          result?: (
-            | {
-                contentType: "text";
-                text: string;
-              }
-            | {
-                contentType: "image";
-                /** Base64-encoded image data */
-                data: string;
-                /** MIME type (e.g., image/png, image/jpeg) */
-                mimeType: string;
-                metadata?: {
-                  width?: number;
-                  height?: number;
-                  [key: string]: any;
-                };
-              }
-            | {
-                contentType: "audio";
-                /** Base64-encoded audio data */
-                data: string;
-                /** Audio format */
-                format: "pcm" | "mp3" | "wav" | "opus";
-                /** MIME type (e.g., audio/pcm, audio/mpeg) */
-                mimeType: string;
-                metadata?: {
-                  sampleRate?: number;
-                  channels?: number;
-                  bitDepth?: number;
-                  [key: string]: any;
-                };
-              }
-          )[];
+          result?: any;
           error?: string;
           metadata?: Record<string, any>;
         }
@@ -3361,7 +3355,7 @@ export interface UpdateStageRequest {
    */
   name?: string;
   /** Updated detailed description of the stage */
-  description?: string;
+  description?: string | null;
   /**
    * Updated system prompt
    * @minLength 1
@@ -3907,7 +3901,7 @@ export interface ContextTransformerListResponse {
   limit?: number | null;
 }
 
-export interface CreateToolRequest {
+export interface CreateSmartFunctionTool {
   /**
    * Unique identifier for the tool (auto-generated if not provided)
    * @minLength 1
@@ -3921,7 +3915,21 @@ export interface CreateToolRequest {
   /** Detailed description of the tool's purpose and behavior */
   description?: string | null;
   /**
-   * Handlebars template for tool invocation
+   * Parameters that this tool expects to receive
+   * @default []
+   */
+  parameters?: ToolParameter[];
+  /**
+   * Tags for categorizing and filtering this tool
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+  /** Tool executes an LLM call */
+  type: "smart_function";
+  /**
+   * Handlebars template rendered before being sent to the LLM
    * @minLength 1
    */
   prompt: string;
@@ -3937,6 +3945,21 @@ export interface CreateToolRequest {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
   outputType: "text" | "image" | "multi-modal";
+}
+
+export interface CreateWebhookTool {
+  /**
+   * Unique identifier for the tool (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tool
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tool's purpose and behavior */
+  description?: string | null;
   /**
    * Parameters that this tool expects to receive
    * @default []
@@ -3949,6 +3972,56 @@ export interface CreateToolRequest {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
+  /** Tool makes an HTTP request */
+  type: "webhook";
+  /**
+   * Target URL — supports Handlebars templating
+   * @format uri
+   */
+  url: string;
+  /**
+   * HTTP method to use
+   * @default "GET"
+   */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** HTTP headers to send; values support Handlebars templating */
+  webhookHeaders?: Record<string, string>;
+  /** Request body template (Handlebars); used for POST/PUT/PATCH */
+  webhookBody?: string;
+}
+
+export interface CreateScriptTool {
+  /**
+   * Unique identifier for the tool (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tool
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tool's purpose and behavior */
+  description?: string | null;
+  /**
+   * Parameters that this tool expects to receive
+   * @default []
+   */
+  parameters?: ToolParameter[];
+  /**
+   * Tags for categorizing and filtering this tool
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+  /** Tool executes isolated JavaScript code */
+  type: "script";
+  /**
+   * JavaScript code to execute in an isolated VM context
+   * @minLength 1
+   */
+  code: string;
 }
 
 export interface UpdateToolRequest {
@@ -3960,22 +4033,38 @@ export interface UpdateToolRequest {
   /** Updated description */
   description?: string | null;
   /**
-   * Updated tool prompt template
+   * Updated Handlebars prompt template (smart_function)
    * @minLength 1
    */
   prompt?: string;
-  /** Updated LLM provider ID */
+  /** Updated LLM provider ID (smart_function) */
   llmProviderId?: string | null;
-  /** Updated LLM provider-specific settings */
+  /** Updated LLM provider-specific settings (smart_function) */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** Updated input format */
+  /** Updated input format (smart_function) */
   inputType?: "text" | "image" | "multi-modal";
-  /** Updated output format */
+  /** Updated output format (smart_function) */
   outputType?: "text" | "image" | "multi-modal";
+  /**
+   * Updated target URL (webhook)
+   * @format uri
+   */
+  url?: string;
+  /** Updated HTTP method (webhook) */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** Updated HTTP headers (webhook) */
+  webhookHeaders?: Record<string, string>;
+  /** Updated request body template (webhook) */
+  webhookBody?: string | null;
+  /**
+   * Updated JavaScript code (script)
+   * @minLength 1
+   */
+  code?: string;
   /** Updated parameters for the tool */
   parameters?: ToolParameter[];
   /** Updated tags */
@@ -4006,20 +4095,32 @@ export interface ToolResponse {
   name: string;
   /** Detailed description of the tool */
   description: string | null;
-  /** Handlebars template for tool invocation */
-  prompt: string;
-  /** ID of the LLM provider */
+  /** Tool execution type */
+  type: "smart_function" | "webhook" | "script";
+  /** Handlebars prompt template (smart_function only) */
+  prompt: string | null;
+  /** ID of the LLM provider (smart_function only) */
   llmProviderId: string | null;
-  /** LLM provider-specific settings */
+  /** LLM provider-specific settings (smart_function only) */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
-  /** Expected input format */
-  inputType: "text" | "image" | "multi-modal";
-  /** Expected output format */
-  outputType: "text" | "image" | "multi-modal";
+  /** Expected input format (smart_function only) */
+  inputType: "text" | "image" | "multi-modal" | null;
+  /** Expected output format (smart_function only) */
+  outputType: "text" | "image" | "multi-modal" | null;
+  /** Target URL (webhook only) */
+  url: string | null;
+  /** HTTP method (webhook only) */
+  webhookMethod: string | null;
+  /** HTTP headers (webhook only) */
+  webhookHeaders: Record<string, string>;
+  /** Request body template (webhook only) */
+  webhookBody: string | null;
+  /** JavaScript code (script only) */
+  code: string | null;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
   /** Tags for categorizing and filtering this tool */
@@ -4053,20 +4154,32 @@ export interface ToolListResponse {
     name: string;
     /** Detailed description of the tool */
     description: string | null;
-    /** Handlebars template for tool invocation */
-    prompt: string;
-    /** ID of the LLM provider */
+    /** Tool execution type */
+    type: "smart_function" | "webhook" | "script";
+    /** Handlebars prompt template (smart_function only) */
+    prompt: string | null;
+    /** ID of the LLM provider (smart_function only) */
     llmProviderId: string | null;
-    /** LLM provider-specific settings */
+    /** LLM provider-specific settings (smart_function only) */
     llmSettings?:
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings;
-    /** Expected input format */
-    inputType: "text" | "image" | "multi-modal";
-    /** Expected output format */
-    outputType: "text" | "image" | "multi-modal";
+    /** Expected input format (smart_function only) */
+    inputType: "text" | "image" | "multi-modal" | null;
+    /** Expected output format (smart_function only) */
+    outputType: "text" | "image" | "multi-modal" | null;
+    /** Target URL (webhook only) */
+    url: string | null;
+    /** HTTP method (webhook only) */
+    webhookMethod: string | null;
+    /** HTTP headers (webhook only) */
+    webhookHeaders: Record<string, string>;
+    /** Request body template (webhook only) */
+    webhookBody: string | null;
+    /** JavaScript code (script only) */
+    code: string | null;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];
     /** Tags for categorizing and filtering this tool */
@@ -4700,7 +4813,7 @@ export interface UpdateProviderRequest {
    */
   name?: string;
   /** Updated description of provider purpose */
-  description?: string;
+  description?: string | null;
   /** Updated provider category */
   providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
   /** Updated specific provider implementation */
@@ -4776,7 +4889,7 @@ export interface UpdateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig;
   /** Updated searchable tags */
-  tags?: string[];
+  tags?: string[] | null;
 }
 
 export interface DeleteProviderRequest {
@@ -5477,6 +5590,8 @@ export interface LatencyTrendPoint {
 }
 
 export interface VersionResponse {
+  /** Semantic version of the application as defined in package.json (e.g. "1.2.3"). */
+  version: string;
   /** First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes. */
   restSchemaHash: string;
   /** First 12 hex chars of the SHA-256 hash of the WebSocket contracts schema. Changes only when a WebSocket contract changes. */
@@ -5628,6 +5743,519 @@ export interface ExportBundle {
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
+}
+
+/** Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID */
+export interface ProviderHint {
+  /** Category of the provider (llm, tts, asr, storage, embeddings) */
+  type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+  /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+  apiType: string;
+  /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+  preferredModel?: string;
+}
+
+/** Entity field that references a particular provider hint */
+export interface ProviderHintResolutionTarget {
+  /** Type of entity that references this provider hint */
+  entityType:
+    | "project"
+    | "agent"
+    | "stage"
+    | "classifier"
+    | "contextTransformer"
+    | "tool";
+  /** New ID assigned to the entity on import */
+  entityId: string;
+  /** Display name of the entity */
+  entityName: string;
+  /** Field that holds the provider reference, e.g. "ttsProviderId", "llmProviderId", "asrConfig.asrProviderId", "fillerSettings.llmProviderId" */
+  field: string;
+}
+
+/** Resolution report for a single provider hint encountered during import */
+export interface ProviderHintResolution {
+  /** The provider hint as it appeared in the bundle */
+  hint: ProviderHint;
+  /** Local provider ID the hint resolved to, or null when no matching provider was found */
+  resolvedProviderId: string | null;
+  /** True when a matching local provider was found; false means the corresponding provider field was set to null after import */
+  resolved: boolean;
+  /** Entity fields that reference this hint — shows exactly which entities were affected and which field was mapped (or left null) */
+  targets: ProviderHintResolutionTarget[];
+}
+
+/** ASR configuration with provider hint instead of provider UUID */
+export interface AsrConfigExchangeV1 {
+  /** Provider hint identifying the ASR provider type used at export time */
+  asrHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  };
+  /** ASR-specific settings including model, language preferences, etc. */
+  settings?:
+    | AzureAsrSettings
+    | ElevenLabsAsrSettings
+    | DeepgramAsrSettings
+    | AssemblyAiAsrSettings
+    | SpeechmaticsAsrSettings;
+  /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
+  unintelligiblePlaceholder?: string;
+  /** Whether to enable voice activity detection */
+  voiceActivityDetection?: boolean;
+}
+
+/** Storage configuration with provider hint instead of provider UUID */
+export interface StorageConfigExchangeV1 {
+  /** Provider hint identifying the storage provider type used at export time */
+  storageHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  };
+  /** Storage-specific settings including bucket, prefix, etc. */
+  settings?: Record<string, any>;
+}
+
+/** Content moderation configuration with provider hint instead of provider UUID */
+export interface ModerationConfigExchangeV1 {
+  /** Whether content moderation is enabled for this project */
+  enabled: boolean;
+  /** Provider hint identifying the LLM provider used for moderation */
+  llmHint: ProviderHint;
+  /** List of category names that should cause the input to be blocked */
+  blockedCategories?: string[];
+}
+
+/** Filler response settings with provider hint instead of provider UUID */
+export interface FillerSettingsExchangeV1 {
+  /** Provider hint identifying the LLM provider used to generate filler sentences */
+  llmHint: ProviderHint;
+  /** LLM provider-specific settings for filler generation */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /**
+   * Prompt instructing the LLM to produce a short neutral filler sentence
+   * @minLength 1
+   */
+  prompt: string;
+}
+
+/** Project entity in the exchange format */
+export interface ProjectExchangeV1 {
+  /** Local document ID used as a cross-reference by child entities; remapped to a fresh UUID on import */
+  id: string;
+  /**
+   * The name of the project
+   * @minLength 1
+   */
+  name: string;
+  /** A description of the project */
+  description?: string | null;
+  /** ASR configuration with provider hint */
+  asrConfig?: AsrConfigExchangeV1;
+  /** Whether conversations can accept voice input */
+  acceptVoice?: boolean;
+  /** Whether conversations generate voice responses */
+  generateVoice?: boolean;
+  /** Storage configuration with provider hint */
+  storageConfig?: StorageConfigExchangeV1;
+  /** Content moderation configuration with provider hint */
+  moderationConfig?: {
+    /** Whether content moderation is enabled for this project */
+    enabled: boolean;
+    /** Provider hint identifying the LLM provider used for moderation */
+    llmHint: ProviderHint;
+    /** List of category names that should cause the input to be blocked */
+    blockedCategories?: string[];
+  } | null;
+  /** Key-value store of constants used in templating and conversation logic */
+  constants?: Record<string, ParameterValue>;
+  /** Additional metadata for the project */
+  metadata?: Record<string, any>;
+  /** IANA timezone identifier, e.g. Europe/Warsaw or America/New_York */
+  timezone?: string | null;
+  /** ISO language code for the project, e.g. en-US or pl-PL */
+  languageCode?: string | null;
+  /** When enabled, users are automatically created on first WebSocket connection */
+  autoCreateUsers?: boolean;
+  /** Descriptors defining the data schema for user profile variables */
+  userProfileVariableDescriptors?: FieldDescriptor[];
+  /** Local document ID of the classifier used to evaluate guardrails; remapped on import */
+  defaultGuardrailClassifierId?: string | null;
+  /**
+   * Timeout in seconds for active conversations with no activity
+   * @min 0
+   */
+  conversationTimeoutSeconds?: number | null;
+}
+
+/** Agent entity in the exchange format */
+export interface AgentExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the agent */
+  name: string;
+  /** Detailed description of the agent purpose */
+  description?: string | null;
+  /** Prompt defining the agent's characteristics and behavior */
+  prompt: string;
+  /** Provider hint identifying the TTS provider used at export time */
+  ttsHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** TTS provider-specific settings */
+  ttsSettings?:
+    | ElevenLabsTtsSettings
+    | OpenAiTtsSettings
+    | DeepgramTtsSettings
+    | CartesiaTtsSettings
+    | AzureTtsSettings
+    | AmazonPollyTtsSettings;
+  /** Tags for categorizing and filtering this agent */
+  tags?: string[];
+  /** Additional agent-specific metadata */
+  metadata?: Record<string, any>;
+  /** Filler response settings with provider hint */
+  fillerSettings?: {
+    /** Provider hint identifying the LLM provider used to generate filler sentences */
+    llmHint: ProviderHint;
+    /** LLM provider-specific settings for filler generation */
+    llmSettings?:
+      | OpenAILlmSettings
+      | OpenAILegacyLlmSettings
+      | AnthropicLlmSettings
+      | GeminiLlmSettings;
+    /**
+     * Prompt instructing the LLM to produce a short neutral filler sentence
+     * @minLength 1
+     */
+    prompt: string;
+  } | null;
+}
+
+/** Stage entity in the exchange format */
+export interface StageExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the stage */
+  name: string;
+  /** Detailed description of the stage purpose */
+  description?: string | null;
+  /** System prompt defining the stage behavior */
+  prompt: string;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this stage */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Local document ID of the associated agent; remapped on import */
+  agentId: string;
+  /** What happens when entering this stage */
+  enterBehavior?: "generate_response" | "await_user_input";
+  /** Whether knowledge base is enabled in this stage */
+  useKnowledge?: boolean;
+  /** Knowledge tags included in this stage */
+  knowledgeTags?: string[];
+  /** Whether global actions are enabled in this stage */
+  useGlobalActions?: boolean;
+  /** Local document IDs of global actions available in this stage; remapped on import */
+  globalActions?: string[];
+  /** Variable descriptor definitions for this stage */
+  variableDescriptors?: FieldDescriptor[];
+  /** Action definitions for this stage */
+  actions?: Record<string, StageAction>;
+  /** Local document ID of the default classifier; remapped on import */
+  defaultClassifierId?: string | null;
+  /** Local document IDs of context transformers; remapped on import */
+  transformerIds?: string[];
+  /** Tags for categorizing and filtering this stage */
+  tags?: string[];
+  /** Additional stage-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Classifier entity in the exchange format */
+export interface ClassifierExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the classifier */
+  name: string;
+  /** Detailed description of the classifier */
+  description?: string | null;
+  /** Prompt defining the classification logic */
+  prompt: string;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this classifier */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Tags for categorizing and filtering this classifier */
+  tags?: string[];
+  /** Additional classifier-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Context transformer entity in the exchange format */
+export interface ContextTransformerExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the context transformer */
+  name: string;
+  /** Detailed description of the transformer */
+  description?: string | null;
+  /** Prompt defining the transformation logic */
+  prompt: string;
+  /** Context field names to be transformed */
+  contextFields?: string[] | null;
+  /** Provider hint identifying the LLM provider used at export time */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this transformer */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Tags for categorizing and filtering this context transformer */
+  tags?: string[];
+  /** Additional transformer-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Tool entity in the exchange format */
+export interface ToolExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the tool */
+  name: string;
+  /** Detailed description of the tool */
+  description?: string | null;
+  /**
+   * Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)
+   * @default "smart_function"
+   */
+  type?: "smart_function" | "webhook" | "script";
+  /** Handlebars template for tool invocation (smart_function only) */
+  prompt?: string | null;
+  /** Provider hint identifying the LLM provider used at export time (smart_function only) */
+  llmHint?: {
+    /** Category of the provider (llm, tts, asr, storage, embeddings) */
+    type: "llm" | "tts" | "asr" | "storage" | "embeddings";
+    /** Provider implementation identifier, e.g. "openai", "anthropic", "elevenlabs", "azure", "deepgram" */
+    apiType: string;
+    /** Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance */
+    preferredModel?: string;
+  } | null;
+  /** LLM provider-specific settings for this tool (smart_function only) */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings;
+  /** Expected input format for the tool (smart_function only) */
+  inputType?: "text" | "image" | "multi-modal" | null;
+  /** Expected output format from the tool (smart_function only) */
+  outputType?: "text" | "image" | "multi-modal" | null;
+  /** Target URL — supports Handlebars templating (webhook only) */
+  url?: string | null;
+  /** HTTP method to use (webhook only) */
+  webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | null;
+  /** HTTP headers to send; values support Handlebars templating (webhook only) */
+  webhookHeaders?: Record<string, string>;
+  /** Request body template (Handlebars); used for POST/PUT/PATCH (webhook only) */
+  webhookBody?: string | null;
+  /** JavaScript code to execute in an isolated VM context (script only) */
+  code?: string | null;
+  /** Parameters that this tool expects to receive */
+  parameters?: ToolParameter[];
+  /** Tags for categorizing and filtering this tool */
+  tags?: string[];
+  /** Additional tool-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Global action entity in the exchange format */
+export interface GlobalActionExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the global action */
+  name: string;
+  /** Optional condition expression for action activation */
+  condition?: string | null;
+  /** Whether this action is triggered on user input */
+  triggerOnUserInput?: boolean;
+  /** Whether this action is triggered on client commands */
+  triggerOnClientCommand?: boolean;
+  /** Classification label that triggers this action */
+  classificationTrigger?: string | null;
+  /** Local document ID of an override classifier; remapped on import */
+  overrideClassifierId?: string | null;
+  /** Parameters to extract from user input */
+  parameters?: StageActionParameter[];
+  /** Effects to execute when action is triggered */
+  effects?: Effect[];
+  /** Example phrases that trigger this action */
+  examples?: string[] | null;
+  /** Tags for categorizing and filtering this global action */
+  tags?: string[];
+  /** Additional action-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Guardrail entity in the exchange format */
+export interface GuardrailExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Display name of the guardrail */
+  name: string;
+  /** Condition expression for guardrail activation */
+  condition?: string | null;
+  /** Classification label that triggers this guardrail */
+  classificationTrigger?: string | null;
+  /** Effects to execute when the guardrail is triggered */
+  effects?: Effect[];
+  /** Example phrases that trigger this guardrail */
+  examples?: string[] | null;
+  /** Tags for categorizing and filtering this guardrail */
+  tags?: string[];
+  /** Additional guardrail-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+/** Knowledge category entity in the exchange format */
+export interface KnowledgeCategoryExchangeV1 {
+  /** Local document ID used by knowledge items; remapped to a fresh UUID on import */
+  id: string;
+  /** Name of the knowledge category */
+  name: string;
+  /** Trigger phrase that activates this category in conversations */
+  promptTrigger: string;
+  /** Array of knowledge tags this category belongs to */
+  tags?: string[];
+  /**
+   * Display order for the category
+   * @min 0
+   */
+  order?: number;
+}
+
+/** Knowledge item entity in the exchange format */
+export interface KnowledgeItemExchangeV1 {
+  /** Local document ID; remapped to a fresh UUID on import */
+  id: string;
+  /** Local document ID of the parent knowledge category; remapped on import */
+  categoryId: string;
+  /** Question text for this knowledge item */
+  question: string;
+  /** Answer text for this knowledge item */
+  answer: string;
+  /**
+   * Display order within the category
+   * @min 0
+   */
+  order?: number;
+}
+
+/** Version 1 project exchange bundle — self-contained, provider-agnostic snapshot of a complete project */
+export interface ProjectExchangeBundleV1 {
+  /** Exchange format version. Always 1 for this schema revision. */
+  formatVersion: 1;
+  /**
+   * ISO 8601 timestamp of when this bundle was produced
+   * @format date-time
+   */
+  exportedAt: string;
+  /** Project configuration and settings */
+  project: ProjectExchangeV1;
+  /** Agent entities belonging to this project */
+  agents: AgentExchangeV1[];
+  /** Stage entities belonging to this project */
+  stages: StageExchangeV1[];
+  /** Classifier entities belonging to this project */
+  classifiers: ClassifierExchangeV1[];
+  /** Context transformer entities belonging to this project */
+  contextTransformers: ContextTransformerExchangeV1[];
+  /** Tool entities belonging to this project */
+  tools: ToolExchangeV1[];
+  /** Global action entities belonging to this project */
+  globalActions: GlobalActionExchangeV1[];
+  /** Guardrail entities belonging to this project */
+  guardrails: GuardrailExchangeV1[];
+  /** Knowledge category entities belonging to this project */
+  knowledgeCategories: KnowledgeCategoryExchangeV1[];
+  /** Knowledge item entities belonging to this project */
+  knowledgeItems: KnowledgeItemExchangeV1[];
+}
+
+/** Summary of a completed project import operation */
+export interface ProjectExchangeImportResult {
+  /** Newly assigned ID of the imported project */
+  projectId: string;
+  /** Count of each entity type that was created */
+  counts: {
+    /** Number of agents imported */
+    agents: number;
+    /** Number of stages imported */
+    stages: number;
+    /** Number of classifiers imported */
+    classifiers: number;
+    /** Number of context transformers imported */
+    contextTransformers: number;
+    /** Number of tools imported */
+    tools: number;
+    /** Number of global actions imported */
+    globalActions: number;
+    /** Number of guardrails imported */
+    guardrails: number;
+    /** Number of knowledge categories imported */
+    knowledgeCategories: number;
+    /** Number of knowledge items imported */
+    knowledgeItems: number;
+  };
+  /** Resolution report for every unique provider hint found in the bundle. Each entry shows what the hint requested and which local provider it mapped to. Entries with resolved=false indicate provider fields that were set to null — the affected entities will need their provider re-configured manually. */
+  providerResolution: ProviderHintResolution[];
 }
 
 export interface LatencyStatsResponse {

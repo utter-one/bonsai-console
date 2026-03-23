@@ -58,7 +58,8 @@ async function generateTypes() {
     'UserProfileOperation',
     'CallToolEffect',
     'CallWebhookEffect',
-    'GenerateResponseEffect'
+    'GenerateResponseEffect',
+    'ChangeVisibilityEffect'
   ]
 
   // Group definitions by category
@@ -69,14 +70,14 @@ async function generateTypes() {
       'GoToStageEffect', 'RunScriptEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
       'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
-      'GenerateResponseEffect'
+      'GenerateResponseEffect', 'ChangeVisibilityEffect'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [
       'start-conversation-request', 'start-conversation-response',
       'resume-conversation-request', 'resume-conversation-response',
       'end-conversation-request', 'end-conversation-response',
-      'conversation-event'
+      'conversation-event', 'conversation-event-update'
     ],
     userInput: [
       'start-user-voice-input-request', 'start-user-voice-input-response',

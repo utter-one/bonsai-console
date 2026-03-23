@@ -4,11 +4,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useTableSort } from '@/composables'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import StageActionModal from '@/components/modals/StageActionModal.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
@@ -61,7 +63,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
@@ -71,6 +73,7 @@ const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
 const clipboardActions = ref<Record<string, StageAction> | null>(null)
+const actionsSearchQuery = ref('')
 const clipboardVariables = ref<Array<any> | null>(null)
 const isLifecycleActionKey = ref(false)
 const form = ref({
@@ -227,7 +230,7 @@ async function handleSubmit() {
       const updated = await stagesStore.update(projectId.value, currentStage.value.id, {
         version: currentStage.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
+        description: form.value.description || null,
         tags: form.value.tags,
         agentId: form.value.agentId,
         prompt: form.value.prompt,
@@ -633,12 +636,20 @@ function handleActionSave(data: { key: string; action: StageAction }) {
 const { sortKey: actionsSortKey, sortOrder: actionsSortOrder, toggleSort: toggleActionsSort, getSortIcon: getActionsSortIcon } = useTableSort('sort-stage-actions')
 
 const actionsList = computed(() => {
+  const query = actionsSearchQuery.value.toLowerCase().trim()
   const list = Object.entries(form.value.actions)
     .filter(([key]) => !isLifecycleAction(key))
     .map(([key, action]) => ({
       key,
       ...action
     }))
+    .filter(action => {
+      if (!query) return true
+      return (
+        (action.name || '').toLowerCase().includes(query) ||
+        (action.classificationTrigger || '').toLowerCase().includes(query)
+      )
+    })
 
   if (!actionsSortKey.value || !actionsSortOrder.value) return list
 
@@ -878,6 +889,14 @@ function toggleNode(path: number[]) {
         >
           Metadata
         </button>
+        <button
+          v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
       </nav>
     </div>
 
@@ -1007,6 +1026,7 @@ function toggleNode(path: number[]) {
                   <Settings class="inline-block mr-1 w-4 h-4" />
                   Settings...
                 </button>
+                <LLMModelBadge :settings="form.llmSettings" />
               </div>
               <p class="form-help-text">
                 The LLM provider to use for this stage
@@ -1210,7 +1230,7 @@ function toggleNode(path: number[]) {
 
           <!-- Actions Tab -->
           <div v-show="activeTab === 'actions'" class="tab-content">
-            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-6">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
                 <p class="text-sm text-gray-600 mt-1">
@@ -1250,9 +1270,28 @@ function toggleNode(path: number[]) {
               </div>
             </div>
 
+            <!-- Search -->
+            <div class="search-container">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                v-model="actionsSearchQuery"
+                type="text"
+                placeholder="Search by name or classification..."
+                class="search-input"
+              />
+              <button
+                v-if="actionsSearchQuery"
+                type="button"
+                @click="actionsSearchQuery = ''"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+
             <!-- Empty State -->
             <div v-if="actionsList.length === 0" class="text-center py-12">
-              <p class="text-gray-500 mb-4">No actions defined yet</p>
+              <p class="text-gray-500 mb-4">{{ actionsSearchQuery ? 'No actions match your search' : 'No actions defined yet' }}</p>
             </div>
 
             <!-- Actions Table -->
@@ -1424,6 +1463,21 @@ function toggleNode(path: number[]) {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
+          <!-- History Tab -->
+           <div class="tab-content">
+              <EntityHistoryView
+                v-if="isEditMode && currentStage"
+                v-show="activeTab === 'history'"
+                :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
+                :current-version="currentStage.version"
+                :current-object="currentStage"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
+                :create-fn="(data) => stagesStore.create(projectId, data)"
+                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+           </div>
           </fieldset>
         </form>
       </div>

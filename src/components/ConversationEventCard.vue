@@ -12,6 +12,9 @@ import {
   AlertCircle,
   Layers,
   Wrench,
+  Globe,
+  Code,
+  Sparkles,
   FileText,
   ScrollText,
   Wand2,
@@ -21,6 +24,7 @@ import {
   ChevronDown,
   MessageSquare,
   ShieldAlert,
+  Eye,
 } from 'lucide-vue-next'
 import ContentViewer from '@/components/ContentViewer.vue'
 
@@ -84,6 +88,20 @@ function onHighlightMouseEnter() {
 // Type guards
 function isMessageEvent(event: NormalizedEvent): boolean {
   return event.eventType === 'message'
+}
+
+const TOP_LEVEL_EVENT_TYPES = new Set([
+  'message',
+  'command',
+  'conversation_start',
+  'conversation_resume',
+  'conversation_end',
+  'conversation_aborted',
+  'conversation_failed',
+])
+
+function isTopLevelEvent(event: NormalizedEvent): boolean {
+  return TOP_LEVEL_EVENT_TYPES.has(event.eventType)
 }
 
 function isClassificationEvent(event: NormalizedEvent): boolean {
@@ -180,7 +198,9 @@ function getEventSummary(event: NormalizedEvent): string {
     case 'command':
       return data.command
     case 'tool_call':
-      return `${data.toolName} · ${data.success ? 'success' : 'failed'}`
+      return `${data.toolName} · ${data.success ? 'success' : 'failed'}${
+        data.toolType ? ' · ' + getToolTypeLabel(data.toolType) : ''
+      }`
     case 'conversation_start':
       return `stage: ${data.stageId}`
     case 'conversation_resume':
@@ -202,6 +222,15 @@ function getEventSummary(event: NormalizedEvent): string {
     }
     default:
       return ''
+  }
+}
+
+function getToolTypeLabel(toolType: string | undefined): string {
+  switch (toolType) {
+    case 'smart_function': return 'Smart Function'
+    case 'webhook': return 'Webhook'
+    case 'script': return 'Script'
+    default: return 'Tool'
   }
 }
 
@@ -266,7 +295,7 @@ function onBugReport() {
     class="border rounded-lg p-1 shadow-sm transition-shadow hover:shadow-md"
     :class="[
       getEventTypeColor(event.eventType),
-      { 'ml-8': !isMessageEvent(event) },
+      { 'ml-8': !isTopLevelEvent(event) },
       { 'highlight-pulse': highlighted && !hasHovered },
       { 'highlight-finish': highlighted && hasHovered }
     ]"
@@ -344,6 +373,25 @@ function onBugReport() {
             class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
             <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Original:</span>
             <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}</div>
+          </div>
+          <div v-if="event.eventData.visibility" class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600 flex items-center gap-1.5">
+            <Eye class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <span class="text-xs text-gray-600 dark:text-gray-400">Visibility:</span>
+            <span
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+              :class="{
+                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300': event.eventData.visibility.visibility === 'always',
+                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300': event.eventData.visibility.visibility === 'stage',
+                'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400': event.eventData.visibility.visibility === 'never',
+                'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300': event.eventData.visibility.visibility === 'conditional',
+              }"
+            >
+              {{ event.eventData.visibility.visibility }}
+            </span>
+            <span v-if="event.eventData.visibility.visibility === 'conditional' && event.eventData.visibility.condition"
+              class="font-mono text-xs text-gray-600 dark:text-gray-400 truncate">
+              {{ event.eventData.visibility.condition }}
+            </span>
           </div>
           <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0"
             class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
@@ -591,6 +639,13 @@ function onBugReport() {
                 <ScrollText class="w-4 h-4" />
               </button>
               <button
+                v-if="event.eventData.result != null"
+                @click="onOpenRawResponse(JSON.stringify(event.eventData.result, null, 2))"
+                class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                title="View result">
+                <Layers class="w-4 h-4" />
+              </button>
+              <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
                 @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
                 class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
@@ -627,8 +682,8 @@ function onBugReport() {
                     <div v-for="(value, key) in effect" :key="key"
                       class="md:flex items-start gap-2 text-xs">
                       <span class="text-gray-600 font-medium min-w-[100px] shrink-0 dark:text-gray-400">{{ key }}: </span>
-                      <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{ 
-                        typeof value === 'object' ? JSON.stringify(value) : String(value) 
+                      <span class="text-gray-900 break-words font-mono dark:text-gray-200">{{
+                        typeof value === 'object' ? JSON.stringify(value) : String(value)
                       }}</span>
                     </div>
                   </div>
@@ -745,6 +800,18 @@ function onBugReport() {
           <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
             <div class="flex items-center gap-2 min-w-0">
               <button @click="toggle()" class="font-semibold text-pink-900 dark:text-pink-100 shrink-0 text-left">Tool Call</button>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shrink-0"
+                :class="event.eventData.toolType === 'webhook'
+                  ? 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300'
+                  : event.eventData.toolType === 'script'
+                    ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                    : 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300'"
+              >
+                <Globe v-if="event.eventData.toolType === 'webhook'" class="w-3 h-3" />
+                <Code v-else-if="event.eventData.toolType === 'script'" class="w-3 h-3" />
+                <Sparkles v-else class="w-3 h-3" />
+                {{ getToolTypeLabel(event.eventData.toolType) }}
+              </span>
               <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
                 <CheckCircle class="w-3 h-3" />
                 Success
@@ -780,6 +847,13 @@ function onBugReport() {
                 <ScrollText class="w-4 h-4" />
               </button>
               <button
+                v-if="event.eventData.result != null"
+                @click="onOpenRawResponse(JSON.stringify(event.eventData.result, null, 2))"
+                class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                title="View result">
+                <Layers class="w-4 h-4" />
+              </button>
+              <button
                 v-if="hasCurrentVariables(event.eventData.metadata)"
                 @click="onOpenVariables(event.eventData.metadata!.currentVariables as Record<string, any>)"
                 class="btn-icon p-1 hover:bg-pink-100 dark:hover:bg-pink-900/30"
@@ -804,6 +878,10 @@ function onBugReport() {
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Tool ID:</span>
               <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toolId }}</div>
             </div>
+            <div v-if="event.eventData.toolType">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Type:</span>
+              <div class="text-sm text-gray-900 dark:text-gray-200">{{ getToolTypeLabel(event.eventData.toolType) }}</div>
+            </div>
             <div v-if="event.eventData.parameters && Object.keys(event.eventData.parameters).length > 0">
               <details class="group">
                 <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
@@ -814,7 +892,7 @@ function onBugReport() {
                 </div>
               </details>
             </div>
-            <div v-if="event.eventData.success && event.eventData.result && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
+            <div v-if="event.eventData.success && event.eventData.result != null && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.eventData.result.length }} item{{ event.eventData.result.length !== 1 ? 's' : '' }}):</span>
               <div class="mt-2 space-y-3">
                 <div v-for="(content, idx) in event.eventData.result" :key="idx"

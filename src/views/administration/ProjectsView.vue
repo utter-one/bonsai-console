@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { Search, X, BriefcaseBusiness, Plus } from 'lucide-vue-next'
-import type { ProjectResponse } from '@/api/types'
+import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
+import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
 
 const router = useRouter()
@@ -105,6 +105,76 @@ function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
 }
+
+// Import/Export
+const importFileInput = ref<HTMLInputElement | null>(null)
+const isImporting = ref(false)
+const exportingProjectId = ref<string | null>(null)
+
+function triggerImport() {
+  importFileInput.value?.click()
+}
+
+async function handleImportFile(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  try {
+    isImporting.value = true
+    const text = await file.text()
+    const bundle = JSON.parse(text) as ProjectExchangeBundleV1
+    const result = await projectsStore.importProject(bundle)
+    await loadProjects()
+    alert(`Project imported successfully (ID: ${result.projectId})`)
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to import project')
+  } finally {
+    isImporting.value = false
+    if (importFileInput.value) importFileInput.value.value = ''
+  }
+}
+
+// Row dropdown
+const openDropdownId = ref<string | null>(null)
+const dropdownStyle = ref<{ top: string; left: string }>()
+
+function toggleDropdown(event: MouseEvent, projectId: string) {
+  if (openDropdownId.value === projectId) {
+    openDropdownId.value = null
+    return
+  }
+  const btn = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  dropdownStyle.value = {
+    top: `${btn.bottom + 4}px`,
+    left: `${btn.right - 176}px`,
+  }
+  openDropdownId.value = projectId
+}
+
+function closeDropdown() {
+  openDropdownId.value = null
+}
+
+onMounted(() => document.addEventListener('click', closeDropdown))
+onUnmounted(() => document.removeEventListener('click', closeDropdown))
+
+async function exportProject(project: ProjectResponse) {
+  try {
+    exportingProjectId.value = project.id
+    const bundle = await projectsStore.exportProject(project.id)
+    const json = JSON.stringify(bundle, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `project-${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to export project')
+  } finally {
+    exportingProjectId.value = null
+  }
+}
 </script>
 
 <template>
@@ -117,6 +187,17 @@ function formatDate(date: string | null) {
           <p class="page-subtitle">Manage your AI application projects</p>
         </div>
         <div class="flex items-center gap-4">
+          <input
+            ref="importFileInput"
+            type="file"
+            accept=".json,application/json"
+            class="hidden"
+            @change="handleImportFile"
+          />
+          <button @click="triggerImport" class="btn-secondary" :disabled="isImporting">
+            <Import class="inline-block mr-2 w-4 h-4" />
+            {{ isImporting ? 'Importing...' : 'Import Project' }}
+          </button>
           <button @click="createProject" class="btn-primary" :disabled="showArchived">
             <Plus class="inline-block mr-2 w-4 h-4" />
             New Project
@@ -216,12 +297,54 @@ function formatDate(date: string | null) {
                 <td class="table-cell-muted">{{ formatDate(project.updatedAt) }}</td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="selectProject(project.id)" class="btn-secondary btn-sm">Design</button>
-                    <button @click="openPlayground(project.id)" class="btn-secondary btn-sm">Test</button>
                     <button @click="editProject(project)" class="btn-secondary btn-sm">Edit</button>
-                    <button @click="archiveProject(project)" :class="['btn-sm', project.archivedAt ? 'btn-secondary' : 'btn-danger']">
-                    {{ project.archivedAt ? 'Unarchive' : 'Archive' }}
-                </button>
+                    <div>
+                      <button
+                        @click.stop="toggleDropdown($event, project.id)"
+                        class="btn-secondary btn-sm"
+                        title="More actions"
+                      >
+                        <MoreHorizontal class="w-4 h-4" />
+                      </button>
+                      <Teleport to="body">
+                        <div
+                          v-if="openDropdownId === project.id"
+                          :style="dropdownStyle"
+                          class="fixed z-50 w-44 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                          @click.stop
+                        >
+                          <button
+                            @click="selectProject(project.id); closeDropdown()"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                          >
+                            Design
+                          </button>
+                          <button
+                            @click="openPlayground(project.id); closeDropdown()"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                          >
+                            Test
+                          </button>
+                          <button
+                            @click="exportProject(project); closeDropdown()"
+                            :disabled="exportingProjectId === project.id"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-700"
+                          >
+                            {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
+                          </button>
+                          <div class="border-t border-gray-200 dark:border-gray-700" />
+                          <button
+                            @click="archiveProject(project); closeDropdown()"
+                            :class="[
+                              'flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700',
+                              project.archivedAt ? 'text-gray-700 dark:text-gray-200' : 'text-red-600 dark:text-red-400'
+                            ]"
+                          >
+                            {{ project.archivedAt ? 'Unarchive' : 'Archive' }}
+                          </button>
+                        </div>
+                      </Teleport>
+                    </div>
                   </div>
                 </td>
               </tr>

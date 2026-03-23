@@ -6,6 +6,7 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import ActionForm from '@/components/ActionForm.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
 import TagsEditor from '@/components/TagsEditor.vue'
 
@@ -23,7 +24,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
 
-type TabType = 'basic' | 'trigger' | 'effects' | 'goToStage' | 'runScript' | 'modifyUserInput' | 'modifyVariables' | 'modifyUserProfile' | 'callTool' | 'callWebhook' | 'metadata'
+type TabType = 'basic' | 'trigger' | 'effects' | 'metadata' | 'history'
 const activeTab = reactive({ value: 'basic' as TabType })
 
 // Separate fields not in ActionFormData
@@ -266,7 +267,24 @@ const metadataFields = computed(() => {
               :show-parameters="false"
               :show-metadata="isEditMode"
               :metadata-fields="metadataFields"
-            />
+              :show-history="isEditMode"
+            >
+              <template #history>
+                <div class="tab-content">
+                  <EntityHistoryView
+                    v-if="isEditMode && currentGuardrail"
+                    :load-history="() => guardrailsStore.fetchAuditLogs(projectId, currentGuardrail!.id)"
+                    :current-version="currentGuardrail.version"
+                    :current-object="currentGuardrail"
+                    :active="activeTab.value === 'history'"
+                    :update-fn="(data) => guardrailsStore.update(projectId, currentGuardrail!.id, data)"
+                    :create-fn="(data) => guardrailsStore.create(projectId, data)"
+                    :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                    @recover-success="() => router.go(0)"
+                  />
+                </div>
+              </template>
+            </ActionForm>
 
             <!-- Tags Field -->
             <div v-show="activeTab.value === 'basic'" class="px-6">

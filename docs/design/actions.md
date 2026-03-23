@@ -85,10 +85,6 @@ Effects are the building blocks of action behavior. They run in order within an 
 
 Move the conversation to a different stage. Triggers lifecycle actions (On Leave on the current stage, On Enter on the new one).
 
-### Run Script
-
-Execute custom JavaScript. You have full access to conversation variables, user profile, history, and flow control functions. See [Scripting](../guide/scripting) for details.
-
 ### Modify Variables
 
 Set, reset, or update stage variables:
@@ -104,19 +100,9 @@ Set, reset, or update stage variables:
 
 Same operations as Modify Variables, but applied to the user's profile data instead of stage variables.
 
-### Call Webhook
-
-Send an HTTP request to an external service. You can use template values in the URL, headers, and body:
-
-- **Method** — GET, POST, PUT, DELETE
-- **URL** — e.g., <code v-pre>https://api.example.com/orders/{{vars.orderId}}</code>
-- **Headers** — e.g., <code v-pre>Authorization: Bearer {{consts.apiToken}}</code>
-- **Body** — JSON payload
-- **Result Key** — Name under which the response is stored for use in later effects
-
 ### Call Tool
 
-Invoke an AI-powered [tool](./tools) by ID, passing template-based parameters. The tool runs and returns a result that subsequent effects and prompts can use.
+Invoke a [tool](./tools) by ID, passing template-based parameters. The tool runs and returns a result that subsequent effects and prompts can use. Tools can be Smart Functions (LLM-based), Webhooks (external HTTP calls), or Scripts (custom JavaScript).
 
 ### Modify User Input
 
@@ -173,16 +159,17 @@ When multiple actions are triggered in the same turn, the system **collects all 
 
 | Priority | Effect Type |
 |---|---|
-| 1 | Call Webhook |
-| 2 | Call Tool |
+| 1 | Call Tool (Webhook) |
+| 2 | Call Tool (Smart Function)|
 | 3 | Modify Variables |
 | 4 | Modify User Profile |
 | 5 | Modify User Input |
-| 6 | Run Script |
-| 7 | Generate Response |
-| 8 | End Conversation |
-| 9 | Abort Conversation |
-| 10 | Go to Stage |
+| 6 | Call Tool (Script) |
+| 50 | Change Visibility |
+| 100 | Generate Response (if not aborted) |
+| 200 | End Conversation |
+| 201 | Abort Conversation |
+| 202 | Go to Stage (if not aborted/endeds) |
 
 #### Conflict Resolution
 
@@ -198,4 +185,4 @@ When multiple matched actions contribute the same effect type, these rules apply
 - **Write clear classification triggers** — Think of them as labels that describe user intent.
 - **Provide examples** — The more example phrases you give, the better the classifier can match.
 - **Use conditions** to hide actions that don't make sense yet (e.g., don't offer "confirm booking" until all required fields are collected).
-- **Chain effects thoughtfully** — A common pattern: _call webhook → store result in variable → generate response_ (the response prompt can then reference the variable with the webhook data).
+- **Chain effects thoughtfully** — A common pattern: _call tool → store result in variable → generate response_ (the response prompt can then reference the result or variable with the data).

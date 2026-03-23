@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,7 +16,7 @@ const environmentsStore = useEnvironmentsStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'metadata'>('basic')
+const activeTab = ref<'basic' | 'metadata' | 'history'>('basic')
 const form = ref({
   id: '',
   description: '',
@@ -200,6 +201,14 @@ const metadataFields = computed(() => {
           >
             Metadata
           </button>
+          <button
+            v-if="isEditMode"
+            @click="activeTab = 'history'"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+            type="button"
+          >
+            History
+          </button>
         </nav>
       </div>
 
@@ -322,6 +331,21 @@ const metadataFields = computed(() => {
               v-show="activeTab === 'metadata'"
               :fields="metadataFields"
             />
+            <div class="tab-content">
+              <!-- History Tab -->
+              <EntityHistoryView
+                v-if="isEditMode && currentEnvironment"
+                v-show="activeTab === 'history'"
+                :load-history="() => environmentsStore.fetchAuditLogs(currentEnvironment!.id)"
+                :current-version="currentEnvironment.version"
+                :current-object="currentEnvironment"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => environmentsStore.update(currentEnvironment!.id, data)"
+                :create-fn="(data) => environmentsStore.create(data)"
+                :ignore-fields="['createdAt', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+            </div>
           </form>
         </div>
       </div>

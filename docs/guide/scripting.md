@@ -1,6 +1,6 @@
 # Scripting
 
-For situations where templates and built-in effects aren't enough, Bonsai lets you write custom **JavaScript** that runs during a conversation. Scripts execute inside the `run_script` action effect.
+For situations where templates and built-in effects aren't enough, Bonsai lets you write custom **JavaScript** that runs during a conversation. Scripts are used via **Script tools** invoked with the `call_tool` effect.
 
 ## What Scripts Can Do
 
@@ -15,7 +15,7 @@ Scripts are useful for:
 Scripts run in a **secure sandbox** with strict limits:
 - **5-second time limit** — Long-running code is automatically stopped.
 - **16 MB memory limit** — Prevents runaway memory usage.
-- **No internet access** — Scripts cannot make network requests (use the `call_webhook` effect for that).
+- **No internet access** — Scripts cannot make network requests (use a webhook tool for that).
 - **No file access** — Scripts cannot read or write files on the server.
 
 This means scripts are safe to use — they can only read and modify conversation data.
@@ -47,6 +47,7 @@ This means scripts are safe to use — they can only read and modify conversatio
 | `userInputSource` | How the user communicated: `'text'`, `'voice'`, or `null` |
 | `stageVars` | Variables from all stages (keyed by stage ID) |
 | `consts` | Project-level constants defined in **Design > Global Memory > Constants** |
+| `project` | Project-level settings: `project.timezone`, `project.languageCode`, `project.language` |
 
 ## Common Patterns
 
@@ -83,10 +84,10 @@ if (vars.retryCount >= 3) {
 }
 ```
 
-### Processing Webhook Results
+### Processing Tool Results
 
 ```javascript
-const response = results.webhooks?.orderLookup;
+const response = results.tools?.orderLookup;
 if (response) {
   vars.customerName = response.firstName + " " + response.lastName;
   vars.accountTier = response.subscription?.tier || "free";
@@ -172,5 +173,5 @@ console.log("Retry count:", vars.retryCount);
 - Scripts are **synchronous** — no `async`/`await` or promises.
 - No external modules or `require()` / `import`.
 - No `setTimeout` or `setInterval`.
-- For network calls, use the `call_webhook` or `call_tool` effects instead of scripts.
+- For network calls, create a **Webhook tool** and invoke it via the Call Tool effect instead of scripts.
 - Always check if variables exist before using them to avoid errors.

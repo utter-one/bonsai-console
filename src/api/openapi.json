@@ -2062,27 +2062,6 @@
           "stageId"
         ]
       },
-      "RunScriptEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "run_script"
-            ],
-            "description": "Effect type"
-          },
-          "code": {
-            "type": "string",
-            "minLength": 1,
-            "description": "JavaScript code to execute in isolated context"
-          }
-        },
-        "required": [
-          "type",
-          "code"
-        ]
-      },
       "ModifyUserInputEffect": {
         "type": "object",
         "properties": {
@@ -2208,6 +2187,36 @@
           "operation"
         ]
       },
+      "ChangeVisibilityEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "change_visibility"
+            ],
+            "description": "Effect type"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "always",
+              "stage",
+              "never",
+              "conditional"
+            ],
+            "description": "Visibility setting: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on a JavaScript condition expression)"
+          },
+          "condition": {
+            "type": "string",
+            "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
+          }
+        },
+        "required": [
+          "type",
+          "visibility"
+        ]
+      },
       "CallToolEffect": {
         "type": "object",
         "properties": {
@@ -2235,56 +2244,6 @@
           "type",
           "toolId",
           "parameters"
-        ]
-      },
-      "CallWebhookEffect": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "call_webhook"
-            ],
-            "description": "Effect type"
-          },
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "HTTP(S) URL to call"
-          },
-          "method": {
-            "type": "string",
-            "enum": [
-              "GET",
-              "POST",
-              "PUT",
-              "PATCH",
-              "DELETE"
-            ],
-            "default": "GET",
-            "description": "HTTP method to use"
-          },
-          "headers": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "HTTP headers to send with the request"
-          },
-          "body": {
-            "nullable": true,
-            "description": "Request body for POST/PUT/PATCH requests"
-          },
-          "resultKey": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Key name to store the webhook result under in context.results.webhooks"
-          }
-        },
-        "required": [
-          "type",
-          "url",
-          "resultKey"
         ]
       },
       "GenerateResponseEffect": {
@@ -2339,9 +2298,6 @@
             "$ref": "#/components/schemas/GoToStageEffect"
           },
           {
-            "$ref": "#/components/schemas/RunScriptEffect"
-          },
-          {
             "$ref": "#/components/schemas/ModifyUserInputEffect"
           },
           {
@@ -2354,10 +2310,10 @@
             "$ref": "#/components/schemas/CallToolEffect"
           },
           {
-            "$ref": "#/components/schemas/CallWebhookEffect"
+            "$ref": "#/components/schemas/GenerateResponseEffect"
           },
           {
-            "$ref": "#/components/schemas/GenerateResponseEffect"
+            "$ref": "#/components/schemas/ChangeVisibilityEffect"
           }
         ],
         "discriminator": {
@@ -2366,13 +2322,12 @@
             "end_conversation": "#/components/schemas/EndConversationEffect",
             "abort_conversation": "#/components/schemas/AbortConversationEffect",
             "go_to_stage": "#/components/schemas/GoToStageEffect",
-            "run_script": "#/components/schemas/RunScriptEffect",
             "modify_user_input": "#/components/schemas/ModifyUserInputEffect",
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
-            "call_webhook": "#/components/schemas/CallWebhookEffect",
-            "generate_response": "#/components/schemas/GenerateResponseEffect"
+            "generate_response": "#/components/schemas/GenerateResponseEffect",
+            "change_visibility": "#/components/schemas/ChangeVisibilityEffect"
           }
         }
       },
@@ -3027,6 +2982,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "A description of the project"
           },
           "asrConfig": {
@@ -3145,7 +3101,13 @@
           },
           "timezone": {
             "type": "string",
+            "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
           },
           "autoCreateUsers": {
             "type": "boolean",
@@ -3326,17 +3288,47 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "The updated description of the project"
           },
           "asrConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AsrConfig"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "asrProviderId": {
+                "type": "string",
+                "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
               },
-              {
-                "description": "Updated ASR configuration settings"
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AzureAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DeepgramAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                  }
+                ],
+                "description": "ASR-specific settings including model, language preferences, etc."
+              },
+              "unintelligiblePlaceholder": {
+                "type": "string",
+                "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+              },
+              "voiceActivityDetection": {
+                "type": "boolean",
+                "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               }
-            ]
+            },
+            "description": "Updated ASR configuration settings"
           },
           "acceptVoice": {
             "type": "boolean",
@@ -3347,10 +3339,36 @@
             "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
           },
           "storageConfig": {
-            "$ref": "#/components/schemas/StorageConfig"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "storageProviderId": {
+                "type": "string",
+                "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/S3StorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GcsStorageSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LocalStorageSettings"
+                  }
+                ],
+                "description": "Storage-specific settings including bucket, prefix, etc."
+              }
+            },
+            "description": "Updated storage configuration settings"
           },
           "moderationConfig": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "enabled": {
                 "type": "boolean",
@@ -3390,7 +3408,13 @@
           },
           "timezone": {
             "type": "string",
-            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+            "nullable": true,
+            "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
           },
           "autoCreateUsers": {
             "type": "boolean",
@@ -3422,33 +3446,6 @@
         "required": [
           "version"
         ]
-      },
-      "StorageConfig": {
-        "type": "object",
-        "properties": {
-          "storageProviderId": {
-            "type": "string",
-            "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
-          },
-          "settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/S3StorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/AzureBlobStorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/GcsStorageSettings"
-              },
-              {
-                "$ref": "#/components/schemas/LocalStorageSettings"
-              }
-            ],
-            "description": "Storage-specific settings including bucket, prefix, etc."
-          }
-        },
-        "description": "Updated storage configuration settings"
       },
       "ProjectResponse": {
         "type": "object",
@@ -3588,6 +3585,11 @@
             "nullable": true,
             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
           },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+          },
           "autoCreateUsers": {
             "type": "boolean",
             "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -3647,6 +3649,7 @@
           "constants",
           "metadata",
           "timezone",
+          "languageCode",
           "autoCreateUsers",
           "userProfileVariableDescriptors",
           "defaultGuardrailClassifierId",
@@ -3801,6 +3804,11 @@
                   "nullable": true,
                   "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                 },
+                "languageCode": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                },
                 "autoCreateUsers": {
                   "type": "boolean",
                   "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -3860,6 +3868,7 @@
                 "constants",
                 "metadata",
                 "timezone",
+                "languageCode",
                 "autoCreateUsers",
                 "userProfileVariableDescriptors",
                 "defaultGuardrailClassifierId",
@@ -3976,6 +3985,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated detailed description of the agent"
           },
           "prompt": {
@@ -3985,6 +3995,7 @@
           },
           "ttsProviderId": {
             "type": "string",
+            "nullable": true,
             "description": "Updated TTS provider ID"
           },
           "ttsSettings": {
@@ -4028,14 +4039,44 @@
             "description": "Updated metadata"
           },
           "fillerSettings": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FillerSettings"
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "llmProviderId": {
+                "type": "string",
+                "description": "ID of the LLM provider used to generate the filler sentence"
               },
-              {
-                "description": "Updated filler response settings"
+              "llmSettings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnthropicLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ],
+                "description": "LLM provider-specific settings for filler generation"
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
               }
-            ]
+            },
+            "required": [
+              "llmProviderId",
+              "prompt"
+            ],
+            "description": "Updated filler response settings"
           },
           "version": {
             "type": "integer",
@@ -5232,6 +5273,7 @@
           },
           "userId": {
             "type": "string",
+            "nullable": true,
             "description": "User ID who reported the issue"
           },
           "severity": {
@@ -5511,6 +5553,16 @@
             "type": "string",
             "description": "Current stage identifier for the conversation"
           },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stage identifier at the start of the conversation"
+          },
+          "endingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+          },
           "stageVars": {
             "type": "object",
             "nullable": true,
@@ -5562,6 +5614,8 @@
           "userId",
           "clientId",
           "stageId",
+          "startingStageId",
+          "endingStageId",
           "stageVars",
           "status",
           "statusDetails",
@@ -5597,6 +5651,16 @@
                 "stageId": {
                   "type": "string",
                   "description": "Current stage identifier for the conversation"
+                },
+                "startingStageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Stage identifier at the start of the conversation"
+                },
+                "endingStageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
                 },
                 "stageVars": {
                   "type": "object",
@@ -5649,6 +5713,8 @@
                 "userId",
                 "clientId",
                 "stageId",
+                "startingStageId",
+                "endingStageId",
                 "stageVars",
                 "status",
                 "statusDetails",
@@ -5736,6 +5802,28 @@
                   },
                   "originalText": {
                     "type": "string"
+                  },
+                  "visibility": {
+                    "type": "object",
+                    "properties": {
+                      "visibility": {
+                        "type": "string",
+                        "enum": [
+                          "always",
+                          "stage",
+                          "never",
+                          "conditional"
+                        ],
+                        "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                      },
+                      "condition": {
+                        "type": "string",
+                        "description": "Condition for visibility, evaluated against conversation variables"
+                      }
+                    },
+                    "required": [
+                      "visibility"
+                    ]
                   },
                   "metadata": {
                     "type": "object",
@@ -5872,7 +5960,15 @@
                 "type": "object",
                 "properties": {
                   "command": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "go_to_stage",
+                      "set_var",
+                      "get_var",
+                      "get_all_vars",
+                      "run_action",
+                      "call_tool"
+                    ]
                   },
                   "parameters": {
                     "type": "object",
@@ -5900,6 +5996,14 @@
                   "toolName": {
                     "type": "string"
                   },
+                  "toolType": {
+                    "type": "string",
+                    "enum": [
+                      "smart_function",
+                      "webhook",
+                      "script"
+                    ]
+                  },
                   "parameters": {
                     "type": "object",
                     "additionalProperties": {
@@ -5910,119 +6014,7 @@
                     "type": "boolean"
                   },
                   "result": {
-                    "type": "array",
-                    "items": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "text"
-                              ]
-                            },
-                            "text": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "text"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "image"
-                              ]
-                            },
-                            "data": {
-                              "type": "string",
-                              "description": "Base64-encoded image data"
-                            },
-                            "mimeType": {
-                              "type": "string",
-                              "description": "MIME type (e.g., image/png, image/jpeg)"
-                            },
-                            "metadata": {
-                              "type": "object",
-                              "properties": {
-                                "width": {
-                                  "type": "number"
-                                },
-                                "height": {
-                                  "type": "number"
-                                }
-                              },
-                              "additionalProperties": {
-                                "nullable": true
-                              }
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "data",
-                            "mimeType"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "contentType": {
-                              "type": "string",
-                              "enum": [
-                                "audio"
-                              ]
-                            },
-                            "data": {
-                              "type": "string",
-                              "description": "Base64-encoded audio data"
-                            },
-                            "format": {
-                              "type": "string",
-                              "enum": [
-                                "pcm",
-                                "mp3",
-                                "wav",
-                                "opus"
-                              ],
-                              "description": "Audio format"
-                            },
-                            "mimeType": {
-                              "type": "string",
-                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                            },
-                            "metadata": {
-                              "type": "object",
-                              "properties": {
-                                "sampleRate": {
-                                  "type": "number"
-                                },
-                                "channels": {
-                                  "type": "number"
-                                },
-                                "bitDepth": {
-                                  "type": "number"
-                                }
-                              },
-                              "additionalProperties": {
-                                "nullable": true
-                              }
-                            }
-                          },
-                          "required": [
-                            "contentType",
-                            "data",
-                            "format",
-                            "mimeType"
-                          ]
-                        }
-                      ]
-                    }
+                    "nullable": true
                   },
                   "error": {
                     "type": "string"
@@ -6301,6 +6293,28 @@
                         "originalText": {
                           "type": "string"
                         },
+                        "visibility": {
+                          "type": "object",
+                          "properties": {
+                            "visibility": {
+                              "type": "string",
+                              "enum": [
+                                "always",
+                                "stage",
+                                "never",
+                                "conditional"
+                              ],
+                              "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                            },
+                            "condition": {
+                              "type": "string",
+                              "description": "Condition for visibility, evaluated against conversation variables"
+                            }
+                          },
+                          "required": [
+                            "visibility"
+                          ]
+                        },
                         "metadata": {
                           "type": "object",
                           "additionalProperties": {
@@ -6436,7 +6450,15 @@
                       "type": "object",
                       "properties": {
                         "command": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "go_to_stage",
+                            "set_var",
+                            "get_var",
+                            "get_all_vars",
+                            "run_action",
+                            "call_tool"
+                          ]
                         },
                         "parameters": {
                           "type": "object",
@@ -6464,6 +6486,14 @@
                         "toolName": {
                           "type": "string"
                         },
+                        "toolType": {
+                          "type": "string",
+                          "enum": [
+                            "smart_function",
+                            "webhook",
+                            "script"
+                          ]
+                        },
                         "parameters": {
                           "type": "object",
                           "additionalProperties": {
@@ -6474,119 +6504,7 @@
                           "type": "boolean"
                         },
                         "result": {
-                          "type": "array",
-                          "items": {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "text"
-                                    ]
-                                  },
-                                  "text": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "text"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "image"
-                                    ]
-                                  },
-                                  "data": {
-                                    "type": "string",
-                                    "description": "Base64-encoded image data"
-                                  },
-                                  "mimeType": {
-                                    "type": "string",
-                                    "description": "MIME type (e.g., image/png, image/jpeg)"
-                                  },
-                                  "metadata": {
-                                    "type": "object",
-                                    "properties": {
-                                      "width": {
-                                        "type": "number"
-                                      },
-                                      "height": {
-                                        "type": "number"
-                                      }
-                                    },
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "data",
-                                  "mimeType"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "contentType": {
-                                    "type": "string",
-                                    "enum": [
-                                      "audio"
-                                    ]
-                                  },
-                                  "data": {
-                                    "type": "string",
-                                    "description": "Base64-encoded audio data"
-                                  },
-                                  "format": {
-                                    "type": "string",
-                                    "enum": [
-                                      "pcm",
-                                      "mp3",
-                                      "wav",
-                                      "opus"
-                                    ],
-                                    "description": "Audio format"
-                                  },
-                                  "mimeType": {
-                                    "type": "string",
-                                    "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                  },
-                                  "metadata": {
-                                    "type": "object",
-                                    "properties": {
-                                      "sampleRate": {
-                                        "type": "number"
-                                      },
-                                      "channels": {
-                                        "type": "number"
-                                      },
-                                      "bitDepth": {
-                                        "type": "number"
-                                      }
-                                    },
-                                    "additionalProperties": {
-                                      "nullable": true
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "contentType",
-                                  "data",
-                                  "format",
-                                  "mimeType"
-                                ]
-                              }
-                            ]
-                          }
+                          "nullable": true
                         },
                         "error": {
                           "type": "string"
@@ -6968,6 +6886,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated detailed description of the stage"
           },
           "prompt": {
@@ -8215,7 +8134,7 @@
           "offset"
         ]
       },
-      "CreateToolRequest": {
+      "CreateSmartFunctionTool": {
         "type": "object",
         "properties": {
           "id": {
@@ -8233,10 +8152,40 @@
             "nullable": true,
             "description": "Detailed description of the tool's purpose and behavior"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "default": [],
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function"
+            ],
+            "description": "Tool executes an LLM call"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Handlebars template for tool invocation"
+            "description": "Handlebars template rendered before being sent to the LLM"
           },
           "llmProviderId": {
             "type": "string",
@@ -8280,6 +8229,33 @@
               "multi-modal"
             ],
             "description": "Expected output format from the tool"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "prompt",
+          "inputType",
+          "outputType"
+        ]
+      },
+      "CreateWebhookTool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the tool (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool's purpose and behavior"
           },
           "parameters": {
             "type": "array",
@@ -8303,14 +8279,138 @@
               "nullable": true
             },
             "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "webhook"
+            ],
+            "description": "Tool makes an HTTP request"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Target URL — supports Handlebars templating"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "default": "GET",
+            "description": "HTTP method to use"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers to send; values support Handlebars templating"
+          },
+          "webhookBody": {
+            "type": "string",
+            "description": "Request body template (Handlebars); used for POST/PUT/PATCH"
           }
         },
         "required": [
           "name",
-          "prompt",
-          "inputType",
-          "outputType"
+          "type",
+          "url"
         ]
+      },
+      "CreateScriptTool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the tool (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool's purpose and behavior"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "default": [],
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "script"
+            ],
+            "description": "Tool executes isolated JavaScript code"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "JavaScript code to execute in an isolated VM context"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "code"
+        ]
+      },
+      "ToolType": {
+        "type": "string",
+        "enum": [
+          "smart_function",
+          "webhook",
+          "script"
+        ],
+        "description": "Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)"
+      },
+      "CreateToolRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CreateSmartFunctionTool"
+          },
+          {
+            "$ref": "#/components/schemas/CreateWebhookTool"
+          },
+          {
+            "$ref": "#/components/schemas/CreateScriptTool"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "smart_function": "#/components/schemas/CreateSmartFunctionTool",
+            "webhook": "#/components/schemas/CreateWebhookTool",
+            "script": "#/components/schemas/CreateScriptTool"
+          }
+        }
       },
       "UpdateToolRequest": {
         "type": "object",
@@ -8328,12 +8428,12 @@
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated tool prompt template"
+            "description": "Updated Handlebars prompt template (smart_function)"
           },
           "llmProviderId": {
             "type": "string",
             "nullable": true,
-            "description": "Updated LLM provider ID"
+            "description": "Updated LLM provider ID (smart_function)"
           },
           "llmSettings": {
             "anyOf": [
@@ -8353,7 +8453,7 @@
                 "nullable": true
               }
             ],
-            "description": "Updated LLM provider-specific settings"
+            "description": "Updated LLM provider-specific settings (smart_function)"
           },
           "inputType": {
             "type": "string",
@@ -8362,7 +8462,7 @@
               "image",
               "multi-modal"
             ],
-            "description": "Updated input format"
+            "description": "Updated input format (smart_function)"
           },
           "outputType": {
             "type": "string",
@@ -8371,7 +8471,41 @@
               "image",
               "multi-modal"
             ],
-            "description": "Updated output format"
+            "description": "Updated output format (smart_function)"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Updated target URL (webhook)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "description": "Updated HTTP method (webhook)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Updated HTTP headers (webhook)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated request body template (webhook)"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated JavaScript code (script)"
           },
           "parameters": {
             "type": "array",
@@ -8437,14 +8571,24 @@
             "nullable": true,
             "description": "Detailed description of the tool"
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function",
+              "webhook",
+              "script"
+            ],
+            "description": "Tool execution type"
+          },
           "prompt": {
             "type": "string",
-            "description": "Handlebars template for tool invocation"
+            "nullable": true,
+            "description": "Handlebars prompt template (smart_function only)"
           },
           "llmProviderId": {
             "type": "string",
             "nullable": true,
-            "description": "ID of the LLM provider"
+            "description": "ID of the LLM provider (smart_function only)"
           },
           "llmSettings": {
             "anyOf": [
@@ -8464,25 +8608,57 @@
                 "nullable": true
               }
             ],
-            "description": "LLM provider-specific settings"
+            "description": "LLM provider-specific settings (smart_function only)"
           },
           "inputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected input format"
+            "description": "Expected input format (smart_function only)"
           },
           "outputType": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text",
               "image",
-              "multi-modal"
+              "multi-modal",
+              null
             ],
-            "description": "Expected output format"
+            "description": "Expected output format (smart_function only)"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target URL (webhook only)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "nullable": true,
+            "description": "HTTP method (webhook only)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers (webhook only)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Request body template (webhook only)"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "JavaScript code (script only)"
           },
           "parameters": {
             "type": "array",
@@ -8532,10 +8708,16 @@
           "projectId",
           "name",
           "description",
+          "type",
           "prompt",
           "llmProviderId",
           "inputType",
           "outputType",
+          "url",
+          "webhookMethod",
+          "webhookHeaders",
+          "webhookBody",
+          "code",
           "parameters",
           "tags",
           "metadata",
@@ -8569,14 +8751,24 @@
                   "nullable": true,
                   "description": "Detailed description of the tool"
                 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "smart_function",
+                    "webhook",
+                    "script"
+                  ],
+                  "description": "Tool execution type"
+                },
                 "prompt": {
                   "type": "string",
-                  "description": "Handlebars template for tool invocation"
+                  "nullable": true,
+                  "description": "Handlebars prompt template (smart_function only)"
                 },
                 "llmProviderId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "ID of the LLM provider"
+                  "description": "ID of the LLM provider (smart_function only)"
                 },
                 "llmSettings": {
                   "anyOf": [
@@ -8596,25 +8788,57 @@
                       "nullable": true
                     }
                   ],
-                  "description": "LLM provider-specific settings"
+                  "description": "LLM provider-specific settings (smart_function only)"
                 },
                 "inputType": {
                   "type": "string",
+                  "nullable": true,
                   "enum": [
                     "text",
                     "image",
-                    "multi-modal"
+                    "multi-modal",
+                    null
                   ],
-                  "description": "Expected input format"
+                  "description": "Expected input format (smart_function only)"
                 },
                 "outputType": {
                   "type": "string",
+                  "nullable": true,
                   "enum": [
                     "text",
                     "image",
-                    "multi-modal"
+                    "multi-modal",
+                    null
                   ],
-                  "description": "Expected output format"
+                  "description": "Expected output format (smart_function only)"
+                },
+                "url": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Target URL (webhook only)"
+                },
+                "webhookMethod": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "HTTP method (webhook only)"
+                },
+                "webhookHeaders": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "HTTP headers (webhook only)"
+                },
+                "webhookBody": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Request body template (webhook only)"
+                },
+                "code": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "JavaScript code (script only)"
                 },
                 "parameters": {
                   "type": "array",
@@ -8664,10 +8888,16 @@
                 "projectId",
                 "name",
                 "description",
+                "type",
                 "prompt",
                 "llmProviderId",
                 "inputType",
                 "outputType",
+                "url",
+                "webhookMethod",
+                "webhookHeaders",
+                "webhookBody",
+                "code",
                 "parameters",
                 "tags",
                 "metadata",
@@ -10013,6 +10243,7 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Updated description of provider purpose"
           },
           "providerType": {
@@ -10280,6 +10511,7 @@
           },
           "tags": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             },
@@ -12222,6 +12454,10 @@
       "VersionResponse": {
         "type": "object",
         "properties": {
+          "version": {
+            "type": "string",
+            "description": "Semantic version of the application as defined in package.json (e.g. \"1.2.3\")."
+          },
           "restSchemaHash": {
             "type": "string",
             "description": "First 12 hex chars of the SHA-256 hash of the REST OpenAPI schema. Changes only when a REST API contract changes."
@@ -12237,6 +12473,7 @@
           }
         },
         "required": [
+          "version",
           "restSchemaHash",
           "wsSchemaHash",
           "gitCommit"
@@ -12711,6 +12948,1467 @@
           "stages",
           "apiKeys"
         ]
+      },
+      "ProviderHint": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "tts",
+              "asr",
+              "storage",
+              "embeddings"
+            ],
+            "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+          },
+          "apiType": {
+            "type": "string",
+            "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+          },
+          "preferredModel": {
+            "type": "string",
+            "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+          }
+        },
+        "required": [
+          "type",
+          "apiType"
+        ],
+        "description": "Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID"
+      },
+      "ProviderHintResolutionTarget": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "project",
+              "agent",
+              "stage",
+              "classifier",
+              "contextTransformer",
+              "tool"
+            ],
+            "description": "Type of entity that references this provider hint"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "New ID assigned to the entity on import"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "Display name of the entity"
+          },
+          "field": {
+            "type": "string",
+            "description": "Field that holds the provider reference, e.g. \"ttsProviderId\", \"llmProviderId\", \"asrConfig.asrProviderId\", \"fillerSettings.llmProviderId\""
+          }
+        },
+        "required": [
+          "entityType",
+          "entityId",
+          "entityName",
+          "field"
+        ],
+        "description": "Entity field that references a particular provider hint"
+      },
+      "ProviderHintResolution": {
+        "type": "object",
+        "properties": {
+          "hint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "The provider hint as it appeared in the bundle"
+              }
+            ]
+          },
+          "resolvedProviderId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local provider ID the hint resolved to, or null when no matching provider was found"
+          },
+          "resolved": {
+            "type": "boolean",
+            "description": "True when a matching local provider was found; false means the corresponding provider field was set to null after import"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderHintResolutionTarget"
+            },
+            "description": "Entity fields that reference this hint — shows exactly which entities were affected and which field was mapped (or left null)"
+          }
+        },
+        "required": [
+          "hint",
+          "resolvedProviderId",
+          "resolved",
+          "targets"
+        ],
+        "description": "Resolution report for a single provider hint encountered during import"
+      },
+      "AsrConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "asrHint": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the ASR provider type used at export time"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AzureAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+              },
+              {
+                "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+              }
+            ],
+            "description": "ASR-specific settings including model, language preferences, etc."
+          },
+          "unintelligiblePlaceholder": {
+            "type": "string",
+            "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+          },
+          "voiceActivityDetection": {
+            "type": "boolean",
+            "description": "Whether to enable voice activity detection"
+          }
+        },
+        "description": "ASR configuration with provider hint instead of provider UUID"
+      },
+      "StorageConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "storageHint": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the storage provider type used at export time"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Storage-specific settings including bucket, prefix, etc."
+          }
+        },
+        "description": "Storage configuration with provider hint instead of provider UUID"
+      },
+      "ModerationConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether content moderation is enabled for this project"
+          },
+          "llmHint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "Provider hint identifying the LLM provider used for moderation"
+              }
+            ]
+          },
+          "blockedCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of category names that should cause the input to be blocked"
+          }
+        },
+        "required": [
+          "enabled",
+          "llmHint"
+        ],
+        "description": "Content moderation configuration with provider hint instead of provider UUID"
+      },
+      "FillerSettingsExchangeV1": {
+        "type": "object",
+        "properties": {
+          "llmHint": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderHint"
+              },
+              {
+                "description": "Provider hint identifying the LLM provider used to generate filler sentences"
+              }
+            ]
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for filler generation"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+          }
+        },
+        "required": [
+          "llmHint",
+          "prompt"
+        ],
+        "description": "Filler response settings with provider hint instead of provider UUID"
+      },
+      "ProjectExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID used as a cross-reference by child entities; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The name of the project"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "A description of the project"
+          },
+          "asrConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AsrConfigExchangeV1"
+              },
+              {
+                "description": "ASR configuration with provider hint"
+              }
+            ]
+          },
+          "acceptVoice": {
+            "type": "boolean",
+            "description": "Whether conversations can accept voice input"
+          },
+          "generateVoice": {
+            "type": "boolean",
+            "description": "Whether conversations generate voice responses"
+          },
+          "storageConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageConfigExchangeV1"
+              },
+              {
+                "description": "Storage configuration with provider hint"
+              }
+            ]
+          },
+          "moderationConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether content moderation is enabled for this project"
+              },
+              "llmHint": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProviderHint"
+                  },
+                  {
+                    "description": "Provider hint identifying the LLM provider used for moderation"
+                  }
+                ]
+              },
+              "blockedCategories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of category names that should cause the input to be blocked"
+              }
+            },
+            "required": [
+              "enabled",
+              "llmHint"
+            ],
+            "description": "Content moderation configuration with provider hint"
+          },
+          "constants": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterValue"
+            },
+            "description": "Key-value store of constants used in templating and conversation logic"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for the project"
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true,
+            "description": "IANA timezone identifier, e.g. Europe/Warsaw or America/New_York"
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO language code for the project, e.g. en-US or pl-PL"
+          },
+          "autoCreateUsers": {
+            "type": "boolean",
+            "description": "When enabled, users are automatically created on first WebSocket connection"
+          },
+          "userProfileVariableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Descriptors defining the data schema for user profile variables"
+          },
+          "defaultGuardrailClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the classifier used to evaluate guardrails; remapped on import"
+          },
+          "conversationTimeoutSeconds": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "description": "Timeout in seconds for active conversations with no activity"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Project entity in the exchange format"
+      },
+      "AgentExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the agent"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the agent purpose"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the agent's characteristics and behavior"
+          },
+          "ttsHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the TTS provider used at export time"
+          },
+          "ttsSettings": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ElevenLabsTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAiTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepgramTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CartesiaTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AzureTtsSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AmazonPollyTtsSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "TTS provider-specific settings"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this agent"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional agent-specific metadata"
+          },
+          "fillerSettings": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "llmHint": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProviderHint"
+                  },
+                  {
+                    "description": "Provider hint identifying the LLM provider used to generate filler sentences"
+                  }
+                ]
+              },
+              "llmSettings": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnthropicLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ],
+                "description": "LLM provider-specific settings for filler generation"
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+              }
+            },
+            "required": [
+              "llmHint",
+              "prompt"
+            ],
+            "description": "Filler response settings with provider hint"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Agent entity in the exchange format"
+      },
+      "StageExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the stage"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the stage purpose"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "System prompt defining the stage behavior"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this stage"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "Local document ID of the associated agent; remapped on import"
+          },
+          "enterBehavior": {
+            "type": "string",
+            "enum": [
+              "generate_response",
+              "await_user_input"
+            ],
+            "description": "What happens when entering this stage"
+          },
+          "useKnowledge": {
+            "type": "boolean",
+            "description": "Whether knowledge base is enabled in this stage"
+          },
+          "knowledgeTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Knowledge tags included in this stage"
+          },
+          "useGlobalActions": {
+            "type": "boolean",
+            "description": "Whether global actions are enabled in this stage"
+          },
+          "globalActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Local document IDs of global actions available in this stage; remapped on import"
+          },
+          "variableDescriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDescriptor"
+            },
+            "description": "Variable descriptor definitions for this stage"
+          },
+          "actions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StageAction"
+            },
+            "description": "Action definitions for this stage"
+          },
+          "defaultClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the default classifier; remapped on import"
+          },
+          "transformerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Local document IDs of context transformers; remapped on import"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this stage"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional stage-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt",
+          "agentId"
+        ],
+        "description": "Stage entity in the exchange format"
+      },
+      "ClassifierExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the classifier"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the classifier"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the classification logic"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this classifier"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this classifier"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional classifier-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Classifier entity in the exchange format"
+      },
+      "ContextTransformerExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the context transformer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the transformer"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt defining the transformation logic"
+          },
+          "contextFields": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Context field names to be transformed"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this transformer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this context transformer"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional transformer-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "description": "Context transformer entity in the exchange format"
+      },
+      "ToolExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tool"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function",
+              "webhook",
+              "script"
+            ],
+            "default": "smart_function",
+            "description": "Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript)"
+          },
+          "prompt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Handlebars template for tool invocation (smart_function only)"
+          },
+          "llmHint": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "llm",
+                  "tts",
+                  "asr",
+                  "storage",
+                  "embeddings"
+                ],
+                "description": "Category of the provider (llm, tts, asr, storage, embeddings)"
+              },
+              "apiType": {
+                "type": "string",
+                "description": "Provider implementation identifier, e.g. \"openai\", \"anthropic\", \"elevenlabs\", \"azure\", \"deepgram\""
+              },
+              "preferredModel": {
+                "type": "string",
+                "description": "Optional: model name that was in use at export time, carried as a hint for the operator configuring the target instance"
+              }
+            },
+            "required": [
+              "type",
+              "apiType"
+            ],
+            "description": "Provider hint identifying the LLM provider used at export time (smart_function only)"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings for this tool (smart_function only)"
+          },
+          "inputType": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "text",
+              "image",
+              "multi-modal",
+              null
+            ],
+            "description": "Expected input format for the tool (smart_function only)"
+          },
+          "outputType": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "text",
+              "image",
+              "multi-modal",
+              null
+            ],
+            "description": "Expected output format from the tool (smart_function only)"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target URL — supports Handlebars templating (webhook only)"
+          },
+          "webhookMethod": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              null
+            ],
+            "description": "HTTP method to use (webhook only)"
+          },
+          "webhookHeaders": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP headers to send; values support Handlebars templating (webhook only)"
+          },
+          "webhookBody": {
+            "type": "string",
+            "nullable": true,
+            "description": "Request body template (Handlebars); used for POST/PUT/PATCH (webhook only)"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "JavaScript code to execute in an isolated VM context (script only)"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Parameters that this tool expects to receive"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this tool"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tool-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Tool entity in the exchange format"
+      },
+      "GlobalActionExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the global action"
+          },
+          "condition": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional condition expression for action activation"
+          },
+          "triggerOnUserInput": {
+            "type": "boolean",
+            "description": "Whether this action is triggered on user input"
+          },
+          "triggerOnClientCommand": {
+            "type": "boolean",
+            "description": "Whether this action is triggered on client commands"
+          },
+          "classificationTrigger": {
+            "type": "string",
+            "nullable": true,
+            "description": "Classification label that triggers this action"
+          },
+          "overrideClassifierId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of an override classifier; remapped on import"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageActionParameter"
+            },
+            "description": "Parameters to extract from user input"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Effect"
+            },
+            "description": "Effects to execute when action is triggered"
+          },
+          "examples": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Example phrases that trigger this action"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this global action"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional action-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Global action entity in the exchange format"
+      },
+      "GuardrailExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the guardrail"
+          },
+          "condition": {
+            "type": "string",
+            "nullable": true,
+            "description": "Condition expression for guardrail activation"
+          },
+          "classificationTrigger": {
+            "type": "string",
+            "nullable": true,
+            "description": "Classification label that triggers this guardrail"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Effect"
+            },
+            "description": "Effects to execute when the guardrail is triggered"
+          },
+          "examples": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Example phrases that trigger this guardrail"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this guardrail"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional guardrail-specific metadata"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Guardrail entity in the exchange format"
+      },
+      "KnowledgeCategoryExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID used by knowledge items; remapped to a fresh UUID on import"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the knowledge category"
+          },
+          "promptTrigger": {
+            "type": "string",
+            "description": "Trigger phrase that activates this category in conversations"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of knowledge tags this category belongs to"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order for the category"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "promptTrigger"
+        ],
+        "description": "Knowledge category entity in the exchange format"
+      },
+      "KnowledgeItemExchangeV1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Local document ID; remapped to a fresh UUID on import"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Local document ID of the parent knowledge category; remapped on import"
+          },
+          "question": {
+            "type": "string",
+            "description": "Question text for this knowledge item"
+          },
+          "answer": {
+            "type": "string",
+            "description": "Answer text for this knowledge item"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order within the category"
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "question",
+          "answer"
+        ],
+        "description": "Knowledge item entity in the exchange format"
+      },
+      "ProjectExchangeBundleV1": {
+        "type": "object",
+        "properties": {
+          "formatVersion": {
+            "type": "number",
+            "enum": [
+              1
+            ],
+            "description": "Exchange format version. Always 1 for this schema revision."
+          },
+          "exportedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when this bundle was produced"
+          },
+          "project": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectExchangeV1"
+              },
+              {
+                "description": "Project configuration and settings"
+              }
+            ]
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentExchangeV1"
+            },
+            "description": "Agent entities belonging to this project"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageExchangeV1"
+            },
+            "description": "Stage entities belonging to this project"
+          },
+          "classifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassifierExchangeV1"
+            },
+            "description": "Classifier entities belonging to this project"
+          },
+          "contextTransformers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextTransformerExchangeV1"
+            },
+            "description": "Context transformer entities belonging to this project"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolExchangeV1"
+            },
+            "description": "Tool entities belonging to this project"
+          },
+          "globalActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GlobalActionExchangeV1"
+            },
+            "description": "Global action entities belonging to this project"
+          },
+          "guardrails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuardrailExchangeV1"
+            },
+            "description": "Guardrail entities belonging to this project"
+          },
+          "knowledgeCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeCategoryExchangeV1"
+            },
+            "description": "Knowledge category entities belonging to this project"
+          },
+          "knowledgeItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeItemExchangeV1"
+            },
+            "description": "Knowledge item entities belonging to this project"
+          }
+        },
+        "required": [
+          "formatVersion",
+          "exportedAt",
+          "project",
+          "agents",
+          "stages",
+          "classifiers",
+          "contextTransformers",
+          "tools",
+          "globalActions",
+          "guardrails",
+          "knowledgeCategories",
+          "knowledgeItems"
+        ],
+        "description": "Version 1 project exchange bundle — self-contained, provider-agnostic snapshot of a complete project"
+      },
+      "ProjectExchangeImportResult": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Newly assigned ID of the imported project"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "agents": {
+                "type": "integer",
+                "description": "Number of agents imported"
+              },
+              "stages": {
+                "type": "integer",
+                "description": "Number of stages imported"
+              },
+              "classifiers": {
+                "type": "integer",
+                "description": "Number of classifiers imported"
+              },
+              "contextTransformers": {
+                "type": "integer",
+                "description": "Number of context transformers imported"
+              },
+              "tools": {
+                "type": "integer",
+                "description": "Number of tools imported"
+              },
+              "globalActions": {
+                "type": "integer",
+                "description": "Number of global actions imported"
+              },
+              "guardrails": {
+                "type": "integer",
+                "description": "Number of guardrails imported"
+              },
+              "knowledgeCategories": {
+                "type": "integer",
+                "description": "Number of knowledge categories imported"
+              },
+              "knowledgeItems": {
+                "type": "integer",
+                "description": "Number of knowledge items imported"
+              }
+            },
+            "required": [
+              "agents",
+              "stages",
+              "classifiers",
+              "contextTransformers",
+              "tools",
+              "globalActions",
+              "guardrails",
+              "knowledgeCategories",
+              "knowledgeItems"
+            ],
+            "description": "Count of each entity type that was created"
+          },
+          "providerResolution": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderHintResolution"
+            },
+            "description": "Resolution report for every unique provider hint found in the bundle. Each entry shows what the hint requested and which local provider it mapped to. Entries with resolved=false indicate provider fields that were set to null — the affected entities will need their provider re-configured manually."
+          }
+        },
+        "required": [
+          "projectId",
+          "counts",
+          "providerResolution"
+        ],
+        "description": "Summary of a completed project import operation"
       },
       "LatencyStatsResponse": {
         "type": "object",
@@ -13976,6 +15674,9 @@
           },
           "401": {
             "description": "Invalid credentials"
+          },
+          "429": {
+            "description": "Too many login attempts, please try again later"
           }
         }
       }
@@ -14035,6 +15736,9 @@
           },
           "401": {
             "description": "Invalid or expired refresh token"
+          },
+          "429": {
+            "description": "Too many requests, please slow down"
           }
         }
       }
@@ -14222,6 +15926,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "A description of the project"
                   },
                   "asrConfig": {
@@ -14340,7 +16045,13 @@
                   },
                   "timezone": {
                     "type": "string",
+                    "nullable": true,
                     "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                  },
+                  "languageCode": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Used as a hint for language-aware LLM prompts."
                   },
                   "autoCreateUsers": {
                     "type": "boolean",
@@ -14516,6 +16227,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -14575,6 +16291,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -14896,6 +16613,11 @@
                             "nullable": true,
                             "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                           },
+                          "languageCode": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                          },
                           "autoCreateUsers": {
                             "type": "boolean",
                             "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -14955,6 +16677,7 @@
                           "constants",
                           "metadata",
                           "timezone",
+                          "languageCode",
                           "autoCreateUsers",
                           "userProfileVariableDescriptors",
                           "defaultGuardrailClassifierId",
@@ -15146,6 +16869,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -15205,6 +16933,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -15256,17 +16985,47 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "The updated description of the project"
                   },
                   "asrConfig": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/AsrConfig"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "asrProviderId": {
+                        "type": "string",
+                        "description": "ID of the ASR provider (e.g., \"azure-speech\", \"openai-whisper\")"
                       },
-                      {
-                        "description": "Updated ASR configuration settings"
+                      "settings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/AzureAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/ElevenLabsAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DeepgramAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AssemblyAiAsrSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/SpeechmaticsAsrSettings"
+                          }
+                        ],
+                        "description": "ASR-specific settings including model, language preferences, etc."
+                      },
+                      "unintelligiblePlaceholder": {
+                        "type": "string",
+                        "description": "Placeholder text to use when speech is unintelligible or cannot be transcribed"
+                      },
+                      "voiceActivityDetection": {
+                        "type": "boolean",
+                        "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       }
-                    ]
+                    },
+                    "description": "Updated ASR configuration settings"
                   },
                   "acceptVoice": {
                     "type": "boolean",
@@ -15277,10 +17036,36 @@
                     "description": "Whether conversations generate voice responses (requires ttsConfig fully populated in Stages)"
                   },
                   "storageConfig": {
-                    "$ref": "#/components/schemas/StorageConfig"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "storageProviderId": {
+                        "type": "string",
+                        "description": "ID of the storage provider (e.g., \"s3-provider\", \"azure-blob-provider\")"
+                      },
+                      "settings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/S3StorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AzureBlobStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GcsStorageSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/LocalStorageSettings"
+                          }
+                        ],
+                        "description": "Storage-specific settings including bucket, prefix, etc."
+                      }
+                    },
+                    "description": "Updated storage configuration settings"
                   },
                   "moderationConfig": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "enabled": {
                         "type": "boolean",
@@ -15320,7 +17105,13 @@
                   },
                   "timezone": {
                     "type": "string",
-                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Defaults to UTC when not set."
+                    "nullable": true,
+                    "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Set to null to clear. Defaults to UTC when not set."
+                  },
+                  "languageCode": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ISO language code for the project, e.g. en-US or pl-PL. Set to null to clear."
                   },
                   "autoCreateUsers": {
                     "type": "boolean",
@@ -15499,6 +17290,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -15558,6 +17354,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -15791,6 +17588,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -15850,6 +17652,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -16053,6 +17856,11 @@
                       "nullable": true,
                       "description": "IANA timezone identifier used as the default for conversations in this project, e.g. Europe/Warsaw or America/New_York. Null means UTC."
                     },
+                    "languageCode": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ISO language code for the project, e.g. en-US or pl-PL. Null if not set."
+                    },
                     "autoCreateUsers": {
                       "type": "boolean",
                       "description": "When enabled, users are automatically created on first WebSocket connection if they do not exist, using the provided user ID and an empty profile"
@@ -16112,6 +17920,7 @@
                     "constants",
                     "metadata",
                     "timezone",
+                    "languageCode",
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
@@ -16134,6 +17943,35 @@
           },
           "409": {
             "description": "Version conflict"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get project audit logs",
+        "description": "Retrieves audit logs for a specific project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The project ID"
+            },
+            "required": true,
+            "description": "The project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Project not found"
           }
         }
       }
@@ -18971,6 +20809,16 @@
                       "type": "string",
                       "description": "Current stage identifier for the conversation"
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Stage identifier at the start of the conversation"
+                    },
+                    "endingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+                    },
                     "stageVars": {
                       "type": "object",
                       "nullable": true,
@@ -19022,6 +20870,8 @@
                     "userId",
                     "clientId",
                     "stageId",
+                    "startingStageId",
+                    "endingStageId",
                     "stageVars",
                     "status",
                     "statusDetails",
@@ -19248,6 +21098,16 @@
                             "type": "string",
                             "description": "Current stage identifier for the conversation"
                           },
+                          "startingStageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Stage identifier at the start of the conversation"
+                          },
+                          "endingStageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Stage identifier when the conversation reached a terminal state (finished/failed/aborted)"
+                          },
                           "stageVars": {
                             "type": "object",
                             "nullable": true,
@@ -19299,6 +21159,8 @@
                           "userId",
                           "clientId",
                           "stageId",
+                          "startingStageId",
+                          "endingStageId",
                           "stageVars",
                           "status",
                           "statusDetails",
@@ -19565,6 +21427,28 @@
                                   "originalText": {
                                     "type": "string"
                                   },
+                                  "visibility": {
+                                    "type": "object",
+                                    "properties": {
+                                      "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                          "always",
+                                          "stage",
+                                          "never",
+                                          "conditional"
+                                        ],
+                                        "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                                      },
+                                      "condition": {
+                                        "type": "string",
+                                        "description": "Condition for visibility, evaluated against conversation variables"
+                                      }
+                                    },
+                                    "required": [
+                                      "visibility"
+                                    ]
+                                  },
                                   "metadata": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -19700,7 +21584,15 @@
                                 "type": "object",
                                 "properties": {
                                   "command": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "enum": [
+                                      "go_to_stage",
+                                      "set_var",
+                                      "get_var",
+                                      "get_all_vars",
+                                      "run_action",
+                                      "call_tool"
+                                    ]
                                   },
                                   "parameters": {
                                     "type": "object",
@@ -19728,6 +21620,14 @@
                                   "toolName": {
                                     "type": "string"
                                   },
+                                  "toolType": {
+                                    "type": "string",
+                                    "enum": [
+                                      "smart_function",
+                                      "webhook",
+                                      "script"
+                                    ]
+                                  },
                                   "parameters": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -19738,119 +21638,7 @@
                                     "type": "boolean"
                                   },
                                   "result": {
-                                    "type": "array",
-                                    "items": {
-                                      "oneOf": [
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "text"
-                                              ]
-                                            },
-                                            "text": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "text"
-                                          ]
-                                        },
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "image"
-                                              ]
-                                            },
-                                            "data": {
-                                              "type": "string",
-                                              "description": "Base64-encoded image data"
-                                            },
-                                            "mimeType": {
-                                              "type": "string",
-                                              "description": "MIME type (e.g., image/png, image/jpeg)"
-                                            },
-                                            "metadata": {
-                                              "type": "object",
-                                              "properties": {
-                                                "width": {
-                                                  "type": "number"
-                                                },
-                                                "height": {
-                                                  "type": "number"
-                                                }
-                                              },
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "data",
-                                            "mimeType"
-                                          ]
-                                        },
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "contentType": {
-                                              "type": "string",
-                                              "enum": [
-                                                "audio"
-                                              ]
-                                            },
-                                            "data": {
-                                              "type": "string",
-                                              "description": "Base64-encoded audio data"
-                                            },
-                                            "format": {
-                                              "type": "string",
-                                              "enum": [
-                                                "pcm",
-                                                "mp3",
-                                                "wav",
-                                                "opus"
-                                              ],
-                                              "description": "Audio format"
-                                            },
-                                            "mimeType": {
-                                              "type": "string",
-                                              "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                            },
-                                            "metadata": {
-                                              "type": "object",
-                                              "properties": {
-                                                "sampleRate": {
-                                                  "type": "number"
-                                                },
-                                                "channels": {
-                                                  "type": "number"
-                                                },
-                                                "bitDepth": {
-                                                  "type": "number"
-                                                }
-                                              },
-                                              "additionalProperties": {
-                                                "nullable": true
-                                              }
-                                            }
-                                          },
-                                          "required": [
-                                            "contentType",
-                                            "data",
-                                            "format",
-                                            "mimeType"
-                                          ]
-                                        }
-                                      ]
-                                    }
+                                    "nullable": true
                                   },
                                   "error": {
                                     "type": "string"
@@ -20209,6 +21997,28 @@
                             "originalText": {
                               "type": "string"
                             },
+                            "visibility": {
+                              "type": "object",
+                              "properties": {
+                                "visibility": {
+                                  "type": "string",
+                                  "enum": [
+                                    "always",
+                                    "stage",
+                                    "never",
+                                    "conditional"
+                                  ],
+                                  "description": "Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)"
+                                },
+                                "condition": {
+                                  "type": "string",
+                                  "description": "Condition for visibility, evaluated against conversation variables"
+                                }
+                              },
+                              "required": [
+                                "visibility"
+                              ]
+                            },
                             "metadata": {
                               "type": "object",
                               "additionalProperties": {
@@ -20344,7 +22154,15 @@
                           "type": "object",
                           "properties": {
                             "command": {
-                              "type": "string"
+                              "type": "string",
+                              "enum": [
+                                "go_to_stage",
+                                "set_var",
+                                "get_var",
+                                "get_all_vars",
+                                "run_action",
+                                "call_tool"
+                              ]
                             },
                             "parameters": {
                               "type": "object",
@@ -20372,6 +22190,14 @@
                             "toolName": {
                               "type": "string"
                             },
+                            "toolType": {
+                              "type": "string",
+                              "enum": [
+                                "smart_function",
+                                "webhook",
+                                "script"
+                              ]
+                            },
                             "parameters": {
                               "type": "object",
                               "additionalProperties": {
@@ -20382,119 +22208,7 @@
                               "type": "boolean"
                             },
                             "result": {
-                              "type": "array",
-                              "items": {
-                                "oneOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "text"
-                                        ]
-                                      },
-                                      "text": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "text"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "image"
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "string",
-                                        "description": "Base64-encoded image data"
-                                      },
-                                      "mimeType": {
-                                        "type": "string",
-                                        "description": "MIME type (e.g., image/png, image/jpeg)"
-                                      },
-                                      "metadata": {
-                                        "type": "object",
-                                        "properties": {
-                                          "width": {
-                                            "type": "number"
-                                          },
-                                          "height": {
-                                            "type": "number"
-                                          }
-                                        },
-                                        "additionalProperties": {
-                                          "nullable": true
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "data",
-                                      "mimeType"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "contentType": {
-                                        "type": "string",
-                                        "enum": [
-                                          "audio"
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "string",
-                                        "description": "Base64-encoded audio data"
-                                      },
-                                      "format": {
-                                        "type": "string",
-                                        "enum": [
-                                          "pcm",
-                                          "mp3",
-                                          "wav",
-                                          "opus"
-                                        ],
-                                        "description": "Audio format"
-                                      },
-                                      "mimeType": {
-                                        "type": "string",
-                                        "description": "MIME type (e.g., audio/pcm, audio/mpeg)"
-                                      },
-                                      "metadata": {
-                                        "type": "object",
-                                        "properties": {
-                                          "sampleRate": {
-                                            "type": "number"
-                                          },
-                                          "channels": {
-                                            "type": "number"
-                                          },
-                                          "bitDepth": {
-                                            "type": "number"
-                                          }
-                                        },
-                                        "additionalProperties": {
-                                          "nullable": true
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "contentType",
-                                      "data",
-                                      "format",
-                                      "mimeType"
-                                    ]
-                                  }
-                                ]
-                              }
+                              "nullable": true
                             },
                             "error": {
                               "type": "string"
@@ -22491,6 +24205,86 @@
         }
       }
     },
+    "/api/projects/{projectId}/knowledge/categories/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get knowledge category audit logs",
+        "description": "Retrieves audit logs for a specific knowledge category",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge category ID"
+            },
+            "required": true,
+            "description": "Knowledge category ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Knowledge category not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/knowledge/items/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get knowledge item audit logs",
+        "description": "Retrieves audit logs for a specific knowledge item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Knowledge item ID"
+            },
+            "required": true,
+            "description": "Knowledge item ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Knowledge item not found"
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/agents": {
       "post": {
         "tags": [
@@ -23223,6 +25017,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated detailed description of the agent"
                   },
                   "prompt": {
@@ -23232,6 +25027,7 @@
                   },
                   "ttsProviderId": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated TTS provider ID"
                   },
                   "ttsSettings": {
@@ -23275,14 +25071,44 @@
                     "description": "Updated metadata"
                   },
                   "fillerSettings": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/FillerSettings"
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "llmProviderId": {
+                        "type": "string",
+                        "description": "ID of the LLM provider used to generate the filler sentence"
                       },
-                      {
-                        "description": "Updated filler response settings"
+                      "llmSettings": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/components/schemas/OpenAILlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/AnthropicLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GeminiLlmSettings"
+                          },
+                          {
+                            "nullable": true
+                          }
+                        ],
+                        "description": "LLM provider-specific settings for filler generation"
+                      },
+                      "prompt": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
                       }
-                    ]
+                    },
+                    "required": [
+                      "llmProviderId",
+                      "prompt"
+                    ],
+                    "description": "Updated filler response settings"
                   },
                   "version": {
                     "type": "integer",
@@ -25272,6 +27098,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated description of provider purpose"
                   },
                   "providerType": {
@@ -25539,6 +27366,7 @@
                   },
                   "tags": {
                     "type": "array",
+                    "nullable": true,
                     "items": {
                       "type": "string"
                     },
@@ -30661,6 +32489,7 @@
                   },
                   "userId": {
                     "type": "string",
+                    "nullable": true,
                     "description": "User ID who reported the issue"
                   },
                   "severity": {
@@ -31794,6 +33623,7 @@
                   },
                   "description": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Updated detailed description of the stage"
                   },
                   "prompt": {
@@ -32447,101 +34277,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Unique identifier for the tool (auto-generated if not provided)"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateSmartFunctionTool"
                   },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Display name of the tool"
+                  {
+                    "$ref": "#/components/schemas/CreateWebhookTool"
                   },
-                  "description": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Detailed description of the tool's purpose and behavior"
-                  },
-                  "prompt": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Handlebars template for tool invocation"
-                  },
-                  "llmProviderId": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "ID of the LLM provider to use for this tool"
-                  },
-                  "llmSettings": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ],
-                    "description": "LLM provider-specific settings for this tool"
-                  },
-                  "inputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Expected input format for the tool"
-                  },
-                  "outputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Expected output format from the tool"
-                  },
-                  "parameters": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/ToolParameter"
-                    },
-                    "default": [],
-                    "description": "Parameters that this tool expects to receive"
-                  },
-                  "tags": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "default": [],
-                    "description": "Tags for categorizing and filtering this tool"
-                  },
-                  "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    },
-                    "description": "Additional tool-specific metadata"
+                  {
+                    "$ref": "#/components/schemas/CreateScriptTool"
                   }
-                },
-                "required": [
-                  "name",
-                  "prompt",
-                  "inputType",
-                  "outputType"
-                ]
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "smart_function": "#/components/schemas/CreateSmartFunctionTool",
+                    "webhook": "#/components/schemas/CreateWebhookTool",
+                    "script": "#/components/schemas/CreateScriptTool"
+                  }
+                }
               }
             }
           }
@@ -32571,14 +34325,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -32598,25 +34362,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -32666,10 +34462,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -32856,14 +34658,24 @@
                             "nullable": true,
                             "description": "Detailed description of the tool"
                           },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "smart_function",
+                              "webhook",
+                              "script"
+                            ],
+                            "description": "Tool execution type"
+                          },
                           "prompt": {
                             "type": "string",
-                            "description": "Handlebars template for tool invocation"
+                            "nullable": true,
+                            "description": "Handlebars prompt template (smart_function only)"
                           },
                           "llmProviderId": {
                             "type": "string",
                             "nullable": true,
-                            "description": "ID of the LLM provider"
+                            "description": "ID of the LLM provider (smart_function only)"
                           },
                           "llmSettings": {
                             "anyOf": [
@@ -32883,25 +34695,57 @@
                                 "nullable": true
                               }
                             ],
-                            "description": "LLM provider-specific settings"
+                            "description": "LLM provider-specific settings (smart_function only)"
                           },
                           "inputType": {
                             "type": "string",
+                            "nullable": true,
                             "enum": [
                               "text",
                               "image",
-                              "multi-modal"
+                              "multi-modal",
+                              null
                             ],
-                            "description": "Expected input format"
+                            "description": "Expected input format (smart_function only)"
                           },
                           "outputType": {
                             "type": "string",
+                            "nullable": true,
                             "enum": [
                               "text",
                               "image",
-                              "multi-modal"
+                              "multi-modal",
+                              null
                             ],
-                            "description": "Expected output format"
+                            "description": "Expected output format (smart_function only)"
+                          },
+                          "url": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Target URL (webhook only)"
+                          },
+                          "webhookMethod": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "HTTP method (webhook only)"
+                          },
+                          "webhookHeaders": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "HTTP headers (webhook only)"
+                          },
+                          "webhookBody": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Request body template (webhook only)"
+                          },
+                          "code": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "JavaScript code (script only)"
                           },
                           "parameters": {
                             "type": "array",
@@ -32951,10 +34795,16 @@
                           "projectId",
                           "name",
                           "description",
+                          "type",
                           "prompt",
                           "llmProviderId",
                           "inputType",
                           "outputType",
+                          "url",
+                          "webhookMethod",
+                          "webhookHeaders",
+                          "webhookBody",
+                          "code",
                           "parameters",
                           "tags",
                           "metadata",
@@ -33056,14 +34906,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -33083,25 +34943,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -33151,10 +35043,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -33220,12 +35118,12 @@
                   "prompt": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "Updated tool prompt template"
+                    "description": "Updated Handlebars prompt template (smart_function)"
                   },
                   "llmProviderId": {
                     "type": "string",
                     "nullable": true,
-                    "description": "Updated LLM provider ID"
+                    "description": "Updated LLM provider ID (smart_function)"
                   },
                   "llmSettings": {
                     "anyOf": [
@@ -33245,7 +35143,7 @@
                         "nullable": true
                       }
                     ],
-                    "description": "Updated LLM provider-specific settings"
+                    "description": "Updated LLM provider-specific settings (smart_function)"
                   },
                   "inputType": {
                     "type": "string",
@@ -33254,7 +35152,7 @@
                       "image",
                       "multi-modal"
                     ],
-                    "description": "Updated input format"
+                    "description": "Updated input format (smart_function)"
                   },
                   "outputType": {
                     "type": "string",
@@ -33263,7 +35161,41 @@
                       "image",
                       "multi-modal"
                     ],
-                    "description": "Updated output format"
+                    "description": "Updated output format (smart_function)"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Updated target URL (webhook)"
+                  },
+                  "webhookMethod": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "POST",
+                      "PUT",
+                      "PATCH",
+                      "DELETE"
+                    ],
+                    "description": "Updated HTTP method (webhook)"
+                  },
+                  "webhookHeaders": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Updated HTTP headers (webhook)"
+                  },
+                  "webhookBody": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated request body template (webhook)"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated JavaScript code (script)"
                   },
                   "parameters": {
                     "type": "array",
@@ -33324,14 +35256,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -33351,25 +35293,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -33419,10 +35393,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -33628,14 +35608,24 @@
                       "nullable": true,
                       "description": "Detailed description of the tool"
                     },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "smart_function",
+                        "webhook",
+                        "script"
+                      ],
+                      "description": "Tool execution type"
+                    },
                     "prompt": {
                       "type": "string",
-                      "description": "Handlebars template for tool invocation"
+                      "nullable": true,
+                      "description": "Handlebars prompt template (smart_function only)"
                     },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "ID of the LLM provider"
+                      "description": "ID of the LLM provider (smart_function only)"
                     },
                     "llmSettings": {
                       "anyOf": [
@@ -33655,25 +35645,57 @@
                           "nullable": true
                         }
                       ],
-                      "description": "LLM provider-specific settings"
+                      "description": "LLM provider-specific settings (smart_function only)"
                     },
                     "inputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected input format"
+                      "description": "Expected input format (smart_function only)"
                     },
                     "outputType": {
                       "type": "string",
+                      "nullable": true,
                       "enum": [
                         "text",
                         "image",
-                        "multi-modal"
+                        "multi-modal",
+                        null
                       ],
-                      "description": "Expected output format"
+                      "description": "Expected output format (smart_function only)"
+                    },
+                    "url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Target URL (webhook only)"
+                    },
+                    "webhookMethod": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "HTTP method (webhook only)"
+                    },
+                    "webhookHeaders": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "HTTP headers (webhook only)"
+                    },
+                    "webhookBody": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Request body template (webhook only)"
+                    },
+                    "code": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "JavaScript code (script only)"
                     },
                     "parameters": {
                       "type": "array",
@@ -33723,10 +35745,16 @@
                     "projectId",
                     "name",
                     "description",
+                    "type",
                     "prompt",
                     "llmProviderId",
                     "inputType",
                     "outputType",
+                    "url",
+                    "webhookMethod",
+                    "webhookHeaders",
+                    "webhookBody",
+                    "code",
                     "parameters",
                     "tags",
                     "metadata",
@@ -35267,6 +37295,46 @@
         }
       }
     },
+    "/api/projects/{projectId}/api-keys/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Get API key audit logs",
+        "description": "Retrieves audit logs for a specific API key",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The unique identifier of the API key"
+            },
+            "required": true,
+            "description": "The unique identifier of the API key",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "API key not found"
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "tags": [
@@ -35737,6 +37805,82 @@
           },
           "400": {
             "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/export": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Export a project as an exchange bundle",
+        "description": "Produces a self-contained, provider-agnostic exchange bundle for the specified project. All child entities (agents, stages, classifiers, context transformers, tools, global actions, guardrails, knowledge base) are included. Provider UUID references are replaced by provider hints (`type` + `apiType`) so the bundle can be imported into any environment. Credentials are never included. Entity IDs in the bundle are preserved as local cross-references and remapped to fresh UUIDs on import.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project exchange bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectExchangeBundleV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/projects/import": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Import a project from an exchange bundle",
+        "description": "Imports a project from a provider-agnostic exchange bundle. All entity IDs are remapped to fresh UUIDs so repeated imports never overwrite existing data. Provider hints are resolved to local provider IDs by matching `type` + `apiType` (first match wins). If no matching local provider is found for a hint, the corresponding provider field is set to null. Returns the newly assigned project ID and a count of created entities.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectExchangeBundleV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Import summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectExchangeImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exchange bundle"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }

@@ -6,6 +6,7 @@ import { ArrowLeft, Play } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
@@ -27,7 +28,7 @@ const conversation = ref<ConversationResponse | null>(null)
 const events = ref<ConversationEventResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'events' | 'performance' | 'metadata'>('events')
+const activeTab = ref<'events' | 'performance' | 'metadata' | 'history'>('events')
 const performanceTabActivated = ref(false)
 const highlightEventIndex = computed(() => {
   const v = route.query.highlightEventIndex
@@ -188,10 +189,46 @@ const metadataFields = computed(() => {
     { label: 'Status Details', value: conversation.value.statusDetails },
     { label: 'Created', value: conversation.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: conversation.value.updatedAt, format: 'date' as const },
+    { label: 'Starting Stage ID', value: conversation.value.startingStageId, format: 'mono' as const },
+    { label: 'Ending Stage ID', value: conversation.value.endingStageId, format: 'mono' as const },
   ]
 })
 
 const isArchived = computed(() => conversation.value?.archived ?? false)
+
+const INTERIM_EVENT_TYPES = new Set([
+  'transformation', 'classification', 'action',
+  'moderation', 'tool_call',
+])
+
+const orderedEvents = computed(() => {
+  const result: ConversationEventResponse[] = []
+  const buffer: ConversationEventResponse[] = []
+
+  for (const event of events.value) {
+    if (event.eventType === 'message' || event.eventType === 'command') {
+      const role = (event.eventData as any)?.role
+      if (role === 'user' || event.eventType === 'command') {
+        result.push(event)
+        result.push(...buffer)
+        buffer.length = 0
+      } else {
+        result.push(...buffer)
+        buffer.length = 0
+        result.push(event)
+      }
+    } else if (INTERIM_EVENT_TYPES.has(event.eventType)) {
+      buffer.push(event)
+    } else {
+      result.push(...buffer)
+      buffer.length = 0
+      result.push(event)
+    }
+  }
+
+  result.push(...buffer)
+  return result
+})
 
 async function activatePerformanceTab() {
   activeTab.value = 'performance'
@@ -269,6 +306,10 @@ function fmtMs(value: number | null | undefined): string {
             :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" type="button">
             Metadata
           </button>
+          <button v-if="conversation" @click="activeTab = 'history'"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">
+            History
+          </button>
         </nav>
       </div>
 
@@ -296,7 +337,7 @@ function fmtMs(value: number | null | undefined): string {
 
             <div v-else class="space-y-4">
               <div
-                v-for="(event, index) in events"
+                v-for="(event, index) in orderedEvents"
                 :key="event.id"
                 :ref="(el) => { eventRefs[index] = el as HTMLElement | null }"
               >
@@ -316,6 +357,17 @@ function fmtMs(value: number | null | undefined): string {
 
           <!-- Metadata Tab -->
           <MetadataTab v-if="conversation" v-show="activeTab === 'metadata'" :fields="metadataFields" />
+          <!-- History Tab -->
+          <div class="tab-content">
+            <EntityHistoryView
+              v-if="conversation"
+              v-show="activeTab === 'history'"
+              :load-history="() => conversationsStore.fetchAuditLogs(projectId, conversationId)"
+              :current-object="conversation"
+              :active="activeTab === 'history'"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt']"
+            />
+          </div>
 
           <!-- Performance Tab -->
           <div v-if="conversation" v-show="activeTab === 'performance'" class="tab-content">

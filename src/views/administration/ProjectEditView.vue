@@ -3,10 +3,12 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
+import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
@@ -21,7 +23,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -38,7 +40,8 @@ const form = ref({
   },
   acceptVoice: false,
   generateVoice: false,
-  timezone: '',
+  timezone: null as string | null,
+  languageCode: null as string | null,
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
@@ -281,7 +284,8 @@ async function loadProject() {
         },
         acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
-        timezone: currentProject.value.timezone ?? '',
+        timezone: currentProject.value.timezone ?? null,
+        languageCode: currentProject.value.languageCode ?? null,
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
@@ -346,12 +350,13 @@ async function handleSubmit() {
       const updated = await projectsStore.update(currentProject.value.id, {
         version: currentProject.value.version,
         name: form.value.name,
-        description: form.value.description || undefined,
-        asrConfig,
-        storageConfig,
+        description: form.value.description || null,
+        asrConfig: asrConfig || null,
+        storageConfig: storageConfig || null,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
-        timezone: form.value.timezone || undefined,
+        timezone: form.value.timezone,
+        languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
       })
@@ -375,7 +380,8 @@ async function handleSubmit() {
         storageConfig,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
-        timezone: form.value.timezone || undefined,
+        timezone: form.value.timezone,
+        languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
       })
@@ -614,7 +620,7 @@ function handleStorageSettingsClose() {
 
 <template>
   <AdministrationSectionLayout>
-  <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
+  <div class="flex flex-col h-full border md:border-gray-200 md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
     <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
@@ -692,6 +698,14 @@ function handleStorageSettingsClose() {
         </button>
         <button
           v-if="isEditMode"
+          @click="activeTab = 'history'"
+          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
+          type="button"
+        >
+          History
+        </button>
+        <button
+          v-if="isEditMode"
           @click="activeTab = 'danger'"
           :class="['tab-button', { 'tab-button-active': activeTab === 'danger' }]"
           type="button"
@@ -763,6 +777,18 @@ function handleStorageSettingsClose() {
               class="max-w-96"
             />
             <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Language</label>
+            <LanguageSelector
+              v-model="form.languageCode"
+              width="override"
+              placeholder="Not set"
+              :disabled="isLoading"
+              class="max-w-96"
+            />
+            <p class="form-help-text">Default language for this project. Exposed in scripts and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
           </div>
 
           <div class="form-group">
@@ -2057,7 +2083,21 @@ function handleStorageSettingsClose() {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-
+        <div class="tab-content">
+          <!-- History Tab -->
+          <EntityHistoryView
+            v-if="isEditMode && currentProject"
+            v-show="activeTab === 'history'"
+            :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
+            :current-version="currentProject.version"
+            :current-object="currentProject"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => projectsStore.update(currentProject!.id, data)"
+            :create-fn="(data) => projectsStore.create(data)"
+            :ignore-fields="['updatedAt', 'version', 'archivedAt', 'archivedBy']"
+            @recover-success="loadProject"
+          />
+        </div>
         <!-- Danger Zone Tab -->
         <div v-if="isEditMode" v-show="activeTab === 'danger'" class="tab-content">
           <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>

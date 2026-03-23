@@ -1,15 +1,23 @@
 <template>
   <div class="modal-overlay">
-    <div class="modal-content max-w-4xl" @click.stop>
+    <div class="modal-content-lg" @click.stop>
       <h2 class="modal-header">{{ issue ? (isReadOnly ? 'View Issue' : 'Edit Issue') : 'Create Issue' }}</h2>
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        {{ issue ? 'Update the issue details' : 'Create a new bug report' }}
+        {{ issue ? 'Update the issue details' : 'Create a new bug report' }}The page is reloading.
       </p>
+
+      <div v-if="issue" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+        <nav class="tabs-nav">
+          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
+          <button @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
+        </nav>
+      </div>
 
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This issue is read-only because its project is archived.
       </div>
 
+      <div v-show="!issue || activeTab === 'details'">
       <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Row 1: Project, Stage, Conversation ID -->
@@ -184,6 +192,23 @@
           </button>
         </div>
       </form>
+      </div>
+
+      <div v-if="issue" v-show="activeTab === 'history'">
+        <EntityHistoryView
+          v-if="loadHistory"
+          :load-history="loadHistory"
+          :current-object="issue"
+          :active="activeTab === 'history'"
+          :update-fn="updateFn"
+          :create-fn="createFn"
+          :ignore-fields="['updatedAt']"
+          @recover-success="emit('recoverSuccess')"
+        />
+        <div class="modal-footer">
+          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -195,7 +220,9 @@ import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/ap
 import { useProjectsStore } from '@/stores/projects'
 import { useEnvironmentsStore } from '@/stores/environments'
 import { useStagesStore } from '@/stores/stages'
+import { useVersionStore } from '@/stores'
 import { ExternalLink } from 'lucide-vue-next'
+import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
 interface PrefillData {
   projectId?: string
@@ -208,17 +235,27 @@ const props = defineProps<{
   issue: IssueResponse | null
   prefillData?: PrefillData
   isReadOnly?: boolean
+  loadHistory?: () => Promise<any>
+  updateFn?: (data: any) => Promise<any>
+  createFn?: (data: any) => Promise<any>
 }>()
 
 const emit = defineEmits<{
   close: []
   save: [data: CreateIssueRequest | UpdateIssueRequest]
+  recoverSuccess: []
 }>()
 
 const projectsStore = useProjectsStore()
 const environmentsStore = useEnvironmentsStore()
 const stagesStore = useStagesStore()
+const versionStore = useVersionStore()
 const router = useRouter()
+const activeTab = ref<'details' | 'history'>('details')
+
+watch(() => props.issue, () => {
+  activeTab.value = 'details'
+})
 
 function navigateToConversation() {
   if (!form.value.sessionId) return
@@ -242,7 +279,7 @@ const statusOptions = ['awaiting', 'in-progress', 'ready-to-test', 'still-occurs
 const form = ref({
   projectId: '',
   environment: '',
-  buildVersion: '',
+  buildVersion: versionStore.versionData?.version ?? '',
   stage: '',
   sessionId: '',
   eventIndex: null as number | null,
@@ -313,7 +350,7 @@ watch(
       form.value = {
         projectId: props.prefillData?.projectId || '',
         environment: '',
-        buildVersion: '',
+        buildVersion: versionStore.versionData?.version ?? '',
         stage: props.prefillData?.stageId || '',
         sessionId: props.prefillData?.sessionId || '',
         eventIndex: props.prefillData?.eventIndex ?? null,
