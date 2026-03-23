@@ -2887,8 +2887,8 @@ export interface ConversationResponse {
   projectId: string;
   /** Identifier of the user associated with this conversation */
   userId: string;
-  /** Client identifier for the conversation */
-  clientId: string;
+  /** ID of the WebSocket session that initiated this conversation */
+  sessionId: string;
   /** Current stage identifier for the conversation */
   stageId: string;
   /** Stage identifier at the start of the conversation */
@@ -2926,8 +2926,8 @@ export interface ConversationListResponse {
     projectId: string;
     /** Identifier of the user associated with this conversation */
     userId: string;
-    /** Client identifier for the conversation */
-    clientId: string;
+    /** ID of the WebSocket session that initiated this conversation */
+    sessionId: string;
     /** Current stage identifier for the conversation */
     stageId: string;
     /** Stage identifier at the start of the conversation */

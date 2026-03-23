@@ -1,47 +1,9 @@
 import { ref, onUnmounted, type Ref } from 'vue'
-import { BonsaiWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, type StartConversationOptions } from '@/api/websocket'
+import { BonsaiWebRTCClient, type WebRTCEventHandlers, type StartConversationOptions } from '@/api/webrtc'
 
-/**
- * Composable for managing a WebSocket conversation client.
- * Handles connection, authentication, and cleanup automatically.
- * 
- * @param apiKey - API key for authentication
- * @param options - WebSocket client options including handlers and session settings
- * @returns WebSocket client utilities and state
- * 
- * @example
- * ```vue
- * <script setup>
- * import { useWebSocketClient } from '@/composables/useWebSocketClient'
- * 
- * const { client, isConnected, isInConversation, connect, disconnect } = useWebSocketClient('api-key', {
- *   sessionSettings: {
- *     sendVoiceInput: true,
- *     sendTextInput: true,
- *     receiveVoiceOutput: true,
- *     receiveTranscriptionUpdates: true
- *   },
- *   onAiVoiceChunk: (message) => {
- *     console.log('Audio chunk:', message.chunkId)
- *   },
- *   onUserTranscribedChunk: (message) => {
- *     console.log('User ASR chunk:', message.chunkText)
- *   },
- *   onAiTranscribedChunk: (message) => {
- *     console.log('AI text chunk:', message.chunkText)
- *   }
- * })
- * 
- * onMounted(async () => {
- *   await connect()
- *   await client.value?.startConversation({ userId: 'user-123', stageId: 'stage-456' })
- * })
- * </script>
- * ```
- */
-export function useWebSocketClient(
+export function useWebRtcClient(
   apiKey: string,
-  options?: WebSocketEventHandlers & {
+  options?: WebRTCEventHandlers & {
     sessionSettings?: {
       sendVoiceInput: boolean
       sendTextInput: boolean
@@ -51,7 +13,7 @@ export function useWebSocketClient(
     }
   }
 ) {
-  const client: Ref<BonsaiWebSocketClient | null> = ref(null)
+  const client: Ref<BonsaiWebRTCClient | null> = ref(null)
   const isConnected = ref(false)
   const isInConversation = ref(false)
   const error = ref<Error | null>(null)
@@ -59,17 +21,13 @@ export function useWebSocketClient(
   const conversationId = ref<string | null>(null)
   const projectSettings = ref<any>(null)
 
-  /**
-   * Connect to the WebSocket server and authenticate
-   */
   async function connect() {
     try {
       error.value = null
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-      const wsUrl = createWebSocketUrl(apiBaseUrl)
 
-      client.value = new BonsaiWebSocketClient({
-        url: wsUrl,
+      client.value = new BonsaiWebRTCClient({
+        apiBaseUrl,
         apiKey,
         sessionSettings: options?.sessionSettings,
         handlers: {
@@ -78,12 +36,12 @@ export function useWebSocketClient(
             isConnected.value = true
             options?.onConnect?.()
           },
-          onDisconnect: (event) => {
+          onDisconnect: () => {
             isConnected.value = false
             isInConversation.value = false
             sessionId.value = null
             conversationId.value = null
-            options?.onDisconnect?.(event)
+            options?.onDisconnect?.()
           },
         },
       })
@@ -98,17 +56,11 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * Start a new conversation
-   */
-  async function startConversation(options: StartConversationOptions) {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+  async function startConversation(opts: StartConversationOptions) {
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
-      const id = await client.value.startConversation(options)
+      const id = await client.value.startConversation(opts)
       conversationId.value = id
       isInConversation.value = true
       return id
@@ -118,14 +70,8 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * Resume an existing conversation
-   */
   async function resumeConversation(convId: string) {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
       await client.value.resumeConversation(convId)
@@ -137,14 +83,8 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * End the current conversation
-   */
   async function endConversation() {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
       await client.value.endConversation()
@@ -156,14 +96,8 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * Send a text message
-   */
   async function sendTextInput(text: string) {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
       await client.value.sendTextInput(text)
@@ -173,15 +107,8 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * Start voice input phase
-   * @returns The inputTurnId for this voice input session
-   */
   async function startVoiceInput(): Promise<string> {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
       return await client.value.startVoiceInput()
@@ -192,30 +119,16 @@ export function useWebSocketClient(
   }
 
   /**
-   * Send voice audio chunk
+   * Send a raw PCM Int16 LE audio buffer over the WebRTC audio DataChannel.
+   * Preferred over sendVoiceChunk for WebRTC — avoids base64 encoding overhead.
    */
-  async function sendVoiceChunk(base64Audio: string) {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
-    try {
-      error.value = null
-      await client.value.sendVoiceChunk(base64Audio)
-    } catch (err) {
-      error.value = err instanceof Error ? err : new Error(String(err))
-      throw err
-    }
+  function sendVoiceChunkRaw(audioBuffer: ArrayBuffer): void {
+    if (!client.value) throw new Error('Client not connected')
+    client.value.sendVoiceChunkRaw(audioBuffer)
   }
 
-  /**
-   * End voice input phase
-   */
   async function endVoiceInput() {
-    if (!client.value) {
-      throw new Error('Client not connected')
-    }
-
+    if (!client.value) throw new Error('Client not connected')
     try {
       error.value = null
       await client.value.endVoiceInput()
@@ -225,9 +138,6 @@ export function useWebSocketClient(
     }
   }
 
-  /**
-   * Disconnect from the WebSocket server
-   */
   function disconnect() {
     if (client.value) {
       client.value.disconnect()
@@ -240,7 +150,6 @@ export function useWebSocketClient(
     projectSettings.value = null
   }
 
-  // Auto cleanup on unmount
   onUnmounted(() => {
     disconnect()
   })
@@ -260,7 +169,7 @@ export function useWebSocketClient(
     endConversation,
     sendTextInput,
     startVoiceInput,
-    sendVoiceChunk,
+    sendVoiceChunkRaw,
     endVoiceInput,
   }
 }

@@ -219,6 +219,56 @@ export function useAudioPlayback() {
   }
 
   /**
+   * Add a raw Int16 LE PCM audio chunk from a WebRTC audio DataChannel.
+   * Decodes the binary buffer directly without base64 overhead.
+   * @param buffer - Raw Int16 LE PCM bytes
+   * @param sampleRate - Sample rate of the audio data in Hz
+   */
+  async function addRawChunk(buffer: ArrayBuffer, sampleRate: number) {
+    try {
+      state.value.error = null
+      state.value.buffering = true
+
+      const ctx = initAudioContext()
+
+      const samples = new Int16Array(buffer)
+      const floatSamples = new Float32Array(samples.length)
+      for (let i = 0; i < samples.length; i++) {
+        floatSamples[i] = (samples[i] ?? 0) / 32768.0
+      }
+
+      let finalSamples: Float32Array = floatSamples
+      if (sampleRate !== ctx.sampleRate) {
+        let resampler = resamplerCache.get(sampleRate)
+        if (!resampler) {
+          resampler = await create(1, sampleRate, ctx.sampleRate, {
+            converterType: ConverterType.SRC_SINC_BEST_QUALITY,
+          })
+          resamplerCache.set(sampleRate, resampler)
+        }
+        finalSamples = resampler.full(floatSamples)
+      }
+
+      const audioBuffer = ctx.createBuffer(1, finalSamples.length, ctx.sampleRate)
+      audioBuffer.getChannelData(0).set(finalSamples)
+      audioBuffers.value.push(audioBuffer)
+
+      state.value.duration = audioBuffers.value.reduce((sum, buf) => sum + buf.duration, 0)
+      state.value.buffering = false
+
+      if (state.value.playing) {
+        scheduleAllBuffers()
+      } else if (audioBuffers.value.length === streamStartIndex + 1 && !state.value.paused) {
+        play()
+      }
+    } catch (err) {
+      state.value.error = err instanceof Error ? err.message : 'Failed to decode raw audio chunk'
+      state.value.buffering = false
+      console.error('[AudioPlayback] Raw audio chunk decode error:', err)
+    }
+  }
+
+  /**
    * Update current playback time (called periodically)
    */
   let timeUpdateInterval: ReturnType<typeof setInterval> | null = null
@@ -401,6 +451,7 @@ export function useAudioPlayback() {
     isReady,
     progress,
     addChunk,
+    addRawChunk,
     play,
     pause,
     stop,

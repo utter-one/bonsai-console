@@ -3,7 +3,7 @@
  */
 
 export {
-  NexusWebSocketClient,
+  BonsaiWebSocketClient,
   createWebSocketUrl,
   type WebSocketClientConfig,
   type WebSocketEventHandlers,
