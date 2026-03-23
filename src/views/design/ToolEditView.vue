@@ -840,19 +840,21 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
-          <!-- History Tab -->
-          <EntityHistoryView
-            v-if="isEditMode && currentTool"
-            v-show="activeTab === 'history'"
-            :load-history="() => toolsStore.fetchAuditLogs(projectId, currentTool!.id)"
-            :current-version="currentTool.version"
-            :current-object="currentTool"
-            :active="activeTab === 'history'"
-            :update-fn="(data) => toolsStore.update(projectId, currentTool!.id, data)"
-            :create-fn="(data) => toolsStore.create(projectId, data)"
-            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-            @recover-success="() => router.go(0)"
-          />
+          <div class="tab-content">
+            <!-- History Tab -->
+            <EntityHistoryView
+              v-if="isEditMode && currentTool"
+              v-show="activeTab === 'history'"
+              :load-history="() => toolsStore.fetchAuditLogs(projectId, currentTool!.id)"
+              :current-version="currentTool.version"
+              :current-object="currentTool"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => toolsStore.update(projectId, currentTool!.id, data)"
+              :create-fn="(data) => toolsStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
           </fieldset>
         </form>
       </div>

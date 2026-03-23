@@ -15,6 +15,10 @@
 - **User profile editing** – operator user profile variables can be edited from the Users view (#229)
 - **Tool type categorization** – tools now carry a `toolType` property for grouping and display (#232)
 - **Webhooks & scripts as tools** – webhook and script run operations moved from actions into the Tools section
+- **Conversation start/end stage** – starting and ending stage are now shown in the conversation detail metadata tab and in the conversations list table (#243, #246)
+- **Conversations view filters** – new filter options added to the conversations list view (#248)
+- **API key creation in setup wizard** – the setup wizard now creates an API key (#249)
+- **String diff highlighting in history** – the entity history diff view now displays character-level diffs with inline change highlights (#244)
 
 ### Improvements
 - Command events are now included in conversation turn event ordering and classification (#238, #241)
@@ -27,6 +31,9 @@
 - Fixed incorrect turn event display ordering for command events
 - Fixed missing types for the Change Visibility effect
 - Fixed Import button showing wrong icon (was Upload)
+- Fixed `conversation-event-update` event type not being recognised; corrected message event handling in the playground (#245)
+- Fixed playground send/end controls remaining disabled after a server-side conversation end (#247)
+- Fixed history tab content not being wrapped correctly, causing layout issues (#242)
 
 ### Style
 - Updated type badge styling for improved visibility in the effects editor

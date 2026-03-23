@@ -358,14 +358,16 @@ function fmtMs(value: number | null | undefined): string {
           <!-- Metadata Tab -->
           <MetadataTab v-if="conversation" v-show="activeTab === 'metadata'" :fields="metadataFields" />
           <!-- History Tab -->
-          <EntityHistoryView
-            v-if="conversation"
-            v-show="activeTab === 'history'"
-            :load-history="() => conversationsStore.fetchAuditLogs(projectId, conversationId)"
-            :current-object="conversation"
-            :active="activeTab === 'history'"
-            :ignore-fields="['createdAt', 'archived', 'updatedAt']"
-          />
+          <div class="tab-content">
+            <EntityHistoryView
+              v-if="conversation"
+              v-show="activeTab === 'history'"
+              :load-history="() => conversationsStore.fetchAuditLogs(projectId, conversationId)"
+              :current-object="conversation"
+              :active="activeTab === 'history'"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt']"
+            />
+          </div>
 
           <!-- Performance Tab -->
           <div v-if="conversation" v-show="activeTab === 'performance'" class="tab-content">

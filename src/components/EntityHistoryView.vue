@@ -192,7 +192,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
 <template>
   <div>
   <!-- Table view -->
-  <div v-if="view === 'table'" class="tab-content">
+  <div v-if="view === 'table'">
     <div class="flex justify-end mb-3">
       <button
         type="button"

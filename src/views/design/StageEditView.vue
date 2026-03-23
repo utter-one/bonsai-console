@@ -1464,18 +1464,20 @@ function toggleNode(path: number[]) {
             :fields="metadataFields"
           />
           <!-- History Tab -->
-          <EntityHistoryView
-            v-if="isEditMode && currentStage"
-            v-show="activeTab === 'history'"
-            :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
-            :current-version="currentStage.version"
-            :current-object="currentStage"
-            :active="activeTab === 'history'"
-            :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
-            :create-fn="(data) => stagesStore.create(projectId, data)"
-            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-            @recover-success="() => router.go(0)"
-          />
+           <div class="tab-content">
+              <EntityHistoryView
+                v-if="isEditMode && currentStage"
+                v-show="activeTab === 'history'"
+                :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
+                :current-version="currentStage.version"
+                :current-object="currentStage"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
+                :create-fn="(data) => stagesStore.create(projectId, data)"
+                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+           </div>
           </fieldset>
         </form>
       </div>

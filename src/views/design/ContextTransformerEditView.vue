@@ -451,19 +451,21 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'"
             :fields="metadataFields"
           />
-          <!-- History Tab -->
-          <EntityHistoryView
-            v-if="isEditMode && currentTransformer"
-            v-show="activeTab === 'history'"
-            :load-history="() => transformersStore.fetchAuditLogs(projectId, currentTransformer!.id)"
-            :current-version="currentTransformer.version"
-            :current-object="currentTransformer"
-            :active="activeTab === 'history'"
-            :update-fn="(data) => transformersStore.update(projectId, currentTransformer!.id, data)"
-            :create-fn="(data) => transformersStore.create(projectId, data)"
-            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-            @recover-success="() => router.go(0)"
-          />
+          <div class="tab-content">
+            <!-- History Tab -->
+            <EntityHistoryView
+              v-if="isEditMode && currentTransformer"
+              v-show="activeTab === 'history'"
+              :load-history="() => transformersStore.fetchAuditLogs(projectId, currentTransformer!.id)"
+              :current-version="currentTransformer.version"
+              :current-object="currentTransformer"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => transformersStore.update(projectId, currentTransformer!.id, data)"
+              :create-fn="(data) => transformersStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </div>
           </fieldset>
         </form>
       </div>

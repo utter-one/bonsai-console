@@ -270,17 +270,19 @@ const metadataFields = computed(() => {
               :show-history="isEditMode"
             >
               <template #history>
-                <EntityHistoryView
-                  v-if="isEditMode && currentGuardrail"
-                  :load-history="() => guardrailsStore.fetchAuditLogs(projectId, currentGuardrail!.id)"
-                  :current-version="currentGuardrail.version"
-                  :current-object="currentGuardrail"
-                  :active="activeTab.value === 'history'"
-                  :update-fn="(data) => guardrailsStore.update(projectId, currentGuardrail!.id, data)"
-                  :create-fn="(data) => guardrailsStore.create(projectId, data)"
-                  :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-                  @recover-success="() => router.go(0)"
-                />
+                <div class="tab-content">
+                  <EntityHistoryView
+                    v-if="isEditMode && currentGuardrail"
+                    :load-history="() => guardrailsStore.fetchAuditLogs(projectId, currentGuardrail!.id)"
+                    :current-version="currentGuardrail.version"
+                    :current-object="currentGuardrail"
+                    :active="activeTab.value === 'history'"
+                    :update-fn="(data) => guardrailsStore.update(projectId, currentGuardrail!.id, data)"
+                    :create-fn="(data) => guardrailsStore.create(projectId, data)"
+                    :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                    @recover-success="() => router.go(0)"
+                  />
+                </div>
               </template>
             </ActionForm>
 
