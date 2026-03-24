@@ -4,6 +4,7 @@ import { MoreHorizontal } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
 import ActionEffectsEditor from './ActionEffectsEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
+import type { ActionOperations } from '../composables'
 
 interface ActionParameter {
   name: string
@@ -27,33 +28,6 @@ interface ActionFormData {
   classificationTrigger: string
   overrideClassifierId: string
   examples: string
-}
-
-interface ActionOperations {
-  generateResponse: {
-    enabled: boolean
-    responseMode: 'generated' | 'prescripted'
-    prescriptedSelectionStrategy: 'random' | 'round_robin'
-    prescriptedResponses: string[]
-  }
-  endConversation: { enabled: boolean; reason: string }
-  abortConversation: { enabled: boolean; reason: string }
-  goToStage: { enabled: boolean; stageId: string }
-  modifyUserInput: { enabled: boolean; template: string }
-  modifyVariables: {
-    enabled: boolean
-    modifications: Array<{ variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
-  }
-  modifyUserProfile: {
-    enabled: boolean
-    modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
-  }
-  callTools: Array<{ toolId: string; parameters: Record<string, any> }>
-  changeVisibility: {
-    enabled: boolean
-    visibility: 'always' | 'stage' | 'never' | 'conditional'
-    condition: string
-  }
 }
 
 const props = withDefaults(

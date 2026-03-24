@@ -34,6 +34,7 @@ const EFFECT_PRIORITY = {
   endConversation: 200,
   abortConversation: 201,
   goToStage: 202,
+  banUser: 300,
 } as const
 
 const effectsList = computed(() => {
@@ -47,6 +48,7 @@ const effectsList = computed(() => {
   if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: EFFECT_PRIORITY.modifyVariables })
   if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
   if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
+  if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: EFFECT_PRIORITY.banUser })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
     list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
@@ -84,6 +86,7 @@ const addableEffects = computed(() => {
     { key: 'modifyVariables', label: 'Modify Variables' },
     { key: 'modifyUserProfile', label: 'Modify User Profile' },
     { key: 'changeVisibility', label: 'Change Visibility' },
+    { key: 'banUser', label: 'Ban User' },
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
@@ -736,6 +739,20 @@ function selectStageVariable(modIndex: number, variableName: string) {
             class="form-input font-mono"
           />
           <p class="form-help-text">JavaScript expression evaluated against the conversation context; must return a boolean</p>
+        </div>
+      </div>
+
+      <!-- Ban User Editor -->
+      <div v-else-if="selectedEffectType === 'banUser'" class="space-y-6">
+        <div class="form-group">
+          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+          <input
+            v-model="operations.banUser.reason"
+            type="text"
+            placeholder="Policy violation"
+            class="form-input"
+          />
+          <p class="form-help-text">Optional reason for banning the user. The user will be blocked from starting new conversations.</p>
         </div>
       </div>
 

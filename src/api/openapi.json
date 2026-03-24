@@ -2215,6 +2215,25 @@
           "visibility"
         ]
       },
+      "BanUserEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ban_user"
+            ],
+            "description": "Effect type"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Optional reason for banning the user"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "CallToolEffect": {
         "type": "object",
         "properties": {
@@ -2312,6 +2331,9 @@
           },
           {
             "$ref": "#/components/schemas/ChangeVisibilityEffect"
+          },
+          {
+            "$ref": "#/components/schemas/BanUserEffect"
           }
         ],
         "discriminator": {
@@ -2325,7 +2347,8 @@
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
             "generate_response": "#/components/schemas/GenerateResponseEffect",
-            "change_visibility": "#/components/schemas/ChangeVisibilityEffect"
+            "change_visibility": "#/components/schemas/ChangeVisibilityEffect",
+            "ban_user": "#/components/schemas/BanUserEffect"
           }
         }
       },
@@ -6220,12 +6243,6 @@
                   "durationMs": {
                     "type": "number"
                   },
-                  "startMs": {
-                    "type": "number"
-                  },
-                  "endMs": {
-                    "type": "number"
-                  },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -6238,9 +6255,7 @@
                   "flagged",
                   "blockingCategories",
                   "detectedCategories",
-                  "durationMs",
-                  "startMs",
-                  "endMs"
+                  "durationMs"
                 ]
               }
             ],
@@ -6718,12 +6733,6 @@
                         "durationMs": {
                           "type": "number"
                         },
-                        "startMs": {
-                          "type": "number"
-                        },
-                        "endMs": {
-                          "type": "number"
-                        },
                         "metadata": {
                           "type": "object",
                           "additionalProperties": {
@@ -6736,9 +6745,7 @@
                         "flagged",
                         "blockingCategories",
                         "detectedCategories",
-                        "durationMs",
-                        "startMs",
-                        "endMs"
+                        "durationMs"
                       ]
                     }
                   ],
@@ -14731,95 +14738,30 @@
             "nullable": true,
             "description": "Input source: text or voice"
           },
-          "turnStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the turn started processing"
-          },
-          "asrStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when ASR recognition started"
-          },
-          "asrEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when ASR recognition completed"
-          },
           "asrDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "ASR transcription duration"
-          },
-          "moderationStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the moderation API call started"
-          },
-          "moderationEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the moderation API call completed"
           },
           "moderationDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "Content moderation duration"
           },
-          "fillerStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when filler sentence generation started"
-          },
-          "fillerEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when filler sentence generation completed"
-          },
           "processingDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "Classification and transformation duration"
-          },
-          "processingStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when user input processing (classification + transformation) started"
-          },
-          "processingEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when user input processing completed"
           },
           "knowledgeRetrievalDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "Knowledge base retrieval duration"
           },
-          "knowledgeRetrievalStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when knowledge retrieval started"
-          },
-          "knowledgeRetrievalEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when knowledge retrieval completed"
-          },
           "actionsDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "Action execution duration"
-          },
-          "actionsStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when action execution started"
-          },
-          "actionsEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when action execution completed"
           },
           "fillerDurationMs": {
             "type": "number",
@@ -14871,26 +14813,6 @@
             "nullable": true,
             "description": "Prompt template rendering duration"
           },
-          "llmStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when LLM generation started"
-          },
-          "llmEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when LLM generation completed"
-          },
-          "firstTokenMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the first LLM token was received"
-          },
-          "firstAudioMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the first audio chunk was delivered to the client"
-          },
           "timeToFirstTokenMs": {
             "type": "number",
             "nullable": true,
@@ -14911,25 +14833,10 @@
             "nullable": true,
             "description": "Total LLM call duration"
           },
-          "ttsStartMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when TTS synthesis started"
-          },
-          "ttsEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when TTS synthesis completed"
-          },
           "ttsDurationMs": {
             "type": "number",
             "nullable": true,
             "description": "TTS synthesis duration"
-          },
-          "turnEndMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Unix timestamp (ms) when the turn completed (after TTS on voice path, after LLM on text path)"
           },
           "totalTurnDurationMs": {
             "type": "number",
@@ -14941,24 +14848,11 @@
           "turnIndex",
           "timestamp",
           "source",
-          "turnStartMs",
-          "asrStartMs",
-          "asrEndMs",
           "asrDurationMs",
-          "moderationStartMs",
-          "moderationEndMs",
           "moderationDurationMs",
-          "fillerStartMs",
-          "fillerEndMs",
           "processingDurationMs",
-          "processingStartMs",
-          "processingEndMs",
           "knowledgeRetrievalDurationMs",
-          "knowledgeRetrievalStartMs",
-          "knowledgeRetrievalEndMs",
           "actionsDurationMs",
-          "actionsStartMs",
-          "actionsEndMs",
           "fillerDurationMs",
           "stageTransitionStartMs",
           "stageTransitionEndMs",
@@ -14969,18 +14863,11 @@
           "promptRenderStartMs",
           "promptRenderEndMs",
           "promptRenderDurationMs",
-          "llmStartMs",
-          "llmEndMs",
-          "firstTokenMs",
-          "firstAudioMs",
           "timeToFirstTokenMs",
           "timeToFirstTokenFromTurnStartMs",
           "timeToFirstAudioMs",
           "llmDurationMs",
-          "ttsStartMs",
-          "ttsEndMs",
           "ttsDurationMs",
-          "turnEndMs",
           "totalTurnDurationMs"
         ]
       }
@@ -22067,12 +21954,6 @@
                                   "durationMs": {
                                     "type": "number"
                                   },
-                                  "startMs": {
-                                    "type": "number"
-                                  },
-                                  "endMs": {
-                                    "type": "number"
-                                  },
                                   "metadata": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -22085,9 +21966,7 @@
                                   "flagged",
                                   "blockingCategories",
                                   "detectedCategories",
-                                  "durationMs",
-                                  "startMs",
-                                  "endMs"
+                                  "durationMs"
                                 ]
                               }
                             ],
@@ -22645,12 +22524,6 @@
                             "durationMs": {
                               "type": "number"
                             },
-                            "startMs": {
-                              "type": "number"
-                            },
-                            "endMs": {
-                              "type": "number"
-                            },
                             "metadata": {
                               "type": "object",
                               "additionalProperties": {
@@ -22663,9 +22536,7 @@
                             "flagged",
                             "blockingCategories",
                             "detectedCategories",
-                            "durationMs",
-                            "startMs",
-                            "endMs"
+                            "durationMs"
                           ]
                         }
                       ],

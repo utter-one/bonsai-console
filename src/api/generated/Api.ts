@@ -3145,8 +3145,6 @@ export class Api<
                 blockingCategories: string[];
                 detectedCategories: string[];
                 durationMs: number;
-                startMs: number;
-                endMs: number;
                 metadata?: Record<string, any>;
               };
           /**
@@ -3327,8 +3325,6 @@ export class Api<
               blockingCategories: string[];
               detectedCategories: string[];
               durationMs: number;
-              startMs: number;
-              endMs: number;
               metadata?: Record<string, any>;
             };
         /**

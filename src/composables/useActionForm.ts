@@ -25,6 +25,7 @@ export interface ActionOperations {
     visibility: 'always' | 'stage' | 'never' | 'conditional'
     condition: string
   }
+  banUser: { enabled: boolean; reason: string }
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -38,6 +39,7 @@ export function createDefaultOperations(): ActionOperations {
     modifyUserProfile: { enabled: false, modifications: [] },
     callTools: [],
     changeVisibility: { enabled: false, visibility: 'always', condition: '' },
+    banUser: { enabled: false, reason: '' },
   }
 }
 
@@ -52,6 +54,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.modifyUserProfile.enabled = false
   operations.callTools = []
   operations.changeVisibility.enabled = false
+  operations.banUser.enabled = false
 
   // Load existing effects
   effects.forEach(effect => {
@@ -99,6 +102,10 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.changeVisibility.enabled = true
         operations.changeVisibility.visibility = effect.visibility || 'always'
         operations.changeVisibility.condition = effect.condition || ''
+        break
+      case 'ban_user':
+        operations.banUser.enabled = true
+        operations.banUser.reason = ('reason' in effect ? effect.reason : '') || ''
         break
     }
   })
@@ -205,6 +212,13 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
       cvEffect.condition = operations.changeVisibility.condition
     }
     effectsArray.push(cvEffect as Effect)
+  }
+
+  if (operations.banUser.enabled) {
+    effectsArray.push({
+      type: 'ban_user',
+      reason: operations.banUser.reason || undefined
+    } as Effect)
   }
 
   return { effects: effectsArray, error: null }
