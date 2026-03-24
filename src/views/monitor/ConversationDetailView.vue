@@ -306,7 +306,7 @@ function getTimeAxisTicks(totalDurationMs: number): { left: number; label: strin
     ticks.push({ left: (t / totalDurationMs) * 100, label: t === 0 ? '0' : `${Math.round(t)}ms` })
   }
   const last = ticks[ticks.length - 1]
-  if (last.left < 95) {
+  if (!last || last.left < 95) {
     ticks.push({ left: 100, label: `${Math.round(totalDurationMs)}ms` })
   } else {
     last.label = `${Math.round(totalDurationMs)}ms`
