@@ -220,7 +220,7 @@ function handleTtsProviderChange() {
         provider: 'deepgram',
         model: undefined,
         voiceId: '',
-        audioFormat: 'linear16',
+        audioFormat: 'pcm_16000',
         sampleRate: 24000,
         container: 'none',
         noSpeechMarkers: [],

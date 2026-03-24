@@ -10,7 +10,7 @@
 // Audio Types (Shared)
 // ============================================================================
 
-export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_8000' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | 'pcm_48000' | 'mulaw' | 'alaw' | 'linear16'
+export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac' | 'wav' | 'pcm_8000' | 'pcm_16000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100' | 'pcm_48000' | 'mulaw' | 'alaw'
 // ============================================================================
 // Shared Types (Parameters)
 // ============================================================================
@@ -306,6 +306,40 @@ export interface AuthRequest {
      * Whether the client wants to receive all conversation events (e.g. turn start/end, agent actions)
      */
     receiveEvents?: boolean;
+    /**
+     * Audio format the client sends for voice input (e.g. pcm_16000, opus, mulaw). Defaults to pcm_16000.
+     */
+    sendAudioFormat?:
+      | 'mp3'
+      | 'opus'
+      | 'aac'
+      | 'flac'
+      | 'wav'
+      | 'pcm_8000'
+      | 'pcm_16000'
+      | 'pcm_22050'
+      | 'pcm_24000'
+      | 'pcm_44100'
+      | 'pcm_48000'
+      | 'mulaw'
+      | 'alaw';
+    /**
+     * Preferred audio format for AI voice output. Omit to receive the provider native format without conversion. Defaults to pcm_16000.
+     */
+    receiveAudioFormat?:
+      | 'mp3'
+      | 'opus'
+      | 'aac'
+      | 'flac'
+      | 'wav'
+      | 'pcm_8000'
+      | 'pcm_16000'
+      | 'pcm_22050'
+      | 'pcm_24000'
+      | 'pcm_44100'
+      | 'pcm_48000'
+      | 'mulaw'
+      | 'alaw';
   };
 }
 
@@ -444,8 +478,7 @@ export interface AzureAsrSettings {
     | 'pcm_44100'
     | 'pcm_48000'
     | 'mulaw'
-    | 'alaw'
-    | 'linear16';
+    | 'alaw';
 
 }
 
@@ -911,6 +944,8 @@ export interface ConversationEvent {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
         metadata?: Record<string, unknown>;
       };
   /**
@@ -1068,6 +1103,8 @@ export interface ConversationEventUpdate {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
         metadata?: Record<string, unknown>;
       };
   /**
@@ -1378,8 +1415,7 @@ export interface SendAiVoiceChunk {
     | 'pcm_44100'
     | 'pcm_48000'
     | 'mulaw'
-    | 'alaw'
-    | 'linear16';
+    | 'alaw';
   /**
    * Unique identifier for this specific chunk
    */
@@ -1500,8 +1536,7 @@ export interface SendAiAudioOutput {
     | 'pcm_44100'
     | 'pcm_48000'
     | 'mulaw'
-    | 'alaw'
-    | 'linear16';
+    | 'alaw';
   /**
    * MIME type of audioData (e.g. audio/mpeg, audio/wav)
    */
