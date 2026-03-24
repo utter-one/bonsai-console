@@ -8964,6 +8964,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time
@@ -9042,6 +9046,10 @@ export class Api<
           projectId: string;
           /** User profile data as key-value pairs */
           profile: Record<string, any>;
+          /** Whether the user is banned from starting conversations */
+          banned: boolean;
+          /** Reason the user was banned */
+          banReason?: string | null;
           /**
            * Timestamp when the user was created
            * @format date-time
@@ -9105,6 +9113,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time
@@ -9141,6 +9153,10 @@ export class Api<
     data: {
       /** Updated profile data (merges with existing profile) */
       profile?: Record<string, any>;
+      /** Whether the user is banned from starting conversations */
+      banned?: boolean;
+      /** Reason for banning the user (null to clear) */
+      banReason?: string | null;
     },
     params: RequestParams = {},
   ) =>
@@ -9152,6 +9168,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time

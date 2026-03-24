@@ -2847,6 +2847,15 @@
               "nullable": true
             },
             "description": "Updated profile data (merges with existing profile)"
+          },
+          "banned": {
+            "type": "boolean",
+            "description": "Whether the user is banned from starting conversations"
+          },
+          "banReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reason for banning the user (null to clear)"
           }
         }
       },
@@ -2867,6 +2876,15 @@
               "nullable": true
             },
             "description": "User profile data as key-value pairs"
+          },
+          "banned": {
+            "type": "boolean",
+            "description": "Whether the user is banned from starting conversations"
+          },
+          "banReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reason the user was banned"
           },
           "createdAt": {
             "type": "string",
@@ -2889,6 +2907,7 @@
           "id",
           "projectId",
           "profile",
+          "banned",
           "createdAt",
           "updatedAt"
         ]
@@ -2916,6 +2935,15 @@
                   },
                   "description": "User profile data as key-value pairs"
                 },
+                "banned": {
+                  "type": "boolean",
+                  "description": "Whether the user is banned from starting conversations"
+                },
+                "banReason": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Reason the user was banned"
+                },
                 "createdAt": {
                   "type": "string",
                   "nullable": true,
@@ -2937,6 +2965,7 @@
                 "id",
                 "projectId",
                 "profile",
+                "banned",
                 "createdAt",
                 "updatedAt"
               ]
@@ -36081,6 +36110,15 @@
                       },
                       "description": "User profile data as key-value pairs"
                     },
+                    "banned": {
+                      "type": "boolean",
+                      "description": "Whether the user is banned from starting conversations"
+                    },
+                    "banReason": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Reason the user was banned"
+                    },
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
@@ -36102,6 +36140,7 @@
                     "id",
                     "projectId",
                     "profile",
+                    "banned",
                     "createdAt",
                     "updatedAt"
                   ]
@@ -36296,6 +36335,15 @@
                             },
                             "description": "User profile data as key-value pairs"
                           },
+                          "banned": {
+                            "type": "boolean",
+                            "description": "Whether the user is banned from starting conversations"
+                          },
+                          "banReason": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Reason the user was banned"
+                          },
                           "createdAt": {
                             "type": "string",
                             "nullable": true,
@@ -36317,6 +36365,7 @@
                           "id",
                           "projectId",
                           "profile",
+                          "banned",
                           "createdAt",
                           "updatedAt"
                         ]
@@ -36412,6 +36461,15 @@
                       },
                       "description": "User profile data as key-value pairs"
                     },
+                    "banned": {
+                      "type": "boolean",
+                      "description": "Whether the user is banned from starting conversations"
+                    },
+                    "banReason": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Reason the user was banned"
+                    },
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
@@ -36433,6 +36491,7 @@
                     "id",
                     "projectId",
                     "profile",
+                    "banned",
                     "createdAt",
                     "updatedAt"
                   ]
@@ -36487,6 +36546,15 @@
                       "nullable": true
                     },
                     "description": "Updated profile data (merges with existing profile)"
+                  },
+                  "banned": {
+                    "type": "boolean",
+                    "description": "Whether the user is banned from starting conversations"
+                  },
+                  "banReason": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Reason for banning the user (null to clear)"
                   }
                 }
               }
@@ -36516,6 +36584,15 @@
                       },
                       "description": "User profile data as key-value pairs"
                     },
+                    "banned": {
+                      "type": "boolean",
+                      "description": "Whether the user is banned from starting conversations"
+                    },
+                    "banReason": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Reason the user was banned"
+                    },
                     "createdAt": {
                       "type": "string",
                       "nullable": true,
@@ -36537,6 +36614,7 @@
                     "id",
                     "projectId",
                     "profile",
+                    "banned",
                     "createdAt",
                     "updatedAt"
                   ]

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check } from 'lucide-vue-next'
+import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -20,12 +20,16 @@ const user = ref<UserResponse | null>(null)
 const conversations = ref<ConversationResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history'>('profile')
+const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history' | 'ban'>('profile')
 
 const editableProfile = ref<Array<{ key: string; value: string }>>([])
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 const showSuccess = ref(false)
+
+const banReason = ref('')
+const isBanning = ref(false)
+const banError = ref<string | null>(null)
 
 onMounted(async () => {
   await loadUserData()
@@ -165,6 +169,39 @@ const metadataFields = computed(() => {
   ]
 })
 
+async function banUser() {
+  if (!confirm('Are you sure you want to ban this user? They will be blocked from starting conversations.')) return
+  banError.value = null
+  isBanning.value = true
+  try {
+    user.value = await usersStore.update(projectId.value, userId.value, {
+      banned: true,
+      banReason: banReason.value.trim() || null
+    })
+  } catch (err: any) {
+    banError.value = err.response?.data?.message || 'Failed to ban user'
+  } finally {
+    isBanning.value = false
+  }
+}
+
+async function unbanUser() {
+  if (!confirm('Are you sure you want to unban this user?')) return
+  banError.value = null
+  isBanning.value = true
+  try {
+    user.value = await usersStore.update(projectId.value, userId.value, {
+      banned: false,
+      banReason: null
+    })
+    banReason.value = ''
+  } catch (err: any) {
+    banError.value = err.response?.data?.message || 'Failed to unban user'
+  } finally {
+    isBanning.value = false
+  }
+}
+
 
 </script>
 
@@ -226,6 +263,14 @@ const metadataFields = computed(() => {
             type="button"
           >
             History
+          </button>
+          <button 
+            v-if="user" 
+            @click="activeTab = 'ban'"
+            :class="['tab-button', { 'tab-button-active': activeTab === 'ban' }]" 
+            type="button"
+          >
+            Ban
           </button>
         </nav>
       </div>
@@ -385,7 +430,7 @@ const metadataFields = computed(() => {
             v-show="activeTab === 'metadata'" 
             :fields="metadataFields" 
           />
-          <div class="tab-content">
+          <div v-show="activeTab === 'history'" class="tab-content">
           <!-- History Tab -->
             <EntityHistoryView
               v-if="user"
@@ -399,6 +444,52 @@ const metadataFields = computed(() => {
               @recover-success="() => router.go(0)"
             />
           </div>
+
+          <!-- Ban Tab -->
+          <div v-if="user" v-show="activeTab === 'ban'" class="tab-content">
+            <h3 class="text-lg font-semibold text-red-600 mb-2">Ban User</h3>
+
+            <div v-if="banError" class="alert-error mb-4">{{ banError }}</div>
+
+            <div v-if="!user.banned">
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Banning this user will prevent them from starting new conversations. You can optionally provide a reason.
+              </p>
+              <div class="form-group mb-4">
+                <label class="form-label">Ban reason <span class="text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  v-model="banReason"
+                  class="form-textarea"
+                  rows="3"
+                  placeholder="Reason for banning this user..."
+                  :disabled="isBanning"
+                />
+              </div>
+              <button class="btn-danger" :disabled="isBanning" @click="banUser" type="button">
+                <Ban class="inline-block mr-2 w-4 h-4" />
+                {{ isBanning ? 'Banning...' : 'Ban User' }}
+              </button>
+            </div>
+
+            <div v-else>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                This user is currently banned and cannot start new conversations.
+              </p>
+              <div class="form-group mb-4">
+                <label class="form-label">Ban reason</label>
+                <textarea
+                  :value="user.banReason || ''"
+                  class="form-textarea form-input-disabled"
+                  rows="3"
+                  disabled
+                />
+              </div>
+              <button class="btn-secondary" :disabled="isBanning" @click="unbanUser" type="button">
+                <ShieldCheck class="inline-block mr-2 w-4 h-4" />
+                {{ isBanning ? 'Unbanning...' : 'Unban User' }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -406,6 +497,19 @@ const metadataFields = computed(() => {
 </template>
 
 <style scoped>
+.tab-button-danger {
+  color: rgb(185 28 28);
+}
+
+.tab-button-danger:hover {
+  color: rgb(153 27 27);
+}
+
+.tab-button-danger-active {
+  color: rgb(185 28 28);
+  border-bottom-color: rgb(185 28 28);
+}
+
 .badge-active {
   background-color: rgb(220 252 231);
   color: rgb(22 101 52);
