@@ -41,6 +41,7 @@ const isLoadingConversations = ref(false)
 const conversationsError = ref<string | null>(null)
 
 const issueCounts = ref({ critical: 0, major: 0, minor: 0, trivial: 0 })
+const issueTotal = computed(() => issueCounts.value.critical + issueCounts.value.major + issueCounts.value.minor + issueCounts.value.trivial)
 const isLoadingIssues = ref(false)
 const issuesError = ref<string | null>(null)
 
@@ -228,13 +229,14 @@ function getActionBadgeClass(action: string): string {
     <!-- Global Stat Tiles -->
     <div class="grid-stats mb-8">
       <div class="stat-card">
-        <BriefcaseBusiness class="text-primary-500 flex-shrink-0" :size="36" />
+        <MessageSquare class="text-primary-500 flex-shrink-0" :size="36" />
         <div class="flex-1">
           <div class="stat-value">
-            <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(projectsStore.count ?? 0) }}</span>
+            <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
+            <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
+            <span v-else>{{ formatCount(convTotal) }}</span>
           </div>
-          <div class="stat-label">Projects</div>
+          <div class="stat-label">Conversations</div>
         </div>
       </div>
 
@@ -251,15 +253,26 @@ function getActionBadgeClass(action: string): string {
       </div>
 
       <div class="stat-card">
-        <MessageSquare class="text-primary-500 flex-shrink-0" :size="36" />
-        <div class="flex-1">
-          <div class="stat-value">
-            <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
-            <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(convTotal) }}</span>
+        <template v-if="projectId">
+          <Bug class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="stat-value">
+              <span v-if="isLoadingIssues" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(issueTotal) }}</span>
+            </div>
+            <div class="stat-label">Issues</div>
           </div>
-          <div class="stat-label">Conversations</div>
-        </div>
+        </template>
+        <template v-else>
+          <BriefcaseBusiness class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="stat-value">
+              <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(projectsStore.count ?? 0) }}</span>
+            </div>
+            <div class="stat-label">Projects</div>
+          </div>
+        </template>
       </div>
 
       <div class="stat-card">
