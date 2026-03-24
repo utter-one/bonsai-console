@@ -16,6 +16,7 @@ import {
   Bug,
   CheckCircle,
   XCircle,
+  Ban,
   Activity,
   ChevronRight,
   FolderOpen,
@@ -34,8 +35,8 @@ const isLoadingGlobal = ref(true)
 const userCount = ref(0)
 const isLoadingUsers = ref(false)
 
-const convCounts = ref({ active: 0, finished: 0, failed: 0 })
-const convTotal = computed(() => convCounts.value.active + convCounts.value.finished + convCounts.value.failed)
+const convCounts = ref({ active: 0, finished: 0, aborted: 0, failed: 0 })
+const convTotal = computed(() => convCounts.value.active + convCounts.value.finished + convCounts.value.aborted + convCounts.value.failed)
 const isLoadingConversations = ref(false)
 const conversationsError = ref<string | null>(null)
 
@@ -96,7 +97,7 @@ async function loadConversationCounts(pid: string) {
   isLoadingConversations.value = true
   conversationsError.value = null
   try {
-    const [activeRes, finishedRes, failedRes] = await Promise.all([
+    const [activeRes, finishedRes, abortedRes, failedRes] = await Promise.all([
       (apiClient as any).projectsConversationsList(pid, {
         limit: 1,
         filters: { status: { op: 'in', value: ACTIVE_STATUSES } },
@@ -107,12 +108,17 @@ async function loadConversationCounts(pid: string) {
       }),
       (apiClient as any).projectsConversationsList(pid, {
         limit: 1,
-        filters: { status: { op: 'in', value: ['aborted', 'failed'] } },
+        filters: { status: 'aborted' },
+      }),
+      (apiClient as any).projectsConversationsList(pid, {
+        limit: 1,
+        filters: { status: 'failed' },
       }),
     ])
     convCounts.value = {
       active: activeRes?.total ?? 0,
       finished: finishedRes?.total ?? 0,
+      aborted: abortedRes?.total ?? 0,
       failed: failedRes?.total ?? 0,
     }
   } catch (err: any) {
@@ -299,21 +305,34 @@ function getActionBadgeClass(action: string): string {
 
         <div v-else-if="conversationsError" class="alert-error">{{ conversationsError }}</div>
 
-        <div v-else class="grid grid-cols-3 gap-3">
-          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-8 text-center">
-            <Activity class="mx-auto mb-3 text-blue-500" :size="28" />
-            <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
-            <div class="text-xs text-blue-600 dark:text-blue-400 mt-2">Active</div>
+        <div v-else class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-5 flex items-center gap-4">
+            <Activity class="text-blue-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
+              <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">Active</div>
+            </div>
           </div>
-          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 p-8 text-center">
-            <CheckCircle class="mx-auto mb-3 text-green-500" :size="28" />
-            <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
-            <div class="text-xs text-green-600 dark:text-green-400 mt-2">Finished</div>
+          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 p-5 flex items-center gap-4">
+            <CheckCircle class="text-green-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
+              <div class="text-xs text-green-600 dark:text-green-400 mt-1">Finished</div>
+            </div>
           </div>
-          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 p-8 text-center">
-            <XCircle class="mx-auto mb-3 text-red-500" :size="28" />
-            <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
-            <div class="text-xs text-red-600 dark:text-red-400 mt-2">Failed / Aborted</div>
+          <div class="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-900 p-5 flex items-center gap-4">
+            <Ban class="text-orange-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-orange-700 dark:text-orange-300">{{ formatCount(convCounts.aborted) }}</div>
+              <div class="text-xs text-orange-600 dark:text-orange-400 mt-1">Aborted</div>
+            </div>
+          </div>
+          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 p-5 flex items-center gap-4">
+            <XCircle class="text-red-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
+              <div class="text-xs text-red-600 dark:text-red-400 mt-1">Failed</div>
+            </div>
           </div>
         </div>
         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
