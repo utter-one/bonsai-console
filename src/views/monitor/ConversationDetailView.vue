@@ -265,7 +265,10 @@ const ganttPhases: GanttPhaseConfig[] = [
   { label: 'Processing', colorClass: 'bg-purple-400', durationKey: 'processingDurationMs', startKey: 'processingStartMs', endKey: 'processingEndMs' },
   { label: 'Knowledge', colorClass: 'bg-teal-400', durationKey: 'knowledgeRetrievalDurationMs', startKey: 'knowledgeRetrievalStartMs', endKey: 'knowledgeRetrievalEndMs' },
   { label: 'Actions', colorClass: 'bg-orange-400', durationKey: 'actionsDurationMs', startKey: 'actionsStartMs', endKey: 'actionsEndMs' },
+  { label: 'Stage Transition', colorClass: 'bg-violet-400', durationKey: 'stageTransitionStartMs', startKey: 'stageTransitionStartMs', endKey: 'stageTransitionEndMs' },
+  { label: 'Prompt Render', colorClass: 'bg-indigo-400', durationKey: 'promptRenderDurationMs', startKey: 'promptRenderStartMs', endKey: 'promptRenderEndMs' },
   { label: 'LLM', colorClass: 'bg-emerald-400', durationKey: 'llmDurationMs', startKey: 'llmStartMs', endKey: 'llmEndMs' },
+  { label: 'TTS Connect', colorClass: 'bg-rose-300', durationKey: 'ttsConnectDurationMs', startKey: 'ttsConnectStartMs', endKey: 'ttsConnectEndMs' },
   { label: 'TTS', colorClass: 'bg-pink-400', durationKey: 'ttsDurationMs', startKey: 'ttsStartMs', endKey: 'ttsEndMs' },
 ]
 
@@ -326,11 +329,15 @@ const ganttTurnData = computed(() => {
     const isGantt = turn.turnStartMs != null && turn.turnEndMs != null
     const totalDurationMs = isGantt ? (turn.turnEndMs! - turn.turnStartMs!) : (turn.totalTurnDurationMs ?? 0)
     const phases = ganttPhases
-      .map(phase => ({
-        ...phase,
-        bar: getGanttBar(turn, phase.startKey, phase.endKey),
-        durationMs: turn[phase.durationKey] as number | null,
-      }))
+      .map(phase => {
+        const bar = getGanttBar(turn, phase.startKey, phase.endKey)
+        const startMs = turn[phase.startKey] as number | null
+        const endMs = turn[phase.endKey] as number | null
+        const durationMs = (startMs != null && endMs != null)
+          ? endMs - startMs
+          : (turn[phase.durationKey] as number | null)
+        return { ...phase, bar, durationMs }
+      })
       .filter(p => p.bar !== null || p.durationMs !== null)
     return {
       turn,

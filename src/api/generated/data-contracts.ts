@@ -6281,6 +6281,12 @@ export interface LatencyStatsResponse {
   llmDurationMs: LatencyMetric;
   /** TTS synthesis duration (voice only) */
   ttsDurationMs: LatencyMetric;
+  /** TTS WebSocket connection duration (voice only) */
+  ttsConnectDurationMs: LatencyMetric;
+  /** Stage transition duration when a go_to_stage effect fired */
+  stageTransitionDurationMs: LatencyMetric;
+  /** Prompt template rendering duration */
+  promptRenderDurationMs: LatencyMetric;
   /** Moderation API call duration */
   moderationDurationMs: LatencyMetric;
   /** Classification and transformation processing duration */
@@ -6365,6 +6371,24 @@ export interface ConversationTimelineTurn {
   actionsEndMs: number | null;
   /** Filler sentence generation duration */
   fillerDurationMs: number | null;
+  /** Unix timestamp (ms) when a stage transition (go_to_stage effect) started; null when no transition occurred */
+  stageTransitionStartMs: number | null;
+  /** Unix timestamp (ms) when the stage transition completed (stage data reloaded, providers re-wired, on_enter executed) */
+  stageTransitionEndMs: number | null;
+  /** Stage transition duration (go_to_stage effect); null when no transition occurred */
+  stageTransitionDurationMs: number | null;
+  /** Unix timestamp (ms) when the TTS WebSocket connection was initiated (voice path only) */
+  ttsConnectStartMs: number | null;
+  /** Unix timestamp (ms) when the TTS WebSocket connection was established and ready (voice path only) */
+  ttsConnectEndMs: number | null;
+  /** TTS WebSocket connection establishment duration (voice path only) */
+  ttsConnectDurationMs: number | null;
+  /** Unix timestamp (ms) when prompt template rendering started */
+  promptRenderStartMs: number | null;
+  /** Unix timestamp (ms) when prompt template rendering completed */
+  promptRenderEndMs: number | null;
+  /** Prompt template rendering duration */
+  promptRenderDurationMs: number | null;
   /** Unix timestamp (ms) when LLM generation started */
   llmStartMs: number | null;
   /** Unix timestamp (ms) when LLM generation completed */
