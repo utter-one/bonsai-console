@@ -14491,6 +14491,36 @@
               }
             ]
           },
+          "ttsConnectDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "TTS WebSocket connection duration (voice only)"
+              }
+            ]
+          },
+          "stageTransitionDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Stage transition duration when a go_to_stage effect fired"
+              }
+            ]
+          },
+          "promptRenderDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatencyMetric"
+              },
+              {
+                "description": "Prompt template rendering duration"
+              }
+            ]
+          },
           "moderationDurationMs": {
             "allOf": [
               {
@@ -14540,6 +14570,9 @@
           "timeToFirstAudioMs",
           "llmDurationMs",
           "ttsDurationMs",
+          "ttsConnectDurationMs",
+          "stageTransitionDurationMs",
+          "promptRenderDurationMs",
           "moderationDurationMs",
           "processingDurationMs",
           "actionsDurationMs",
@@ -14764,6 +14797,51 @@
             "nullable": true,
             "description": "Filler sentence generation duration"
           },
+          "stageTransitionStartMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when a stage transition (go_to_stage effect) started; null when no transition occurred"
+          },
+          "stageTransitionEndMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when the stage transition completed (stage data reloaded, providers re-wired, on_enter executed)"
+          },
+          "stageTransitionDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Stage transition duration (go_to_stage effect); null when no transition occurred"
+          },
+          "ttsConnectStartMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when the TTS WebSocket connection was initiated (voice path only)"
+          },
+          "ttsConnectEndMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when the TTS WebSocket connection was established and ready (voice path only)"
+          },
+          "ttsConnectDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "TTS WebSocket connection establishment duration (voice path only)"
+          },
+          "promptRenderStartMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when prompt template rendering started"
+          },
+          "promptRenderEndMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Unix timestamp (ms) when prompt template rendering completed"
+          },
+          "promptRenderDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Prompt template rendering duration"
+          },
           "llmStartMs": {
             "type": "number",
             "nullable": true,
@@ -14853,6 +14931,15 @@
           "actionsStartMs",
           "actionsEndMs",
           "fillerDurationMs",
+          "stageTransitionStartMs",
+          "stageTransitionEndMs",
+          "stageTransitionDurationMs",
+          "ttsConnectStartMs",
+          "ttsConnectEndMs",
+          "ttsConnectDurationMs",
+          "promptRenderStartMs",
+          "promptRenderEndMs",
+          "promptRenderDurationMs",
           "llmStartMs",
           "llmEndMs",
           "firstTokenMs",
