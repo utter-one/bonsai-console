@@ -272,9 +272,15 @@ const ganttPhases: GanttPhaseConfig[] = [
   { label: 'TTS', colorClass: 'bg-pink-400', durationKey: 'ttsDurationMs', startKey: 'ttsStartMs', endKey: 'ttsEndMs' },
 ]
 
+function getEffectiveTurnEnd(turn: ConversationTimelineTurn): number | null {
+  if (turn.turnEndMs != null) return turn.turnEndMs
+  if (turn.turnStartMs != null && turn.totalTurnDurationMs != null) return turn.turnStartMs + turn.totalTurnDurationMs
+  return null
+}
+
 function getGanttBar(turn: ConversationTimelineTurn, startKey: keyof ConversationTimelineTurn, endKey: keyof ConversationTimelineTurn): GanttBar | null {
   const turnStart = turn.turnStartMs
-  const turnEnd = turn.turnEndMs
+  const turnEnd = getEffectiveTurnEnd(turn)
   const phaseStart = turn[startKey] as number | null
   const phaseEnd = turn[endKey] as number | null
   if (turnStart == null || turnEnd == null || phaseStart == null || phaseEnd == null) return null
@@ -286,8 +292,9 @@ function getGanttBar(turn: ConversationTimelineTurn, startKey: keyof Conversatio
 }
 
 function getMarkerLeft(turn: ConversationTimelineTurn, markerMs: number | null): number | null {
-  if (turn.turnStartMs == null || turn.turnEndMs == null || markerMs == null) return null
-  const totalDuration = turn.turnEndMs - turn.turnStartMs
+  const turnEnd = getEffectiveTurnEnd(turn)
+  if (turn.turnStartMs == null || turnEnd == null || markerMs == null) return null
+  const totalDuration = turnEnd - turn.turnStartMs
   if (totalDuration <= 0) return null
   return Math.max(0, Math.min(99.8, ((markerMs - turn.turnStartMs) / totalDuration) * 100))
 }
@@ -326,8 +333,9 @@ const ganttTurnData = computed(() => {
   const timeline = analyticsStore.conversationTimeline
   if (!timeline) return []
   return timeline.turns.map(turn => {
-    const isGantt = turn.turnStartMs != null && turn.turnEndMs != null
-    const totalDurationMs = isGantt ? (turn.turnEndMs! - turn.turnStartMs!) : (turn.totalTurnDurationMs ?? 0)
+    const effectiveTurnEnd = getEffectiveTurnEnd(turn)
+    const isGantt = turn.turnStartMs != null && effectiveTurnEnd != null
+    const totalDurationMs = isGantt ? (effectiveTurnEnd! - turn.turnStartMs!) : (turn.totalTurnDurationMs ?? 0)
     const phases = ganttPhases
       .map(phase => {
         const bar = getGanttBar(turn, phase.startKey, phase.endKey)
