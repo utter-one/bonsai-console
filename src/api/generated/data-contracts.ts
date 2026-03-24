@@ -607,7 +607,7 @@ export interface ElevenLabsTtsSettings {
   /** Voice UUID to use for speech synthesis */
   voiceId?: string;
   /** Preferred audio output format for synthesized speech */
-  audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+  audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100";
   /** Markers to identify sections of text that should not be spoken */
   noSpeechMarkers?: {
     start: string;
@@ -688,8 +688,14 @@ export interface DeepgramTtsSettings {
   model?: "aura-1" | "aura-2";
   /** Voice ID to use for speech synthesis (e.g., "thalia-en", "andromeda-en"). Combined with model to form full model string (e.g., "aura-2-thalia-en") */
   voiceId?: string;
-  /** Preferred audio output format. Streaming supports: linear16, opus, mulaw, alaw. REST-only: mp3, flac, aac */
-  audioFormat?: "linear16" | "opus" | "mulaw" | "alaw" | "mp3" | "flac" | "aac";
+  /** Preferred audio output format. Defaults to "pcm_16000" */
+  audioFormat?:
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_24000"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw";
   /**
    * Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format
    * @min 0
@@ -731,7 +737,6 @@ export interface CartesiaTtsSettings {
     | "pcm_24000"
     | "pcm_44100"
     | "pcm_48000"
-    | "opus"
     | "mulaw"
     | "alaw";
   /** Speech speed control. Defaults to "normal" */
@@ -847,8 +852,7 @@ export interface AzureAsrSettings {
     | "pcm_44100"
     | "pcm_48000"
     | "mulaw"
-    | "alaw"
-    | "linear16";
+    | "alaw";
   [key: string]: any;
 }
 
@@ -3101,6 +3105,8 @@ export interface ConversationEventResponse {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
         metadata?: Record<string, any>;
       };
   /**
@@ -3240,6 +3246,8 @@ export interface ConversationEventListResponse {
           blockingCategories: string[];
           detectedCategories: string[];
           durationMs: number;
+          startMs: number;
+          endMs: number;
           metadata?: Record<string, any>;
         };
     /**
@@ -6319,18 +6327,52 @@ export interface ConversationTimelineTurn {
   timestamp: string;
   /** Input source: text or voice */
   source: string | null;
+  /** Unix timestamp (ms) when the turn started processing */
+  turnStartMs: number | null;
+  /** Unix timestamp (ms) when ASR recognition started */
+  asrStartMs: number | null;
+  /** Unix timestamp (ms) when ASR recognition completed */
+  asrEndMs: number | null;
   /** ASR transcription duration */
   asrDurationMs: number | null;
+  /** Unix timestamp (ms) when the moderation API call started */
+  moderationStartMs: number | null;
+  /** Unix timestamp (ms) when the moderation API call completed */
+  moderationEndMs: number | null;
   /** Content moderation duration */
   moderationDurationMs: number | null;
+  /** Unix timestamp (ms) when filler sentence generation started */
+  fillerStartMs: number | null;
+  /** Unix timestamp (ms) when filler sentence generation completed */
+  fillerEndMs: number | null;
   /** Classification and transformation duration */
   processingDurationMs: number | null;
+  /** Unix timestamp (ms) when user input processing (classification + transformation) started */
+  processingStartMs: number | null;
+  /** Unix timestamp (ms) when user input processing completed */
+  processingEndMs: number | null;
   /** Knowledge base retrieval duration */
   knowledgeRetrievalDurationMs: number | null;
+  /** Unix timestamp (ms) when knowledge retrieval started */
+  knowledgeRetrievalStartMs: number | null;
+  /** Unix timestamp (ms) when knowledge retrieval completed */
+  knowledgeRetrievalEndMs: number | null;
   /** Action execution duration */
   actionsDurationMs: number | null;
+  /** Unix timestamp (ms) when action execution started */
+  actionsStartMs: number | null;
+  /** Unix timestamp (ms) when action execution completed */
+  actionsEndMs: number | null;
   /** Filler sentence generation duration */
   fillerDurationMs: number | null;
+  /** Unix timestamp (ms) when LLM generation started */
+  llmStartMs: number | null;
+  /** Unix timestamp (ms) when LLM generation completed */
+  llmEndMs: number | null;
+  /** Unix timestamp (ms) when the first LLM token was received */
+  firstTokenMs: number | null;
+  /** Unix timestamp (ms) when the first audio chunk was delivered to the client */
+  firstAudioMs: number | null;
   /** LLM start to first token */
   timeToFirstTokenMs: number | null;
   /** Turn start to first LLM token */
@@ -6339,8 +6381,14 @@ export interface ConversationTimelineTurn {
   timeToFirstAudioMs: number | null;
   /** Total LLM call duration */
   llmDurationMs: number | null;
+  /** Unix timestamp (ms) when TTS synthesis started */
+  ttsStartMs: number | null;
+  /** Unix timestamp (ms) when TTS synthesis completed */
+  ttsEndMs: number | null;
   /** TTS synthesis duration */
   ttsDurationMs: number | null;
+  /** Unix timestamp (ms) when the turn completed (after TTS on voice path, after LLM on text path) */
+  turnEndMs: number | null;
   /** Total turn duration from start to completion */
   totalTurnDurationMs: number | null;
 }
