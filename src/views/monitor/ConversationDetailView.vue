@@ -243,16 +243,74 @@ watch(conversationId, () => {
   analyticsStore.clearTimeline()
 })
 
-const timelinePhases: { key: keyof ConversationTimelineTurn; label: string; color: string }[] = [
-  { key: 'asrDurationMs', label: 'ASR', color: 'bg-blue-400' },
-  { key: 'moderationDurationMs', label: 'Moderation', color: 'bg-yellow-400' },
-  { key: 'processingDurationMs', label: 'Processing', color: 'bg-purple-400' },
-  { key: 'knowledgeRetrievalDurationMs', label: 'Knowledge', color: 'bg-teal-400' },
-  { key: 'actionsDurationMs', label: 'Actions', color: 'bg-orange-400' },
-  { key: 'fillerDurationMs', label: 'Filler', color: 'bg-gray-400' },
-  { key: 'llmDurationMs', label: 'LLM', color: 'bg-emerald-400' },
-  { key: 'ttsDurationMs', label: 'TTS', color: 'bg-pink-400' },
+interface GanttPhaseConfig {
+  label: string
+  colorClass: string
+  durationKey: keyof ConversationTimelineTurn
+  startKey: keyof ConversationTimelineTurn
+  endKey: keyof ConversationTimelineTurn
+}
+
+interface GanttBar {
+  left: number
+  width: number
+  durationMs: number
+  offsetMs: number
+}
+
+const ganttPhases: GanttPhaseConfig[] = [
+  { label: 'ASR', colorClass: 'bg-blue-400', durationKey: 'asrDurationMs', startKey: 'asrStartMs', endKey: 'asrEndMs' },
+  { label: 'Moderation', colorClass: 'bg-yellow-400', durationKey: 'moderationDurationMs', startKey: 'moderationStartMs', endKey: 'moderationEndMs' },
+  { label: 'Filler', colorClass: 'bg-gray-400', durationKey: 'fillerDurationMs', startKey: 'fillerStartMs', endKey: 'fillerEndMs' },
+  { label: 'Processing', colorClass: 'bg-purple-400', durationKey: 'processingDurationMs', startKey: 'processingStartMs', endKey: 'processingEndMs' },
+  { label: 'Knowledge', colorClass: 'bg-teal-400', durationKey: 'knowledgeRetrievalDurationMs', startKey: 'knowledgeRetrievalStartMs', endKey: 'knowledgeRetrievalEndMs' },
+  { label: 'Actions', colorClass: 'bg-orange-400', durationKey: 'actionsDurationMs', startKey: 'actionsStartMs', endKey: 'actionsEndMs' },
+  { label: 'LLM', colorClass: 'bg-emerald-400', durationKey: 'llmDurationMs', startKey: 'llmStartMs', endKey: 'llmEndMs' },
+  { label: 'TTS', colorClass: 'bg-pink-400', durationKey: 'ttsDurationMs', startKey: 'ttsStartMs', endKey: 'ttsEndMs' },
 ]
+
+function getGanttBar(turn: ConversationTimelineTurn, startKey: keyof ConversationTimelineTurn, endKey: keyof ConversationTimelineTurn): GanttBar | null {
+  const turnStart = turn.turnStartMs
+  const turnEnd = turn.turnEndMs
+  const phaseStart = turn[startKey] as number | null
+  const phaseEnd = turn[endKey] as number | null
+  if (turnStart == null || turnEnd == null || phaseStart == null || phaseEnd == null) return null
+  const totalDuration = turnEnd - turnStart
+  if (totalDuration <= 0) return null
+  const left = Math.max(0, ((phaseStart - turnStart) / totalDuration) * 100)
+  const width = Math.max(0.5, Math.min(100 - left, ((phaseEnd - phaseStart) / totalDuration) * 100))
+  return { left, width, durationMs: phaseEnd - phaseStart, offsetMs: phaseStart - turnStart }
+}
+
+function getMarkerLeft(turn: ConversationTimelineTurn, markerMs: number | null): number | null {
+  if (turn.turnStartMs == null || turn.turnEndMs == null || markerMs == null) return null
+  const totalDuration = turn.turnEndMs - turn.turnStartMs
+  if (totalDuration <= 0) return null
+  return Math.max(0, Math.min(99.8, ((markerMs - turn.turnStartMs) / totalDuration) * 100))
+}
+
+function getTimeAxisTicks(totalDurationMs: number): { left: number; label: string }[] {
+  if (totalDurationMs <= 0) return [{ left: 0, label: '0' }]
+  const magnitude = Math.pow(10, Math.floor(Math.log10(totalDurationMs / 5)))
+  const normalized = (totalDurationMs / 5) / magnitude
+  let niceInterval: number
+  if (normalized < 1.5) niceInterval = magnitude
+  else if (normalized < 3.5) niceInterval = 2 * magnitude
+  else if (normalized < 7.5) niceInterval = 5 * magnitude
+  else niceInterval = 10 * magnitude
+  const ticks: { left: number; label: string }[] = []
+  for (let t = 0; t <= totalDurationMs; t += niceInterval) {
+    ticks.push({ left: (t / totalDurationMs) * 100, label: t === 0 ? '0' : `${Math.round(t)}ms` })
+  }
+  const last = ticks[ticks.length - 1]
+  if (last.left < 95) {
+    ticks.push({ left: 100, label: `${Math.round(totalDurationMs)}ms` })
+  } else {
+    last.label = `${Math.round(totalDurationMs)}ms`
+    last.left = 100
+  }
+  return ticks
+}
 
 function getPhaseWidth(turn: ConversationTimelineTurn, key: keyof ConversationTimelineTurn): number {
   const total = turn.totalTurnDurationMs
@@ -260,6 +318,30 @@ function getPhaseWidth(turn: ConversationTimelineTurn, key: keyof ConversationTi
   if (!total || !value) return 0
   return Math.min(100, (value / total) * 100)
 }
+
+const ganttTurnData = computed(() => {
+  const timeline = analyticsStore.conversationTimeline
+  if (!timeline) return []
+  return timeline.turns.map(turn => {
+    const isGantt = turn.turnStartMs != null && turn.turnEndMs != null
+    const totalDurationMs = isGantt ? (turn.turnEndMs! - turn.turnStartMs!) : (turn.totalTurnDurationMs ?? 0)
+    const phases = ganttPhases
+      .map(phase => ({
+        ...phase,
+        bar: getGanttBar(turn, phase.startKey, phase.endKey),
+        durationMs: turn[phase.durationKey] as number | null,
+      }))
+      .filter(p => p.bar !== null || p.durationMs !== null)
+    return {
+      turn,
+      isGantt,
+      phases,
+      firstTokenLeft: getMarkerLeft(turn, turn.firstTokenMs),
+      firstAudioLeft: getMarkerLeft(turn, turn.firstAudioMs),
+      ticks: isGantt ? getTimeAxisTicks(totalDurationMs) : [],
+    }
+  })
+})
 
 function fmtMs(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
@@ -381,55 +463,107 @@ function fmtMs(value: number | null | undefined): string {
               No performance data available for this conversation
             </div>
             <div v-else class="space-y-6">
-              <!-- Phase legend -->
+              <!-- Legend -->
               <div class="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
-                <span v-for="phase in timelinePhases" :key="phase.key" class="flex items-center gap-1">
-                  <span :class="[phase.color, 'inline-block w-3 h-3 rounded-sm']" />
+                <span v-for="phase in ganttPhases" :key="phase.durationKey" class="flex items-center gap-1">
+                  <span :class="[phase.colorClass, 'inline-block w-3 h-3 rounded-sm']" />
                   {{ phase.label }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-px h-3 bg-amber-400" />
+                  First Token
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-px h-3 bg-cyan-500" />
+                  First Audio
                 </span>
               </div>
 
-              <!-- Waterfall -->
-              <div class="space-y-3">
+              <!-- Turn cards -->
+              <div class="space-y-4">
                 <div
-                  v-for="turn in analyticsStore.conversationTimeline.turns"
-                  :key="turn.turnIndex"
+                  v-for="td in ganttTurnData"
+                  :key="td.turn.turnIndex"
                   class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                 >
-                  <div class="flex items-center justify-between mb-2">
+                  <!-- Turn header -->
+                  <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
-                      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Turn {{ turn.turnIndex }}</span>
-                      <span v-if="turn.source" class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{{ turn.source }}</span>
-                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ new Date(turn.timestamp).toLocaleTimeString() }}</span>
+                      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Turn {{ td.turn.turnIndex }}</span>
+                      <span v-if="td.turn.source" class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{{ td.turn.source }}</span>
+                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ new Date(td.turn.timestamp).toLocaleTimeString() }}</span>
                     </div>
-                    <span class="text-sm font-mono font-medium text-gray-700 dark:text-gray-300">{{ fmtMs(turn.totalTurnDurationMs) }}</span>
+                    <span class="text-sm font-mono font-medium text-gray-700 dark:text-gray-300">{{ fmtMs(td.turn.totalTurnDurationMs) }}</span>
                   </div>
-                  <!-- Phase bar -->
-                  <div class="h-5 w-full flex rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
+
+                  <!-- Gantt chart -->
+                  <div v-if="td.isGantt" class="space-y-0.5">
+                    <div v-for="phase in td.phases" :key="phase.durationKey" class="flex items-center gap-2">
+                      <span class="w-24 text-xs text-right text-gray-400 dark:text-gray-500 shrink-0">{{ phase.label }}</span>
+                      <div class="flex-1 relative h-5 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                        <div
+                          v-if="phase.bar"
+                          :class="[phase.colorClass, 'absolute top-0.5 h-4 rounded opacity-80']"
+                          :style="{ left: phase.bar.left + '%', width: phase.bar.width + '%' }"
+                          :title="`${phase.label}: ${fmtMs(phase.bar.durationMs)} (at +${fmtMs(phase.bar.offsetMs)})`"
+                        />
+                        <div
+                          v-if="td.firstTokenLeft !== null"
+                          class="absolute top-0 h-full w-px bg-amber-400"
+                          :style="{ left: td.firstTokenLeft + '%' }"
+                          title="First Token"
+                        />
+                        <div
+                          v-if="td.firstAudioLeft !== null"
+                          class="absolute top-0 h-full w-px bg-cyan-500"
+                          :style="{ left: td.firstAudioLeft + '%' }"
+                          title="First Audio"
+                        />
+                      </div>
+                      <span class="w-16 text-right text-xs font-mono text-gray-500 dark:text-gray-400 shrink-0">{{ fmtMs(phase.durationMs) }}</span>
+                    </div>
+                    <!-- Time axis -->
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="w-24 shrink-0" />
+                      <div class="flex-1 relative h-4 border-t border-gray-200 dark:border-gray-600">
+                        <span
+                          v-for="tick in td.ticks"
+                          :key="tick.label"
+                          class="absolute top-0.5 text-xs text-gray-400 dark:text-gray-500"
+                          :style="{ left: tick.left + '%', transform: tick.left < 5 ? 'none' : tick.left > 90 ? 'translateX(-100%)' : 'translateX(-50%)' }"
+                        >{{ tick.label }}</span>
+                      </div>
+                      <span class="w-16 shrink-0" />
+                    </div>
+                  </div>
+
+                  <!-- Fallback stacked bar (no start/end data) -->
+                  <div v-else class="h-5 w-full flex rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <div
-                      v-for="phase in timelinePhases"
-                      :key="phase.key"
-                      :class="[phase.color]"
-                      :style="{ width: getPhaseWidth(turn, phase.key) + '%' }"
-                      :title="`${phase.label}: ${fmtMs(turn[phase.key] as number | null)}`"
+                      v-for="phase in td.phases"
+                      :key="'bar-' + phase.durationKey"
+                      :class="[phase.colorClass]"
+                      :style="{ width: getPhaseWidth(td.turn, phase.durationKey) + '%' }"
+                      :title="`${phase.label}: ${fmtMs(phase.durationMs)}`"
                     />
                   </div>
-                  <!-- Metric details -->
-                  <div class="mt-3 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 text-xs">
-                    <div v-for="phase in timelinePhases" :key="'d-' + phase.key" class="flex items-center gap-1">
-                      <span :class="[phase.color, 'inline-block w-2 h-2 rounded-sm flex-shrink-0']" />
+
+                  <!-- Metrics summary -->
+                  <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 text-xs">
+                    <div v-for="phase in td.phases" :key="'m-' + phase.durationKey" class="flex items-center gap-1">
+                      <span :class="[phase.colorClass, 'inline-block w-2 h-2 rounded-sm flex-shrink-0']" />
                       <span class="text-gray-500 dark:text-gray-400">{{ phase.label }}:</span>
-                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn[phase.key] as number | null) }}</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(phase.durationMs) }}</span>
                     </div>
-                    <div class="flex items-center gap-1">
-                      <span class="inline-block w-2 h-2 rounded-sm bg-blue-200 dark:bg-blue-800 flex-shrink-0" />
+                    <div v-if="td.turn.timeToFirstTokenMs != null" class="flex items-center gap-1">
+                      <span class="inline-block w-2 h-2 rounded-sm bg-amber-300 dark:bg-amber-700 flex-shrink-0" />
                       <span class="text-gray-500 dark:text-gray-400">TTFT:</span>
-                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn.timeToFirstTokenMs) }}</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(td.turn.timeToFirstTokenMs) }}</span>
                     </div>
-                    <div v-if="turn.source === 'voice'" class="flex items-center gap-1">
-                      <span class="inline-block w-2 h-2 rounded-sm bg-orange-200 dark:bg-orange-800 flex-shrink-0" />
+                    <div v-if="td.turn.timeToFirstAudioMs != null" class="flex items-center gap-1">
+                      <span class="inline-block w-2 h-2 rounded-sm bg-cyan-400 dark:bg-cyan-700 flex-shrink-0" />
                       <span class="text-gray-500 dark:text-gray-400">First audio:</span>
-                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(turn.timeToFirstAudioMs) }}</span>
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ fmtMs(td.turn.timeToFirstAudioMs) }}</span>
                     </div>
                   </div>
                 </div>

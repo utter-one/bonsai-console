@@ -6319,28 +6319,68 @@ export interface ConversationTimelineTurn {
   timestamp: string;
   /** Input source: text or voice */
   source: string | null;
+  /** When the turn started processing (Unix epoch ms) */
+  turnStartMs: number | null;
+  /** When the turn completed (Unix epoch ms) */
+  turnEndMs: number | null;
   /** ASR transcription duration */
   asrDurationMs: number | null;
+  /** ASR recognition start (Unix epoch ms) */
+  asrStartMs: number | null;
+  /** ASR recognition end (Unix epoch ms) */
+  asrEndMs: number | null;
   /** Content moderation duration */
   moderationDurationMs: number | null;
-  /** Classification and transformation duration */
-  processingDurationMs: number | null;
-  /** Knowledge base retrieval duration */
-  knowledgeRetrievalDurationMs: number | null;
-  /** Action execution duration */
-  actionsDurationMs: number | null;
+  /** Moderation API call start (Unix epoch ms) */
+  moderationStartMs: number | null;
+  /** Moderation API call end (Unix epoch ms) */
+  moderationEndMs: number | null;
   /** Filler sentence generation duration */
   fillerDurationMs: number | null;
+  /** Filler sentence generation start (Unix epoch ms) */
+  fillerStartMs: number | null;
+  /** Filler sentence generation end (Unix epoch ms) */
+  fillerEndMs: number | null;
+  /** Classification and transformation duration */
+  processingDurationMs: number | null;
+  /** Classification + transformation start (Unix epoch ms) */
+  processingStartMs: number | null;
+  /** Classification + transformation end (Unix epoch ms) */
+  processingEndMs: number | null;
+  /** Knowledge base retrieval duration */
+  knowledgeRetrievalDurationMs: number | null;
+  /** Knowledge base retrieval start (Unix epoch ms) */
+  knowledgeRetrievalStartMs: number | null;
+  /** Knowledge base retrieval end (Unix epoch ms) */
+  knowledgeRetrievalEndMs: number | null;
+  /** Action execution duration */
+  actionsDurationMs: number | null;
+  /** Action execution start (Unix epoch ms) */
+  actionsStartMs: number | null;
+  /** Action execution end (Unix epoch ms) */
+  actionsEndMs: number | null;
+  /** Total LLM call duration */
+  llmDurationMs: number | null;
+  /** LLM generation start (Unix epoch ms) */
+  llmStartMs: number | null;
+  /** LLM generation end (Unix epoch ms) */
+  llmEndMs: number | null;
+  /** When first LLM token was received (Unix epoch ms) */
+  firstTokenMs: number | null;
+  /** When first audio chunk was delivered to client (Unix epoch ms) */
+  firstAudioMs: number | null;
+  /** TTS synthesis duration */
+  ttsDurationMs: number | null;
+  /** TTS synthesis start (Unix epoch ms) */
+  ttsStartMs: number | null;
+  /** TTS synthesis end (Unix epoch ms) */
+  ttsEndMs: number | null;
   /** LLM start to first token */
   timeToFirstTokenMs: number | null;
   /** Turn start to first LLM token */
   timeToFirstTokenFromTurnStartMs: number | null;
   /** Turn start to first audio chunk */
   timeToFirstAudioMs: number | null;
-  /** Total LLM call duration */
-  llmDurationMs: number | null;
-  /** TTS synthesis duration */
-  ttsDurationMs: number | null;
   /** Total turn duration from start to completion */
   totalTurnDurationMs: number | null;
 }
