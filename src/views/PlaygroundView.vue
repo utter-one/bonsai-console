@@ -325,6 +325,7 @@
                 v-else-if="event.wsEvent"
                 :event="toNormalizedWsEvent(event, index)"
                 :show-bug-report="false"
+                :entity-names="entityNames"
                 @open-prompt="openPromptPreview"
                 @open-filler-prompt="openFillerPromptPreview"
                 @open-raw-response="openRawResponsePreview"
@@ -469,7 +470,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
+import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
@@ -656,10 +657,19 @@ const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
 const issuesStore = useIssuesStore()
+const stagesStore = useStagesStore()
+const classifiersStore = useClassifiersStore()
+const contextTransformersStore = useContextTransformersStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
 const hasProject = computed(() => !!projectId.value)
+
+const entityNames = computed(() => ({
+  stages: Object.fromEntries(stagesStore.items.map(s => [s.id, s.name])),
+  classifiers: Object.fromEntries(classifiersStore.items.map(c => [c.id, c.name])),
+  transformers: Object.fromEntries(contextTransformersStore.items.map(t => [t.id, t.name])),
+}))
 
 // Sync route projectId with store on mount and route changes
 onMounted(() => {
@@ -711,7 +721,10 @@ watch(projectId, async (newProjectId, oldProjectId) => {
   if (newProjectId) {
     await Promise.all([
       globalActionsStore.fetchAll(newProjectId),
-      apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } })
+      apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } }),
+      stagesStore.fetchAll(newProjectId, { limit: 1000 }),
+      classifiersStore.fetchAll(newProjectId, { limit: 1000 }),
+      contextTransformersStore.fetchAll(newProjectId, { limit: 1000 }),
     ])
 
     // Check if resuming from query params

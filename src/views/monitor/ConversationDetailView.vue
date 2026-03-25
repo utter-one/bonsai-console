@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import { ArrowLeft, Play } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
@@ -21,6 +21,9 @@ const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 const issuesStore = useIssuesStore()
 const analyticsStore = useAnalyticsStore()
+const stagesStore = useStagesStore()
+const classifiersStore = useClassifiersStore()
+const contextTransformersStore = useContextTransformersStore()
 
 const conversationId = computed(() => route.params.conversationId as string)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -55,6 +58,12 @@ function toNormalizedEvent(event: ConversationEventResponse): NormalizedEvent {
   }
 }
 
+const entityNames = computed(() => ({
+  stages: Object.fromEntries(stagesStore.items.map(s => [s.id, s.name])),
+  classifiers: Object.fromEntries(classifiersStore.items.map(c => [c.id, c.name])),
+  transformers: Object.fromEntries(contextTransformersStore.items.map(t => [t.id, t.name])),
+}))
+
 onMounted(async () => {
   await loadConversationData()
 })
@@ -67,10 +76,13 @@ async function loadConversationData() {
     // Load conversation details
     conversation.value = await conversationsStore.fetchById(projectId.value, conversationId.value)
 
-    // Load conversation events
-    const eventsResponse = await conversationsStore.fetchEvents(projectId.value, conversationId.value, {
-      orderBy: 'timestamp'
-    })
+    // Load conversation events and entity names in parallel
+    const [eventsResponse] = await Promise.all([
+      conversationsStore.fetchEvents(projectId.value, conversationId.value, { orderBy: 'timestamp' }),
+      stagesStore.fetchAll(projectId.value, { limit: 1000 }),
+      classifiersStore.fetchAll(projectId.value, { limit: 1000 }),
+      contextTransformersStore.fetchAll(projectId.value, { limit: 1000 }),
+    ])
     events.value = eventsResponse.items || []
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load conversation data'
@@ -442,6 +454,7 @@ function fmtMs(value: number | null | undefined): string {
                   :event="toNormalizedEvent(event)"
                   :show-bug-report="!isArchived"
                   :highlighted="highlightEventIndex === index"
+                  :entity-names="entityNames"
                   @open-prompt="openPromptPreview"
                   @open-filler-prompt="openFillerPromptPreview"
                   @open-raw-response="openRawResponsePreview"
