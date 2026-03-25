@@ -3040,7 +3040,12 @@ export class Api<
             | "conversation_aborted"
             | "conversation_failed"
             | "jump_to_stage"
-            | "moderation";
+            | "moderation"
+            | "variables_updated"
+            | "user_profile_updated"
+            | "user_input_modified"
+            | "user_banned"
+            | "visibility_changed";
           /** Event data payload */
           eventData:
             | {
@@ -3099,6 +3104,8 @@ export class Api<
                 success: boolean;
                 result?: any;
                 error?: string;
+                /** Name of the action that triggered this tool call, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3122,11 +3129,15 @@ export class Api<
             | {
                 reason?: string;
                 stageId: string;
+                /** Name of the action that triggered conversation end, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
                 reason: string;
                 stageId: string;
+                /** Name of the action that triggered conversation abort, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3137,6 +3148,8 @@ export class Api<
             | {
                 fromStageId: string;
                 toStageId: string;
+                /** Name of the action that triggered this stage jump, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3147,6 +3160,46 @@ export class Api<
                 durationMs: number;
                 startMs: number;
                 endMs: number;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this variable update */
+                sourceActionName: string;
+                /** Snapshot of all conversation variables after the update */
+                variables: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this profile update */
+                sourceActionName: string;
+                /** Updated user profile data */
+                profile: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this input modification */
+                sourceActionName: string;
+                /** The modified user input after template rendering */
+                modifiedInput: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered the ban */
+                sourceActionName: string;
+                /** Optional reason for the ban */
+                reason?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this visibility change */
+                sourceActionName: string;
+                /** The new visibility settings for current turn messages */
+                visibility: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
                 metadata?: Record<string, any>;
               };
           /**
@@ -3222,7 +3275,12 @@ export class Api<
           | "conversation_aborted"
           | "conversation_failed"
           | "jump_to_stage"
-          | "moderation";
+          | "moderation"
+          | "variables_updated"
+          | "user_profile_updated"
+          | "user_input_modified"
+          | "user_banned"
+          | "visibility_changed";
         /** Event data payload */
         eventData:
           | {
@@ -3281,6 +3339,8 @@ export class Api<
               success: boolean;
               result?: any;
               error?: string;
+              /** Name of the action that triggered this tool call, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3304,11 +3364,15 @@ export class Api<
           | {
               reason?: string;
               stageId: string;
+              /** Name of the action that triggered conversation end, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
               reason: string;
               stageId: string;
+              /** Name of the action that triggered conversation abort, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3319,6 +3383,8 @@ export class Api<
           | {
               fromStageId: string;
               toStageId: string;
+              /** Name of the action that triggered this stage jump, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3329,6 +3395,46 @@ export class Api<
               durationMs: number;
               startMs: number;
               endMs: number;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this variable update */
+              sourceActionName: string;
+              /** Snapshot of all conversation variables after the update */
+              variables: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this profile update */
+              sourceActionName: string;
+              /** Updated user profile data */
+              profile: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this input modification */
+              sourceActionName: string;
+              /** The modified user input after template rendering */
+              modifiedInput: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered the ban */
+              sourceActionName: string;
+              /** Optional reason for the ban */
+              reason?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this visibility change */
+              sourceActionName: string;
+              /** The new visibility settings for current turn messages */
+              visibility: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
               metadata?: Record<string, any>;
             };
         /**
