@@ -55,7 +55,10 @@ export type Effect =
     } & GenerateResponseEffect)
   | ({
       type: "change_visibility";
-    } & ChangeVisibilityEffect);
+    } & ChangeVisibilityEffect)
+  | ({
+      type: "ban_user";
+    } & BanUserEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1283,6 +1286,13 @@ export interface ChangeVisibilityEffect {
   condition?: string;
 }
 
+export interface BanUserEffect {
+  /** Effect type */
+  type: "ban_user";
+  /** Optional reason for banning the user */
+  reason?: string;
+}
+
 export interface CallToolEffect {
   /** Effect type */
   type: "call_tool";
@@ -1596,6 +1606,10 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   /** Updated profile data (merges with existing profile) */
   profile?: Record<string, any>;
+  /** Whether the user is banned from starting conversations */
+  banned?: boolean;
+  /** Reason for banning the user (null to clear) */
+  banReason?: string | null;
 }
 
 export interface UserResponse {
@@ -1605,6 +1619,10 @@ export interface UserResponse {
   projectId: string;
   /** User profile data as key-value pairs */
   profile: Record<string, any>;
+  /** Whether the user is banned from starting conversations */
+  banned: boolean;
+  /** Reason the user was banned */
+  banReason?: string | null;
   /**
    * Timestamp when the user was created
    * @format date-time
@@ -1628,6 +1646,10 @@ export interface UserListResponse {
     projectId: string;
     /** User profile data as key-value pairs */
     profile: Record<string, any>;
+    /** Whether the user is banned from starting conversations */
+    banned: boolean;
+    /** Reason the user was banned */
+    banReason?: string | null;
     /**
      * Timestamp when the user was created
      * @format date-time

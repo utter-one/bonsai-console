@@ -59,7 +59,8 @@ async function generateTypes() {
     'CallToolEffect',
     'CallWebhookEffect',
     'GenerateResponseEffect',
-    'ChangeVisibilityEffect'
+    'ChangeVisibilityEffect',
+    'BanUserEffect'
   ]
 
   // Group definitions by category
@@ -70,7 +71,7 @@ async function generateTypes() {
       'GoToStageEffect', 'RunScriptEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
       'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
-      'GenerateResponseEffect', 'ChangeVisibilityEffect'
+      'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [

@@ -107,7 +107,8 @@ export type Effect =
   | ModifyUserProfileEffect
   | CallToolEffect
   | GenerateResponseEffect
-  | ChangeVisibilityEffect;
+  | ChangeVisibilityEffect
+  | BanUserEffect;
 
 export interface EndConversationEffect {
   /**
@@ -262,6 +263,17 @@ export interface ChangeVisibilityEffect {
    * JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional"
    */
   condition?: string;
+}
+
+export interface BanUserEffect {
+  /**
+   * Effect type
+   */
+  type: 'ban_user';
+  /**
+   * Optional reason for banning the user
+   */
+  reason?: string;
 }
 
 
