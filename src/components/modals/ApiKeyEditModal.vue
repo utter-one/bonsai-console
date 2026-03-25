@@ -123,6 +123,8 @@
                 <span class="form-label mb-0">Restrict Features</span>
               </label>
               <p class="mt-1 text-xs" :class="form.restrictFeatures ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictFeatures ? 'Only the selected features are permitted.' : 'All features are permitted.' }}</p>
+              <p v-if="form.restrictFeatures && !hasInputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one input method must be selected.</p>
+              <p v-if="form.restrictFeatures && !hasOutputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one output method must be selected.</p>
               <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 pl-1" :class="!form.restrictFeatures ? 'opacity-50' : ''">
                 <div v-for="group in FEATURE_GROUPS" :key="group.label">
                   <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">{{ group.label }}</div>
@@ -318,9 +320,20 @@ watch(
   { immediate: true }
 )
 
+const INPUT_FEATURES = ['voice_input', 'text_input']
+const OUTPUT_FEATURES = ['voice_output', 'text_output']
+
+const hasInputSelected = computed(() =>
+  !form.value.restrictFeatures || INPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+const hasOutputSelected = computed(() =>
+  !form.value.restrictFeatures || OUTPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+
 function handleSubmit() {
   if (!form.value.name) return
   if (!props.apiKey && !props.projectId && !form.value.projectId) return
+  if (!hasInputSelected.value || !hasOutputSelected.value) return
 
   const keySettings: Record<string, any> = {}
   if (form.value.restrictChannels) {
