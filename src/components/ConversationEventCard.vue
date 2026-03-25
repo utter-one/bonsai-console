@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   ArrowLeftRight,
   GitBranch,
@@ -87,6 +88,11 @@ const emit = defineEmits<{
   (e: 'open-variables', variables: Record<string, any>): void
   (e: 'open-bug-report', event: NormalizedEvent): void
 }>()
+
+const route = useRoute()
+// Chromium resolves url(#id) relative to the current page URL, so we must use
+// the full absolute URL to ensure SVG marker references work correctly in SPAs.
+const svgUrlBase = computed(() => window.location.origin + route.fullPath.replace(/#.*$/, ''))
 
 const expanded = ref(false)
 const hasHovered = ref(false)
@@ -920,9 +926,12 @@ function onBugReport() {
               </div>
 
               <!-- SVG arrow overlay -->
+              <!-- height: 100% ensures paths are within the SVG viewport; overflow="visible"
+                   is set as a native attribute because Chromium ignores the CSS override. -->
               <svg
-                class="absolute top-0 left-0 w-full pointer-events-none overflow-visible"
-                style="height: 0px"
+                class="absolute top-0 left-0 w-full pointer-events-none"
+                style="height: 100%"
+                overflow="visible"
                 aria-hidden="true"
               >
                 <defs>
@@ -947,7 +956,7 @@ function onBugReport() {
                   :stroke="arrow.color"
                   stroke-width="1.5"
                   stroke-opacity="0.65"
-                  :marker-end="`url(#ep-ah-${event.id}-${arrow.colorIdx})`"
+                  :marker-end="`url(${svgUrlBase}#ep-ah-${event.id}-${arrow.colorIdx})`"
                 />
               </svg>
             </div>
