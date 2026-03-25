@@ -147,7 +147,7 @@ watch(deepgramEndpointingValue, (value) => {
 
 const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
-  return apiKeysStore.items
+  return [...apiKeysStore.items].sort((a, b) => a.name.localeCompare(b.name))
 })
 
 const metadataFields = computed(() => {
@@ -2021,58 +2021,47 @@ function handleStorageSettingsClose() {
             No API keys yet. Create one to get started.
           </div>
 
-          <div v-else class="space-y-2">
-            <div
-              v-for="apiKey in filteredApiKeys"
-              :key="apiKey.id"
-              class="bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow dark:bg-gray-800 dark:border-gray-700"
-            >
-              <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ apiKey.name }}</h4>
-                    <span
-                      :class="[
-                        'badge',
-                        apiKey.isActive ? 'badge-active' : 'badge-inactive'
-                      ]"
-                    >
-                      {{ apiKey.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </div>
-                  <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ apiKey.keyPreview }}</p>
-                  <div class="text-xs text-gray-500 mt-1">
-                    <span>Created: {{ formatDate(apiKey.createdAt) }}</span>
-                    <span class="mx-2">•</span>
-                    <span>Last used: {{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
-                  </div>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    @click="handleToggleApiKey(apiKey)"
-                    class="btn-secondary text-sm"
-                    :title="apiKey.isActive ? 'Deactivate' : 'Activate'"
-                    type="button"
-                    :disabled="isArchived"
-                  >
-                    {{ apiKey.isActive ? 'Deactivate' : 'Activate' }}
-                  </button>
-                  <button
-                    @click="handleEditApiKey(apiKey)"
-                    class="btn-secondary text-sm"
-                    type="button"
-                  >
-                    {{ isArchived ? 'View' : 'Edit' }}
-                  </button>
-                  <button
-                    @click="handleDeleteApiKey(apiKey)"
-                    class="btn-danger text-sm"
-                    type="button"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+          <div v-else class="table-container">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead class="table-header">
+                  <tr>
+                    <th class="table-header-cell">Name</th>
+                    <th class="table-header-cell">Key</th>
+                    <th class="table-header-cell">Active</th>
+                    <th class="table-header-cell">Last Used</th>
+                    <th class="table-header-cell">Created</th>
+                    <th class="table-header-cell-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <tr v-for="apiKey in filteredApiKeys" :key="apiKey.id" class="table-row">
+                    <td class="table-clickable-cell" @click="handleEditApiKey(apiKey)">{{ apiKey.name }}</td>
+                    <td class="table-cell"><code class="font-mono text-sm">{{ apiKey.keyPreview }}</code></td>
+                    <td class="table-cell">
+                      <input
+                        type="checkbox"
+                        :checked="apiKey.isActive"
+                        @change="handleToggleApiKey(apiKey)"
+                        class="form-checkbox cursor-pointer"
+                        :disabled="isArchived"
+                      />
+                    </td>
+                    <td class="table-cell-muted">{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</td>
+                    <td class="table-cell-muted">{{ formatDate(apiKey.createdAt) }}</td>
+                    <td class="table-cell-right">
+                      <div class="flex justify-end gap-2">
+                        <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">
+                          {{ isArchived ? 'View' : 'Edit' }}
+                        </button>
+                        <button @click="handleDeleteApiKey(apiKey)" class="btn-danger btn-sm" type="button">
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
