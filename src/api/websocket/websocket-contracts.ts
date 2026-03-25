@@ -956,6 +956,8 @@ export interface ConversationEvent {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
         metadata?: Record<string, unknown>;
       };
   /**
@@ -1113,6 +1115,8 @@ export interface ConversationEventUpdate {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
         metadata?: Record<string, unknown>;
       };
   /**

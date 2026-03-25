@@ -1452,6 +1452,12 @@
                 "durationMs": {
                   "type": "number"
                 },
+                "startMs": {
+                  "type": "number"
+                },
+                "endMs": {
+                  "type": "number"
+                },
                 "metadata": {
                   "type": "object",
                   "additionalProperties": {
@@ -1464,7 +1470,9 @@
                 "flagged",
                 "blockingCategories",
                 "detectedCategories",
-                "durationMs"
+                "durationMs",
+                "startMs",
+                "endMs"
               ]
             }
           ],
@@ -2286,6 +2294,12 @@
                 "durationMs": {
                   "type": "number"
                 },
+                "startMs": {
+                  "type": "number"
+                },
+                "endMs": {
+                  "type": "number"
+                },
                 "metadata": {
                   "type": "object",
                   "additionalProperties": {
@@ -2298,7 +2312,9 @@
                 "flagged",
                 "blockingCategories",
                 "detectedCategories",
-                "durationMs"
+                "durationMs",
+                "startMs",
+                "endMs"
               ]
             }
           ],
