@@ -5644,6 +5644,24 @@ export interface AuditLogListResponse {
   limit?: number | null;
 }
 
+export interface ApiKeySettings {
+  /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+  allowedChannels?: ("websocket" | "webrtc")[];
+  /** Permitted feature capabilities. If absent, all features are allowed. */
+  allowedFeatures?: (
+    | "conversation_control"
+    | "voice_input"
+    | "text_input"
+    | "voice_output"
+    | "text_output"
+    | "vars_access"
+    | "stage_control"
+    | "run_action"
+    | "call_tool"
+    | "events"
+  )[];
+}
+
 export interface CreateApiKeyRequest {
   /**
    * A descriptive name for the API key
@@ -5653,6 +5671,8 @@ export interface CreateApiKeyRequest {
   name: string;
   /** Additional metadata for the API key */
   metadata?: Record<string, any>;
+  /** Security settings controlling which channels and features this key permits. If absent, all channels and features are allowed. */
+  keySettings?: ApiKeySettings;
 }
 
 export interface UpdateApiKeyRequest {
@@ -5666,6 +5686,8 @@ export interface UpdateApiKeyRequest {
   isActive?: boolean;
   /** Updated metadata for the API key */
   metadata?: Record<string, any>;
+  /** Updated security settings. If absent, existing settings are preserved. */
+  keySettings?: ApiKeySettings;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -5692,6 +5714,24 @@ export interface ApiKeyResponse {
   isActive: boolean;
   /** Additional metadata */
   metadata?: Record<string, any>;
+  /** Security settings controlling which channels and features this key permits */
+  keySettings?: {
+    /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+    allowedChannels?: ("websocket" | "webrtc")[];
+    /** Permitted feature capabilities. If absent, all features are allowed. */
+    allowedFeatures?: (
+      | "conversation_control"
+      | "voice_input"
+      | "text_input"
+      | "voice_output"
+      | "text_output"
+      | "vars_access"
+      | "stage_control"
+      | "run_action"
+      | "call_tool"
+      | "events"
+    )[];
+  } | null;
   /** Version number for optimistic locking */
   version: number;
   /** ISO timestamp of creation */
@@ -5721,6 +5761,24 @@ export interface ApiKeyListResponse {
     isActive: boolean;
     /** Additional metadata */
     metadata?: Record<string, any>;
+    /** Security settings controlling which channels and features this key permits */
+    keySettings?: {
+      /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+      allowedChannels?: ("websocket" | "webrtc")[];
+      /** Permitted feature capabilities. If absent, all features are allowed. */
+      allowedFeatures?: (
+        | "conversation_control"
+        | "voice_input"
+        | "text_input"
+        | "voice_output"
+        | "text_output"
+        | "vars_access"
+        | "stage_control"
+        | "run_action"
+        | "call_tool"
+        | "events"
+      )[];
+    } | null;
     /** Version number for optimistic locking */
     version: number;
     /** ISO timestamp of creation */

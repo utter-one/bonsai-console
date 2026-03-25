@@ -2,41 +2,24 @@
   <div class="modal-overlay">
     <div class="modal-content-lg" @click.stop>
       <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
-      
-      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+
+      <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
         <nav class="tabs-nav">
           <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
+          <button @click="activeTab = 'settings'" :class="['tab-button', { 'tab-button-active': activeTab === 'settings' }]" type="button">Settings</button>
+          <button v-if="apiKey && loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
         </nav>
       </div>
 
-      <div v-show="!apiKey || activeTab === 'details'">
-      <div v-if="isReadOnly" class="alert-warning mb-4">
+      <div v-if="isReadOnly && activeTab !== 'history'" class="alert-warning mb-4">
         This API key is read-only because its project is archived.
       </div>
-      <div v-if="showNewKeyAlert && newKeyValue" class="alert-success mb-4">
-        <div class="flex items-start gap-3">
-          <svg class="w-5 h-5 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-          </svg>
-          <div class="flex-1">
-            <p class="font-medium mb-2">This is your API Key</p>
-            <div class="bg-gray-800 p-3 rounded border border-green-600 font-mono text-sm break-all text-green-400">
-              {{ newKeyValue }}
-            </div>
-            <button 
-              @click="copyToClipboard" 
-              type="button"
-              class="mt-2 btn-secondary text-sm"
-            >
-              {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <form @submit.prevent="handleSubmit">
+      <form v-show="activeTab !== 'history'" @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
+
+          <!-- Details tab -->
+          <div v-show="activeTab === 'details'">
         <div class="form-group">
           <label class="form-label">
             API Key Name <span class="required">*</span>
@@ -49,7 +32,18 @@
             maxlength="255"
             class="form-input"
           />
-          <p class="form-hint">A descriptive name to identify this API key</p>
+          <p class="form-help-text">A descriptive name to identify this API key</p>
+        </div>
+
+        <div v-if="showNewKeyAlert && newKeyValue" class="form-group">
+          <label class="form-label">API Key</label>
+          <div class="flex gap-2">
+            <input :value="newKeyValue" readonly class="form-input font-mono text-xs" />
+            <button @click="copyToClipboard" type="button" class="btn-secondary shrink-0">
+              {{ copied ? 'Copied!' : 'Copy' }}
+            </button>
+          </div>
+          <p class="form-help-text">Store this key securely</p>
         </div>
 
         <div class="form-group">
@@ -64,7 +58,7 @@
             </option>
           </select>
           <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
-          <p class="form-hint">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
+          <p class="form-help-text">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
         </div>
 
         <div v-if="apiKey" class="form-group">
@@ -76,7 +70,7 @@
             />
             <span class="form-label mb-0">Active</span>
           </label>
-          <p class="form-hint">Inactive keys cannot be used for authentication</p>
+          <p class="form-help-text">Inactive keys cannot be used for authentication</p>
         </div>
 
         <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
@@ -91,6 +85,71 @@
             </div>
           </div>
         </div>
+          </div>
+
+          <!-- Settings tab -->
+          <div v-show="activeTab === 'settings'">
+
+            <!-- Channels restriction -->
+            <div class="form-group">
+              <label class="flex items-center gap-2">
+                <input v-model="form.restrictChannels" type="checkbox" class="form-checkbox" />
+                <span class="form-label mb-0">Restrict Channels</span>
+              </label>
+              <p class="mt-1 text-xs" :class="form.restrictChannels ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictChannels ? 'Only the selected channels are allowed.' : 'All channels are allowed.' }}</p>
+              <div class="mt-2 space-y-1.5 pl-1">
+                <label
+                  v-for="channel in ALL_CHANNELS"
+                  :key="channel"
+                  class="flex items-center gap-2"
+                  :class="!form.restrictChannels ? 'opacity-50' : ''"
+                >
+                  <input
+                    type="checkbox"
+                    class="form-checkbox"
+                    :disabled="!form.restrictChannels"
+                    :checked="form.allowedChannels.includes(channel)"
+                    @change="form.allowedChannels.includes(channel) ? form.allowedChannels.splice(form.allowedChannels.indexOf(channel), 1) : form.allowedChannels.push(channel)"
+                  />
+                  <span class="text-sm">{{ channel === 'websocket' ? 'WebSocket' : 'WebRTC' }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Features restriction -->
+            <div class="form-group">
+              <label class="flex items-center gap-2">
+                <input v-model="form.restrictFeatures" type="checkbox" class="form-checkbox" />
+                <span class="form-label mb-0">Restrict Features</span>
+              </label>
+              <p class="mt-1 text-xs" :class="form.restrictFeatures ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictFeatures ? 'Only the selected features are permitted.' : 'All features are permitted.' }}</p>
+              <p v-if="form.restrictFeatures && !hasInputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one input method must be selected.</p>
+              <p v-if="form.restrictFeatures && !hasOutputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one output method must be selected.</p>
+              <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 pl-1" :class="!form.restrictFeatures ? 'opacity-50' : ''">
+                <div v-for="group in FEATURE_GROUPS" :key="group.label">
+                  <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">{{ group.label }}</div>
+                  <div class="space-y-1.5">
+                    <label
+                      v-for="feature in group.features"
+                      :key="feature"
+                      class="flex items-center gap-2"
+                    >
+                      <input
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="!form.restrictFeatures"
+                        :checked="form.allowedFeatures.includes(feature)"
+                        @change="form.allowedFeatures.includes(feature) ? form.allowedFeatures.splice(form.allowedFeatures.indexOf(feature), 1) : form.allowedFeatures.push(feature)"
+                      />
+                      <span class="text-sm">{{ FEATURE_LABELS[feature] }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </fieldset>
 
         <div class="modal-footer">
@@ -102,7 +161,6 @@
           </button>
         </div>
       </form>
-      </div>
 
       <div v-if="apiKey" v-show="activeTab === 'history'">
         <EntityHistoryView
@@ -130,6 +188,28 @@ import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@
 import { useProjectsStore } from '@/stores/projects'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 
+const ALL_CHANNELS = ['websocket', 'webrtc'] as const
+
+const FEATURE_LABELS: Record<string, string> = {
+  conversation_control: 'Conversation Control',
+  voice_input: 'Voice Input',
+  text_input: 'Text Input',
+  voice_output: 'Voice Output',
+  text_output: 'Text Output',
+  vars_access: 'Variables Access',
+  stage_control: 'Stage Control',
+  run_action: 'Run Action',
+  call_tool: 'Call Tool',
+  events: 'Events',
+}
+
+const FEATURE_GROUPS = [
+  { label: 'Input', features: ['voice_input', 'text_input'] as const },
+  { label: 'Output', features: ['voice_output', 'text_output'] as const },
+  { label: 'Data & Actions', features: ['vars_access', 'run_action', 'call_tool', 'events'] as const },
+  { label: 'Conversation', features: ['conversation_control', 'stage_control'] as const },
+]
+
 const props = defineProps<{
   apiKey: ApiKeyResponse | null
   projectId: string
@@ -153,6 +233,10 @@ const form = ref({
   metadata: {} as Record<string, any>,
   version: undefined as number | undefined,
   projectId: props.projectId || '',
+  restrictChannels: false,
+  allowedChannels: [] as ('websocket' | 'webrtc')[],
+  restrictFeatures: false,
+  allowedFeatures: [] as string[],
 })
 
 const projectsStore = useProjectsStore()
@@ -165,7 +249,7 @@ const projectOptions = computed(() =>
 const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
-const activeTab = ref<'details' | 'history'>('details')
+const activeTab = ref<'details' | 'settings' | 'history'>('details')
 
 watch(() => props.apiKey, () => {
   activeTab.value = 'details'
@@ -179,6 +263,24 @@ watch(
 )
 
 watch(
+  () => form.value.restrictChannels,
+  (enabled, wasEnabled) => {
+    if (enabled && !wasEnabled && form.value.allowedChannels.length === 0) {
+      form.value.allowedChannels = [...ALL_CHANNELS]
+    }
+  }
+)
+
+watch(
+  () => form.value.restrictFeatures,
+  (enabled, wasEnabled) => {
+    if (enabled && !wasEnabled && form.value.allowedFeatures.length === 0) {
+      form.value.allowedFeatures = FEATURE_GROUPS.flatMap(g => [...g.features])
+    }
+  }
+)
+
+watch(
   () => props.apiKey,
   (newApiKey) => {
     if (newApiKey) {
@@ -188,6 +290,10 @@ watch(
         metadata: newApiKey.metadata ?? {},
         version: newApiKey.version,
         projectId: newApiKey.projectId || props.projectId || '',
+        restrictChannels: !!newApiKey.keySettings?.allowedChannels,
+        allowedChannels: (newApiKey.keySettings?.allowedChannels ?? []) as ('websocket' | 'webrtc')[],
+        restrictFeatures: !!newApiKey.keySettings?.allowedFeatures,
+        allowedFeatures: newApiKey.keySettings?.allowedFeatures ?? [],
       }
       emit('project-selected', form.value.projectId)
       // Show the key if it was just created
@@ -202,6 +308,10 @@ watch(
         metadata: {},
         version: undefined,
         projectId: props.projectId || '',
+        restrictChannels: false,
+        allowedChannels: [],
+        restrictFeatures: false,
+        allowedFeatures: [],
       }
       newKeyValue.value = null
       showNewKeyAlert.value = false
@@ -210,11 +320,32 @@ watch(
   { immediate: true }
 )
 
+const INPUT_FEATURES = ['voice_input', 'text_input']
+const OUTPUT_FEATURES = ['voice_output', 'text_output']
+
+const hasInputSelected = computed(() =>
+  !form.value.restrictFeatures || INPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+const hasOutputSelected = computed(() =>
+  !form.value.restrictFeatures || OUTPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+
 function handleSubmit() {
   if (!form.value.name) return
   if (!props.apiKey && !props.projectId && !form.value.projectId) return
+  if (!hasInputSelected.value || !hasOutputSelected.value) return
+
+  const keySettings: Record<string, any> = {}
+  if (form.value.restrictChannels) {
+    keySettings.allowedChannels = form.value.allowedChannels
+  }
+  if (form.value.restrictFeatures) {
+    keySettings.allowedFeatures = form.value.allowedFeatures
+  }
+
   const data: any = {
     name: form.value.name,
+    keySettings,
   }
   if (!props.apiKey) {
     // Creating new key
