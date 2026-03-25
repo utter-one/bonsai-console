@@ -246,6 +246,20 @@ function formatEffectType(type: string | undefined): string {
   return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
+function formatLifecycleContext(ctx: string): string {
+  switch (ctx) {
+    case 'on_enter': return 'On Enter'
+    case 'on_leave': return 'On Leave'
+    case 'on_fallback': return 'On Fallback'
+    case 'conversation_start': return 'Conversation Start'
+    case 'conversation_resume': return 'Conversation Resume'
+    case 'conversation_end': return 'Conversation End'
+    case 'conversation_abort': return 'Conversation Abort'
+    case 'conversation_failed': return 'Conversation Failed'
+    default: return ctx.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  }
+}
+
 type ExecutionPlanDisplayedEffect =
   | { kind: 'normal'; effectEntry: any; displayIdx: number }
   | { kind: 'shared'; actionNames: string[]; displayIdx: number }
@@ -836,8 +850,8 @@ function onBugReport() {
             <div class="flex items-center gap-2 min-w-0 flex-wrap">
               <button @click="toggle()" class="font-semibold text-lime-900 dark:text-lime-100 shrink-0 text-left">Execution Plan</button>
               <span v-if="event.eventData.lifecycleContext"
-                class="text-xs px-1.5 py-0.5 rounded bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300 shrink-0 font-mono">
-                {{ event.eventData.lifecycleContext }}
+                class="text-xs px-1.5 py-0.5 rounded bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300 shrink-0">
+                {{ formatLifecycleContext(event.eventData.lifecycleContext) }}
               </span>
               <span v-if="!expanded" class="text-xs text-gray-400 shrink-0">
                 {{ event.eventData.actions?.length ?? 0 }} action(s) · {{ event.eventData.effects?.length ?? 0 }} effect(s)
