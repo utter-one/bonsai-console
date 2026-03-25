@@ -212,7 +212,7 @@ const executionPlanActionColorMap = computed<Record<string, number>>(() => {
 })
 
 function getExecutionPlanActionClasses(idx: number): string {
-  return EXECUTION_PLAN_COLORS[idx % EXECUTION_PLAN_COLORS.length].actionClasses
+  return (EXECUTION_PLAN_COLORS[idx % EXECUTION_PLAN_COLORS.length] ?? EXECUTION_PLAN_COLORS[0]).actionClasses
 }
 
 function getEffectTypeClasses(type: string | undefined): string {
@@ -338,7 +338,7 @@ async function recomputeExecutionPlanArrows() {
       const colorIdx = executionPlanActionColorMap.value[actionName] ?? 0
       paths.push({
         path: `M${x1.toFixed(1)},${y1.toFixed(1)} C${mx.toFixed(1)},${y1.toFixed(1)} ${mx.toFixed(1)},${y2.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`,
-        color: EXECUTION_PLAN_COLORS[colorIdx].stroke,
+        color: (EXECUTION_PLAN_COLORS[colorIdx] ?? EXECUTION_PLAN_COLORS[0]).stroke,
         colorIdx,
       })
     }
