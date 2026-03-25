@@ -98,6 +98,9 @@ export type ParameterValue =
   | ImageParameterValue
   | AudioParameterValue;
 
+/**
+ * The effect to be executed
+ */
 export type Effect =
   | EndConversationEffect
   | AbortConversationEffect
@@ -832,6 +835,7 @@ export interface ConversationEvent {
     | 'message'
     | 'classification'
     | 'transformation'
+    | 'execution_plan'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -841,7 +845,12 @@ export interface ConversationEvent {
     | 'conversation_aborted'
     | 'conversation_failed'
     | 'jump_to_stage'
-    | 'moderation';
+    | 'moderation'
+    | 'variables_updated'
+    | 'user_profile_updated'
+    | 'user_input_modified'
+    | 'user_banned'
+    | 'visibility_changed';
   /**
    * Data associated with the conversation event
    */
@@ -884,6 +893,40 @@ export interface ConversationEvent {
         metadata?: Record<string, unknown>;
       }
     | {
+        /**
+         * ID of the stage where execution is taking place
+         */
+        stageId: string;
+        /**
+         * Names of all matched actions in original order
+         */
+        actions: string[];
+        /**
+         * Final ordered list of effects after filtering, sorting, and conflict resolution
+         */
+        effects: {
+          /**
+           * Name of the action this effect originates from
+           */
+          actionName: string;
+          effect: Effect;
+        }[];
+        /**
+         * Lifecycle context in which execution is taking place; null for user-input-triggered executions
+         */
+        lifecycleContext:
+          | 'on_enter'
+          | 'on_leave'
+          | 'on_fallback'
+          | 'conversation_start'
+          | 'conversation_resume'
+          | 'conversation_end'
+          | 'conversation_abort'
+          | 'conversation_failed'
+          | null;
+        metadata?: Record<string, unknown>;
+      }
+    | {
         actionName: string;
         stageId: string;
         effects: Effect[];
@@ -908,6 +951,10 @@ export interface ConversationEvent {
 
         };
         error?: string;
+        /**
+         * Name of the action that triggered this tool call, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -933,11 +980,19 @@ export interface ConversationEvent {
     | {
         reason?: string;
         stageId: string;
+        /**
+         * Name of the action that triggered conversation end, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
         reason: string;
         stageId: string;
+        /**
+         * Name of the action that triggered conversation abort, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -948,6 +1003,10 @@ export interface ConversationEvent {
     | {
         fromStageId: string;
         toStageId: string;
+        /**
+         * Name of the action that triggered this stage jump, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -958,6 +1017,74 @@ export interface ConversationEvent {
         durationMs: number;
         startMs: number;
         endMs: number;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this variable update
+         */
+        sourceActionName: string;
+        /**
+         * Snapshot of all conversation variables after the update
+         */
+        variables: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this profile update
+         */
+        sourceActionName: string;
+        /**
+         * Updated user profile data
+         */
+        profile: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this input modification
+         */
+        sourceActionName: string;
+        /**
+         * The modified user input after template rendering
+         */
+        modifiedInput: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered the ban
+         */
+        sourceActionName: string;
+        /**
+         * Optional reason for the ban
+         */
+        reason?: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this visibility change
+         */
+        sourceActionName: string;
+        /**
+         * The new visibility settings for current turn messages
+         */
+        visibility: {
+          /**
+           * Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)
+           */
+          visibility: 'always' | 'stage' | 'never' | 'conditional';
+          /**
+           * Condition for visibility, evaluated against conversation variables
+           */
+          condition?: string;
+        };
         metadata?: Record<string, unknown>;
       };
   /**
@@ -991,6 +1118,7 @@ export interface ConversationEventUpdate {
     | 'message'
     | 'classification'
     | 'transformation'
+    | 'execution_plan'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -1000,7 +1128,12 @@ export interface ConversationEventUpdate {
     | 'conversation_aborted'
     | 'conversation_failed'
     | 'jump_to_stage'
-    | 'moderation';
+    | 'moderation'
+    | 'variables_updated'
+    | 'user_profile_updated'
+    | 'user_input_modified'
+    | 'user_banned'
+    | 'visibility_changed';
   /**
    * Updated data for the conversation event
    */
@@ -1043,6 +1176,40 @@ export interface ConversationEventUpdate {
         metadata?: Record<string, unknown>;
       }
     | {
+        /**
+         * ID of the stage where execution is taking place
+         */
+        stageId: string;
+        /**
+         * Names of all matched actions in original order
+         */
+        actions: string[];
+        /**
+         * Final ordered list of effects after filtering, sorting, and conflict resolution
+         */
+        effects: {
+          /**
+           * Name of the action this effect originates from
+           */
+          actionName: string;
+          effect: Effect;
+        }[];
+        /**
+         * Lifecycle context in which execution is taking place; null for user-input-triggered executions
+         */
+        lifecycleContext:
+          | 'on_enter'
+          | 'on_leave'
+          | 'on_fallback'
+          | 'conversation_start'
+          | 'conversation_resume'
+          | 'conversation_end'
+          | 'conversation_abort'
+          | 'conversation_failed'
+          | null;
+        metadata?: Record<string, unknown>;
+      }
+    | {
         actionName: string;
         stageId: string;
         effects: Effect[];
@@ -1067,6 +1234,10 @@ export interface ConversationEventUpdate {
 
         };
         error?: string;
+        /**
+         * Name of the action that triggered this tool call, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -1092,11 +1263,19 @@ export interface ConversationEventUpdate {
     | {
         reason?: string;
         stageId: string;
+        /**
+         * Name of the action that triggered conversation end, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
         reason: string;
         stageId: string;
+        /**
+         * Name of the action that triggered conversation abort, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -1107,6 +1286,10 @@ export interface ConversationEventUpdate {
     | {
         fromStageId: string;
         toStageId: string;
+        /**
+         * Name of the action that triggered this stage jump, if triggered by an action effect
+         */
+        sourceActionName?: string;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -1117,6 +1300,74 @@ export interface ConversationEventUpdate {
         durationMs: number;
         startMs: number;
         endMs: number;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this variable update
+         */
+        sourceActionName: string;
+        /**
+         * Snapshot of all conversation variables after the update
+         */
+        variables: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this profile update
+         */
+        sourceActionName: string;
+        /**
+         * Updated user profile data
+         */
+        profile: {
+          [k: string]: ParameterValue;
+        };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this input modification
+         */
+        sourceActionName: string;
+        /**
+         * The modified user input after template rendering
+         */
+        modifiedInput: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered the ban
+         */
+        sourceActionName: string;
+        /**
+         * Optional reason for the ban
+         */
+        reason?: string;
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Name of the action that triggered this visibility change
+         */
+        sourceActionName: string;
+        /**
+         * The new visibility settings for current turn messages
+         */
+        visibility: {
+          /**
+           * Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition)
+           */
+          visibility: 'always' | 'stage' | 'never' | 'conditional';
+          /**
+           * Condition for visibility, evaluated against conversation variables
+           */
+          condition?: string;
+        };
         metadata?: Record<string, unknown>;
       };
   /**
