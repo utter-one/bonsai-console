@@ -12648,6 +12648,41 @@
           "offset"
         ]
       },
+      "ApiKeySettings": {
+        "type": "object",
+        "properties": {
+          "allowedChannels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "websocket",
+                "webrtc"
+              ]
+            },
+            "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+          },
+          "allowedFeatures": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "conversation_control",
+                "voice_input",
+                "text_input",
+                "voice_output",
+                "text_output",
+                "vars_access",
+                "stage_control",
+                "run_action",
+                "call_tool",
+                "events"
+              ]
+            },
+            "description": "Permitted feature capabilities. If absent, all features are allowed."
+          }
+        }
+      },
       "CreateApiKeyRequest": {
         "type": "object",
         "properties": {
@@ -12663,6 +12698,16 @@
               "nullable": true
             },
             "description": "Additional metadata for the API key"
+          },
+          "keySettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiKeySettings"
+              },
+              {
+                "description": "Security settings controlling which channels and features this key permits. If absent, all channels and features are allowed."
+              }
+            ]
           }
         },
         "required": [
@@ -12688,6 +12733,16 @@
               "nullable": true
             },
             "description": "Updated metadata for the API key"
+          },
+          "keySettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiKeySettings"
+              },
+              {
+                "description": "Updated security settings. If absent, existing settings are preserved."
+              }
+            ]
           },
           "version": {
             "type": "number",
@@ -12748,6 +12803,43 @@
               "nullable": true
             },
             "description": "Additional metadata"
+          },
+          "keySettings": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "allowedChannels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "websocket",
+                    "webrtc"
+                  ]
+                },
+                "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+              },
+              "allowedFeatures": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "conversation_control",
+                    "voice_input",
+                    "text_input",
+                    "voice_output",
+                    "text_output",
+                    "vars_access",
+                    "stage_control",
+                    "run_action",
+                    "call_tool",
+                    "events"
+                  ]
+                },
+                "description": "Permitted feature capabilities. If absent, all features are allowed."
+              }
+            },
+            "description": "Security settings controlling which channels and features this key permits"
           },
           "version": {
             "type": "number",
@@ -12820,6 +12912,43 @@
                     "nullable": true
                   },
                   "description": "Additional metadata"
+                },
+                "keySettings": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "allowedChannels": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "websocket",
+                          "webrtc"
+                        ]
+                      },
+                      "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                    },
+                    "allowedFeatures": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "conversation_control",
+                          "voice_input",
+                          "text_input",
+                          "voice_output",
+                          "text_output",
+                          "vars_access",
+                          "stage_control",
+                          "run_action",
+                          "call_tool",
+                          "events"
+                        ]
+                      },
+                      "description": "Permitted feature capabilities. If absent, all features are allowed."
+                    }
+                  },
+                  "description": "Security settings controlling which channels and features this key permits"
                 },
                 "version": {
                   "type": "number",
@@ -37687,6 +37816,16 @@
                       "nullable": true
                     },
                     "description": "Additional metadata for the API key"
+                  },
+                  "keySettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/ApiKeySettings"
+                      },
+                      {
+                        "description": "Security settings controlling which channels and features this key permits. If absent, all channels and features are allowed."
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -37739,6 +37878,43 @@
                         "nullable": true
                       },
                       "description": "Additional metadata"
+                    },
+                    "keySettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "allowedChannels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "websocket",
+                              "webrtc"
+                            ]
+                          },
+                          "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                        },
+                        "allowedFeatures": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "conversation_control",
+                              "voice_input",
+                              "text_input",
+                              "voice_output",
+                              "text_output",
+                              "vars_access",
+                              "stage_control",
+                              "run_action",
+                              "call_tool",
+                              "events"
+                            ]
+                          },
+                          "description": "Permitted feature capabilities. If absent, all features are allowed."
+                        }
+                      },
+                      "description": "Security settings controlling which channels and features this key permits"
                     },
                     "version": {
                       "type": "number",
@@ -37965,6 +38141,43 @@
                             },
                             "description": "Additional metadata"
                           },
+                          "keySettings": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "allowedChannels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "websocket",
+                                    "webrtc"
+                                  ]
+                                },
+                                "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                              },
+                              "allowedFeatures": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "conversation_control",
+                                    "voice_input",
+                                    "text_input",
+                                    "voice_output",
+                                    "text_output",
+                                    "vars_access",
+                                    "stage_control",
+                                    "run_action",
+                                    "call_tool",
+                                    "events"
+                                  ]
+                                },
+                                "description": "Permitted feature capabilities. If absent, all features are allowed."
+                              }
+                            },
+                            "description": "Security settings controlling which channels and features this key permits"
+                          },
                           "version": {
                             "type": "number",
                             "description": "Version number for optimistic locking"
@@ -38085,6 +38298,43 @@
                       },
                       "description": "Additional metadata"
                     },
+                    "keySettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "allowedChannels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "websocket",
+                              "webrtc"
+                            ]
+                          },
+                          "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                        },
+                        "allowedFeatures": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "conversation_control",
+                              "voice_input",
+                              "text_input",
+                              "voice_output",
+                              "text_output",
+                              "vars_access",
+                              "stage_control",
+                              "run_action",
+                              "call_tool",
+                              "events"
+                            ]
+                          },
+                          "description": "Permitted feature capabilities. If absent, all features are allowed."
+                        }
+                      },
+                      "description": "Security settings controlling which channels and features this key permits"
+                    },
                     "version": {
                       "type": "number",
                       "description": "Version number for optimistic locking"
@@ -38173,6 +38423,16 @@
                     },
                     "description": "Updated metadata for the API key"
                   },
+                  "keySettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/ApiKeySettings"
+                      },
+                      {
+                        "description": "Updated security settings. If absent, existing settings are preserved."
+                      }
+                    ]
+                  },
                   "version": {
                     "type": "number",
                     "description": "The current version number for optimistic locking"
@@ -38228,6 +38488,43 @@
                         "nullable": true
                       },
                       "description": "Additional metadata"
+                    },
+                    "keySettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "allowedChannels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "websocket",
+                              "webrtc"
+                            ]
+                          },
+                          "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                        },
+                        "allowedFeatures": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "conversation_control",
+                              "voice_input",
+                              "text_input",
+                              "voice_output",
+                              "text_output",
+                              "vars_access",
+                              "stage_control",
+                              "run_action",
+                              "call_tool",
+                              "events"
+                            ]
+                          },
+                          "description": "Permitted feature capabilities. If absent, all features are allowed."
+                        }
+                      },
+                      "description": "Security settings controlling which channels and features this key permits"
                     },
                     "version": {
                       "type": "number",
@@ -38514,6 +38811,43 @@
                               "nullable": true
                             },
                             "description": "Additional metadata"
+                          },
+                          "keySettings": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "allowedChannels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "websocket",
+                                    "webrtc"
+                                  ]
+                                },
+                                "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
+                              },
+                              "allowedFeatures": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "conversation_control",
+                                    "voice_input",
+                                    "text_input",
+                                    "voice_output",
+                                    "text_output",
+                                    "vars_access",
+                                    "stage_control",
+                                    "run_action",
+                                    "call_tool",
+                                    "events"
+                                  ]
+                                },
+                                "description": "Permitted feature capabilities. If absent, all features are allowed."
+                              }
+                            },
+                            "description": "Security settings controlling which channels and features this key permits"
                           },
                           "version": {
                             "type": "number",
