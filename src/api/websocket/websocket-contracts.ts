@@ -98,6 +98,9 @@ export type ParameterValue =
   | ImageParameterValue
   | AudioParameterValue;
 
+/**
+ * The effect to be executed
+ */
 export type Effect =
   | EndConversationEffect
   | AbortConversationEffect
@@ -832,6 +835,7 @@ export interface ConversationEvent {
     | 'message'
     | 'classification'
     | 'transformation'
+    | 'execution_plan'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -886,6 +890,40 @@ export interface ConversationEvent {
         transformerId: string;
         input: string;
         appliedFields: string[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * ID of the stage where execution is taking place
+         */
+        stageId: string;
+        /**
+         * Names of all matched actions in original order
+         */
+        actions: string[];
+        /**
+         * Final ordered list of effects after filtering, sorting, and conflict resolution
+         */
+        effects: {
+          /**
+           * Name of the action this effect originates from
+           */
+          actionName: string;
+          effect: Effect;
+        }[];
+        /**
+         * Lifecycle context in which execution is taking place; null for user-input-triggered executions
+         */
+        lifecycleContext:
+          | 'on_enter'
+          | 'on_leave'
+          | 'on_fallback'
+          | 'conversation_start'
+          | 'conversation_resume'
+          | 'conversation_end'
+          | 'conversation_abort'
+          | 'conversation_failed'
+          | null;
         metadata?: Record<string, unknown>;
       }
     | {
@@ -1080,6 +1118,7 @@ export interface ConversationEventUpdate {
     | 'message'
     | 'classification'
     | 'transformation'
+    | 'execution_plan'
     | 'action'
     | 'command'
     | 'tool_call'
@@ -1134,6 +1173,40 @@ export interface ConversationEventUpdate {
         transformerId: string;
         input: string;
         appliedFields: string[];
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * ID of the stage where execution is taking place
+         */
+        stageId: string;
+        /**
+         * Names of all matched actions in original order
+         */
+        actions: string[];
+        /**
+         * Final ordered list of effects after filtering, sorting, and conflict resolution
+         */
+        effects: {
+          /**
+           * Name of the action this effect originates from
+           */
+          actionName: string;
+          effect: Effect;
+        }[];
+        /**
+         * Lifecycle context in which execution is taking place; null for user-input-triggered executions
+         */
+        lifecycleContext:
+          | 'on_enter'
+          | 'on_leave'
+          | 'on_fallback'
+          | 'conversation_start'
+          | 'conversation_resume'
+          | 'conversation_end'
+          | 'conversation_abort'
+          | 'conversation_failed'
+          | null;
         metadata?: Record<string, unknown>;
       }
     | {
