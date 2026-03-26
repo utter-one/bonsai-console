@@ -279,6 +279,25 @@ export interface BanUserEffect {
   reason?: string;
 }
 
+export interface ServerVadConfig {
+  /**
+   * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
+   */
+  mode?: number;
+  /**
+   * Duration of each VAD processing frame in milliseconds. Must be 10, 20, or 30. Default: 20.
+   */
+  frameDurationMs?: 10 | 20 | 30;
+  /**
+   * Amount of silence (in ms) to prepend before the detected speech start as a pre-roll buffer. Default: 300.
+   */
+  silencePaddingMs?: number;
+  /**
+   * Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800.
+   */
+  autoEndSilenceDurationMs?: number;
+}
+
 
 // ============================================================================
 // Authentication and Project Settings
@@ -416,6 +435,9 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
+      serverVad?: ServerVadConfig & {
+
+      };
     };
   };
   /**
@@ -462,6 +484,9 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
+    serverVad?: ServerVadConfig & {
+
+    };
   };
 }
 
@@ -1455,9 +1480,9 @@ export interface SendUserVoiceChunkRequest {
    */
   ordinal: number;
   /**
-   * Unique identifier for the input turn
+   * Unique identifier for the input turn. Optional in server VAD mode where the turn ID is managed server-side.
    */
-  inputTurnId: string;
+  inputTurnId?: string;
 }
 
 export interface SendUserVoiceChunkResponse {
@@ -1484,7 +1509,7 @@ export interface SendUserVoiceChunkResponse {
   /**
    * Unique identifier for the input turn
    */
-  inputTurnId: string;
+  inputTurnId?: string;
 }
 
 export interface EndUserVoiceInputRequest {

@@ -166,6 +166,7 @@ export class BonsaiWebSocketClient {
   private projectSettings: ProjectSettings | null = null
   private currentInputTurnId: string | null = null
   private currentVoiceChunkOrdinal: number = 0
+  private vadChunkOrdinal: number = 0
   private requestHandlers = new Map<string, {
     resolve: (response: any) => void
     reject: (error: Error) => void
@@ -432,6 +433,38 @@ export class BonsaiWebSocketClient {
         this.log('Voice input ended')
       } else {
         throw new Error(response.error || 'Failed to end voice input')
+      }
+    })
+  }
+
+  /**
+   * Reset the VAD chunk ordinal counter. Call before starting a new server-VAD streaming session.
+   */
+  resetVadStreaming(): void {
+    this.vadChunkOrdinal = 0
+    this.log('VAD streaming reset')
+  }
+
+  /**
+   * Send a voice audio chunk in server-side VAD mode.
+   * No inputTurnId is required — the server detects speech boundaries and assigns it.
+   * @param audioData - Base64-encoded audio data
+   * @throws {Error} If sending chunk fails or no active conversation
+   */
+  async sendVadVoiceChunk(audioData: string): Promise<void> {
+    this.ensureConversation()
+    const requestId = this.generateRequestId()
+
+    return this.sendRequest<SendUserVoiceChunkResponse>({
+      type: 'send_user_voice_chunk',
+      requestId,
+      sessionId: this.sessionId!,
+      conversationId: this.conversationId!,
+      audioData,
+      ordinal: this.vadChunkOrdinal++,
+    } as SendUserVoiceChunkRequest, (response) => {
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to send VAD voice chunk')
       }
     })
   }
