@@ -47,6 +47,7 @@ const form = ref({
     settings: {} as any
   },
   generateVoice: false,
+  acceptVoice: false,
   timezone: null as string | null,
   languageCode: null as string | null,
   conversationTimeoutSeconds: 120 as number | null,
@@ -233,6 +234,7 @@ async function loadProject() {
           settings: currentProject.value.storageConfig?.settings || {}
         },
         generateVoice: currentProject.value.generateVoice ?? false,
+        acceptVoice: currentProject.value.acceptVoice ?? false,
         timezone: currentProject.value.timezone ?? null,
         languageCode: currentProject.value.languageCode ?? null,
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
@@ -267,6 +269,13 @@ async function loadApiKeys() {
 
 async function handleSubmit() {
   error.value = null
+
+  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId) {
+    error.value = 'An ASR provider must be selected when Speech Input is enabled.'
+    activeTab.value = 'voice'
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -310,7 +319,7 @@ async function handleSubmit() {
         description: form.value.description || null,
         asrConfig: asrConfig || null,
         storageConfig: storageConfig || null,
-        acceptVoice: !!form.value.asrConfig.asrProviderId,
+        acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone,
         languageCode: form.value.languageCode,
@@ -335,7 +344,7 @@ async function handleSubmit() {
         description: form.value.description || undefined,
         asrConfig,
         storageConfig,
-        acceptVoice: !!form.value.asrConfig.asrProviderId,
+        acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone,
         languageCode: form.value.languageCode,
@@ -434,12 +443,12 @@ function formatDate(dateString: string | null) {
   return new Date(dateString).toLocaleDateString()
 }
 
-function handleAsrSettingsSave(data: { settings: any; unintelligiblePlaceholder: string; voiceActivityDetection: boolean }) {
+function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: boolean }) {
   form.value.asrConfig.settings = data.settings
-  form.value.asrConfig.unintelligiblePlaceholder = data.unintelligiblePlaceholder
   form.value.asrConfig.voiceActivityDetection = data.voiceActivityDetection
   showAsrSettingsModal.value = false
 }
+
 
 // API Key management
 function handleCreateApiKey() {
@@ -817,58 +826,195 @@ function handleStorageSettingsClose() {
               </p>
             </div>
 
-            <div class="border-b border-gray-200 dark:border-gray-700">
-              <div class="form-group">
-                <label class="form-label">
-                  ASR Provider
-                </label>
-                <div class="flex flex-col md:flex-row gap-2">
-                  <select
-                    v-model="form.asrConfig.asrProviderId"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                    @change="handleAsrProviderChange"
-                  >
-                    <option value="">None</option>
-                    <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
-                      {{ provider.name }}
-                    </option>
-                  </select>
-                  <button
-                    type="button"
-                    @click="showAsrSettingsModal = true"
-                    class="btn-secondary whitespace-nowrap"
-                    :disabled="isLoading || !form.asrConfig.asrProviderId"
-                  >
-                    <Settings class="inline-block mr-1 w-4 h-4" />
-                    Settings...
-                  </button>
-                </div>
+            <!-- Enable Speech Input Box -->
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                <input
+                  v-model="form.acceptVoice"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                  Enable Speech Input
+                </span>
+              </label>
+
+              <div v-if="form.acceptVoice" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
                 <p class="form-help-text">
-                  Select the Automatic Speech Recognition provider for voice input. When a provider is selected, voice input is automatically enabled.
+                  Allow conversations to accept voice input from users using automatic speech recognition.
                 </p>
+
+                <!-- ASR Provider -->
+                <div class="form-group">
+                  <label class="form-label">
+                    ASR Provider <span class="required">*</span>
+                  </label>
+                  <div class="flex flex-col md:flex-row gap-2">
+                    <select
+                      v-model="form.asrConfig.asrProviderId"
+                      class="form-select-auto min-w-64"
+                      :class="{ 'border-red-500': !form.asrConfig.asrProviderId }"
+                      :disabled="isLoading"
+                      @change="handleAsrProviderChange"
+                    >
+                      <option value="">None</option>
+                      <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
+                        {{ provider.name }}
+                      </option>
+                    </select>
+                    <button
+                      type="button"
+                      @click="showAsrSettingsModal = true"
+                      class="btn-secondary whitespace-nowrap"
+                      :disabled="isLoading || !form.asrConfig.asrProviderId"
+                    >
+                      <Settings class="inline-block mr-1 w-4 h-4" />
+                      Settings...
+                    </button>
+                  </div>
+                  <p class="form-help-text">
+                    Select the Automatic Speech Recognition provider for voice input.
+                  </p>
+                  <p v-if="!form.asrConfig.asrProviderId" class="text-xs text-red-600 mt-1">An ASR provider is required when speech input is enabled.</p>
+                </div>
+
+                <!-- Unintelligible Placeholder -->
+                <div class="form-group">
+                  <label class="form-label">
+                    Unintelligible Placeholder <span class="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    v-model="form.asrConfig.unintelligiblePlaceholder"
+                    type="text"
+                    placeholder="e.g., [unintelligible]"
+                    class="form-input"
+                    :disabled="isLoading"
+                  />
+                  <p class="form-help-text">
+                    Text to use when speech is unintelligible or cannot be transcribed
+                  </p>
+                </div>
+
+                <!-- Server-side VAD -->
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                    <input
+                      v-model="form.asrConfig.serverVadEnabled"
+                      type="checkbox"
+                      class="form-checkbox"
+                      :disabled="isLoading"
+                    />
+                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                      Enable Server-side VAD
+                    </span>
+                    <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
+                  </label>
+
+                  <div v-if="form.asrConfig.serverVadEnabled" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                    <p class="form-help-text">
+                      Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input. This feature is experimental and may behave unexpectedly.
+                    </p>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Aggressiveness Mode <span class="text-gray-500">(optional)</span>
+                      </label>
+                      <select
+                        v-model.number="form.asrConfig.serverVad.mode"
+                        class="form-select-auto min-w-48"
+                        :disabled="isLoading"
+                      >
+                        <option :value="undefined">Default (2)</option>
+                        <option :value="0">0 — Least aggressive</option>
+                        <option :value="1">1</option>
+                        <option :value="2">2 (default)</option>
+                        <option :value="3">3 — Most aggressive</option>
+                      </select>
+                      <p class="form-help-text">
+                        Higher values filter non-speech more aggressively (0–3, default: 2)
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Frame Duration <span class="text-gray-500">(optional)</span>
+                      </label>
+                      <select
+                        v-model.number="form.asrConfig.serverVad.frameDurationMs"
+                        class="form-select-auto min-w-48"
+                        :disabled="isLoading"
+                      >
+                        <option :value="undefined">Default (20 ms)</option>
+                        <option :value="10">10 ms</option>
+                        <option :value="20">20 ms (default)</option>
+                        <option :value="30">30 ms</option>
+                      </select>
+                      <p class="form-help-text">
+                        Duration of each VAD processing frame — must be 10, 20, or 30 ms (default: 20)
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Silence Pre-roll Padding (ms) <span class="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        v-model.number="form.asrConfig.serverVad.silencePaddingMs"
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="10"
+                        placeholder="300"
+                        class="form-input max-w-xs"
+                        :disabled="isLoading"
+                      />
+                      <p class="form-help-text">
+                        Silence prepended before detected speech as a pre-roll buffer (0–1000 ms, default: 300)
+                      </p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Auto-End Silence Duration (ms) <span class="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        v-model.number="form.asrConfig.serverVad.autoEndSilenceDurationMs"
+                        type="number"
+                        min="100"
+                        max="5000"
+                        step="50"
+                        placeholder="800"
+                        class="form-input max-w-xs"
+                        :disabled="isLoading"
+                      />
+                      <p class="form-help-text">
+                        Silence after speech that triggers end-of-utterance detection (100–5000 ms, default: 800)
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Voice Output Checkbox -->
-            <label class="form-label">
-              Text To Speech Toggle
-            </label>
-            <div class="form-group bg-green-50 p-4 rounded-lg border border-green-200 dark:bg-green-900/20 dark:border-green-800">
-              <label class="flex items-center cursor-pointer">
+            <!-- Voice Output -->
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                 <input
                   v-model="form.generateVoice"
                   type="checkbox"
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                   Enable Speech Output
                 </span>
               </label>
-              <p class="form-help-text mt-1 text-gray-500 dark:text-gray-400">
-                Allow conversations to generate voice responses using text-to-speech
-              </p>
+              <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                <p class="form-help-text text-gray-500 dark:text-gray-400">
+                  Allow conversations to generate voice responses using text-to-speech
+                </p>
+              </div>
             </div>
           </div>
         </div>

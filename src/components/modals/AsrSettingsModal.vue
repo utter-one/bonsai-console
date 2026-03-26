@@ -9,123 +9,8 @@
         </div>
 
         <template v-else>
-          <!-- Generic fields -->
-          <div class="form-group">
-            <label class="form-label">
-              Unintelligible Placeholder <span class="text-gray-500">(optional)</span>
-            </label>
-            <input
-              v-model="form.unintelligiblePlaceholder"
-              type="text"
-              placeholder="e.g., [unintelligible]"
-              class="form-input"
-            />
-            <p class="form-help-text">
-              Text to use when speech is unintelligible or cannot be transcribed
-            </p>
-          </div>
-
-          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-            <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
-              <input
-                v-model="form.serverVadEnabled"
-                type="checkbox"
-                class="form-checkbox"
-              />
-              <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-                Enable Server-side VAD
-              </span>
-               <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
-            </label>
-
-            <!-- Server VAD Settings -->
-            <div
-              v-if="form.serverVadEnabled"
-              class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700"
-            >
-              <p class="form-help-text">
-                Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input. This feature is experimental and may behave unexpectedly.
-              </p>
-
-              <div class="form-group">
-                <label class="form-label">
-                  Aggressiveness Mode <span class="text-gray-500">(optional)</span>
-                </label>
-                <select
-                  v-model.number="form.serverVad.mode"
-                  class="form-select-auto min-w-48"
-                >
-                  <option :value="undefined">Default (2)</option>
-                  <option :value="0">0 — Least aggressive</option>
-                  <option :value="1">1</option>
-                  <option :value="2">2 (default)</option>
-                  <option :value="3">3 — Most aggressive</option>
-                </select>
-                <p class="form-help-text">
-                  Higher values filter non-speech more aggressively (0–3, default: 2)
-                </p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  Frame Duration <span class="text-gray-500">(optional)</span>
-                </label>
-                <select
-                  v-model.number="form.serverVad.frameDurationMs"
-                  class="form-select-auto min-w-48"
-                >
-                  <option :value="undefined">Default (20 ms)</option>
-                  <option :value="10">10 ms</option>
-                  <option :value="20">20 ms (default)</option>
-                  <option :value="30">30 ms</option>
-                </select>
-                <p class="form-help-text">
-                  Duration of each VAD processing frame — must be 10, 20, or 30 ms (default: 20)
-                </p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  Silence Pre-roll Padding (ms) <span class="text-gray-500">(optional)</span>
-                </label>
-                <input
-                  v-model.number="form.serverVad.silencePaddingMs"
-                  type="number"
-                  min="0"
-                  max="1000"
-                  step="10"
-                  placeholder="300"
-                  class="form-input max-w-xs"
-                />
-                <p class="form-help-text">
-                  Silence prepended before detected speech as a pre-roll buffer (0–1000 ms, default: 300)
-                </p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  Auto-End Silence Duration (ms) <span class="text-gray-500">(optional)</span>
-                </label>
-                <input
-                  v-model.number="form.serverVad.autoEndSilenceDurationMs"
-                  type="number"
-                  min="100"
-                  max="5000"
-                  step="50"
-                  placeholder="800"
-                  class="form-input max-w-xs"
-                />
-                <p class="form-help-text">
-                  Silence after speech that triggers end-of-utterance detection (100–5000 ms, default: 800)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="border-t border-gray-200 dark:border-gray-700 my-4" />
-
           <!-- Azure ASR Settings -->
-          <div v-if="isAzureAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+          <div v-if="isAzureAsrProvider" class="space-y-6 mt-4">
             <div>
               <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">Azure Speech Recognition Settings</h4>
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -222,7 +107,7 @@
           </div>
 
           <!-- ElevenLabs ASR Settings -->
-          <div v-if="isElevenLabsAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+          <div v-if="isElevenLabsAsrProvider" class="space-y-6 mt-4">
             <div>
               <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">ElevenLabs ASR Settings</h4>
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -424,7 +309,7 @@
           </div>
 
           <!-- Deepgram ASR Settings -->
-          <div v-if="isDeepgramAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+          <div v-if="isDeepgramAsrProvider" class="space-y-6 mt-4">
             <div>
               <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">Deepgram ASR Settings</h4>
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -642,7 +527,7 @@
           </div>
 
           <!-- AssemblyAI ASR Settings -->
-          <div v-if="isAssemblyAiAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
+          <div v-if="isAssemblyAiAsrProvider" class="space-y-6 mt-4">
             <div>
               <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">AssemblyAI ASR Settings</h4>
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -850,7 +735,7 @@
           <!-- Speechmatics Settings -->
           <div 
             v-if="isSpeechmaticsAsrProvider" 
-            class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800"
+            class="space-y-6 mt-4"
           >
             <div>
               <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">Speechmatics Settings</h4>
@@ -1052,15 +937,7 @@ import type { ProviderResponse } from '@/api/types'
 
 interface AsrConfig {
   settings: any
-  unintelligiblePlaceholder: string
   voiceActivityDetection: boolean
-  serverVadEnabled: boolean
-  serverVad: {
-      mode: number | undefined,
-      frameDurationMs: (10 | 20 | 30) | undefined,
-      silencePaddingMs: number | undefined,
-      autoEndSilenceDurationMs: number | undefined,
-    }
 }
 
 const props = defineProps<{
@@ -1075,15 +952,7 @@ const emit = defineEmits<{
 
 const form = ref<AsrConfig>({
   settings: {},
-  unintelligiblePlaceholder: '',
   voiceActivityDetection: false,
-  serverVadEnabled: false,
-  serverVad: {
-    mode: undefined,
-    frameDurationMs: undefined,
-    silencePaddingMs: undefined,
-    autoEndSilenceDurationMs: undefined,
-  },
 })
 
 const newPhrase = ref('')
@@ -1120,16 +989,7 @@ const isSpeechmaticsAsrProvider = computed(() => {
 watch(() => props.asrConfig, (config) => {
   form.value = {
     settings: config?.settings ? JSON.parse(JSON.stringify(config.settings)) : {},
-    unintelligiblePlaceholder: config?.unintelligiblePlaceholder || '',
     voiceActivityDetection: config?.voiceActivityDetection || false,
-    serverVadEnabled: config?.serverVadEnabled || false,
-    serverVad: {
-      mode: config?.serverVad?.mode,
-      frameDurationMs: config?.serverVad?.frameDurationMs,
-      silencePaddingMs: config?.serverVad?.silencePaddingMs,
-      autoEndSilenceDurationMs: config?.serverVad?.autoEndSilenceDurationMs,
-    }
-
   }
   syncDeepgramEndpointing()
 }, { immediate: true })
@@ -1202,15 +1062,7 @@ function removeSpeechmaticsVocab(index: number | string) {
 function handleSubmit() {
   emit('save', {
     settings: form.value.settings,
-    unintelligiblePlaceholder: form.value.unintelligiblePlaceholder,
     voiceActivityDetection: form.value.voiceActivityDetection,
-    serverVadEnabled: form.value.serverVadEnabled,
-    serverVad: {
-      mode: form.value.serverVad.mode,
-      frameDurationMs: form.value.serverVad.frameDurationMs,
-      silencePaddingMs: form.value.serverVad.silencePaddingMs,
-      autoEndSilenceDurationMs: form.value.serverVad.autoEndSilenceDurationMs,
-    }
   })
 }
 </script>
