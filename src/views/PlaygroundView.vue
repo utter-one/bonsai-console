@@ -1375,6 +1375,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
           onChunk: async (base64Audio: string) => {
             const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
             if (!client) return
+            if (isConversationEnding.value || !isConversationActive.value) return
             try {
               if (isServerVadMode.value) {
                 await client.sendVadVoiceChunk(base64Audio)
@@ -1382,6 +1383,7 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
                 await client.sendVoiceChunk(base64Audio)
               }
             } catch (error) {
+              if (isConversationEnding.value || !isConversationActive.value) return
               console.error('Failed to send voice chunk:', error)
               addEvent({
                 type: 'Error',
@@ -1511,6 +1513,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
             onChunk: async (base64Audio: string) => {
               const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
               if (!client) return
+              if (isConversationEnding.value || !isConversationActive.value) return
               try {
                 if (isServerVadMode.value) {
                   await client.sendVadVoiceChunk(base64Audio)
@@ -1518,6 +1521,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
                   await client.sendVoiceChunk(base64Audio)
                 }
               } catch (error) {
+                if (isConversationEnding.value || !isConversationActive.value) return
                 console.error('Failed to send voice chunk:', error)
                 addEvent({
                   type: 'Error',
@@ -2244,6 +2248,9 @@ async function endConversation() {
 
   try {
     isConversationEnding.value = true
+    if (recording.value?.recordingState === 'recording') {
+      recording.value.stopRecording()
+    }
     addEvent({
       type: 'System',
       message: 'Ending conversation...',
