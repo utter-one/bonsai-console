@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Plus, X, Save, Check, Search, Trash2 } from 'lucide-vue-next'
+import { Plus, X, Save, Check, Search, Trash2, Route, Drama } from 'lucide-vue-next'
 import {
   useSampleCopiesStore,
   useCopyDecoratorsStore,
@@ -368,7 +368,7 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Sample Copy Dashboard</h1>
+        <h1 class="page-title">Sample Copy</h1>
         <p class="page-subtitle">Manage and inject sample dialogues and system prompt injections based on states and conditions.</p>
       </div>
     </div>
@@ -390,7 +390,7 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
                 type="button"
                 @click="activeTab = 'settings'"
                 :class="['tab-button', { 'tab-button-active': activeTab === 'settings' }]"
-              >Copy Settings</button>
+              >Copy Decorators</button>
             </nav>
           </div>
 
@@ -399,12 +399,11 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
         <!-- Toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
           <div class="relative">
-            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 pointer-events-none" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search rows..."
-              class="form-input pl-8 py-1.5 text-sm h-9 w-44"
+              class="form-input pl-8 py-1.5 text-sm h-9 w-50"
             />
           </div>
 
@@ -421,8 +420,8 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
           </select>
 
           <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
-            <option value="">All Types</option>
-            <option value="__none__">Sample (no decorator)</option>
+            <option value="">All Decorators</option>
+            <option value="__none__">Raw (no decorator)</option>
             <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
           </select>
 
@@ -457,16 +456,16 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
               <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
                 <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Name</th>
                 <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-36">
-                  <span class="flex items-center gap-1"><span>&#x2609;</span> Stages</span>
+                  <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
                 </th>
                 <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-36">
-                  <span class="flex items-center gap-1"><span>&#x2699;</span> Agents</span>
+                  <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
                 </th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-52">When to Occur (Trigger)</th>
+                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-52">When to Occur</th>
                 <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sample Content</th>
                 <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-14">Amt.</th>
                 <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Dist.</th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Type</th>
+                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Decor.</th>
                 <th class="w-16"></th>
               </tr>
             </thead>
@@ -637,7 +636,7 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
                     class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-1.5 py-1 outline-none text-gray-800 dark:text-gray-200"
                     :disabled="isReadOnly"
                   >
-                    <option :value="null">Sample</option>
+                    <option :value="null">Raw</option>
                     <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
                   </select>
                 </td>
