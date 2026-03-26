@@ -373,7 +373,7 @@
               <!-- Settings Button -->
               <button @click="showAudioSettingsModal = true"
                 class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]" title="Audio settings">
-                <Settings :size="20" />
+                <Settings2 :width="20" :height="20" />
               </button>
 
               <!-- Audio Enhancement Indicators -->
@@ -401,9 +401,9 @@
           </div>
 
           <!-- Text Input -->
-          <div class="flex gap-2 flex-1 w-full items-end">
-            <div class="flex-1 w-full flex flex-col">
-              <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
+          <div class="flex flex-col gap-2 flex-1 w-full">
+            <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
+            <div class="flex w-full gap-2 items-end">
               <textarea v-model="messageInput"
                @focus="isInputFocused = true"
                 @blur="handleInputBlur"
@@ -414,15 +414,15 @@
                 @keydown.enter.exact.prevent="sendMessage" 
                 style="min-height: 42px; max-height: 120px;" 
                 />
+
+              <!-- Send Button -->
+              <button class="btn-primary items-center justify-center transition-all duration-300 ease-in-out w-14 px-0 w-auto"
+                :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
+                @click="sendMessage">
+                <Send :size="20" />
+              </button>
             </div>
 
-            <!-- Send Button -->
-            <button class="btn-primary h-10 items-center justify-center transition-all duration-300 ease-in-out"
-              :class="[isInputFocused ? 'w-14 px-0' : 'w-14 px-0', 'md:w-auto md:px-3 md:mt-10']"
-              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
-              @click="sendMessage">
-              <Send :size="20" />
-            </button>
             </div>
         </div>
 
@@ -490,7 +490,7 @@ import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, Settings2, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
