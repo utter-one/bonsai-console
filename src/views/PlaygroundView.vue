@@ -345,17 +345,30 @@
             :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']">
             <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
             <div class="flex gap-2 items-center">
-              <button v-if="recording?.recordingState !== 'recording'"
+              <button v-if="!isServerVadMode && recording?.recordingState !== 'recording'"
                 class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
                 @click="startVoiceRecording" title="Start voice recording">
                 <Mic :size="20" />
-                <span class="hidden md:block">{{ isServerVadMode ? 'Stream' : 'Speak' }}</span>
+                <span class="hidden md:block">Speak</span>
               </button>
-              <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
+              <button v-else-if="!isServerVadMode" class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
                 @click="stopVoiceRecording" title="Stop voice recording">
                 <Square :size="20" />
                 <span class="hidden md:block">Stop</span>
               </button>
+
+              <!-- VAD mode: streaming indicator with integrated VU meter -->
+              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap">
+                <Mic :size="16" />
+                <span class="hidden md:block">Listening</span>
+                <div class="flex items-end gap-px h-4">
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+                </div>
+              </div>
 
               <!-- Settings Button -->
               <button @click="showAudioSettingsModal = true"
@@ -377,7 +390,7 @@
               </div>
 
               <!-- Audio Level Indicator -->
-              <div v-if="recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
+              <div v-if="!isServerVadMode && recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
                 <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                   <div class="h-full bg-blue-500 transition-all duration-100"
                     :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"></div>
@@ -1245,6 +1258,27 @@ const isConversationActive = computed(() => wsClient.value?.isInConversation.val
 watch(isConversationActive, (active) => {
   playgroundStore.setConversationActive(active)
 })
+
+// Auto-start/stop audio streaming in VAD mode when conversation starts/ends
+// We watch the combination of active+notStarting so we trigger after isConversationStarting resets
+watch(
+  () => isConversationActive.value && !isConversationStarting.value,
+  async (readyAndActive, wasReadyAndActive) => {
+    if (!isServerVadMode.value) return
+    if (readyAndActive && !wasReadyAndActive) {
+      // Conversation just became fully active — start streaming
+      await nextTick()
+      if (recording.value && recording.value.recordingState === 'idle') {
+        await startVoiceRecording()
+      }
+    } else if (!isConversationActive.value) {
+      // Conversation ended — stop streaming
+      if (recording.value?.recordingState === 'recording') {
+        recording.value.stopRecording()
+      }
+    }
+  }
+)
 
 const canConnectWebSocket = computed(() => {
   return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value
