@@ -32,7 +32,14 @@ const form = ref({
     asrProviderId: '',
     settings: {} as any,
     unintelligiblePlaceholder: '',
-    voiceActivityDetection: false
+    voiceActivityDetection: false,
+    serverVadEnabled: false,
+    serverVad: {
+      mode: undefined as number | undefined,
+      frameDurationMs: undefined as (10 | 20 | 30) | undefined,
+      silencePaddingMs: undefined as number | undefined,
+      autoEndSilenceDurationMs: undefined as number | undefined,
+    }
   },
   storageConfig: {
     storageProviderId: '',
@@ -276,7 +283,14 @@ async function loadProject() {
           asrProviderId: currentProject.value.asrConfig?.asrProviderId || '',
           settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
-          voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false
+          voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
+          serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
+          serverVad: {
+            mode: currentProject.value.asrConfig?.serverVad?.mode,
+            frameDurationMs: currentProject.value.asrConfig?.serverVad?.frameDurationMs,
+            silencePaddingMs: currentProject.value.asrConfig?.serverVad?.silencePaddingMs,
+            autoEndSilenceDurationMs: currentProject.value.asrConfig?.serverVad?.autoEndSilenceDurationMs,
+          }
         },
         storageConfig: {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
@@ -328,7 +342,15 @@ async function handleSubmit() {
         settings: form.value.asrConfig.settings
       }),
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
-      voiceActivityDetection: form.value.asrConfig.voiceActivityDetection
+      voiceActivityDetection: form.value.asrConfig.voiceActivityDetection,
+      ...(form.value.asrConfig.serverVadEnabled && {
+        serverVad: {
+          ...(form.value.asrConfig.serverVad.mode !== undefined && { mode: form.value.asrConfig.serverVad.mode }),
+          ...(form.value.asrConfig.serverVad.frameDurationMs !== undefined && { frameDurationMs: form.value.asrConfig.serverVad.frameDurationMs }),
+          ...(form.value.asrConfig.serverVad.silencePaddingMs !== undefined && { silencePaddingMs: form.value.asrConfig.serverVad.silencePaddingMs }),
+          ...(form.value.asrConfig.serverVad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: form.value.asrConfig.serverVad.autoEndSilenceDurationMs }),
+        }
+      })
     } : undefined
 
     // Build storage config only if provider is selected
@@ -961,18 +983,103 @@ function handleStorageSettingsClose() {
               <div class="form-group">
                 <label class="flex items-center cursor-pointer">
                   <input
-                    v-model="form.asrConfig.voiceActivityDetection"
+                    v-model="form.asrConfig.serverVadEnabled"
                     type="checkbox"
                     class="form-checkbox"
                     :disabled="isLoading"
                   />
                   <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Enable Voice Activity Detection
+                    Enable Server-side VAD
                   </span>
                 </label>
                 <p class="form-help-text mt-1">
-                  Automatically start/stop recording based on speech presence
+                  Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input
                 </p>
+
+                <!-- Server VAD Settings -->
+                <div
+                  v-if="form.asrConfig.serverVadEnabled"
+                  class="pl-4 border-l-2 border-violet-200 bg-violet-50 p-4 rounded-r mt-3 space-y-4 dark:bg-violet-900/20 dark:border-violet-800"
+                >
+                  <h5 class="text-sm font-semibold text-gray-900 dark:text-white">Server VAD Settings</h5>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Aggressiveness Mode <span class="text-gray-500">(optional)</span>
+                    </label>
+                    <select
+                      v-model.number="form.asrConfig.serverVad.mode"
+                      class="form-select-auto min-w-48"
+                      :disabled="isLoading"
+                    >
+                      <option :value="undefined">Default (2)</option>
+                      <option :value="0">0 — Least aggressive</option>
+                      <option :value="1">1</option>
+                      <option :value="2">2 (default)</option>
+                      <option :value="3">3 — Most aggressive</option>
+                    </select>
+                    <p class="form-help-text">
+                      Higher values filter non-speech more aggressively (0–3, default: 2)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Frame Duration <span class="text-gray-500">(optional)</span>
+                    </label>
+                    <select
+                      v-model.number="form.asrConfig.serverVad.frameDurationMs"
+                      class="form-select-auto min-w-48"
+                      :disabled="isLoading"
+                    >
+                      <option :value="undefined">Default (20 ms)</option>
+                      <option :value="10">10 ms</option>
+                      <option :value="20">20 ms (default)</option>
+                      <option :value="30">30 ms</option>
+                    </select>
+                    <p class="form-help-text">
+                      Duration of each VAD processing frame — must be 10, 20, or 30 ms (default: 20)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Silence Pre-roll Padding (ms) <span class="text-gray-500">(optional)</span>
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.serverVad.silencePaddingMs"
+                      type="number"
+                      min="0"
+                      max="1000"
+                      step="10"
+                      placeholder="300"
+                      class="form-input max-w-xs"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Silence prepended before detected speech as a pre-roll buffer (0–1000 ms, default: 300)
+                    </p>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Auto-End Silence Duration (ms) <span class="text-gray-500">(optional)</span>
+                    </label>
+                    <input
+                      v-model.number="form.asrConfig.serverVad.autoEndSilenceDurationMs"
+                      type="number"
+                      min="100"
+                      max="5000"
+                      step="50"
+                      placeholder="800"
+                      class="form-input max-w-xs"
+                      :disabled="isLoading"
+                    />
+                    <p class="form-help-text">
+                      Silence after speech that triggers end-of-utterance detection (100–5000 ms, default: 800)
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group mt-6">

@@ -54,6 +54,7 @@ import {
   ProjectExchangeImportResult,
   S3StorageConfig,
   S3StorageSettings,
+  ServerVadConfig,
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
@@ -726,6 +727,8 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+        serverVad?: ServerVadConfig;
       };
       /**
        * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -808,6 +811,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -950,6 +955,8 @@ export class Api<
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
             voiceActivityDetection?: boolean;
+            /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+            serverVad?: ServerVadConfig;
           } | null;
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
@@ -1056,6 +1063,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1160,6 +1169,8 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+        serverVad?: ServerVadConfig;
       } | null;
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
@@ -1232,6 +1243,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1359,6 +1372,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1470,6 +1485,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;

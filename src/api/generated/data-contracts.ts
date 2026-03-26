@@ -818,6 +818,29 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface ServerVadConfig {
+  /**
+   * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
+   * @min 0
+   * @max 3
+   */
+  mode?: number;
+  /** Duration of each VAD processing frame in milliseconds. Must be 10, 20, or 30. Default: 20. */
+  frameDurationMs?: 10 | 20 | 30;
+  /**
+   * Amount of silence (in ms) to prepend before the detected speech start as a pre-roll buffer. Default: 300.
+   * @min 0
+   * @max 1000
+   */
+  silencePaddingMs?: number;
+  /**
+   * Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800.
+   * @min 100
+   * @max 5000
+   */
+  autoEndSilenceDurationMs?: number;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -833,6 +856,8 @@ export interface AsrConfig {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
   voiceActivityDetection?: boolean;
+  /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+  serverVad?: ServerVadConfig;
 }
 
 /** Azure Speech Recognition settings */
@@ -1707,6 +1732,8 @@ export interface CreateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   };
   /**
    * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -1838,6 +1865,8 @@ export interface UpdateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice?: boolean;
@@ -1908,6 +1937,8 @@ export interface ProjectResponse {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice: boolean;
@@ -1994,6 +2025,8 @@ export interface ProjectListResponse {
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
       voiceActivityDetection?: boolean;
+      /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+      serverVad?: ServerVadConfig;
     } | null;
     /** Whether conversations can accept voice input (requires asrConfig fully populated) */
     acceptVoice: boolean;
@@ -6053,6 +6086,8 @@ export interface AsrConfigExchangeV1 {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection */
   voiceActivityDetection?: boolean;
+  /** Server-side VAD configuration */
+  serverVad?: ServerVadConfig;
 }
 
 /** Storage configuration with provider hint instead of provider UUID */

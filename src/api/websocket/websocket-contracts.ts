@@ -416,6 +416,7 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
+      serverVad?: ServerVadConfig;
     };
   };
   /**
@@ -462,6 +463,7 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
+    serverVad?: ServerVadConfig;
   };
 }
 
@@ -1455,9 +1457,9 @@ export interface SendUserVoiceChunkRequest {
    */
   ordinal: number;
   /**
-   * Unique identifier for the input turn
+   * Unique identifier for the input turn. Optional in server VAD mode where the turn ID is managed server-side.
    */
-  inputTurnId: string;
+  inputTurnId?: string;
 }
 
 export interface SendUserVoiceChunkResponse {
@@ -1484,7 +1486,7 @@ export interface SendUserVoiceChunkResponse {
   /**
    * Unique identifier for the input turn
    */
-  inputTurnId: string;
+  inputTurnId?: string;
 }
 
 export interface EndUserVoiceInputRequest {
