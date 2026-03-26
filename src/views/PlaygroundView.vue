@@ -358,7 +358,7 @@
               </button>
 
               <!-- VAD mode: streaming indicator with integrated VU meter -->
-              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap">
+              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap" title="Server VAD mode (Experimental)">
                 <Mic :size="16" />
                 <span class="hidden md:block">Listening</span>
                 <div class="flex items-end gap-px h-4">

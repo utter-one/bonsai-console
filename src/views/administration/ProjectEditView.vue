@@ -991,9 +991,10 @@ function handleStorageSettingsClose() {
                   <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                     Enable Server-side VAD
                   </span>
+                  <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
                 </label>
                 <p class="form-help-text mt-1">
-                  Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input
+                  Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input. This feature is experimental and may behave unexpectedly.
                 </p>
 
                 <!-- Server VAD Settings -->
