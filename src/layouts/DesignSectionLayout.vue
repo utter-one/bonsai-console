@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useProjectSelectionStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, ShieldCheck } from 'lucide-vue-next'
+import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, ShieldCheck, Layers } from 'lucide-vue-next'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
 const projectSelectionStore = useProjectSelectionStore()
@@ -17,6 +17,7 @@ const menuItems = [
   { name: 'design.guardrails', label: 'Guardrails', icon: ShieldCheck },
   { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
   { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick },
+  { name: 'design.sampleCopies', label: 'Sample Copy', icon: Layers },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },
   { name: 'design.tools', label: 'Tools', icon: Hammer },
 ]
