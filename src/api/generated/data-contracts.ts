@@ -5868,6 +5868,308 @@ export interface LatencyTrendPoint {
   avgTimeToFirstAudioMs: number | null;
 }
 
+export interface CreateSampleCopyRequest {
+  /**
+   * Unique identifier for the sample copy (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the sample copy, used as identifier throughout the system
+   * @minLength 1
+   */
+  name: string;
+  /** Optional array of stage IDs this sample copy applies to */
+  stages?: string[];
+  /** Optional array of agent IDs this sample copy applies to */
+  agents?: string[];
+  /**
+   * Trigger string used by the classifier to activate this sample copy
+   * @minLength 1
+   */
+  promptTrigger: string;
+  /** ID of the classifier to use; if not set the default classifier will be used */
+  classifierOverrideId?: string | null;
+  /**
+   * Array of variant answers to select from
+   * @minItems 1
+   */
+  content: string[];
+  /**
+   * Number of samples to select from the content array
+   * @min 1
+   * @default 1
+   */
+  amount?: number;
+  /**
+   * Method used to select samples: random selection or sequential round-robin
+   * @default "random"
+   */
+  samplingMethod?: "random" | "round_robin";
+  /** ID of the copy decorator to apply to selected content; if not set no decoration is applied */
+  decoratorId?: string | null;
+}
+
+export interface UpdateSampleCopyRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated array of stage IDs */
+  stages?: string[] | null;
+  /** Updated array of agent IDs */
+  agents?: string[] | null;
+  /**
+   * Updated classifier trigger string
+   * @minLength 1
+   */
+  promptTrigger?: string;
+  /** Updated classifier override ID */
+  classifierOverrideId?: string | null;
+  /**
+   * Updated array of variant answers
+   * @minItems 1
+   */
+  content?: string[];
+  /**
+   * Updated number of samples to select
+   * @min 1
+   */
+  amount?: number;
+  /** Updated sampling method */
+  samplingMethod?: "random" | "round_robin";
+  /** Updated copy decorator ID; set to null to remove the decorator */
+  decoratorId?: string | null;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteSampleCopyRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface SampleCopyResponse {
+  /** Unique identifier for the sample copy */
+  id: string;
+  /** ID of the project this sample copy belongs to */
+  projectId: string;
+  /** Display name of the sample copy */
+  name: string;
+  /** Array of stage IDs this sample copy applies to */
+  stages: string[] | null;
+  /** Array of agent IDs this sample copy applies to */
+  agents: string[] | null;
+  /** Trigger string used by the classifier */
+  promptTrigger: string;
+  /** ID of the classifier override, or null if using the default */
+  classifierOverrideId: string | null;
+  /** Array of variant answers */
+  content: string[];
+  /** Number of samples to select */
+  amount: number;
+  /** Method used to select samples */
+  samplingMethod: "random" | "round_robin";
+  /** ID of the copy decorator applied to selected content, or null if none */
+  decoratorId: string | null;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the sample copy was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the sample copy was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
+}
+
+export interface SampleCopyListResponse {
+  /** Array of sample copies in the current page */
+  items: {
+    /** Unique identifier for the sample copy */
+    id: string;
+    /** ID of the project this sample copy belongs to */
+    projectId: string;
+    /** Display name of the sample copy */
+    name: string;
+    /** Array of stage IDs this sample copy applies to */
+    stages: string[] | null;
+    /** Array of agent IDs this sample copy applies to */
+    agents: string[] | null;
+    /** Trigger string used by the classifier */
+    promptTrigger: string;
+    /** ID of the classifier override, or null if using the default */
+    classifierOverrideId: string | null;
+    /** Array of variant answers */
+    content: string[];
+    /** Number of samples to select */
+    amount: number;
+    /** Method used to select samples */
+    samplingMethod: "random" | "round_robin";
+    /** ID of the copy decorator applied to selected content, or null if none */
+    decoratorId: string | null;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the sample copy was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the sample copy was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
+  }[];
+  /**
+   * Total number of sample copies matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateCopyDecoratorRequest {
+  /**
+   * Unique identifier for the copy decorator (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Human-readable display name of the copy decorator
+   * @minLength 1
+   */
+  name: string;
+  /**
+   * Template string used to decorate selected sample copy content
+   * @minLength 1
+   */
+  template: string;
+}
+
+export interface UpdateCopyDecoratorRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /**
+   * Updated template string
+   * @minLength 1
+   */
+  template?: string;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteCopyDecoratorRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface CopyDecoratorResponse {
+  /** Unique identifier for the copy decorator */
+  id: string;
+  /** ID of the project this copy decorator belongs to */
+  projectId: string;
+  /** Human-readable display name of the copy decorator */
+  name: string;
+  /** Template string used to decorate sample copy content */
+  template: string;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the copy decorator was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the copy decorator was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
+}
+
+export interface CopyDecoratorListResponse {
+  /** Array of copy decorators in the current page */
+  items: {
+    /** Unique identifier for the copy decorator */
+    id: string;
+    /** ID of the project this copy decorator belongs to */
+    projectId: string;
+    /** Human-readable display name of the copy decorator */
+    name: string;
+    /** Template string used to decorate sample copy content */
+    template: string;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the copy decorator was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the copy decorator was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
+  }[];
+  /**
+   * Total number of copy decorators matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
 export interface VersionResponse {
   /** Semantic version of the application as defined in package.json (e.g. "1.2.3"). */
   version: string;
