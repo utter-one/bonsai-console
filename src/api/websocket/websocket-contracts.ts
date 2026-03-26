@@ -279,6 +279,9 @@ export interface BanUserEffect {
   reason?: string;
 }
 
+/**
+ * Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input.
+ */
 export interface ServerVadConfig {
   /**
    * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
@@ -435,9 +438,7 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
-      serverVad?: ServerVadConfig & {
-
-      };
+      serverVad?: ServerVadConfig;
     };
   };
   /**
@@ -484,9 +485,7 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
-    serverVad?: ServerVadConfig & {
-
-    };
+    serverVad?: ServerVadConfig;
   };
 }
 
