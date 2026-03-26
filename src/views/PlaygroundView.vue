@@ -349,7 +349,7 @@
                 class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
                 @click="startVoiceRecording" title="Start voice recording">
                 <Mic :size="20" />
-                <span class="hidden md:block">Speak</span>
+                <span class="hidden md:block">{{ isServerVadMode ? 'Stream' : 'Speak' }}</span>
               </button>
               <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
                 @click="stopVoiceRecording" title="Stop voice recording">
@@ -1294,6 +1294,7 @@ function parseSampleRate(audioFormat?: string): number {
 
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
 
 // Initialize/update recording when project settings change
 watch(() => wsClient.value?.projectSettings.value, (settings) => {
@@ -1341,7 +1342,11 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
             const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
             if (!client) return
             try {
-              await client.sendVoiceChunk(base64Audio)
+              if (isServerVadMode.value) {
+                await client.sendVadVoiceChunk(base64Audio)
+              } else {
+                await client.sendVoiceChunk(base64Audio)
+              }
             } catch (error) {
               console.error('Failed to send voice chunk:', error)
               addEvent({
@@ -1368,22 +1373,27 @@ async function startVoiceRecording() {
   stopAllAudioPlayback()
 
   try {
-    // Start voice input phase on backend and get inputTurnId
-    const inputTurnId = await wsClient.value.startVoiceInput()
+    if (isServerVadMode.value) {
+      // Server VAD mode: skip start_user_voice_input — server manages turn boundaries
+      ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
+    } else {
+      // Standard mode: start voice input phase on backend and get inputTurnId
+      const inputTurnId = await wsClient.value.startVoiceInput()
 
-    // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
-    const event: ConversationEvent = {
-      type: 'User',
-      message: '',
-      timestamp: new Date(),
-      inputTurnId: inputTurnId,
-      isRealTime: true,
-      transcriptChunks: []
+      // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
+      const event: ConversationEvent = {
+        type: 'User',
+        message: '',
+        timestamp: new Date(),
+        inputTurnId: inputTurnId,
+        isRealTime: true,
+        transcriptChunks: []
+      }
+      conversationEvents.value.push(event)
+
+      // Auto-scroll to show the new event
+      nextTick(() => scrollHistoryToBottom())
     }
-    conversationEvents.value.push(event)
-
-    // Auto-scroll to show the new event
-    nextTick(() => scrollHistoryToBottom())
 
     // Start recording from microphone
     await recording.value.startRecording()
@@ -1403,14 +1413,16 @@ async function stopVoiceRecording() {
     // Stop recording (will process remaining chunks)
     recording.value.stopRecording()
 
-    // Mark the last event not real-time anymore (in case onChunk is still processing)
-    const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
-    if (lastEvent) {
-      lastEvent.isRealTime = false
-    }
+    if (!isServerVadMode.value) {
+      // Mark the last event not real-time anymore (in case onChunk is still processing)
+      const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
+      if (lastEvent) {
+        lastEvent.isRealTime = false
+      }
 
-    // End voice input phase on backend
-    await wsClient.value.endVoiceInput()
+      // End voice input phase on backend
+      await wsClient.value.endVoiceInput()
+    }
   } catch (error) {
     addEvent({
       type: 'Error',
@@ -1466,7 +1478,11 @@ function handleAudioSettingsSave(settings: AudioSettings) {
               const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
               if (!client) return
               try {
-                await client.sendVoiceChunk(base64Audio)
+                if (isServerVadMode.value) {
+                  await client.sendVadVoiceChunk(base64Audio)
+                } else {
+                  await client.sendVoiceChunk(base64Audio)
+                }
               } catch (error) {
                 console.error('Failed to send voice chunk:', error)
                 addEvent({
