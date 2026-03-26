@@ -980,29 +980,26 @@ function handleStorageSettingsClose() {
                 </p>
               </div>
 
-              <div class="form-group">
-                <label class="flex items-center cursor-pointer">
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                   <input
                     v-model="form.asrConfig.serverVadEnabled"
                     type="checkbox"
                     class="form-checkbox"
                     :disabled="isLoading"
                   />
-                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
                     Enable Server-side VAD
                   </span>
                   <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
                 </label>
-                <p class="form-help-text mt-1">
-                  Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input. This feature is experimental and may behave unexpectedly.
-                </p>
-
-                <!-- Server VAD Settings -->
                 <div
                   v-if="form.asrConfig.serverVadEnabled"
-                  class="pl-4 border-l-2 border-violet-200 bg-violet-50 p-4 rounded-r mt-3 space-y-4 dark:bg-violet-900/20 dark:border-violet-800"
+                  class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700"
                 >
-                  <h5 class="text-sm font-semibold text-gray-900 dark:text-white">Server VAD Settings</h5>
+                  <p class="form-help-text">
+                    Server autonomously detects speech boundaries — clients stream audio continuously without calling start/end voice input. This feature is experimental and may behave unexpectedly.
+                  </p>
 
                   <div class="form-group">
                     <label class="form-label">
