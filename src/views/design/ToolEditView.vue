@@ -12,6 +12,8 @@ import JavaScriptEditor from '@/components/JavaScriptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -53,6 +55,14 @@ const form = ref({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const toolId = computed(() => route.params.toolId as string | undefined)
 const isEditMode = computed(() => !!toolId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'config', label: configTabLabel.value },
+  { key: 'parameters', label: 'Parameters' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentTool = ref<ToolResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentTool)
@@ -302,45 +312,7 @@ const metadataFields = computed(() => {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'config'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'config' }]"
-          type="button"
-        >
-          {{ configTabLabel }}
-        </button>
-        <button
-          @click="activeTab = 'parameters'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'parameters' }]"
-          type="button"
-        >
-          Parameters
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->

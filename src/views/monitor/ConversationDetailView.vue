@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import { ArrowLeft, Play } from 'lucide-vue-next'
@@ -11,7 +11,12 @@ import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
+import ConversationEventCard from '@/components/ConversationEventCard.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import { usePagination } from '@/composables'
+import PaginationControls from '@/components/PaginationControls.vue'
+import type { NormalizedEvent } from '../../components/events/eventHelpers'
 
 
 const route = useRoute()
@@ -68,6 +73,32 @@ onMounted(async () => {
   await loadConversationData()
 })
 
+async function fetchAllEvents(pId: string, cId: string): Promise<void> {
+  const batchSize = 1000
+  const firstResponse = await conversationsStore.fetchEvents(pId, cId, { orderBy: 'timestamp', limit: batchSize, offset: 0 })
+  const firstBatch: ConversationEventResponse[] = firstResponse.items || []
+  const total: number = firstResponse.total ?? firstBatch.length
+
+  if (total <= batchSize) {
+    events.value = firstBatch
+    return
+  }
+
+  const offsets: number[] = []
+  for (let offset = batchSize; offset < total; offset += batchSize) {
+    offsets.push(offset)
+  }
+
+  const remainingResponses = await Promise.all(
+    offsets.map(offset => conversationsStore.fetchEvents(pId, cId, { orderBy: 'timestamp', limit: batchSize, offset }))
+  )
+
+  events.value = [
+    ...firstBatch,
+    ...remainingResponses.flatMap(r => r.items || []),
+  ]
+}
+
 async function loadConversationData() {
   isLoading.value = true
   error.value = null
@@ -77,13 +108,12 @@ async function loadConversationData() {
     conversation.value = await conversationsStore.fetchById(projectId.value, conversationId.value)
 
     // Load conversation events and entity names in parallel
-    const [eventsResponse] = await Promise.all([
-      conversationsStore.fetchEvents(projectId.value, conversationId.value, { orderBy: 'timestamp' }),
+    await Promise.all([
+      fetchAllEvents(projectId.value, conversationId.value),
       stagesStore.fetchAll(projectId.value, { limit: 1000 }),
       classifiersStore.fetchAll(projectId.value, { limit: 1000 }),
       contextTransformersStore.fetchAll(projectId.value, { limit: 1000 }),
     ])
-    events.value = eventsResponse.items || []
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load conversation data'
     console.error('Failed to load conversation:', err)
@@ -97,9 +127,13 @@ function goBack() {
   router.push({ name: 'monitor.conversations' })
 }
 
-function scrollToHighlightedEvent() {
+async function scrollToHighlightedEvent() {
   if (highlightEventIndex.value === null) return
-  const el = eventRefs.value[highlightEventIndex.value]
+  const targetPage = Math.floor(highlightEventIndex.value / eventsPagination.pageSize.value) + 1
+  await eventsPagination.goToPage(targetPage)
+  await nextTick()
+  const pageLocalIndex = highlightEventIndex.value % eventsPagination.pageSize.value
+  const el = eventRefs.value[pageLocalIndex]
   if (!el) return
   el.scrollIntoView({ block: 'center', behavior: 'smooth' })
 }
@@ -242,15 +276,29 @@ const orderedEvents = computed(() => {
   return result
 })
 
-async function activatePerformanceTab() {
-  activeTab.value = 'performance'
-  if (!performanceTabActivated.value) {
+const eventsPaginationStore = { pagination: reactive({ total: computed(() => orderedEvents.value.length) }) }
+const eventsPagination = usePagination({ store: eventsPaginationStore, pageSize: 50 })
+
+const pagedEvents = computed(() =>
+  orderedEvents.value.slice(eventsPagination.offset.value, eventsPagination.offset.value + eventsPagination.pageSize.value)
+)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'events', label: 'Events Timeline' },
+  { key: 'performance', label: 'Performance', show: !!conversation.value },
+  { key: 'metadata', label: 'Metadata', show: !!conversation.value },
+  { key: 'history', label: 'History', show: !!conversation.value },
+])
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'performance' && !performanceTabActivated.value) {
     performanceTabActivated.value = true
-    await analyticsStore.fetchConversationTimeline(projectId.value, conversationId.value)
+    analyticsStore.fetchConversationTimeline(projectId.value, conversationId.value)
   }
-}
+})
 
 watch(conversationId, () => {
+  eventsPagination.currentPage.value = 1
   performanceTabActivated.value = false
   analyticsStore.clearTimeline()
 })
@@ -402,24 +450,7 @@ function fmtMs(value: number | null | undefined): string {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button @click="activeTab = 'events'" :class="['tab-button', { 'tab-button-active': activeTab === 'events' }]"
-            type="button">
-            Events Timeline
-          </button>
-          <button v-if="conversation" @click="activatePerformanceTab"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'performance' }]" type="button">
-            Performance
-          </button>
-          <button v-if="conversation" @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" type="button">
-            Metadata
-          </button>
-          <button v-if="conversation" @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">
-            History
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->
@@ -439,30 +470,37 @@ function fmtMs(value: number | null | undefined): string {
       <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div class="mx-auto">
           <!-- Events Timeline Tab -->
-          <div v-show="activeTab === 'events'" class="tab-content">
+          <div v-show="activeTab === 'events'" class="tab-content space-y-6">
             <div v-if="events.length === 0" class="text-center py-12 text-gray-500">
               No events recorded for this conversation
             </div>
 
             <div v-else class="space-y-4">
               <div
-                v-for="(event, index) in orderedEvents"
+                v-for="(event, index) in pagedEvents"
                 :key="event.id"
                 :ref="(el) => { eventRefs[index] = el as HTMLElement | null }"
               >
                 <ConversationEventCard
                   :event="toNormalizedEvent(event)"
                   :show-bug-report="!isArchived"
-                  :highlighted="highlightEventIndex === index"
+                  :highlighted="highlightEventIndex === eventsPagination.offset.value + index"
                   :entity-names="entityNames"
                   @open-prompt="openPromptPreview"
                   @open-filler-prompt="openFillerPromptPreview"
                   @open-raw-response="openRawResponsePreview"
                   @open-variables="openVariablesPreview"
-                  @open-bug-report="openBugReport(event, index)"
+                  @open-bug-report="openBugReport(event, eventsPagination.offset.value + index)"
                 />
               </div>
             </div>
+            <PaginationControls
+              v-if="orderedEvents.length > 0"
+              :pagination="eventsPagination"
+              :displayed-count="pagedEvents.length"
+              resource-name="events"
+              class="rounded-lg"
+            />
           </div>
 
           <!-- Metadata Tab -->
