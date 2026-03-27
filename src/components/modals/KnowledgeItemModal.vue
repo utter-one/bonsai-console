@@ -1,20 +1,14 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content-lg" @click.stop>
-      <h2 class="modal-header">{{ item ? 'Edit Knowledge Item' : 'New Knowledge Item' }}</h2>
-
+  <BaseModal :title="item ? 'Edit Knowledge Item' : 'New Knowledge Item'" size="xl" @close="$emit('close')">
       <div v-if="item" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <nav class="tabs-nav">
-          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This item is read-only because the project is archived.
       </div>
 
-      <div v-show="!item || activeTab === 'details'">
+      <TabPanel name="details" :active-tab="!item ? 'details' : activeTab">
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">Question <span class="required">*</span></label>
@@ -60,9 +54,9 @@
           </button>
         </div>
       </form>
-      </div>
+      </TabPanel>
 
-      <div v-if="item" v-show="activeTab === 'history'">
+      <TabPanel v-if="item" name="history" :active-tab="activeTab">
         <EntityHistoryView
           v-if="loadHistory"
           :load-history="loadHistory"
@@ -77,9 +71,8 @@
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
         </div>
-      </div>
-    </div>
-  </div>
+      </TabPanel>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -87,6 +80,10 @@ import { ref, watch, computed } from 'vue'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import type { KnowledgeItemResponse } from '@/api/types'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import TabPanel from '@/components/TabPanel.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const props = defineProps<{
   item: KnowledgeItemResponse | null
@@ -103,6 +100,11 @@ const emit = defineEmits<{
 }>()
 
 const activeTab = ref<'details' | 'history'>('details')
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'details', label: 'Details' },
+  { key: 'history', label: 'History', show: !!props.loadHistory },
+])
 
 watch(() => props.item, () => {
   activeTab.value = 'details'

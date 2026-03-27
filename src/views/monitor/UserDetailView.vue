@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
@@ -7,6 +7,8 @@ import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +23,19 @@ const conversations = ref<ConversationResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history' | 'ban'>('profile')
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'profile', label: 'Profile' },
+  { key: 'conversations', label: () => [
+    'Conversations',
+    conversations.value.length > 0
+      ? h('span', { class: 'ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }, String(conversations.value.length))
+      : null
+  ] },
+  { key: 'metadata', label: 'Metadata', show: !!user.value },
+  { key: 'history', label: 'History', show: !!user.value },
+  { key: 'ban', label: 'Ban', show: !!user.value },
+])
 
 const editableProfile = ref<Array<{ key: string; value: string }>>([])
 const isSaving = ref(false)
@@ -230,49 +245,7 @@ async function unbanUser() {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button 
-            @click="activeTab = 'profile'" 
-            :class="['tab-button', { 'tab-button-active': activeTab === 'profile' }]"
-            type="button"
-          >
-            Profile
-          </button>
-          <button 
-            @click="activeTab = 'conversations'" 
-            :class="['tab-button relative', { 'tab-button-active': activeTab === 'conversations' }]"
-            type="button"
-          >
-            Conversations
-            <span class="absolute top-1 -right-4 ml-2 px-1 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
-              {{ conversations.length }}
-            </span>
-          </button>
-          <button 
-            v-if="user" 
-            @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" 
-            type="button"
-          >
-            Metadata
-          </button>
-          <button 
-            v-if="user" 
-            @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" 
-            type="button"
-          >
-            History
-          </button>
-          <button 
-            v-if="user" 
-            @click="activeTab = 'ban'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'ban' }]" 
-            type="button"
-          >
-            Ban
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->

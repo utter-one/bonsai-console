@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-2xl" @click.stop>
-      <h2 class="modal-header">Audio Settings</h2>
+  <BaseModal title="Audio Settings" size="lg" @close="$emit('close')">
       
       <div class="space-y-6">
         <!-- Device Selection -->
@@ -194,12 +192,12 @@
           Save Settings
         </button>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { useAudioDevices } from '@/composables/useAudioDevices'
 import { useAudioRecording } from '@/composables/useAudioRecording'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'

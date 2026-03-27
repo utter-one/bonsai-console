@@ -7,6 +7,8 @@ import { usePagination, useTableSort, useSearch } from '@/composables'
 import { ShieldCheck, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const router = useRouter()
 const guardrailsStore = useGuardrailsStore()
@@ -18,6 +20,11 @@ const providerCatalogStore = useProviderCatalogStore()
 
 type TabType = 'guardrails' | 'moderation'
 const activeTab = ref<TabType>('guardrails')
+
+const tabs: TabDefinition[] = [
+  { key: 'guardrails', label: 'Guardrails' },
+  { key: 'moderation', label: 'Moderation' },
+]
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-guardrails')
@@ -246,22 +253,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          type="button"
-          @click="activeTab = 'guardrails'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'guardrails' }]"
-        >
-          Guardrails
-        </button>
-        <button
-          type="button"
-          @click="activeTab = 'moderation'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'moderation' }]"
-        >
-          Moderation
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Content -->

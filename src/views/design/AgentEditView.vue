@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
@@ -14,6 +14,8 @@ import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +60,20 @@ const form = ref<{
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const agentId = computed(() => route.params.agentId as string | undefined)
 const isEditMode = computed(() => !!agentId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'prompt', label: 'Prompt' },
+  { key: 'voice', label: 'Voice' },
+  { key: 'filler', label: () => [
+    'Filler Responses',
+    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
+      h(FlaskConical, { class: 'w-3 h-3' })
+    )
+  ] },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentAgent = ref<AgentResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentAgent)
@@ -484,55 +500,7 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
-          type="button"
-        >
-          Prompt
-        </button>
-        <button
-          @click="activeTab = 'voice'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
-          type="button"
-        >
-          Voice
-        </button>
-        <button
-          @click="activeTab = 'filler'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'filler' }]"
-          type="button"
-        >
-          Filler Responses
-          <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-            <FlaskConical class="w-3 h-3" />
-          </span>
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->

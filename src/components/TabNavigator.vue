@@ -1,7 +1,9 @@
 <script lang="ts">
+import type { VNodeChild } from 'vue'
+
 export interface TabDefinition {
   key: string
-  label: string
+  label: string | (() => VNodeChild)
   show?: boolean
 }
 </script>
@@ -29,7 +31,8 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.show !== false))
       class="tab-button"
       :class="{ 'tab-button-active': modelValue === tab.key }"
       @click="emit('update:modelValue', tab.key)">
-      {{ tab.label }}
+      <component v-if="typeof tab.label === 'function'" :is="tab.label" />
+      <template v-else>{{ tab.label }}</template>
     </button>
   </nav>
 </template>

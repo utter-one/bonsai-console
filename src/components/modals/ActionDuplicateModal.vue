@@ -1,9 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-lg" @click.stop>
-      <h2 class="modal-header">
-        Duplicate Action
-      </h2>
+  <BaseModal title="Duplicate Action" size="md" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div class="form-group">
@@ -35,12 +31,12 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 
 const props = defineProps<{
   originalKey: string

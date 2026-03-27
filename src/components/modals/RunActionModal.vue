@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">Call Action</h2>
+  <BaseModal title="Call Action" size="lg" @close="$emit('close')">
 
       <form @submit.prevent="handleSubmit">
         <!-- Action Type Selection -->
@@ -154,12 +152,12 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import type { GlobalActionResponse, StageResponse } from '@/api/types'
 
 const props = defineProps<{

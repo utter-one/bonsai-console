@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useContextTransformersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
@@ -12,6 +12,8 @@ import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,6 +56,19 @@ Only extract values that are explicitly stated or clearly implied by the user's 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const transformerId = computed(() => route.params.transformerId as string | undefined)
 const isEditMode = computed(() => !!transformerId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'variables', label: () => [
+    'Variables',
+    form.value.contextFields.length > 0
+      ? h('span', { class: 'ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' }, String(form.value.contextFields.length))
+      : null
+  ] },
+  { key: 'prompt', label: 'Prompt' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentTransformer = ref<ContextTransformerResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentTransformer)
@@ -252,51 +267,7 @@ const metadataFields = computed(() => {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'variables'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'variables' }]"
-          type="button"
-        >
-          Variables
-          <span
-            v-if="form.contextFields.length > 0"
-            class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-          >
-            {{ form.contextFields.length }}
-          </span>
-        </button>
-        <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
-          type="button"
-        >
-          Prompt
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->

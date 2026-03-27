@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">Edit Profile</h2>
+  <BaseModal title="Edit Profile" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
@@ -76,12 +74,12 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { useAuthStore } from '@/stores'
 
 const emit = defineEmits<{

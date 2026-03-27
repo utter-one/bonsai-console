@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">LLM Settings</h2>
+  <BaseModal title="LLM Settings" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit">
         <div v-if="!selectedProvider" class="alert-error mb-4">
@@ -373,12 +371,12 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import type { ProviderResponse, LlmSettings } from '@/api/types'
 import type { LlmModelInfo } from '@/api/generated/data-contracts'
 import apiClient from '@/api/client'

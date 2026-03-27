@@ -1,17 +1,11 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content-lg" @click.stop>
-      <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
-
-      <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <nav class="tabs-nav">
-          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button @click="activeTab = 'settings'" :class="['tab-button', { 'tab-button-active': activeTab === 'settings' }]" type="button">Settings</button>
-          <button v-if="apiKey && loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
-        </nav>
+  <BaseModal :title="apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key'" size="xl" @close="$emit('close')">
+      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
-      <div v-if="isReadOnly && activeTab !== 'history'" class="alert-warning mb-4">
+      <TabPanel name="details" :active-tab="!apiKey ? 'details' : activeTab">
+      <div v-if="isReadOnly" class="alert-warning mb-4">
         This API key is read-only because its project is archived.
       </div>
 
@@ -161,8 +155,9 @@
           </button>
         </div>
       </form>
+      </TabPanel>
 
-      <div v-if="apiKey" v-show="activeTab === 'history'">
+      <TabPanel v-if="apiKey" name="history" :active-tab="activeTab">
         <EntityHistoryView
           v-if="loadHistory"
           :load-history="loadHistory"
@@ -177,9 +172,8 @@
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
         </div>
-      </div>
-    </div>
-  </div>
+      </TabPanel>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -187,6 +181,10 @@ import { ref, watch, computed, onMounted } from 'vue'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import { useProjectsStore } from '@/stores/projects'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import TabPanel from '@/components/TabPanel.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const ALL_CHANNELS = ['websocket', 'webrtc'] as const
 
@@ -250,6 +248,12 @@ const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
 const activeTab = ref<'details' | 'settings' | 'history'>('details')
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'details', label: 'Details' },
+  { key: 'settings', label: 'Settings' },
+  { key: 'history', label: 'History', show: !!props.loadHistory },
+])
 
 watch(() => props.apiKey, () => {
   activeTab.value = 'details'

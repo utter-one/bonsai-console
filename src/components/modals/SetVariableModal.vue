@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-3xl" @click.stop>
-      <h2 class="modal-header">Set Variable</h2>
+  <BaseModal title="Set Variable" size="3xl" @close="$emit('close')">
 
       <!-- Current stage info -->
       <div v-if="currentStage" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
@@ -347,13 +345,13 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { X, Plus } from 'lucide-vue-next'
+import BaseModal from '@/components/BaseModal.vue'
 import type { StageResponse } from '@/api/types'
 
 const props = defineProps<{

@@ -7,6 +7,8 @@ import type { EnvironmentResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -28,6 +30,12 @@ const form = ref({
 // Computed
 const environmentId = computed(() => route.params.environmentId as string | undefined)
 const isEditMode = computed(() => !!environmentId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentEnvironment = ref<EnvironmentResponse | null>(null)
 
 // Lifecycle
@@ -185,31 +193,7 @@ const metadataFields = computed(() => {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button
-            @click="activeTab = 'basic'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-            type="button"
-          >
-            General
-          </button>
-          <button
-            v-if="isEditMode"
-            @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-            type="button"
-          >
-            Metadata
-          </button>
-          <button
-            v-if="isEditMode"
-            @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-            type="button"
-          >
-            History
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->

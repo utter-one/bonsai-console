@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
-      <div class="modal-header flex items-center justify-between">
+  <BaseModal title="" size="full" :fixed-height="true" @close="$emit('close')">
+    <template #header>
+      <div class="modal-header">
         <h2 class="m-0 text-xl font-semibold">{{ modalTitle }}</h2>
         <a
           href="/help/design/actions.html"
@@ -12,6 +12,7 @@
           <HelpCircle :size="16" />
         </a>
       </div>
+    </template>
       
       <!-- Lifecycle Action Info -->
       <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
@@ -51,13 +52,13 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed, reactive } from 'vue'
 import { HelpCircle } from 'lucide-vue-next'
+import BaseModal from '@/components/BaseModal.vue'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
@@ -239,16 +240,3 @@ function handleSubmit() {
 }
 </script>
 
-<style scoped>
-.max-w-6xl {
-  max-width: 72rem;
-}
-
-.fixed-height-modal {
-  height: 80vh;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-</style>

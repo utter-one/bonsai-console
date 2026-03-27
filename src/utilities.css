@@ -165,6 +165,10 @@
   @apply flex gap-3 justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-700;
 }
 
+.fixed-height-modal {
+  @apply h-[80vh] max-h-[80vh] flex flex-col overflow-hidden;
+}
+
 /* Cards */
 .card {
   @apply bg-white rounded-lg border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700;

@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-2xl" @click.stop>
-      <h2 class="modal-header">Call Tool</h2>
+  <BaseModal title="Call Tool" size="lg" @close="$emit('close')">
       
       <div class="mb-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">Select a tool and provide its parameters</p>
@@ -257,12 +255,12 @@
           Call Tool
         </button>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { useToolsStore } from '@/stores'
 
 const props = defineProps<{
