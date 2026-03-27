@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
@@ -12,6 +12,8 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
@@ -68,6 +70,21 @@ const showServerVadModal = ref(false)
 // Computed
 const projectId = computed(() => route.params.projectId as string | undefined)
 const isEditMode = computed(() => !!projectId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'voice', label: 'Voice' },
+  { key: 'storage', label: () => [
+    'Storage',
+    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
+      h(FlaskConical, { class: 'w-3 h-3' })
+    )
+  ] },
+  { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+  { key: 'danger', label: 'Danger Zone', show: isEditMode.value },
+])
 const currentProject = ref<ProjectResponse | null>(null)
 
 const isArchived = computed(() => !!currentProject.value?.archivedAt)
@@ -585,64 +602,7 @@ function handleStorageSettingsClose() {
     </div>
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'voice'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
-          type="button"
-        >
-          Voice
-        </button>
-        <button
-          @click="activeTab = 'storage'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'storage' }]"
-          type="button"
-        >
-          Storage
-          <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-            <FlaskConical class="w-3 h-3" />
-          </span>
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'apiKeys'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'apiKeys' }]"
-          type="button"
-        >
-          API Keys
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'danger'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'danger' }]"
-          type="button"
-        >
-          Danger Zone
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->

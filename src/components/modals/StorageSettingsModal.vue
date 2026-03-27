@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">Storage Settings</h2>
+  <BaseModal title="Storage Settings" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit">
         <div v-if="!selectedProvider" class="alert-error mb-4">
@@ -206,12 +204,12 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import type { ProviderResponse } from '@/api/types'
 
 interface StorageSettings {

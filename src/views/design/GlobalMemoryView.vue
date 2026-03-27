@@ -6,6 +6,8 @@ import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste, AlertTriangle } f
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 import type { ProjectResponse, ParameterValue } from '@/api/types'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -18,6 +20,11 @@ const error = ref<string | null>(null)
 const showSuccess = ref(false)
 const currentProject = ref<ProjectResponse | null>(null)
 const activeTab = ref<'userProfile' | 'constants'>('userProfile')
+
+const tabs: TabDefinition[] = [
+  { key: 'userProfile', label: 'User Profile' },
+  { key: 'constants', label: 'Constants' },
+]
 
 // User Profile state
 const showVariablesPasteModal = ref(false)
@@ -418,22 +425,7 @@ async function pasteConstants() {
         <div class="mx-auto">
           <!-- Tabs -->
           <div class="tabs-container">
-            <nav class="tabs-nav" aria-label="Tabs">
-              <button
-                type="button"
-                @click="activeTab = 'userProfile'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'userProfile' }]"
-              >
-                User Profile
-              </button>
-              <button
-                type="button"
-                @click="activeTab = 'constants'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'constants' }]"
-              >
-                Constants
-              </button>
-            </nav>
+            <TabNavigator v-model="activeTab" :tabs="tabs" />
           </div>
 
           <fieldset :disabled="projectIsArchived" class="border-0 p-0 m-0 min-w-0 w-full">

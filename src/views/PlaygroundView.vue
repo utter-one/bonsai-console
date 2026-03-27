@@ -500,9 +500,10 @@ import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
+import ConversationEventCard from '@/components/ConversationEventCard.vue'
 import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
+import type { NormalizedEvent } from '../components/events/eventHelpers'
 
 // Audio settings persistence
 interface AudioSettings {

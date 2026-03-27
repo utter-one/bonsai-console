@@ -17,6 +17,8 @@ import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
 import ActionsPasteModal from '@/components/modals/ActionsPasteModal.vue'
 import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 // Lifecycle action constants
 const LIFECYCLE_ACTIONS = {
@@ -118,6 +120,17 @@ A: {{this.answer}}
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const stageId = computed(() => route.params.stageId as string | undefined)
 const isEditMode = computed(() => !!stageId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'prompt', label: 'Prompt' },
+  { key: 'features', label: 'Features' },
+  { key: 'memory', label: 'Memory' },
+  { key: 'actions', label: 'Actions' },
+  { key: 'lifecycle', label: 'Lifecycle' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentStage = ref<StageResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentStage)
@@ -910,66 +923,7 @@ function toggleNode(path: number[]) {
     </div>
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
-          type="button"
-        >
-          Prompt
-        </button>
-        <button
-          @click="activeTab = 'features'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'features' }]"
-          type="button"
-        >
-          Features
-        </button>
-        <button
-          @click="activeTab = 'memory'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'memory' }]"
-          type="button"
-        >
-          Memory
-        </button>
-        <button
-          @click="activeTab = 'actions'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'actions' }]"
-          type="button"
-        >
-          Actions
-        </button>
-        <button
-          @click="activeTab = 'lifecycle'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'lifecycle' }]"
-          type="button"
-        >
-          Lifecycle
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->

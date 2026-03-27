@@ -11,6 +11,8 @@ import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,6 +70,13 @@ Respond with a JSON object:
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const classifierId = computed(() => route.params.classifierId as string | undefined)
 const isEditMode = computed(() => !!classifierId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'prompt', label: 'Prompt' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentClassifier = ref<ClassifierResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentClassifier)
@@ -264,38 +273,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
-          type="button"
-        >
-          Prompt
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
     <div v-if="isLoading && isEditMode" class="loading-state">
       Loading classifier...

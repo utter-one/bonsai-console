@@ -1,9 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-3xl" @click.stop>
-      <h2 class="modal-header">
-        Paste Actions
-      </h2>
+  <BaseModal title="Paste Actions" size="3xl" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div class="form-group">
@@ -73,12 +69,12 @@
           </div>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import type { StageAction } from '@/api/types'
 
 const props = defineProps<{

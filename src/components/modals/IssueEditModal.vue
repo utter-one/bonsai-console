@@ -1,23 +1,18 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content-lg" @click.stop>
-      <h2 class="modal-header">{{ issue ? (isReadOnly ? 'View Issue' : 'Edit Issue') : 'Create Issue' }}</h2>
+  <BaseModal :title="issue ? (isReadOnly ? 'View Issue' : 'Edit Issue') : 'Create Issue'" size="xl" @close="$emit('close')">
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
         {{ issue ? 'Update the issue details' : 'Create a new bug report' }}The page is reloading.
       </p>
 
       <div v-if="issue" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <nav class="tabs-nav">
-          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <div v-if="isReadOnly" class="alert-warning mb-4">
         This issue is read-only because its project is archived.
       </div>
 
-      <div v-show="!issue || activeTab === 'details'">
+      <div v-if="!issue || activeTab === 'details'">
       <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Row 1: Project, Stage, Conversation ID -->
@@ -194,7 +189,7 @@
       </form>
       </div>
 
-      <div v-if="issue" v-show="activeTab === 'history'">
+      <div v-if="issue && activeTab === 'history'">
         <EntityHistoryView
           v-if="loadHistory"
           :load-history="loadHistory"
@@ -209,8 +204,7 @@
           <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
         </div>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -223,6 +217,9 @@ import { useStagesStore } from '@/stores/stages'
 import { useVersionStore } from '@/stores'
 import { ExternalLink } from 'lucide-vue-next'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 interface PrefillData {
   projectId?: string
@@ -252,6 +249,11 @@ const stagesStore = useStagesStore()
 const versionStore = useVersionStore()
 const router = useRouter()
 const activeTab = ref<'details' | 'history'>('details')
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'details', label: 'Details' },
+  { key: 'history', label: 'History' },
+])
 
 watch(() => props.issue, () => {
   activeTab.value = 'details'

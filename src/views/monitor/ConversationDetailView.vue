@@ -11,9 +11,12 @@ import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
+import ConversationEventCard from '@/components/ConversationEventCard.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 import { usePagination } from '@/composables'
 import PaginationControls from '@/components/PaginationControls.vue'
+import type { NormalizedEvent } from '../../components/events/eventHelpers'
 
 
 const route = useRoute()
@@ -280,13 +283,19 @@ const pagedEvents = computed(() =>
   orderedEvents.value.slice(eventsPagination.offset.value, eventsPagination.offset.value + eventsPagination.pageSize.value)
 )
 
-async function activatePerformanceTab() {
-  activeTab.value = 'performance'
-  if (!performanceTabActivated.value) {
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'events', label: 'Events Timeline' },
+  { key: 'performance', label: 'Performance', show: !!conversation.value },
+  { key: 'metadata', label: 'Metadata', show: !!conversation.value },
+  { key: 'history', label: 'History', show: !!conversation.value },
+])
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'performance' && !performanceTabActivated.value) {
     performanceTabActivated.value = true
-    await analyticsStore.fetchConversationTimeline(projectId.value, conversationId.value)
+    analyticsStore.fetchConversationTimeline(projectId.value, conversationId.value)
   }
-}
+})
 
 watch(conversationId, () => {
   eventsPagination.currentPage.value = 1
@@ -441,24 +450,7 @@ function fmtMs(value: number | null | undefined): string {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button @click="activeTab = 'events'" :class="['tab-button', { 'tab-button-active': activeTab === 'events' }]"
-            type="button">
-            Events Timeline
-          </button>
-          <button v-if="conversation" @click="activatePerformanceTab"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'performance' }]" type="button">
-            Performance
-          </button>
-          <button v-if="conversation" @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" type="button">
-            Metadata
-          </button>
-          <button v-if="conversation" @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">
-            History
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->
