@@ -2,6 +2,7 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { Trash2, Plus, MoreHorizontal } from 'lucide-vue-next'
 import PromptEditor from './PromptEditor.vue'
+import FloatingDropdown from './FloatingDropdown.vue'
 import type { ActionOperations } from '@/composables/useActionForm'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 
@@ -90,18 +91,14 @@ const addableEffects = computed(() => {
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
-const showAddDropdown = ref(false)
-
 function addSingleEffect(key: string) {
   ;(props.operations as any)[key].enabled = true
-  showAddDropdown.value = false
   selectedEffectId.value = key
 }
 
 function addToolCall() {
   props.operations.callTools.push({ toolId: '', parameters: {} })
   const index = props.operations.callTools.length - 1
-  showAddDropdown.value = false
   selectedEffectId.value = `callTool_${index}`
 }
 
@@ -334,15 +331,8 @@ function getTypeBadgeColor(type: string): string {
   return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
 }
 
-const openVariableDropdown = ref<number | null>(null)
-
-function toggleVariableDropdown(index: number) {
-  openVariableDropdown.value = openVariableDropdown.value === index ? null : index
-}
-
 function selectStageVariable(modIndex: number, variableName: string) {
   props.operations.modifyVariables.modifications[modIndex]!.variableName = variableName
-  openVariableDropdown.value = null
 }
 </script>
 
@@ -389,39 +379,32 @@ function selectStageVariable(modIndex: number, variableName: string) {
 
       <!-- Add Effect Footer -->
       <div class="p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div class="relative">
-          <button
-            type="button"
-            class="w-full btn-secondary text-sm flex items-center justify-center gap-1.5"
-            @click="showAddDropdown = !showAddDropdown"
-          >
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          trigger-class="w-full btn-secondary text-sm flex items-center justify-center gap-1.5"
+          :items="addableEffects"
+          item-key="key"
+          @select="(e) => addSingleEffect(e.key)"
+        >
+          <template #trigger>
             <Plus :size="14" />
             Add Effect
-          </button>
-          <div v-if="showAddDropdown" class="fixed inset-0 z-40" @click="showAddDropdown = false"></div>
-          <div
-            v-if="showAddDropdown"
-            class="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1 max-h-64 overflow-y-auto"
-          >
-            <button
-              v-for="effect in addableEffects"
-              :key="effect.key"
-              type="button"
-              @click="addSingleEffect(effect.key)"
-              class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-            >
-              {{ effect.label }}
-            </button>
+          </template>
+          <template #item="{ item }">
+            {{ item.label }}
+          </template>
+          <template #default="{ close }">
             <div v-if="addableEffects.length > 0" class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
             <button
               type="button"
-              @click="addToolCall()"
+              @click="addToolCall(); close()"
               class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
             >
               Call Tool
             </button>
-          </div>
-        </div>
+          </template>
+        </FloatingDropdown>
       </div>
     </div>
 
@@ -577,38 +560,27 @@ function selectStageVariable(modIndex: number, variableName: string) {
                     placeholder="cart_total"
                     class="form-input font-mono text-sm flex-1"
                   />
-                  <div v-if="stageVariables.length > 0" class="relative">
-                    <button
-                      type="button"
-                      @click.stop="toggleVariableDropdown(index)"
-                      class="btn-secondary mt-0.5"
-                      title="Select from defined variables"
-                    >
+                  <FloatingDropdown
+                    v-if="stageVariables.length > 0"
+                    :items="stageVariablesWithTypes"
+                    item-key="name"
+                    trigger-class="btn-secondary mt-0.5"
+                    trigger-title="Select from defined variables"
+                    @select="(v) => selectStageVariable(index, v.name)"
+                  >
+                    <template #trigger>
                       <MoreHorizontal :size="16" />
-                    </button>
-                    <div v-if="openVariableDropdown === index" class="fixed inset-0 z-40" @click="openVariableDropdown = null"></div>
-                    <div
-                      v-if="openVariableDropdown === index"
-                      @click.stop
-                      class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
-                    >
-                      <button
-                        v-for="variable in stageVariablesWithTypes"
-                        :key="variable.name"
-                        type="button"
-                        @click="selectStageVariable(index, variable.name)"
-                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                    </template>
+                    <template #item="{ item }">
+                      <span class="font-mono text-gray-900 dark:text-gray-100">{{ item.name }}</span>
+                      <span
+                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                        :class="getTypeBadgeColor(item.type)"
                       >
-                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
-                        <span
-                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                          :class="getTypeBadgeColor(variable.type)"
-                        >
-                          {{ variable.displayType }}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+                        {{ item.displayType }}
+                      </span>
+                    </template>
+                  </FloatingDropdown>
                 </div>
 
                 <div v-if="mod.variableName && stageVariables.length > 0" class="flex items-center gap-2">
