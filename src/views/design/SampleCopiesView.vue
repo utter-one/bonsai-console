@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Plus, X, Save, Check, Search, Trash2, Route, Drama } from 'lucide-vue-next'
+import { Plus, X, Save, Check, Trash2, Route, Drama } from 'lucide-vue-next'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 import {
   useSampleCopiesStore,
   useCopyDecoratorsStore,
@@ -20,6 +22,11 @@ const { isReadOnly } = useProjectReadOnly()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const activeTab = ref<'copies' | 'settings'>('copies')
+
+const tabs: TabDefinition[] = [
+  { key: 'copies', label: 'Sample Copies' },
+  { key: 'settings', label: 'Copy Decorators' },
+]
 
 // Filters
 const searchQuery = ref('')
@@ -380,18 +387,7 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
 
           <!-- Tabs -->
           <div class="tabs-container">
-            <nav class="tabs-nav" aria-label="Tabs">
-              <button
-                type="button"
-                @click="activeTab = 'copies'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'copies' }]"
-              >Sample Copies</button>
-              <button
-                type="button"
-                @click="activeTab = 'settings'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'settings' }]"
-              >Copy Decorators</button>
-            </nav>
+            <TabNavigator v-model="activeTab" :tabs="tabs" />
           </div>
 
           <!-- Sample Copies Tab -->
