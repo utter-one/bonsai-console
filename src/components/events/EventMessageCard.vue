@@ -98,7 +98,7 @@ const emit = defineEmits<{
         <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}</div>
       </div>
       <div v-if="event.eventData.visibility" class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600 flex items-center gap-1.5">
-        <Eye class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+        <Eye class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 shrink-0" />
         <span class="text-xs text-gray-600 dark:text-gray-400">Visibility:</span>
         <span
           class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
@@ -123,7 +123,7 @@ const emit = defineEmits<{
             Message Metadata ({{ Object.keys(event.eventData.metadata).length }})
           </summary>
           <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-            <pre class="whitespace-pre-wrap break-words dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+            <pre class="whitespace-pre-wrap wrap-break-word dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
           </div>
         </details>
       </div>

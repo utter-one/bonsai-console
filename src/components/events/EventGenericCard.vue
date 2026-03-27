@@ -29,7 +29,7 @@ const expanded = ref(false)
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Raw Event Data:</span>
           <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-            <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData, null, 2) }}</pre>
+            <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData, null, 2) }}</pre>
           </div>
         </div>
       </div>

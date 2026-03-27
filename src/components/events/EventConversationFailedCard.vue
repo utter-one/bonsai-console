@@ -2,10 +2,14 @@
 import { ref } from 'vue'
 import { AlertCircle, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
+import { resolveName } from './eventHelpers'
 
-defineProps<{
+const props = defineProps<{
   event: NormalizedEvent
   showBugReport?: boolean
+  entityNames?: {
+    stages?: Record<string, string>
+  }
 }>()
 
 const expanded = ref(false)
@@ -26,13 +30,13 @@ const expanded = ref(false)
       </div>
       <div v-show="expanded" class="space-y-2">
         <div v-if="event.eventData.reason">
-          <div class="bg-red-50 border border-red-200 rounded p-2 text-sm text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
-            {{ event.eventData.reason }}
-          </div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
+          <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{ event.eventData.reason }}</div>
         </div>
         <div v-if="event.eventData.stageId">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.stageId, entityNames?.stages) }}</div>
+          <div v-if="entityNames?.stages?.[event.eventData.stageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.stageId }}</div>
         </div>
         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
           <details class="group">
@@ -40,7 +44,7 @@ const expanded = ref(false)
               Metadata ({{ Object.keys(event.eventData.metadata).length }})
             </summary>
             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
             </div>
           </details>
         </div>

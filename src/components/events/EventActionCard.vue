@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import {
   Zap,
+  Layers,
   FileText,
   Wand2,
   ScrollText,
@@ -11,12 +12,14 @@ import {
   ChevronDown,
 } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
-import { formatMs, hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables } from './eventHelpers'
-import ContentViewer from '@/components/ContentViewer.vue'
+import { hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables, resolveName } from './eventHelpers'
 
 const props = defineProps<{
   event: NormalizedEvent
   showBugReport?: boolean
+  entityNames?: {
+    stages?: Record<string, string>
+  }
 }>()
 
 const emit = defineEmits<{
@@ -41,9 +44,8 @@ const expanded = ref(false)
       <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
         <div class="flex items-center gap-2 min-w-0">
           <button @click="expanded = !expanded" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
-          <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ event.eventData.actionName }}</span>
+          <span v-if="!expanded" class="text-xs font-medium text-purple-700 dark:text-purple-300 min-w-0 truncate">{{ event.eventData.actionName }}</span>
           <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
-          <span v-if="event.eventData.metadata?.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-50 border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 shrink-0"><span class="text-purple-600 dark:text-purple-400">{{ formatMs(event.eventData.metadata.durationMs) }}</span></span>
         </div>
         <div class="flex items-center gap-1 shrink-0" @click.stop>
           <button
@@ -68,6 +70,13 @@ const expanded = ref(false)
             <ScrollText class="w-4 h-4" />
           </button>
           <button
+            v-if="event.eventData.result != null"
+            @click="emit('open-raw-response', JSON.stringify(event.eventData.result, null, 2))"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View result">
+            <Layers class="w-4 h-4" />
+          </button>
+          <button
             v-if="hasCurrentVariables(event.eventData.metadata)"
             @click="emit('open-variables', event.eventData.metadata!.currentVariables as Record<string, any>)"
             class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
@@ -85,32 +94,32 @@ const expanded = ref(false)
       </div>
       <div v-show="expanded" class="space-y-2">
         <div>
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
         </div>
         <div v-if="event.eventData.stageId">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.stageId }}</div>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.stageId, entityNames?.stages) }}</div>
+          <div v-if="entityNames?.stages?.[event.eventData.stageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.stageId }}</div>
         </div>
         <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.eventData.effects.length }}):</span>
-          <div class="mt-1 space-y-1">
-            <div v-for="(effect, i) in event.eventData.effects" :key="i"
-              class="text-xs rounded bg-gray-50 border border-gray-200 px-2 py-1.5 font-mono dark:bg-gray-900/40 dark:border-gray-700">
-              <span class="font-semibold text-purple-700 dark:text-purple-400">{{ effect.field }}</span>
-              <span class="text-gray-500 dark:text-gray-400"> = </span>
-              <span class="text-gray-800 dark:text-gray-300">{{ effect.value }}</span>
+          <div class="mt-1 space-y-2">
+            <div v-for="(effect, idx) in event.eventData.effects" :key="idx"
+              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+              <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
+                {{ effect.type || 'Effect' }} {{ (idx as number) + 1 }}
+              </div>
+              <div class="space-y-1">
+                <div v-for="(value, key) in effect" :key="key"
+                  class="md:flex items-start gap-2 text-xs">
+                  <span class="text-gray-600 font-medium min-w-25 shrink-0 dark:text-gray-400">{{ key }}: </span>
+                  <span class="text-gray-900 wrap-break-word font-mono dark:text-gray-200">{{
+                    typeof value === 'object' ? JSON.stringify(value) : String(value)
+                  }}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div v-if="event.eventData.result != null">
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result:</span>
-          <ContentViewer
-            v-if="Array.isArray(event.eventData.result)"
-            :content="event.eventData.result"
-            class="mt-1" />
-          <div v-else class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-            <pre class="whitespace-pre-wrap break-words">{{ typeof event.eventData.result === 'string' ? event.eventData.result : JSON.stringify(event.eventData.result, null, 2) }}</pre>
           </div>
         </div>
         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
@@ -119,7 +128,7 @@ const expanded = ref(false)
               Metadata ({{ Object.keys(event.eventData.metadata).length }})
             </summary>
             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
             </div>
           </details>
         </div>

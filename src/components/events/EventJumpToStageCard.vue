@@ -2,10 +2,14 @@
 import { ref } from 'vue'
 import { Layers, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
+import { resolveName } from './eventHelpers'
 
-defineProps<{
+const props = defineProps<{
   event: NormalizedEvent
   showBugReport?: boolean
+  entityNames?: {
+    stages?: Record<string, string>
+  }
 }>()
 
 const expanded = ref(false)
@@ -20,22 +24,24 @@ const expanded = ref(false)
     <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
-        <button @click="expanded = !expanded" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Jump to Stage</button>
-        <span v-if="!expanded" class="text-xs text-gray-500 truncate">
-          <span v-if="event.eventData.fromStageId" class="font-mono">{{ event.eventData.fromStageId }}</span>
-          <span v-if="event.eventData.fromStageId && event.eventData.toStageId"> → </span>
-          <span v-if="event.eventData.toStageId" class="font-mono">{{ event.eventData.toStageId }}</span>
-        </span>
+        <button @click="expanded = !expanded" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>
+        <template v-if="!expanded">
+          <span class="text-xs font-medium text-teal-700 dark:text-teal-300 shrink-0 truncate">{{ resolveName(event.eventData.fromStageId, entityNames?.stages) }}</span>
+          <span class="text-xs text-gray-400 shrink-0">→</span>
+          <span class="text-xs font-medium text-teal-700 dark:text-teal-300 min-w-0 truncate">{{ resolveName(event.eventData.toStageId, entityNames?.stages) }}</span>
+        </template>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
       </div>
       <div v-show="expanded" class="space-y-2">
         <div v-if="event.eventData.fromStageId">
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From Stage:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.fromStageId }}</div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">From:</span>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.fromStageId, entityNames?.stages) }}</div>
+          <div v-if="entityNames?.stages?.[event.eventData.fromStageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.fromStageId }}</div>
         </div>
         <div v-if="event.eventData.toStageId">
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To Stage:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.toStageId }}</div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">To:</span>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.toStageId, entityNames?.stages) }}</div>
+          <div v-if="entityNames?.stages?.[event.eventData.toStageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.toStageId }}</div>
         </div>
         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
           <details class="group">
@@ -43,7 +49,7 @@ const expanded = ref(false)
               Metadata ({{ Object.keys(event.eventData.metadata).length }})
             </summary>
             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
             </div>
           </details>
         </div>

@@ -11,11 +11,14 @@ import {
   ChevronDown,
 } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
-import { formatMs, hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables } from './eventHelpers'
+import { formatMs, hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables, resolveName } from './eventHelpers'
 
 const props = defineProps<{
   event: NormalizedEvent
   showBugReport?: boolean
+  entityNames?: {
+    classifiers?: Record<string, string>
+  }
 }>()
 
 const emit = defineEmits<{
@@ -40,7 +43,8 @@ const expanded = ref(false)
       <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
         <div class="flex items-center gap-2 min-w-0">
           <button @click="expanded = !expanded" class="font-semibold text-yellow-900 dark:text-yellow-100 shrink-0 text-left">Classification</button>
-          <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ event.eventData.classifierId }} · {{ event.eventData.actions?.length ?? 0 }} action(s) matched</span>
+          <span v-if="!expanded" class="text-xs font-medium text-yellow-700 dark:text-yellow-300 min-w-0 truncate">{{ resolveName(event.eventData.classifierId, entityNames?.classifiers) }}</span>
+          <span v-if="!expanded" class="text-xs text-gray-400 shrink-0">· {{ event.eventData.actions?.length ?? 0 }} action(s) matched</span>
           <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
           <span v-if="event.eventData.metadata?.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 shrink-0"><span class="text-yellow-600 dark:text-yellow-400">{{ formatMs(event.eventData.metadata.durationMs) }}</span></span>
         </div>
@@ -85,7 +89,8 @@ const expanded = ref(false)
       <div v-show="expanded" class="space-y-2">
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Classifier:</span>
-          <div class="text-sm font-mono text-gray-900 dark:text-gray-200">{{ event.eventData.classifierId }}</div>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.classifierId, entityNames?.classifiers) }}</div>
+          <div v-if="entityNames?.classifiers?.[event.eventData.classifierId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.classifierId }}</div>
         </div>
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Input:</span>
@@ -108,8 +113,8 @@ const expanded = ref(false)
                     class="space-y-1">
                     <div v-for="(value, key) in action.parameters" :key="key"
                       class="md:flex items-start gap-2 text-xs">
-                      <span class="text-gray-600 font-medium min-w-[80px] shrink-0 dark:text-gray-400">{{ key }}:</span>
-                      <span class="text-gray-900 break-words dark:text-gray-200">{{
+                      <span class="text-gray-600 font-medium min-w-20 shrink-0 dark:text-gray-400">{{ key }}:</span>
+                      <span class="text-gray-900 wrap-break-word dark:text-gray-200">{{
                         typeof value === 'object' ? JSON.stringify(value) : String(value)
                       }}</span>
                     </div>
@@ -125,7 +130,7 @@ const expanded = ref(false)
               Metadata ({{ Object.keys(event.eventData.metadata).length }})
             </summary>
             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-              <pre class="whitespace-pre-wrap break-words">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
             </div>
           </details>
         </div>

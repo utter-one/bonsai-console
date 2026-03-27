@@ -11,11 +11,12 @@ import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
+import ConversationEventCard from '@/components/ConversationEventCard.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import { usePagination } from '@/composables'
 import PaginationControls from '@/components/PaginationControls.vue'
+import type { NormalizedEvent } from '../../components/events/eventHelpers'
 
 
 const route = useRoute()

@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { CheckCircle, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { UserX, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
-import { resolveName } from './eventHelpers'
 
-const props = defineProps<{
+defineProps<{
   event: NormalizedEvent
-  showBugReport?: boolean
-  entityNames?: {
-    stages?: Record<string, string>
-  }
 }>()
 
 const expanded = ref(false)
@@ -21,22 +16,22 @@ const expanded = ref(false)
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <CheckCircle class="w-5 h-5 mt-0.5 text-gray-600 shrink-0" />
+    <UserX class="w-5 h-5 mt-0.5 text-rose-600 shrink-0" />
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
-        <button @click="expanded = !expanded" class="font-semibold text-gray-900 dark:text-white shrink-0 text-left">Conversation Ended</button>
-        <span v-if="!expanded" class="text-xs text-gray-500 truncate">{{ event.eventData.reason || (event.eventData.stageId ? `stage: ${resolveName(event.eventData.stageId, entityNames?.stages)}` : '') }}</span>
+        <button @click="expanded = !expanded" class="font-semibold text-rose-900 dark:text-rose-100 shrink-0 text-left">User Banned</button>
+        <span v-if="!expanded" class="text-xs font-medium text-rose-700 dark:text-rose-300 min-w-0 truncate">{{ event.eventData.sourceActionName }}</span>
+        <span v-if="!expanded && event.eventData.reason" class="text-xs text-gray-500 shrink-0 truncate">· {{ event.eventData.reason }}</span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
       </div>
       <div v-show="expanded" class="space-y-2">
+        <div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Source Action:</span>
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.sourceActionName }}</div>
+        </div>
         <div v-if="event.eventData.reason">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Reason:</span>
           <div class="text-sm text-gray-900 dark:text-gray-200">{{ event.eventData.reason }}</div>
-        </div>
-        <div v-if="event.eventData.stageId">
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage:</span>
-          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.stageId, entityNames?.stages) }}</div>
-          <div v-if="entityNames?.stages?.[event.eventData.stageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.stageId }}</div>
         </div>
         <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
           <details class="group">
@@ -44,7 +39,7 @@ const expanded = ref(false)
               Metadata ({{ Object.keys(event.eventData.metadata).length }})
             </summary>
             <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
-              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+              <pre class="whitespace-pre-wrap wrap-break-word dark:text-gray-300">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
             </div>
           </details>
         </div>
