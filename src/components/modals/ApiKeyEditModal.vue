@@ -1,89 +1,92 @@
 <template>
   <BaseModal :title="apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key'" size="xl" @close="$emit('close')">
-      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <TabNavigator v-model="activeTab" :tabs="tabs" />
-      </div>
+    <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
+    </div>
 
-      <TabPanel name="details" :active-tab="!apiKey ? 'details' : activeTab">
-      <div v-if="isReadOnly" class="alert-warning mb-4">
-        This API key is read-only because its project is archived.
-      </div>
-
-      <form v-show="activeTab !== 'history'" @submit.prevent="handleSubmit">
-        <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
+    <form v-show="activeTab !== 'history'">
+      <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
+        <TabPanel name="details" :active-tab="!apiKey ? 'details' : activeTab">
+          <div v-if="isReadOnly" class="alert-warning mb-4">
+            This API key is read-only because its project is archived.
+          </div>
 
           <!-- Details tab -->
           <div v-show="activeTab === 'details'">
-        <div class="form-group">
-          <label class="form-label">
-            API Key Name <span class="required">*</span>
-          </label>
-          <input
-            v-model="form.name"
-            type="text"
-            required
-            placeholder="Production API Key"
-            maxlength="255"
-            class="form-input"
-          />
-          <p class="form-help-text">A descriptive name to identify this API key</p>
-        </div>
-
-        <div v-if="showNewKeyAlert && newKeyValue" class="form-group">
-          <label class="form-label">API Key</label>
-          <div class="flex gap-2">
-            <input :value="newKeyValue" readonly class="form-input font-mono text-xs" />
-            <button @click="copyToClipboard" type="button" class="btn-secondary shrink-0">
-              {{ copied ? 'Copied!' : 'Copy' }}
-            </button>
-          </div>
-          <p class="form-help-text">Store this key securely</p>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
-            Project 
-            <span v-if="!apiKey && !props.projectId" class="required">*</span>
-          </label>
-          <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
-            <option value="" disabled>Select a project</option>
-            <option v-for="option in projectOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-          <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
-          <p class="form-help-text">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
-        </div>
-
-        <div v-if="apiKey" class="form-group">
-          <label class="flex items-center gap-2">
-            <input
-              v-model="form.isActive"
-              type="checkbox"
-              class="form-checkbox"
-            />
-            <span class="form-label mb-0">Active</span>
-          </label>
-          <p class="form-help-text">Inactive keys cannot be used for authentication</p>
-        </div>
-
-        <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
-          <div class="text-sm space-y-1">
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400">Created:</span>
-              <span>{{ formatDate(apiKey.createdAt) }}</span>
+            <div class="form-group">
+              <label class="form-label">
+                API Key Name <span class="required">*</span>
+              </label>
+              <input
+                v-model="form.name"
+                type="text"
+                required
+                placeholder="Production API Key"
+                maxlength="255"
+                class="form-input"
+              />
+              <p class="form-help-text">A descriptive name to identify this API key</p>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
-              <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
+
+            <div v-if="showNewKeyAlert && newKeyValue" class="form-group">
+              <label class="form-label">API Key</label>
+              <div class="flex gap-2">
+                <input :value="newKeyValue" readonly class="form-input font-mono text-xs" />
+                <button @click="copyToClipboard" type="button" class="btn-secondary shrink-0">
+                  {{ copied ? 'Copied!' : 'Copy' }}
+                </button>
+              </div>
+              <p class="form-help-text">Store this key securely</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Project 
+                <span v-if="!apiKey && !props.projectId" class="required">*</span>
+              </label>
+              <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
+                <option value="" disabled>Select a project</option>
+                <option v-for="option in projectOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
+              <p class="form-help-text">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
+            </div>
+
+            <div v-if="apiKey" class="form-group">
+              <label class="flex items-center gap-2">
+                <input
+                  v-model="form.isActive"
+                  type="checkbox"
+                  class="form-checkbox"
+                />
+                <span class="form-label mb-0">Active</span>
+              </label>
+              <p class="form-help-text">Inactive keys cannot be used for authentication</p>
+            </div>
+
+            <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
+              <div class="text-sm space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Created:</span>
+                  <span>{{ formatDate(apiKey.createdAt) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
+                  <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </TabPanel>
+        <TabPanel name="settings" :active-tab="!apiKey ? 'details' : activeTab">
+          <div v-if="isReadOnly" class="alert-warning mb-4">
+            This API key is read-only because its project is archived.
           </div>
 
           <!-- Settings tab -->
           <div v-show="activeTab === 'settings'">
-
             <!-- Channels restriction -->
             <div class="form-group">
               <label class="flex items-center gap-2">
@@ -141,38 +144,33 @@
                 </div>
               </div>
             </div>
-
           </div>
+        </TabPanel>
+      </fieldset>
+    </form>
 
-        </fieldset>
+    <TabPanel v-if="apiKey" name="history" :active-tab="activeTab">
+      <EntityHistoryView
+        v-if="loadHistory"
+        :load-history="loadHistory"
+        :current-object="apiKey"
+        :current-version="apiKey.version"
+        :active="activeTab === 'history'"
+        :update-fn="updateFn"
+        :create-fn="createFn"
+        :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
+        @recover-success="emit('recoverSuccess')"
+      />
+    </TabPanel>
 
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">
-            {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
-          </button>
-          <button v-if="!isReadOnly" type="submit" class="btn-primary">
-            {{ apiKey ? 'Save Changes' : 'Create API Key' }}
-          </button>
-        </div>
-      </form>
-      </TabPanel>
-
-      <TabPanel v-if="apiKey" name="history" :active-tab="activeTab">
-        <EntityHistoryView
-          v-if="loadHistory"
-          :load-history="loadHistory"
-          :current-object="apiKey"
-          :current-version="apiKey.version"
-          :active="activeTab === 'history'"
-          :update-fn="updateFn"
-          :create-fn="createFn"
-          :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
-          @recover-success="emit('recoverSuccess')"
-        />
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
-        </div>
-      </TabPanel>
+    <div class="modal-footer">
+      <button type="button" @click="$emit('close')" class="btn-secondary">
+        {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
+      </button>
+      <button v-if="!isReadOnly" @click="handleSubmit" class="btn-primary">
+        {{ apiKey ? 'Save Changes' : 'Create API Key' }}
+      </button>
+    </div>
   </BaseModal>
 </template>
 
@@ -360,6 +358,7 @@ function handleSubmit() {
     data.metadata = form.value.metadata
     data.version = form.value.version
   }
+  console.log('Submitting API key data:', data)
   emit('save', data)
 }
 

@@ -110,6 +110,7 @@ async function handleSave(data: CreateApiKeyRequest | UpdateApiKeyRequest) {
         name: updateData.name,
         isActive: updateData.isActive,
         metadata: updateData.metadata,
+        keySettings: updateData.keySettings,
         version: updateData.version,
       })
       showModal.value = false
