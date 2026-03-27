@@ -6,7 +6,7 @@
 
     <form v-show="activeTab !== 'history'">
       <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
-        <TabPanel name="details" :active-tab="!apiKey ? 'details' : activeTab">
+        <div v-if="!apiKey || activeTab === 'details'">
           <div v-if="isReadOnly" class="alert-warning mb-4">
             This API key is read-only because its project is archived.
           </div>
@@ -79,8 +79,8 @@
               </div>
             </div>
           </div>
-        </TabPanel>
-        <TabPanel name="settings" :active-tab="!apiKey ? 'details' : activeTab">
+        </div>
+        <div v-if="apiKey && activeTab === 'settings'">
           <div v-if="isReadOnly" class="alert-warning mb-4">
             This API key is read-only because its project is archived.
           </div>
@@ -145,11 +145,11 @@
               </div>
             </div>
           </div>
-        </TabPanel>
+        </div>
       </fieldset>
     </form>
 
-    <TabPanel v-if="apiKey" name="history" :active-tab="activeTab">
+    <div v-if="apiKey && activeTab === 'history'">
       <EntityHistoryView
         v-if="loadHistory"
         :load-history="loadHistory"
@@ -161,7 +161,7 @@
         :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
         @recover-success="emit('recoverSuccess')"
       />
-    </TabPanel>
+    </div>
 
     <div class="modal-footer">
       <button type="button" @click="$emit('close')" class="btn-secondary">
@@ -181,7 +181,6 @@ import { useProjectsStore } from '@/stores/projects'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
-import TabPanel from '@/components/TabPanel.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const ALL_CHANNELS = ['websocket', 'webrtc'] as const

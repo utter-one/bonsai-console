@@ -3,10 +3,10 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
 import { usePagination } from '@/composables'
-import { RefreshCw, MessageSquare } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
-import FilterDropdown from '@/components/FilterDropdown.vue'
+import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -293,77 +293,124 @@ async function handleResumeConversation(conversation: ConversationResponse) {
         <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
         <!-- Status Filter -->
-        <FilterDropdown :label="currentStatusFilterLabel" :active="statusFilter !== 'all'">
-          <button
-            v-for="option in statusFilterOptions"
-            :key="option.value"
-            @click="statusFilter = option.value"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
-          >
-            {{ option.label }}
-          </button>
-        </FilterDropdown>
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          :trigger-class="statusFilter !== 'all' ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentStatusFilterLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              v-for="option in statusFilterOptions"
+              :key="option.value"
+              type="button"
+              @click="statusFilter = option.value; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': statusFilter === option.value }"
+            >
+              {{ option.label }}
+            </button>
+          </template>
+        </FloatingDropdown>
 
         <!-- User Filter -->
-        <FilterDropdown :label="currentUserFilterLabel" :active="userFilter !== null">
-          <button
-            @click="userFilter = null"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': userFilter === null }"
-          >
-            All Users
-          </button>
-          <button
-            v-for="user in userOptions"
-            :key="user.id"
-            @click="userFilter = user.id"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
-          >
-            {{ user.id }}
-          </button>
-        </FilterDropdown>
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          :trigger-class="userFilter !== null ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentUserFilterLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              type="button"
+              @click="userFilter = null; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === null }"
+            >
+              All Users
+            </button>
+            <button
+              v-for="user in userOptions"
+              :key="user.id"
+              type="button"
+              @click="userFilter = user.id; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': userFilter === user.id }"
+            >
+              {{ user.id }}
+            </button>
+          </template>
+        </FloatingDropdown>
 
         <!-- Starting Stage Filter -->
-        <FilterDropdown :label="currentStartingStageLabel" :active="startingStageFilter !== null">
-          <button
-            @click="startingStageFilter = null"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
-          >
-            All Starting Stages
-          </button>
-          <button
-            v-for="stage in stageOptions"
-            :key="stage.id"
-            @click="startingStageFilter = stage.id"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
-          >
-            {{ stage.name }}
-          </button>
-        </FilterDropdown>
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          :trigger-class="startingStageFilter !== null ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentStartingStageLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              type="button"
+              @click="startingStageFilter = null; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === null }"
+            >
+              All Starting Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              type="button"
+              @click="startingStageFilter = stage.id; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': startingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
+            </button>
+          </template>
+        </FloatingDropdown>
 
         <!-- Ending Stage Filter -->
-        <FilterDropdown :label="currentEndingStageLabel" :active="endingStageFilter !== null">
-          <button
-            @click="endingStageFilter = null"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
-          >
-            All Ending Stages
-          </button>
-          <button
-            v-for="stage in stageOptions"
-            :key="stage.id"
-            @click="endingStageFilter = stage.id"
-            class="filter-dropdown-item"
-            :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
-          >
-            {{ stage.name }}
-          </button>
-        </FilterDropdown>
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          :trigger-class="endingStageFilter !== null ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentEndingStageLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              type="button"
+              @click="endingStageFilter = null; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === null }"
+            >
+              All Ending Stages
+            </button>
+            <button
+              v-for="stage in stageOptions"
+              :key="stage.id"
+              type="button"
+              @click="endingStageFilter = stage.id; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': endingStageFilter === stage.id }"
+            >
+              {{ stage.name }}
+            </button>
+          </template>
+        </FloatingDropdown>
       </div>
 
       <!-- Loading State -->

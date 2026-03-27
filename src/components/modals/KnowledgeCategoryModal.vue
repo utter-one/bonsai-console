@@ -1,5 +1,5 @@
 <template>
-  <BaseModal size="lg" :title="category ? 'Edit Category' : 'New Category'" @close="emit('close')">
+  <BaseModal size="xl" :title="category ? 'Edit Category' : 'New Category'" @close="emit('close')">
     <div v-if="category" class="border-b border-gray-200 dark:border-gray-700 mb-4">
       <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
@@ -8,7 +8,7 @@
       This category is read-only because the project is archived.
     </div>
 
-    <TabPanel name="details" :active-tab="activeTab">
+    <div v-if="activeTab === 'details'">
       <form id="category-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">Name <span class="required">*</span></label>
@@ -62,9 +62,9 @@
           />
         </div>
       </form>
-    </TabPanel>
+    </div>
 
-    <TabPanel v-if="category" name="history" :active-tab="activeTab">
+    <div v-if="category && activeTab === 'history'">
       <EntityHistoryView
         v-if="loadHistory"
         :load-history="loadHistory"
@@ -76,7 +76,7 @@
         :ignore-fields="['archived', 'updatedAt', 'version', 'items']"
         @recover-success="emit('recoverSuccess')"
       />
-    </TabPanel>
+    </div>
 
     <template #footer>
       <div v-if="!category || activeTab === 'details'" class="modal-footer">
@@ -99,7 +99,6 @@ import type { KnowledgeCategoryResponse } from '@/api/types'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
-import TabPanel from '@/components/TabPanel.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const props = defineProps<{

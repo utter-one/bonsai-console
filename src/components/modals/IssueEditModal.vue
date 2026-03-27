@@ -12,7 +12,7 @@
         This issue is read-only because its project is archived.
       </div>
 
-      <TabPanel name="details" :active-tab="!issue ? 'details' : activeTab">
+      <div v-if="!issue || activeTab === 'details'">
       <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Row 1: Project, Stage, Conversation ID -->
@@ -187,9 +187,9 @@
           </button>
         </div>
       </form>
-      </TabPanel>
+      </div>
 
-      <TabPanel v-if="issue" name="history" :active-tab="activeTab">
+      <div v-if="issue && activeTab === 'history'">
         <EntityHistoryView
           v-if="loadHistory"
           :load-history="loadHistory"
@@ -203,7 +203,7 @@
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
         </div>
-      </TabPanel>
+      </div>
   </BaseModal>
 </template>
 
@@ -219,7 +219,6 @@ import { ExternalLink } from 'lucide-vue-next'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
-import TabPanel from '@/components/TabPanel.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 interface PrefillData {

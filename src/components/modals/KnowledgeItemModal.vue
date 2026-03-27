@@ -1,77 +1,77 @@
 <template>
   <BaseModal :title="item ? 'Edit Knowledge Item' : 'New Knowledge Item'" size="xl" @close="$emit('close')">
-      <div v-if="item" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <TabNavigator v-model="activeTab" :tabs="tabs" />
-      </div>
+    <div v-if="item" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
+    </div>
 
-      <div v-if="isReadOnly" class="alert-warning mb-4">
-        This item is read-only because the project is archived.
-      </div>
+    <div v-if="isReadOnly" class="alert-warning mb-4">
+      This item is read-only because the project is archived.
+    </div>
 
-      <TabPanel name="details" :active-tab="!item ? 'details' : activeTab">
-      <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label class="form-label">Question <span class="required">*</span></label>
-          <input
-            v-model="form.question"
-            type="text"
-            required
-            class="form-input"
-            placeholder="What is the question the user might ask?"
-            :disabled="disabled"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Answer <span class="required">*</span></label>
-          <textarea
-            v-model="form.answer"
-            required
-            class="form-textarea"
-            rows="5"
-            placeholder="Provide the answer that the assistant should give..."
-            :disabled="disabled"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Display Order</label>
-          <input
-            v-model.number="form.order"
-            type="number"
-            min="0"
-            class="form-input max-w-32"
-            :disabled="disabled"
-          />
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">
-            Cancel
-          </button>
-          <button v-if="!disabled" type="submit" class="btn-primary">
-            {{ item ? 'Save Changes' : 'Create Item' }}
-          </button>
-        </div>
-      </form>
-      </TabPanel>
-
-      <TabPanel v-if="item" name="history" :active-tab="activeTab">
-        <EntityHistoryView
-          v-if="loadHistory"
-          :load-history="loadHistory"
-          :current-object="item"
-          :current-version="item.version"
-          :active="activeTab === 'history'"
-          :update-fn="updateFn"
-          :create-fn="createFn"
-          :ignore-fields="['archived', 'updatedAt', 'version']"
-          @recover-success="emit('recoverSuccess')"
+    <div v-if="!item || activeTab === 'details'">
+    <form @submit.prevent="handleSubmit">
+      <div class="form-group">
+        <label class="form-label">Question <span class="required">*</span></label>
+        <input
+          v-model="form.question"
+          type="text"
+          required
+          class="form-input"
+          placeholder="What is the question the user might ask?"
+          :disabled="disabled"
         />
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
-        </div>
-      </TabPanel>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Answer <span class="required">*</span></label>
+        <textarea
+          v-model="form.answer"
+          required
+          class="form-textarea"
+          rows="5"
+          placeholder="Provide the answer that the assistant should give..."
+          :disabled="disabled"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Display Order</label>
+        <input
+          v-model.number="form.order"
+          type="number"
+          min="0"
+          class="form-input max-w-32"
+          :disabled="disabled"
+        />
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" @click="$emit('close')" class="btn-secondary">
+          Cancel
+        </button>
+        <button v-if="!disabled" type="submit" class="btn-primary">
+          {{ item ? 'Save Changes' : 'Create Item' }}
+        </button>
+      </div>
+    </form>
+    </div>
+
+    <div v-if="item && activeTab === 'history'">
+      <EntityHistoryView
+        v-if="loadHistory"
+        :load-history="loadHistory"
+        :current-object="item"
+        :current-version="item.version"
+        :active="activeTab === 'history'"
+        :update-fn="updateFn"
+        :create-fn="createFn"
+        :ignore-fields="['archived', 'updatedAt', 'version']"
+        @recover-success="emit('recoverSuccess')"
+      />
+      <div class="modal-footer">
+        <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
+      </div>
+    </div>
   </BaseModal>
 </template>
 
@@ -82,7 +82,6 @@ import type { KnowledgeItemResponse } from '@/api/types'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
-import TabPanel from '@/components/TabPanel.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const props = defineProps<{
