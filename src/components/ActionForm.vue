@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { MoreHorizontal } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
+import FloatingDropdown from './FloatingDropdown.vue'
 import ActionEffectsEditor from './ActionEffectsEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 import type { ActionOperations } from '../composables'
@@ -84,19 +85,8 @@ function removeWatchedVariable(index: number) {
   props.form.watchedVariables.splice(index, 1)
 }
 
-const openWatchedVariableDropdown = ref<number | null>(null)
-
-function toggleWatchedVariableDropdown(index: number) {
-  if (openWatchedVariableDropdown.value === index) {
-    openWatchedVariableDropdown.value = null
-  } else {
-    openWatchedVariableDropdown.value = index
-  }
-}
-
 function selectWatchedVariable(index: number, variableName: string) {
   props.form.watchedVariables[index]!.path = variableName
-  openWatchedVariableDropdown.value = null
 }
 
 const stageVariablesWithTypes = computed(() => {
@@ -373,42 +363,27 @@ function getTypeBadgeColor(type: string): string {
                       placeholder="cart_total"
                       class="form-input font-mono text-sm flex-1"
                     />
-                    <div v-if="stageVariables.length > 0" class="relative">
-                      <button
-                        type="button"
-                        @click.stop="toggleWatchedVariableDropdown(index)"
-                        class="btn-secondary mt-0.5"
-                        title="Select from defined variables"
-                      >
+                    <FloatingDropdown
+                      v-if="stageVariables.length > 0"
+                      :items="stageVariablesWithTypes"
+                      item-key="name"
+                      trigger-class="btn-secondary mt-0.5"
+                      trigger-title="Select from defined variables"
+                      @select="(v) => selectWatchedVariable(index, v.name)"
+                    >
+                      <template #trigger>
                         <MoreHorizontal :size="16" />
-                      </button>
-                      <div
-                        v-if="openWatchedVariableDropdown === index"
-                        class="fixed inset-0 z-40"
-                        @click="openWatchedVariableDropdown = null"
-                      ></div>
-                      <div
-                        v-if="openWatchedVariableDropdown === index"
-                        @click.stop
-                        class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
-                      >
-                        <button
-                          v-for="variable in stageVariablesWithTypes"
-                          :key="variable.name"
-                          type="button"
-                          @click="selectWatchedVariable(index, variable.name)"
-                          class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                      </template>
+                      <template #item="{ item }">
+                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ item.name }}</span>
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                          :class="getTypeBadgeColor(item.type)"
                         >
-                          <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
-                          <span
-                            class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                            :class="getTypeBadgeColor(variable.type)"
-                          >
-                            {{ variable.displayType }}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
+                          {{ item.displayType }}
+                        </span>
+                      </template>
+                    </FloatingDropdown>
                   </div>
                 </div>
                 <div>
