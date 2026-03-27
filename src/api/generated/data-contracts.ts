@@ -1117,6 +1117,12 @@ export interface ModerationConfig {
   blockedCategories?: string[];
 }
 
+/** Sample copy configuration settings */
+export interface SampleCopyConfig {
+  /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+  defaultClassifierId?: string;
+}
+
 export interface FillerSettings {
   /** ID of the LLM provider used to generate the filler sentence */
   llmProviderId: string;
@@ -1785,6 +1791,8 @@ export interface CreateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
   defaultGuardrailClassifierId?: string | null;
+  /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+  sampleCopyConfig?: SampleCopyConfig;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -1906,6 +1914,11 @@ export interface UpdateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
   defaultGuardrailClassifierId?: string | null;
+  /** Updated sample copy configuration. Set to null to clear. */
+  sampleCopyConfig?: {
+    /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+    defaultClassifierId?: string;
+  } | null;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -1978,6 +1991,11 @@ export interface ProjectResponse {
   userProfileVariableDescriptors: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project */
   defaultGuardrailClassifierId: string | null;
+  /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+  sampleCopyConfig?: {
+    /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+    defaultClassifierId?: string;
+  } | null;
   /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
   conversationTimeoutSeconds: number | null;
   /** The version number of the project */
@@ -2066,6 +2084,11 @@ export interface ProjectListResponse {
     userProfileVariableDescriptors: FieldDescriptor[];
     /** ID of the classifier used to evaluate guardrails for all conversations in this project */
     defaultGuardrailClassifierId: string | null;
+    /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+    sampleCopyConfig?: {
+      /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+      defaultClassifierId?: string;
+    } | null;
     /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
     conversationTimeoutSeconds: number | null;
     /** The version number of the project */

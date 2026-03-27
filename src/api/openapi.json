@@ -1798,6 +1798,16 @@
         ],
         "description": "Content moderation configuration"
       },
+      "SampleCopyConfig": {
+        "type": "object",
+        "properties": {
+          "defaultClassifierId": {
+            "type": "string",
+            "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+          }
+        },
+        "description": "Sample copy configuration settings"
+      },
       "FillerSettings": {
         "type": "object",
         "properties": {
@@ -3243,6 +3253,16 @@
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
           },
+          "sampleCopyConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SampleCopyConfig"
+              },
+              {
+                "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+              }
+            ]
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "minimum": 0,
@@ -3558,6 +3578,17 @@
             "nullable": true,
             "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
           },
+          "sampleCopyConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "defaultClassifierId": {
+                "type": "string",
+                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+              }
+            },
+            "description": "Updated sample copy configuration. Set to null to clear."
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
@@ -3741,6 +3772,17 @@
             "type": "string",
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+          },
+          "sampleCopyConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "defaultClassifierId": {
+                "type": "string",
+                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+              }
+            },
+            "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
           },
           "conversationTimeoutSeconds": {
             "type": "integer",
@@ -3970,6 +4012,17 @@
                   "type": "string",
                   "nullable": true,
                   "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                },
+                "sampleCopyConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "defaultClassifierId": {
+                      "type": "string",
+                      "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                    }
+                  },
+                  "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                 },
                 "conversationTimeoutSeconds": {
                   "type": "integer",
@@ -17644,6 +17697,16 @@
                     "nullable": true,
                     "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
                   },
+                  "sampleCopyConfig": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SampleCopyConfig"
+                      },
+                      {
+                        "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                      }
+                    ]
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "minimum": 0,
@@ -17830,6 +17893,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
@@ -18227,6 +18301,17 @@
                             "nullable": true,
                             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                           },
+                          "sampleCopyConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "defaultClassifierId": {
+                                "type": "string",
+                                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                              }
+                            },
+                            "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                          },
                           "conversationTimeoutSeconds": {
                             "type": "integer",
                             "nullable": true,
@@ -18493,6 +18578,17 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -18742,6 +18838,17 @@
                     "nullable": true,
                     "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
                   },
+                  "sampleCopyConfig": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "defaultClassifierId": {
+                        "type": "string",
+                        "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                      }
+                    },
+                    "description": "Updated sample copy configuration. Set to null to clear."
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "nullable": true,
@@ -18933,6 +19040,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
@@ -19242,6 +19360,17 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -19519,6 +19648,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",

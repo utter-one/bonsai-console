@@ -9,6 +9,8 @@ import {
   useStagesStore,
   useAgentsStore,
   useProjectSelectionStore,
+  useProjectsStore,
+  useClassifiersStore,
 } from '@/stores'
 import type { CreateSampleCopyRequest, SampleCopyResponse } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
@@ -18,10 +20,18 @@ const copyDecoratorsStore = useCopyDecoratorsStore()
 const stagesStore = useStagesStore()
 const agentsStore = useAgentsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const projectsStore = useProjectsStore()
+const classifiersStore = useClassifiersStore()
 const { isReadOnly } = useProjectReadOnly()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const activeTab = ref<'copies' | 'settings'>('copies')
+
+const currentProject = ref<any>(null)
+const settingsLoading = ref(false)
+const settingsError = ref<string | null>(null)
+const showSettingsSuccess = ref(false)
+const defaultSampleCopyClassifierId = ref<string>('')
 
 const tabs: TabDefinition[] = [
   { key: 'copies', label: 'Sample Copies' },
@@ -129,9 +139,42 @@ async function loadData() {
     stagesStore.fetchAll(projectId.value),
     agentsStore.fetchAll(projectId.value),
     copyDecoratorsStore.fetchAll(projectId.value),
+    loadProjectSettings(),
   ])
   rows.value = sampleCopiesStore.items.map(makeRowState)
   decoratorRows.value = copyDecoratorsStore.items.map(makeDecoratorRowState)
+}
+
+async function loadProjectSettings() {
+  if (!projectId.value) return
+  try {
+    await classifiersStore.fetchAll(projectId.value)
+    currentProject.value = await projectsStore.fetchById(projectId.value)
+    defaultSampleCopyClassifierId.value = currentProject.value?.sampleCopyConfig?.defaultClassifierId || ''
+  } catch (err: any) {
+    settingsError.value = err.response?.data?.message || 'Failed to load project settings'
+  }
+}
+
+async function saveProjectSettings() {
+  if (!currentProject.value) return
+  settingsLoading.value = true
+  settingsError.value = null
+  try {
+    const updated = await projectsStore.update(currentProject.value.id, {
+      version: currentProject.value.version,
+      sampleCopyConfig: defaultSampleCopyClassifierId.value
+        ? { defaultClassifierId: defaultSampleCopyClassifierId.value }
+        : null,
+    })
+    currentProject.value = updated
+    showSettingsSuccess.value = true
+    setTimeout(() => { showSettingsSuccess.value = false }, 3000)
+  } catch (err: any) {
+    settingsError.value = err.response?.data?.message || 'Failed to save project settings'
+  } finally {
+    settingsLoading.value = false
+  }
 }
 
 onMounted(loadData)
@@ -392,6 +435,37 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
 
           <!-- Sample Copies Tab -->
           <div v-show="activeTab === 'copies'" class="tab-content">
+        <!-- Sample Copy Classifier Setting -->
+        <div class="mb-6">
+          <div class="form-group">
+            <label class="form-label">Sample Copy Classifier</label>
+            <div class="flex items-center gap-3">
+              <select
+                v-model="defaultSampleCopyClassifierId"
+                class="form-select-auto min-w-64"
+                :disabled="isReadOnly || settingsLoading"
+              >
+                <option value="">None — trigger matching disabled</option>
+                <option v-for="classifier in classifiersStore.items" :key="classifier.id" :value="classifier.id">
+                  {{ classifier.name }}
+                </option>
+              </select>
+              <button
+                v-if="!isReadOnly"
+                @click="saveProjectSettings"
+                class="btn-secondary shrink-0"
+                :disabled="settingsLoading || showSettingsSuccess"
+              >
+                <Check v-if="showSettingsSuccess" class="inline-block mr-2 w-4 h-4" />
+                <Save v-else class="inline-block mr-2 w-4 h-4" />
+                {{ showSettingsSuccess ? 'Saved!' : 'Save' }}
+              </button>
+            </div>
+            <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
+            <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
+          </div>
+        </div>
+
         <!-- Toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
           <div class="relative">
