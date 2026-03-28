@@ -195,7 +195,8 @@ const filteredRows = computed(() => {
     if (filterStageId.value && !row.stages.includes(filterStageId.value)) return false
     if (filterAgentId.value && !row.agents.includes(filterAgentId.value)) return false
     if (filterDecoratorId.value === '__none__' && row.decoratorId !== null) return false
-    if (filterDecoratorId.value && filterDecoratorId.value !== '__none__' && row.decoratorId !== filterDecoratorId.value) return false
+    if (filterDecoratorId.value === '__enforce__' && row.mode !== 'forced') return false
+    if (filterDecoratorId.value && filterDecoratorId.value !== '__none__' && filterDecoratorId.value !== '__enforce__' && row.decoratorId !== filterDecoratorId.value) return false
     return true
   })
 })
@@ -553,6 +554,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
                 <option value="">All Types</option>
                 <option value="__none__">Raw (no decorator)</option>
+                <option value="__enforce__">Enforce</option>
                 <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
               </select>
 
