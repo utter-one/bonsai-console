@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Plus, X, Save, Check, Trash2, Route, Drama } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted } from 'vue'
+import { Plus, X, Save, Check, Trash2, Route, Drama, AlertTriangle } from 'lucide-vue-next'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import MultiSelectCell from '@/components/MultiSelectCell.vue'
 import {
   useSampleCopiesStore,
   useCopyDecoratorsStore,
@@ -14,6 +15,7 @@ import {
 } from '@/stores'
 import type { CreateSampleCopyRequest, SampleCopyResponse } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useSpreadsheetBehavior } from '@/composables/useSpreadsheetBehavior'
 
 const sampleCopiesStore = useSampleCopiesStore()
 const copyDecoratorsStore = useCopyDecoratorsStore()
@@ -60,8 +62,7 @@ interface RowState {
   version: number
   isDirty: boolean
   isSaving: boolean
-  openStageDropdown: boolean
-  openAgentDropdown: boolean
+  saveError: string | null
 }
 
 interface DecoratorRowState {
@@ -94,8 +95,7 @@ function makeRowState(item: SampleCopyResponse): RowState {
     version: item.version,
     isDirty: false,
     isSaving: false,
-    openStageDropdown: false,
-    openAgentDropdown: false,
+    saveError: null,
   }
 }
 
@@ -115,8 +115,7 @@ function makeNewRow(): RowState {
     version: 0,
     isDirty: true,
     isSaving: false,
-    openStageDropdown: false,
-    openAgentDropdown: false,
+    saveError: null,
   }
 }
 
@@ -210,17 +209,18 @@ function clearFilters() {
 }
 
 function addRow() {
-  closeAllDropdowns()
   rows.value.unshift(makeNewRow())
 }
 
 function markDirty(row: RowState) {
   row.isDirty = true
+  row.saveError = null
 }
 
 async function saveRow(row: RowState) {
-  if (!projectId.value || row.isSaving) return
+  if (!projectId.value || row.isSaving || !row.isDirty) return
   row.isSaving = true
+  row.saveError = null
   try {
     if (row.id === null) {
       const req: CreateSampleCopyRequest = {
@@ -237,6 +237,7 @@ async function saveRow(row: RowState) {
       const result = await sampleCopiesStore.create(projectId.value, req)
       row.id = result.id
       row.version = result.version
+      row.tempId = result.id
     } else {
       const result = await sampleCopiesStore.update(projectId.value, row.id, {
         name: row.name,
@@ -254,8 +255,8 @@ async function saveRow(row: RowState) {
     }
     row.isDirty = false
     flashSuccess(row.tempId)
-  } catch {
-    // error state managed by store
+  } catch (err: any) {
+    row.saveError = err.response?.data?.message || 'Save failed'
   } finally {
     row.isSaving = false
   }
@@ -286,76 +287,54 @@ function flashSuccess(key: string) {
   }, 2000)
 }
 
-// Stage / agent helpers
-function getStage(id: string) {
-  return stagesStore.items.find(s => s.id === id)
-}
-function getAgent(id: string) {
-  return agentsStore.items.find(a => a.id === id)
-}
-function availableStages(row: RowState) {
-  return stagesStore.items.filter(s => !row.stages.includes(s.id))
-}
-function availableAgents(row: RowState) {
-  return agentsStore.items.filter(a => !row.agents.includes(a.id))
-}
-function addStage(row: RowState, stageId: string) {
-  if (!row.stages.includes(stageId)) {
-    row.stages = [...row.stages, stageId]
-    markDirty(row)
-  }
-  row.openStageDropdown = false
-}
-function removeStage(row: RowState, stageId: string) {
-  row.stages = row.stages.filter(s => s !== stageId)
-  markDirty(row)
-}
-function addAgent(row: RowState, agentId: string) {
-  if (!row.agents.includes(agentId)) {
-    row.agents = [...row.agents, agentId]
-    markDirty(row)
-  }
-  row.openAgentDropdown = false
-}
-function removeAgent(row: RowState, agentId: string) {
-  row.agents = row.agents.filter(a => a !== agentId)
-  markDirty(row)
-}
+// Stage / agent option lists for MultiSelectCell
+const stageOptions = computed(() =>
+  stagesStore.items.map(s => ({ id: s.id, name: s.name }))
+)
+const agentOptions = computed(() =>
+  agentsStore.items.map(a => ({ id: a.id, name: a.name }))
+)
+
 function addContent(row: RowState) {
   row.content = [...row.content, '']
   markDirty(row)
 }
+
 function removeContent(row: RowState, idx: number) {
-  if (row.content.length <= 1) return
   row.content = row.content.filter((_, i) => i !== idx)
   markDirty(row)
 }
 
-function toggleDropdown(row: RowState, type: 'stage' | 'agent') {
-  for (const r of rows.value) {
-    if (r !== row) {
-      r.openStageDropdown = false
-      r.openAgentDropdown = false
-    }
-  }
-  if (type === 'stage') {
-    row.openAgentDropdown = false
-    row.openStageDropdown = !row.openStageDropdown
+function onContentKeydown(e: KeyboardEvent) {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+  const ta = e.target as HTMLTextAreaElement
+  const container = ta.closest('[data-content-cell]')
+  if (!container) return
+  const textareas = Array.from(container.querySelectorAll<HTMLTextAreaElement>('textarea'))
+  const i = textareas.indexOf(ta)
+  if (i === -1) return
+
+  if (e.key === 'ArrowDown') {
+    const lineCount = ta.value.split('\n').length
+    const cursorLine = ta.value.substring(0, ta.selectionEnd).split('\n').length
+    if (cursorLine < lineCount) return // cursor not on last line — let browser move it
+    if (i >= textareas.length - 1) return // last textarea — let table handler move row
+    e.preventDefault()
+    e.stopPropagation()
+    const next = textareas[i + 1]!
+    next.focus()
+    next.setSelectionRange(0, 0)
   } else {
-    row.openStageDropdown = false
-    row.openAgentDropdown = !row.openAgentDropdown
+    const cursorLine = ta.value.substring(0, ta.selectionStart).split('\n').length
+    if (cursorLine > 1) return // cursor not on first line
+    if (i <= 0) return // first textarea — let table handler move row
+    e.preventDefault()
+    e.stopPropagation()
+    const prev = textareas[i - 1]!
+    prev.focus()
+    prev.setSelectionRange(prev.value.length, prev.value.length)
   }
 }
-
-function closeAllDropdowns() {
-  for (const r of rows.value) {
-    r.openStageDropdown = false
-    r.openAgentDropdown = false
-  }
-}
-
-onMounted(() => document.addEventListener('click', closeAllDropdowns))
-onUnmounted(() => document.removeEventListener('click', closeAllDropdowns))
 
 // Decorator management
 function addDecoratorRow() {
@@ -411,6 +390,40 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
     // error state managed by store
   }
 }
+
+// Column widths in px: [Name, Stages, Agents, WhenToOccur, SampleContent, Amt, Dist, Decor]
+const colWidths = ref([144, 128, 128, 208, 200, 56, 112, 112])
+const tableWidth = computed(() => colWidths.value.reduce((a, b) => a + b, 0) + 64)
+const MIN_COL_WIDTH = 48
+
+function startResize(e: MouseEvent, colIdx: number) {
+  e.preventDefault()
+  const startX = e.clientX
+  const startWidth = colWidths.value[colIdx]!
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'col-resize'
+
+  function onMove(ev: MouseEvent) {
+    colWidths.value[colIdx] = Math.max(MIN_COL_WIDTH, startWidth + ev.clientX - startX)
+  }
+
+  function onUp() {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+    document.body.style.userSelect = ''
+    document.body.style.cursor = ''
+  }
+
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
+
+// Spreadsheet behaviour — 8 focusable columns (0=name, 1=stages, 2=agents, 3=trigger,
+// 4=content, 5=amount, 6=method, 7=decorator)
+const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavior({
+  columnCount: 8,
+  getRowCount: () => filteredRows.value.length,
+})
 </script>
 
 <template>
@@ -435,403 +448,499 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
 
           <!-- Sample Copies Tab -->
           <div v-show="activeTab === 'copies'" class="tab-content">
-        <!-- Sample Copy Classifier Setting -->
-        <div class="mb-6">
-          <div class="form-group">
-            <label class="form-label">Sample Copy Classifier</label>
-            <div class="flex items-center gap-3">
-              <select
-                v-model="defaultSampleCopyClassifierId"
-                class="form-select-auto min-w-64"
-                :disabled="isReadOnly || settingsLoading"
-              >
-                <option value="">None — trigger matching disabled</option>
-                <option v-for="classifier in classifiersStore.items" :key="classifier.id" :value="classifier.id">
-                  {{ classifier.name }}
-                </option>
+
+            <!-- Sample Copy Classifier Setting -->
+            <div class="mb-6">
+              <div class="form-group">
+                <label class="form-label">Sample Copy Classifier</label>
+                <div class="flex items-center gap-3">
+                  <select
+                    v-model="defaultSampleCopyClassifierId"
+                    class="form-select-auto min-w-64"
+                    :disabled="isReadOnly || settingsLoading"
+                  >
+                    <option value="">None — trigger matching disabled</option>
+                    <option v-for="classifier in classifiersStore.items" :key="classifier.id" :value="classifier.id">
+                      {{ classifier.name }}
+                    </option>
+                  </select>
+                  <button
+                    v-if="!isReadOnly"
+                    @click="saveProjectSettings"
+                    class="btn-secondary shrink-0"
+                    :disabled="settingsLoading || showSettingsSuccess"
+                  >
+                    <Check v-if="showSettingsSuccess" class="inline-block mr-2 w-4 h-4" />
+                    <Save v-else class="inline-block mr-2 w-4 h-4" />
+                    {{ showSettingsSuccess ? 'Saved!' : 'Save' }}
+                  </button>
+                </div>
+                <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
+                <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
+              </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              <div class="relative">
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search rows..."
+                  class="form-input pl-8 py-1.5 text-sm h-9 w-50"
+                />
+              </div>
+
+              <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filters:</span>
+
+              <select v-model="filterStageId" class="form-select-auto text-sm py-1.5 h-9">
+                <option value="">All Stages</option>
+                <option v-for="s in stagesStore.items" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
+
+              <select v-model="filterAgentId" class="form-select-auto text-sm py-1.5 h-9">
+                <option value="">All Agents</option>
+                <option v-for="a in agentsStore.items" :key="a.id" :value="a.id">{{ a.name }}</option>
+              </select>
+
+              <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
+                <option value="">All Decorators</option>
+                <option value="__none__">Raw (no decorator)</option>
+                <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
+              </select>
+
               <button
-                v-if="!isReadOnly"
-                @click="saveProjectSettings"
-                class="btn-secondary shrink-0"
-                :disabled="settingsLoading || showSettingsSuccess"
+                v-if="hasFilters"
+                @click="clearFilters"
+                class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <Check v-if="showSettingsSuccess" class="inline-block mr-2 w-4 h-4" />
-                <Save v-else class="inline-block mr-2 w-4 h-4" />
-                {{ showSettingsSuccess ? 'Saved!' : 'Save' }}
+                <X class="w-3.5 h-3.5" />Clear
+              </button>
+
+              <div class="flex-1" />
+
+              <button @click="addRow" class="btn-primary h-9" :disabled="isReadOnly">
+                <Plus class="inline-block w-4 h-4 mr-1" />
+                Add Row
               </button>
             </div>
-            <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
-            <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
-          </div>
-        </div>
 
-        <!-- Toolbar -->
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search rows..."
-              class="form-input pl-8 py-1.5 text-sm h-9 w-50"
-            />
-          </div>
+            <!-- Store error -->
+            <div v-if="sampleCopiesStore.error" class="alert-error mb-4">{{ sampleCopiesStore.error }}</div>
 
-          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filters:</span>
+            <!-- Loading -->
+            <div v-if="sampleCopiesStore.isLoading && rows.length === 0" class="text-center py-16 text-gray-400 dark:text-gray-500">
+              Loading...
+            </div>
 
-          <select v-model="filterStageId" class="form-select-auto text-sm py-1.5 h-9">
-            <option value="">All Stages</option>
-            <option v-for="s in stagesStore.items" :key="s.id" :value="s.id">{{ s.name }}</option>
-          </select>
-
-          <select v-model="filterAgentId" class="form-select-auto text-sm py-1.5 h-9">
-            <option value="">All Agents</option>
-            <option v-for="a in agentsStore.items" :key="a.id" :value="a.id">{{ a.name }}</option>
-          </select>
-
-          <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
-            <option value="">All Decorators</option>
-            <option value="__none__">Raw (no decorator)</option>
-            <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
-          </select>
-
-          <button
-            v-if="hasFilters"
-            @click="clearFilters"
-            class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <X class="w-3.5 h-3.5" />Clear
-          </button>
-
-          <div class="flex-1" />
-
-          <button @click="addRow" class="btn-primary h-9" :disabled="isReadOnly">
-            <Plus class="inline-block w-4 h-4 mr-1" />
-            Add Row
-          </button>
-        </div>
-
-        <!-- Store error -->
-        <div v-if="sampleCopiesStore.error" class="alert-error mb-4">{{ sampleCopiesStore.error }}</div>
-
-        <!-- Loading (first load) -->
-        <div v-if="sampleCopiesStore.isLoading && rows.length === 0" class="text-center py-16 text-gray-400 dark:text-gray-500">
-          Loading...
-        </div>
-
-        <!-- Table -->
-        <div v-else class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-          <table class="w-full text-sm border-collapse" style="min-width: 1120px">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Name</th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-36">
-                  <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
-                </th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-36">
-                  <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
-                </th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-52">When to Occur</th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sample Content</th>
-                <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-14">Amt.</th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Dist.</th>
-                <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Decor.</th>
-                <th class="w-16"></th>
-              </tr>
-            </thead>
-
-            <tbody v-if="filteredRows.length === 0">
-              <tr>
-                <td colspan="9" class="text-center py-16 text-gray-400 dark:text-gray-500">
-                  <span v-if="hasFilters">No rows match the current filters.</span>
-                  <span v-else>No sample copies yet. Click "+ Add Row" to get started.</span>
-                </td>
-              </tr>
-            </tbody>
-
-            <tbody v-else>
-              <tr
-                v-for="row in filteredRows"
-                :key="row.tempId"
-                class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
-                :class="row.id === null ? 'bg-blue-50/40 dark:bg-blue-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-800/20'"
+            <!-- Spreadsheet Table -->
+            <div v-else class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+              <table
+                class="text-sm border-collapse"
+                :style="{ tableLayout: 'fixed', width: tableWidth + 'px' }"
+                @keydown="onTableKeydown"
               >
-                <!-- NAME -->
-                <td class="px-2 py-2">
-                  <input
-                    v-model="row.name"
-                    @input="markDirty(row)"
-                    type="text"
-                    placeholder="name"
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-2 py-1 outline-none font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
-                    :disabled="isReadOnly"
-                  />
-                </td>
+                <colgroup>
+                  <col v-for="(w, i) in colWidths" :key="i" :style="{ width: w + 'px' }" />
+                  <col style="width: 64px" />
+                </colgroup>
+                <thead>
+                  <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
+                      <div class="col-resize-handle" @mousedown="startResize($event, 1)" />
+                    </th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
+                      <div class="col-resize-handle" @mousedown="startResize($event, 2)" />
+                    </th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
+                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dist.<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Decor.<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th></th>
+                  </tr>
+                </thead>
 
-                <!-- STAGES -->
-                <td class="px-2 py-2">
-                  <div class="flex flex-wrap gap-1 items-start min-h-[28px]">
-                    <span
-                      v-for="stageId in row.stages"
-                      :key="stageId"
-                      class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 max-w-[110px]"
-                    >
-                      <span class="truncate">{{ getStage(stageId)?.name ?? stageId }}</span>
-                      <button v-if="!isReadOnly" @click.stop="removeStage(row, stageId)" class="shrink-0 hover:text-red-500 ml-0.5"><X class="w-2.5 h-2.5" /></button>
-                    </span>
-                    <div v-if="!isReadOnly" class="relative">
-                      <button
-                        @click.stop="toggleDropdown(row, 'stage')"
-                        class="inline-flex items-center justify-center w-5 h-5 rounded border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-600 dark:hover:border-gray-400 text-xs leading-none"
-                      >+</button>
-                      <div
-                        v-if="row.openStageDropdown"
-                        class="absolute left-0 top-7 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg min-w-[140px] max-h-48 overflow-y-auto"
-                      >
-                        <div v-if="availableStages(row).length === 0" class="px-3 py-2 text-xs text-gray-400">No more stages</div>
-                        <button
-                          v-for="stage in availableStages(row)"
-                          :key="stage.id"
-                          class="block w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                          @click="addStage(row, stage.id)"
-                        >{{ stage.name }}</button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
+                <tbody v-if="filteredRows.length === 0">
+                  <tr>
+                    <td colspan="9" class="text-center py-16 text-gray-400 dark:text-gray-500">
+                      <span v-if="hasFilters">No rows match the current filters.</span>
+                      <span v-else>No sample copies yet. Click "+ Add Row" to get started.</span>
+                    </td>
+                  </tr>
+                </tbody>
 
-                <!-- AGENTS -->
-                <td class="px-2 py-2">
-                  <div class="flex flex-wrap gap-1 items-start min-h-[28px]">
-                    <span
-                      v-for="agentId in row.agents"
-                      :key="agentId"
-                      class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 max-w-[110px]"
-                    >
-                      <span class="truncate">{{ getAgent(agentId)?.name ?? agentId }}</span>
-                      <button v-if="!isReadOnly" @click.stop="removeAgent(row, agentId)" class="shrink-0 hover:text-red-500 ml-0.5"><X class="w-2.5 h-2.5" /></button>
-                    </span>
-                    <div v-if="!isReadOnly" class="relative">
-                      <button
-                        @click.stop="toggleDropdown(row, 'agent')"
-                        class="inline-flex items-center justify-center w-5 h-5 rounded border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-600 dark:hover:border-gray-400 text-xs leading-none"
-                      >+</button>
-                      <div
-                        v-if="row.openAgentDropdown"
-                        class="absolute left-0 top-7 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg min-w-[140px] max-h-48 overflow-y-auto"
-                      >
-                        <div v-if="availableAgents(row).length === 0" class="px-3 py-2 text-xs text-gray-400">No more agents</div>
-                        <button
-                          v-for="agent in availableAgents(row)"
-                          :key="agent.id"
-                          class="block w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                          @click="addAgent(row, agent.id)"
-                        >{{ agent.name }}</button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- TRIGGER -->
-                <td class="px-2 py-2">
-                  <textarea
-                    v-model="row.promptTrigger"
-                    @input="markDirty(row)"
-                    rows="2"
-                    placeholder="When should this activate..."
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-2 py-1 outline-none resize-y text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
-                    :disabled="isReadOnly"
-                  />
-                </td>
-
-                <!-- SAMPLE CONTENT -->
-                <td class="px-2 py-2">
-                  <div class="space-y-1.5">
-                    <div v-for="(_, idx) in row.content" :key="idx" class="flex gap-1.5 items-start">
-                      <span class="text-xs text-gray-400 dark:text-gray-500 mt-1.5 w-4 shrink-0 text-right font-mono select-none">{{ idx + 1 }}.</span>
-                      <textarea
-                        v-model="row.content[idx]"
+                <tbody v-else>
+                  <tr
+                    v-for="(row, rowIdx) in filteredRows"
+                    :key="row.tempId"
+                    :data-row="rowIdx"
+                    v-bind="buildRowHandlers(rowIdx, () => row.isDirty, () => saveRow(row))"
+                    class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-middle group transition-colors"
+                    :class="[
+                      row.id === null
+                        ? 'bg-emerald-50/40 dark:bg-emerald-900/10'
+                        : activeRowIdx === rowIdx
+                          ? 'bg-emerald-50/50 dark:bg-emerald-900/15'
+                          : 'hover:bg-gray-50/60 dark:hover:bg-gray-800/30',
+                      row.isSaving ? 'opacity-75' : '',
+                    ]"
+                  >
+                    <!-- NAME -->
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <input
+                        v-model="row.name"
                         @input="markDirty(row)"
-                        rows="2"
-                        placeholder="Sample text..."
-                        class="flex-1 text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-2 py-1 outline-none resize-y text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+                        type="text"
+                        placeholder="name"
+                        data-col="0"
+                        class="spreadsheet-input font-mono font-medium"
                         :disabled="isReadOnly"
                       />
-                      <button
-                        v-if="!isReadOnly && row.content.length > 1"
-                        @click="removeContent(row, idx)"
-                        class="mt-1.5 shrink-0 text-gray-300 hover:text-red-400 dark:text-gray-600 dark:hover:text-red-400"
-                      ><X class="w-3.5 h-3.5" /></button>
-                    </div>
-                    <button
-                      v-if="!isReadOnly"
-                      @click="addContent(row)"
-                      class="text-xs text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 flex items-center gap-0.5 ml-5"
-                    >
-                      <Plus class="w-3 h-3" /> Add sample
-                    </button>
-                  </div>
-                </td>
+                    </td>
 
-                <!-- AMT -->
-                <td class="px-2 py-2">
-                  <input
-                    v-model.number="row.amount"
-                    @input="markDirty(row)"
-                    type="number"
-                    min="1"
-                    class="w-full text-center text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-1 py-1 outline-none text-gray-800 dark:text-gray-200"
-                    :disabled="isReadOnly"
-                  />
-                </td>
+                    <!-- STAGES -->
+                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <MultiSelectCell
+                        :model-value="row.stages"
+                        :options="stageOptions"
+                        placeholder="Any stage"
+                        :readonly="isReadOnly"
+                        :data-col="1"
+                        @update:model-value="(v) => { row.stages = v; markDirty(row) }"
+                      />
+                    </td>
 
-                <!-- DIST -->
-                <td class="px-2 py-2">
-                  <select
-                    v-model="row.samplingMethod"
-                    @change="markDirty(row)"
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-1.5 py-1 outline-none text-gray-800 dark:text-gray-200"
-                    :disabled="isReadOnly"
-                  >
-                    <option value="random">Random</option>
-                    <option value="round_robin">Round Robin</option>
-                  </select>
-                </td>
+                    <!-- AGENTS -->
+                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <MultiSelectCell
+                        :model-value="row.agents"
+                        :options="agentOptions"
+                        placeholder="Any agent"
+                        :readonly="isReadOnly"
+                        :data-col="2"
+                        @update:model-value="(v) => { row.agents = v; markDirty(row) }"
+                      />
+                    </td>
 
-                <!-- TYPE -->
-                <td class="px-2 py-2">
-                  <select
-                    v-model="row.decoratorId"
-                    @change="markDirty(row)"
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 rounded px-1.5 py-1 outline-none text-gray-800 dark:text-gray-200"
-                    :disabled="isReadOnly"
-                  >
-                    <option :value="null">Raw</option>
-                    <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
-                  </select>
-                </td>
+                    <!-- TRIGGER -->
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <textarea
+                        v-model="row.promptTrigger"
+                        @input="markDirty(row)"
+                        rows="2"
+                        placeholder="When to activate..."
+                        data-col="3"
+                        class="spreadsheet-input resize-y"
+                        :disabled="isReadOnly"
+                      />
+                    </td>
 
-                <!-- ACTIONS -->
-                <td class="px-2 py-2">
-                  <div class="flex items-center justify-end gap-1">
-                    <button
-                      v-if="row.isDirty && !isReadOnly"
-                      @click="saveRow(row)"
-                      :disabled="row.isSaving"
-                      class="btn-icon text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                      title="Save changes"
-                    >
-                      <Check v-if="successIds.has(row.tempId)" class="w-4 h-4 text-green-500" />
-                      <span v-else-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-                      <Save v-else class="w-4 h-4" />
-                    </button>
-                    <button
-                      v-if="!isReadOnly"
-                      @click="deleteRow(row)"
-                      class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete row"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    <!-- SAMPLE CONTENT -->
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <div class="space-y-1" data-content-cell>
+                        <div
+                          v-for="(_, idx) in row.content"
+                          :key="idx"
+                          class="flex items-center gap-1"
+                        >
+                          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono select-none shrink-0">{{ idx + 1 }}.</span>
+                          <textarea
+                            v-model="row.content[idx]"
+                            @input="markDirty(row)"
+                            @keydown="onContentKeydown"
+                            :data-col="idx === 0 ? 4 : undefined"
+                            rows="1"
+                            placeholder="Sample text..."
+                            class="spreadsheet-input flex-1 min-w-0 resize-y"
+                            :disabled="isReadOnly"
+                          />
+                          <button
+                            v-if="!isReadOnly && row.content.length > 1"
+                            type="button"
+                            tabindex="-1"
+                            @click="removeContent(row, idx)"
+                            class="shrink-0 text-gray-300 hover:text-red-400 dark:text-gray-600 dark:hover:text-red-400 transition-colors"
+                          ><X class="w-3 h-3" /></button>
+                        </div>
+                        <button
+                          v-if="!isReadOnly"
+                          type="button"
+                          tabindex="-1"
+                          @click="addContent(row)"
+                          class="flex items-center gap-0.5 text-xs text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mt-0.5"
+                        ><Plus class="w-3 h-3" /> Add</button>
+                      </div>
+                    </td>
 
-          <!-- Copy Settings Tab -->
-          <div v-show="activeTab === 'settings'" class="tab-content">
-        <div class="flex items-start justify-between mb-4">
-          <div>
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Copy Decorators</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{content}}</code>.
-            </p>
+                    <!-- AMT -->
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                      <input
+                        v-model.number="row.amount"
+                        @input="markDirty(row)"
+                        type="number"
+                        min="1"
+                        data-col="5"
+                        class="spreadsheet-input text-center w-full"
+                        :disabled="isReadOnly"
+                      />
+                    </td>
+
+                    <!-- DIST -->
+                    <td class="px-2 py-1.5">
+                      <select
+                        v-model="row.samplingMethod"
+                        @change="markDirty(row)"
+                        data-col="6"
+                        class="spreadsheet-select w-full"
+                        :disabled="isReadOnly"
+                      >
+                        <option value="random">Random</option>
+                        <option value="round_robin">Round Robin</option>
+                      </select>
+                    </td>
+
+                    <!-- DECORATOR -->
+                    <td class="px-2 py-1.5">
+                      <select
+                        v-model="row.decoratorId"
+                        @change="markDirty(row)"
+                        data-col="7"
+                        class="spreadsheet-select w-full"
+                        :disabled="isReadOnly"
+                      >
+                        <option :value="null">Raw</option>
+                        <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
+                      </select>
+                    </td>
+
+                    <!-- ACTIONS -->
+                    <td class="px-2 py-1.5">
+                      <div class="flex items-center justify-end gap-1">
+                        <span
+                          v-if="row.saveError"
+                          class="text-red-500 dark:text-red-400"
+                          :title="row.saveError"
+                        >
+                          <AlertTriangle class="w-4 h-4" />
+                        </span>
+                        <button
+                          v-if="row.isDirty && !isReadOnly"
+                          @click="saveRow(row)"
+                          :disabled="row.isSaving"
+                          class="btn-icon text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+                          title="Save changes"
+                        >
+                          <Check v-if="successIds.has(row.tempId)" class="w-4 h-4 text-green-500" />
+                          <span v-else-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+                          <Save v-else class="w-4 h-4" />
+                        </button>
+                        <button
+                          v-if="!isReadOnly"
+                          @click="deleteRow(row)"
+                          class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete row"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <button @click="addDecoratorRow" class="btn-primary ml-4 shrink-0" :disabled="isReadOnly">
-            <Plus class="inline-block w-4 h-4 mr-1" />
-            Add Decorator
-          </button>
-        </div>
 
-        <div v-if="copyDecoratorsStore.error" class="alert-error mb-4">{{ copyDecoratorsStore.error }}</div>
+          <!-- Copy Decorators Tab -->
+          <div v-show="activeTab === 'settings'" class="tab-content">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Copy Decorators</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{content}}</code>.
+                </p>
+              </div>
+              <button @click="addDecoratorRow" class="btn-primary ml-4 shrink-0" :disabled="isReadOnly">
+                <Plus class="inline-block w-4 h-4 mr-1" />
+                Add Decorator
+              </button>
+            </div>
 
-        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-          <table class="w-full text-sm border-collapse">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">Name</th>
-                <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Template</th>
-                <th class="w-16"></th>
-              </tr>
-            </thead>
-            <tbody v-if="decoratorRows.length === 0">
-              <tr>
-                <td colspan="3" class="text-center py-12 text-gray-400 dark:text-gray-500">
-                  No decorators yet. Click "Add Decorator" to create one.
-                </td>
-              </tr>
-            </tbody>
-            <tbody v-else>
-              <tr
-                v-for="dr in decoratorRows"
-                :key="dr.tempId"
-                class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
-                :class="dr.id === null ? 'bg-blue-50/40 dark:bg-blue-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-800/20'"
-              >
-                <td class="px-3 py-2">
-                  <input
-                    v-model="dr.name"
-                    @input="dr.isDirty = true"
-                    type="text"
-                    placeholder="decorator name"
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 rounded px-2 py-1 outline-none font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
-                    :disabled="isReadOnly"
-                  />
-                </td>
-                <td class="px-3 py-2">
-                  <textarea
-                    v-model="dr.template"
-                    @input="dr.isDirty = true"
-                    rows="2"
-                    :placeholder="'Template string, use {{content}} as the sample placeholder'"
-                    class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-400 rounded px-2 py-1 outline-none resize-y font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
-                    :disabled="isReadOnly"
-                  />
-                </td>
-                <td class="px-3 py-2">
-                  <div class="flex items-center justify-end gap-1">
-                    <button
-                      v-if="dr.isDirty && !isReadOnly"
-                      @click="saveDecoratorRow(dr)"
-                      :disabled="dr.isSaving"
-                      class="btn-icon text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                      title="Save"
-                    >
-                      <Check v-if="successIds.has(dr.tempId)" class="w-4 h-4 text-green-500" />
-                      <span v-else-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-                      <Save v-else class="w-4 h-4" />
-                    </button>
-                    <button
-                      v-if="!isReadOnly"
-                      @click="deleteDecoratorRow(dr)"
-                      class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+            <div v-if="copyDecoratorsStore.error" class="alert-error mb-4">{{ copyDecoratorsStore.error }}</div>
+
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
+                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">Name</th>
+                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Template</th>
+                    <th class="w-16"></th>
+                  </tr>
+                </thead>
+                <tbody v-if="decoratorRows.length === 0">
+                  <tr>
+                    <td colspan="3" class="text-center py-12 text-gray-400 dark:text-gray-500">
+                      No decorators yet. Click "Add Decorator" to create one.
+                    </td>
+                  </tr>
+                </tbody>
+                <tbody v-else>
+                  <tr
+                    v-for="dr in decoratorRows"
+                    :key="dr.tempId"
+                    class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
+                    :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-800/20'"
+                  >
+                    <td class="px-3 py-2">
+                      <input
+                        v-model="dr.name"
+                        @input="dr.isDirty = true"
+                        type="text"
+                        placeholder="decorator name"
+                        class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-emerald-400 rounded px-2 py-1 outline-none font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+                        :disabled="isReadOnly"
+                      />
+                    </td>
+                    <td class="px-3 py-2">
+                      <textarea
+                        v-model="dr.template"
+                        @input="dr.isDirty = true"
+                        rows="2"
+                        :placeholder="'Template string, use {{content}} as the sample placeholder'"
+                        class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-emerald-400 rounded px-2 py-1 outline-none resize-y font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+                        :disabled="isReadOnly"
+                      />
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="flex items-center justify-end gap-1">
+                        <button
+                          v-if="dr.isDirty && !isReadOnly"
+                          @click="saveDecoratorRow(dr)"
+                          :disabled="dr.isSaving"
+                          class="btn-icon text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+                          title="Save"
+                        >
+                          <Check v-if="successIds.has(dr.tempId)" class="w-4 h-4 text-green-500" />
+                          <span v-else-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+                          <Save v-else class="w-4 h-4" />
+                        </button>
+                        <button
+                          v-if="!isReadOnly"
+                          @click="deleteDecoratorRow(dr)"
+                          class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
         </div>
       </div>
     </div>
   </div>
+
 </template>
+
+<style scoped>
+.col-th {
+  position: relative;
+  overflow: visible;
+}
+
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.col-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background 0.15s;
+  border-radius: 1px;
+}
+
+.col-th:hover .col-resize-handle::after,
+.col-resize-handle:hover::after {
+  background: rgb(156 163 175);
+}
+
+.spreadsheet-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  outline: none;
+  color: inherit;
+  transition: border-color 0.1s;
+}
+
+.spreadsheet-input::placeholder {
+  opacity: 0.4;
+}
+
+.spreadsheet-input:hover {
+  border-color: rgb(229 231 235);
+}
+
+.spreadsheet-input:focus {
+  border-color: rgb(52 211 153); /* emerald-400 */
+}
+
+.spreadsheet-select {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.875rem;
+  outline: none;
+  color: inherit;
+  transition: border-color 0.1s;
+}
+
+.spreadsheet-select:hover {
+  border-color: rgb(229 231 235);
+}
+
+.spreadsheet-select:focus {
+  border-color: rgb(52 211 153); /* emerald-400 */
+}
+
+/* kept for dark mode — used only for border colors, not text */
+:global(.dark) .spreadsheet-input:hover {
+  border-color: rgb(55 65 81);
+}
+
+:global(.dark) .spreadsheet-input:focus {
+  border-color: rgb(16 185 129); /* emerald-500 */
+}
+
+:global(.dark) .spreadsheet-select:hover {
+  border-color: rgb(55 65 81);
+}
+
+:global(.dark) .spreadsheet-select:focus {
+  border-color: rgb(16 185 129); /* emerald-500 */
+}
+</style>

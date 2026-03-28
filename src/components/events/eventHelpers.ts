@@ -26,6 +26,7 @@ export interface NormalizedEvent {
   | 'user_input_modified'
   | 'user_banned'
   | 'visibility_changed'
+  | 'sample_copy_selection'
   /** Event payload (same union shape from the API) */
   eventData: any
   /** Formatted timestamp string to display */

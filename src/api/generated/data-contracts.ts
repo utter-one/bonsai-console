@@ -3084,7 +3084,8 @@ export interface ConversationEventResponse {
     | "user_profile_updated"
     | "user_input_modified"
     | "user_banned"
-    | "visibility_changed";
+    | "visibility_changed"
+    | "sample_copy_selection";
   /** Event data payload */
   eventData:
     | {
@@ -3265,6 +3266,15 @@ export interface ConversationEventResponse {
           condition?: string;
         };
         metadata?: Record<string, any>;
+      }
+    | {
+        /** ID of the classifier that performed the selection */
+        classifierId: string;
+        /** The user input that triggered the selection */
+        input: string;
+        /** ID of the selected sample copy, or null if none was selected */
+        sampleCopyId: string | null;
+        metadata?: Record<string, any>;
       };
   /**
    * Timestamp when the event occurred
@@ -3304,7 +3314,8 @@ export interface ConversationEventListResponse {
       | "user_profile_updated"
       | "user_input_modified"
       | "user_banned"
-      | "visibility_changed";
+      | "visibility_changed"
+      | "sample_copy_selection";
     /** Event data payload */
     eventData:
       | {
@@ -3484,6 +3495,15 @@ export interface ConversationEventListResponse {
             /** Condition for visibility, evaluated against conversation variables */
             condition?: string;
           };
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** ID of the classifier that performed the selection */
+          classifierId: string;
+          /** The user input that triggered the selection */
+          input: string;
+          /** ID of the selected sample copy, or null if none was selected */
+          sampleCopyId: string | null;
           metadata?: Record<string, any>;
         };
     /**
