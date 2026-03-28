@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MessageSquareQuote, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { MessageSquareQuote, ChevronRight, ChevronDown, FileText } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
+import { hasSystemPrompt } from './eventHelpers'
 
 const props = defineProps<{
   event: NormalizedEvent
@@ -10,6 +11,10 @@ const props = defineProps<{
     classifiers?: Record<string, string>
     transformers?: Record<string, string>
   }
+}>()
+
+const emit = defineEmits<{
+  (e: 'open-prompt', prompt: string): void
 }>()
 
 const expanded = ref(false)
@@ -26,7 +31,8 @@ const classifierName = () =>
     </button>
     <MessageSquareQuote class="place-self-center w-5 h-5 text-stone-500" />
     <div style="display:contents">
-      <div class="min-w-0 flex items-center gap-2">
+      <div class="min-w-0 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
         <button @click="expanded = !expanded" class="font-semibold text-stone-700 dark:text-stone-200 shrink-0 text-left">Sample Copy Selection</button>
         <span v-if="!expanded" class="text-xs font-medium text-stone-600 dark:text-stone-300 min-w-0 truncate">{{ classifierName() }}</span>
         <span
@@ -38,6 +44,16 @@ const classifierName = () =>
           {{ event.eventData.sampleCopyId ? 'Selected' : 'None' }}
         </span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+        </div>
+        <div class="flex items-center gap-1 shrink-0" @click.stop>
+          <button
+            v-if="hasSystemPrompt(event.eventData.metadata)"
+            @click="emit('open-prompt', event.eventData.metadata!.systemPrompt as string)"
+            class="btn-icon hover:bg-stone-100 dark:hover:bg-stone-700"
+            title="View system prompt">
+            <FileText class="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
         <div>

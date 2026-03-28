@@ -120,7 +120,7 @@ const forwardBugReport = {
 
     <EventVisibilityChangedCard v-else-if="event.eventType === 'visibility_changed'" :event="event" />
 
-    <EventSampleCopySelectionCard v-else-if="event.eventType === 'sample_copy_selection'" :event="event" :entity-names="entityNames" />
+    <EventSampleCopySelectionCard v-else-if="event.eventType === 'sample_copy_selection'" :event="event" :entity-names="entityNames" v-on="forwardAll" />
 
     <EventGenericCard v-else :event="event" />
   </div>
