@@ -37,11 +37,11 @@ const classifierName = () =>
         <span v-if="!expanded" class="text-xs font-medium text-stone-600 dark:text-stone-300 min-w-0 truncate">{{ classifierName() }}</span>
         <span
           class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium shrink-0"
-          :class="event.eventData.sampleCopyId
+          :class="event.eventData.sampleCopy
             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
             : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'"
         >
-          {{ event.eventData.sampleCopyId ? 'Selected' : 'None' }}
+          {{ event.eventData.sampleCopy ? 'Selected' : 'None' }}
         </span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
         </div>
@@ -67,7 +67,7 @@ const classifierName = () =>
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Selected Copy:</span>
           <div class="text-sm text-gray-900 dark:text-gray-200 mt-0.5">
-            <span v-if="event.eventData.sampleCopyId" class="font-mono text-xs text-stone-700 dark:text-stone-300">{{ event.eventData.sampleCopyId }}</span>
+            <span v-if="event.eventData.sampleCopy" class="font-mono text-xs text-stone-700 dark:text-stone-300">{{ event.eventData.sampleCopy }}</span>
             <span v-else class="text-xs text-gray-400 italic">None selected</span>
           </div>
         </div>

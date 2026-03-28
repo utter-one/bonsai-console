@@ -6659,10 +6659,10 @@
                     "type": "string",
                     "description": "The user input that triggered the selection"
                   },
-                  "sampleCopyId": {
+                  "sampleCopy": {
                     "type": "string",
                     "nullable": true,
-                    "description": "ID of the selected sample copy, or null if none was selected"
+                    "description": "Identifier of selected sample copy, or null if none was selected"
                   },
                   "metadata": {
                     "type": "object",
@@ -6674,7 +6674,7 @@
                 "required": [
                   "classifierId",
                   "input",
-                  "sampleCopyId"
+                  "sampleCopy"
                 ]
               }
             ],
@@ -7419,10 +7419,10 @@
                           "type": "string",
                           "description": "The user input that triggered the selection"
                         },
-                        "sampleCopyId": {
+                        "sampleCopy": {
                           "type": "string",
                           "nullable": true,
-                          "description": "ID of the selected sample copy, or null if none was selected"
+                          "description": "Identifier of selected sample copy, or null if none was selected"
                         },
                         "metadata": {
                           "type": "object",
@@ -7434,7 +7434,7 @@
                       "required": [
                         "classifierId",
                         "input",
-                        "sampleCopyId"
+                        "sampleCopy"
                       ]
                     }
                   ],
@@ -23962,10 +23962,10 @@
                                     "type": "string",
                                     "description": "The user input that triggered the selection"
                                   },
-                                  "sampleCopyId": {
+                                  "sampleCopy": {
                                     "type": "string",
                                     "nullable": true,
-                                    "description": "ID of the selected sample copy, or null if none was selected"
+                                    "description": "Identifier of selected sample copy, or null if none was selected"
                                   },
                                   "metadata": {
                                     "type": "object",
@@ -23977,7 +23977,7 @@
                                 "required": [
                                   "classifierId",
                                   "input",
-                                  "sampleCopyId"
+                                  "sampleCopy"
                                 ]
                               }
                             ],
@@ -24802,10 +24802,10 @@
                               "type": "string",
                               "description": "The user input that triggered the selection"
                             },
-                            "sampleCopyId": {
+                            "sampleCopy": {
                               "type": "string",
                               "nullable": true,
-                              "description": "ID of the selected sample copy, or null if none was selected"
+                              "description": "Identifier of selected sample copy, or null if none was selected"
                             },
                             "metadata": {
                               "type": "object",
@@ -24817,7 +24817,7 @@
                           "required": [
                             "classifierId",
                             "input",
-                            "sampleCopyId"
+                            "sampleCopy"
                           ]
                         }
                       ],

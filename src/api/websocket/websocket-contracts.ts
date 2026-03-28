@@ -1122,9 +1122,9 @@ export interface ConversationEvent {
          */
         input: string;
         /**
-         * ID of the selected sample copy, or null if none was selected
+         * Identifier of selected sample copy, or null if none was selected
          */
-        sampleCopyId: string;
+        sampleCopy: string;
         metadata?: Record<string, unknown>;
       };
   /**
@@ -1421,9 +1421,9 @@ export interface ConversationEventUpdate {
          */
         input: string;
         /**
-         * ID of the selected sample copy, or null if none was selected
+         * Identifier of selected sample copy, or null if none was selected
          */
-        sampleCopyId: string;
+        sampleCopy: string;
         metadata?: Record<string, unknown>;
       };
   /**

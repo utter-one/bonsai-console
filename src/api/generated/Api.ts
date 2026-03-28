@@ -3290,8 +3290,8 @@ export class Api<
                 classifierId: string;
                 /** The user input that triggered the selection */
                 input: string;
-                /** ID of the selected sample copy, or null if none was selected */
-                sampleCopyId: string | null;
+                /** Identifier of selected sample copy, or null if none was selected */
+                sampleCopy: string | null;
                 metadata?: Record<string, any>;
               };
           /**
@@ -3561,8 +3561,8 @@ export class Api<
               classifierId: string;
               /** The user input that triggered the selection */
               input: string;
-              /** ID of the selected sample copy, or null if none was selected */
-              sampleCopyId: string | null;
+              /** Identifier of selected sample copy, or null if none was selected */
+              sampleCopy: string | null;
               metadata?: Record<string, any>;
             };
         /**
