@@ -808,7 +808,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               <div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">Copy Decorators</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{content}}</code>.
+                  Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{copyContent}}</code>.
                 </p>
               </div>
               <button @click="addDecoratorRow" class="btn-primary ml-4 shrink-0" :disabled="isReadOnly">
@@ -857,7 +857,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         v-model="dr.template"
                         @input="dr.isDirty = true"
                         rows="2"
-                        placeholder="Template string, use {{content}} as the sample placeholder"
+                        placeholder="Template string, use {{copyContent}} as the sample placeholder"
                         class="spreadsheet-input resize-y font-mono"
                         :disabled="isReadOnly"
                       />
