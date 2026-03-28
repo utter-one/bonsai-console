@@ -41,7 +41,7 @@ const classifierName = () =>
             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
             : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'"
         >
-          {{ event.eventData.sampleCopy ? 'Selected' : 'None' }}
+          {{ event.eventData.sampleCopy ?? 'None' }}
         </span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
         </div>
