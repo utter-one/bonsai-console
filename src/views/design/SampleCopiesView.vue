@@ -479,7 +479,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
     <div class="page-header">
       <div>
         <h1 class="page-title">Sample Copy</h1>
-        <p class="page-subtitle">Manage and inject sample dialogues and system prompt injections based on states and conditions.</p>
+        <p class="page-subtitle">Manage and inject sample dialogues and system prompt injections.</p>
       </div>
     </div>
 
@@ -551,7 +551,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               </select>
 
               <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
-                <option value="">All Decorators</option>
+                <option value="">All Types</option>
                 <option value="__none__">Raw (no decorator)</option>
                 <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
               </select>
@@ -605,8 +605,8 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
                     <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
                     <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Dist.<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Decor.<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
                     <th></th>
                   </tr>
                 </thead>
