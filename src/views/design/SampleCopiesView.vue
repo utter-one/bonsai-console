@@ -497,6 +497,15 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
           <!-- Sample Copies Tab -->
           <div v-show="activeTab === 'copies'" class="tab-content">
 
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Sample Copies</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Sample copies are pre-written agent responses that are injected into the conversation context based on a prompt trigger. They help keep responses consistent and on-brand. Use Enforce mode to make the agent reply with the sample copy verbatim instead of using it as context.
+                </p>
+              </div>
+            </div>
+
             <!-- Sample Copy Classifier Setting -->
             <div class="mb-6">
               <div class="form-group">
@@ -806,10 +815,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 
           <!-- Copy Decorators Tab -->
           <div v-show="activeTab === 'settings'" class="tab-content">
-            <div class="flex items-start justify-between mb-4">
+            <div class="flex items-start justify-between mb-6">
               <div>
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Copy Decorators</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Copy Decorators</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{copyContent}}</code>.
                 </p>
               </div>
