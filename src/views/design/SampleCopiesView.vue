@@ -715,6 +715,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         v-model="row.promptTrigger"
                         v-autosize
                         @input="markDirty(row)"
+                        rows="1"
                         placeholder="When to activate..."
                         data-col="3"
                         class="spreadsheet-input"
@@ -737,6 +738,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                             @input="markDirty(row)"
                             @keydown="onContentKeydown"
                             :data-col="idx === 0 ? 4 : undefined"
+                            rows="1"
                             placeholder="Sample text..."
                             class="spreadsheet-input flex-1 min-w-0"
                             :disabled="isReadOnly"
@@ -892,6 +894,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                       <textarea
                         v-model="dr.template"
                         v-autosize
+                        rows="1"
                         @input="dr.isDirty = true"
                         placeholder="Template string, use {{copyContent}} as the sample placeholder"
                         class="spreadsheet-input font-mono"
