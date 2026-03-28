@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Plus, X, Save, Check, Trash2, Route, Drama, AlertTriangle } from 'lucide-vue-next'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
@@ -16,6 +16,23 @@ import {
 import type { CreateSampleCopyRequest, SampleCopyResponse } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useSpreadsheetBehavior } from '@/composables/useSpreadsheetBehavior'
+
+const vAutosize = {
+  mounted(el: HTMLTextAreaElement) {
+    el.style.overflow = 'hidden'
+    el.style.resize = 'none'
+    const resize = () => {
+      el.style.height = 'auto'
+      if (el.scrollHeight > 0) el.style.height = el.scrollHeight + 'px'
+    }
+    ;(el as any)._autosizeResize = resize
+    resize()
+    el.addEventListener('input', resize)
+  },
+  updated(el: HTMLTextAreaElement) {
+    ;(el as any)._autosizeResize?.()
+  },
+}
 
 const sampleCopiesStore = useSampleCopiesStore()
 const copyDecoratorsStore = useCopyDecoratorsStore()
@@ -185,6 +202,14 @@ watch(projectId, () => {
   rows.value = []
   decoratorRows.value = []
   loadData()
+})
+
+watch(activeTab, () => {
+  nextTick(() => {
+    document.querySelectorAll<HTMLTextAreaElement>('textarea.spreadsheet-input').forEach(el => {
+      ;(el as any)._autosizeResize?.()
+    })
+  })
 })
 
 // Filtering
@@ -688,11 +713,11 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <textarea
                         v-model="row.promptTrigger"
+                        v-autosize
                         @input="markDirty(row)"
-                        rows="2"
                         placeholder="When to activate..."
                         data-col="3"
-                        class="spreadsheet-input resize-y"
+                        class="spreadsheet-input"
                         :disabled="isReadOnly"
                       />
                     </td>
@@ -708,12 +733,12 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                           <span class="text-xs text-gray-400 dark:text-gray-500 font-mono select-none shrink-0">{{ idx + 1 }}.</span>
                           <textarea
                             v-model="row.content[idx]"
+                            v-autosize
                             @input="markDirty(row)"
                             @keydown="onContentKeydown"
                             :data-col="idx === 0 ? 4 : undefined"
-                            rows="1"
                             placeholder="Sample text..."
-                            class="spreadsheet-input flex-1 min-w-0 resize-y"
+                            class="spreadsheet-input flex-1 min-w-0"
                             :disabled="isReadOnly"
                           />
                           <button
@@ -866,10 +891,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
                       <textarea
                         v-model="dr.template"
+                        v-autosize
                         @input="dr.isDirty = true"
-                        rows="2"
                         placeholder="Template string, use {{copyContent}} as the sample placeholder"
-                        class="spreadsheet-input resize-y font-mono"
+                        class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
                     </td>
