@@ -213,8 +213,8 @@ function getActionBadgeClass(action: string): string {
 
     <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
       <div>
-        <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p class="m-0 text-base text-gray-600 dark:text-gray-400">Platform health and recent activity overview</p>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Platform health and recent activity overview</p>
       </div>
       <button
         v-if="!isLoadingGlobal && (projectsStore.count ?? 0) === 0"

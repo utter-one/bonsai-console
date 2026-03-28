@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Plus, X, Save, Check, Trash2, Route, Drama, AlertTriangle } from 'lucide-vue-next'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
@@ -16,6 +16,23 @@ import {
 import type { CreateSampleCopyRequest, SampleCopyResponse } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useSpreadsheetBehavior } from '@/composables/useSpreadsheetBehavior'
+
+const vAutosize = {
+  mounted(el: HTMLTextAreaElement) {
+    el.style.overflow = 'hidden'
+    el.style.resize = 'none'
+    const resize = () => {
+      el.style.height = 'auto'
+      if (el.scrollHeight > 0) el.style.height = el.scrollHeight + 'px'
+    }
+    ;(el as any)._autosizeResize = resize
+    resize()
+    el.addEventListener('input', resize)
+  },
+  updated(el: HTMLTextAreaElement) {
+    ;(el as any)._autosizeResize?.()
+  },
+}
 
 const sampleCopiesStore = useSampleCopiesStore()
 const copyDecoratorsStore = useCopyDecoratorsStore()
@@ -187,6 +204,14 @@ watch(projectId, () => {
   loadData()
 })
 
+watch(activeTab, () => {
+  nextTick(() => {
+    document.querySelectorAll<HTMLTextAreaElement>('textarea.spreadsheet-input').forEach(el => {
+      ;(el as any)._autosizeResize?.()
+    })
+  })
+})
+
 // Filtering
 const filteredRows = computed(() => {
   const q = searchQuery.value.toLowerCase()
@@ -195,7 +220,8 @@ const filteredRows = computed(() => {
     if (filterStageId.value && !row.stages.includes(filterStageId.value)) return false
     if (filterAgentId.value && !row.agents.includes(filterAgentId.value)) return false
     if (filterDecoratorId.value === '__none__' && row.decoratorId !== null) return false
-    if (filterDecoratorId.value && filterDecoratorId.value !== '__none__' && row.decoratorId !== filterDecoratorId.value) return false
+    if (filterDecoratorId.value === '__enforce__' && row.mode !== 'forced') return false
+    if (filterDecoratorId.value && filterDecoratorId.value !== '__none__' && filterDecoratorId.value !== '__enforce__' && row.decoratorId !== filterDecoratorId.value) return false
     return true
   })
 })
@@ -479,7 +505,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
     <div class="page-header">
       <div>
         <h1 class="page-title">Sample Copy</h1>
-        <p class="page-subtitle">Manage and inject sample dialogues and system prompt injections based on states and conditions.</p>
+        <p class="page-subtitle">Manage and inject sample dialogues and system prompt injections.</p>
       </div>
     </div>
 
@@ -495,6 +521,15 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 
           <!-- Sample Copies Tab -->
           <div v-show="activeTab === 'copies'" class="tab-content">
+
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Sample Copies</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Sample copies are pre-written agent responses that are injected into the conversation context based on a prompt trigger. They help keep responses consistent and on-brand. Use Enforce mode to make the agent reply with the sample copy verbatim instead of using it as context.
+                </p>
+              </div>
+            </div>
 
             <!-- Sample Copy Classifier Setting -->
             <div class="mb-6">
@@ -551,8 +586,9 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               </select>
 
               <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
-                <option value="">All Decorators</option>
+                <option value="">All Types</option>
                 <option value="__none__">Raw (no decorator)</option>
+                <option value="__enforce__">Enforce</option>
                 <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
               </select>
 
@@ -605,8 +641,8 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
                     <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
                     <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Dist.<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Decor.<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -677,11 +713,12 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <textarea
                         v-model="row.promptTrigger"
+                        v-autosize
                         @input="markDirty(row)"
-                        rows="2"
+                        rows="1"
                         placeholder="When to activate..."
                         data-col="3"
-                        class="spreadsheet-input resize-y"
+                        class="spreadsheet-input"
                         :disabled="isReadOnly"
                       />
                     </td>
@@ -697,12 +734,13 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                           <span class="text-xs text-gray-400 dark:text-gray-500 font-mono select-none shrink-0">{{ idx + 1 }}.</span>
                           <textarea
                             v-model="row.content[idx]"
+                            v-autosize
                             @input="markDirty(row)"
                             @keydown="onContentKeydown"
                             :data-col="idx === 0 ? 4 : undefined"
                             rows="1"
                             placeholder="Sample text..."
-                            class="spreadsheet-input flex-1 min-w-0 resize-y"
+                            class="spreadsheet-input flex-1 min-w-0"
                             :disabled="isReadOnly"
                           />
                           <button
@@ -804,11 +842,11 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 
           <!-- Copy Decorators Tab -->
           <div v-show="activeTab === 'settings'" class="tab-content">
-            <div class="flex items-start justify-between mb-4">
+            <div class="flex items-start justify-between mb-6">
               <div>
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Copy Decorators</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{content}}</code>.
+                <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Copy Decorators</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{copyContent}}</code>.
                 </p>
               </div>
               <button @click="addDecoratorRow" class="btn-primary ml-4 shrink-0" :disabled="isReadOnly">
@@ -855,10 +893,11 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
                       <textarea
                         v-model="dr.template"
+                        v-autosize
+                        rows="1"
                         @input="dr.isDirty = true"
-                        rows="2"
-                        placeholder="Template string, use {{content}} as the sample placeholder"
-                        class="spreadsheet-input resize-y font-mono"
+                        placeholder="Template string, use {{copyContent}} as the sample placeholder"
+                        class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
                     </td>

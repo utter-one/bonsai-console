@@ -291,7 +291,8 @@
 }
 
 .page-subtitle {
-  @apply m-0 text-gray-600 dark:text-gray-400;
+  @apply m-0 italic text-gray-600 dark:text-gray-400;
+  font-family: 'PT Serif Caption', serif;
 }
 
 /* Empty States */
