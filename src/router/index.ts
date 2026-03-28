@@ -150,6 +150,11 @@ const routes: RouteRecordRaw[] = [
             name: 'design.globalMemory',
             component: () => import('@/views/design/GlobalMemoryView.vue'),
           },
+          {
+            path: 'projects/:projectId/sample-copies',
+            name: 'design.sampleCopies',
+            component: () => import('@/views/design/SampleCopiesView.vue'),
+          },
         ],
       },
       // Playground Section

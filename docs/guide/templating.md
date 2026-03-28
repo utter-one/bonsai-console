@@ -26,6 +26,9 @@ Hello {{userProfile.name}}, welcome to {{consts.companyName}}.
 | `context.results` | Results from tool calls and webhooks |
 | <code v-pre>{{agent}}</code> | The agent's personality prompt — **must be explicitly included** (see below) |
 | `faq` | Array of matched Q&A pairs — **must be explicitly included** via <code v-pre>{{#hasItems faq}}</code> (see below) |
+| `copy` | Selected sample copy content (decorated), or empty string if no copy matched — **requires <code v-pre>{{copy}}</code> in the prompt to activate** (see below) |
+| `copyContent` | Raw selected sample copy content before the decorator is applied |
+| `sampleCopy` | Array of all active sample copies for this stage, each with `name`, `trigger`, and `content` fields |
 
 ### User Profile Fields
 
@@ -223,6 +226,33 @@ A: {{this.answer}}
 {{/each}}
 {{/hasItems}}
 ```
+
+## Sample Copy Variables
+
+To enable sample copy injection on a stage, include <code v-pre>{{copy}}</code> in the stage prompt. When the sample copy classifier matches a copy, the following variables are populated:
+
+| Variable | Type | Description |
+|---|---|---|
+| <code v-pre>{{copy}}</code> | `string` | The selected copy content with any decorator applied, joined by newlines. Empty string if no copy was matched. |
+| <code v-pre>{{copyContent}}</code> | `string` | The raw selected content before any decorator template is applied. Same as `copy` when no decorator is set. |
+| <code v-pre>{{sampleCopy}}</code> | `SampleCopyItem[]` | All sample copies active for this stage, each with `name`, `trigger`, and `content` fields. |
+
+::: tip `{{copy}}` is empty, not missing
+When no sample copy is matched, <code v-pre>{{copy}}</code> is an empty string rather than undefined. Use an `#if` guard so the surrounding instruction text is only shown when content is actually available:
+:::
+
+```handlebars
+{{agent}}
+
+You are a customer service agent.
+
+{{#if copy}}
+Use the following prescripted answer for this question:
+{{copy}}
+{{/if}}
+```
+
+See [Sample Copies](../design/sample-copies) for a full guide on creating and configuring sample copies and decorators.
 
 ## Full Prompt Example
 

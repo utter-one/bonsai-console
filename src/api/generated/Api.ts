@@ -54,6 +54,7 @@ import {
   ProjectExchangeImportResult,
   S3StorageConfig,
   S3StorageSettings,
+  SampleCopyConfig,
   ServerVadConfig,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -780,6 +781,8 @@ export class Api<
       userProfileVariableDescriptors?: FieldDescriptor[];
       /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
       defaultGuardrailClassifierId?: string | null;
+      /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+      sampleCopyConfig?: SampleCopyConfig;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -852,6 +855,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -996,6 +1004,11 @@ export class Api<
           userProfileVariableDescriptors: FieldDescriptor[];
           /** ID of the classifier used to evaluate guardrails for all conversations in this project */
           defaultGuardrailClassifierId: string | null;
+          /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+          sampleCopyConfig?: {
+            /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+            defaultClassifierId?: string;
+          } | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
           /** The version number of the project */
@@ -1104,6 +1117,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1210,6 +1228,11 @@ export class Api<
       userProfileVariableDescriptors?: FieldDescriptor[];
       /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
       defaultGuardrailClassifierId?: string | null;
+      /** Updated sample copy configuration. Set to null to clear. */
+      sampleCopyConfig?: {
+        /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+        defaultClassifierId?: string;
+      } | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -1284,6 +1307,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1413,6 +1441,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1526,6 +1559,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -3064,7 +3102,8 @@ export class Api<
             | "user_profile_updated"
             | "user_input_modified"
             | "user_banned"
-            | "visibility_changed";
+            | "visibility_changed"
+            | "sample_copy_selection";
           /** Event data payload */
           eventData:
             | {
@@ -3245,6 +3284,15 @@ export class Api<
                   condition?: string;
                 };
                 metadata?: Record<string, any>;
+              }
+            | {
+                /** ID of the classifier that performed the selection */
+                classifierId: string;
+                /** The user input that triggered the selection */
+                input: string;
+                /** Identifier of selected sample copy, or null if none was selected */
+                sampleCopy: string | null;
+                metadata?: Record<string, any>;
               };
           /**
            * Timestamp when the event occurred
@@ -3325,7 +3373,8 @@ export class Api<
           | "user_profile_updated"
           | "user_input_modified"
           | "user_banned"
-          | "visibility_changed";
+          | "visibility_changed"
+          | "sample_copy_selection";
         /** Event data payload */
         eventData:
           | {
@@ -3505,6 +3554,15 @@ export class Api<
                 /** Condition for visibility, evaluated against conversation variables */
                 condition?: string;
               };
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** ID of the classifier that performed the selection */
+              classifierId: string;
+              /** The user input that triggered the selection */
+              input: string;
+              /** Identifier of selected sample copy, or null if none was selected */
+              sampleCopy: string | null;
               metadata?: Record<string, any>;
             };
         /**
@@ -7002,6 +7060,852 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new sample copy with a set of variant answers and classifier trigger configuration
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesCreate
+   * @summary Create a new sample copy
+   * @request POST:/api/projects/{projectId}/sample-copies
+   * @secure
+   */
+  projectsSampleCopiesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the sample copy (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the sample copy, used as identifier throughout the system
+       * @minLength 1
+       */
+      name: string;
+      /** Optional array of stage IDs this sample copy applies to */
+      stages?: string[];
+      /** Optional array of agent IDs this sample copy applies to */
+      agents?: string[];
+      /**
+       * Trigger string used by the classifier to activate this sample copy
+       * @minLength 1
+       */
+      promptTrigger: string;
+      /** ID of the classifier to use; if not set the default classifier will be used */
+      classifierOverrideId?: string | null;
+      /**
+       * Array of variant answers to select from
+       * @minItems 1
+       */
+      content: string[];
+      /**
+       * Number of samples to select from the content array
+       * @min 1
+       * @default 1
+       */
+      amount?: number;
+      /**
+       * Method used to select samples: random selection or sequential round-robin
+       * @default "random"
+       */
+      samplingMethod?: "random" | "round_robin";
+      /**
+       * Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects
+       * @default "regular"
+       */
+      mode?: "regular" | "forced";
+      /** ID of the copy decorator to apply to selected content; if not set no decoration is applied */
+      decoratorId?: string | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of sample copies with optional filtering and sorting
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesList
+   * @summary List sample copies
+   * @request GET:/api/projects/{projectId}/sample-copies
+   * @secure
+   */
+  projectsSampleCopiesList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of sample copies in the current page */
+        items: {
+          /** Unique identifier for the sample copy */
+          id: string;
+          /** ID of the project this sample copy belongs to */
+          projectId: string;
+          /** Display name of the sample copy */
+          name: string;
+          /** Array of stage IDs this sample copy applies to */
+          stages: string[] | null;
+          /** Array of agent IDs this sample copy applies to */
+          agents: string[] | null;
+          /** Trigger string used by the classifier */
+          promptTrigger: string;
+          /** ID of the classifier override, or null if using the default */
+          classifierOverrideId: string | null;
+          /** Array of variant answers */
+          content: string[];
+          /** Number of samples to select */
+          amount: number;
+          /** Method used to select samples */
+          samplingMethod: "random" | "round_robin";
+          /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+          mode: "regular" | "forced";
+          /** ID of the copy decorator applied to selected content, or null if none */
+          decoratorId: string | null;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the sample copy was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the sample copy was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
+        }[];
+        /**
+         * Total number of sample copies matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single sample copy by its unique identifier
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesDetail
+   * @summary Get sample copy by ID
+   * @request GET:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing sample copy with optimistic locking
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesUpdate
+   * @summary Update sample copy
+   * @request PUT:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated array of stage IDs */
+      stages?: string[] | null;
+      /** Updated array of agent IDs */
+      agents?: string[] | null;
+      /**
+       * Updated classifier trigger string
+       * @minLength 1
+       */
+      promptTrigger?: string;
+      /** Updated classifier override ID */
+      classifierOverrideId?: string | null;
+      /**
+       * Updated array of variant answers
+       * @minItems 1
+       */
+      content?: string[];
+      /**
+       * Updated number of samples to select
+       * @min 1
+       */
+      amount?: number;
+      /** Updated sampling method */
+      samplingMethod?: "random" | "round_robin";
+      /** Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+      mode?: "regular" | "forced";
+      /** Updated copy decorator ID; set to null to remove the decorator */
+      decoratorId?: string | null;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a sample copy with optimistic locking
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesDelete
+   * @summary Delete sample copy
+   * @request DELETE:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific sample copy
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesAuditLogsList
+   * @summary Get sample copy audit logs
+   * @request GET:/api/projects/{projectId}/sample-copies/{id}/audit-logs
+   * @secure
+   */
+  projectsSampleCopiesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/sample-copies/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing sample copy with a new ID and optional name override
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesCloneCreate
+   * @summary Clone sample copy
+   * @request POST:/api/projects/{projectId}/sample-copies/{id}/clone
+   * @secure
+   */
+  projectsSampleCopiesCloneCreate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned sample copy (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned sample copy (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new copy decorator with a name and template string
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsCreate
+   * @summary Create a new copy decorator
+   * @request POST:/api/projects/{projectId}/copy-decorators
+   * @secure
+   */
+  projectsCopyDecoratorsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the copy decorator (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Human-readable display name of the copy decorator
+       * @minLength 1
+       */
+      name: string;
+      /**
+       * Template string used to decorate selected sample copy content
+       * @minLength 1
+       */
+      template: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of copy decorators with optional filtering and sorting
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsList
+   * @summary List copy decorators
+   * @request GET:/api/projects/{projectId}/copy-decorators
+   * @secure
+   */
+  projectsCopyDecoratorsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of copy decorators in the current page */
+        items: {
+          /** Unique identifier for the copy decorator */
+          id: string;
+          /** ID of the project this copy decorator belongs to */
+          projectId: string;
+          /** Human-readable display name of the copy decorator */
+          name: string;
+          /** Template string used to decorate sample copy content */
+          template: string;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the copy decorator was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the copy decorator was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
+        }[];
+        /**
+         * Total number of copy decorators matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single copy decorator by its unique identifier
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsDetail
+   * @summary Get copy decorator by ID
+   * @request GET:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing copy decorator with optimistic locking
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsUpdate
+   * @summary Update copy decorator
+   * @request PUT:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /**
+       * Updated template string
+       * @minLength 1
+       */
+      template?: string;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a copy decorator with optimistic locking
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsDelete
+   * @summary Delete copy decorator
+   * @request DELETE:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific copy decorator
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsAuditLogsList
+   * @summary Get copy decorator audit logs
+   * @request GET:/api/projects/{projectId}/copy-decorators/{id}/audit-logs
+   * @secure
+   */
+  projectsCopyDecoratorsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/copy-decorators/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**

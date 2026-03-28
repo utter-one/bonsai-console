@@ -1798,6 +1798,16 @@
         ],
         "description": "Content moderation configuration"
       },
+      "SampleCopyConfig": {
+        "type": "object",
+        "properties": {
+          "defaultClassifierId": {
+            "type": "string",
+            "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+          }
+        },
+        "description": "Sample copy configuration settings"
+      },
       "FillerSettings": {
         "type": "object",
         "properties": {
@@ -3243,6 +3253,16 @@
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
           },
+          "sampleCopyConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SampleCopyConfig"
+              },
+              {
+                "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+              }
+            ]
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "minimum": 0,
@@ -3558,6 +3578,17 @@
             "nullable": true,
             "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
           },
+          "sampleCopyConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "defaultClassifierId": {
+                "type": "string",
+                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+              }
+            },
+            "description": "Updated sample copy configuration. Set to null to clear."
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
@@ -3741,6 +3772,17 @@
             "type": "string",
             "nullable": true,
             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+          },
+          "sampleCopyConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "defaultClassifierId": {
+                "type": "string",
+                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+              }
+            },
+            "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
           },
           "conversationTimeoutSeconds": {
             "type": "integer",
@@ -3970,6 +4012,17 @@
                   "type": "string",
                   "nullable": true,
                   "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                },
+                "sampleCopyConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "defaultClassifierId": {
+                      "type": "string",
+                      "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                    }
+                  },
+                  "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                 },
                 "conversationTimeoutSeconds": {
                   "type": "integer",
@@ -5933,7 +5986,8 @@
               "user_profile_updated",
               "user_input_modified",
               "user_banned",
-              "visibility_changed"
+              "visibility_changed",
+              "sample_copy_selection"
             ],
             "description": "Type of the conversation event"
           },
@@ -6593,6 +6647,35 @@
                   "sourceActionName",
                   "visibility"
                 ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "classifierId": {
+                    "type": "string",
+                    "description": "ID of the classifier that performed the selection"
+                  },
+                  "input": {
+                    "type": "string",
+                    "description": "The user input that triggered the selection"
+                  },
+                  "sampleCopy": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Identifier of selected sample copy, or null if none was selected"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "classifierId",
+                  "input",
+                  "sampleCopy"
+                ]
               }
             ],
             "description": "Event data payload"
@@ -6663,7 +6746,8 @@
                     "user_profile_updated",
                     "user_input_modified",
                     "user_banned",
-                    "visibility_changed"
+                    "visibility_changed",
+                    "sample_copy_selection"
                   ],
                   "description": "Type of the conversation event"
                 },
@@ -7322,6 +7406,35 @@
                       "required": [
                         "sourceActionName",
                         "visibility"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "classifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier that performed the selection"
+                        },
+                        "input": {
+                          "type": "string",
+                          "description": "The user input that triggered the selection"
+                        },
+                        "sampleCopy": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Identifier of selected sample copy, or null if none was selected"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "classifierId",
+                        "input",
+                        "sampleCopy"
                       ]
                     }
                   ],
@@ -13206,6 +13319,632 @@
           "avgTimeToFirstAudioMs"
         ]
       },
+      "CreateSampleCopyRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the sample copy (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the sample copy, used as identifier throughout the system"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Optional array of stage IDs this sample copy applies to"
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Optional array of agent IDs this sample copy applies to"
+          },
+          "promptTrigger": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Trigger string used by the classifier to activate this sample copy"
+          },
+          "classifierOverrideId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the classifier to use; if not set the default classifier will be used"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Array of variant answers to select from"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Number of samples to select from the content array"
+          },
+          "samplingMethod": {
+            "type": "string",
+            "enum": [
+              "random",
+              "round_robin"
+            ],
+            "default": "random",
+            "description": "Method used to select samples: random selection or sequential round-robin"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "default": "regular",
+            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+          },
+          "decoratorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the copy decorator to apply to selected content; if not set no decoration is applied"
+          }
+        },
+        "required": [
+          "name",
+          "promptTrigger",
+          "content"
+        ]
+      },
+      "UpdateSampleCopyRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "stages": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Updated array of stage IDs"
+          },
+          "agents": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Updated array of agent IDs"
+          },
+          "promptTrigger": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated classifier trigger string"
+          },
+          "classifierOverrideId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated classifier override ID"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Updated array of variant answers"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Updated number of samples to select"
+          },
+          "samplingMethod": {
+            "type": "string",
+            "enum": [
+              "random",
+              "round_robin"
+            ],
+            "description": "Updated sampling method"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "description": "Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+          },
+          "decoratorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated copy decorator ID; set to null to remove the decorator"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteSampleCopyRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "SampleCopyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the sample copy"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this sample copy belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the sample copy"
+          },
+          "stages": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of stage IDs this sample copy applies to"
+          },
+          "agents": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of agent IDs this sample copy applies to"
+          },
+          "promptTrigger": {
+            "type": "string",
+            "description": "Trigger string used by the classifier"
+          },
+          "classifierOverrideId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the classifier override, or null if using the default"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of variant answers"
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Number of samples to select"
+          },
+          "samplingMethod": {
+            "type": "string",
+            "enum": [
+              "random",
+              "round_robin"
+            ],
+            "description": "Method used to select samples"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+          },
+          "decoratorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the copy decorator applied to selected content, or null if none"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the sample copy was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the sample copy was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "stages",
+          "agents",
+          "promptTrigger",
+          "classifierOverrideId",
+          "content",
+          "amount",
+          "samplingMethod",
+          "mode",
+          "decoratorId",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SampleCopyListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the sample copy"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this sample copy belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Display name of the sample copy"
+                },
+                "stages": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of stage IDs this sample copy applies to"
+                },
+                "agents": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of agent IDs this sample copy applies to"
+                },
+                "promptTrigger": {
+                  "type": "string",
+                  "description": "Trigger string used by the classifier"
+                },
+                "classifierOverrideId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the classifier override, or null if using the default"
+                },
+                "content": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of variant answers"
+                },
+                "amount": {
+                  "type": "integer",
+                  "description": "Number of samples to select"
+                },
+                "samplingMethod": {
+                  "type": "string",
+                  "enum": [
+                    "random",
+                    "round_robin"
+                  ],
+                  "description": "Method used to select samples"
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "regular",
+                    "forced"
+                  ],
+                  "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                },
+                "decoratorId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the copy decorator applied to selected content, or null if none"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the sample copy was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the sample copy was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "name",
+                "stages",
+                "agents",
+                "promptTrigger",
+                "classifierOverrideId",
+                "content",
+                "amount",
+                "samplingMethod",
+                "mode",
+                "decoratorId",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of sample copies in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of sample copies matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "CreateCopyDecoratorRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the copy decorator (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable display name of the copy decorator"
+          },
+          "template": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Template string used to decorate selected sample copy content"
+          }
+        },
+        "required": [
+          "name",
+          "template"
+        ]
+      },
+      "UpdateCopyDecoratorRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "template": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated template string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteCopyDecoratorRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "CopyDecoratorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the copy decorator"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this copy decorator belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable display name of the copy decorator"
+          },
+          "template": {
+            "type": "string",
+            "description": "Template string used to decorate sample copy content"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the copy decorator was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the copy decorator was last updated"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Whether this entity belongs to an archived project"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "template",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CopyDecoratorListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the copy decorator"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this copy decorator belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Human-readable display name of the copy decorator"
+                },
+                "template": {
+                  "type": "string",
+                  "description": "Template string used to decorate sample copy content"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the copy decorator was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the copy decorator was last updated"
+                },
+                "archived": {
+                  "type": "boolean",
+                  "description": "Whether this entity belongs to an archived project"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "name",
+                "template",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of copy decorators in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of copy decorators matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
       "VersionResponse": {
         "type": "object",
         "properties": {
@@ -17053,6 +17792,16 @@
                     "nullable": true,
                     "description": "ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn."
                   },
+                  "sampleCopyConfig": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SampleCopyConfig"
+                      },
+                      {
+                        "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                      }
+                    ]
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "minimum": 0,
@@ -17239,6 +17988,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
@@ -17636,6 +18396,17 @@
                             "nullable": true,
                             "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                           },
+                          "sampleCopyConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "defaultClassifierId": {
+                                "type": "string",
+                                "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                              }
+                            },
+                            "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                          },
                           "conversationTimeoutSeconds": {
                             "type": "integer",
                             "nullable": true,
@@ -17902,6 +18673,17 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -18151,6 +18933,17 @@
                     "nullable": true,
                     "description": "Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification."
                   },
+                  "sampleCopyConfig": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "defaultClassifierId": {
+                        "type": "string",
+                        "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                      }
+                    },
+                    "description": "Updated sample copy configuration. Set to null to clear."
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "nullable": true,
@@ -18342,6 +19135,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
@@ -18651,6 +19455,17 @@
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
                     },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -18928,6 +19743,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "ID of the classifier used to evaluate guardrails for all conversations in this project"
+                    },
+                    "sampleCopyConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "defaultClassifierId": {
+                          "type": "string",
+                          "description": "ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId."
+                        }
+                      },
+                      "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
@@ -22463,7 +23289,8 @@
                               "user_profile_updated",
                               "user_input_modified",
                               "user_banned",
-                              "visibility_changed"
+                              "visibility_changed",
+                              "sample_copy_selection"
                             ],
                             "description": "Type of the conversation event"
                           },
@@ -23123,6 +23950,35 @@
                                   "sourceActionName",
                                   "visibility"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "classifierId": {
+                                    "type": "string",
+                                    "description": "ID of the classifier that performed the selection"
+                                  },
+                                  "input": {
+                                    "type": "string",
+                                    "description": "The user input that triggered the selection"
+                                  },
+                                  "sampleCopy": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Identifier of selected sample copy, or null if none was selected"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "classifierId",
+                                  "input",
+                                  "sampleCopy"
+                                ]
                               }
                             ],
                             "description": "Event data payload"
@@ -23273,7 +24129,8 @@
                         "user_profile_updated",
                         "user_input_modified",
                         "user_banned",
-                        "visibility_changed"
+                        "visibility_changed",
+                        "sample_copy_selection"
                       ],
                       "description": "Type of the conversation event"
                     },
@@ -23932,6 +24789,35 @@
                           "required": [
                             "sourceActionName",
                             "visibility"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "classifierId": {
+                              "type": "string",
+                              "description": "ID of the classifier that performed the selection"
+                            },
+                            "input": {
+                              "type": "string",
+                              "description": "The user input that triggered the selection"
+                            },
+                            "sampleCopy": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Identifier of selected sample copy, or null if none was selected"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "classifierId",
+                            "input",
+                            "sampleCopy"
                           ]
                         }
                       ],
@@ -32318,6 +33204,1869 @@
           },
           "404": {
             "description": "Global action not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/sample-copies": {
+      "post": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Create a new sample copy",
+        "description": "Creates a new sample copy with a set of variant answers and classifier trigger configuration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the sample copy (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the sample copy, used as identifier throughout the system"
+                  },
+                  "stages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Optional array of stage IDs this sample copy applies to"
+                  },
+                  "agents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Optional array of agent IDs this sample copy applies to"
+                  },
+                  "promptTrigger": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Trigger string used by the classifier to activate this sample copy"
+                  },
+                  "classifierOverrideId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ID of the classifier to use; if not set the default classifier will be used"
+                  },
+                  "content": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Array of variant answers to select from"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Number of samples to select from the content array"
+                  },
+                  "samplingMethod": {
+                    "type": "string",
+                    "enum": [
+                      "random",
+                      "round_robin"
+                    ],
+                    "default": "random",
+                    "description": "Method used to select samples: random selection or sequential round-robin"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "regular",
+                      "forced"
+                    ],
+                    "default": "regular",
+                    "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                  },
+                  "decoratorId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ID of the copy decorator to apply to selected content; if not set no decoration is applied"
+                  }
+                },
+                "required": [
+                  "name",
+                  "promptTrigger",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sample copy created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the sample copy"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this sample copy belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the sample copy"
+                    },
+                    "stages": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of stage IDs this sample copy applies to"
+                    },
+                    "agents": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of agent IDs this sample copy applies to"
+                    },
+                    "promptTrigger": {
+                      "type": "string",
+                      "description": "Trigger string used by the classifier"
+                    },
+                    "classifierOverrideId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier override, or null if using the default"
+                    },
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of variant answers"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Number of samples to select"
+                    },
+                    "samplingMethod": {
+                      "type": "string",
+                      "enum": [
+                        "random",
+                        "round_robin"
+                      ],
+                      "description": "Method used to select samples"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
+                    "decoratorId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the copy decorator applied to selected content, or null if none"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "stages",
+                    "agents",
+                    "promptTrigger",
+                    "classifierOverrideId",
+                    "content",
+                    "amount",
+                    "samplingMethod",
+                    "mode",
+                    "decoratorId",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "409": {
+            "description": "Sample copy already exists"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "List sample copies",
+        "description": "Retrieves a paginated list of sample copies with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sample copies retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the sample copy"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this sample copy belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name of the sample copy"
+                          },
+                          "stages": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of stage IDs this sample copy applies to"
+                          },
+                          "agents": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of agent IDs this sample copy applies to"
+                          },
+                          "promptTrigger": {
+                            "type": "string",
+                            "description": "Trigger string used by the classifier"
+                          },
+                          "classifierOverrideId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the classifier override, or null if using the default"
+                          },
+                          "content": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of variant answers"
+                          },
+                          "amount": {
+                            "type": "integer",
+                            "description": "Number of samples to select"
+                          },
+                          "samplingMethod": {
+                            "type": "string",
+                            "enum": [
+                              "random",
+                              "round_robin"
+                            ],
+                            "description": "Method used to select samples"
+                          },
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "regular",
+                              "forced"
+                            ],
+                            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                          },
+                          "decoratorId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the copy decorator applied to selected content, or null if none"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the sample copy was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the sample copy was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "stages",
+                          "agents",
+                          "promptTrigger",
+                          "classifierOverrideId",
+                          "content",
+                          "amount",
+                          "samplingMethod",
+                          "mode",
+                          "decoratorId",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of sample copies in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of sample copies matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/sample-copies/{id}": {
+      "get": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Get sample copy by ID",
+        "description": "Retrieves a single sample copy by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Sample Copy ID"
+            },
+            "required": true,
+            "description": "Sample Copy ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sample copy retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the sample copy"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this sample copy belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the sample copy"
+                    },
+                    "stages": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of stage IDs this sample copy applies to"
+                    },
+                    "agents": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of agent IDs this sample copy applies to"
+                    },
+                    "promptTrigger": {
+                      "type": "string",
+                      "description": "Trigger string used by the classifier"
+                    },
+                    "classifierOverrideId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier override, or null if using the default"
+                    },
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of variant answers"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Number of samples to select"
+                    },
+                    "samplingMethod": {
+                      "type": "string",
+                      "enum": [
+                        "random",
+                        "round_robin"
+                      ],
+                      "description": "Method used to select samples"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
+                    "decoratorId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the copy decorator applied to selected content, or null if none"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "stages",
+                    "agents",
+                    "promptTrigger",
+                    "classifierOverrideId",
+                    "content",
+                    "amount",
+                    "samplingMethod",
+                    "mode",
+                    "decoratorId",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sample copy not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Update sample copy",
+        "description": "Updates an existing sample copy with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Sample Copy ID"
+            },
+            "required": true,
+            "description": "Sample Copy ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "stages": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Updated array of stage IDs"
+                  },
+                  "agents": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": "Updated array of agent IDs"
+                  },
+                  "promptTrigger": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated classifier trigger string"
+                  },
+                  "classifierOverrideId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated classifier override ID"
+                  },
+                  "content": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Updated array of variant answers"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Updated number of samples to select"
+                  },
+                  "samplingMethod": {
+                    "type": "string",
+                    "enum": [
+                      "random",
+                      "round_robin"
+                    ],
+                    "description": "Updated sampling method"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "regular",
+                      "forced"
+                    ],
+                    "description": "Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                  },
+                  "decoratorId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated copy decorator ID; set to null to remove the decorator"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sample copy updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the sample copy"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this sample copy belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the sample copy"
+                    },
+                    "stages": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of stage IDs this sample copy applies to"
+                    },
+                    "agents": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of agent IDs this sample copy applies to"
+                    },
+                    "promptTrigger": {
+                      "type": "string",
+                      "description": "Trigger string used by the classifier"
+                    },
+                    "classifierOverrideId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier override, or null if using the default"
+                    },
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of variant answers"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Number of samples to select"
+                    },
+                    "samplingMethod": {
+                      "type": "string",
+                      "enum": [
+                        "random",
+                        "round_robin"
+                      ],
+                      "description": "Method used to select samples"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
+                    "decoratorId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the copy decorator applied to selected content, or null if none"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "stages",
+                    "agents",
+                    "promptTrigger",
+                    "classifierOverrideId",
+                    "content",
+                    "amount",
+                    "samplingMethod",
+                    "mode",
+                    "decoratorId",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Sample copy not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Delete sample copy",
+        "description": "Deletes a sample copy with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Sample Copy ID"
+            },
+            "required": true,
+            "description": "Sample Copy ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sample copy deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Sample copy not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/sample-copies/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Get sample copy audit logs",
+        "description": "Retrieves audit logs for a specific sample copy",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Sample Copy ID"
+            },
+            "required": true,
+            "description": "Sample Copy ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Sample copy not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/sample-copies/{id}/clone": {
+      "post": {
+        "tags": [
+          "Sample Copies"
+        ],
+        "summary": "Clone sample copy",
+        "description": "Creates a copy of an existing sample copy with a new ID and optional name override",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Sample Copy ID"
+            },
+            "required": true,
+            "description": "Sample Copy ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned sample copy (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned sample copy (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sample copy cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the sample copy"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this sample copy belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the sample copy"
+                    },
+                    "stages": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of stage IDs this sample copy applies to"
+                    },
+                    "agents": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of agent IDs this sample copy applies to"
+                    },
+                    "promptTrigger": {
+                      "type": "string",
+                      "description": "Trigger string used by the classifier"
+                    },
+                    "classifierOverrideId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the classifier override, or null if using the default"
+                    },
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of variant answers"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Number of samples to select"
+                    },
+                    "samplingMethod": {
+                      "type": "string",
+                      "enum": [
+                        "random",
+                        "round_robin"
+                      ],
+                      "description": "Method used to select samples"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
+                    "decoratorId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the copy decorator applied to selected content, or null if none"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the sample copy was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "stages",
+                    "agents",
+                    "promptTrigger",
+                    "classifierOverrideId",
+                    "content",
+                    "amount",
+                    "samplingMethod",
+                    "mode",
+                    "decoratorId",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Sample copy not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/copy-decorators": {
+      "post": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "Create a new copy decorator",
+        "description": "Creates a new copy decorator with a name and template string",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the copy decorator (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable display name of the copy decorator"
+                  },
+                  "template": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Template string used to decorate selected sample copy content"
+                  }
+                },
+                "required": [
+                  "name",
+                  "template"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Copy decorator created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the copy decorator"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this copy decorator belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable display name of the copy decorator"
+                    },
+                    "template": {
+                      "type": "string",
+                      "description": "Template string used to decorate sample copy content"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "template",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "409": {
+            "description": "Copy decorator already exists"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "List copy decorators",
+        "description": "Retrieves a paginated list of copy decorators with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of copy decorators retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the copy decorator"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this copy decorator belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Human-readable display name of the copy decorator"
+                          },
+                          "template": {
+                            "type": "string",
+                            "description": "Template string used to decorate sample copy content"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the copy decorator was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the copy decorator was last updated"
+                          },
+                          "archived": {
+                            "type": "boolean",
+                            "description": "Whether this entity belongs to an archived project"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "template",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of copy decorators in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of copy decorators matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/copy-decorators/{id}": {
+      "get": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "Get copy decorator by ID",
+        "description": "Retrieves a single copy decorator by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Copy Decorator ID"
+            },
+            "required": true,
+            "description": "Copy Decorator ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Copy decorator retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the copy decorator"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this copy decorator belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable display name of the copy decorator"
+                    },
+                    "template": {
+                      "type": "string",
+                      "description": "Template string used to decorate sample copy content"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "template",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Copy decorator not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "Update copy decorator",
+        "description": "Updates an existing copy decorator with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Copy Decorator ID"
+            },
+            "required": true,
+            "description": "Copy Decorator ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "template": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated template string"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Copy decorator updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the copy decorator"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this copy decorator belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable display name of the copy decorator"
+                    },
+                    "template": {
+                      "type": "string",
+                      "description": "Template string used to decorate sample copy content"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the copy decorator was last updated"
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "Whether this entity belongs to an archived project"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "template",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Copy decorator not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "Delete copy decorator",
+        "description": "Deletes a copy decorator with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Copy Decorator ID"
+            },
+            "required": true,
+            "description": "Copy Decorator ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Copy decorator deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Copy decorator not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/copy-decorators/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Copy Decorators"
+        ],
+        "summary": "Get copy decorator audit logs",
+        "description": "Retrieves audit logs for a specific copy decorator",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Copy Decorator ID"
+            },
+            "required": true,
+            "description": "Copy Decorator ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Copy decorator not found"
           }
         }
       }

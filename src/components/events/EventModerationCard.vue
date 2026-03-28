@@ -25,14 +25,14 @@ const iconColor = computed(() =>
 </script>
 
 <template>
-  <div class="flex items-start gap-2">
-    <button @click.stop="expanded = !expanded" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <ShieldAlert class="w-5 h-5 mt-0.5 shrink-0" :class="iconColor" />
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+    <ShieldAlert class="place-self-center w-5 h-5" :class="iconColor" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center gap-2">
         <button @click="expanded = !expanded" class="font-semibold shrink-0 text-left" :class="isBlocking ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'">
           Moderation
         </button>
@@ -51,7 +51,7 @@ const iconColor = computed(() =>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
         <span v-if="event.eventData.durationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 shrink-0"><span class="text-amber-600 dark:text-amber-400">{{ formatMs(event.eventData.durationMs) }}</span></span>
       </div>
-      <div v-show="expanded" class="space-y-2">
+      <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
         <div v-if="event.eventData.blockingCategories && event.eventData.blockingCategories.length > 0">
           <span class="text-xs font-medium text-red-700 dark:text-red-400">Blocking Categories:</span>
           <div class="mt-1 flex flex-wrap gap-1.5">

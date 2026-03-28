@@ -26,6 +26,7 @@ export interface NormalizedEvent {
   | 'user_input_modified'
   | 'user_banned'
   | 'visibility_changed'
+  | 'sample_copy_selection'
   /** Event payload (same union shape from the API) */
   eventData: any
   /** Formatted timestamp string to display */
@@ -86,6 +87,8 @@ export function getEventTypeColor(eventType: string): string {
       return 'bg-rose-50 border-rose-200 dark:bg-rose-900/10 dark:border-rose-800'
     case 'visibility_changed':
       return 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-600'
+    case 'sample_copy_selection':
+      return 'bg-stone-50 border-stone-200 dark:bg-stone-900/20 dark:border-stone-700'
     default:
       return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
   }

@@ -874,7 +874,8 @@ export interface ConversationEvent {
     | 'user_profile_updated'
     | 'user_input_modified'
     | 'user_banned'
-    | 'visibility_changed';
+    | 'visibility_changed'
+    | 'sample_copy_selection';
   /**
    * Data associated with the conversation event
    */
@@ -1110,6 +1111,21 @@ export interface ConversationEvent {
           condition?: string;
         };
         metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * ID of the classifier that performed the selection
+         */
+        classifierId: string;
+        /**
+         * The user input that triggered the selection
+         */
+        input: string;
+        /**
+         * Identifier of selected sample copy, or null if none was selected
+         */
+        sampleCopy: string;
+        metadata?: Record<string, unknown>;
       };
   /**
    * Optional request ID for correlating responses with requests
@@ -1157,7 +1173,8 @@ export interface ConversationEventUpdate {
     | 'user_profile_updated'
     | 'user_input_modified'
     | 'user_banned'
-    | 'visibility_changed';
+    | 'visibility_changed'
+    | 'sample_copy_selection';
   /**
    * Updated data for the conversation event
    */
@@ -1392,6 +1409,21 @@ export interface ConversationEventUpdate {
            */
           condition?: string;
         };
+        metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * ID of the classifier that performed the selection
+         */
+        classifierId: string;
+        /**
+         * The user input that triggered the selection
+         */
+        input: string;
+        /**
+         * Identifier of selected sample copy, or null if none was selected
+         */
+        sampleCopy: string;
         metadata?: Record<string, unknown>;
       };
   /**

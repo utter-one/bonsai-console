@@ -150,14 +150,14 @@ watch(expanded, (val) => {
 </script>
 
 <template>
-  <div class="flex items-start gap-2">
-    <button @click.stop="expanded = !expanded" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <ListOrdered class="w-5 h-5 mt-0.5 text-lime-600 shrink-0" />
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between gap-2" :class="{ 'mb-3': expanded }">
+    <ListOrdered class="place-self-center w-5 h-5 text-lime-600" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0 flex-wrap">
           <button @click="expanded = !expanded" class="font-semibold text-lime-900 dark:text-lime-100 shrink-0 text-left">Execution Plan</button>
           <span v-if="event.eventData.lifecycleContext"
@@ -180,7 +180,7 @@ watch(expanded, (val) => {
         </div>
       </div>
 
-      <div v-show="expanded" class="space-y-3">
+      <div v-show="expanded" class="col-start-3 mt-3 space-y-3">
         <div v-if="event.eventData.stageId" class="text-xs text-gray-600 dark:text-gray-400">
           Stage: <span class="text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.stageId, entityNames?.stages) }}</span>
         </div>
