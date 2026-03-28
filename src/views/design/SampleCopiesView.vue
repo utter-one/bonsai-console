@@ -57,6 +57,7 @@ interface RowState {
   content: string[]
   amount: number
   samplingMethod: 'random' | 'round_robin'
+  mode: 'regular' | 'forced'
   decoratorId: string | null
   classifierOverrideId: string | null
   version: number
@@ -90,6 +91,7 @@ function makeRowState(item: SampleCopyResponse): RowState {
     content: [...item.content],
     amount: item.amount,
     samplingMethod: item.samplingMethod,
+    mode: item.mode,
     decoratorId: item.decoratorId,
     classifierOverrideId: item.classifierOverrideId,
     version: item.version,
@@ -110,6 +112,7 @@ function makeNewRow(): RowState {
     content: [''],
     amount: 1,
     samplingMethod: 'random',
+    mode: 'regular',
     decoratorId: null,
     classifierOverrideId: null,
     version: 0,
@@ -231,6 +234,7 @@ async function saveRow(row: RowState) {
         content: row.content.filter(c => c.trim()),
         amount: row.amount,
         samplingMethod: row.samplingMethod,
+        mode: row.mode,
         classifierOverrideId: row.classifierOverrideId || null,
         decoratorId: row.decoratorId,
       }
@@ -247,6 +251,7 @@ async function saveRow(row: RowState) {
         content: row.content.filter(c => c.trim()),
         amount: row.amount,
         samplingMethod: row.samplingMethod,
+        mode: row.mode,
         classifierOverrideId: row.classifierOverrideId || null,
         decoratorId: row.decoratorId,
         version: row.version,
@@ -285,6 +290,18 @@ function flashSuccess(key: string) {
     n.delete(key)
     successIds.value = n
   }, 2000)
+}
+
+function onDecoratorChange(row: RowState, value: string) {
+  if (value === '__enforce__') {
+    row.decoratorId = null
+    row.mode = 'forced'
+    row.amount = 1
+  } else {
+    row.decoratorId = value || null
+    row.mode = 'regular'
+  }
+  markDirty(row)
 }
 
 // Stage / agent option lists for MultiSelectCell
@@ -715,7 +732,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         min="1"
                         data-col="5"
                         class="spreadsheet-input text-center w-full"
-                        :disabled="isReadOnly"
+                        :disabled="isReadOnly || row.mode === 'forced'"
                       />
                     </td>
 
@@ -736,13 +753,14 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <!-- DECORATOR -->
                     <td class="px-2 py-1.5">
                       <select
-                        v-model="row.decoratorId"
-                        @change="markDirty(row)"
+                        :value="row.mode === 'forced' ? '__enforce__' : (row.decoratorId ?? '')"
+                        @change="onDecoratorChange(row, ($event.target as HTMLSelectElement).value)"
                         data-col="7"
                         class="spreadsheet-select w-full"
                         :disabled="isReadOnly"
                       >
-                        <option :value="null">Raw</option>
+                        <option value="">Raw</option>
+                        <option value="__enforce__">Enforce</option>
                         <option v-for="d in copyDecoratorsStore.items" :key="d.id" :value="d.id">{{ d.name }}</option>
                       </select>
                     </td>

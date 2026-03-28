@@ -5949,6 +5949,11 @@ export interface CreateSampleCopyRequest {
    * @default "random"
    */
   samplingMethod?: "random" | "round_robin";
+  /**
+   * Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects
+   * @default "regular"
+   */
+  mode?: "regular" | "forced";
   /** ID of the copy decorator to apply to selected content; if not set no decoration is applied */
   decoratorId?: string | null;
 }
@@ -5982,6 +5987,8 @@ export interface UpdateSampleCopyRequest {
   amount?: number;
   /** Updated sampling method */
   samplingMethod?: "random" | "round_robin";
+  /** Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+  mode?: "regular" | "forced";
   /** Updated copy decorator ID; set to null to remove the decorator */
   decoratorId?: string | null;
   /**
@@ -6020,6 +6027,8 @@ export interface SampleCopyResponse {
   amount: number;
   /** Method used to select samples */
   samplingMethod: "random" | "round_robin";
+  /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+  mode: "regular" | "forced";
   /** ID of the copy decorator applied to selected content, or null if none */
   decoratorId: string | null;
   /** Version number for optimistic locking */
@@ -6061,6 +6070,8 @@ export interface SampleCopyListResponse {
     amount: number;
     /** Method used to select samples */
     samplingMethod: "random" | "round_robin";
+    /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+    mode: "regular" | "forced";
     /** ID of the copy decorator applied to selected content, or null if none */
     decoratorId: string | null;
     /** Version number for optimistic locking */

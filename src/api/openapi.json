@@ -13382,6 +13382,15 @@
             "default": "random",
             "description": "Method used to select samples: random selection or sequential round-robin"
           },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "default": "regular",
+            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+          },
           "decoratorId": {
             "type": "string",
             "nullable": true,
@@ -13451,6 +13460,14 @@
               "round_robin"
             ],
             "description": "Updated sampling method"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "description": "Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
           },
           "decoratorId": {
             "type": "string",
@@ -13539,6 +13556,14 @@
             ],
             "description": "Method used to select samples"
           },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "forced"
+            ],
+            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+          },
           "decoratorId": {
             "type": "string",
             "nullable": true,
@@ -13576,6 +13601,7 @@
           "content",
           "amount",
           "samplingMethod",
+          "mode",
           "decoratorId",
           "version",
           "createdAt",
@@ -13646,6 +13672,14 @@
                   ],
                   "description": "Method used to select samples"
                 },
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "regular",
+                    "forced"
+                  ],
+                  "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                },
                 "decoratorId": {
                   "type": "string",
                   "nullable": true,
@@ -13683,6 +13717,7 @@
                 "content",
                 "amount",
                 "samplingMethod",
+                "mode",
                 "decoratorId",
                 "version",
                 "createdAt",
@@ -33246,6 +33281,15 @@
                     "default": "random",
                     "description": "Method used to select samples: random selection or sequential round-robin"
                   },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "regular",
+                      "forced"
+                    ],
+                    "default": "regular",
+                    "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                  },
                   "decoratorId": {
                     "type": "string",
                     "nullable": true,
@@ -33325,6 +33369,14 @@
                       ],
                       "description": "Method used to select samples"
                     },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
                     "decoratorId": {
                       "type": "string",
                       "nullable": true,
@@ -33362,6 +33414,7 @@
                     "content",
                     "amount",
                     "samplingMethod",
+                    "mode",
                     "decoratorId",
                     "version",
                     "createdAt",
@@ -33585,6 +33638,14 @@
                             ],
                             "description": "Method used to select samples"
                           },
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "regular",
+                              "forced"
+                            ],
+                            "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                          },
                           "decoratorId": {
                             "type": "string",
                             "nullable": true,
@@ -33622,6 +33683,7 @@
                           "content",
                           "amount",
                           "samplingMethod",
+                          "mode",
                           "decoratorId",
                           "version",
                           "createdAt",
@@ -33759,6 +33821,14 @@
                       ],
                       "description": "Method used to select samples"
                     },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
                     "decoratorId": {
                       "type": "string",
                       "nullable": true,
@@ -33796,6 +33866,7 @@
                     "content",
                     "amount",
                     "samplingMethod",
+                    "mode",
                     "decoratorId",
                     "version",
                     "createdAt",
@@ -33900,6 +33971,14 @@
                     ],
                     "description": "Updated sampling method"
                   },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "regular",
+                      "forced"
+                    ],
+                    "description": "Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                  },
                   "decoratorId": {
                     "type": "string",
                     "nullable": true,
@@ -33982,6 +34061,14 @@
                       ],
                       "description": "Method used to select samples"
                     },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
                     "decoratorId": {
                       "type": "string",
                       "nullable": true,
@@ -34019,6 +34106,7 @@
                     "content",
                     "amount",
                     "samplingMethod",
+                    "mode",
                     "decoratorId",
                     "version",
                     "createdAt",
@@ -34258,6 +34346,14 @@
                       ],
                       "description": "Method used to select samples"
                     },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "regular",
+                        "forced"
+                      ],
+                      "description": "Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects"
+                    },
                     "decoratorId": {
                       "type": "string",
                       "nullable": true,
@@ -34295,6 +34391,7 @@
                     "content",
                     "amount",
                     "samplingMethod",
+                    "mode",
                     "decoratorId",
                     "version",
                     "createdAt",
