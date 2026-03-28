@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Layers, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { Route, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
 import { resolveName } from './eventHelpers'
 
@@ -21,7 +21,7 @@ const expanded = ref(false)
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <Layers class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
+    <Route class="w-5 h-5 mt-0.5 text-teal-600 shrink-0" />
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
         <button @click="expanded = !expanded" class="font-semibold text-teal-900 dark:text-teal-100 shrink-0 text-left">Stage Transition</button>

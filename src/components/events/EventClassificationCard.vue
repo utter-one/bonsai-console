@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  GitBranch,
+  Target,
   FileText,
   Wand2,
   ScrollText,
@@ -38,7 +38,7 @@ const expanded = ref(false)
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <GitBranch class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
+    <Target class="w-5 h-5 mt-0.5 text-yellow-600 shrink-0" />
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
         <div class="flex items-center gap-2 min-w-0">

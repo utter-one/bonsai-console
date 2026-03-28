@@ -21,6 +21,7 @@ import EventUserProfileUpdatedCard from './events/EventUserProfileUpdatedCard.vu
 import EventUserInputModifiedCard from './events/EventUserInputModifiedCard.vue'
 import EventUserBannedCard from './events/EventUserBannedCard.vue'
 import EventVisibilityChangedCard from './events/EventVisibilityChangedCard.vue'
+import EventSampleCopySelectionCard from './events/EventSampleCopySelectionCard.vue'
 import EventGenericCard from './events/EventGenericCard.vue'
 
 const props = defineProps<{
@@ -118,6 +119,8 @@ const forwardBugReport = {
     <EventUserBannedCard v-else-if="event.eventType === 'user_banned'" :event="event" />
 
     <EventVisibilityChangedCard v-else-if="event.eventType === 'visibility_changed'" :event="event" />
+
+    <EventSampleCopySelectionCard v-else-if="event.eventType === 'sample_copy_selection'" :event="event" :entity-names="entityNames" />
 
     <EventGenericCard v-else :event="event" />
   </div>
