@@ -11,20 +11,20 @@ const expanded = ref(false)
 </script>
 
 <template>
-  <div class="flex items-start gap-2">
-    <button @click.stop="expanded = !expanded" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <UserCircle class="w-5 h-5 mt-0.5 text-sky-600 shrink-0" />
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+    <UserCircle class="place-self-center w-5 h-5 text-sky-600" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center gap-2">
         <button @click="expanded = !expanded" class="font-semibold text-sky-900 dark:text-sky-100 shrink-0 text-left">Profile Updated</button>
         <span v-if="!expanded" class="text-xs font-medium text-sky-700 dark:text-sky-300 min-w-0 truncate">{{ event.eventData.sourceActionName }}</span>
         <span v-if="!expanded && event.eventData.profile" class="text-xs text-gray-400 shrink-0">· {{ Object.keys(event.eventData.profile).length }} field(s)</span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
       </div>
-      <div v-show="expanded" class="space-y-2">
+      <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Source Action:</span>
           <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.sourceActionName }}</div>

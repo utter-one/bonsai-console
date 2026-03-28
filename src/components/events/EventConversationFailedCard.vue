@@ -16,19 +16,19 @@ const expanded = ref(false)
 </script>
 
 <template>
-  <div class="flex items-start gap-2">
-    <button @click.stop="expanded = !expanded" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <AlertCircle class="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2" :class="{ 'mb-2': expanded }">
+    <AlertCircle class="place-self-center w-5 h-5 text-red-600" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center gap-2">
         <button @click="expanded = !expanded" class="font-semibold text-red-900 dark:text-red-100 shrink-0 text-left">Conversation Failed</button>
         <span v-if="!expanded && event.eventData.reason" class="text-xs text-gray-500 truncate">{{ event.eventData.reason }}</span>
         <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
       </div>
-      <div v-show="expanded" class="space-y-2">
+      <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
         <div v-if="event.eventData.reason">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Error:</span>
           <div class="text-sm text-red-900 font-mono bg-red-100 bg-opacity-50 rounded p-2 mt-1 dark:bg-red-900/40 dark:text-red-100">{{ event.eventData.reason }}</div>

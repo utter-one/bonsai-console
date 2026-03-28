@@ -33,14 +33,14 @@ const expanded = ref(false)
 </script>
 
 <template>
-  <div class="flex items-start gap-2">
-    <button @click.stop="expanded = !expanded" class="mt-0.5 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
       <ChevronDown v-if="expanded" class="w-4 h-4" />
       <ChevronRight v-else class="w-4 h-4" />
     </button>
-    <Microchip class="w-5 h-5 mt-0.5 text-violet-600 shrink-0" />
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between gap-2" :class="{ 'mb-2': expanded }">
+    <Microchip class="place-self-center w-5 h-5 text-violet-600" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
           <button @click="expanded = !expanded" class="font-semibold text-violet-900 dark:text-violet-100 shrink-0 text-left">Transformation</button>
           <span v-if="!expanded" class="text-xs font-medium text-violet-700 dark:text-violet-300 min-w-0 truncate">{{ resolveName(event.eventData.transformerId, entityNames?.transformers) }}</span>
@@ -86,7 +86,7 @@ const expanded = ref(false)
           </button>
         </div>
       </div>
-      <div v-show="expanded" class="space-y-2">
+      <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
         <div>
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Transformer:</span>
           <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.transformerId, entityNames?.transformers) }}</div>
