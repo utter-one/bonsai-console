@@ -392,9 +392,38 @@ async function deleteDecoratorRow(dr: DecoratorRowState) {
 }
 
 // Column widths in px: [Name, Stages, Agents, WhenToOccur, SampleContent, Amt, Dist, Decor]
-const colWidths = ref([144, 128, 128, 208, 200, 56, 112, 112])
-const tableWidth = computed(() => colWidths.value.reduce((a, b) => a + b, 0) + 64)
+const DEFAULT_COL_WIDTHS = [144, 128, 128, 208, 200, 56, 112, 112]
 const MIN_COL_WIDTH = 48
+
+function colWidthsKey(pid: string) {
+  return `sample-copies:col-widths:${pid}`
+}
+
+function loadColWidths(pid: string): number[] {
+  try {
+    const raw = localStorage.getItem(colWidthsKey(pid))
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length === DEFAULT_COL_WIDTHS.length && parsed.every(Number.isFinite))
+        return parsed
+    }
+  } catch { /* ignore */ }
+  return [...DEFAULT_COL_WIDTHS]
+}
+
+function saveColWidths(pid: string, widths: number[]) {
+  try {
+    localStorage.setItem(colWidthsKey(pid), JSON.stringify(widths))
+  } catch { /* ignore */ }
+}
+
+const colWidths = ref<number[]>(loadColWidths(projectId.value))
+
+watch(projectId, (pid) => {
+  colWidths.value = loadColWidths(pid)
+})
+
+const tableWidth = computed(() => colWidths.value.reduce((a, b) => a + b, 0) + 64)
 
 function startResize(e: MouseEvent, colIdx: number) {
   e.preventDefault()
@@ -412,6 +441,7 @@ function startResize(e: MouseEvent, colIdx: number) {
     document.removeEventListener('mouseup', onUp)
     document.body.style.userSelect = ''
     document.body.style.cursor = ''
+    saveColWidths(projectId.value, colWidths.value)
   }
 
   document.addEventListener('mousemove', onMove)
