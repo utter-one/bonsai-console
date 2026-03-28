@@ -575,21 +575,21 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                   <col style="width: 64px" />
                 </colgroup>
                 <thead>
-                  <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 1)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 2)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
-                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dist.<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Decor.<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
+                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Dist.<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Decor.<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -609,18 +609,18 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     :key="row.tempId"
                     :data-row="rowIdx"
                     v-bind="buildRowHandlers(rowIdx, () => row.isDirty, () => saveRow(row))"
-                    class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-middle group transition-colors"
+                    class="border-b border-gray-100 dark:border-gray-700 last:border-0 align-middle group transition-colors"
                     :class="[
                       row.id === null
                         ? 'bg-emerald-50/40 dark:bg-emerald-900/10'
                         : activeRowIdx === rowIdx
                           ? 'bg-emerald-50/50 dark:bg-emerald-900/15'
-                          : 'hover:bg-gray-50/60 dark:hover:bg-gray-800/30',
+                          : 'hover:bg-gray-50/60 dark:hover:bg-gray-700',
                       row.isSaving ? 'opacity-75' : '',
                     ]"
                   >
                     <!-- NAME -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <input
                         v-model="row.name"
                         @input="markDirty(row)"
@@ -633,7 +633,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- STAGES -->
-                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <MultiSelectCell
                         :model-value="row.stages"
                         :options="stageOptions"
@@ -645,7 +645,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- AGENTS -->
-                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-1 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <MultiSelectCell
                         :model-value="row.agents"
                         :options="agentOptions"
@@ -657,7 +657,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- TRIGGER -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <textarea
                         v-model="row.promptTrigger"
                         @input="markDirty(row)"
@@ -670,7 +670,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- SAMPLE CONTENT -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <div class="space-y-1" data-content-cell>
                         <div
                           v-for="(_, idx) in row.content"
@@ -707,7 +707,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- AMT -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
                       <input
                         v-model.number="row.amount"
                         @input="markDirty(row)"
@@ -804,9 +804,9 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
             <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <table class="w-full text-sm border-collapse">
                 <thead>
-                  <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">Name</th>
-                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Template</th>
+                  <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-48">Name</th>
+                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Template</th>
                     <th class="w-16"></th>
                   </tr>
                 </thead>
@@ -822,29 +822,29 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     v-for="dr in decoratorRows"
                     :key="dr.tempId"
                     class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
-                    :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-800/20'"
+                    :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
                   >
-                    <td class="px-3 py-2">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
                       <input
                         v-model="dr.name"
                         @input="dr.isDirty = true"
                         type="text"
                         placeholder="decorator name"
-                        class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-emerald-400 rounded px-2 py-1 outline-none font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+                        class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
                       <textarea
                         v-model="dr.template"
                         @input="dr.isDirty = true"
                         rows="2"
-                        :placeholder="'Template string, use {{content}} as the sample placeholder'"
-                        class="w-full text-sm bg-transparent border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-emerald-400 rounded px-2 py-1 outline-none resize-y font-mono text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+                        placeholder="Template string, use {{content}} as the sample placeholder"
+                        class="spreadsheet-input resize-y font-mono"
                         :disabled="isReadOnly"
                       />
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
                         <button
                           v-if="dr.isDirty && !isReadOnly"
