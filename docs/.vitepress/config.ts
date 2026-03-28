@@ -56,6 +56,7 @@ export default defineConfig({
             { text: 'Tools', link: '/design/tools' },
             { text: 'Knowledge Base', link: '/design/knowledge' },
             { text: 'Global Memory', link: '/design/global-memory' },
+            { text: 'Sample Copies', link: '/design/sample-copies' },
           ],
         },
       ],

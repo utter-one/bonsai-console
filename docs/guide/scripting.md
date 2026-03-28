@@ -48,6 +48,9 @@ This means scripts are safe to use — they can only read and modify conversatio
 | `stageVars` | Variables from all stages (keyed by stage ID) |
 | `consts` | Project-level constants defined in **Design > Global Memory > Constants** |
 | `project` | Project-level settings: `project.timezone`, `project.languageCode`, `project.language` |
+| `copy` | Selected sample copy content (string) with any decorator applied; empty string if no copy was matched |
+| `copyContent` | Raw selected sample copy content (string) before the decorator is applied |
+| `sampleCopy` | All sample copies active for this stage (array of objects with `name`, `trigger`, and `content` fields) |
 
 ## Common Patterns
 
