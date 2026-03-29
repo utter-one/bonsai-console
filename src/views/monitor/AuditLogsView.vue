@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, formatEnum } from '@/composables'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -161,6 +161,21 @@ function viewLog(log: AuditLogResponse) {
 function formatDate(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
+}
+
+function getEntityName(log: AuditLogResponse): string {
+  const name = (log.newEntity as any)?.name ?? (log.oldEntity as any)?.name
+  return name ?? `[${log.entityId}]`
+}
+
+function getEntityVersion(log: AuditLogResponse): string {
+  const oldV = (log.oldEntity as any)?.version
+  const newV = (log.newEntity as any)?.version
+  if (log.action === 'UPDATE' && oldV != null && newV != null) {
+    return oldV !== newV ? `v${oldV} → v${newV}` : `v${newV}`
+  }
+  const v = newV ?? oldV
+  return v != null ? `v${v}` : '—'
 }
 
 function getActionBadgeClass(action: string): string {
@@ -385,7 +400,8 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
                 <th class="table-header-cell">Created At</th>
                 <th class="table-header-cell">Action</th>
                 <th class="table-header-cell">Entity Type</th>
-                <th class="table-header-cell">Entity ID</th>
+                <th class="table-header-cell">Entity</th>
+                <th class="table-header-cell">Version</th>
                 <th class="table-header-cell">User ID</th>
               </tr>
             </thead>
@@ -398,8 +414,9 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
                     {{ log.action }}
                   </span>
                 </td>
-                <td class="table-cell">{{ log.entityType }}</td>
-                <td class="table-cell font-mono text-sm">{{ log.entityId }}</td>
+                <td class="table-cell text-gray-500 dark:text-gray-400">{{ formatEnum(log.entityType) }}</td>
+                <td class="table-cell font-semibold text-gray-900 dark:text-white">{{ getEntityName(log) }}</td>
+                <td class="table-cell text-sm text-gray-500 dark:text-gray-400">{{ getEntityVersion(log) }}</td>
                 <td class="table-cell font-mono text-sm">{{ log.userId }}</td>
               </tr>
             </tbody>
