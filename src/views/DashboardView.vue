@@ -6,6 +6,7 @@ import {
   useAuditLogsStore,
   useProjectSelectionStore,
 } from '@/stores'
+import { formatEnum } from '@/composables'
 import apiClient from '@/api/client'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
@@ -191,6 +192,21 @@ function formatRelativeTime(dateStr: string | null): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.floor(hours / 24)
   return `${days}d ago`
+}
+
+function getEntityName(log: any): string {
+  const name = log.newEntity?.name ?? log.oldEntity?.name
+  return name ?? `[${log.entityId}]`
+}
+
+function getEntityVersion(log: any): string {
+  const oldV = log.oldEntity?.version
+  const newV = log.newEntity?.version
+  if (log.action === 'UPDATE' && oldV != null && newV != null) {
+    return oldV !== newV ? `v${oldV} → v${newV}` : `v${newV}`
+  }
+  const v = newV ?? oldV
+  return v != null ? `v${v}` : ''
 }
 
 function getActionBadgeClass(action: string): string {
@@ -433,8 +449,9 @@ function getActionBadgeClass(action: string): string {
         >
           <span :class="getActionBadgeClass(log.action)" class="flex-shrink-0 w-16 justify-center">{{ log.action }}</span>
           <div class="flex-1 min-w-0 flex items-baseline gap-2">
-            <span class="text-sm font-medium text-gray-900 dark:text-white capitalize flex-shrink-0">{{ log.entityType }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 font-mono truncate">{{ log.entityId }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">{{ formatEnum(log.entityType) }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ getEntityName(log) }}</span>
+            <span v-if="getEntityVersion(log)" class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">{{ getEntityVersion(log) }}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span v-if="log.userId" class="text-xs font-mono text-gray-400 dark:text-gray-500 truncate" :title="log.userId">{{ log.userId }}</span>
