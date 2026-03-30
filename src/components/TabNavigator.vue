@@ -28,6 +28,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.show !== false))
     <button
       v-for="tab in visibleTabs"
       :key="tab.key"
+      type="button"
       class="tab-button"
       :class="{ 'tab-button-active': modelValue === tab.key }"
       @click="emit('update:modelValue', tab.key)">
