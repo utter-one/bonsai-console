@@ -13383,6 +13383,127 @@
           "totalTokens"
         ]
       },
+      "SourceDimension": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Dimension identifier used in groupBy[] and filters"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Known enumerable values, if applicable"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "SourceMetric": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Metric identifier used in metrics[] after the aggregation function"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "ms",
+              "tokens",
+              "count",
+              "boolean"
+            ],
+            "description": "Unit of measurement"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "unit"
+        ]
+      },
+      "SourceEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Source identifier used in the source query parameter"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this source provides"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceDimension"
+            },
+            "description": "Available dimensions for groupBy and filtering"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceMetric"
+            },
+            "description": "Available numeric metrics for aggregation"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "description",
+          "dimensions",
+          "metrics"
+        ]
+      },
+      "SliceQueryRow": {
+        "type": "object",
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "nullable": true,
+            "description": "Time bucket start (ISO 8601) if interval is set, null otherwise"
+          },
+          "dimensions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "Dimension values for this group"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "nullable": true
+            },
+            "description": "Metric values for this group, keyed by the metric spec from the request"
+          }
+        },
+        "required": [
+          "bucket",
+          "dimensions",
+          "metrics"
+        ]
+      },
       "CreateSampleCopyRequest": {
         "type": "object",
         "properties": {
@@ -16562,6 +16683,61 @@
         "required": [
           "interval",
           "points"
+        ]
+      },
+      "SourceCatalogResponse": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceEntry"
+            },
+            "description": "List of all available analytics sources"
+          }
+        },
+        "required": [
+          "sources"
+        ]
+      },
+      "SliceQueryResponse": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source that was queried"
+          },
+          "interval": {
+            "type": "string",
+            "description": "Time bucket interval used, if any"
+          },
+          "groupBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Dimensions that results are grouped by"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Metric specifications that were computed"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SliceQueryRow"
+            },
+            "description": "Result rows"
+          }
+        },
+        "required": [
+          "source",
+          "groupBy",
+          "metrics",
+          "rows"
         ]
       }
     },
@@ -20662,6 +20838,185 @@
           },
           "400": {
             "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/sources": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get analytics source catalog",
+        "description": "Returns the available analytics sources with their queryable dimensions and metrics. Use this to discover what can be queried via the /analytics/query endpoint.",
+        "responses": {
+          "200": {
+            "description": "Analytics source catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceCatalogResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/query": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Slice-and-dice analytics query",
+        "description": "Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "conversations",
+                "events",
+                "turns",
+                "tool_calls",
+                "classifications",
+                "transformations",
+                "moderation",
+                "stage_visits"
+              ],
+              "description": "Analytics source to query"
+            },
+            "required": true,
+            "description": "Analytics source to query",
+            "name": "source",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 5,
+              "default": [],
+              "description": "Dimension IDs to group results by (max 5)"
+            },
+            "required": false,
+            "description": "Dimension IDs to group results by (max 5)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "month"
+              ],
+              "description": "Time bucket interval for time-series aggregation"
+            },
+            "required": false,
+            "description": "Time bucket interval for time-series aggregation",
+            "name": "interval",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 10,
+              "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")"
+            },
+            "required": true,
+            "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")",
+            "name": "metrics",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter to a single conversation"
+            },
+            "required": false,
+            "description": "Filter to a single conversation",
+            "name": "conversationId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Additional equality filters: key = dimension ID, value = exact match value"
+            },
+            "required": false,
+            "description": "Additional equality filters: key = dimension ID, value = exact match value",
+            "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1000,
+              "description": "Maximum number of rows to return (default 1000, max 10000)"
+            },
+            "required": false,
+            "description": "Maximum number of rows to return (default 1000, max 10000)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slice-and-dice query results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SliceQueryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters, unknown dimension or metric"
           },
           "403": {
             "description": "Insufficient permissions"

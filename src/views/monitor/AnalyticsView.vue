@@ -50,6 +50,13 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
           >
             Token Usage
           </router-link>
+          <router-link
+            :to="{ name: 'monitor.analytics.explore' }"
+            class="tab-button"
+            :class="{ 'tab-button-active': route.name === 'monitor.analytics.explore' }"
+          >
+            Explorer
+          </router-link>
         </nav>
 
         <RouterView />

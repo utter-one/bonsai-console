@@ -5937,6 +5937,46 @@ export interface TokenUsageTrendPoint {
   totalTokens: number;
 }
 
+export interface SourceDimension {
+  /** Dimension identifier used in groupBy[] and filters */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Known enumerable values, if applicable */
+  values?: string[];
+}
+
+export interface SourceMetric {
+  /** Metric identifier used in metrics[] after the aggregation function */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Unit of measurement */
+  unit: "ms" | "tokens" | "count" | "boolean";
+}
+
+export interface SourceEntry {
+  /** Source identifier used in the source query parameter */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Description of what this source provides */
+  description: string;
+  /** Available dimensions for groupBy and filtering */
+  dimensions: SourceDimension[];
+  /** Available numeric metrics for aggregation */
+  metrics: SourceMetric[];
+}
+
+export interface SliceQueryRow {
+  /** Time bucket start (ISO 8601) if interval is set, null otherwise */
+  bucket: string | null;
+  /** Dimension values for this group */
+  dimensions: Record<string, string | null>;
+  /** Metric values for this group, keyed by the metric spec from the request */
+  metrics: Record<string, number | null>;
+}
+
 export interface CreateSampleCopyRequest {
   /**
    * Unique identifier for the sample copy (auto-generated if not provided)
@@ -7090,4 +7130,22 @@ export interface TokenUsageTrendResponse {
   interval: string;
   /** Time-bucketed data points */
   points: TokenUsageTrendPoint[];
+}
+
+export interface SourceCatalogResponse {
+  /** List of all available analytics sources */
+  sources: SourceEntry[];
+}
+
+export interface SliceQueryResponse {
+  /** Source that was queried */
+  source: string;
+  /** Time bucket interval used, if any */
+  interval?: string;
+  /** Dimensions that results are grouped by */
+  groupBy: string[];
+  /** Metric specifications that were computed */
+  metrics: string[];
+  /** Result rows */
+  rows: SliceQueryRow[];
 }

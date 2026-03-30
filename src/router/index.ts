@@ -210,6 +210,11 @@ const routes: RouteRecordRaw[] = [
                 name: 'monitor.analytics.tokenUsage',
                 component: () => import('@/views/monitor/TokenUsageAnalysisView.vue'),
               },
+              {
+                path: 'explore',
+                name: 'monitor.analytics.explore',
+                component: () => import('@/views/monitor/ExploreView.vue'),
+              },
             ],
           },
           {

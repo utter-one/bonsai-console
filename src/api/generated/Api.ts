@@ -56,6 +56,8 @@ import {
   S3StorageSettings,
   SampleCopyConfig,
   ServerVadConfig,
+  SliceQueryResponse,
+  SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
@@ -1922,6 +1924,94 @@ export class Api<
   ) =>
     this.request<TokenUsageTrendResponse, void>({
       path: `/api/projects/${projectId}/analytics/usage/trend`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the available analytics sources with their queryable dimensions and metrics. Use this to discover what can be queried via the /analytics/query endpoint.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSourcesList
+   * @summary Get analytics source catalog
+   * @request GET:/api/projects/{projectId}/analytics/sources
+   * @secure
+   */
+  projectsAnalyticsSourcesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SourceCatalogResponse, void>({
+      path: `/api/projects/${projectId}/analytics/sources`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsQueryList
+   * @summary Slice-and-dice analytics query
+   * @request GET:/api/projects/{projectId}/analytics/query
+   * @secure
+   */
+  projectsAnalyticsQueryList = (
+    projectId: string,
+    query: {
+      /** Analytics source to query */
+      source:
+        | "conversations"
+        | "events"
+        | "turns"
+        | "tool_calls"
+        | "classifications"
+        | "transformations"
+        | "moderation"
+        | "stage_visits";
+      /**
+       * Dimension IDs to group results by (max 5)
+       * @maxItems 5
+       * @default []
+       */
+      groupBy?: string[];
+      /** Time bucket interval for time-series aggregation */
+      interval?: "hour" | "day" | "week" | "month";
+      /**
+       * Metric specifications: "count" or "{aggFn}:{metricId}" (e.g. "avg:durationMs", "p95:totalTurnDurationMs")
+       * @maxItems 10
+       * @minItems 1
+       */
+      metrics: string[];
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter to a single conversation */
+      conversationId?: string;
+      /** Additional equality filters: key = dimension ID, value = exact match value */
+      filters?: Record<string, string>;
+      /**
+       * Maximum number of rows to return (default 1000, max 10000)
+       * @min 1
+       * @max 10000
+       * @default 1000
+       */
+      limit?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SliceQueryResponse, void>({
+      path: `/api/projects/${projectId}/analytics/query`,
       method: "GET",
       query: query,
       secure: true,
