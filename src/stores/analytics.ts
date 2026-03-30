@@ -8,6 +8,8 @@ import type {
   ConversationTimelineResponse,
   TokenUsageStatsResponse,
   TokenUsageTrendResponse,
+  SourceCatalogResponse,
+  SliceQueryResponse,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -136,6 +138,41 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
+  const sourceCatalog = ref<SourceCatalogResponse | null>(null)
+  const isLoadingCatalog = ref(false)
+  const catalogError = ref<string | null>(null)
+
+  async function fetchSourceCatalog(projectId: string) {
+    isLoadingCatalog.value = true
+    catalogError.value = null
+    try {
+      sourceCatalog.value = await apiClient.projectsAnalyticsSourcesList(projectId)
+    } catch (err: any) {
+      catalogError.value = err.response?.data?.message || 'Failed to load analytics sources'
+      throw err
+    } finally {
+      isLoadingCatalog.value = false
+    }
+  }
+
+  const sliceResult = ref<SliceQueryResponse | null>(null)
+  const isLoadingQuery = ref(false)
+  const queryError = ref<string | null>(null)
+
+  async function runQuery(projectId: string, params: Parameters<typeof apiClient.projectsAnalyticsQueryList>[1]) {
+    isLoadingQuery.value = true
+    queryError.value = null
+    sliceResult.value = null
+    try {
+      sliceResult.value = await apiClient.projectsAnalyticsQueryList(projectId, params)
+    } catch (err: any) {
+      queryError.value = err.response?.data?.message || 'Failed to run analytics query'
+      throw err
+    } finally {
+      isLoadingQuery.value = false
+    }
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -158,5 +195,13 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     fetchTokenUsageStats,
     fetchTokenUsageTrend,
     fetchAllTokenUsage,
+    sourceCatalog,
+    isLoadingCatalog,
+    catalogError,
+    fetchSourceCatalog,
+    sliceResult,
+    isLoadingQuery,
+    queryError,
+    runQuery,
   }
 })
