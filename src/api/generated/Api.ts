@@ -59,6 +59,8 @@ import {
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
+  TokenUsageStatsResponse,
+  TokenUsageTrendResponse,
   ToolParameter,
   TtsModelInfo,
   VoiceInfo,
@@ -1843,6 +1845,85 @@ export class Api<
     this.request<ConversationTimelineResponse, void>({
       path: `/api/projects/${projectId}/analytics/conversations/${conversationId}/timeline`,
       method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns aggregated LLM token usage statistics broken down by event type (message, classification, transformation, tool_call). Includes total prompt tokens, completion tokens, and combined totals.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsUsageList
+   * @summary Get aggregated token usage statistics
+   * @request GET:/api/projects/{projectId}/analytics/usage
+   * @secure
+   */
+  projectsAnalyticsUsageList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<TokenUsageStatsResponse, void>({
+      path: `/api/projects/${projectId}/analytics/usage`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a time-series of token consumption bucketed by the specified interval (hour, day, or week). Useful for tracking LLM usage growth and optimizing prompt costs.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsUsageTrendList
+   * @summary Get token usage trend over time
+   * @request GET:/api/projects/{projectId}/analytics/usage/trend
+   * @secure
+   */
+  projectsAnalyticsUsageTrendList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+      /**
+       * Time bucket interval for the trend (hour, day, or week)
+       * @default "day"
+       */
+      interval?: "hour" | "day" | "week";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<TokenUsageTrendResponse, void>({
+      path: `/api/projects/${projectId}/analytics/usage/trend`,
+      method: "GET",
+      query: query,
       secure: true,
       format: "json",
       ...params,

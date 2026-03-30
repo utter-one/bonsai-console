@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect, onUnmounted } from 'vue'
+import { watchEffect, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLayoutStore } from '@/stores'
 import { FlaskConical } from 'lucide-vue-next'
@@ -22,8 +22,6 @@ const props = defineProps<Props>()
 const route = useRoute()
 const router = useRouter()
 const layoutStore = useLayoutStore()
-
-const currentRouteName = computed(() => route.name as string)
 
 // Generate a unique ID for this instance
 const ownerId = Math.random().toString(36).substring(7)
@@ -57,7 +55,7 @@ function navigateTo(routeName: string) {
             :key="item.name"
             :class="[
               'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
-              currentRouteName === item.name
+              route.matched.some(r => r.name === item.name)
                 ? 'bg-primary-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400'
                 : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             ]"
