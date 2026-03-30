@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore } from '@/stores'
-import { Plus, X, Play } from 'lucide-vue-next'
+import { Plus, X, Play, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import { Bar, Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -54,10 +54,31 @@ const showMetricPicker = ref(false)
 const pickerMetricId = ref<string>('')
 const pickerAggFn = ref<AggFn>('avg')
 
+// Dimension picker state
+const showDimPicker = ref(false)
+
 // Dimension filter add state
 const showFilterPicker = ref(false)
 const filterPickerDimensionId = ref<string>('')
 const filterPickerValue = ref<string>('')
+
+// Click-outside refs
+const dimPickerRef = useTemplateRef<HTMLElement>('dimPickerRef')
+const metricPickerRef = useTemplateRef<HTMLElement>('metricPickerRef')
+const filterPickerRef = useTemplateRef<HTMLElement>('filterPickerRef')
+
+function handleDocumentMousedown(e: MouseEvent) {
+  const target = e.target as Node
+  if (showDimPicker.value && dimPickerRef.value && !dimPickerRef.value.contains(target)) {
+    showDimPicker.value = false
+  }
+  if (showMetricPicker.value && metricPickerRef.value && !metricPickerRef.value.contains(target)) {
+    showMetricPicker.value = false
+  }
+  if (showFilterPicker.value && filterPickerRef.value && !filterPickerRef.value.contains(target)) {
+    showFilterPicker.value = false
+  }
+}
 
 const sources = computed(() => analyticsStore.sourceCatalog?.sources ?? [])
 
@@ -177,6 +198,7 @@ function onSourceChange(newSource: string) {
   selectedDimensions.value = []
   selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
   dimensionFilters.value = []
+  showDimPicker.value = false
   showMetricPicker.value = false
   showFilterPicker.value = false
 }
@@ -206,6 +228,11 @@ onMounted(async () => {
   if (projectId.value) {
     await analyticsStore.fetchSourceCatalog(projectId.value)
   }
+  document.addEventListener('mousedown', handleDocumentMousedown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleDocumentMousedown)
 })
 
 watch(projectId, async (newId) => {
@@ -281,7 +308,7 @@ const CHART_COLORS = [
   { border: 'rgb(236,72,153)', bg: 'rgba(236,72,153,0.15)' },
 ]
 
-const showLineChart = computed(() => !!result.value?.interval && result.value.rows.length > 0)
+const showLineChart = computed(() => !!result.value?.interval && result.value.groupBy.length === 0 && result.value.rows.length > 0)
 const showBarChart = computed(() => !result.value?.interval && (result.value?.groupBy.length ?? 0) > 0 && result.value!.rows.length > 0)
 
 const lineChartData = computed(() => {
@@ -358,6 +385,124 @@ const sharedChartOptions = {
 const atLimit = computed(
   () => result.value !== null && result.value.rows.length >= queryLimit.value
 )
+
+// Drill-down
+type DimSpec = { kind: 'bucket' } | { kind: 'dim'; id: string }
+
+interface DrillDisplayRow {
+  kind: 'group' | 'leaf'
+  key: string
+  depth: number
+  levelKind?: 'bucket' | 'dim'
+  dimId?: string
+  dimValue?: string | null
+  isExpanded?: boolean
+  rollup?: Record<string, number | null>
+  rowCount?: number
+  row?: SliceQueryRow
+}
+
+const expandedKeys = ref(new Set<string>())
+
+watch(result, () => {
+  expandedKeys.value = new Set()
+})
+
+const drillLevels = computed<DimSpec[]>(() => {
+  if (!result.value) return []
+  const levels: DimSpec[] = []
+  if (result.value.interval) levels.push({ kind: 'bucket' })
+  for (const dimId of result.value.groupBy) {
+    levels.push({ kind: 'dim', id: dimId })
+  }
+  return levels
+})
+
+const useDrilldown = computed(() => drillLevels.value.length >= 2)
+
+const levelColKeys = computed<string[]>(() =>
+  drillLevels.value.map(l => l.kind === 'bucket' ? '__bucket' : `dim:${l.id}`)
+)
+
+function rollupForMetricSpec(spec: string, rows: SliceQueryRow[]): number | null {
+  const values = rows.map(r => r.metrics[spec]).filter((v): v is number => v !== null)
+  if (values.length === 0) return null
+  if (spec === 'count' || spec.startsWith('sum:')) return values.reduce((a, b) => a + b, 0)
+  if (spec.startsWith('min:')) return Math.min(...values)
+  if (spec.startsWith('max:')) return Math.max(...values)
+  return null
+}
+
+function buildDrillRows(
+  rows: SliceQueryRow[],
+  levels: DimSpec[],
+  levelIdx: number,
+  metrics: string[],
+  parentKey: string,
+  output: DrillDisplayRow[],
+) {
+  const level = levels[levelIdx]!
+  const isLastLevel = levelIdx === levels.length - 1
+
+  if (isLastLevel) {
+    for (const row of rows) {
+      output.push({ kind: 'leaf', key: `${parentKey}/leaf-${output.length}`, depth: levelIdx, row })
+    }
+    return
+  }
+
+  const groups = new Map<string | null, SliceQueryRow[]>()
+  for (const row of rows) {
+    const v = level.kind === 'bucket' ? row.bucket : (row.dimensions[level.id] ?? null)
+    const existing = groups.get(v)
+    if (existing) existing.push(row)
+    else groups.set(v, [row])
+  }
+
+  const sorted = [...groups.entries()].sort(([a], [b]) => {
+    if (a === null) return 1
+    if (b === null) return -1
+    return String(a).localeCompare(String(b))
+  })
+
+  for (const [dimVal, childRows] of sorted) {
+    const levelKey = level.kind === 'bucket' ? '__bucket' : level.id
+    const key = `${parentKey}/${levelKey}:${dimVal ?? '__null__'}`
+    const isExpanded = expandedKeys.value.has(key)
+    const rollup: Record<string, number | null> = {}
+    for (const spec of metrics) {
+      rollup[spec] = rollupForMetricSpec(spec, childRows)
+    }
+    output.push({
+      kind: 'group', key, depth: levelIdx,
+      levelKind: level.kind,
+      dimId: level.kind === 'dim' ? level.id : undefined,
+      dimValue: dimVal, isExpanded, rollup, rowCount: childRows.length,
+    })
+    if (isExpanded) {
+      buildDrillRows(childRows, levels, levelIdx + 1, metrics, key, output)
+    }
+  }
+}
+
+const drillDisplayRows = computed<DrillDisplayRow[]>(() => {
+  if (!result.value || !useDrilldown.value) return []
+  const output: DrillDisplayRow[] = []
+  buildDrillRows(result.value.rows, drillLevels.value, 0, result.value.metrics, '', output)
+  return output
+})
+
+function toggleExpand(key: string) {
+  const next = new Set(expandedKeys.value)
+  if (next.has(key)) {
+    for (const k of next) {
+      if (k === key || k.startsWith(key + '/')) next.delete(k)
+    }
+  } else {
+    next.add(key)
+  }
+  expandedKeys.value = next
+}
 </script>
 
 <template>
@@ -418,14 +563,34 @@ const atLimit = computed(
             <X class="w-3 h-3" />
           </button>
         </span>
-        <select
+
+        <!-- Dimension picker -->
+        <div
           v-if="unselectedDimensions.length > 0 && selectedDimensions.length < 5"
-          @change="addDimension(($event.target as HTMLSelectElement).value); ($event.target as HTMLSelectElement).value = ''"
-          class="form-select-auto text-xs py-1"
+          ref="dimPickerRef"
+          class="relative"
         >
-          <option value="" disabled selected>+ Add dimension…</option>
-          <option v-for="d in unselectedDimensions" :key="d.id" :value="d.id">{{ d.label }}</option>
-        </select>
+          <button
+            @click="showDimPicker = !showDimPicker"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border border-dashed border-gray-300 dark:border-gray-600"
+          >
+            <Plus class="w-3 h-3" /> Add dimension
+          </button>
+          <div
+            v-if="showDimPicker"
+            class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[180px]"
+          >
+            <button
+              v-for="d in unselectedDimensions"
+              :key="d.id"
+              @click="addDimension(d.id); showDimPicker = false"
+              class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {{ d.label }}
+            </button>
+          </div>
+        </div>
+
         <span v-else-if="unselectedDimensions.length === 0 && availableDimensions.length > 0" class="text-xs text-gray-400 dark:text-gray-500 pt-1">All dimensions selected</span>
         <span v-else-if="availableDimensions.length === 0 && !analyticsStore.isLoadingCatalog" class="text-xs text-gray-400 dark:text-gray-500 pt-1">No dimensions available for this source</span>
       </div>
@@ -447,11 +612,10 @@ const atLimit = computed(
         </span>
 
         <!-- Metric picker -->
-        <div class="relative">
+        <div ref="metricPickerRef" class="relative">
           <button
             @click="openMetricPicker()"
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border border-dashed border-gray-300 dark:border-gray-600"
-            :disabled="availableMetrics.length === 0 && !selectedMetrics.some(m => m.spec === 'count')"
           >
             <Plus class="w-3 h-3" /> Add metric
           </button>
@@ -462,7 +626,7 @@ const atLimit = computed(
             <!-- Count (always available) -->
             <button
               @click="addCountMetric(); showMetricPicker = false"
-              class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 mb-2 border-b border-gray-100 dark:border-gray-700 pb-2"
+              class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 pb-2 mb-2"
               :disabled="selectedMetrics.some(m => m.spec === 'count')"
               :class="{ 'opacity-40 cursor-not-allowed': selectedMetrics.some(m => m.spec === 'count') }"
             >
@@ -470,19 +634,20 @@ const atLimit = computed(
             </button>
 
             <template v-if="availableMetrics.length > 0">
-              <div class="flex gap-2 mb-2">
-                <select v-model="pickerMetricId" class="form-select-auto text-xs flex-1" @click.stop>
+              <div class="flex gap-2 mb-3">
+                <select v-model="pickerMetricId" class="form-select-auto text-xs flex-1">
                   <option v-for="m in availableMetrics" :key="m.id" :value="m.id">{{ m.label }}</option>
                 </select>
-                <select v-model="pickerAggFn" class="form-select-auto text-xs w-24" @click.stop>
+                <select v-model="pickerAggFn" class="form-select-auto text-xs w-24">
                   <option v-for="fn in pickerAggFns" :key="fn" :value="fn">{{ fn.toUpperCase() }}</option>
                 </select>
               </div>
-              <div class="flex justify-end gap-2">
-                <button @click="showMetricPicker = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
-                <button @click="addMetric" class="btn-primary text-xs py-1 px-2">Add</button>
-              </div>
             </template>
+
+            <div class="flex justify-end gap-2">
+              <button @click="showMetricPicker = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+              <button v-if="availableMetrics.length > 0" @click="addMetric" class="btn-primary text-xs py-1 px-2">Add</button>
+            </div>
           </div>
         </div>
       </div>
@@ -504,7 +669,7 @@ const atLimit = computed(
         </span>
 
         <!-- Filter picker -->
-        <div v-if="unselectedFilterDimensions.length > 0" class="relative">
+        <div v-if="unselectedFilterDimensions.length > 0" ref="filterPickerRef" class="relative">
           <button
             @click="openFilterPicker()"
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border border-dashed border-gray-300 dark:border-gray-600"
@@ -614,7 +779,74 @@ const atLimit = computed(
               </th>
             </tr>
           </thead>
-          <tbody class="table-body">
+
+          <!-- Drill-down table body (bucket+dims or multiple dims) -->
+          <tbody v-if="useDrilldown" class="table-body">
+            <template v-for="drow in drillDisplayRows" :key="drow.key">
+              <!-- Group row -->
+              <tr
+                v-if="drow.kind === 'group'"
+                class="table-row cursor-pointer select-none"
+                @click="toggleExpand(drow.key)"
+              >
+                <td
+                  v-for="col in tableColumns"
+                  :key="col.key"
+                  :class="['table-cell', col.numeric ? 'text-right tabular-nums text-gray-400 dark:text-gray-500' : '']"
+                >
+                  <!-- Bucket group: owning column is __bucket -->
+                  <template v-if="drow.levelKind === 'bucket' && col.key === '__bucket'">
+                    <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
+                      <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <span class="font-medium">{{ drow.dimValue != null ? formatBucket(String(drow.dimValue), result?.interval ?? '') : '—' }}</span>
+                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
+                    </span>
+                  </template>
+                  <!-- Dim group: owning column is dim:{dimId} -->
+                  <template v-else-if="drow.levelKind === 'dim' && col.key === `dim:${drow.dimId}`">
+                    <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
+                      <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <span class="font-medium">{{ drow.dimValue != null ? formatEnum(String(drow.dimValue)) : '—' }}</span>
+                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
+                    </span>
+                  </template>
+                  <!-- Metric rollup -->
+                  <template v-else-if="col.numeric">
+                    {{ drow.rollup && drow.rollup[col.key.slice(7)] != null ? fmtMetric(drow.rollup[col.key.slice(7)], col.key.slice(7)) : '' }}
+                  </template>
+                  <!-- Other columns (non-owning, non-metric): blank -->
+                </td>
+              </tr>
+
+              <!-- Leaf row -->
+              <tr v-else class="table-row">
+                <td
+                  v-for="col in tableColumns"
+                  :key="col.key"
+                  :class="['table-cell', col.numeric ? 'text-right font-medium tabular-nums' : '']"
+                >
+                  <!-- Blank out ancestor-level label columns -->
+                  <template v-if="levelColKeys.indexOf(col.key) >= 0 && levelColKeys.indexOf(col.key) < drow.depth">
+                  </template>
+                  <!-- Owning column (last level): indented -->
+                  <template v-else-if="col.key === levelColKeys[drow.depth]">
+                    <span class="inline-flex" :style="{ paddingLeft: `${drow.depth * 20 + 22}px` }">
+                      {{ drow.row ? getCellValue(drow.row, col.key) : '—' }}
+                    </span>
+                  </template>
+                  <!-- Metrics and other remaining columns -->
+                  <template v-else>
+                    {{ drow.row ? getCellValue(drow.row, col.key) : '—' }}
+                  </template>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+
+          <!-- Flat table body -->
+          <tbody v-else class="table-body">
             <tr v-for="(row, i) in result.rows" :key="i" class="table-row">
               <td
                 v-for="col in tableColumns"
