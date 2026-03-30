@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -33,24 +33,6 @@ async function applyFilters() {
   if (!projectId.value) return
   await analyticsStore.fetchAll(projectId.value, buildQuery())
 }
-
-onMounted(async () => {
-  if (projectId.value) {
-    await Promise.all([
-      stagesStore.fetchAll(projectId.value),
-      analyticsStore.fetchAll(projectId.value, buildQuery()),
-    ])
-  }
-})
-
-watch(projectId, async (newId) => {
-  if (newId) {
-    await Promise.all([
-      stagesStore.fetchAll(newId),
-      analyticsStore.fetchAll(newId, buildQuery()),
-    ])
-  }
-})
 
 function fmtMs(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
@@ -135,6 +117,12 @@ const summaryCards = computed(() => {
   <!-- Loading -->
   <div v-if="analyticsStore.isLoading && !analyticsStore.latencyStats" class="loading-state">
     Loading analytics data...
+  </div>
+
+  <!-- Idle -->
+  <div v-else-if="!analyticsStore.latencyStats" class="empty-state">
+    <p class="empty-state-title">No data yet</p>
+    <p>Set your filters and click <span class="font-semibold">Apply</span> to calculate latency statistics.</p>
   </div>
 
   <template v-else-if="analyticsStore.latencyStats">

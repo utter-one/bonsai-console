@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
+import { formatEnum } from '@/composables'
 import TokenUsageTrendChart from '@/components/TokenUsageTrendChart.vue'
 
 const analyticsStore = useAnalyticsStore()
@@ -32,24 +33,6 @@ async function applyFilters() {
   if (!projectId.value) return
   await analyticsStore.fetchAllTokenUsage(projectId.value, buildQuery())
 }
-
-onMounted(async () => {
-  if (projectId.value) {
-    await Promise.all([
-      stagesStore.fetchAll(projectId.value),
-      analyticsStore.fetchAllTokenUsage(projectId.value, buildQuery()),
-    ])
-  }
-})
-
-watch(projectId, async (newId) => {
-  if (newId) {
-    await Promise.all([
-      stagesStore.fetchAll(newId),
-      analyticsStore.fetchAllTokenUsage(newId, buildQuery()),
-    ])
-  }
-})
 
 const summaryCards = computed(() => {
   const s = analyticsStore.tokenUsageStats
@@ -110,6 +93,12 @@ function fmtRatio(prompt: number, completion: number): string {
     Loading token usage data...
   </div>
 
+  <!-- Idle -->
+  <div v-else-if="!analyticsStore.tokenUsageStats" class="empty-state">
+    <p class="empty-state-title">No data yet</p>
+    <p>Set your filters and click <span class="font-semibold">Apply</span> to calculate token usage statistics.</p>
+  </div>
+
   <template v-else-if="analyticsStore.tokenUsageStats">
     <!-- Summary Cards -->
     <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Summary</h2>
@@ -154,7 +143,7 @@ function fmtRatio(prompt: number, completion: number): string {
               :key="row.eventType"
               class="table-row"
             >
-              <td class="table-cell font-mono text-xs">{{ row.eventType }}</td>
+              <td class="table-cell">{{ formatEnum(row.eventType) }}</td>
               <td class="table-cell-muted text-right">{{ row.eventCount.toLocaleString() }}</td>
               <td class="table-cell text-right">{{ row.totalPromptTokens.toLocaleString() }}</td>
               <td class="table-cell text-right">{{ row.totalCompletionTokens.toLocaleString() }}</td>
