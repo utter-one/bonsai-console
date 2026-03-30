@@ -5,8 +5,6 @@ export interface SpreadsheetBehaviorOptions {
   columnCount: number
   /** Return the total number of visible rows at call-time. */
   getRowCount: () => number
-  /** Called when auto-save is needed for a row. Receives the row index in filteredRows. */
-  onAutoSave?: (rowIdx: number) => void
   /** Called when Escape is pressed — close any open popovers/modals. */
   onEscape?: () => void
 }
@@ -104,24 +102,11 @@ export function useSpreadsheetBehavior(options: SpreadsheetBehaviorOptions) {
   }
 
   /**
-   * Build the event handlers to spread onto a <tr> element for auto-save on row blur.
-   * isDirty and save are evaluated lazily so they always reflect current row state.
+   * Build the event handlers to spread onto a <tr> element for active-row tracking.
    */
-  function buildRowHandlers(
-    rowIdx: number,
-    isDirty: () => boolean,
-    save: () => void,
-  ): Record<string, unknown> {
+  function buildRowHandlers(rowIdx: number): Record<string, unknown> {
     return {
       'onFocusin': () => { setActive(rowIdx, activeColIdx.value ?? 0) },
-      'onFocusout': (e: FocusEvent) => {
-        const row = (e.currentTarget as HTMLElement)
-        setTimeout(() => {
-          if (!row.contains(document.activeElement) && isDirty()) {
-            save()
-          }
-        }, 0)
-      },
     }
   }
 
