@@ -2,24 +2,10 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore } from '@/stores'
 import { Plus, X, Play, ChevronRight, ChevronDown } from 'lucide-vue-next'
-import { Bar, Line } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import type { SourceEntry, SourceMetric, SliceQueryRow } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend)
 
 const analyticsStore = useAnalyticsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -300,91 +286,14 @@ function getCellValue(row: SliceQueryRow, colKey: string): string {
   return '—'
 }
 
-const CHART_COLORS = [
-  { border: 'rgb(59,130,246)', bg: 'rgba(59,130,246,0.15)' },
-  { border: 'rgb(16,185,129)', bg: 'rgba(16,185,129,0.15)' },
-  { border: 'rgb(139,92,246)', bg: 'rgba(139,92,246,0.15)' },
-  { border: 'rgb(249,115,22)', bg: 'rgba(249,115,22,0.15)' },
-  { border: 'rgb(236,72,153)', bg: 'rgba(236,72,153,0.15)' },
-]
-
-const showLineChart = computed(() => !!result.value?.interval && result.value.groupBy.length === 0 && result.value.rows.length > 0)
-const showBarChart = computed(() => !result.value?.interval && (result.value?.groupBy.length ?? 0) > 0 && result.value!.rows.length > 0)
-
-const lineChartData = computed(() => {
-  if (!showLineChart.value || !result.value) return null
-  const metricSpecs = result.value.metrics
-  const interval = result.value.interval!
-  const rows = result.value.rows
-  return {
-    labels: rows.map(r => formatBucket(r.bucket, interval)),
-    datasets: metricSpecs.map((spec, i) => {
-      const m = selectedMetrics.value.find(m => m.spec === spec)
-      const color = CHART_COLORS[i % CHART_COLORS.length]!
-      return {
-        label: m?.label ?? spec,
-        data: rows.map(r => r.metrics[spec] ?? null),
-        borderColor: color.border,
-        backgroundColor: color.bg,
-        tension: 0.3,
-        spanGaps: true,
-      }
-    }),
-  }
-})
-
-const barChartData = computed(() => {
-  if (!showBarChart.value || !result.value) return null
-  const firstDim = result.value.groupBy[0]
-  if (!firstDim) return null
-  const metricSpecs = result.value.metrics
-  const rows = result.value.rows
-  return {
-    labels: rows.map(r => {
-      const v = r.dimensions[firstDim]
-      return v != null ? formatEnum(String(v)) : '—'
-    }),
-    datasets: metricSpecs.map((spec, i) => {
-      const m = selectedMetrics.value.find(m => m.spec === spec)
-      const color = CHART_COLORS[i % CHART_COLORS.length]!
-      return {
-        label: m?.label ?? spec,
-        data: rows.map(r => r.metrics[spec] ?? null),
-        backgroundColor: color.bg,
-        borderColor: color.border,
-        borderWidth: 1.5,
-      }
-    }),
-  }
-})
-
-const sharedChartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { position: 'bottom' as const },
-    tooltip: {
-      callbacks: {
-        label: (ctx: any) => {
-          const v = ctx.parsed.y
-          if (v === null) return `${ctx.dataset.label}: N/A`
-          const spec = result.value?.metrics[ctx.datasetIndex] ?? ''
-          return `${ctx.dataset.label}: ${fmtMetric(v, spec)}`
-        },
-      },
-    },
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      ticks: { callback: (v: any) => v.toLocaleString() },
-    },
-  },
-}
-
 const atLimit = computed(
   () => result.value !== null && result.value.rows.length >= queryLimit.value
 )
+
+const spacerIndex = computed(() => {
+  const idx = tableColumns.value.findIndex(c => c.numeric)
+  return idx === -1 ? tableColumns.value.length : idx
+})
 
 // Drill-down
 type DimSpec = { kind: 'bucket' } | { kind: 'dim'; id: string }
@@ -756,27 +665,17 @@ function toggleExpand(key: string) {
       </span>
     </div>
 
-    <!-- Chart -->
-    <div v-if="showLineChart || showBarChart" class="card mb-6">
-      <div class="relative h-72">
-        <Line v-if="showLineChart && lineChartData" :data="lineChartData" :options="sharedChartOptions" />
-        <Bar v-else-if="showBarChart && barChartData" :data="barChartData" :options="sharedChartOptions" />
-      </div>
-    </div>
-
     <!-- Results table -->
     <div v-if="result.rows.length > 0" class="table-container">
       <div class="table-wrapper">
         <table class="table">
           <thead class="table-header">
             <tr>
-              <th
-                v-for="col in tableColumns"
-                :key="col.key"
-                :class="col.numeric ? 'table-header-cell-right' : 'table-header-cell'"
-              >
-                {{ col.label }}
-              </th>
+              <template v-for="(col, i) in tableColumns" :key="col.key">
+                <th v-if="i === spacerIndex" class="table-header-cell w-full" key="__spacer"></th>
+                <th :class="[col.numeric ? 'table-header-cell-right' : 'table-header-cell', 'whitespace-nowrap']">{{ col.label }}</th>
+              </template>
+              <th v-if="spacerIndex === tableColumns.length" class="table-header-cell w-full" key="__spacer"></th>
             </tr>
           </thead>
 
@@ -789,58 +688,58 @@ function toggleExpand(key: string) {
                 class="table-row cursor-pointer select-none"
                 @click="toggleExpand(drow.key)"
               >
-                <td
-                  v-for="col in tableColumns"
-                  :key="col.key"
-                  :class="['table-cell', col.numeric ? 'text-right tabular-nums text-gray-400 dark:text-gray-500' : '']"
-                >
-                  <!-- Bucket group: owning column is __bucket -->
-                  <template v-if="drow.levelKind === 'bucket' && col.key === '__bucket'">
-                    <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
-                      <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                      <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                      <span class="font-medium">{{ drow.dimValue != null ? formatBucket(String(drow.dimValue), result?.interval ?? '') : '—' }}</span>
-                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
-                    </span>
-                  </template>
-                  <!-- Dim group: owning column is dim:{dimId} -->
-                  <template v-else-if="drow.levelKind === 'dim' && col.key === `dim:${drow.dimId}`">
-                    <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
-                      <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                      <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                      <span class="font-medium">{{ drow.dimValue != null ? formatEnum(String(drow.dimValue)) : '—' }}</span>
-                      <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
-                    </span>
-                  </template>
-                  <!-- Metric rollup -->
-                  <template v-else-if="col.numeric">
-                    {{ drow.rollup && drow.rollup[col.key.slice(7)] != null ? fmtMetric(drow.rollup[col.key.slice(7)], col.key.slice(7)) : '' }}
-                  </template>
-                  <!-- Other columns (non-owning, non-metric): blank -->
-                </td>
+                <template v-for="(col, i) in tableColumns" :key="col.key">
+                  <td v-if="i === spacerIndex" class="table-cell" key="__spacer"></td>
+                  <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right tabular-nums text-gray-400 dark:text-gray-500' : '']">
+                    <!-- Bucket group: owning column is __bucket -->
+                    <template v-if="drow.levelKind === 'bucket' && col.key === '__bucket'">
+                      <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
+                        <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span class="font-medium">{{ drow.dimValue != null ? formatBucket(String(drow.dimValue), result?.interval ?? '') : '—' }}</span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
+                      </span>
+                    </template>
+                    <!-- Dim group: owning column is dim:{dimId} -->
+                    <template v-else-if="drow.levelKind === 'dim' && col.key === `dim:${drow.dimId}`">
+                      <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
+                        <ChevronDown v-if="drow.isExpanded" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <ChevronRight v-else class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span class="font-medium">{{ drow.dimValue != null ? formatEnum(String(drow.dimValue)) : '—' }}</span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500">{{ drow.rowCount }} row{{ drow.rowCount !== 1 ? 's' : '' }}</span>
+                      </span>
+                    </template>
+                    <!-- Metric rollup -->
+                    <template v-else-if="col.numeric">
+                      {{ drow.rollup && drow.rollup[col.key.slice(7)] != null ? fmtMetric(drow.rollup[col.key.slice(7)], col.key.slice(7)) : '' }}
+                    </template>
+                    <!-- Other columns (non-owning, non-metric): blank -->
+                  </td>
+                </template>
+                <td v-if="spacerIndex === tableColumns.length" class="table-cell" key="__spacer"></td>
               </tr>
 
               <!-- Leaf row -->
               <tr v-else class="table-row">
-                <td
-                  v-for="col in tableColumns"
-                  :key="col.key"
-                  :class="['table-cell', col.numeric ? 'text-right font-medium tabular-nums' : '']"
-                >
-                  <!-- Blank out ancestor-level label columns -->
-                  <template v-if="levelColKeys.indexOf(col.key) >= 0 && levelColKeys.indexOf(col.key) < drow.depth">
-                  </template>
-                  <!-- Owning column (last level): indented -->
-                  <template v-else-if="col.key === levelColKeys[drow.depth]">
-                    <span class="inline-flex" :style="{ paddingLeft: `${drow.depth * 20 + 22}px` }">
+                <template v-for="(col, i) in tableColumns" :key="col.key">
+                  <td v-if="i === spacerIndex" class="table-cell" key="__spacer"></td>
+                  <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right font-medium tabular-nums' : '']">
+                    <!-- Blank out ancestor-level label columns -->
+                    <template v-if="levelColKeys.indexOf(col.key) >= 0 && levelColKeys.indexOf(col.key) < drow.depth">
+                    </template>
+                    <!-- Owning column (last level): indented -->
+                    <template v-else-if="col.key === levelColKeys[drow.depth]">
+                      <span class="inline-flex" :style="{ paddingLeft: `${drow.depth * 20 + 22}px` }">
+                        {{ drow.row ? getCellValue(drow.row, col.key) : '—' }}
+                      </span>
+                    </template>
+                    <!-- Metrics and other remaining columns -->
+                    <template v-else>
                       {{ drow.row ? getCellValue(drow.row, col.key) : '—' }}
-                    </span>
-                  </template>
-                  <!-- Metrics and other remaining columns -->
-                  <template v-else>
-                    {{ drow.row ? getCellValue(drow.row, col.key) : '—' }}
-                  </template>
-                </td>
+                    </template>
+                  </td>
+                </template>
+                <td v-if="spacerIndex === tableColumns.length" class="table-cell" key="__spacer"></td>
               </tr>
             </template>
           </tbody>
@@ -848,13 +747,13 @@ function toggleExpand(key: string) {
           <!-- Flat table body -->
           <tbody v-else class="table-body">
             <tr v-for="(row, i) in result.rows" :key="i" class="table-row">
-              <td
-                v-for="col in tableColumns"
-                :key="col.key"
-                :class="['table-cell', col.numeric ? 'text-right font-medium tabular-nums' : '']"
-              >
-                {{ getCellValue(row, col.key) }}
-              </td>
+              <template v-for="(col, j) in tableColumns" :key="col.key">
+                <td v-if="j === spacerIndex" class="table-cell" key="__spacer"></td>
+                <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right font-medium tabular-nums' : '']">
+                  {{ getCellValue(row, col.key) }}
+                </td>
+              </template>
+              <td v-if="spacerIndex === tableColumns.length" class="table-cell" key="__spacer"></td>
             </tr>
           </tbody>
         </table>
