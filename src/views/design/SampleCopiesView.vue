@@ -633,22 +633,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               <button
                 v-if="!isReadOnly"
                 @click="saveAllRows"
-                class="btn-primary h-9"
+                class="btn-primary"
                 :disabled="isSavingAll || dirtyRowCount === 0"
               >
-                <Check v-if="showSaveAllSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
-                <span v-else-if="isSavingAll" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                <Save v-else class="inline-block w-4 h-4 mr-1" />
-                {{ showSaveAllSuccess ? 'Saved!' : `Save Changes${dirtyRowCount > 0 ? ` (${dirtyRowCount})` : ''}` }}
-              </button>
-
-              <button
-                v-if="!isReadOnly"
-                @click="saveAllRows"
-                class="btn-primary h-9"
-                :disabled="isSavingAll || dirtyRowCount === 0"
-              >
-                <Check v-if="showSaveAllSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
+                <Check v-if="showSaveAllSuccess" class="inline-block w-4 h-4 mr-1" />
                 <span v-else-if="isSavingAll" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
                 <Save v-else class="inline-block w-4 h-4 mr-1" />
                 {{ showSaveAllSuccess ? 'Saved!' : `Save Changes${dirtyRowCount > 0 ? ` (${dirtyRowCount})` : ''}` }}
@@ -897,10 +885,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 <button
                   v-if="!isReadOnly"
                   @click="saveAllDecoratorRows"
-                  class="btn-secondary"
+                  class="btn-primary"
                   :disabled="isSavingAllDecorators || dirtyDecoratorCount === 0"
                 >
-                  <Check v-if="showSaveAllDecoratorSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
+                  <Check v-if="showSaveAllDecoratorSuccess" class="inline-block w-4 h-4 mr-1" />
                   <span v-else-if="isSavingAllDecorators" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
                   <Save v-else class="inline-block w-4 h-4 mr-1" />
                   {{ showSaveAllDecoratorSuccess ? 'Saved!' : `Save Changes${dirtyDecoratorCount > 0 ? ` (${dirtyDecoratorCount})` : ''}` }}
