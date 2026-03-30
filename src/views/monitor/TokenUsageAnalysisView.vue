@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useStagesStore } from '@/stores'
-import { Calendar, ChevronDown } from 'lucide-vue-next'
+import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import TokenUsageTrendChart from '@/components/TokenUsageTrendChart.vue'
 
 const analyticsStore = useAnalyticsStore()
@@ -10,65 +11,17 @@ const stagesStore = useStagesStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
-type TimeFilterValue = 'last-15m' | 'last-30m' | 'last-1h' | 'last-4h' | 'last-24h' | 'last-7d' | 'last-30d' | 'all'
-
-const timeFilter = ref<TimeFilterValue>('last-7d')
-const showTimeDropdown = ref(false)
+const dateTimeRange = ref<DateTimeRange>(null)
 const filterStageId = ref('')
 const filterSource = ref<'' | 'text' | 'voice'>('')
 const filterInterval = ref<'hour' | 'day' | 'week'>('day')
 
-const timeFilterOptions: { value: TimeFilterValue; label: string }[] = [
-  { value: 'last-15m', label: 'Last 15 minutes' },
-  { value: 'last-30m', label: 'Last 30 minutes' },
-  { value: 'last-1h', label: 'Last 1 hour' },
-  { value: 'last-4h', label: 'Last 4 hours' },
-  { value: 'last-24h', label: 'Last 24 hours' },
-  { value: 'last-7d', label: 'Last 7 days' },
-  { value: 'last-30d', label: 'Last 30 days' },
-  { value: 'all', label: 'All time' },
-]
-
-const currentTimeFilterLabel = computed(
-  () => timeFilterOptions.find(o => o.value === timeFilter.value)?.label ?? 'Last 7 days'
-)
-
 const stages = computed(() => stagesStore.items)
-
-function getFromDate(): string | null {
-  const now = new Date()
-  switch (timeFilter.value) {
-    case 'last-15m': return new Date(now.getTime() - 15 * 60 * 1000).toISOString()
-    case 'last-30m': return new Date(now.getTime() - 30 * 60 * 1000).toISOString()
-    case 'last-1h':  return new Date(now.getTime() - 60 * 60 * 1000).toISOString()
-    case 'last-4h':  return new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()
-    case 'last-24h': return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
-    case 'last-7d':  return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    case 'last-30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    default: return null
-  }
-}
-
-function selectTimeFilter(value: TimeFilterValue) {
-  timeFilter.value = value
-  showTimeDropdown.value = false
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  const dropdown = document.querySelector('.token-usage-time-dropdown')
-  const button = document.querySelector('.token-usage-time-button')
-  if (dropdown && !dropdown.contains(target) && !button?.contains(target)) {
-    showTimeDropdown.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('click', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 function buildQuery() {
   return {
-    from: getFromDate() ?? undefined,
+    from: dateTimeRange.value?.value[0] ?? undefined,
+    to: dateTimeRange.value?.value[1] ?? undefined,
     stageId: filterStageId.value || undefined,
     source: (filterSource.value || undefined) as 'text' | 'voice' | undefined,
     interval: filterInterval.value,
@@ -108,32 +61,22 @@ const summaryCards = computed(() => {
     totalTokens: s.totalTokens,
   }
 })
+
+function fmtAvgTokens(total: number, count: number): string {
+  if (count === 0) return '—'
+  return Math.round(total / count).toLocaleString()
+}
+
+function fmtRatio(prompt: number, completion: number): string {
+  if (completion === 0) return prompt > 0 ? '∞:1' : '—'
+  return `${(prompt / completion).toFixed(2)}:1`
+}
 </script>
 
 <template>
   <!-- Filter Bar -->
   <div class="mb-6 flex flex-wrap items-center gap-3">
-    <div class="relative">
-      <button
-        @click="showTimeDropdown = !showTimeDropdown"
-        class="token-usage-time-button filter-btn !shadow-none"
-      >
-        <Calendar class="w-4 h-4 mr-2" />
-        <span>{{ currentTimeFilterLabel }}</span>
-        <ChevronDown class="w-4 h-4 ml-2" />
-      </button>
-      <div v-if="showTimeDropdown" class="token-usage-time-dropdown filter-dropdown-panel min-w-[200px]">
-        <button
-          v-for="option in timeFilterOptions"
-          :key="option.value"
-          @click="selectTimeFilter(option.value)"
-          class="filter-dropdown-item !shadow-none"
-          :class="{ 'filter-dropdown-item-active': timeFilter === option.value }"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
+    <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
     <select v-model="filterStageId" class="form-select-auto">
       <option value="">All stages</option>
@@ -197,10 +140,12 @@ const summaryCards = computed(() => {
           <thead class="table-header">
             <tr>
               <th class="table-header-cell">Event Type</th>
-              <th class="table-header-cell text-right">Events</th>
-              <th class="table-header-cell text-right">Prompt Tokens</th>
-              <th class="table-header-cell text-right">Completion Tokens</th>
-              <th class="table-header-cell text-right">Total Tokens</th>
+              <th class="table-header-cell-right">Events</th>
+              <th class="table-header-cell-right">Prompt Tokens</th>
+              <th class="table-header-cell-right">Completion Tokens</th>
+              <th class="table-header-cell-right">Total Tokens</th>
+              <th class="table-header-cell-right">Avg / Event</th>
+              <th class="table-header-cell-right">In:Out Ratio</th>
             </tr>
           </thead>
           <tbody class="table-body">
@@ -214,6 +159,8 @@ const summaryCards = computed(() => {
               <td class="table-cell text-right">{{ row.totalPromptTokens.toLocaleString() }}</td>
               <td class="table-cell text-right">{{ row.totalCompletionTokens.toLocaleString() }}</td>
               <td class="table-cell text-right font-medium">{{ row.totalTokens.toLocaleString() }}</td>
+              <td class="table-cell-muted text-right">{{ fmtAvgTokens(row.totalTokens, row.eventCount) }}</td>
+              <td class="table-cell-muted text-right font-mono text-xs">{{ fmtRatio(row.totalPromptTokens, row.totalCompletionTokens) }}</td>
             </tr>
           </tbody>
         </table>
