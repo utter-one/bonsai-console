@@ -597,23 +597,23 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                   v-model="searchQuery"
                   type="text"
                   placeholder="Search rows..."
-                  class="form-input pl-8 py-1.5 text-sm h-9 w-50"
+                  class="form-input pl-8 py-1.5 text-sm w-50"
                 />
               </div>
 
               <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filters:</span>
 
-              <select v-model="filterStageId" class="form-select-auto text-sm py-1.5 h-9">
+              <select v-model="filterStageId" class="form-select-auto text-sm py-1.5">
                 <option value="">All Stages</option>
                 <option v-for="s in stagesStore.items" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
 
-              <select v-model="filterAgentId" class="form-select-auto text-sm py-1.5 h-9">
+              <select v-model="filterAgentId" class="form-select-auto text-sm py-1.5">
                 <option value="">All Agents</option>
                 <option v-for="a in agentsStore.items" :key="a.id" :value="a.id">{{ a.name }}</option>
               </select>
 
-              <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5 h-9">
+              <select v-model="filterDecoratorId" class="form-select-auto text-sm py-1.5">
                 <option value="">All Types</option>
                 <option value="__none__">Raw (no decorator)</option>
                 <option value="__enforce__">Enforce</option>
@@ -642,7 +642,19 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 {{ showSaveAllSuccess ? 'Saved!' : `Save Changes${dirtyRowCount > 0 ? ` (${dirtyRowCount})` : ''}` }}
               </button>
 
-              <button @click="addRow" class="btn-primary h-9" :disabled="isReadOnly">
+              <button
+                v-if="!isReadOnly"
+                @click="saveAllRows"
+                class="btn-primary h-9"
+                :disabled="isSavingAll || dirtyRowCount === 0"
+              >
+                <Check v-if="showSaveAllSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
+                <span v-else-if="isSavingAll" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                <Save v-else class="inline-block w-4 h-4 mr-1" />
+                {{ showSaveAllSuccess ? 'Saved!' : `Save Changes${dirtyRowCount > 0 ? ` (${dirtyRowCount})` : ''}` }}
+              </button>
+
+              <button @click="addRow" class="btn-primary" :disabled="isReadOnly">
                 <Plus class="inline-block w-4 h-4 mr-1" />
                 Add Row
               </button>
@@ -1031,14 +1043,31 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 }
 
 .spreadsheet-select {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+
   padding: 4px 6px;
+
+  border: 1px solid transparent;
+  border-radius: 0.375rem; /* rounded */
+
   font-size: 0.875rem;
+
+  background-color: rgb(247, 254, 251);
+  color: #1f2937; /* text-gray-800 */
+
+  cursor: pointer;
+
   outline: none;
-  color: inherit;
-  transition: border-color 0.1s;
+
+  transition: border-color 0.1s, background-color 0.1s, color 0.1s;
+}
+
+/* Dark mode (using class strategy like Tailwind) */
+.dark .spreadsheet-select {
+  background-color: rgb(31, 45, 45);
+  color: #ffffff;
 }
 
 .spreadsheet-select:hover {
