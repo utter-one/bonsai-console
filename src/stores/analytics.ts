@@ -6,6 +6,8 @@ import type {
   LatencyPercentilesResponse,
   LatencyTrendResponse,
   ConversationTimelineResponse,
+  TokenUsageStatsResponse,
+  TokenUsageTrendResponse,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -95,6 +97,45 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     timelineError.value = null
   }
 
+  const tokenUsageStats = ref<TokenUsageStatsResponse | null>(null)
+  const tokenUsageTrend = ref<TokenUsageTrendResponse | null>(null)
+  const isLoadingTokenUsage = ref(false)
+  const tokenUsageError = ref<string | null>(null)
+
+  async function fetchTokenUsageStats(projectId: string, query?: LatencyFilterQuery) {
+    try {
+      tokenUsageStats.value = await apiClient.projectsAnalyticsUsageList(projectId, query)
+    } catch (err: any) {
+      tokenUsageError.value = err.response?.data?.message || 'Failed to load token usage statistics'
+      throw err
+    }
+  }
+
+  async function fetchTokenUsageTrend(projectId: string, query?: TrendFilterQuery) {
+    try {
+      tokenUsageTrend.value = await apiClient.projectsAnalyticsUsageTrendList(projectId, query)
+    } catch (err: any) {
+      tokenUsageError.value = err.response?.data?.message || 'Failed to load token usage trend'
+      throw err
+    }
+  }
+
+  async function fetchAllTokenUsage(projectId: string, query?: TrendFilterQuery) {
+    isLoadingTokenUsage.value = true
+    tokenUsageError.value = null
+    try {
+      const { interval: _interval, ...statsQuery } = query || {}
+      await Promise.all([
+        fetchTokenUsageStats(projectId, statsQuery),
+        fetchTokenUsageTrend(projectId, query),
+      ])
+    } catch {
+      // individual errors already set
+    } finally {
+      isLoadingTokenUsage.value = false
+    }
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -110,5 +151,12 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     fetchAll,
     fetchConversationTimeline,
     clearTimeline,
+    tokenUsageStats,
+    tokenUsageTrend,
+    isLoadingTokenUsage,
+    tokenUsageError,
+    fetchTokenUsageStats,
+    fetchTokenUsageTrend,
+    fetchAllTokenUsage,
   }
 })

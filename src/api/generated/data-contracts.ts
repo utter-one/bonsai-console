@@ -5911,6 +5911,32 @@ export interface LatencyTrendPoint {
   avgTimeToFirstAudioMs: number | null;
 }
 
+export interface TokenUsageByEventType {
+  /** Event type (message, classification, transformation, tool_call) */
+  eventType: string;
+  /** Number of events with token usage data */
+  eventCount: number;
+  /** Total prompt (input) tokens */
+  totalPromptTokens: number;
+  /** Total completion (output) tokens */
+  totalCompletionTokens: number;
+  /** Total tokens (prompt + completion) */
+  totalTokens: number;
+}
+
+export interface TokenUsageTrendPoint {
+  /** Time bucket start (ISO 8601) */
+  bucket: string;
+  /** Number of events with token usage data in this bucket */
+  eventCount: number;
+  /** Total prompt tokens in this bucket */
+  totalPromptTokens: number;
+  /** Total completion tokens in this bucket */
+  totalCompletionTokens: number;
+  /** Total tokens in this bucket */
+  totalTokens: number;
+}
+
 export interface CreateSampleCopyRequest {
   /**
    * Unique identifier for the sample copy (auto-generated if not provided)
@@ -7044,4 +7070,24 @@ export interface ConversationTimelineTurn {
   turnEndMs: number | null;
   /** Total turn duration from start to completion */
   totalTurnDurationMs: number | null;
+}
+
+export interface TokenUsageStatsResponse {
+  /** Total number of events with token usage data */
+  totalEvents: number;
+  /** Total prompt (input) tokens across all event types */
+  totalPromptTokens: number;
+  /** Total completion (output) tokens across all event types */
+  totalCompletionTokens: number;
+  /** Total tokens across all event types */
+  totalTokens: number;
+  /** Token usage breakdown by event type */
+  byEventType: TokenUsageByEventType[];
+}
+
+export interface TokenUsageTrendResponse {
+  /** Aggregation interval used (hour, day, or week) */
+  interval: string;
+  /** Time-bucketed data points */
+  points: TokenUsageTrendPoint[];
 }

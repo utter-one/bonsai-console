@@ -13319,6 +13319,70 @@
           "avgTimeToFirstAudioMs"
         ]
       },
+      "TokenUsageByEventType": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "description": "Event type (message, classification, transformation, tool_call)"
+          },
+          "eventCount": {
+            "type": "integer",
+            "description": "Number of events with token usage data"
+          },
+          "totalPromptTokens": {
+            "type": "integer",
+            "description": "Total prompt (input) tokens"
+          },
+          "totalCompletionTokens": {
+            "type": "integer",
+            "description": "Total completion (output) tokens"
+          },
+          "totalTokens": {
+            "type": "integer",
+            "description": "Total tokens (prompt + completion)"
+          }
+        },
+        "required": [
+          "eventType",
+          "eventCount",
+          "totalPromptTokens",
+          "totalCompletionTokens",
+          "totalTokens"
+        ]
+      },
+      "TokenUsageTrendPoint": {
+        "type": "object",
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "description": "Time bucket start (ISO 8601)"
+          },
+          "eventCount": {
+            "type": "integer",
+            "description": "Number of events with token usage data in this bucket"
+          },
+          "totalPromptTokens": {
+            "type": "integer",
+            "description": "Total prompt tokens in this bucket"
+          },
+          "totalCompletionTokens": {
+            "type": "integer",
+            "description": "Total completion tokens in this bucket"
+          },
+          "totalTokens": {
+            "type": "integer",
+            "description": "Total tokens in this bucket"
+          }
+        },
+        "required": [
+          "bucket",
+          "eventCount",
+          "totalPromptTokens",
+          "totalCompletionTokens",
+          "totalTokens"
+        ]
+      },
       "CreateSampleCopyRequest": {
         "type": "object",
         "properties": {
@@ -16443,6 +16507,61 @@
           "ttsDurationMs",
           "turnEndMs",
           "totalTurnDurationMs"
+        ]
+      },
+      "TokenUsageStatsResponse": {
+        "type": "object",
+        "properties": {
+          "totalEvents": {
+            "type": "integer",
+            "description": "Total number of events with token usage data"
+          },
+          "totalPromptTokens": {
+            "type": "integer",
+            "description": "Total prompt (input) tokens across all event types"
+          },
+          "totalCompletionTokens": {
+            "type": "integer",
+            "description": "Total completion (output) tokens across all event types"
+          },
+          "totalTokens": {
+            "type": "integer",
+            "description": "Total tokens across all event types"
+          },
+          "byEventType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TokenUsageByEventType"
+            },
+            "description": "Token usage breakdown by event type"
+          }
+        },
+        "required": [
+          "totalEvents",
+          "totalPromptTokens",
+          "totalCompletionTokens",
+          "totalTokens",
+          "byEventType"
+        ]
+      },
+      "TokenUsageTrendResponse": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "string",
+            "description": "Aggregation interval used (hour, day, or week)"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TokenUsageTrendPoint"
+            },
+            "description": "Time-bucketed data points"
+          }
+        },
+        "required": [
+          "interval",
+          "points"
         ]
       }
     },
@@ -20376,6 +20495,176 @@
           },
           "404": {
             "description": "Conversation not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/usage": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get aggregated token usage statistics",
+        "description": "Returns aggregated LLM token usage statistics broken down by event type (message, classification, transformation, tool_call). Includes total prompt tokens, completion tokens, and combined totals.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by stage ID"
+            },
+            "required": false,
+            "description": "Filter by stage ID",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "voice"
+              ],
+              "description": "Filter by input source (text or voice)"
+            },
+            "required": false,
+            "description": "Filter by input source (text or voice)",
+            "name": "source",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregated token usage statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenUsageStatsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/usage/trend": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get token usage trend over time",
+        "description": "Returns a time-series of token consumption bucketed by the specified interval (hour, day, or week). Useful for tracking LLM usage growth and optimizing prompt costs.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "Start of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "format": "date-time",
+              "description": "End of the date range (inclusive). ISO 8601 format."
+            },
+            "required": false,
+            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by stage ID"
+            },
+            "required": false,
+            "description": "Filter by stage ID",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "voice"
+              ],
+              "description": "Filter by input source (text or voice)"
+            },
+            "required": false,
+            "description": "Filter by input source (text or voice)",
+            "name": "source",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "week"
+              ],
+              "default": "day",
+              "description": "Time bucket interval for the trend (hour, day, or week)"
+            },
+            "required": false,
+            "description": "Time bucket interval for the trend (hour, day, or week)",
+            "name": "interval",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token usage trend time series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenUsageTrendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }

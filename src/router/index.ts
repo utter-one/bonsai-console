@@ -198,6 +198,19 @@ const routes: RouteRecordRaw[] = [
             path: 'analytics',
             name: 'monitor.analytics',
             component: () => import('@/views/monitor/AnalyticsView.vue'),
+            redirect: { name: 'monitor.analytics.latency' },
+            children: [
+              {
+                path: 'latency',
+                name: 'monitor.analytics.latency',
+                component: () => import('@/views/monitor/LatencyAnalysisView.vue'),
+              },
+              {
+                path: 'token-usage',
+                name: 'monitor.analytics.tokenUsage',
+                component: () => import('@/views/monitor/TokenUsageAnalysisView.vue'),
+              },
+            ],
           },
           {
             path: 'audit-logs',
