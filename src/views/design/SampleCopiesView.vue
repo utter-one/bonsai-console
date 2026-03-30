@@ -95,7 +95,17 @@ interface DecoratorRowState {
 
 const rows = ref<RowState[]>([])
 const decoratorRows = ref<DecoratorRowState[]>([])
-const successIds = ref<Set<string>>(new Set())
+const isSavingAll = ref(false)
+const showSaveAllSuccess = ref(false)
+const saveAllError = ref<string | null>(null)
+const isSavingAllDecorators = ref(false)
+const showSaveAllDecoratorSuccess = ref(false)
+
+const dirtyRowCount = computed(() => rows.value.filter(r => r.isDirty).length)
+const dirtyDecoratorCount = computed(() => decoratorRows.value.filter(d => d.isDirty).length)
+const showClassifierWarning = computed(() =>
+  !defaultSampleCopyClassifierId.value && rows.value.filter(r => r.id !== null).length > 0
+)
 
 function makeRowState(item: SampleCopyResponse): RowState {
   return {
@@ -285,7 +295,6 @@ async function saveRow(row: RowState) {
       row.version = result.version
     }
     row.isDirty = false
-    flashSuccess(row.tempId)
   } catch (err: any) {
     row.saveError = err.response?.data?.message || 'Save failed'
   } finally {
@@ -307,15 +316,27 @@ async function deleteRow(row: RowState) {
   }
 }
 
-function flashSuccess(key: string) {
-  const next = new Set(successIds.value)
-  next.add(key)
-  successIds.value = next
-  setTimeout(() => {
-    const n = new Set(successIds.value)
-    n.delete(key)
-    successIds.value = n
-  }, 2000)
+async function saveAllRows() {
+  const dirty = rows.value.filter(r => r.isDirty && !r.isSaving)
+  if (dirty.length === 0) return
+  isSavingAll.value = true
+  saveAllError.value = null
+  await Promise.all(dirty.map(row => saveRow(row)))
+  isSavingAll.value = false
+  if (dirty.every(r => !r.saveError)) {
+    showSaveAllSuccess.value = true
+    setTimeout(() => { showSaveAllSuccess.value = false }, 2000)
+  }
+}
+
+async function saveAllDecoratorRows() {
+  const dirty = decoratorRows.value.filter(d => d.isDirty && !d.isSaving)
+  if (dirty.length === 0) return
+  isSavingAllDecorators.value = true
+  await Promise.all(dirty.map(dr => saveDecoratorRow(dr)))
+  isSavingAllDecorators.value = false
+  showSaveAllDecoratorSuccess.value = true
+  setTimeout(() => { showSaveAllDecoratorSuccess.value = false }, 2000)
 }
 
 function onDecoratorChange(row: RowState, value: string) {
@@ -412,7 +433,6 @@ async function saveDecoratorRow(dr: DecoratorRowState) {
       dr.version = result.version
     }
     dr.isDirty = false
-    flashSuccess(dr.tempId)
   } catch {
     // error state managed by store
   } finally {
@@ -556,6 +576,14 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <Save v-else class="inline-block mr-2 w-4 h-4" />
                     {{ showSettingsSuccess ? 'Saved!' : 'Save' }}
                   </button>
+                  <span
+                    v-if="showClassifierWarning"
+                    class="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400"
+                    title="Trigger matching is disabled — sample copies won't be automatically activated without a classifier."
+                  >
+                    <AlertTriangle class="w-4 h-4 shrink-0" />
+                    Trigger matching disabled
+                  </span>
                 </div>
                 <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
                 <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
@@ -601,6 +629,18 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               </button>
 
               <div class="flex-1" />
+
+              <button
+                v-if="!isReadOnly"
+                @click="saveAllRows"
+                class="btn-primary h-9"
+                :disabled="isSavingAll || dirtyRowCount === 0"
+              >
+                <Check v-if="showSaveAllSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
+                <span v-else-if="isSavingAll" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                <Save v-else class="inline-block w-4 h-4 mr-1" />
+                {{ showSaveAllSuccess ? 'Saved!' : `Save Changes${dirtyRowCount > 0 ? ` (${dirtyRowCount})` : ''}` }}
+              </button>
 
               <button @click="addRow" class="btn-primary h-9" :disabled="isReadOnly">
                 <Plus class="inline-block w-4 h-4 mr-1" />
@@ -661,14 +701,16 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     v-for="(row, rowIdx) in filteredRows"
                     :key="row.tempId"
                     :data-row="rowIdx"
-                    v-bind="buildRowHandlers(rowIdx, () => row.isDirty, () => saveRow(row))"
+                    v-bind="buildRowHandlers(rowIdx)"
                     class="border-b border-gray-100 dark:border-gray-700 last:border-0 align-middle group transition-colors"
                     :class="[
                       row.id === null
                         ? 'bg-emerald-50/40 dark:bg-emerald-900/10'
-                        : activeRowIdx === rowIdx
-                          ? 'bg-emerald-50/50 dark:bg-emerald-900/15'
-                          : 'hover:bg-gray-50/60 dark:hover:bg-gray-700',
+                        : row.isDirty
+                          ? 'bg-amber-50/60 dark:bg-amber-900/15'
+                          : activeRowIdx === rowIdx
+                            ? 'bg-gray-50/60 dark:bg-gray-700/50'
+                            : 'hover:bg-gray-50/60 dark:hover:bg-gray-700',
                       row.isSaving ? 'opacity-75' : '',
                     ]"
                   >
@@ -813,17 +855,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         >
                           <AlertTriangle class="w-4 h-4" />
                         </span>
-                        <button
-                          v-if="row.isDirty && !isReadOnly"
-                          @click="saveRow(row)"
-                          :disabled="row.isSaving"
-                          class="btn-icon text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
-                          title="Save changes"
-                        >
-                          <Check v-if="successIds.has(row.tempId)" class="w-4 h-4 text-green-500" />
-                          <span v-else-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                          <Save v-else class="w-4 h-4" />
-                        </button>
+                        <span v-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"
                           @click="deleteRow(row)"
@@ -849,10 +881,23 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                   Define templates applied to selected sample copy content before injection. Reference the selected content using <code v-pre class="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">{{copyContent}}</code>.
                 </p>
               </div>
-              <button @click="addDecoratorRow" class="btn-primary ml-4 shrink-0" :disabled="isReadOnly">
-                <Plus class="inline-block w-4 h-4 mr-1" />
-                Add Decorator
-              </button>
+              <div class="flex items-center gap-2 ml-4 shrink-0">
+                <button
+                  v-if="!isReadOnly"
+                  @click="saveAllDecoratorRows"
+                  class="btn-secondary"
+                  :disabled="isSavingAllDecorators || dirtyDecoratorCount === 0"
+                >
+                  <Check v-if="showSaveAllDecoratorSuccess" class="inline-block w-4 h-4 mr-1 text-green-500" />
+                  <span v-else-if="isSavingAllDecorators" class="inline-block w-4 h-4 mr-2 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  <Save v-else class="inline-block w-4 h-4 mr-1" />
+                  {{ showSaveAllDecoratorSuccess ? 'Saved!' : `Save Changes${dirtyDecoratorCount > 0 ? ` (${dirtyDecoratorCount})` : ''}` }}
+                </button>
+                <button @click="addDecoratorRow" class="btn-primary" :disabled="isReadOnly">
+                  <Plus class="inline-block w-4 h-4 mr-1" />
+                  Add Decorator
+                </button>
+              </div>
             </div>
 
             <div v-if="copyDecoratorsStore.error" class="alert-error mb-4">{{ copyDecoratorsStore.error }}</div>
@@ -878,7 +923,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     v-for="dr in decoratorRows"
                     :key="dr.tempId"
                     class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
-                    :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
+                    :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : dr.isDirty ? 'bg-amber-50/60 dark:bg-amber-900/15' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
                   >
                     <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
                       <input
@@ -903,17 +948,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
-                        <button
-                          v-if="dr.isDirty && !isReadOnly"
-                          @click="saveDecoratorRow(dr)"
-                          :disabled="dr.isSaving"
-                          class="btn-icon text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
-                          title="Save"
-                        >
-                          <Check v-if="successIds.has(dr.tempId)" class="w-4 h-4 text-green-500" />
-                          <span v-else-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                          <Save v-else class="w-4 h-4" />
-                        </button>
+                        <span v-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"
                           @click="deleteDecoratorRow(dr)"
