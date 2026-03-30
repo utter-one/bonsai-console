@@ -67,7 +67,7 @@ function remove(id: string) {
     <select
       v-if="!readonly && available.length > 0"
       tabindex="-1"
-      class="text-xs bg-transparent border border-dashed border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5 text-gray-500 dark:text-gray-400 outline-none hover:border-emerald-400 dark:hover:border-emerald-500 cursor-pointer transition-colors"
+      class="max-w-full min-w-0 text-xs bg-[rgb(247,254,251)] dark:bg-[rgb(31,45,45)] border border-dashed border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5 text-gray-800 dark:text-white outline-none hover:border-emerald-400 dark:hover:border-emerald-500 cursor-pointer transition-colors"
       @change="add"
     >
       <option value="">+ Add</option>
