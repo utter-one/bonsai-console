@@ -642,7 +642,7 @@ function toggleExpand(key: string) {
       <button
         v-if="!activeQuery || !canEditSavedQuery(activeQuery)"
         @click="openSaveDialog"
-        class="btn-alt btn-sm gap-1.5"
+        class="btn-alt !py-2 !px-3 text-sm gap-1.5"
         :disabled="!projectId || isSaving"
       >
         <Bookmark class="w-3.5 h-3.5" />
@@ -651,21 +651,22 @@ function toggleExpand(key: string) {
 
       <!-- Owner of active query: split Save | ▾ -->
       <template v-else>
-        <button
-          @click="updateActiveQuery"
-          class="btn-alt-hardright btn-sm"
-          :disabled="isSaving"
-          title="Overwrite this saved query with current settings"
-        >
-          {{ isSaving ? 'Saving…' : 'Save' }}
-        </button>
-        <div ref="saveMenuRef" class="relative">
+        <div class="flex">
           <button
-            @click="showSaveDialog = false; showSaveMenu = !showSaveMenu"
-            class="btn-alt-hardleft btn-sm px-2"
+            @click="updateActiveQuery"
+            class="btn-alt-hardright !py-2 !px-3 text-sm"
             :disabled="isSaving"
-            title="More options"
+            title="Overwrite this saved query with current settings"
           >
+            {{ isSaving ? 'Saving…' : 'Save' }}
+          </button>
+          <div ref="saveMenuRef" class="relative flex">
+            <button
+              @click="showSaveDialog = false; showSaveMenu = !showSaveMenu"
+              class="btn-alt-hardleft !py-2 !px-2 text-sm border-l border-violet-500 dark:border-violet-600"
+              :disabled="isSaving"
+              title="More options"
+            >
             <ChevronDown class="w-3.5 h-3.5" />
           </button>
           <div
@@ -687,6 +688,7 @@ function toggleExpand(key: string) {
               Delete this query
             </button>
           </div>
+        </div>
         </div>
       </template>
 
@@ -738,7 +740,7 @@ function toggleExpand(key: string) {
         <select
           :value="selectedSource"
           @change="onSourceChange(($event.target as HTMLSelectElement).value)"
-          class="form-select-auto"
+          class="form-select-auto !py-2"
           :disabled="analyticsStore.isLoadingCatalog"
         >
           <option v-for="s in sources" :key="s.id" :value="s.id">{{ s.label }}</option>
@@ -748,7 +750,7 @@ function toggleExpand(key: string) {
       <!-- Interval -->
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Interval</span>
-        <select v-model="filterInterval" class="form-select-auto">
+        <select v-model="filterInterval" class="form-select-auto !py-2">
           <option value="">None (aggregate)</option>
           <option value="hour">Hourly</option>
           <option value="day">Daily</option>
@@ -763,7 +765,7 @@ function toggleExpand(key: string) {
       <!-- Run button -->
       <button
         @click="runQuery"
-        class="btn-primary flex items-center gap-2"
+        class="btn-primary flex items-center gap-2 !py-2"
         :disabled="analyticsStore.isLoadingQuery || selectedMetrics.length === 0 || !projectId"
       >
         <Play class="w-3.5 h-3.5" />
