@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Check, Settings, FlaskConical } from 'lucide-vue-next'
 import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
 
@@ -465,6 +466,13 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
   showFillerLLMSettingsModal.value = false
 }
 
+const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.fillerLlmProviderId,
+  (v) => { form.value.fillerLlmProviderId = v },
+  () => form.value.fillerLlmSettings,
+  (v) => { form.value.fillerLlmSettings = v }
+)
+
 </script>
 
 <template>
@@ -729,7 +737,8 @@ function handleFillerLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <div class="flex flex-col md:flex-row gap-2">
               <select
-                v-model="form.fillerLlmProviderId"
+                :value="form.fillerLlmProviderId"
+                @change="handleFillerLlmProviderChange"
                 class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >

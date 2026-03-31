@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -232,6 +233,13 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
 }
+
+const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.llmProviderId,
+  (v) => { form.value.llmProviderId = v },
+  () => form.value.llmSettings,
+  (v) => { form.value.llmSettings = v }
+)
 
 function recordToHeaderPairs(record: Record<string, string> | null | undefined): { key: string; value: string }[] {
   if (!record) return []
@@ -568,7 +576,8 @@ const metadataFields = computed(() => {
                 </label>
                 <div class="flex flex-col md:flex-row gap-2">
                   <select
-                    v-model="form.llmProviderId"
+                    :value="form.llmProviderId"
+                    @change="handleLlmProviderChange"
                     class="form-select-auto min-w-64"
                     :disabled="isLoading"
                   >
