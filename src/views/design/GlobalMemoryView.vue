@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useCopyPaste } from '@/composables/useCopyPaste'
 import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
@@ -27,8 +28,17 @@ const tabs: TabDefinition[] = [
 ]
 
 // User Profile state
-const showVariablesPasteModal = ref(false)
-const clipboardVariables = ref<Array<any> | null>(null)
+const {
+  clipboardData: clipboardVariables,
+  showPasteModal: showVariablesPasteModal,
+  copyAll: copyAllVariablesBase,
+  openPasteModal: pasteVariables,
+  closePasteModal: closeVariablesPasteModal,
+} = useCopyPaste<any>('variable')
+
+function copyAllVariables() {
+  copyAllVariablesBase(form.value.userProfileVariableDescriptors)
+}
 
 const form = ref({
   version: undefined as number | undefined,
@@ -259,42 +269,6 @@ function toggleNode(path: number[]) {
   }
 }
 
-function copyAllVariables() {
-  if (form.value.userProfileVariableDescriptors.length === 0) {
-    alert('No variables to copy')
-    return
-  }
-  try {
-    const jsonData = JSON.stringify(form.value.userProfileVariableDescriptors, null, 2)
-    navigator.clipboard.writeText(jsonData)
-    alert(`Copied ${form.value.userProfileVariableDescriptors.length} variable(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy variables to clipboard')
-  }
-}
-
-async function pasteVariables() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    if (!clipboardText) { alert('Clipboard is empty'); return }
-    let parsedVariables: Array<any>
-    try {
-      parsedVariables = JSON.parse(clipboardText)
-    } catch {
-      alert('Clipboard does not contain valid JSON data'); return
-    }
-    if (!Array.isArray(parsedVariables)) {
-      alert('Clipboard does not contain valid variables data (must be an array)'); return
-    }
-    clipboardVariables.value = parsedVariables
-    showVariablesPasteModal.value = true
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
-  }
-}
-
 function handleVariablesPaste(indices: number[]) {
   if (!clipboardVariables.value) return
   let pastedCount = 0
@@ -313,6 +287,7 @@ function handleVariablesPaste(indices: number[]) {
   }
   showVariablesPasteModal.value = false
   clipboardVariables.value = null
+  closeVariablesPasteModal()
   if (pastedCount > 0) {
     const message = overwrittenCount > 0
       ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
@@ -321,7 +296,6 @@ function handleVariablesPaste(indices: number[]) {
   }
 }
 
-// Constants functions
 function addConstant() {
   constants.value.push({ key: '', type: 'string', value: '' })
 }
@@ -660,7 +634,7 @@ async function pasteConstants() {
       v-if="showVariablesPasteModal && clipboardVariables"
       :clipboard-variables="clipboardVariables"
       :existing-names="form.userProfileVariableDescriptors.map(v => v.name)"
-      @close="showVariablesPasteModal = false"
+      @close="closeVariablesPasteModal"
       @save="handleVariablesPaste"
     />
   </div>
