@@ -64,6 +64,9 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   'monitor.auditLogs':                   '/monitor/audit-logs',
   'monitor.auditLogDetail':             '/monitor/audit-logs',
   'monitor.analytics':                   '/monitor/analytics',
+  'monitor.analytics.latency':          '/monitor/analytics',
+  'monitor.analytics.tokenUsage':       '/monitor/analytics',
+  'monitor.analytics.explore':          '/monitor/analytics',
 
   // Administration
   'administration':                      '/administration/',
