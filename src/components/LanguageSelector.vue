@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useLanguagesStore } from '@/stores'
+import { useClickOutside } from '@/composables/useClickOutside'
 import { Languages, ChevronDown } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
@@ -90,19 +91,13 @@ function select(code: string | null) {
   close()
 }
 
-function handleClickOutside(e: MouseEvent) {
-  if (containerRef.value && !containerRef.value.contains(e.target as Node)) {
-    close()
-  }
-}
+useClickOutside(containerRef, close)
 
 onMounted(() => {
-  document.addEventListener('mousedown', handleClickOutside)
   window.addEventListener('scroll', updateDropdownPosition, true)
   window.addEventListener('resize', updateDropdownPosition)
 })
 onUnmounted(() => {
-  document.removeEventListener('mousedown', handleClickOutside)
   window.removeEventListener('scroll', updateDropdownPosition, true)
   window.removeEventListener('resize', updateDropdownPosition)
 })

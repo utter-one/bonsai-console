@@ -6680,6 +6680,11 @@
             ],
             "description": "Event data payload"
           },
+          "stageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the stage that was active when the event occurred"
+          },
           "timestamp": {
             "type": "string",
             "nullable": true,
@@ -6701,6 +6706,7 @@
           "conversationId",
           "eventType",
           "eventData",
+          "stageId",
           "timestamp",
           "metadata"
         ]
@@ -7440,6 +7446,11 @@
                   ],
                   "description": "Event data payload"
                 },
+                "stageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the stage that was active when the event occurred"
+                },
                 "timestamp": {
                   "type": "string",
                   "nullable": true,
@@ -7461,6 +7472,7 @@
                 "conversationId",
                 "eventType",
                 "eventData",
+                "stageId",
                 "timestamp",
                 "metadata"
               ]
@@ -20888,7 +20900,8 @@
                 "classifications",
                 "transformations",
                 "moderation",
-                "stage_visits"
+                "stage_visits",
+                "llm_calls"
               ],
               "description": "Analytics source to query"
             },
@@ -24627,6 +24640,11 @@
                             ],
                             "description": "Event data payload"
                           },
+                          "stageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the stage that was active when the event occurred"
+                          },
                           "timestamp": {
                             "type": "string",
                             "nullable": true,
@@ -24648,6 +24666,7 @@
                           "conversationId",
                           "eventType",
                           "eventData",
+                          "stageId",
                           "timestamp",
                           "metadata"
                         ]
@@ -25467,6 +25486,11 @@
                       ],
                       "description": "Event data payload"
                     },
+                    "stageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage that was active when the event occurred"
+                    },
                     "timestamp": {
                       "type": "string",
                       "nullable": true,
@@ -25488,6 +25512,7 @@
                     "conversationId",
                     "eventType",
                     "eventData",
+                    "stageId",
                     "timestamp",
                     "metadata"
                   ]

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useTableSort } from '@/composables'
+import { useCopyPaste } from '@/composables/useCopyPaste'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X, ChevronDown } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -70,7 +71,6 @@ const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
 const showPasteModal = ref(false)
-const showVariablesPasteModal = ref(false)
 const editingActionKey = ref<string | null>(null)
 const editingAction = ref<StageAction | null>(null)
 const duplicatingActionKey = ref<string | null>(null)
@@ -78,8 +78,23 @@ const clipboardActions = ref<Record<string, StageAction> | null>(null)
 const actionsSearchQuery = ref('')
 const actionsClassifierFilter = ref('')
 const showClassifierDropdown = ref(false)
-const clipboardVariables = ref<Array<any> | null>(null)
 const isLifecycleActionKey = ref(false)
+
+const {
+  clipboardData: clipboardVariables,
+  showPasteModal: showVariablesPasteModal,
+  copyAll: copyAllVariablesBase,
+  openPasteModal: openVariablesPasteModal,
+  closePasteModal: closeVariablesPasteModal,
+} = useCopyPaste<any>('variable')
+
+function copyAllVariables() {
+  copyAllVariablesBase(form.value.variableDescriptors)
+}
+
+async function pasteVariables() {
+  await openVariablesPasteModal()
+}
 const form = ref({
   id: '',
   name: '',
@@ -547,58 +562,6 @@ function handleActionsPaste(keys: string[]) {
   }
 }
 
-function copyAllVariables() {
-  if (form.value.variableDescriptors.length === 0) {
-    alert('No variables to copy')
-    return
-  }
-  
-  try {
-    // Deep clone variables to avoid reference issues
-    const jsonData = JSON.stringify(form.value.variableDescriptors, null, 2)
-    navigator.clipboard.writeText(jsonData)
-    
-    // Show success feedback
-    alert(`Copied ${form.value.variableDescriptors.length} variable(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy variables to clipboard')
-  }
-}
-
-async function pasteVariables() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    
-    if (!clipboardText) {
-      alert('Clipboard is empty')
-      return
-    }
-    
-    // Try to parse as JSON
-    let parsedVariables: Array<any>
-    try {
-      parsedVariables = JSON.parse(clipboardText)
-    } catch (err) {
-      alert('Clipboard does not contain valid JSON data')
-      return
-    }
-    
-    // Validate structure
-    if (!Array.isArray(parsedVariables)) {
-      alert('Clipboard does not contain valid variables data (must be an array)')
-      return
-    }
-    
-    // Store in state and show modal
-    clipboardVariables.value = parsedVariables
-    showVariablesPasteModal.value = true
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
-  }
-}
-
 function handleVariablesPaste(indices: number[]) {
   if (!clipboardVariables.value) return
   
@@ -623,8 +586,7 @@ function handleVariablesPaste(indices: number[]) {
     pastedCount++
   }
   
-  showVariablesPasteModal.value = false
-  clipboardVariables.value = null
+  closeVariablesPasteModal()
   
   if (pastedCount > 0) {
     const message = overwrittenCount > 0
@@ -1600,7 +1562,7 @@ function toggleNode(path: number[]) {
       v-if="showVariablesPasteModal && clipboardVariables"
       :clipboard-variables="clipboardVariables"
       :existing-names="form.variableDescriptors.map(v => v.name)"
-      @close="showVariablesPasteModal = false"
+      @close="closeVariablesPasteModal"
       @save="handleVariablesPaste"
     />
   </div>

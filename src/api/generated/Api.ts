@@ -1971,7 +1971,8 @@ export class Api<
         | "classifications"
         | "transformations"
         | "moderation"
-        | "stage_visits";
+        | "stage_visits"
+        | "llm_calls";
       /**
        * Dimension IDs to group results by (max 5)
        * @maxItems 5
@@ -3465,6 +3466,8 @@ export class Api<
                 sampleCopy: string | null;
                 metadata?: Record<string, any>;
               };
+          /** ID of the stage that was active when the event occurred */
+          stageId: string | null;
           /**
            * Timestamp when the event occurred
            * @format date-time
@@ -3736,6 +3739,8 @@ export class Api<
               sampleCopy: string | null;
               metadata?: Record<string, any>;
             };
+        /** ID of the stage that was active when the event occurred */
+        stageId: string | null;
         /**
          * Timestamp when the event occurred
          * @format date-time

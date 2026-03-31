@@ -3276,6 +3276,8 @@ export interface ConversationEventResponse {
         sampleCopy: string | null;
         metadata?: Record<string, any>;
       };
+  /** ID of the stage that was active when the event occurred */
+  stageId: string | null;
   /**
    * Timestamp when the event occurred
    * @format date-time
@@ -3506,6 +3508,8 @@ export interface ConversationEventListResponse {
           sampleCopy: string | null;
           metadata?: Record<string, any>;
         };
+    /** ID of the stage that was active when the event occurred */
+    stageId: string | null;
     /**
      * Timestamp when the event occurred
      * @format date-time

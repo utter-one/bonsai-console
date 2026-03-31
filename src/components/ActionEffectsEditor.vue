@@ -5,6 +5,8 @@ import PromptEditor from './PromptEditor.vue'
 import FloatingDropdown from './FloatingDropdown.vue'
 import type { ActionOperations } from '@/composables/useActionForm'
 import type { ToolResponse } from '@/api/generated/data-contracts'
+import { useMediaUpload } from '@/composables/useMediaUpload'
+import { defaultItemForArrayType } from '@/utils/arrayEditor'
 
 const props = withDefaults(defineProps<{
   operations: ActionOperations
@@ -24,6 +26,8 @@ const props = withDefaults(defineProps<{
 })
 
 const selectedEffectId = ref<string | null>(null)
+
+const { processAudio } = useMediaUpload()
 
 const EFFECT_PRIORITY = {
   callTool: 2,
@@ -217,11 +221,7 @@ function addArrayItem(paramName: string, paramType: string) {
   if (idx < 0 || !toolParamsByIndex[idx]) return
   const params = toolParamsByIndex[idx]!
   if (!Array.isArray(params[paramName])) params[paramName] = []
-  if (paramType === 'string[]') params[paramName].push('')
-  else if (paramType === 'number[]') params[paramName].push(0)
-  else if (paramType === 'boolean[]') params[paramName].push(false)
-  else if (paramType === 'object[]') params[paramName].push('{}')
-  else if (paramType === 'audio[]') params[paramName].push(null)
+  params[paramName].push(defaultItemForArrayType(paramType))
 }
 
 function removeArrayItem(paramName: string, itemIndex: number) {
@@ -231,50 +231,22 @@ function removeArrayItem(paramName: string, itemIndex: number) {
   if (Array.isArray(params[paramName])) params[paramName].splice(itemIndex, 1)
 }
 
-function handleAudioUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+async function handleAudioUpload(event: Event, paramName: string) {
   const idx = selectedCallToolIndex.value
   if (idx < 0 || !toolParamsByIndex[idx]) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const mimeType = parts[0]!.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    toolParamsByIndex[idx]![paramName] = { data: parts[1]!, format, mimeType, metadata: {} }
-  }
-  reader.readAsDataURL(file)
+  const result = await processAudio(event)
+  if (!result) return
+  toolParamsByIndex[idx]![paramName] = result
 }
 
-function handleAudioArrayUpload(event: Event, paramName: string, itemIndex: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+async function handleAudioArrayUpload(event: Event, paramName: string, itemIndex: number) {
   const idx = selectedCallToolIndex.value
   if (idx < 0 || !toolParamsByIndex[idx]) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const mimeType = parts[0]!.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    const params = toolParamsByIndex[idx]!
-    if (!Array.isArray(params[paramName])) params[paramName] = []
-    params[paramName][itemIndex] = { data: parts[1]!, format, mimeType, metadata: {} }
-  }
-  reader.readAsDataURL(file)
+  const result = await processAudio(event)
+  if (!result) return
+  const params = toolParamsByIndex[idx]!
+  if (!Array.isArray(params[paramName])) params[paramName] = []
+  params[paramName][itemIndex] = result
 }
 
 function addVariableModification() {

@@ -353,6 +353,8 @@ import { ref, computed } from 'vue'
 import { X, Plus } from 'lucide-vue-next'
 import BaseModal from '@/components/BaseModal.vue'
 import type { StageResponse } from '@/api/types'
+import { useMediaUpload } from '@/composables/useMediaUpload'
+import { defaultItemForArrayType } from '@/utils/arrayEditor'
 
 const props = defineProps<{
   currentStage: StageResponse | null
@@ -368,6 +370,8 @@ const variableValue = ref<any>(null)
 const variableValueText = ref('')
 const arrayValue = ref<any[]>([])
 const errorMessage = ref('')
+
+const { processAudio, processImage } = useMediaUpload()
 const jsonError = ref('')
 const isSubmitting = ref(false)
 
@@ -425,153 +429,35 @@ function onVariableChange() {
 }
 
 function addArrayItem(itemType: string) {
-  if (itemType === 'string') {
-    arrayValue.value.push('')
-  } else if (itemType === 'number') {
-    arrayValue.value.push(0)
-  } else if (itemType === 'boolean') {
-    arrayValue.value.push(false)
-  } else if (itemType === 'object') {
-    arrayValue.value.push('{}')
-  } else if (itemType === 'image' || itemType === 'audio') {
-    arrayValue.value.push(null)
-  }
+  arrayValue.value.push(defaultItemForArrayType(itemType))
 }
 
 function removeArrayItem(index: number) {
   arrayValue.value.splice(index, 1)
 }
 
-function handleImageUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-
-    // Create image to get dimensions
-    const img = new Image()
-    img.onload = () => {
-      variableValue.value = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
+async function handleImageUpload(event: Event) {
+  const result = await processImage(event)
+  if (!result) return
+  variableValue.value = result
 }
 
-function handleImageArrayUpload(event: Event, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-
-    const img = new Image()
-    img.onload = () => {
-      arrayValue.value[index] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
+async function handleImageArrayUpload(event: Event, index: number) {
+  const result = await processImage(event)
+  if (!result) return
+  arrayValue.value[index] = result
 }
 
-function handleAudioUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-
-    // Determine format from MIME type
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-
-    variableValue.value = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
-  }
-  reader.readAsDataURL(file)
+async function handleAudioUpload(event: Event) {
+  const result = await processAudio(event)
+  if (!result) return
+  variableValue.value = result
 }
 
-function handleAudioArrayUpload(event: Event, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-
-    arrayValue.value[index] = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
-  }
-  reader.readAsDataURL(file)
+async function handleAudioArrayUpload(event: Event, index: number) {
+  const result = await processAudio(event)
+  if (!result) return
+  arrayValue.value[index] = result
 }
 
 function getImagePreview(): string {
