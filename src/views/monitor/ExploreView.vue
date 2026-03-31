@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/stores'
-import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, Trash2, RefreshCw } from 'lucide-vue-next'
+import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check } from 'lucide-vue-next'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery } from '@/api/generated/data-contracts'
@@ -45,11 +45,19 @@ const activeQuery = ref<SavedSliceQuery | null>(null)
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 
-// Save-as dialog state
+// Query selector dropdown
+const showQuerySelector = ref(false)
+const querySelectorRef = useTemplateRef<HTMLElement>('querySelectorRef')
+
+// Save-as dialog
 const showSaveDialog = ref(false)
 const saveDialogName = ref('')
 const saveDialogShared = ref(false)
 const saveDialogRef = useTemplateRef<HTMLElement>('saveDialogRef')
+
+// Save split-button overflow menu
+const showSaveMenu = ref(false)
+const saveMenuRef = useTemplateRef<HTMLElement>('saveMenuRef')
 
 // Metric builder state
 const showMetricPicker = ref(false)
@@ -79,6 +87,12 @@ function handleDocumentMousedown(e: MouseEvent) {
   }
   if (showFilterPicker.value && filterPickerRef.value && !filterPickerRef.value.contains(target)) {
     showFilterPicker.value = false
+  }
+  if (showQuerySelector.value && querySelectorRef.value && !querySelectorRef.value.contains(target)) {
+    showQuerySelector.value = false
+  }
+  if (showSaveMenu.value && saveMenuRef.value && !saveMenuRef.value.contains(target)) {
+    showSaveMenu.value = false
   }
   if (showSaveDialog.value && saveDialogRef.value && !saveDialogRef.value.contains(target)) {
     showSaveDialog.value = false
@@ -257,23 +271,19 @@ function loadQuery(q: SavedSliceQuery) {
     dateTimeRange.value = null
   }
   activeQuery.value = q
-  showSaveDialog.value = false
+  showQuerySelector.value = false
 }
 
-function onLoadQuerySelect(e: Event) {
-  const id = (e.target as HTMLSelectElement).value
-  if (!id) {
-    activeQuery.value = null
-    return
-  }
-  const q = analyticsStore.savedQueries.find(sq => sq.id === id)
-  if (q) loadQuery(q)
+function clearActiveQuery() {
+  activeQuery.value = null
+  showQuerySelector.value = false
 }
 
 function openSaveDialog() {
-  saveDialogName.value = activeQuery.value ? '' : ''
+  saveDialogName.value = ''
   saveDialogShared.value = false
   saveError.value = null
+  showSaveMenu.value = false
   showSaveDialog.value = true
 }
 
@@ -554,73 +564,136 @@ function toggleExpand(key: string) {
 </script>
 
 <template>
-  <!-- Saved Queries Bar -->
-  <div class="mb-4 flex items-center gap-3 flex-wrap">
-    <!-- Load -->
-    <div class="flex items-center gap-2">
-      <Bookmark class="w-4 h-4 text-gray-400 shrink-0" />
-      <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Saved</span>
-      <select
-        :value="activeQuery?.id ?? ''"
-        @change="onLoadQuerySelect"
-        class="form-select-auto max-w-[220px]"
-        :disabled="analyticsStore.isLoadingSavedQueries"
-      >
-        <option value="">— load saved query —</option>
-        <option v-for="q in analyticsStore.savedQueries" :key="q.id" :value="q.id">
-          {{ q.name }}{{ q.isShared ? ' (shared)' : '' }}
-        </option>
-      </select>
+  <!-- Saved Queries Toolbar -->
+  <div class="mb-4 flex items-center justify-between gap-3">
+
+    <!-- Left: query selector -->
+    <div ref="querySelectorRef" class="relative items-center hidden sm:flex gap-2">
+      <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Query</span>
       <button
-        @click="analyticsStore.fetchSavedQueries(projectId)"
-        class="btn-icon"
-        :disabled="analyticsStore.isLoadingSavedQueries || !projectId"
-        title="Refresh list"
+        @click="showQuerySelector = !showQuerySelector"
+        :disabled="!projectId"
+        :class="[
+          'btn-secondary text-sm py-2 px-3 gap-2 min-w-[160px] max-w-[280px] justify-start',
+          activeQuery
+            ? 'border-violet-400 text-violet-700 dark:border-violet-500 dark:text-violet-300'
+            : 'text-gray-500 dark:text-gray-400'
+        ]"
       >
-        <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': analyticsStore.isLoadingSavedQueries }" />
+        <BookmarkCheck v-if="activeQuery" class="w-4 h-4 shrink-0" />
+        <Bookmark v-else class="w-4 h-4 shrink-0" />
+        <span class="truncate flex-1 text-left">{{ activeQuery?.name ?? 'New query' }}</span>
+        <ChevronDown class="w-3.5 h-3.5 shrink-0 ml-1 opacity-60" />
       </button>
+
+      <div
+        v-if="showQuerySelector"
+        class="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[220px] max-h-72 overflow-y-auto"
+      >
+        <!-- New query option -->
+        <button
+          @click="clearActiveQuery"
+          class="w-full text-left text-sm px-3 py-1.5 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+          :class="{ 'bg-gray-50 dark:bg-gray-700/60': !activeQuery }"
+        >
+          <Bookmark class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <span class="italic text-gray-400 dark:text-gray-500">New query</span>
+          <Check v-if="!activeQuery" class="w-3.5 h-3.5 text-violet-500 ml-auto shrink-0" />
+        </button>
+
+        <template v-if="analyticsStore.savedQueries.length > 0">
+          <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
+          <button
+            v-for="q in analyticsStore.savedQueries"
+            :key="q.id"
+            @click="loadQuery(q)"
+            class="w-full text-left text-sm px-3 py-1.5 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+            :class="{ 'bg-violet-50 dark:bg-violet-900/20': q.id === activeQuery?.id }"
+          >
+            <BookmarkCheck v-if="q.id === activeQuery?.id" class="w-3.5 h-3.5 text-violet-500 shrink-0" />
+            <Bookmark v-else class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span class="flex-1 truncate">{{ q.name }}</span>
+            <span v-if="q.isShared" class="text-xs text-gray-400 dark:text-gray-500 shrink-0">shared</span>
+            <Check v-if="q.id === activeQuery?.id" class="w-3.5 h-3.5 text-violet-500 shrink-0" />
+          </button>
+        </template>
+        <div v-else-if="!analyticsStore.isLoadingSavedQueries" class="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500">
+          No saved queries yet
+        </div>
+
+        <!-- Footer: refresh -->
+        <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+          <button
+            @click="analyticsStore.fetchSavedQueries(projectId); showQuerySelector = false"
+            class="w-full text-left text-xs px-3 py-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center gap-1.5"
+            :disabled="analyticsStore.isLoadingSavedQueries"
+          >
+            <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': analyticsStore.isLoadingSavedQueries }" />
+            {{ analyticsStore.isLoadingSavedQueries ? 'Refreshing…' : 'Refresh list' }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Active query actions -->
-    <template v-if="activeQuery">
-      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300">
-        <BookmarkCheck class="w-3 h-3" />
-        {{ activeQuery.name }}
-        <span v-if="activeQuery.isShared" class="opacity-60">· shared</span>
-      </span>
-      <button
-        v-if="canEditSavedQuery(activeQuery)"
-        @click="updateActiveQuery"
-        class="btn-secondary text-xs py-1 px-2.5 flex items-center gap-1.5"
-        :disabled="isSaving"
-        title="Overwrite this saved query with the current builder settings"
-      >
-        Update
-      </button>
-      <button
-        v-if="canEditSavedQuery(activeQuery)"
-        @click="deleteActiveQuery"
-        class="btn-icon text-red-500 hover:text-red-700 dark:hover:text-red-400"
-        :disabled="isSaving"
-        title="Delete this saved query"
-      >
-        <Trash2 class="w-3.5 h-3.5" />
-      </button>
-    </template>
+    <!-- Right: contextual save area -->
+    <div ref="saveDialogRef" class="relative flex items-center">
 
-    <!-- Save as dialog -->
-    <div ref="saveDialogRef" class="relative ml-auto">
+      <!-- No active query or viewer of shared query: single Save as… -->
       <button
+        v-if="!activeQuery || !canEditSavedQuery(activeQuery)"
         @click="openSaveDialog"
-        class="btn-secondary text-xs py-1 px-2.5 flex items-center gap-1.5"
-        :disabled="!projectId"
+        class="btn-alt btn-sm gap-1.5"
+        :disabled="!projectId || isSaving"
       >
         <Bookmark class="w-3.5 h-3.5" />
         Save as…
       </button>
+
+      <!-- Owner of active query: split Save | ▾ -->
+      <template v-else>
+        <button
+          @click="updateActiveQuery"
+          class="btn-alt-hardright btn-sm"
+          :disabled="isSaving"
+          title="Overwrite this saved query with current settings"
+        >
+          {{ isSaving ? 'Saving…' : 'Save' }}
+        </button>
+        <div ref="saveMenuRef" class="relative">
+          <button
+            @click="showSaveDialog = false; showSaveMenu = !showSaveMenu"
+            class="btn-alt-hardleft btn-sm px-2"
+            :disabled="isSaving"
+            title="More options"
+          >
+            <ChevronDown class="w-3.5 h-3.5" />
+          </button>
+          <div
+            v-if="showSaveMenu"
+            class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[190px]"
+          >
+            <button
+              @click="openSaveDialog"
+              class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Save as new copy…
+            </button>
+            <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
+            <button
+              @click="deleteActiveQuery(); showSaveMenu = false"
+              class="w-full text-left text-sm px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              :disabled="isSaving"
+            >
+              Delete this query
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Save-as popover (shared between both branches) -->
       <div
         v-if="showSaveDialog"
-        class="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+        class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
       >
         <div class="mb-2">
           <label class="form-label text-xs mb-1">Name</label>
@@ -652,6 +725,8 @@ function toggleExpand(key: string) {
       </div>
     </div>
   </div>
+
+  <hr class="border-gray-200 dark:border-gray-700 mb-5" />
 
   <!-- Query Builder -->
   <div class="mb-6 space-y-4">
@@ -893,13 +968,16 @@ function toggleExpand(key: string) {
   </div>
 
   <template v-else>
-    <!-- Row count badge -->
+    <hr class="border-gray-200 dark:border-gray-700 mb-5" />
+
+    <!-- Results heading -->
     <div class="flex items-center gap-3 mb-4">
-      <span class="text-sm text-gray-500 dark:text-gray-400">
+      <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Results</h2>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
         {{ result.rows.length.toLocaleString() }} row{{ result.rows.length !== 1 ? 's' : '' }}
       </span>
       <span v-if="atLimit" class="text-xs text-amber-600 dark:text-amber-400">
-        Results limited to {{ queryLimit.toLocaleString() }} rows — narrow your filters for complete data.
+        Results capped at {{ queryLimit.toLocaleString() }} — narrow your filters for complete data.
       </span>
     </div>
 
