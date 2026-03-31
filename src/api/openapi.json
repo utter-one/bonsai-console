@@ -13618,6 +13618,10 @@
             "maxItems": 10,
             "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")"
           },
+          "normalizeBy": {
+            "type": "string",
+            "description": "Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare \"count\" metric."
+          },
           "relativeTime": {
             "$ref": "#/components/schemas/RelativeTime"
           },
@@ -16897,6 +16901,10 @@
               "type": "string"
             },
             "description": "Dimensions that results are grouped by"
+          },
+          "normalizeBy": {
+            "type": "string",
+            "description": "Dimension used as the inner aggregation unit, if two-phase aggregation was applied"
           },
           "metrics": {
             "type": "array",
@@ -21055,7 +21063,7 @@
           "Analytics"
         ],
         "summary": "Slice-and-dice analytics query",
-        "description": "Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.",
+        "description": "Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Use normalizeBy to enable two-phase aggregation: metrics are first summed within each unit of that dimension (e.g. conversationId), then the requested aggregation function is applied across those sums — enabling queries like \"average total tokens per conversation\". Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.",
         "parameters": [
           {
             "schema": {
@@ -21122,6 +21130,16 @@
             "required": true,
             "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")",
             "name": "metrics",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare \"count\" metric."
+            },
+            "required": false,
+            "description": "Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare \"count\" metric.",
+            "name": "normalizeBy",
             "in": "query"
           },
           {

@@ -29,6 +29,7 @@ interface DimensionFilter {
 
 const selectedSource = ref<string>('turns')
 const selectedDimensions = ref<string[]>([])
+const selectedNormalizeBy = ref<string>('')
 const selectedMetrics = ref<SelectedMetric[]>([{ spec: 'count', label: 'Count' }])
 const filterInterval = ref<'hour' | 'day' | 'week' | 'month' | ''>('day')
 const dimensionFilters = ref<DimensionFilter[]>([])
@@ -227,6 +228,7 @@ watch(filterPickerDimensionId, () => {
 function onSourceChange(newSource: string) {
   selectedSource.value = newSource
   selectedDimensions.value = []
+  selectedNormalizeBy.value = ''
   selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
   dimensionFilters.value = []
   showDimPicker.value = false
@@ -242,6 +244,7 @@ function buildCurrentSliceQuery(): SliceQuery {
   return {
     source: selectedSource.value as SliceQuery['source'],
     groupBy: selectedDimensions.value.length > 0 ? selectedDimensions.value : undefined,
+    normalizeBy: selectedNormalizeBy.value || undefined,
     metrics: selectedMetrics.value.map(m => m.spec),
     interval: (filterInterval.value || undefined) as SliceQuery['interval'],
     relativeTime: timeRangeMode.value === 'relative'
@@ -277,6 +280,7 @@ function loadQuery(q: SavedSliceQuery) {
   const sq = q.query
   selectedSource.value = sq.source
   selectedDimensions.value = sq.groupBy ?? []
+  selectedNormalizeBy.value = sq.normalizeBy ?? ''
   selectedMetrics.value = sq.metrics.map(spec => ({ spec, label: resolveMetricLabel(spec) }))
   filterInterval.value = (sq.interval ?? '') as typeof filterInterval.value
   dimensionFilters.value = Object.entries(sq.filters ?? {}).map(([dimensionId, value]) => ({ dimensionId, value }))
@@ -299,10 +303,11 @@ function loadQuery(q: SavedSliceQuery) {
 function clearActiveQuery() {
   selectedSource.value = 'turns'
   selectedDimensions.value = []
+  selectedNormalizeBy.value = ''
   selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
-  filterInterval.value = 'day'
   dimensionFilters.value = []
   queryLimit.value = 1000
+  filterInterval.value = 'day'
   timeRangeMode.value = 'relative'
   relativeTimeAmount.value = 7
   relativeTimeUnit.value = 'days'
@@ -1061,6 +1066,16 @@ function toggleExpand(key: string) {
         <span v-else-if="unselectedDimensions.length === 0 && availableDimensions.length > 0" class="text-xs text-gray-400 dark:text-gray-500 pt-1">All dimensions selected</span>
         <span v-else-if="availableDimensions.length === 0 && !analyticsStore.isLoadingCatalog" class="text-xs text-gray-400 dark:text-gray-500 pt-1">No dimensions available for this source</span>
       </div>
+    </div>
+
+    <!-- Row 2b: Normalize By -->
+    <div v-if="availableDimensions.length > 0" class="flex items-center gap-3">
+      <span class="text-sm font-medium text-gray-600 dark:text-gray-400 shrink-0">Normalize By</span>
+      <select v-model="selectedNormalizeBy" class="form-select-auto !py-2 text-sm">
+        <option value="">None</option>
+        <option v-for="d in availableDimensions" :key="d.id" :value="d.id">{{ d.label }}</option>
+      </select>
+      <span class="text-xs text-gray-400 dark:text-gray-500">Aggregate metrics per unit before final aggregation</span>
     </div>
 
     <!-- Row 3: Metrics -->
