@@ -10,6 +10,8 @@ import type {
   TokenUsageTrendResponse,
   SourceCatalogResponse,
   SliceQueryResponse,
+  SavedSliceQuery,
+  SliceQuery,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -173,6 +175,40 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
+  const savedQueries = ref<SavedSliceQuery[]>([])
+  const isLoadingSavedQueries = ref(false)
+  const savedQueriesError = ref<string | null>(null)
+
+  async function fetchSavedQueries(projectId: string) {
+    isLoadingSavedQueries.value = true
+    savedQueriesError.value = null
+    try {
+      savedQueries.value = await apiClient.projectsAnalyticsSavedQueriesList(projectId)
+    } catch (err: any) {
+      savedQueriesError.value = err.response?.data?.message || 'Failed to load saved queries'
+      throw err
+    } finally {
+      isLoadingSavedQueries.value = false
+    }
+  }
+
+  async function createSavedQuery(projectId: string, data: { name: string; query: SliceQuery; isShared?: boolean }) {
+    const created = await apiClient.projectsAnalyticsSavedQueriesCreate(projectId, data)
+    savedQueries.value = [...savedQueries.value, created]
+    return created
+  }
+
+  async function updateSavedQuery(projectId: string, id: string, data: { name?: string; query?: SliceQuery; isShared?: boolean; version: number }) {
+    const updated = await apiClient.projectsAnalyticsSavedQueriesUpdate(projectId, id, data)
+    savedQueries.value = savedQueries.value.map(q => q.id === id ? updated : q)
+    return updated
+  }
+
+  async function deleteSavedQuery(projectId: string, id: string, version: number) {
+    await apiClient.projectsAnalyticsSavedQueriesDelete(projectId, id, { version })
+    savedQueries.value = savedQueries.value.filter(q => q.id !== id)
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -203,5 +239,12 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     isLoadingQuery,
     queryError,
     runQuery,
+    savedQueries,
+    isLoadingSavedQueries,
+    savedQueriesError,
+    fetchSavedQueries,
+    createSavedQuery,
+    updateSavedQuery,
+    deleteSavedQuery,
   }
 })

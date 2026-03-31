@@ -5981,6 +5981,97 @@ export interface SliceQueryRow {
   metrics: Record<string, number | null>;
 }
 
+export interface SavedSliceQuery {
+  /** Unique identifier of the saved query */
+  id: string;
+  /** Name of the saved query */
+  name: string;
+  /** Project this query belongs to */
+  projectId: string;
+  /** Operator who created this query, or null if the operator has been deleted */
+  operatorId: string | null;
+  /** The saved slice query configuration */
+  query: SliceQuery;
+  /** Whether this query is visible to all operators in the project */
+  isShared: boolean;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the query was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the query was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+/** The saved slice query configuration */
+export interface SliceQuery {
+  /** Analytics source to query */
+  source:
+    | "conversations"
+    | "events"
+    | "turns"
+    | "tool_calls"
+    | "classifications"
+    | "transformations"
+    | "moderation"
+    | "stage_visits"
+    | "llm_calls";
+  /**
+   * Dimension IDs to group results by (max 5)
+   * @maxItems 5
+   * @default []
+   */
+  groupBy?: string[];
+  /** Time bucket interval for time-series aggregation */
+  interval?: "hour" | "day" | "week" | "month";
+  /**
+   * Metric specifications: "count" or "{aggFn}:{metricId}" (e.g. "avg:durationMs", "p95:totalTurnDurationMs")
+   * @maxItems 10
+   * @minItems 1
+   */
+  metrics: string[];
+  /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+  relativeTime?: RelativeTime;
+  /**
+   * Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+   * @format date-time
+   */
+  from?: string | null;
+  /**
+   * End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+   * @format date-time
+   */
+  to?: string | null;
+  /** Filter to a single conversation */
+  conversationId?: string;
+  /** Additional equality filters: key = dimension ID, value = exact match value */
+  filters?: Record<string, string>;
+  /**
+   * Maximum number of rows to return (default 1000, max 10000)
+   * @min 1
+   * @max 10000
+   * @default 1000
+   */
+  limit?: number;
+}
+
+/** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+export interface RelativeTime {
+  /**
+   * Number of units to look back
+   * @min 1
+   * @max 100000
+   */
+  amount: number;
+  /** Time unit */
+  unit: "hours" | "days" | "weeks" | "months";
+}
+
 export interface CreateSampleCopyRequest {
   /**
    * Unique identifier for the sample copy (auto-generated if not provided)

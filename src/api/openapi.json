@@ -13516,6 +13516,174 @@
           "metrics"
         ]
       },
+      "SavedSliceQuery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the saved query"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the saved query"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project this query belongs to"
+          },
+          "operatorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Operator who created this query, or null if the operator has been deleted"
+          },
+          "query": {
+            "$ref": "#/components/schemas/SliceQuery"
+          },
+          "isShared": {
+            "type": "boolean",
+            "description": "Whether this query is visible to all operators in the project"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the query was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the query was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "projectId",
+          "operatorId",
+          "query",
+          "isShared",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SliceQuery": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "conversations",
+              "events",
+              "turns",
+              "tool_calls",
+              "classifications",
+              "transformations",
+              "moderation",
+              "stage_visits",
+              "llm_calls"
+            ],
+            "description": "Analytics source to query"
+          },
+          "groupBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "default": [],
+            "description": "Dimension IDs to group results by (max 5)"
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month"
+            ],
+            "description": "Time bucket interval for time-series aggregation"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")"
+          },
+          "relativeTime": {
+            "$ref": "#/components/schemas/RelativeTime"
+          },
+          "from": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
+          },
+          "to": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
+          },
+          "conversationId": {
+            "type": "string",
+            "description": "Filter to a single conversation"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Additional equality filters: key = dimension ID, value = exact match value"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "default": 1000,
+            "description": "Maximum number of rows to return (default 1000, max 10000)"
+          }
+        },
+        "required": [
+          "source",
+          "metrics"
+        ],
+        "description": "The saved slice query configuration"
+      },
+      "RelativeTime": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "description": "Number of units to look back"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "hours",
+              "days",
+              "weeks",
+              "months"
+            ],
+            "description": "Time unit"
+          }
+        },
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided."
+      },
       "CreateSampleCopyRequest": {
         "type": "object",
         "properties": {
@@ -20958,13 +21126,22 @@
           },
           {
             "schema": {
+              "$ref": "#/components/schemas/RelativeTime"
+            },
+            "required": false,
+            "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided.",
+            "name": "relativeTime",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "nullable": true,
               "format": "date-time",
-              "description": "Start of the date range (inclusive). ISO 8601 format."
+              "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
             },
             "required": false,
-            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.",
             "name": "from",
             "in": "query"
           },
@@ -20973,10 +21150,10 @@
               "type": "string",
               "nullable": true,
               "format": "date-time",
-              "description": "End of the date range (inclusive). ISO 8601 format."
+              "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
             },
             "required": false,
-            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.",
             "name": "to",
             "in": "query"
           },
@@ -21033,6 +21210,276 @@
           },
           "403": {
             "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/saved-queries": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "List saved slice queries",
+        "description": "Returns the operator's own saved queries plus all shared queries within the project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved slice queries retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedSliceQuery"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Create a saved slice query",
+        "description": "Saves a named slice query configuration for later reuse. The name must be unique within the project.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Unique name for this saved query within the project"
+                  },
+                  "query": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SliceQuery"
+                      },
+                      {
+                        "description": "The full slice query configuration to save"
+                      }
+                    ]
+                  },
+                  "isShared": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this query is visible to all operators in the project"
+                  }
+                },
+                "required": [
+                  "name",
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saved slice query created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSliceQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "409": {
+            "description": "A query with this name already exists in the project"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/saved-queries/{id}": {
+      "put": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Update a saved slice query",
+        "description": "Updates an existing saved slice query with optimistic locking. Only the owning operator or a super_admin may update.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Project identifier"
+            },
+            "required": true,
+            "description": "Project identifier",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Saved query identifier"
+            },
+            "required": true,
+            "description": "Saved query identifier",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Updated name for this saved query"
+                  },
+                  "query": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SliceQuery"
+                      },
+                      {
+                        "description": "Updated slice query configuration"
+                      }
+                    ]
+                  },
+                  "isShared": {
+                    "type": "boolean",
+                    "description": "Updated sharing flag"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved slice query updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSliceQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Not the owner of this query"
+          },
+          "404": {
+            "description": "Saved slice query not found"
+          },
+          "409": {
+            "description": "Version conflict or name already exists"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Delete a saved slice query",
+        "description": "Deletes a saved slice query with optimistic locking. Only the owning operator or a super_admin may delete.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Project identifier"
+            },
+            "required": true,
+            "description": "Project identifier",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Saved query identifier"
+            },
+            "required": true,
+            "description": "Saved query identifier",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Saved slice query deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Not the owner of this query"
+          },
+          "404": {
+            "description": "Saved slice query not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
           }
         }
       }
