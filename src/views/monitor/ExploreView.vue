@@ -275,6 +275,16 @@ function loadQuery(q: SavedSliceQuery) {
 }
 
 function clearActiveQuery() {
+  selectedSource.value = 'turns'
+  selectedDimensions.value = []
+  selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
+  filterInterval.value = 'day'
+  dimensionFilters.value = []
+  queryLimit.value = 1000
+  dateTimeRange.value = {
+    op: 'between',
+    value: [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), new Date().toISOString()],
+  }
   activeQuery.value = null
   showQuerySelector.value = false
 }
@@ -564,17 +574,18 @@ function toggleExpand(key: string) {
 </script>
 
 <template>
-  <!-- Saved Queries Toolbar -->
-  <div class="mb-4 flex items-center justify-between gap-3">
+  <!-- Query Box -->
+  <div class="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
+  <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
 
     <!-- Left: query selector -->
-    <div ref="querySelectorRef" class="relative items-center hidden sm:flex gap-2">
+    <div ref="querySelectorRef" class="relative items-center hidden sm:flex gap-2 flex-1 min-w-0">
       <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Query</span>
       <button
         @click="showQuerySelector = !showQuerySelector"
         :disabled="!projectId"
         :class="[
-          'btn-secondary text-sm py-2 px-3 gap-2 min-w-[160px] max-w-[280px] justify-start',
+          'btn-secondary text-sm py-2 px-3 gap-2 min-w-[160px] w-full justify-start',
           activeQuery
             ? 'border-violet-400 text-violet-700 dark:border-violet-500 dark:text-violet-300'
             : 'text-gray-500 dark:text-gray-400'
@@ -728,10 +739,8 @@ function toggleExpand(key: string) {
     </div>
   </div>
 
-  <hr class="border-gray-200 dark:border-gray-700 mb-5" />
-
   <!-- Query Builder -->
-  <div class="mb-6 space-y-4">
+  <div class="p-4 space-y-4">
     <!-- Row 1: Source + interval + date range -->
     <div class="flex flex-wrap items-center gap-3">
       <!-- Source -->
@@ -941,6 +950,7 @@ function toggleExpand(key: string) {
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Catalog loading -->
