@@ -28,18 +28,18 @@ type ChartShape = 'timeSeries' | 'timeSeriesGrouped' | 'groupOnly' | 'aggregate'
 type ChartType = 'line' | 'bar' | 'stackedBar' | 'pie'
 
 const PALETTE = [
-  { border: 'rgb(59, 130, 246)',  bg: 'rgba(59, 130, 246, 0.2)' },
-  { border: 'rgb(16, 185, 129)',  bg: 'rgba(16, 185, 129, 0.2)' },
-  { border: 'rgb(139, 92, 246)', bg: 'rgba(139, 92, 246, 0.2)' },
-  { border: 'rgb(249, 115, 22)', bg: 'rgba(249, 115, 22, 0.2)' },
-  { border: 'rgb(239, 68, 68)',   bg: 'rgba(239, 68, 68, 0.2)' },
-  { border: 'rgb(20, 184, 166)',  bg: 'rgba(20, 184, 166, 0.2)' },
-  { border: 'rgb(236, 72, 153)', bg: 'rgba(236, 72, 153, 0.2)' },
-  { border: 'rgb(245, 158, 11)', bg: 'rgba(245, 158, 11, 0.2)' },
-  { border: 'rgb(6, 182, 212)',   bg: 'rgba(6, 182, 212, 0.2)' },
-  { border: 'rgb(244, 63, 94)',   bg: 'rgba(244, 63, 94, 0.2)' },
-  { border: 'rgb(99, 102, 241)',  bg: 'rgba(99, 102, 241, 0.2)' },
-  { border: 'rgb(132, 204, 22)',  bg: 'rgba(132, 204, 22, 0.2)' },
+  { border: 'rgb(59, 130, 246)',  bg: 'rgba(59, 130, 246, 0.15)',  solid: 'rgba(59, 130, 246, 0.85)' },
+  { border: 'rgb(16, 185, 129)',  bg: 'rgba(16, 185, 129, 0.15)',  solid: 'rgba(16, 185, 129, 0.85)' },
+  { border: 'rgb(139, 92, 246)', bg: 'rgba(139, 92, 246, 0.15)', solid: 'rgba(139, 92, 246, 0.85)' },
+  { border: 'rgb(249, 115, 22)', bg: 'rgba(249, 115, 22, 0.15)', solid: 'rgba(249, 115, 22, 0.85)' },
+  { border: 'rgb(239, 68, 68)',   bg: 'rgba(239, 68, 68, 0.15)',   solid: 'rgba(239, 68, 68, 0.85)' },
+  { border: 'rgb(20, 184, 166)',  bg: 'rgba(20, 184, 166, 0.15)',  solid: 'rgba(20, 184, 166, 0.85)' },
+  { border: 'rgb(236, 72, 153)', bg: 'rgba(236, 72, 153, 0.15)', solid: 'rgba(236, 72, 153, 0.85)' },
+  { border: 'rgb(245, 158, 11)', bg: 'rgba(245, 158, 11, 0.15)', solid: 'rgba(245, 158, 11, 0.85)' },
+  { border: 'rgb(6, 182, 212)',   bg: 'rgba(6, 182, 212, 0.15)',   solid: 'rgba(6, 182, 212, 0.85)' },
+  { border: 'rgb(244, 63, 94)',   bg: 'rgba(244, 63, 94, 0.15)',   solid: 'rgba(244, 63, 94, 0.85)' },
+  { border: 'rgb(99, 102, 241)',  bg: 'rgba(99, 102, 241, 0.15)',  solid: 'rgba(99, 102, 241, 0.85)' },
+  { border: 'rgb(132, 204, 22)',  bg: 'rgba(132, 204, 22, 0.15)',  solid: 'rgba(132, 204, 22, 0.85)' },
 ]
 
 const shape = computed<ChartShape>(() => {
@@ -187,7 +187,7 @@ const chartData = computed(() => {
         label: seriesKey,
         data: buckets.map(b => byBucket.get(b) ?? null),
         borderColor: c.border,
-        backgroundColor: c.bg,
+        backgroundColor: activeChartType.value === 'stackedBar' ? c.solid : c.bg,
         tension: 0.3,
         spanGaps: true,
         fill: false,
@@ -211,7 +211,7 @@ const chartData = computed(() => {
         datasets: [
           {
             data: filteredKeys.map(k => byKey.get(k)?.metrics[metricSpec] ?? null),
-            backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].bg),
+            backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].solid),
             borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].border),
             borderWidth: 1,
           },
@@ -224,7 +224,7 @@ const chartData = computed(() => {
         {
           label: metricLabel(metricSpec),
           data: filteredKeys.map(k => byKey.get(k)?.metrics[metricSpec] ?? null),
-          backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].bg),
+          backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].solid),
           borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].border),
           borderWidth: 1,
         },
