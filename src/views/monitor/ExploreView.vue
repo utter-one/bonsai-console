@@ -4,6 +4,8 @@ import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/sto
 import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check, CalendarDays } from 'lucide-vue-next'
 import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery, RelativeTime } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
+import { fmtMs, fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsFormatters'
+import ExploreChart from '@/components/ExploreChart.vue'
 
 const analyticsStore = useAnalyticsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -507,43 +509,14 @@ const tableColumns = computed(() => {
   return cols
 })
 
-function formatBucket(bucket: string | null, interval: string): string {
-  if (!bucket) return '—'
-  const date = new Date(bucket)
-  if (interval === 'hour') {
-    return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  }
-  if (interval === 'month') {
-    return date.toLocaleString(undefined, { month: 'short', year: 'numeric' })
-  }
-  return date.toLocaleString(undefined, { month: 'short', day: 'numeric' })
-}
-
 function getMetricUnit(metricSpec: string): string {
   if (metricSpec === 'count') return 'count'
   const metricId = metricSpec.split(':')[1]
   return availableMetrics.value.find(m => m.id === metricId)?.unit ?? 'count'
 }
 
-function fmtMs(ms: number): string {
-  if (ms < 10_000) return `${Math.round(ms).toLocaleString()} ms`
-  if (ms < 60_000) return `${(ms / 1000).toFixed(2)} s`
-  if (ms < 3_600_000) {
-    const mins = Math.floor(ms / 60_000)
-    const secs = Math.floor((ms % 60_000) / 1000)
-    return `${mins}m ${secs}s`
-  }
-  const hours = Math.floor(ms / 3_600_000)
-  const mins = Math.floor((ms % 3_600_000) / 60_000)
-  const secs = Math.floor((ms % 60_000) / 1000)
-  return `${hours}h ${mins}m ${secs}s`
-}
-
 function fmtMetric(value: number | null | undefined, metricSpec: string): string {
-  if (value === null || value === undefined) return '—'
-  const unit = getMetricUnit(metricSpec)
-  if (unit === 'ms') return fmtMs(value)
-  return value.toLocaleString()
+  return fmtMetricUtil(value, getMetricUnit(metricSpec))
 }
 
 function getCellValue(row: SliceQueryRow, colKey: string): string {
@@ -1241,6 +1214,13 @@ function toggleExpand(key: string) {
         Results capped at {{ queryLimit.toLocaleString() }} — narrow your filters for complete data.
       </span>
     </div>
+
+    <!-- Results chart -->
+    <ExploreChart
+      v-if="result.rows.length > 0"
+      :result="result"
+      :available-metrics="availableMetrics"
+    />
 
     <!-- Results table -->
     <div v-if="result.rows.length > 0" class="table-container">
