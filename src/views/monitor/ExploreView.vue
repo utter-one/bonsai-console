@@ -265,10 +265,24 @@ function getMetricUnit(metricSpec: string): string {
   return availableMetrics.value.find(m => m.id === metricId)?.unit ?? 'count'
 }
 
+function fmtMs(ms: number): string {
+  if (ms < 10_000) return `${Math.round(ms).toLocaleString()} ms`
+  if (ms < 60_000) return `${(ms / 1000).toFixed(2)} s`
+  if (ms < 3_600_000) {
+    const mins = Math.floor(ms / 60_000)
+    const secs = Math.floor((ms % 60_000) / 1000)
+    return `${mins}m ${secs}s`
+  }
+  const hours = Math.floor(ms / 3_600_000)
+  const mins = Math.floor((ms % 3_600_000) / 60_000)
+  const secs = Math.floor((ms % 60_000) / 1000)
+  return `${hours}h ${mins}m ${secs}s`
+}
+
 function fmtMetric(value: number | null | undefined, metricSpec: string): string {
   if (value === null || value === undefined) return '—'
   const unit = getMetricUnit(metricSpec)
-  if (unit === 'ms') return `${Math.round(value).toLocaleString()} ms`
+  if (unit === 'ms') return fmtMs(value)
   return value.toLocaleString()
 }
 
