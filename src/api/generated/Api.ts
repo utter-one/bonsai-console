@@ -55,7 +55,9 @@ import {
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
+  SavedSliceQuery,
   ServerVadConfig,
+  SliceQuery,
   SliceQueryResponse,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
@@ -1971,7 +1973,8 @@ export class Api<
         | "classifications"
         | "transformations"
         | "moderation"
-        | "stage_visits";
+        | "stage_visits"
+        | "llm_calls";
       /**
        * Dimension IDs to group results by (max 5)
        * @maxItems 5
@@ -2016,6 +2019,132 @@ export class Api<
       query: query,
       secure: true,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the operator's own saved queries plus all shared queries within the project
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesList
+   * @summary List saved slice queries
+   * @request GET:/api/projects/{projectId}/analytics/saved-queries
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery[], any>({
+      path: `/api/projects/${projectId}/analytics/saved-queries`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Saves a named slice query configuration for later reuse. The name must be unique within the project.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesCreate
+   * @summary Create a saved slice query
+   * @request POST:/api/projects/{projectId}/analytics/saved-queries
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique name for this saved query within the project
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      /** The full slice query configuration to save */
+      query: SliceQuery;
+      /**
+       * Whether this query is visible to all operators in the project
+       * @default false
+       */
+      isShared?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing saved slice query with optimistic locking. Only the owning operator or a super_admin may update.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesUpdate
+   * @summary Update a saved slice query
+   * @request PUT:/api/projects/{projectId}/analytics/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated name for this saved query
+       * @minLength 1
+       * @maxLength 255
+       */
+      name?: string;
+      /** Updated slice query configuration */
+      query?: SliceQuery;
+      /** Updated sharing flag */
+      isShared?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a saved slice query with optimistic locking. Only the owning operator or a super_admin may delete.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesDelete
+   * @summary Delete a saved slice query
+   * @request DELETE:/api/projects/{projectId}/analytics/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       ...params,
     });
   /**
@@ -3465,6 +3594,8 @@ export class Api<
                 sampleCopy: string | null;
                 metadata?: Record<string, any>;
               };
+          /** ID of the stage that was active when the event occurred */
+          stageId: string | null;
           /**
            * Timestamp when the event occurred
            * @format date-time
@@ -3736,6 +3867,8 @@ export class Api<
               sampleCopy: string | null;
               metadata?: Record<string, any>;
             };
+        /** ID of the stage that was active when the event occurred */
+        stageId: string | null;
         /**
          * Timestamp when the event occurred
          * @format date-time

@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
-import { useAnalyticsStore, useProjectSelectionStore } from '@/stores'
-import { Plus, X, Play, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/stores'
+import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, Trash2, RefreshCw } from 'lucide-vue-next'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
-import type { SourceEntry, SourceMetric, SliceQueryRow } from '@/api/generated/data-contracts'
+import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
 
 const analyticsStore = useAnalyticsStore()
 const projectSelectionStore = useProjectSelectionStore()
+const authStore = useAuthStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+
+const canEditSavedQuery = (q: SavedSliceQuery) =>
+  q.operatorId === authStore.currentOperator?.id ||
+  (authStore.currentOperator?.roles.includes('super_admin') ?? false)
 
 type AggFn = 'count' | 'sum' | 'avg' | 'p50' | 'p95' | 'p99' | 'min' | 'max'
 
@@ -34,6 +39,17 @@ const dateTimeRange = ref<DateTimeRange>({
 const filterInterval = ref<'hour' | 'day' | 'week' | 'month' | ''>('day')
 const dimensionFilters = ref<DimensionFilter[]>([])
 const queryLimit = ref(1000)
+
+// Saved queries state
+const activeQuery = ref<SavedSliceQuery | null>(null)
+const isSaving = ref(false)
+const saveError = ref<string | null>(null)
+
+// Save-as dialog state
+const showSaveDialog = ref(false)
+const saveDialogName = ref('')
+const saveDialogShared = ref(false)
+const saveDialogRef = useTemplateRef<HTMLElement>('saveDialogRef')
 
 // Metric builder state
 const showMetricPicker = ref(false)
@@ -63,6 +79,9 @@ function handleDocumentMousedown(e: MouseEvent) {
   }
   if (showFilterPicker.value && filterPickerRef.value && !filterPickerRef.value.contains(target)) {
     showFilterPicker.value = false
+  }
+  if (showSaveDialog.value && saveDialogRef.value && !saveDialogRef.value.contains(target)) {
+    showSaveDialog.value = false
   }
 }
 
@@ -189,30 +208,132 @@ function onSourceChange(newSource: string) {
   showFilterPicker.value = false
 }
 
-async function runQuery() {
-  if (!projectId.value) return
-  if (selectedMetrics.value.length === 0) return
-
+function buildCurrentSliceQuery(): SliceQuery {
   const filtersRecord: Record<string, string> = {}
   for (const f of dimensionFilters.value) {
     filtersRecord[f.dimensionId] = f.value
   }
-
-  await analyticsStore.runQuery(projectId.value, {
-    source: selectedSource.value as any,
+  return {
+    source: selectedSource.value as SliceQuery['source'],
     groupBy: selectedDimensions.value.length > 0 ? selectedDimensions.value : undefined,
     metrics: selectedMetrics.value.map(m => m.spec),
-    interval: filterInterval.value || undefined,
+    interval: (filterInterval.value || undefined) as SliceQuery['interval'],
     from: dateTimeRange.value?.value[0] ?? undefined,
     to: dateTimeRange.value?.value[1] ?? undefined,
     filters: Object.keys(filtersRecord).length > 0 ? filtersRecord : undefined,
     limit: queryLimit.value,
-  })
+  }
+}
+
+async function runQuery() {
+  if (!projectId.value) return
+  if (selectedMetrics.value.length === 0) return
+  await analyticsStore.runQuery(projectId.value, buildCurrentSliceQuery())
+}
+
+function resolveMetricLabel(spec: string): string {
+  if (spec === 'count') return 'Count'
+  const parts = spec.split(':')
+  if (parts.length !== 2) return spec
+  const [fn, metricId] = parts
+  const metricLabel = availableMetrics.value.find(m => m.id === metricId)?.label ?? metricId
+  return `${fn!.toUpperCase()}: ${metricLabel}`
+}
+
+function loadQuery(q: SavedSliceQuery) {
+  const sq = q.query
+  selectedSource.value = sq.source
+  selectedDimensions.value = sq.groupBy ?? []
+  selectedMetrics.value = sq.metrics.map(spec => ({ spec, label: resolveMetricLabel(spec) }))
+  filterInterval.value = (sq.interval ?? '') as typeof filterInterval.value
+  dimensionFilters.value = Object.entries(sq.filters ?? {}).map(([dimensionId, value]) => ({ dimensionId, value }))
+  queryLimit.value = sq.limit ?? 1000
+  if (sq.from || sq.to) {
+    dateTimeRange.value = {
+      op: 'between',
+      value: [sq.from ?? new Date().toISOString(), sq.to ?? new Date().toISOString()],
+    }
+  } else {
+    dateTimeRange.value = null
+  }
+  activeQuery.value = q
+  showSaveDialog.value = false
+}
+
+function onLoadQuerySelect(e: Event) {
+  const id = (e.target as HTMLSelectElement).value
+  if (!id) {
+    activeQuery.value = null
+    return
+  }
+  const q = analyticsStore.savedQueries.find(sq => sq.id === id)
+  if (q) loadQuery(q)
+}
+
+function openSaveDialog() {
+  saveDialogName.value = activeQuery.value ? '' : ''
+  saveDialogShared.value = false
+  saveError.value = null
+  showSaveDialog.value = true
+}
+
+async function saveAsNew() {
+  if (!projectId.value || !saveDialogName.value.trim()) return
+  isSaving.value = true
+  saveError.value = null
+  try {
+    const created = await analyticsStore.createSavedQuery(projectId.value, {
+      name: saveDialogName.value.trim(),
+      query: buildCurrentSliceQuery(),
+      isShared: saveDialogShared.value,
+    })
+    activeQuery.value = created
+    showSaveDialog.value = false
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to save query'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function updateActiveQuery() {
+  if (!activeQuery.value || !projectId.value) return
+  isSaving.value = true
+  saveError.value = null
+  try {
+    const updated = await analyticsStore.updateSavedQuery(projectId.value, activeQuery.value.id, {
+      query: buildCurrentSliceQuery(),
+      version: activeQuery.value.version,
+    })
+    activeQuery.value = updated
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to update query'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function deleteActiveQuery() {
+  if (!activeQuery.value || !projectId.value) return
+  if (!confirm(`Delete saved query "${activeQuery.value.name}"?`)) return
+  isSaving.value = true
+  saveError.value = null
+  try {
+    await analyticsStore.deleteSavedQuery(projectId.value, activeQuery.value.id, activeQuery.value.version)
+    activeQuery.value = null
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to delete query'
+  } finally {
+    isSaving.value = false
+  }
 }
 
 onMounted(async () => {
   if (projectId.value) {
-    await analyticsStore.fetchSourceCatalog(projectId.value)
+    await Promise.all([
+      analyticsStore.fetchSourceCatalog(projectId.value),
+      analyticsStore.fetchSavedQueries(projectId.value),
+    ])
   }
   document.addEventListener('mousedown', handleDocumentMousedown)
 })
@@ -223,7 +344,11 @@ onBeforeUnmount(() => {
 
 watch(projectId, async (newId) => {
   if (newId) {
-    await analyticsStore.fetchSourceCatalog(newId)
+    activeQuery.value = null
+    await Promise.all([
+      analyticsStore.fetchSourceCatalog(newId),
+      analyticsStore.fetchSavedQueries(newId),
+    ])
   }
 })
 
@@ -429,6 +554,105 @@ function toggleExpand(key: string) {
 </script>
 
 <template>
+  <!-- Saved Queries Bar -->
+  <div class="mb-4 flex items-center gap-3 flex-wrap">
+    <!-- Load -->
+    <div class="flex items-center gap-2">
+      <Bookmark class="w-4 h-4 text-gray-400 shrink-0" />
+      <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Saved</span>
+      <select
+        :value="activeQuery?.id ?? ''"
+        @change="onLoadQuerySelect"
+        class="form-select-auto max-w-[220px]"
+        :disabled="analyticsStore.isLoadingSavedQueries"
+      >
+        <option value="">— load saved query —</option>
+        <option v-for="q in analyticsStore.savedQueries" :key="q.id" :value="q.id">
+          {{ q.name }}{{ q.isShared ? ' (shared)' : '' }}
+        </option>
+      </select>
+      <button
+        @click="analyticsStore.fetchSavedQueries(projectId)"
+        class="btn-icon"
+        :disabled="analyticsStore.isLoadingSavedQueries || !projectId"
+        title="Refresh list"
+      >
+        <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': analyticsStore.isLoadingSavedQueries }" />
+      </button>
+    </div>
+
+    <!-- Active query actions -->
+    <template v-if="activeQuery">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300">
+        <BookmarkCheck class="w-3 h-3" />
+        {{ activeQuery.name }}
+        <span v-if="activeQuery.isShared" class="opacity-60">· shared</span>
+      </span>
+      <button
+        v-if="canEditSavedQuery(activeQuery)"
+        @click="updateActiveQuery"
+        class="btn-secondary text-xs py-1 px-2.5 flex items-center gap-1.5"
+        :disabled="isSaving"
+        title="Overwrite this saved query with the current builder settings"
+      >
+        Update
+      </button>
+      <button
+        v-if="canEditSavedQuery(activeQuery)"
+        @click="deleteActiveQuery"
+        class="btn-icon text-red-500 hover:text-red-700 dark:hover:text-red-400"
+        :disabled="isSaving"
+        title="Delete this saved query"
+      >
+        <Trash2 class="w-3.5 h-3.5" />
+      </button>
+    </template>
+
+    <!-- Save as dialog -->
+    <div ref="saveDialogRef" class="relative ml-auto">
+      <button
+        @click="openSaveDialog"
+        class="btn-secondary text-xs py-1 px-2.5 flex items-center gap-1.5"
+        :disabled="!projectId"
+      >
+        <Bookmark class="w-3.5 h-3.5" />
+        Save as…
+      </button>
+      <div
+        v-if="showSaveDialog"
+        class="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+      >
+        <div class="mb-2">
+          <label class="form-label text-xs mb-1">Name</label>
+          <input
+            v-model="saveDialogName"
+            type="text"
+            class="form-input text-sm w-full"
+            placeholder="My query…"
+            maxlength="255"
+            @keydown.enter="saveAsNew"
+            autofocus
+          />
+        </div>
+        <div class="flex items-center gap-2 mb-3">
+          <input id="save-shared" v-model="saveDialogShared" type="checkbox" class="form-checkbox" />
+          <label for="save-shared" class="text-sm text-gray-700 dark:text-gray-300">Share with all project operators</label>
+        </div>
+        <div v-if="saveError" class="text-xs text-red-500 dark:text-red-400 mb-2">{{ saveError }}</div>
+        <div class="flex justify-end gap-2">
+          <button @click="showSaveDialog = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+          <button
+            @click="saveAsNew"
+            class="btn-primary text-xs py-1 px-2"
+            :disabled="!saveDialogName.trim() || isSaving"
+          >
+            {{ isSaving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Query Builder -->
   <div class="mb-6 space-y-4">
     <!-- Row 1: Source + interval + date range -->
