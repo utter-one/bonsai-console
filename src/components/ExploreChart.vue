@@ -78,7 +78,7 @@ function getMetricUnit(metricSpec: string): string {
 function metricLabel(spec: string): string {
   if (spec === 'count') return 'Count'
   const parts = spec.split(':')
-  const aggFn = parts[0]
+  const aggFn = parts[0] ?? ''
   const metricId = parts[1]
   const entry = props.availableMetrics.find(m => m.id === metricId)
   return `${aggFn.toUpperCase()} ${entry?.label ?? metricId}`
@@ -159,7 +159,7 @@ const chartData = computed(() => {
   if (s === 'timeSeries') {
     const labels = rows.map(r => formatBucket(r.bucket, interval))
     const datasets = props.result.metrics.map((spec, i) => {
-      const c = PALETTE[i % PALETTE.length]
+      const c = PALETTE[i % PALETTE.length]!
       return {
         label: metricLabel(spec),
         data: rows.map(r => r.metrics[spec] ?? null),
@@ -180,7 +180,7 @@ const chartData = computed(() => {
     const labels = buckets.map(b => formatBucket(b, interval))
     const series = allSeriesKeys.value.filter(k => selectedSeriesKeys.value.has(k))
     const datasets = series.map((seriesKey, i) => {
-      const c = PALETTE[i % PALETTE.length]
+      const c = PALETTE[i % PALETTE.length]!
       const seriesRows = rows.filter(r => seriesKeyForRow(r) === seriesKey)
       const byBucket = new Map(seriesRows.map(r => [r.bucket, r.metrics[metricSpec] ?? null]))
       return {
@@ -211,8 +211,8 @@ const chartData = computed(() => {
         datasets: [
           {
             data: filteredKeys.map(k => byKey.get(k)?.metrics[metricSpec] ?? null),
-            backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].solid),
-            borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].border),
+            backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length]!.solid),
+            borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length]!.border),
             borderWidth: 1,
           },
         ],
@@ -224,8 +224,8 @@ const chartData = computed(() => {
         {
           label: metricLabel(metricSpec),
           data: filteredKeys.map(k => byKey.get(k)?.metrics[metricSpec] ?? null),
-          backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].solid),
-          borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length].border),
+          backgroundColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length]!.solid),
+          borderColor: filteredKeys.map((_, i) => PALETTE[i % PALETTE.length]!.border),
           borderWidth: 1,
         },
       ],

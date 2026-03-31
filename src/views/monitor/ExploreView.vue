@@ -4,7 +4,7 @@ import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/sto
 import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check, CalendarDays } from 'lucide-vue-next'
 import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery, RelativeTime } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
-import { fmtMs, fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsFormatters'
+import { fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsFormatters'
 import ExploreChart from '@/components/ExploreChart.vue'
 
 const analyticsStore = useAnalyticsStore()
