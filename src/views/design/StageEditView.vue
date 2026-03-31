@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { useTableSort } from '@/composables'
+import { useTableSort, useLlmProviderSelect } from '@/composables'
 import { useCopyPaste } from '@/composables/useCopyPaste'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X, ChevronDown } from 'lucide-vue-next'
 import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
@@ -167,11 +167,12 @@ const projectTransformers = computed(() =>
   transformersStore.items
 )
 
-watch(() => form.value.llmProviderId, (newVal) => {
-  if (!newVal) {
-    form.value.llmSettings = null
-  }
-})
+const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.llmProviderId,
+  (v) => { form.value.llmProviderId = v },
+  () => form.value.llmSettings,
+  (v) => { form.value.llmSettings = v }
+)
 
 function selectClassifierFilter(value: string) {
   actionsClassifierFilter.value = value
@@ -995,7 +996,8 @@ function toggleNode(path: number[]) {
               </label>
               <div class="flex flex-col md:flex-row gap-2">
                 <select
-                  v-model="form.llmProviderId"
+                  :value="form.llmProviderId"
+                  @change="handleLlmProviderChange"
                   required
                   class="form-select-auto min-w-64"
                   :disabled="isLoading"

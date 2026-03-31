@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
 import type { ClassifierResponse, LlmSettings } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -86,11 +87,12 @@ const llmProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'llm')
 )
 
-watch(() => form.value.llmProviderId, (newVal) => {
-  if (!newVal) {
-    form.value.llmSettings = null
-  }
-})
+const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.llmProviderId,
+  (v) => { form.value.llmProviderId = v },
+  () => form.value.llmSettings,
+  (v) => { form.value.llmSettings = v }
+)
 
 // Lifecycle
 onMounted(async () => {
@@ -341,7 +343,8 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
             </label>
             <div class="flex flex-col md:flex-row gap-2">
               <select
-                v-model="form.llmProviderId"
+                :value="form.llmProviderId"
+                @change="handleLlmProviderChange"
                 class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
