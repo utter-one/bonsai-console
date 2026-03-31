@@ -148,6 +148,14 @@ The time range picker offers three modes:
 
 Add up to five dimensions to group results by (e.g. stage, source, model). Click **+ Add** to open the dimension picker and select a field. Each added tag can be removed with **×**. The available dimensions depend on the selected source.
 
+**Row 2b — Normalize By**
+
+An optional secondary dimension used for two-phase aggregation. When set, metrics are first summed within each *(Group By + Normalize By)* group, then the selected aggregation function is applied across those sums.
+
+Example: with **Group By** = *Stage*, **Normalize By** = *Conversation*, and metric **AVG: Prompt Tokens**, the query computes the total prompt tokens per conversation per stage first, then averages those per-conversation totals — giving the average total prompt tokens per conversation, broken down by stage.
+
+> **Note:** The bare **Count** metric is not compatible with Normalize By. Use a named metric with an aggregation function instead.
+
 **Row 3 — Metrics**
 
 Select one or more metric + aggregation combinations. Click **+ Add metric** to open the picker:

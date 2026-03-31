@@ -1954,7 +1954,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.
+   * @description Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Use normalizeBy to enable two-phase aggregation: metrics are first summed within each unit of that dimension (e.g. conversationId), then the requested aggregation function is applied across those sums — enabling queries like "average total tokens per conversation". Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.
    *
    * @tags Analytics
    * @name ProjectsAnalyticsQueryList
@@ -1990,6 +1990,8 @@ export class Api<
        * @minItems 1
        */
       metrics: string[];
+      /** Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare "count" metric. */
+      normalizeBy?: string;
       /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
       relativeTime?: RelativeTime;
       /**

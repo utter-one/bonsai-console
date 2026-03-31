@@ -6035,6 +6035,8 @@ export interface SliceQuery {
    * @minItems 1
    */
   metrics: string[];
+  /** Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare "count" metric. */
+  normalizeBy?: string;
   /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
   relativeTime?: RelativeTime;
   /**
@@ -7239,6 +7241,8 @@ export interface SliceQueryResponse {
   interval?: string;
   /** Dimensions that results are grouped by */
   groupBy: string[];
+  /** Dimension used as the inner aggregation unit, if two-phase aggregation was applied */
+  normalizeBy?: string;
   /** Metric specifications that were computed */
   metrics: string[];
   /** Result rows */

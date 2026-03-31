@@ -168,7 +168,16 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     try {
       sliceResult.value = await apiClient.projectsAnalyticsQueryList(projectId, params)
     } catch (err: any) {
-      queryError.value = err.response?.data?.message || 'Failed to run analytics query'
+      const data = err.response?.data
+      if (data?.message) {
+        queryError.value = data.message
+      } else if (data?.error) {
+        queryError.value = data.error
+      } else if (typeof data === 'string' && data) {
+        queryError.value = data
+      } else {
+        queryError.value = `Query failed (HTTP ${err.response?.status ?? 'unknown'})`
+      }
       throw err
     } finally {
       isLoadingQuery.value = false
