@@ -59,6 +59,10 @@ const saveDialogName = ref('')
 const saveDialogShared = ref(false)
 const saveDialogRef = useTemplateRef<HTMLElement>('saveDialogRef')
 
+// Rename dialog
+const showRenameDialog = ref(false)
+const renameDialogName = ref('')
+
 // Save split-button overflow menu
 const showSaveMenu = ref(false)
 const saveMenuRef = useTemplateRef<HTMLElement>('saveMenuRef')
@@ -103,6 +107,7 @@ function handleDocumentMousedown(e: MouseEvent) {
   }
   if (showSaveDialog.value && saveDialogRef.value && !saveDialogRef.value.contains(target)) {
     showSaveDialog.value = false
+    showRenameDialog.value = false
   }
 }
 
@@ -353,7 +358,53 @@ function openSaveDialog() {
   saveDialogShared.value = false
   saveError.value = null
   showSaveMenu.value = false
+  showRenameDialog.value = false
   showSaveDialog.value = true
+}
+
+function openRenameDialog() {
+  if (!activeQuery.value) return
+  renameDialogName.value = activeQuery.value.name
+  saveError.value = null
+  showSaveMenu.value = false
+  showSaveDialog.value = false
+  showRenameDialog.value = true
+}
+
+async function renameActiveQuery() {
+  if (!activeQuery.value || !projectId.value || !renameDialogName.value.trim()) return
+  isSaving.value = true
+  saveError.value = null
+  try {
+    const updated = await analyticsStore.updateSavedQuery(projectId.value, activeQuery.value.id, {
+      name: renameDialogName.value.trim(),
+      version: activeQuery.value.version,
+    })
+    activeQuery.value = updated
+    showRenameDialog.value = false
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to rename query'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function toggleShareActiveQuery() {
+  if (!activeQuery.value || !projectId.value) return
+  isSaving.value = true
+  saveError.value = null
+  showSaveMenu.value = false
+  try {
+    const updated = await analyticsStore.updateSavedQuery(projectId.value, activeQuery.value.id, {
+      isShared: !activeQuery.value.isShared,
+      version: activeQuery.value.version,
+    })
+    activeQuery.value = updated
+  } catch (err: any) {
+    saveError.value = err.response?.data?.message || 'Failed to update query'
+  } finally {
+    isSaving.value = false
+  }
 }
 
 async function saveAsNew() {
@@ -749,6 +800,19 @@ function toggleExpand(key: string) {
             >
               Save as new copy…
             </button>
+            <button
+              @click="openRenameDialog"
+              class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Rename…
+            </button>
+            <button
+              @click="toggleShareActiveQuery"
+              class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700"
+              :disabled="isSaving"
+            >
+              {{ activeQuery?.isShared ? 'Unshare' : 'Share with project' }}
+            </button>
             <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
             <button
               @click="deleteActiveQuery(); showSaveMenu = false"
@@ -761,6 +825,36 @@ function toggleExpand(key: string) {
         </div>
         </div>
       </template>
+
+      <!-- Rename popover -->
+      <div
+        v-if="showRenameDialog"
+        class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+      >
+        <div class="mb-3">
+          <label class="form-label text-xs mb-1">New name</label>
+          <input
+            v-model="renameDialogName"
+            type="text"
+            class="form-input text-sm w-full"
+            placeholder="Query name…"
+            maxlength="255"
+            @keydown.enter="renameActiveQuery"
+            autofocus
+          />
+        </div>
+        <div v-if="saveError" class="text-xs text-red-500 dark:text-red-400 mb-2">{{ saveError }}</div>
+        <div class="flex justify-end gap-2">
+          <button @click="showRenameDialog = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+          <button
+            @click="renameActiveQuery"
+            class="btn-primary text-xs py-1 px-2"
+            :disabled="!renameDialogName.trim() || isSaving"
+          >
+            {{ isSaving ? 'Saving…' : 'Rename' }}
+          </button>
+        </div>
+      </div>
 
       <!-- Save-as popover (shared between both branches) -->
       <div
