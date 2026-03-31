@@ -9,7 +9,7 @@ The **Monitor** section gives you visibility into what's happening in your conve
 | [Conversations](./conversations) | Browse live and completed conversations with full event details |
 | [Users](./users) | View end-user profiles and their conversation history |
 | [Issues](./issues) | Review flagged conversations that may need attention |
-| [Analytics](./analytics) | Latency statistics and performance metrics *(experimental)* |
+| [Analytics](./analytics) | Latency, token usage, and custom data exploration *(experimental)* |
 | [Audit Logs](./audit-logs) | See a record of every change made by operators in the console |
 
 ## Project Scope
