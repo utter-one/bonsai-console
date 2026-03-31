@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
 import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/stores'
-import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check } from 'lucide-vue-next'
-import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
-import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
-import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery } from '@/api/generated/data-contracts'
+import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check, CalendarDays } from 'lucide-vue-next'
+import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery, RelativeTime } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
 
 const analyticsStore = useAnalyticsStore()
@@ -32,13 +30,19 @@ interface DimensionFilter {
 const selectedSource = ref<string>('turns')
 const selectedDimensions = ref<string[]>([])
 const selectedMetrics = ref<SelectedMetric[]>([{ spec: 'count', label: 'Count' }])
-const dateTimeRange = ref<DateTimeRange>({
-  op: 'between',
-  value: [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), new Date().toISOString()],
-})
 const filterInterval = ref<'hour' | 'day' | 'week' | 'month' | ''>('day')
 const dimensionFilters = ref<DimensionFilter[]>([])
 const queryLimit = ref(1000)
+
+// Time range state
+type TimeRangeMode = 'relative' | 'absolute' | 'all'
+const timeRangeMode = ref<TimeRangeMode>('relative')
+const relativeTimeAmount = ref(7)
+const relativeTimeUnit = ref<RelativeTime['unit']>('days')
+const absoluteFrom = ref('')
+const absoluteTo = ref('')
+const showTimeRangePicker = ref(false)
+const timeRangePickerRef = useTemplateRef<HTMLElement>('timeRangePickerRef')
 
 // Saved queries state
 const activeQuery = ref<SavedSliceQuery | null>(null)
@@ -87,6 +91,9 @@ function handleDocumentMousedown(e: MouseEvent) {
   }
   if (showFilterPicker.value && filterPickerRef.value && !filterPickerRef.value.contains(target)) {
     showFilterPicker.value = false
+  }
+  if (showTimeRangePicker.value && timeRangePickerRef.value && !timeRangePickerRef.value.contains(target)) {
+    showTimeRangePicker.value = false
   }
   if (showQuerySelector.value && querySelectorRef.value && !querySelectorRef.value.contains(target)) {
     showQuerySelector.value = false
@@ -232,8 +239,15 @@ function buildCurrentSliceQuery(): SliceQuery {
     groupBy: selectedDimensions.value.length > 0 ? selectedDimensions.value : undefined,
     metrics: selectedMetrics.value.map(m => m.spec),
     interval: (filterInterval.value || undefined) as SliceQuery['interval'],
-    from: dateTimeRange.value?.value[0] ?? undefined,
-    to: dateTimeRange.value?.value[1] ?? undefined,
+    relativeTime: timeRangeMode.value === 'relative'
+      ? { amount: relativeTimeAmount.value, unit: relativeTimeUnit.value }
+      : undefined,
+    from: timeRangeMode.value === 'absolute' && absoluteFrom.value
+      ? new Date(absoluteFrom.value).toISOString()
+      : undefined,
+    to: timeRangeMode.value === 'absolute' && absoluteTo.value
+      ? new Date(absoluteTo.value).toISOString()
+      : undefined,
     filters: Object.keys(filtersRecord).length > 0 ? filtersRecord : undefined,
     limit: queryLimit.value,
   }
@@ -262,13 +276,16 @@ function loadQuery(q: SavedSliceQuery) {
   filterInterval.value = (sq.interval ?? '') as typeof filterInterval.value
   dimensionFilters.value = Object.entries(sq.filters ?? {}).map(([dimensionId, value]) => ({ dimensionId, value }))
   queryLimit.value = sq.limit ?? 1000
-  if (sq.from || sq.to) {
-    dateTimeRange.value = {
-      op: 'between',
-      value: [sq.from ?? new Date().toISOString(), sq.to ?? new Date().toISOString()],
-    }
+  if (sq.relativeTime) {
+    timeRangeMode.value = 'relative'
+    relativeTimeAmount.value = sq.relativeTime.amount
+    relativeTimeUnit.value = sq.relativeTime.unit
+  } else if (sq.from || sq.to) {
+    timeRangeMode.value = 'absolute'
+    absoluteFrom.value = sq.from ? sq.from.slice(0, 16) : ''
+    absoluteTo.value = sq.to ? sq.to.slice(0, 16) : ''
   } else {
-    dateTimeRange.value = null
+    timeRangeMode.value = 'all'
   }
   activeQuery.value = q
   showQuerySelector.value = false
@@ -281,13 +298,55 @@ function clearActiveQuery() {
   filterInterval.value = 'day'
   dimensionFilters.value = []
   queryLimit.value = 1000
-  dateTimeRange.value = {
-    op: 'between',
-    value: [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), new Date().toISOString()],
-  }
+  timeRangeMode.value = 'relative'
+  relativeTimeAmount.value = 7
+  relativeTimeUnit.value = 'days'
   activeQuery.value = null
   showQuerySelector.value = false
 }
+
+const relativePresets: { label: string; amount: number; unit: RelativeTime['unit'] }[] = [
+  { label: '1h', amount: 1, unit: 'hours' },
+  { label: '24h', amount: 24, unit: 'hours' },
+  { label: '7d', amount: 7, unit: 'days' },
+  { label: '30d', amount: 30, unit: 'days' },
+  { label: '3mo', amount: 3, unit: 'months' },
+]
+
+function setRelativePreset(p: { amount: number; unit: RelativeTime['unit'] }) {
+  relativeTimeAmount.value = p.amount
+  relativeTimeUnit.value = p.unit
+}
+
+function relativeToMs(amount: number, unit: RelativeTime['unit']): number {
+  const ms = { hours: 3600_000, days: 86400_000, weeks: 604800_000, months: 30 * 86400_000 }
+  return amount * ms[unit]
+}
+
+function toLocalDatetimeInput(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function switchTimeRangeMode(mode: TimeRangeMode) {
+  if (mode === 'absolute' && timeRangeMode.value === 'relative') {
+    const now = new Date()
+    const from = new Date(now.getTime() - relativeToMs(relativeTimeAmount.value, relativeTimeUnit.value))
+    absoluteFrom.value = toLocalDatetimeInput(from)
+    absoluteTo.value = toLocalDatetimeInput(now)
+  }
+  timeRangeMode.value = mode
+}
+
+const timeRangeLabel = computed<string>(() => {
+  if (timeRangeMode.value === 'all') return 'All time'
+  if (timeRangeMode.value === 'relative') {
+    return `Last ${relativeTimeAmount.value} ${relativeTimeUnit.value}`
+  }
+  const from = absoluteFrom.value ? new Date(absoluteFrom.value).toLocaleDateString() : '?'
+  const to = absoluteTo.value ? new Date(absoluteTo.value).toLocaleDateString() : '?'
+  return `${from} – ${to}`
+})
 
 function openSaveDialog() {
   saveDialogName.value = ''
@@ -768,8 +827,89 @@ function toggleExpand(key: string) {
         </select>
       </div>
 
-      <!-- Date range -->
-      <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
+      <!-- Time range picker -->
+      <div ref="timeRangePickerRef" class="relative">
+        <button
+          @click="showTimeRangePicker = !showTimeRangePicker"
+          class="btn-secondary text-sm !py-2 !px-3 gap-2"
+        >
+          <CalendarDays class="w-4 h-4 shrink-0" />
+          <span>{{ timeRangeLabel }}</span>
+          <ChevronDown class="w-3.5 h-3.5 opacity-60 shrink-0" />
+        </button>
+
+        <div
+          v-if="showTimeRangePicker"
+          class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[300px]"
+        >
+          <!-- Mode tabs -->
+          <div class="flex gap-1 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+            <button
+              v-for="tab in [{ mode: 'relative', label: 'Relative' }, { mode: 'absolute', label: 'Absolute' }, { mode: 'all', label: 'All time' }]"
+              :key="tab.mode"
+              @click="switchTimeRangeMode(tab.mode as TimeRangeMode)"
+              class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors"
+              :class="timeRangeMode === tab.mode
+                ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+            >{{ tab.label }}</button>
+          </div>
+
+          <!-- Relative -->
+          <template v-if="timeRangeMode === 'relative'">
+            <div class="flex flex-wrap gap-1 mb-3">
+              <button
+                v-for="p in relativePresets"
+                :key="p.label"
+                @click="setRelativePreset(p)"
+                class="text-xs px-2 py-1 rounded border transition-colors"
+                :class="relativeTimeAmount === p.amount && relativeTimeUnit === p.unit
+                  ? 'border-violet-400 bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:border-violet-500 dark:text-violet-300'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-400'"
+              >{{ p.label }}</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">Last</span>
+              <input
+                v-model.number="relativeTimeAmount"
+                type="number"
+                min="1"
+                max="100000"
+                class="w-20 shrink-0 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400"
+              />
+              <select v-model="relativeTimeUnit" class="form-select-auto text-sm !py-1.5 min-w-[100px]">
+                <option value="hours">hours</option>
+                <option value="days">days</option>
+                <option value="weeks">weeks</option>
+                <option value="months">months</option>
+              </select>
+            </div>
+          </template>
+
+          <!-- Absolute -->
+          <template v-else-if="timeRangeMode === 'absolute'">
+            <div class="space-y-2">
+              <div>
+                <label class="form-label text-xs mb-1">From</label>
+                <input v-model="absoluteFrom" type="datetime-local" class="form-input text-sm w-full" />
+              </div>
+              <div>
+                <label class="form-label text-xs mb-1">To</label>
+                <input v-model="absoluteTo" type="datetime-local" class="form-input text-sm w-full" />
+              </div>
+            </div>
+          </template>
+
+          <!-- All time -->
+          <template v-else>
+            <p class="text-xs text-gray-400 dark:text-gray-500">No time filter — all data will be included.</p>
+          </template>
+
+          <div class="flex justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <button @click="showTimeRangePicker = false" class="btn-secondary text-xs py-1 px-2">Done</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Run button -->
       <button

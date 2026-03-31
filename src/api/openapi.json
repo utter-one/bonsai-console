@@ -13618,17 +13618,20 @@
             "maxItems": 10,
             "description": "Metric specifications: \"count\" or \"{aggFn}:{metricId}\" (e.g. \"avg:durationMs\", \"p95:totalTurnDurationMs\")"
           },
+          "relativeTime": {
+            "$ref": "#/components/schemas/RelativeTime"
+          },
           "from": {
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "Start of the date range (inclusive). ISO 8601 format."
+            "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
           },
           "to": {
             "type": "string",
             "nullable": true,
             "format": "date-time",
-            "description": "End of the date range (inclusive). ISO 8601 format."
+            "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
           },
           "conversationId": {
             "type": "string",
@@ -13654,6 +13657,32 @@
           "metrics"
         ],
         "description": "The saved slice query configuration"
+      },
+      "RelativeTime": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "description": "Number of units to look back"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "hours",
+              "days",
+              "weeks",
+              "months"
+            ],
+            "description": "Time unit"
+          }
+        },
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided."
       },
       "CreateSampleCopyRequest": {
         "type": "object",
@@ -21097,13 +21126,22 @@
           },
           {
             "schema": {
+              "$ref": "#/components/schemas/RelativeTime"
+            },
+            "required": false,
+            "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided.",
+            "name": "relativeTime",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "nullable": true,
               "format": "date-time",
-              "description": "Start of the date range (inclusive). ISO 8601 format."
+              "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
             },
             "required": false,
-            "description": "Start of the date range (inclusive). ISO 8601 format.",
+            "description": "Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.",
             "name": "from",
             "in": "query"
           },
@@ -21112,10 +21150,10 @@
               "type": "string",
               "nullable": true,
               "format": "date-time",
-              "description": "End of the date range (inclusive). ISO 8601 format."
+              "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set."
             },
             "required": false,
-            "description": "End of the date range (inclusive). ISO 8601 format.",
+            "description": "End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.",
             "name": "to",
             "in": "query"
           },

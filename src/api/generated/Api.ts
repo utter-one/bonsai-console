@@ -52,6 +52,7 @@ import {
   ParameterValue,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
+  RelativeTime,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
@@ -1989,13 +1990,15 @@ export class Api<
        * @minItems 1
        */
       metrics: string[];
+      /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+      relativeTime?: RelativeTime;
       /**
-       * Start of the date range (inclusive). ISO 8601 format.
+       * Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
        * @format date-time
        */
       from?: string | null;
       /**
-       * End of the date range (inclusive). ISO 8601 format.
+       * End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
        * @format date-time
        */
       to?: string | null;

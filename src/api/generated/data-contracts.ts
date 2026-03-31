@@ -6035,13 +6035,15 @@ export interface SliceQuery {
    * @minItems 1
    */
   metrics: string[];
+  /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+  relativeTime?: RelativeTime;
   /**
-   * Start of the date range (inclusive). ISO 8601 format.
+   * Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
    * @format date-time
    */
   from?: string | null;
   /**
-   * End of the date range (inclusive). ISO 8601 format.
+   * End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
    * @format date-time
    */
   to?: string | null;
@@ -6056,6 +6058,18 @@ export interface SliceQuery {
    * @default 1000
    */
   limit?: number;
+}
+
+/** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+export interface RelativeTime {
+  /**
+   * Number of units to look back
+   * @min 1
+   * @max 100000
+   */
+  amount: number;
+  /** Time unit */
+  unit: "hours" | "days" | "weeks" | "months";
 }
 
 export interface CreateSampleCopyRequest {
