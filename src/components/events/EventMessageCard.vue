@@ -7,9 +7,10 @@ import {
   Braces,
   Bug,
   Eye,
+  TriangleAlert,
 } from 'lucide-vue-next'
 import type { NormalizedEvent } from './eventHelpers'
-import { formatMs, hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables, hasAssistantTiming } from './eventHelpers'
+import { formatMs, hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables, hasAssistantTiming, hasInputTruncation } from './eventHelpers'
 
 const props = defineProps<{
   event: NormalizedEvent
@@ -83,6 +84,19 @@ const emit = defineEmits<{
         <span v-if="event.eventData.metadata?.processingDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Processing</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.processingDurationMs) }}</span></span>
         <span v-if="event.eventData.metadata?.actionsDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Actions</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.actionsDurationMs) }}</span></span>
         <span v-if="event.eventData.metadata?.fillerDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Filler</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.fillerDurationMs) }}</span></span>
+      </div>
+      <div v-if="event.eventData.role === 'assistant' && hasInputTruncation(event.eventData.metadata)"
+        class="mt-2 pt-2 border-t border-amber-200 dark:border-amber-800 flex items-start gap-1.5">
+        <TriangleAlert class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+        <span class="text-xs text-amber-700 dark:text-amber-300">
+          Input context was truncated before this response.
+          <template v-if="event.eventData.metadata?.llmUsage?.estimatedInputTokens != null && event.eventData.metadata?.llmUsage?.estimatedFinalInputTokens != null">
+            {{ event.eventData.metadata.llmUsage.estimatedInputTokens.toLocaleString() }}
+            &rarr;
+            {{ event.eventData.metadata.llmUsage.estimatedFinalInputTokens.toLocaleString() }} tokens
+            ({{ (event.eventData.metadata.llmUsage.estimatedInputTokens - event.eventData.metadata.llmUsage.estimatedFinalInputTokens).toLocaleString() }} removed)
+          </template>
+        </span>
       </div>
       <div v-if="event.eventData.role === 'assistant' && hasAssistantTiming(event.eventData.metadata)"
         class="mt-2 pt-2 border-t border-green-200 flex flex-wrap gap-1.5 dark:border-green-900">

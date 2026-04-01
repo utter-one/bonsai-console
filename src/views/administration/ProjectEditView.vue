@@ -5,9 +5,12 @@ import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelecti
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits } from '@/api/types'
+import apiClient from '@/api/client'
+import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import CostLimitEntryModal from '@/components/modals/CostLimitEntryModal.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
@@ -27,7 +30,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -56,6 +59,7 @@ const form = ref({
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
+  costLimitEntries: [] as CostLimitEntry[],
 })
 
 const showApiKeyModal = ref(false)
@@ -80,6 +84,7 @@ const tabs = computed<TabDefinition[]>(() => [
       h(FlaskConical, { class: 'w-3 h-3' })
     )
   ] },
+  { key: 'costs', label: 'Cost Management' },
   { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
   { key: 'history', label: 'History', show: isEditMode.value },
@@ -96,6 +101,98 @@ const asrProviders = computed(() =>
 
 const storageProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'storage')
+)
+
+const llmProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'llm')
+)
+
+const llmProviderOptions = computed(() =>
+  [...llmProviders.value].sort((a, b) => a.name.localeCompare(b.name))
+)
+
+function providerNameForId(id: string): string {
+  return llmProviders.value.find(p => p.id === id)?.name ?? id
+}
+
+// Cache of providerId -> modelId -> displayName, built lazily as models are fetched
+const modelDisplayNames = ref<Record<string, Record<string, string>>>({})
+
+async function ensureModelsLoaded(providerId: string) {
+  if (!providerId || modelDisplayNames.value[providerId]) return
+  try {
+    const response = await apiClient.providersModelsList(providerId)
+    const map: Record<string, string> = {}
+    for (const m of response.models) map[m.id] = m.displayName
+    modelDisplayNames.value = { ...modelDisplayNames.value, [providerId]: map }
+  } catch {
+    // silently ignore — fall back to raw ID
+  }
+}
+
+function modelNameForEntry(entry: CostLimitEntry): string {
+  if (entry.modelName === '*') return '* (Any model)'
+  return modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName
+}
+
+const requestTypeLabels: Record<string, string> = {
+  completion: 'Compl',
+  classification: 'Class',
+  tool: 'Tool',
+  transformation: 'Trans',
+  filler: 'Filler',
+}
+
+function limitsForDisplay(limits: CostLimitEntry['inputTokensLimits']): { label: string; value: number }[] {
+  return Object.entries(limits)
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => ({ label: requestTypeLabels[k] ?? k, value: v as number }))
+}
+
+const showCostLimitModal = ref(false)
+const editingCostLimitEntry = ref<CostLimitEntry | null>(null)
+const editingCostLimitIndex = ref<number | null>(null)
+
+function openAddCostLimitEntry() {
+  editingCostLimitEntry.value = null
+  editingCostLimitIndex.value = null
+  showCostLimitModal.value = true
+}
+
+function openEditCostLimitEntry(index: number) {
+  editingCostLimitEntry.value = form.value.costLimitEntries[index] ?? null
+  editingCostLimitIndex.value = index
+  showCostLimitModal.value = true
+}
+
+function handleCostLimitEntrySave(entry: CostLimitEntry) {
+  if (editingCostLimitIndex.value !== null) {
+    form.value.costLimitEntries.splice(editingCostLimitIndex.value, 1, entry)
+  } else {
+    form.value.costLimitEntries.push(entry)
+  }
+  ensureModelsLoaded(entry.providerId)
+  showCostLimitModal.value = false
+}
+
+function removeCostLimitEntry(index: number) {
+  form.value.costLimitEntries.splice(index, 1)
+}
+
+function costLimitSortKey(entry: CostLimitEntry): [string, string] {
+  const provider = entry.providerId === '*' ? '' : providerNameForId(entry.providerId).toLowerCase()
+  const model = entry.modelName === '*' ? '' : (modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName).toLowerCase()
+  return [provider, model]
+}
+
+const sortedCostLimitEntries = computed(() =>
+  form.value.costLimitEntries
+    .map((entry, originalIndex) => ({ entry, originalIndex }))
+    .sort((a, b) => {
+      const [ap, am] = costLimitSortKey(a.entry)
+      const [bp, bm] = costLimitSortKey(b.entry)
+      return ap !== bp ? ap.localeCompare(bp) : am.localeCompare(bm)
+    })
 )
 
 const selectedStorageProvider = computed(() => {
@@ -126,7 +223,7 @@ const metadataFields = computed(() => {
 // Lifecycle
 onMounted(async () => {
   await providersStore.fetchAll()
-  
+
   if (isEditMode.value) {
     await loadProject()
   }
@@ -259,8 +356,16 @@ async function loadProject() {
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
+        costLimitEntries: currentProject.value.costManagementConfig
+          ? configToCostLimitEntries(currentProject.value.costManagementConfig)
+          : [],
       }
-      
+
+      // Load model display names for configured entries
+      for (const entry of form.value.costLimitEntries) {
+        ensureModelsLoaded(entry.providerId)
+      }
+
       // Load API keys for edit mode
       await loadApiKeys()
     }
@@ -344,6 +449,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
+        costManagementConfig: buildCostManagementConfig(),
       })
       
       // Update currentProject with the response to get the new version
@@ -369,6 +475,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
+        costManagementConfig: buildCostManagementConfig(),
       })
 
       // Set currentProject to the newly created project
@@ -411,27 +518,6 @@ async function handleSubmit() {
 
 function goBack() {
   router.push({ name: 'administration.projects' })
-}
-
-async function handleArchiveUnarchive() {
-  if (!currentProject.value) return
-  const action = isArchived.value ? 'unarchive' : 'archive'
-  if (!confirm(`${action === 'archive' ? 'Archive' : 'Unarchive'} project "${currentProject.value.name}"?`)) return
-  try {
-    if (action === 'archive') {
-      currentProject.value = await projectsStore.archive(currentProject.value.id, currentProject.value.version)
-    } else {
-      currentProject.value = await projectsStore.unarchive(currentProject.value.id, currentProject.value.version)
-    }
-    // refresh selection store if this project is currently selected
-    const projSel = useProjectSelectionStore()
-    const updatedId = currentProject.value?.id
-    if (updatedId && projSel.selectedProjectId === updatedId) {
-      projSel.setSelectedProjectId(updatedId)
-    }
-  } catch (err: any) {
-    alert(err.response?.data?.message || `Failed to ${action} project`)
-  }
 }
 
 async function handleDeleteProject() {
@@ -563,6 +649,61 @@ function handleStorageSettingsSave(settings: any) {
 function handleStorageSettingsClose() {
   showStorageSettingsModal.value = false
 }
+
+// Cost Management helpers
+function configToCostLimitEntries(config: CostManagementConfig): CostLimitEntry[] {
+  const entries: CostLimitEntry[] = []
+  for (const [providerId, models] of Object.entries(config.limits)) {
+    for (const [modelName, limits] of Object.entries(models)) {
+      entries.push({
+        providerId,
+        modelName,
+        outputTokensLimits: {
+          completion: limits.outputTokensLimits?.completion,
+          classification: limits.outputTokensLimits?.classification,
+          tool: limits.outputTokensLimits?.tool,
+          transformation: limits.outputTokensLimits?.transformation,
+          filler: limits.outputTokensLimits?.filler,
+        },
+        inputTokensLimits: {
+          completion: limits.inputTokensLimits?.completion,
+          classification: limits.inputTokensLimits?.classification,
+          tool: limits.inputTokensLimits?.tool,
+          transformation: limits.inputTokensLimits?.transformation,
+          filler: limits.inputTokensLimits?.filler,
+        },
+      })
+    }
+  }
+  return entries
+}
+
+function buildCostManagementConfig(): CostManagementConfig {
+  const limits: Record<string, Record<string, ProviderModelLimits>> = {}
+  for (const entry of form.value.costLimitEntries) {
+    if (!entry.providerId || !entry.modelName) continue
+    if (!limits[entry.providerId]) limits[entry.providerId] = {}
+    const pml: ProviderModelLimits = {}
+    const outTokens: RequestTypeLimits = {}
+    if (entry.outputTokensLimits.completion) outTokens.completion = entry.outputTokensLimits.completion
+    if (entry.outputTokensLimits.classification) outTokens.classification = entry.outputTokensLimits.classification
+    if (entry.outputTokensLimits.tool) outTokens.tool = entry.outputTokensLimits.tool
+    if (entry.outputTokensLimits.transformation) outTokens.transformation = entry.outputTokensLimits.transformation
+    if (entry.outputTokensLimits.filler) outTokens.filler = entry.outputTokensLimits.filler
+    if (Object.keys(outTokens).length > 0) pml.outputTokensLimits = outTokens
+    const inTokens: RequestTypeLimits = {}
+    if (entry.inputTokensLimits.completion) inTokens.completion = entry.inputTokensLimits.completion
+    if (entry.inputTokensLimits.classification) inTokens.classification = entry.inputTokensLimits.classification
+    if (entry.inputTokensLimits.tool) inTokens.tool = entry.inputTokensLimits.tool
+    if (entry.inputTokensLimits.transformation) inTokens.transformation = entry.inputTokensLimits.transformation
+    if (entry.inputTokensLimits.filler) inTokens.filler = entry.inputTokensLimits.filler
+    if (Object.keys(inTokens).length > 0) pml.inputTokensLimits = inTokens
+    ;(limits[entry.providerId] as Record<string, ProviderModelLimits>)[entry.modelName] = pml
+  }
+  return { limits }
+}
+
+
 </script>
 
 <template>
@@ -584,9 +725,6 @@ function handleStorageSettingsClose() {
       <div class="flex gap-3 items-center">
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
-        </button>
-        <button v-if="isEditMode" type="button" @click="handleArchiveUnarchive" :class="isArchived ? 'btn-secondary' : 'btn-danger'" :disabled="isLoading">
-          {{ isArchived ? 'Unarchive' : 'Archive' }}
         </button>
         <button v-if="!isArchived" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
@@ -979,6 +1117,87 @@ function handleStorageSettingsClose() {
           </div>
         </div>
 
+        <!-- Cost Management Tab -->
+        <div v-show="activeTab === 'costs'" class="tab-content">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Token Limits</h3>
+              <p class="text-sm text-gray-600 mb-1 dark:text-gray-400">
+                Define per-model token limits to control LLM costs across all conversations in this project.
+                Limits are keyed by provider and model name (e.g. <code>gpt-4o</code>).
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Output token limits</strong> are enforced as a hard ceiling over entity-level defaults.
+                <strong>Input token limits</strong> cause oldest messages to be trimmed from context when exceeded.
+              </p>
+            </div>
+
+            <!-- Limit rules table -->
+            <div v-if="form.costLimitEntries.length > 0" class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Provider</th>
+                      <th class="table-header-cell">Model</th>
+                      <th class="table-header-cell">Input Limits</th>
+                      <th class="table-header-cell">Output Limits</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="{ entry, originalIndex } in sortedCostLimitEntries" :key="originalIndex" class="table-row">
+                      <td class="table-clickable-cell" @click="openEditCostLimitEntry(originalIndex)">{{ providerNameForId(entry.providerId) }}</td>
+                      <td class="table-cell">{{ modelNameForEntry(entry) }}</td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.inputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.inputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.outputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.outputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex justify-end gap-2">
+                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)">Edit</button>
+                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)">
+                            <Trash2 class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div v-else class="flex flex-col items-center justify-center py-10 gap-2 text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <p class="text-sm">No limit rules configured.</p>
+              <p class="text-xs">Add a rule to set token limits for a specific provider and model.</p>
+            </div>
+
+            <!-- Add rule button -->
+            <button type="button" @click="openAddCostLimitEntry" class="btn-secondary" :disabled="isLoading">
+              <Plus class="inline-block w-4 h-4 mr-2" />
+              Add Limit Rule
+            </button>
+
+          </div>
+        </div>
+
         </fieldset>
 
         <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
@@ -1057,11 +1276,10 @@ function handleStorageSettingsClose() {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-        <div class="tab-content">
+        <div class="tab-content" v-if="isEditMode && currentProject"
+            v-show="activeTab === 'history'">
           <!-- History Tab -->
           <EntityHistoryView
-            v-if="isEditMode && currentProject"
-            v-show="activeTab === 'history'"
             :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
             :current-version="currentProject.version"
             :current-object="currentProject"
@@ -1095,6 +1313,17 @@ function handleStorageSettingsClose() {
         </form>
       </div>
     </div>
+
+    <!-- Cost Limit Entry Modal -->
+    <CostLimitEntryModal
+      v-if="showCostLimitModal"
+      :entry="editingCostLimitEntry"
+      :llm-providers="llmProviderOptions"
+      :existing-entries="form.costLimitEntries"
+      :editing-index="editingCostLimitIndex"
+      @close="showCostLimitModal = false"
+      @save="handleCostLimitEntrySave"
+    />
 
     <!-- API Key Edit Modal -->
     <ApiKeyEditModal

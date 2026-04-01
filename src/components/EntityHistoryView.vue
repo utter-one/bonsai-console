@@ -193,10 +193,11 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
   <div>
   <!-- Table view -->
   <div v-if="view === 'table'">
-    <div class="flex justify-end mb-3">
+    <div class="flex mb-3">
+      <h3 class="text-lg font-semibold mb-2">Change Log</h3>
       <button
         type="button"
-        class="btn-secondary btn-sm"
+        class="btn-secondary btn-sm ml-auto"
         :disabled="isLoading"
         @click="fetchHistory"
       >

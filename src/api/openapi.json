@@ -1846,6 +1846,79 @@
           "prompt"
         ]
       },
+      "RequestTypeLimits": {
+        "type": "object",
+        "properties": {
+          "completion": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum tokens for completion (response generation) calls"
+          },
+          "classification": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum tokens for classifier calls"
+          },
+          "tool": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum tokens for smart_function tool calls"
+          },
+          "transformation": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum tokens for context transformer calls"
+          },
+          "filler": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum tokens for filler sentence generation calls"
+          }
+        }
+      },
+      "ProviderModelLimits": {
+        "type": "object",
+        "properties": {
+          "outputTokensLimits": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RequestTypeLimits"
+              },
+              {
+                "description": "Maximum output token caps per request type. Enforced as a hard ceiling over the entity-level defaultMaxTokens."
+              }
+            ]
+          },
+          "inputTokensLimits": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RequestTypeLimits"
+              },
+              {
+                "description": "Maximum input context token caps per request type. When exceeded, the oldest non-system messages are trimmed from history before the call."
+              }
+            ]
+          }
+        }
+      },
+      "CostManagementConfig": {
+        "type": "object",
+        "properties": {
+          "limits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/ProviderModelLimits"
+              }
+            },
+            "description": "Token cap definitions keyed by provider API type and model name"
+          }
+        },
+        "required": [
+          "limits"
+        ]
+      },
       "S3StorageConfig": {
         "type": "object",
         "properties": {
@@ -3211,6 +3284,16 @@
             ],
             "description": "Optional content moderation configuration"
           },
+          "costManagementConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CostManagementConfig"
+              },
+              {
+                "description": "Optional project-level LLM token cost management configuration"
+              }
+            ]
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -3538,6 +3621,26 @@
             ],
             "description": "Updated content moderation configuration"
           },
+          "costManagementConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "limits": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/ProviderModelLimits"
+                  }
+                },
+                "description": "Token cap definitions keyed by provider API type and model name"
+              }
+            },
+            "required": [
+              "limits"
+            ],
+            "description": "Updated project-level LLM token cost management configuration. Set to null to remove."
+          },
           "constants": {
             "type": "object",
             "additionalProperties": {
@@ -3731,6 +3834,17 @@
             ],
             "description": "Content moderation configuration"
           },
+          "costManagementConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CostManagementConfig"
+              },
+              {
+                "nullable": true,
+                "description": "Project-level LLM token cost management configuration"
+              }
+            ]
+          },
           "constants": {
             "type": "object",
             "nullable": true,
@@ -3824,6 +3938,7 @@
           "acceptVoice",
           "generateVoice",
           "moderationConfig",
+          "costManagementConfig",
           "constants",
           "metadata",
           "timezone",
@@ -3971,6 +4086,17 @@
                   ],
                   "description": "Content moderation configuration"
                 },
+                "costManagementConfig": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/CostManagementConfig"
+                    },
+                    {
+                      "nullable": true,
+                      "description": "Project-level LLM token cost management configuration"
+                    }
+                  ]
+                },
                 "constants": {
                   "type": "object",
                   "nullable": true,
@@ -4064,6 +4190,7 @@
                 "acceptVoice",
                 "generateVoice",
                 "moderationConfig",
+                "costManagementConfig",
                 "constants",
                 "metadata",
                 "timezone",
@@ -18242,6 +18369,16 @@
                     ],
                     "description": "Optional content moderation configuration"
                   },
+                  "costManagementConfig": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/CostManagementConfig"
+                      },
+                      {
+                        "description": "Optional project-level LLM token cost management configuration"
+                      }
+                    ]
+                  },
                   "constants": {
                     "type": "object",
                     "additionalProperties": {
@@ -18439,6 +18576,17 @@
                       ],
                       "description": "Content moderation configuration"
                     },
+                    "costManagementConfig": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/CostManagementConfig"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Project-level LLM token cost management configuration"
+                        }
+                      ]
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -18532,6 +18680,7 @@
                     "acceptVoice",
                     "generateVoice",
                     "moderationConfig",
+                    "costManagementConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -18846,6 +18995,17 @@
                             ],
                             "description": "Content moderation configuration"
                           },
+                          "costManagementConfig": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/CostManagementConfig"
+                              },
+                              {
+                                "nullable": true,
+                                "description": "Project-level LLM token cost management configuration"
+                              }
+                            ]
+                          },
                           "constants": {
                             "type": "object",
                             "nullable": true,
@@ -18939,6 +19099,7 @@
                           "acceptVoice",
                           "generateVoice",
                           "moderationConfig",
+                          "costManagementConfig",
                           "constants",
                           "metadata",
                           "timezone",
@@ -19123,6 +19284,17 @@
                       ],
                       "description": "Content moderation configuration"
                     },
+                    "costManagementConfig": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/CostManagementConfig"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Project-level LLM token cost management configuration"
+                        }
+                      ]
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -19216,6 +19388,7 @@
                     "acceptVoice",
                     "generateVoice",
                     "moderationConfig",
+                    "costManagementConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -19384,6 +19557,26 @@
                       "llmProviderId"
                     ],
                     "description": "Updated content moderation configuration"
+                  },
+                  "costManagementConfig": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "limits": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "$ref": "#/components/schemas/ProviderModelLimits"
+                          }
+                        },
+                        "description": "Token cap definitions keyed by provider API type and model name"
+                      }
+                    },
+                    "required": [
+                      "limits"
+                    ],
+                    "description": "Updated project-level LLM token cost management configuration. Set to null to remove."
                   },
                   "constants": {
                     "type": "object",
@@ -19586,6 +19779,17 @@
                       ],
                       "description": "Content moderation configuration"
                     },
+                    "costManagementConfig": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/CostManagementConfig"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Project-level LLM token cost management configuration"
+                        }
+                      ]
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -19679,6 +19883,7 @@
                     "acceptVoice",
                     "generateVoice",
                     "moderationConfig",
+                    "costManagementConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -19905,6 +20110,17 @@
                       ],
                       "description": "Content moderation configuration"
                     },
+                    "costManagementConfig": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/CostManagementConfig"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Project-level LLM token cost management configuration"
+                        }
+                      ]
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -19998,6 +20214,7 @@
                     "acceptVoice",
                     "generateVoice",
                     "moderationConfig",
+                    "costManagementConfig",
                     "constants",
                     "metadata",
                     "timezone",
@@ -20194,6 +20411,17 @@
                       ],
                       "description": "Content moderation configuration"
                     },
+                    "costManagementConfig": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/CostManagementConfig"
+                        },
+                        {
+                          "nullable": true,
+                          "description": "Project-level LLM token cost management configuration"
+                        }
+                      ]
+                    },
                     "constants": {
                       "type": "object",
                       "nullable": true,
@@ -20287,6 +20515,7 @@
                     "acceptVoice",
                     "generateVoice",
                     "moderationConfig",
+                    "costManagementConfig",
                     "constants",
                     "metadata",
                     "timezone",

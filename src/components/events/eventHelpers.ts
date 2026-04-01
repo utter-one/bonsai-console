@@ -122,6 +122,10 @@ export function hasAssistantTiming(metadata: Record<string, any> | undefined): b
     .some(key => metadata[key] != null)
 }
 
+export function hasInputTruncation(metadata: Record<string, any> | undefined): boolean {
+  return !!(metadata?.llmUsage?.inputTruncated)
+}
+
 export function getToolTypeLabel(toolType: string | undefined): string {
   switch (toolType) {
     case 'smart_function': return 'Smart Function'
