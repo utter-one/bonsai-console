@@ -357,14 +357,14 @@ const chartOptions = computed(() => {
 
     <template v-else>
       <!-- Card header -->
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1">Chart</span>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 mr-auto">Chart</span>
 
         <!-- Series picker toggle -->
         <button
           v-if="showSeriesPickerBtn"
           @click="showSeriesPicker = !showSeriesPicker"
-          class="btn-secondary text-xs py-1 px-2 flex items-center gap-1"
+          class="btn-secondary text-xs py-1 px-2 flex items-center gap-1 shrink-0"
         >
           <span>Series ({{ selectedSeriesKeys.size }}/{{ allSeriesKeys.length }})</span>
           <ChevronUp v-if="showSeriesPicker" class="w-3 h-3" />
@@ -375,7 +375,7 @@ const chartOptions = computed(() => {
         <select
           v-if="showMetricSelector"
           v-model="selectedChartMetricSpec"
-          class="form-select text-xs py-1 h-auto"
+          class="form-select-auto text-xs py-1 h-auto shrink-0"
           @change="emitSettings()"
         >
           <option v-for="spec in result.metrics" :key="spec" :value="spec">

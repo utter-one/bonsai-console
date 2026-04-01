@@ -6,10 +6,13 @@ import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQu
 import { formatEnum } from '@/composables'
 import { fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsFormatters'
 import ExploreChart from '@/components/ExploreChart.vue'
+import type { ChartSettings } from '@/components/ExploreChart.vue'
 
 const analyticsStore = useAnalyticsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const authStore = useAuthStore()
+
+const chartSettings = ref<ChartSettings | undefined>(undefined)
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
@@ -279,6 +282,7 @@ function resolveMetricLabel(spec: string): string {
 }
 
 function loadQuery(q: SavedSliceQuery) {
+  analyticsStore.clearResult()
   const sq = q.query
   selectedSource.value = sq.source
   selectedDimensions.value = sq.groupBy ?? []
@@ -300,9 +304,11 @@ function loadQuery(q: SavedSliceQuery) {
   }
   activeQuery.value = q
   showQuerySelector.value = false
+  chartSettings.value = q.metadata?.chart as ChartSettings | undefined
 }
 
 function clearActiveQuery() {
+  analyticsStore.clearResult()
   selectedSource.value = 'turns'
   selectedDimensions.value = []
   selectedNormalizeBy.value = ''
@@ -314,6 +320,7 @@ function clearActiveQuery() {
   relativeTimeAmount.value = 7
   relativeTimeUnit.value = 'days'
   activeQuery.value = null
+  chartSettings.value = undefined
   showQuerySelector.value = false
 }
 
@@ -423,6 +430,7 @@ async function saveAsNew() {
       name: saveDialogName.value.trim(),
       query: buildCurrentSliceQuery(),
       isShared: saveDialogShared.value,
+      metadata: chartSettings.value ? { chart: chartSettings.value } : undefined,
     })
     activeQuery.value = created
     showSaveDialog.value = false
@@ -441,6 +449,7 @@ async function updateActiveQuery() {
     const updated = await analyticsStore.updateSavedQuery(projectId.value, activeQuery.value.id, {
       query: buildCurrentSliceQuery(),
       version: activeQuery.value.version,
+      metadata: chartSettings.value ? { chart: chartSettings.value } : undefined,
     })
     activeQuery.value = updated
   } catch (err: any) {
@@ -1220,6 +1229,8 @@ function toggleExpand(key: string) {
       v-if="result.rows.length > 0"
       :result="result"
       :available-metrics="availableMetrics"
+      :settings="chartSettings"
+      @update:settings="chartSettings = $event"
     />
 
     <!-- Results table -->

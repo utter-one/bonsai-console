@@ -184,6 +184,11 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
+  function clearResult() {
+    sliceResult.value = null
+    queryError.value = null
+  }
+
   const savedQueries = ref<SavedSliceQuery[]>([])
   const isLoadingSavedQueries = ref(false)
   const savedQueriesError = ref<string | null>(null)
@@ -248,6 +253,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     isLoadingQuery,
     queryError,
     runQuery,
+    clearResult,
     savedQueries,
     isLoadingSavedQueries,
     savedQueriesError,
