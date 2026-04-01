@@ -22,10 +22,21 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 const props = defineProps<{
   result: SliceQueryResponse
   availableMetrics: SourceMetric[]
+  settings?: ChartSettings
+}>()
+
+const emit = defineEmits<{
+  'update:settings': [ChartSettings]
 }>()
 
 type ChartShape = 'timeSeries' | 'timeSeriesGrouped' | 'groupOnly' | 'aggregate'
-type ChartType = 'line' | 'bar' | 'stackedBar' | 'pie'
+export type ChartType = 'line' | 'bar' | 'stackedBar' | 'pie'
+
+export interface ChartSettings {
+  chartType: ChartType
+  metricSpec?: string
+  seriesKeys?: string[]
+}
 
 const PALETTE = [
   { border: 'rgb(59, 130, 246)',  bg: 'rgba(59, 130, 246, 0.15)',  solid: 'rgba(59, 130, 246, 0.85)' },
@@ -109,6 +120,7 @@ function resetToTop10() {
   const firstMetric = props.result.metrics[0]
   if (!firstMetric || keys.length === 0) {
     selectedSeriesKeys.value = new Set(keys.slice(0, 10))
+    emitSettings()
     return
   }
   const sums = new Map<string, number>()
@@ -118,6 +130,7 @@ function resetToTop10() {
   }
   const sorted = [...keys].sort((a, b) => (sums.get(b) ?? 0) - (sums.get(a) ?? 0))
   selectedSeriesKeys.value = new Set(sorted.slice(0, 10))
+  emitSettings()
 }
 
 function toggleSeries(key: string) {
@@ -125,19 +138,57 @@ function toggleSeries(key: string) {
   if (next.has(key)) next.delete(key)
   else next.add(key)
   selectedSeriesKeys.value = next
+  emitSettings()
 }
 
 function selectAllSeries() {
   selectedSeriesKeys.value = new Set(allSeriesKeys.value)
+  emitSettings()
+}
+
+function setChartType(t: ChartType) {
+  activeChartType.value = t
+  emitSettings()
+}
+
+function buildSettings(): ChartSettings {
+  return {
+    chartType: activeChartType.value,
+    metricSpec: selectedChartMetricSpec.value || undefined,
+    seriesKeys: selectedSeriesKeys.value.size > 0 ? [...selectedSeriesKeys.value] : undefined,
+  }
+}
+
+function emitSettings() {
+  emit('update:settings', buildSettings())
 }
 
 watch(
   () => props.result,
   () => {
-    activeChartType.value = defaultChartType.value
-    selectedChartMetricSpec.value = props.result.metrics[0] ?? ''
+    const s = props.settings
+    const validTypes = availableChartTypes.value
+
+    activeChartType.value =
+      s && validTypes.includes(s.chartType) ? s.chartType : defaultChartType.value
+
+    selectedChartMetricSpec.value =
+      s?.metricSpec && props.result.metrics.includes(s.metricSpec)
+        ? s.metricSpec
+        : (props.result.metrics[0] ?? '')
+
     showSeriesPicker.value = false
-    if (props.result.groupBy.length > 0) resetToTop10()
+
+    if (props.result.groupBy.length > 0) {
+      if (s?.seriesKeys && s.seriesKeys.length > 0) {
+        const valid = s.seriesKeys.filter(k => allSeriesKeys.value.includes(k))
+        if (valid.length > 0) {
+          selectedSeriesKeys.value = new Set(valid)
+          return
+        }
+      }
+      resetToTop10()
+    }
   },
   { immediate: true },
 )
@@ -325,6 +376,7 @@ const chartOptions = computed(() => {
           v-if="showMetricSelector"
           v-model="selectedChartMetricSpec"
           class="form-select text-xs py-1 h-auto"
+          @change="emitSettings()"
         >
           <option v-for="spec in result.metrics" :key="spec" :value="spec">
             {{ metricLabel(spec) }}
@@ -335,7 +387,7 @@ const chartOptions = computed(() => {
         <div class="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden text-xs">
           <template v-for="t in availableChartTypes" :key="t">
             <button
-              @click="activeChartType = t"
+              @click="setChartType(t)"
               :title="t === 'line' ? 'Line' : t === 'bar' ? 'Bar' : t === 'stackedBar' ? 'Stacked Bar' : 'Pie'"
               :class="[
                 'p-1.5 transition-colors',
