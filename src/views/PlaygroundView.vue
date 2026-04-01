@@ -689,6 +689,8 @@ const entityNames = computed(() => ({
 onMounted(() => {
   if (projectId.value) {
     projectSelectionStore.setSelectedProjectId(projectId.value)
+    // Re-fetch project to get latest voice settings (user may have changed them while away)
+    projectSelectionStore.refreshSelectedProject()
   }
 
   // Close preset menu when clicking outside
@@ -846,28 +848,6 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
 const currentSessionSettings = computed(() => {
   const preset = conversationPresets.find(p => p.id === selectedConversationMode.value)
   return preset?.sessionSettings
-})
-
-// Filter presets based on project voice capabilities
-const availablePresets = computed(() => {
-  const settings = wsClient.value?.projectSettings.value
-  if (!settings) {
-    // If not connected yet, show all presets
-    return conversationPresets.map(preset => ({ preset, disabled: false, reason: null }))
-  }
-
-  return conversationPresets.map(preset => {
-    const needsVoiceInput = preset.sessionSettings.sendVoiceInput
-    const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
-
-    if (needsVoiceInput && !settings.acceptVoice) {
-      return { preset, disabled: true, reason: 'Project does not support voice input' }
-    }
-    if (needsVoiceOutput && !settings.generateVoice) {
-      return { preset, disabled: true, reason: 'Project does not support voice output' }
-    }
-    return { preset, disabled: false, reason: null }
-  })
 })
 
 // Conversation event log
@@ -1255,6 +1235,51 @@ const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
 const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
 const isConversationActive = computed(() => wsClient.value?.isInConversation.value || false)
 
+// Voice capability flags — derived from project data (available immediately) with WS settings as override
+const projectAcceptsVoice = computed(() => {
+  const wsSettings = wsClient.value?.projectSettings.value
+  if (wsSettings) return wsSettings.acceptVoice
+  return projectSelectionStore.selectedProject?.acceptVoice ?? true
+})
+
+const projectGeneratesVoice = computed(() => {
+  const wsSettings = wsClient.value?.projectSettings.value
+  if (wsSettings) return wsSettings.generateVoice
+  return projectSelectionStore.selectedProject?.generateVoice ?? true
+})
+
+// Filter presets based on project voice capabilities
+const availablePresets = computed(() => {
+  // If no project is loaded yet, show all
+  if (!projectSelectionStore.selectedProject) {
+    return conversationPresets.map(preset => ({ preset, disabled: false, reason: null }))
+  }
+
+  return conversationPresets.map(preset => {
+    const needsVoiceInput = preset.sessionSettings.sendVoiceInput
+    const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
+
+    if (needsVoiceInput && !projectAcceptsVoice.value) {
+      return { preset, disabled: true, reason: 'Project does not support voice input' }
+    }
+    if (needsVoiceOutput && !projectGeneratesVoice.value) {
+      return { preset, disabled: true, reason: 'Project does not support voice output' }
+    }
+    return { preset, disabled: false, reason: null }
+  })
+})
+
+// Auto-switch conversation mode when the selected mode becomes unavailable
+watch(availablePresets, (presets) => {
+  const currentPreset = presets.find(p => p.preset.id === selectedConversationMode.value)
+  if (currentPreset?.disabled) {
+    const lastAvailable = [...presets].reverse().find(p => !p.disabled)
+    if (lastAvailable) {
+      selectedConversationMode.value = lastAvailable.preset.id
+    }
+  }
+}, { immediate: true })
+
 // Sync conversation active state with the store so MainLayout can block project changes
 watch(isConversationActive, (active) => {
   playgroundStore.setConversationActive(active)
@@ -1266,6 +1291,8 @@ watch(
   () => isConversationActive.value && !isConversationStarting.value,
   async (readyAndActive, wasReadyAndActive) => {
     if (!isServerVadMode.value) return
+    if (!projectAcceptsVoice.value) return
+    if (!currentSessionSettings.value?.sendVoiceInput) return
     if (readyAndActive && !wasReadyAndActive) {
       // Conversation just became fully active — start streaming
       await nextTick()
@@ -1315,6 +1342,7 @@ const canSendMessage = computed(() => {
 
 const canRecordVoice = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
+    && (currentSessionSettings.value?.sendVoiceInput ?? false)
 })
 
 // Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
