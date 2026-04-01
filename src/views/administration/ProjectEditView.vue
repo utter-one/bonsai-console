@@ -4,30 +4,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, ArrowDownToLine, ArrowUpFromLine } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, LlmModelInfo } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits } from '@/api/types'
 import apiClient from '@/api/client'
-
-interface CostLimitEntry {
-  providerId: string
-  modelName: string
-  outputTokensLimits: {
-    completion?: number
-    classification?: number
-    tool?: number
-    transformation?: number
-    filler?: number
-  }
-  inputTokensLimits: {
-    completion?: number
-    classification?: number
-    tool?: number
-    transformation?: number
-    filler?: number
-  }
-}
+import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import CostLimitEntryModal from '@/components/modals/CostLimitEntryModal.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
@@ -79,14 +62,6 @@ const form = ref({
   costLimitEntries: [] as CostLimitEntry[],
 })
 
-const requestTypes = [
-  { key: 'completion' as const, label: 'Completion' },
-  { key: 'classification' as const, label: 'Classification' },
-  { key: 'tool' as const, label: 'Tool' },
-  { key: 'transformation' as const, label: 'Transformation' },
-  { key: 'filler' as const, label: 'Filler' },
-]
-
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
@@ -136,38 +111,72 @@ const llmProviderOptions = computed(() =>
   [...llmProviders.value].sort((a, b) => a.name.localeCompare(b.name))
 )
 
-const modelsByProviderId = ref<Record<string, LlmModelInfo[]>>({})
-const loadingModelsByProviderId = ref<Record<string, boolean>>({})
+function providerNameForId(id: string): string {
+  return llmProviders.value.find(p => p.id === id)?.name ?? id
+}
 
-async function loadModelsForProvider(providerId: string) {
-  if (!providerId || modelsByProviderId.value[providerId]) return
-  loadingModelsByProviderId.value = { ...loadingModelsByProviderId.value, [providerId]: true }
+// Cache of providerId -> modelId -> displayName, built lazily as models are fetched
+const modelDisplayNames = ref<Record<string, Record<string, string>>>({})
+
+async function ensureModelsLoaded(providerId: string) {
+  if (!providerId || modelDisplayNames.value[providerId]) return
   try {
     const response = await apiClient.providersModelsList(providerId)
-    modelsByProviderId.value = {
-      ...modelsByProviderId.value,
-      [providerId]: [...response.models].sort((a, b) => a.displayName.localeCompare(b.displayName)),
-    }
-  } catch (err) {
-    console.error('Failed to load provider models:', err)
-  } finally {
-    const loading = { ...loadingModelsByProviderId.value }
-    delete loading[providerId]
-    loadingModelsByProviderId.value = loading
+    const map: Record<string, string> = {}
+    for (const m of response.models) map[m.id] = m.displayName
+    modelDisplayNames.value = { ...modelDisplayNames.value, [providerId]: map }
+  } catch {
+    // silently ignore — fall back to raw ID
   }
 }
 
-function modelsForEntry(providerId: string): LlmModelInfo[] {
-  return modelsByProviderId.value[providerId] ?? []
+function modelNameForEntry(entry: CostLimitEntry): string {
+  if (entry.modelName === '*') return '* (Any model)'
+  return modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName
 }
 
-function isLoadingModelsForEntry(providerId: string): boolean {
-  return !!loadingModelsByProviderId.value[providerId]
+const requestTypeLabels: Record<string, string> = {
+  completion: 'Compl',
+  classification: 'Class',
+  tool: 'Tool',
+  transformation: 'Trans',
+  filler: 'Filler',
 }
 
-function handleEntryProviderChange(entry: CostLimitEntry) {
-  entry.modelName = ''
-  loadModelsForProvider(entry.providerId)
+function limitsForDisplay(limits: CostLimitEntry['inputTokensLimits']): { label: string; value: number }[] {
+  return Object.entries(limits)
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => ({ label: requestTypeLabels[k] ?? k, value: v as number }))
+}
+
+const showCostLimitModal = ref(false)
+const editingCostLimitEntry = ref<CostLimitEntry | null>(null)
+const editingCostLimitIndex = ref<number | null>(null)
+
+function openAddCostLimitEntry() {
+  editingCostLimitEntry.value = null
+  editingCostLimitIndex.value = null
+  showCostLimitModal.value = true
+}
+
+function openEditCostLimitEntry(index: number) {
+  editingCostLimitEntry.value = form.value.costLimitEntries[index] ?? null
+  editingCostLimitIndex.value = index
+  showCostLimitModal.value = true
+}
+
+function handleCostLimitEntrySave(entry: CostLimitEntry) {
+  if (editingCostLimitIndex.value !== null) {
+    form.value.costLimitEntries.splice(editingCostLimitIndex.value, 1, entry)
+  } else {
+    form.value.costLimitEntries.push(entry)
+  }
+  ensureModelsLoaded(entry.providerId)
+  showCostLimitModal.value = false
+}
+
+function removeCostLimitEntry(index: number) {
+  form.value.costLimitEntries.splice(index, 1)
 }
 
 const selectedStorageProvider = computed(() => {
@@ -336,9 +345,9 @@ async function loadProject() {
           : [],
       }
 
-      // Pre-load models for configured providers
+      // Load model display names for configured entries
       for (const entry of form.value.costLimitEntries) {
-        loadModelsForProvider(entry.providerId)
+        ensureModelsLoaded(entry.providerId)
       }
 
       // Load API keys for edit mode
@@ -699,18 +708,7 @@ function buildCostManagementConfig(): CostManagementConfig {
   return { limits }
 }
 
-function addCostLimitEntry() {
-  form.value.costLimitEntries.push({
-    providerId: '',
-    modelName: '',
-    outputTokensLimits: {},
-    inputTokensLimits: {},
-  })
-}
 
-function removeCostLimitEntry(index: number) {
-  form.value.costLimitEntries.splice(index, 1)
-}
 </script>
 
 <template>
@@ -732,9 +730,6 @@ function removeCostLimitEntry(index: number) {
       <div class="flex gap-3 items-center">
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
-        </button>
-        <button v-if="isEditMode" type="button" @click="handleArchiveUnarchive" :class="isArchived ? 'btn-secondary' : 'btn-danger'" :disabled="isLoading">
-          {{ isArchived ? 'Unarchive' : 'Archive' }}
         </button>
         <button v-if="!isArchived" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
@@ -1142,124 +1137,54 @@ function removeCostLimitEntry(index: number) {
               </p>
             </div>
 
-            <!-- Limit rules list -->
-            <div v-if="form.costLimitEntries.length > 0" class="space-y-4">
-              <div
-                v-for="(entry, index) in form.costLimitEntries"
-                :key="index"
-                class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
-              >
-                <!-- Entry header: provider + model -->
-                <div class="flex items-end gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
-                  <div class="flex flex-1 flex-col md:flex-row gap-3">
-                    <div class="flex flex-col gap-1 flex-1">
-                      <label class="form-label">Provider</label>
-                      <select
-                        v-model="entry.providerId"
-                        class="form-select"
-                        :disabled="isLoading"
-                        @change="handleEntryProviderChange(entry)"
-                      >
-                        <option value="">— select —</option>
-                        <option v-for="p in llmProviderOptions" :key="p.id" :value="p.id">{{ p.name }}</option>
-                      </select>
-                    </div>
-                    <div class="flex flex-col gap-1 flex-1">
-                      <label class="form-label">Model Name</label>
-                      <select
-                        v-model="entry.modelName"
-                        class="form-select"
-                        :disabled="isLoading || !entry.providerId || isLoadingModelsForEntry(entry.providerId)"
-                      >
-                        <option value="">{{ isLoadingModelsForEntry(entry.providerId) ? 'Loading models…' : '— select —' }}</option>
-                        <option value="*">* (Any model)</option>
-                        <option
-                          v-for="m in modelsForEntry(entry.providerId)"
-                          :key="m.id"
-                          :value="m.id"
-                        >{{ m.displayName }}</option>
-                      </select>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    @click="removeCostLimitEntry(index)"
-                    class="btn-icon text-red-500 hover:text-red-700 shrink-0 mb-0.5"
-                    :disabled="isLoading"
-                    title="Remove limit rule"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-
-                <!-- Output + Input limits grid -->
-                <div class="px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 dark:border-gray-700">
-                  <!-- Input Limits -->
-                  <div>
-                    <h4 class="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      <ArrowDownToLine class="w-4 h-4 text-blue-500" />
-                      Input Token Limits
-                    </h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Oldest messages are trimmed when context exceeds this per call type. Leave blank for no limit.</p>
-                    <div class="space-y-2">
-                      <div v-for="rtype in requestTypes" :key="rtype.key" class="flex items-center gap-2">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 w-28 shrink-0 capitalize">{{ rtype.label }}</label>
-                        <input
-                          v-model.number="entry.inputTokensLimits[rtype.key]"
-                          type="number"
-                          min="1"
-                          placeholder="No limit"
-                          class="form-input text-sm w-36"
-                          :disabled="isLoading"
-                        />
-                        <button
-                          v-if="entry.inputTokensLimits[rtype.key] != null"
-                          type="button"
-                          @click="entry.inputTokensLimits[rtype.key] = undefined"
-                          class="btn-icon text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
-                          :disabled="isLoading"
-                          title="Remove limit"
-                        >
-                          <X class="w-3.5 h-3.5" />
-                        </button>
-                        <span v-else class="w-6 shrink-0" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Output Limits -->
-                  <div>
-                    <h4 class="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      <ArrowUpFromLine class="w-4 h-4 text-orange-500" />
-                      Output Token Limits
-                    </h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Hard ceiling for generated tokens per call type. Leave blank for no limit.</p>
-                    <div class="space-y-2">
-                      <div v-for="rtype in requestTypes" :key="rtype.key" class="flex items-center gap-2">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 w-28 shrink-0 capitalize">{{ rtype.label }}</label>
-                        <input
-                          v-model.number="entry.outputTokensLimits[rtype.key]"
-                          type="number"
-                          min="1"
-                          placeholder="No limit"
-                          class="form-input text-sm w-36"
-                          :disabled="isLoading"
-                        />
-                        <button
-                          v-if="entry.outputTokensLimits[rtype.key] != null"
-                          type="button"
-                          @click="entry.outputTokensLimits[rtype.key] = undefined"
-                          class="btn-icon text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
-                          :disabled="isLoading"
-                          title="Remove limit"
-                        >
-                          <X class="w-3.5 h-3.5" />
-                        </button>
-                        <span v-else class="w-6 shrink-0" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <!-- Limit rules table -->
+            <div v-if="form.costLimitEntries.length > 0" class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Provider</th>
+                      <th class="table-header-cell">Model</th>
+                      <th class="table-header-cell">Input Limits</th>
+                      <th class="table-header-cell">Output Limits</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="(entry, index) in form.costLimitEntries" :key="index" class="table-row">
+                      <td class="table-clickable-cell" @click="openEditCostLimitEntry(index)">{{ providerNameForId(entry.providerId) }}</td>
+                      <td class="table-cell">{{ modelNameForEntry(entry) }}</td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.inputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.inputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.outputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.outputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex justify-end gap-2">
+                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(index)">Edit</button>
+                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(index)">
+                            <Trash2 class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -1270,7 +1195,7 @@ function removeCostLimitEntry(index: number) {
             </div>
 
             <!-- Add rule button -->
-            <button type="button" @click="addCostLimitEntry" class="btn-secondary" :disabled="isLoading">
+            <button type="button" @click="openAddCostLimitEntry" class="btn-secondary" :disabled="isLoading">
               <Plus class="inline-block w-4 h-4 mr-2" />
               Add Limit Rule
             </button>
@@ -1394,6 +1319,15 @@ function removeCostLimitEntry(index: number) {
         </form>
       </div>
     </div>
+
+    <!-- Cost Limit Entry Modal -->
+    <CostLimitEntryModal
+      v-if="showCostLimitModal"
+      :entry="editingCostLimitEntry"
+      :llm-providers="llmProviderOptions"
+      @close="showCostLimitModal = false"
+      @save="handleCostLimitEntrySave"
+    />
 
     <!-- API Key Edit Modal -->
     <ApiKeyEditModal
