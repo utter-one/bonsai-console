@@ -109,8 +109,9 @@ const isDuplicate = computed(() => {
 })
 
 const hasAtLeastOneLimit = computed(() => {
-  const all = { ...form.value.inputTokensLimits, ...form.value.outputTokensLimits }
-  return Object.values(all).some(v => v != null && v > 0)
+  const isSet = (limits: Record<string, any>) =>
+    Object.values(limits).some(v => v != null && Number.isFinite(v) && (v as number) > 0)
+  return isSet(form.value.inputTokensLimits) || isSet(form.value.outputTokensLimits)
 })
 
 const isValid = computed(() => !!form.value.providerId && !!form.value.modelName && !isDuplicate.value && hasAtLeastOneLimit.value)
@@ -217,7 +218,7 @@ const isEditMode = computed(() => !!props.entry)
 
     <template #footer>
       <div class="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p v-if="form.providerId && form.modelName && !hasAtLeastOneLimit" class="text-xs text-amber-600 dark:text-amber-400">At least one token limit must be set.</p>
+        <p v-if="!isEditMode && form.providerId && form.modelName && !hasAtLeastOneLimit" class="text-xs text-amber-600 dark:text-amber-400">At least one token limit must be set.</p>
         <div v-else />
         <div class="flex gap-3">
           <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
