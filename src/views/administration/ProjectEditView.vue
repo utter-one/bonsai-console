@@ -1281,11 +1281,10 @@ function buildCostManagementConfig(): CostManagementConfig {
           v-show="activeTab === 'metadata'"
           :fields="metadataFields"
         />
-        <div class="tab-content">
+        <div class="tab-content" v-if="isEditMode && currentProject"
+            v-show="activeTab === 'history'">
           <!-- History Tab -->
           <EntityHistoryView
-            v-if="isEditMode && currentProject"
-            v-show="activeTab === 'history'"
             :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
             :current-version="currentProject.version"
             :current-object="currentProject"
