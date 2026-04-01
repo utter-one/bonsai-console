@@ -9,7 +9,7 @@ import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, 
 import apiClient from '@/api/client'
 
 interface CostLimitEntry {
-  providerApiType: string
+  providerId: string
   modelName: string
   outputTokensLimits: {
     completion?: number
@@ -132,52 +132,42 @@ const llmProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'llm')
 )
 
-const llmApiTypeOptions = computed(() => {
-  const seen = new Map<string, string>() // apiType -> provider name
-  for (const p of llmProviders.value) {
-    if (p.apiType && !seen.has(p.apiType)) {
-      seen.set(p.apiType, p.name)
-    }
-  }
-  return [...seen.entries()]
-    .map(([apiType, name]) => ({ apiType, name }))
-    .sort((a, b) => a.name.localeCompare(b.name))
-})
+const llmProviderOptions = computed(() =>
+  [...llmProviders.value].sort((a, b) => a.name.localeCompare(b.name))
+)
 
-const modelsByApiType = ref<Record<string, LlmModelInfo[]>>({})
-const loadingModelsByApiType = ref<Record<string, boolean>>({})
+const modelsByProviderId = ref<Record<string, LlmModelInfo[]>>({})
+const loadingModelsByProviderId = ref<Record<string, boolean>>({})
 
-async function loadModelsForApiType(apiType: string) {
-  if (!apiType || apiType === '*' || modelsByApiType.value[apiType]) return
-  const provider = llmProviders.value.find(p => p.apiType === apiType)
-  if (!provider) return
-  loadingModelsByApiType.value = { ...loadingModelsByApiType.value, [apiType]: true }
+async function loadModelsForProvider(providerId: string) {
+  if (!providerId || modelsByProviderId.value[providerId]) return
+  loadingModelsByProviderId.value = { ...loadingModelsByProviderId.value, [providerId]: true }
   try {
-    const response = await apiClient.providersModelsList(provider.id)
-    modelsByApiType.value = {
-      ...modelsByApiType.value,
-      [apiType]: [...response.models].sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    const response = await apiClient.providersModelsList(providerId)
+    modelsByProviderId.value = {
+      ...modelsByProviderId.value,
+      [providerId]: [...response.models].sort((a, b) => a.displayName.localeCompare(b.displayName)),
     }
   } catch (err) {
     console.error('Failed to load provider models:', err)
   } finally {
-    const loading = { ...loadingModelsByApiType.value }
-    delete loading[apiType]
-    loadingModelsByApiType.value = loading
+    const loading = { ...loadingModelsByProviderId.value }
+    delete loading[providerId]
+    loadingModelsByProviderId.value = loading
   }
 }
 
-function modelsForEntry(apiType: string): LlmModelInfo[] {
-  return modelsByApiType.value[apiType] ?? []
+function modelsForEntry(providerId: string): LlmModelInfo[] {
+  return modelsByProviderId.value[providerId] ?? []
 }
 
-function isLoadingModelsForEntry(apiType: string): boolean {
-  return !!loadingModelsByApiType.value[apiType]
+function isLoadingModelsForEntry(providerId: string): boolean {
+  return !!loadingModelsByProviderId.value[providerId]
 }
 
-function handleEntryApiTypeChange(entry: CostLimitEntry) {
+function handleEntryProviderChange(entry: CostLimitEntry) {
   entry.modelName = ''
-  loadModelsForApiType(entry.providerApiType)
+  loadModelsForProvider(entry.providerId)
 }
 
 const selectedStorageProvider = computed(() => {
@@ -346,9 +336,9 @@ async function loadProject() {
           : [],
       }
 
-      // Pre-load models for configured provider API types
+      // Pre-load models for configured providers
       for (const entry of form.value.costLimitEntries) {
-        loadModelsForApiType(entry.providerApiType)
+        loadModelsForProvider(entry.providerId)
       }
 
       // Load API keys for edit mode
@@ -659,10 +649,10 @@ function handleStorageSettingsClose() {
 // Cost Management helpers
 function configToCostLimitEntries(config: CostManagementConfig): CostLimitEntry[] {
   const entries: CostLimitEntry[] = []
-  for (const [providerApiType, models] of Object.entries(config.limits)) {
+  for (const [providerId, models] of Object.entries(config.limits)) {
     for (const [modelName, limits] of Object.entries(models)) {
       entries.push({
-        providerApiType,
+        providerId,
         modelName,
         outputTokensLimits: {
           completion: limits.outputTokensLimits?.completion,
@@ -687,8 +677,8 @@ function configToCostLimitEntries(config: CostManagementConfig): CostLimitEntry[
 function buildCostManagementConfig(): CostManagementConfig {
   const limits: Record<string, Record<string, ProviderModelLimits>> = {}
   for (const entry of form.value.costLimitEntries) {
-    if (!entry.providerApiType || !entry.modelName) continue
-    if (!limits[entry.providerApiType]) limits[entry.providerApiType] = {}
+    if (!entry.providerId || !entry.modelName) continue
+    if (!limits[entry.providerId]) limits[entry.providerId] = {}
     const pml: ProviderModelLimits = {}
     const outTokens: RequestTypeLimits = {}
     if (entry.outputTokensLimits.completion) outTokens.completion = entry.outputTokensLimits.completion
@@ -704,14 +694,14 @@ function buildCostManagementConfig(): CostManagementConfig {
     if (entry.inputTokensLimits.transformation) inTokens.transformation = entry.inputTokensLimits.transformation
     if (entry.inputTokensLimits.filler) inTokens.filler = entry.inputTokensLimits.filler
     if (Object.keys(inTokens).length > 0) pml.inputTokensLimits = inTokens
-    ;(limits[entry.providerApiType] as Record<string, ProviderModelLimits>)[entry.modelName] = pml
+    ;(limits[entry.providerId] as Record<string, ProviderModelLimits>)[entry.modelName] = pml
   }
   return { limits }
 }
 
 function addCostLimitEntry() {
   form.value.costLimitEntries.push({
-    providerApiType: '',
+    providerId: '',
     modelName: '',
     outputTokensLimits: {},
     inputTokensLimits: {},
@@ -1144,7 +1134,7 @@ function removeCostLimitEntry(index: number) {
               <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Token Limits</h3>
               <p class="text-sm text-gray-600 mb-1 dark:text-gray-400">
                 Define per-model token limits to control LLM costs across all conversations in this project.
-                Limits are keyed by provider API type (e.g. <code>openai</code>) and model name (e.g. <code>gpt-4o</code>).
+                Limits are keyed by provider and model name (e.g. <code>gpt-4o</code>).
               </p>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 <strong>Output token limits</strong> are enforced as a hard ceiling over entity-level defaults.
@@ -1163,16 +1153,15 @@ function removeCostLimitEntry(index: number) {
                 <div class="flex items-end gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                   <div class="flex flex-1 flex-col md:flex-row gap-3">
                     <div class="flex flex-col gap-1 flex-1">
-                      <label class="form-label">Provider API Type</label>
+                      <label class="form-label">Provider</label>
                       <select
-                        v-model="entry.providerApiType"
+                        v-model="entry.providerId"
                         class="form-select"
                         :disabled="isLoading"
-                        @change="handleEntryApiTypeChange(entry)"
+                        @change="handleEntryProviderChange(entry)"
                       >
                         <option value="">— select —</option>
-                        <option value="*">* (Any provider)</option>
-                        <option v-for="entry in llmApiTypeOptions" :key="entry.apiType" :value="entry.apiType">{{ entry.name }}</option>
+                        <option v-for="p in llmProviderOptions" :key="p.id" :value="p.id">{{ p.name }}</option>
                       </select>
                     </div>
                     <div class="flex flex-col gap-1 flex-1">
@@ -1180,12 +1169,12 @@ function removeCostLimitEntry(index: number) {
                       <select
                         v-model="entry.modelName"
                         class="form-select"
-                        :disabled="isLoading || !entry.providerApiType || isLoadingModelsForEntry(entry.providerApiType)"
+                        :disabled="isLoading || !entry.providerId || isLoadingModelsForEntry(entry.providerId)"
                       >
-                        <option value="">{{ isLoadingModelsForEntry(entry.providerApiType) ? 'Loading models…' : '— select —' }}</option>
+                        <option value="">{{ isLoadingModelsForEntry(entry.providerId) ? 'Loading models…' : '— select —' }}</option>
                         <option value="*">* (Any model)</option>
                         <option
-                          v-for="m in modelsForEntry(entry.providerApiType)"
+                          v-for="m in modelsForEntry(entry.providerId)"
                           :key="m.id"
                           :value="m.id"
                         >{{ m.displayName }}</option>
