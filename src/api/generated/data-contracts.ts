@@ -5994,6 +5994,8 @@ export interface SavedSliceQuery {
   query: SliceQuery;
   /** Whether this query is visible to all operators in the project */
   isShared: boolean;
+  /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+  metadata: Record<string, any>;
   /** Version number for optimistic locking */
   version: number;
   /**

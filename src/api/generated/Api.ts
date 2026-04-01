@@ -2071,6 +2071,8 @@ export class Api<
        * @default false
        */
       isShared?: boolean;
+      /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+      metadata?: Record<string, any>;
     },
     params: RequestParams = {},
   ) =>
@@ -2106,6 +2108,8 @@ export class Api<
       query?: SliceQuery;
       /** Updated sharing flag */
       isShared?: boolean;
+      /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+      metadata?: Record<string, any>;
       /**
        * Current version number for optimistic locking
        * @min 1
