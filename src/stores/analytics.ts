@@ -184,6 +184,11 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
+  function clearResult() {
+    sliceResult.value = null
+    queryError.value = null
+  }
+
   const savedQueries = ref<SavedSliceQuery[]>([])
   const isLoadingSavedQueries = ref(false)
   const savedQueriesError = ref<string | null>(null)
@@ -201,13 +206,13 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
-  async function createSavedQuery(projectId: string, data: { name: string; query: SliceQuery; isShared?: boolean }) {
+  async function createSavedQuery(projectId: string, data: { name: string; query: SliceQuery; isShared?: boolean; metadata?: Record<string, any> }) {
     const created = await apiClient.projectsAnalyticsSavedQueriesCreate(projectId, data)
     savedQueries.value = [...savedQueries.value, created]
     return created
   }
 
-  async function updateSavedQuery(projectId: string, id: string, data: { name?: string; query?: SliceQuery; isShared?: boolean; version: number }) {
+  async function updateSavedQuery(projectId: string, id: string, data: { name?: string; query?: SliceQuery; isShared?: boolean; metadata?: Record<string, any>; version: number }) {
     const updated = await apiClient.projectsAnalyticsSavedQueriesUpdate(projectId, id, data)
     savedQueries.value = savedQueries.value.map(q => q.id === id ? updated : q)
     return updated
@@ -248,6 +253,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     isLoadingQuery,
     queryError,
     runQuery,
+    clearResult,
     savedQueries,
     isLoadingSavedQueries,
     savedQueriesError,

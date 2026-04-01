@@ -4,10 +4,15 @@ import { useAnalyticsStore, useProjectSelectionStore, useAuthStore } from '@/sto
 import { Plus, X, Play, ChevronRight, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check, CalendarDays } from 'lucide-vue-next'
 import type { SourceEntry, SourceMetric, SliceQueryRow, SavedSliceQuery, SliceQuery, RelativeTime } from '@/api/generated/data-contracts'
 import { formatEnum } from '@/composables'
+import { fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsFormatters'
+import ExploreChart from '@/components/ExploreChart.vue'
+import type { ChartSettings } from '@/components/ExploreChart.vue'
 
 const analyticsStore = useAnalyticsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const authStore = useAuthStore()
+
+const chartSettings = ref<ChartSettings | undefined>(undefined)
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
@@ -277,6 +282,7 @@ function resolveMetricLabel(spec: string): string {
 }
 
 function loadQuery(q: SavedSliceQuery) {
+  analyticsStore.clearResult()
   const sq = q.query
   selectedSource.value = sq.source
   selectedDimensions.value = sq.groupBy ?? []
@@ -298,9 +304,11 @@ function loadQuery(q: SavedSliceQuery) {
   }
   activeQuery.value = q
   showQuerySelector.value = false
+  chartSettings.value = q.metadata?.chart as ChartSettings | undefined
 }
 
 function clearActiveQuery() {
+  analyticsStore.clearResult()
   selectedSource.value = 'turns'
   selectedDimensions.value = []
   selectedNormalizeBy.value = ''
@@ -312,6 +320,7 @@ function clearActiveQuery() {
   relativeTimeAmount.value = 7
   relativeTimeUnit.value = 'days'
   activeQuery.value = null
+  chartSettings.value = undefined
   showQuerySelector.value = false
 }
 
@@ -421,6 +430,7 @@ async function saveAsNew() {
       name: saveDialogName.value.trim(),
       query: buildCurrentSliceQuery(),
       isShared: saveDialogShared.value,
+      metadata: chartSettings.value ? { chart: chartSettings.value } : undefined,
     })
     activeQuery.value = created
     showSaveDialog.value = false
@@ -439,6 +449,7 @@ async function updateActiveQuery() {
     const updated = await analyticsStore.updateSavedQuery(projectId.value, activeQuery.value.id, {
       query: buildCurrentSliceQuery(),
       version: activeQuery.value.version,
+      metadata: chartSettings.value ? { chart: chartSettings.value } : undefined,
     })
     activeQuery.value = updated
   } catch (err: any) {
@@ -507,43 +518,14 @@ const tableColumns = computed(() => {
   return cols
 })
 
-function formatBucket(bucket: string | null, interval: string): string {
-  if (!bucket) return '—'
-  const date = new Date(bucket)
-  if (interval === 'hour') {
-    return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  }
-  if (interval === 'month') {
-    return date.toLocaleString(undefined, { month: 'short', year: 'numeric' })
-  }
-  return date.toLocaleString(undefined, { month: 'short', day: 'numeric' })
-}
-
 function getMetricUnit(metricSpec: string): string {
   if (metricSpec === 'count') return 'count'
   const metricId = metricSpec.split(':')[1]
   return availableMetrics.value.find(m => m.id === metricId)?.unit ?? 'count'
 }
 
-function fmtMs(ms: number): string {
-  if (ms < 10_000) return `${Math.round(ms).toLocaleString()} ms`
-  if (ms < 60_000) return `${(ms / 1000).toFixed(2)} s`
-  if (ms < 3_600_000) {
-    const mins = Math.floor(ms / 60_000)
-    const secs = Math.floor((ms % 60_000) / 1000)
-    return `${mins}m ${secs}s`
-  }
-  const hours = Math.floor(ms / 3_600_000)
-  const mins = Math.floor((ms % 3_600_000) / 60_000)
-  const secs = Math.floor((ms % 60_000) / 1000)
-  return `${hours}h ${mins}m ${secs}s`
-}
-
 function fmtMetric(value: number | null | undefined, metricSpec: string): string {
-  if (value === null || value === undefined) return '—'
-  const unit = getMetricUnit(metricSpec)
-  if (unit === 'ms') return fmtMs(value)
-  return value.toLocaleString()
+  return fmtMetricUtil(value, getMetricUnit(metricSpec))
 }
 
 function getCellValue(row: SliceQueryRow, colKey: string): string {
@@ -1241,6 +1223,15 @@ function toggleExpand(key: string) {
         Results capped at {{ queryLimit.toLocaleString() }} — narrow your filters for complete data.
       </span>
     </div>
+
+    <!-- Results chart -->
+    <ExploreChart
+      v-if="result.rows.length > 0"
+      :result="result"
+      :available-metrics="availableMetrics"
+      :settings="chartSettings"
+      @update:settings="chartSettings = $event"
+    />
 
     <!-- Results table -->
     <div v-if="result.rows.length > 0" class="table-container">
