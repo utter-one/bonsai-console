@@ -1139,6 +1139,46 @@ export interface FillerSettings {
   prompt: string;
 }
 
+export interface RequestTypeLimits {
+  /**
+   * Maximum tokens for completion (response generation) calls
+   * @min 1
+   */
+  completion?: number;
+  /**
+   * Maximum tokens for classifier calls
+   * @min 1
+   */
+  classification?: number;
+  /**
+   * Maximum tokens for smart_function tool calls
+   * @min 1
+   */
+  tool?: number;
+  /**
+   * Maximum tokens for context transformer calls
+   * @min 1
+   */
+  transformation?: number;
+  /**
+   * Maximum tokens for filler sentence generation calls
+   * @min 1
+   */
+  filler?: number;
+}
+
+export interface ProviderModelLimits {
+  /** Maximum output token caps per request type. Enforced as a hard ceiling over the entity-level defaultMaxTokens. */
+  outputTokensLimits?: RequestTypeLimits;
+  /** Maximum input context token caps per request type. When exceeded, the oldest non-system messages are trimmed from history before the call. */
+  inputTokensLimits?: RequestTypeLimits;
+}
+
+export interface CostManagementConfig {
+  /** Token cap definitions keyed by provider API type and model name */
+  limits: Record<string, Record<string, ProviderModelLimits>>;
+}
+
 export interface S3StorageConfig {
   /** AWS access key ID */
   accessKeyId: string;
@@ -1771,6 +1811,8 @@ export interface CreateProjectRequest {
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
   };
+  /** Optional project-level LLM token cost management configuration */
+  costManagementConfig?: CostManagementConfig;
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;
   /** Additional metadata for the project */
@@ -1900,6 +1942,11 @@ export interface UpdateProjectRequest {
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
   } | null;
+  /** Updated project-level LLM token cost management configuration. Set to null to remove. */
+  costManagementConfig?: {
+    /** Token cap definitions keyed by provider API type and model name */
+    limits: Record<string, Record<string, ProviderModelLimits>>;
+  } | null;
   /** Updated constants key-value store */
   constants?: Record<string, ParameterValue>;
   /** Updated metadata for the project */
@@ -1977,6 +2024,8 @@ export interface ProjectResponse {
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
   } | null;
+  /** Project-level LLM token cost management configuration */
+  costManagementConfig: CostManagementConfig;
   /** Key-value store of constants used in templating and conversation logic */
   constants: Record<string, ParameterValue>;
   /** Additional metadata for the project */
@@ -2070,6 +2119,8 @@ export interface ProjectListResponse {
       /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
       blockedCategories?: string[];
     } | null;
+    /** Project-level LLM token cost management configuration */
+    costManagementConfig: CostManagementConfig;
     /** Key-value store of constants used in templating and conversation logic */
     constants: Record<string, ParameterValue>;
     /** Additional metadata for the project */

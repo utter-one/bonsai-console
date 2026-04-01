@@ -4,8 +4,28 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, ArrowDownToLine, ArrowUpFromLine } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, LlmModelInfo } from '@/api/types'
+import apiClient from '@/api/client'
+
+interface CostLimitEntry {
+  providerApiType: string
+  modelName: string
+  outputTokensLimits: {
+    completion?: number
+    classification?: number
+    tool?: number
+    transformation?: number
+    filler?: number
+  }
+  inputTokensLimits: {
+    completion?: number
+    classification?: number
+    tool?: number
+    transformation?: number
+    filler?: number
+  }
+}
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -27,7 +47,7 @@ const providersStore = useProvidersStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -56,7 +76,16 @@ const form = ref({
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
+  costLimitEntries: [] as CostLimitEntry[],
 })
+
+const requestTypes = [
+  { key: 'completion' as const, label: 'Completion' },
+  { key: 'classification' as const, label: 'Classification' },
+  { key: 'tool' as const, label: 'Tool' },
+  { key: 'transformation' as const, label: 'Transformation' },
+  { key: 'filler' as const, label: 'Filler' },
+]
 
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
@@ -80,6 +109,7 @@ const tabs = computed<TabDefinition[]>(() => [
       h(FlaskConical, { class: 'w-3 h-3' })
     )
   ] },
+  { key: 'costs', label: 'Cost Management' },
   { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
   { key: 'history', label: 'History', show: isEditMode.value },
@@ -97,6 +127,58 @@ const asrProviders = computed(() =>
 const storageProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'storage')
 )
+
+const llmProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'llm')
+)
+
+const llmApiTypeOptions = computed(() => {
+  const seen = new Map<string, string>() // apiType -> provider name
+  for (const p of llmProviders.value) {
+    if (p.apiType && !seen.has(p.apiType)) {
+      seen.set(p.apiType, p.name)
+    }
+  }
+  return [...seen.entries()]
+    .map(([apiType, name]) => ({ apiType, name }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+})
+
+const modelsByApiType = ref<Record<string, LlmModelInfo[]>>({})
+const loadingModelsByApiType = ref<Record<string, boolean>>({})
+
+async function loadModelsForApiType(apiType: string) {
+  if (!apiType || apiType === '*' || modelsByApiType.value[apiType]) return
+  const provider = llmProviders.value.find(p => p.apiType === apiType)
+  if (!provider) return
+  loadingModelsByApiType.value = { ...loadingModelsByApiType.value, [apiType]: true }
+  try {
+    const response = await apiClient.providersModelsList(provider.id)
+    modelsByApiType.value = {
+      ...modelsByApiType.value,
+      [apiType]: [...response.models].sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    }
+  } catch (err) {
+    console.error('Failed to load provider models:', err)
+  } finally {
+    const loading = { ...loadingModelsByApiType.value }
+    delete loading[apiType]
+    loadingModelsByApiType.value = loading
+  }
+}
+
+function modelsForEntry(apiType: string): LlmModelInfo[] {
+  return modelsByApiType.value[apiType] ?? []
+}
+
+function isLoadingModelsForEntry(apiType: string): boolean {
+  return !!loadingModelsByApiType.value[apiType]
+}
+
+function handleEntryApiTypeChange(entry: CostLimitEntry) {
+  entry.modelName = ''
+  loadModelsForApiType(entry.providerApiType)
+}
 
 const selectedStorageProvider = computed(() => {
   if (!form.value.storageConfig.storageProviderId) return null
@@ -126,7 +208,7 @@ const metadataFields = computed(() => {
 // Lifecycle
 onMounted(async () => {
   await providersStore.fetchAll()
-  
+
   if (isEditMode.value) {
     await loadProject()
   }
@@ -259,8 +341,16 @@ async function loadProject() {
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
+        costLimitEntries: currentProject.value.costManagementConfig
+          ? configToCostLimitEntries(currentProject.value.costManagementConfig)
+          : [],
       }
-      
+
+      // Pre-load models for configured provider API types
+      for (const entry of form.value.costLimitEntries) {
+        loadModelsForApiType(entry.providerApiType)
+      }
+
       // Load API keys for edit mode
       await loadApiKeys()
     }
@@ -344,6 +434,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
+        costManagementConfig: buildCostManagementConfig(),
       })
       
       // Update currentProject with the response to get the new version
@@ -369,6 +460,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
+        costManagementConfig: buildCostManagementConfig(),
       })
 
       // Set currentProject to the newly created project
@@ -562,6 +654,72 @@ function handleStorageSettingsSave(settings: any) {
 
 function handleStorageSettingsClose() {
   showStorageSettingsModal.value = false
+}
+
+// Cost Management helpers
+function configToCostLimitEntries(config: CostManagementConfig): CostLimitEntry[] {
+  const entries: CostLimitEntry[] = []
+  for (const [providerApiType, models] of Object.entries(config.limits)) {
+    for (const [modelName, limits] of Object.entries(models)) {
+      entries.push({
+        providerApiType,
+        modelName,
+        outputTokensLimits: {
+          completion: limits.outputTokensLimits?.completion,
+          classification: limits.outputTokensLimits?.classification,
+          tool: limits.outputTokensLimits?.tool,
+          transformation: limits.outputTokensLimits?.transformation,
+          filler: limits.outputTokensLimits?.filler,
+        },
+        inputTokensLimits: {
+          completion: limits.inputTokensLimits?.completion,
+          classification: limits.inputTokensLimits?.classification,
+          tool: limits.inputTokensLimits?.tool,
+          transformation: limits.inputTokensLimits?.transformation,
+          filler: limits.inputTokensLimits?.filler,
+        },
+      })
+    }
+  }
+  return entries
+}
+
+function buildCostManagementConfig(): CostManagementConfig {
+  const limits: Record<string, Record<string, ProviderModelLimits>> = {}
+  for (const entry of form.value.costLimitEntries) {
+    if (!entry.providerApiType || !entry.modelName) continue
+    if (!limits[entry.providerApiType]) limits[entry.providerApiType] = {}
+    const pml: ProviderModelLimits = {}
+    const outTokens: RequestTypeLimits = {}
+    if (entry.outputTokensLimits.completion) outTokens.completion = entry.outputTokensLimits.completion
+    if (entry.outputTokensLimits.classification) outTokens.classification = entry.outputTokensLimits.classification
+    if (entry.outputTokensLimits.tool) outTokens.tool = entry.outputTokensLimits.tool
+    if (entry.outputTokensLimits.transformation) outTokens.transformation = entry.outputTokensLimits.transformation
+    if (entry.outputTokensLimits.filler) outTokens.filler = entry.outputTokensLimits.filler
+    if (Object.keys(outTokens).length > 0) pml.outputTokensLimits = outTokens
+    const inTokens: RequestTypeLimits = {}
+    if (entry.inputTokensLimits.completion) inTokens.completion = entry.inputTokensLimits.completion
+    if (entry.inputTokensLimits.classification) inTokens.classification = entry.inputTokensLimits.classification
+    if (entry.inputTokensLimits.tool) inTokens.tool = entry.inputTokensLimits.tool
+    if (entry.inputTokensLimits.transformation) inTokens.transformation = entry.inputTokensLimits.transformation
+    if (entry.inputTokensLimits.filler) inTokens.filler = entry.inputTokensLimits.filler
+    if (Object.keys(inTokens).length > 0) pml.inputTokensLimits = inTokens
+    ;(limits[entry.providerApiType] as Record<string, ProviderModelLimits>)[entry.modelName] = pml
+  }
+  return { limits }
+}
+
+function addCostLimitEntry() {
+  form.value.costLimitEntries.push({
+    providerApiType: '',
+    modelName: '',
+    outputTokensLimits: {},
+    inputTokensLimits: {},
+  })
+}
+
+function removeCostLimitEntry(index: number) {
+  form.value.costLimitEntries.splice(index, 1)
 }
 </script>
 
@@ -976,6 +1134,158 @@ function handleStorageSettingsClose() {
                 No storage provider selected. Conversation artifacts will not be persisted to external storage.
               </p>
             </div>
+          </div>
+        </div>
+
+        <!-- Cost Management Tab -->
+        <div v-show="activeTab === 'costs'" class="tab-content">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Token Limits</h3>
+              <p class="text-sm text-gray-600 mb-1 dark:text-gray-400">
+                Define per-model token limits to control LLM costs across all conversations in this project.
+                Limits are keyed by provider API type (e.g. <code>openai</code>) and model name (e.g. <code>gpt-4o</code>).
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Output token limits</strong> are enforced as a hard ceiling over entity-level defaults.
+                <strong>Input token limits</strong> cause oldest messages to be trimmed from context when exceeded.
+              </p>
+            </div>
+
+            <!-- Limit rules list -->
+            <div v-if="form.costLimitEntries.length > 0" class="space-y-4">
+              <div
+                v-for="(entry, index) in form.costLimitEntries"
+                :key="index"
+                class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+              >
+                <!-- Entry header: provider + model -->
+                <div class="flex items-end gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                  <div class="flex flex-1 flex-col md:flex-row gap-3">
+                    <div class="flex flex-col gap-1 flex-1">
+                      <label class="form-label">Provider API Type</label>
+                      <select
+                        v-model="entry.providerApiType"
+                        class="form-select"
+                        :disabled="isLoading"
+                        @change="handleEntryApiTypeChange(entry)"
+                      >
+                        <option value="">— select —</option>
+                        <option value="*">* (Any provider)</option>
+                        <option v-for="entry in llmApiTypeOptions" :key="entry.apiType" :value="entry.apiType">{{ entry.name }}</option>
+                      </select>
+                    </div>
+                    <div class="flex flex-col gap-1 flex-1">
+                      <label class="form-label">Model Name</label>
+                      <select
+                        v-model="entry.modelName"
+                        class="form-select"
+                        :disabled="isLoading || !entry.providerApiType || isLoadingModelsForEntry(entry.providerApiType)"
+                      >
+                        <option value="">{{ isLoadingModelsForEntry(entry.providerApiType) ? 'Loading models…' : '— select —' }}</option>
+                        <option value="*">* (Any model)</option>
+                        <option
+                          v-for="m in modelsForEntry(entry.providerApiType)"
+                          :key="m.id"
+                          :value="m.id"
+                        >{{ m.displayName }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="removeCostLimitEntry(index)"
+                    class="btn-icon text-red-500 hover:text-red-700 shrink-0 mb-0.5"
+                    :disabled="isLoading"
+                    title="Remove limit rule"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+
+                <!-- Output + Input limits grid -->
+                <div class="px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 dark:border-gray-700">
+                  <!-- Input Limits -->
+                  <div>
+                    <h4 class="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                      <ArrowDownToLine class="w-4 h-4 text-blue-500" />
+                      Input Token Limits
+                    </h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Oldest messages are trimmed when context exceeds this per call type. Leave blank for no limit.</p>
+                    <div class="space-y-2">
+                      <div v-for="rtype in requestTypes" :key="rtype.key" class="flex items-center gap-2">
+                        <label class="text-xs text-gray-600 dark:text-gray-400 w-28 shrink-0 capitalize">{{ rtype.label }}</label>
+                        <input
+                          v-model.number="entry.inputTokensLimits[rtype.key]"
+                          type="number"
+                          min="1"
+                          placeholder="No limit"
+                          class="form-input text-sm w-36"
+                          :disabled="isLoading"
+                        />
+                        <button
+                          v-if="entry.inputTokensLimits[rtype.key] != null"
+                          type="button"
+                          @click="entry.inputTokensLimits[rtype.key] = undefined"
+                          class="btn-icon text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
+                          :disabled="isLoading"
+                          title="Remove limit"
+                        >
+                          <X class="w-3.5 h-3.5" />
+                        </button>
+                        <span v-else class="w-6 shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Output Limits -->
+                  <div>
+                    <h4 class="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                      <ArrowUpFromLine class="w-4 h-4 text-orange-500" />
+                      Output Token Limits
+                    </h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Hard ceiling for generated tokens per call type. Leave blank for no limit.</p>
+                    <div class="space-y-2">
+                      <div v-for="rtype in requestTypes" :key="rtype.key" class="flex items-center gap-2">
+                        <label class="text-xs text-gray-600 dark:text-gray-400 w-28 shrink-0 capitalize">{{ rtype.label }}</label>
+                        <input
+                          v-model.number="entry.outputTokensLimits[rtype.key]"
+                          type="number"
+                          min="1"
+                          placeholder="No limit"
+                          class="form-input text-sm w-36"
+                          :disabled="isLoading"
+                        />
+                        <button
+                          v-if="entry.outputTokensLimits[rtype.key] != null"
+                          type="button"
+                          @click="entry.outputTokensLimits[rtype.key] = undefined"
+                          class="btn-icon text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
+                          :disabled="isLoading"
+                          title="Remove limit"
+                        >
+                          <X class="w-3.5 h-3.5" />
+                        </button>
+                        <span v-else class="w-6 shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div v-else class="flex flex-col items-center justify-center py-10 gap-2 text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <p class="text-sm">No limit rules configured.</p>
+              <p class="text-xs">Add a rule to set token limits for a specific provider and model.</p>
+            </div>
+
+            <!-- Add rule button -->
+            <button type="button" @click="addCostLimitEntry" class="btn-secondary" :disabled="isLoading">
+              <Plus class="inline-block w-4 h-4 mr-2" />
+              Add Limit Rule
+            </button>
+
           </div>
         </div>
 
