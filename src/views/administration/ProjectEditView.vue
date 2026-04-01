@@ -504,27 +504,6 @@ function goBack() {
   router.push({ name: 'administration.projects' })
 }
 
-async function handleArchiveUnarchive() {
-  if (!currentProject.value) return
-  const action = isArchived.value ? 'unarchive' : 'archive'
-  if (!confirm(`${action === 'archive' ? 'Archive' : 'Unarchive'} project "${currentProject.value.name}"?`)) return
-  try {
-    if (action === 'archive') {
-      currentProject.value = await projectsStore.archive(currentProject.value.id, currentProject.value.version)
-    } else {
-      currentProject.value = await projectsStore.unarchive(currentProject.value.id, currentProject.value.version)
-    }
-    // refresh selection store if this project is currently selected
-    const projSel = useProjectSelectionStore()
-    const updatedId = currentProject.value?.id
-    if (updatedId && projSel.selectedProjectId === updatedId) {
-      projSel.setSelectedProjectId(updatedId)
-    }
-  } catch (err: any) {
-    alert(err.response?.data?.message || `Failed to ${action} project`)
-  }
-}
-
 async function handleDeleteProject() {
   if (!currentProject.value) return
   if (deleteConfirmName.value !== currentProject.value.name) {
@@ -1324,6 +1303,8 @@ function buildCostManagementConfig(): CostManagementConfig {
       v-if="showCostLimitModal"
       :entry="editingCostLimitEntry"
       :llm-providers="llmProviderOptions"
+      :existing-entries="form.costLimitEntries"
+      :editing-index="editingCostLimitIndex"
       @close="showCostLimitModal = false"
       @save="handleCostLimitEntrySave"
     />

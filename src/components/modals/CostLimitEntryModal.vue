@@ -32,6 +32,8 @@ export interface CostLimitEntry {
 const props = defineProps<{
   entry: CostLimitEntry | null
   llmProviders: ProviderOption[]
+  existingEntries: CostLimitEntry[]
+  editingIndex: number | null
 }>()
 
 const emit = defineEmits<{
@@ -64,7 +66,7 @@ const modelsList = ref<LlmModelInfo[]>([])
 const isLoadingModels = ref(false)
 
 async function loadModels(providerId: string) {
-  if (!providerId) {
+  if (!providerId || providerId === '*') {
     modelsList.value = []
     return
   }
@@ -85,15 +87,33 @@ if (form.value.providerId) {
 }
 
 function handleProviderChange() {
-  form.value.modelName = ''
-  loadModels(form.value.providerId)
+  if (form.value.providerId === '*') {
+    form.value.modelName = '*'
+    modelsList.value = []
+  } else {
+    form.value.modelName = ''
+    loadModels(form.value.providerId)
+  }
 }
 
 function handleSave() {
   emit('save', cloneEntry(form.value))
 }
 
-const isValid = computed(() => !!form.value.providerId && !!form.value.modelName)
+const isDuplicate = computed(() => {
+  if (!form.value.providerId || !form.value.modelName) return false
+  return props.existingEntries.some((e, i) => {
+    if (i === props.editingIndex) return false
+    return e.providerId === form.value.providerId && e.modelName === form.value.modelName
+  })
+})
+
+const hasAtLeastOneLimit = computed(() => {
+  const all = { ...form.value.inputTokensLimits, ...form.value.outputTokensLimits }
+  return Object.values(all).some(v => v != null && v > 0)
+})
+
+const isValid = computed(() => !!form.value.providerId && !!form.value.modelName && !isDuplicate.value && hasAtLeastOneLimit.value)
 const isEditMode = computed(() => !!props.entry)
 </script>
 
@@ -106,6 +126,7 @@ const isEditMode = computed(() => !!props.entry)
           <label class="form-label">Provider <span class="required">*</span></label>
           <select v-model="form.providerId" class="form-select" @change="handleProviderChange">
             <option value="">— select —</option>
+            <option value="*">* (Any provider)</option>
             <option v-for="p in llmProviders" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
         </div>
@@ -114,12 +135,13 @@ const isEditMode = computed(() => !!props.entry)
           <select
             v-model="form.modelName"
             class="form-select"
-            :disabled="!form.providerId || isLoadingModels"
+            :disabled="!form.providerId || isLoadingModels || form.providerId === '*'"
           >
             <option value="">{{ isLoadingModels ? 'Loading models…' : '— select —' }}</option>
             <option value="*">* (Any model)</option>
             <option v-for="m in modelsList" :key="m.id" :value="m.id">{{ m.displayName }}</option>
           </select>
+          <p v-if="isDuplicate" class="mt-1 text-xs text-red-600 dark:text-red-400">A rule for this provider &amp; model already exists.</p>
         </div>
       </div>
 
@@ -194,11 +216,15 @@ const isEditMode = computed(() => !!props.entry)
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
-        <button type="button" class="btn-primary" :disabled="!isValid" @click="handleSave">
-          {{ isEditMode ? 'Save Changes' : 'Add Rule' }}
-        </button>
+      <div class="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p v-if="form.providerId && form.modelName && !hasAtLeastOneLimit" class="text-xs text-amber-600 dark:text-amber-400">At least one token limit must be set.</p>
+        <div v-else />
+        <div class="flex gap-3">
+          <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
+          <button type="button" class="btn-primary" :disabled="!isValid" @click="handleSave">
+            {{ isEditMode ? 'Save Changes' : 'Add Rule' }}
+          </button>
+        </div>
       </div>
     </template>
   </BaseModal>
