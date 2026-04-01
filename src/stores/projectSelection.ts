@@ -73,11 +73,30 @@ export const useProjectSelectionStore = defineStore('projectSelection', () => {
     }
   }
 
+  /**
+   * Force a re-fetch of the currently selected project, regardless of whether the ID changed.
+   * Use this when the project settings may have been modified externally.
+   */
+  async function refreshSelectedProject() {
+    const id = selectedProjectId.value
+    if (!id) return
+    try {
+      const projectsStore = useProjectsStore()
+      const project = await projectsStore.fetchById(id)
+      if (selectedProjectId.value === id) {
+        selectedProject.value = project
+      }
+    } catch {
+      // ignore — keep existing cached value
+    }
+  }
+
   return {
     selectedProjectId,
     setSelectedProjectId,
     clearSelectedProject,
     validateSelectedProject,
+    refreshSelectedProject,
     selectedProject,
   }
 })
