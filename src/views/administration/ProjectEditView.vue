@@ -179,6 +179,22 @@ function removeCostLimitEntry(index: number) {
   form.value.costLimitEntries.splice(index, 1)
 }
 
+function costLimitSortKey(entry: CostLimitEntry): [string, string] {
+  const provider = entry.providerId === '*' ? '' : providerNameForId(entry.providerId).toLowerCase()
+  const model = entry.modelName === '*' ? '' : (modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName).toLowerCase()
+  return [provider, model]
+}
+
+const sortedCostLimitEntries = computed(() =>
+  form.value.costLimitEntries
+    .map((entry, originalIndex) => ({ entry, originalIndex }))
+    .sort((a, b) => {
+      const [ap, am] = costLimitSortKey(a.entry)
+      const [bp, bm] = costLimitSortKey(b.entry)
+      return ap !== bp ? ap.localeCompare(bp) : am.localeCompare(bm)
+    })
+)
+
 const selectedStorageProvider = computed(() => {
   if (!form.value.storageConfig.storageProviderId) return null
   return storageProviders.value.find(p => p.id === form.value.storageConfig.storageProviderId) || null
@@ -1130,8 +1146,8 @@ function buildCostManagementConfig(): CostManagementConfig {
                     </tr>
                   </thead>
                   <tbody class="table-body">
-                    <tr v-for="(entry, index) in form.costLimitEntries" :key="index" class="table-row">
-                      <td class="table-clickable-cell" @click="openEditCostLimitEntry(index)">{{ providerNameForId(entry.providerId) }}</td>
+                    <tr v-for="{ entry, originalIndex } in sortedCostLimitEntries" :key="originalIndex" class="table-row">
+                      <td class="table-clickable-cell" @click="openEditCostLimitEntry(originalIndex)">{{ providerNameForId(entry.providerId) }}</td>
                       <td class="table-cell">{{ modelNameForEntry(entry) }}</td>
                       <td class="table-cell">
                         <ul v-if="limitsForDisplay(entry.inputTokensLimits).length" class="space-y-0.5">
@@ -1155,8 +1171,8 @@ function buildCostManagementConfig(): CostManagementConfig {
                       </td>
                       <td class="table-cell-right">
                         <div class="flex justify-end gap-2">
-                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(index)">Edit</button>
-                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(index)">
+                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)">Edit</button>
+                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)">
                             <Trash2 class="w-4 h-4" />
                           </button>
                         </div>
