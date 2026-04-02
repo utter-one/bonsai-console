@@ -557,6 +557,8 @@ export class Api<
         displayName: string;
         /** Array of role identifiers */
         roles: string[];
+        /** Effective permissions derived from assigned roles (deduplicated union) */
+        permissions: string[];
       },
       void
     >({
@@ -597,6 +599,10 @@ export class Api<
          * @exclusiveMin true
          */
         expiresIn: number;
+        /** Up-to-date array of role identifiers (re-fetched from database) */
+        roles: string[];
+        /** Up-to-date effective permissions derived from current roles (deduplicated union) */
+        permissions: string[];
       },
       void
     >({

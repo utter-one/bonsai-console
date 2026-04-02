@@ -4797,6 +4797,13 @@
               "type": "string"
             },
             "description": "Array of role identifiers"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Effective permissions derived from assigned roles (deduplicated union)"
           }
         },
         "required": [
@@ -4805,7 +4812,8 @@
           "expiresIn",
           "operatorId",
           "displayName",
-          "roles"
+          "roles",
+          "permissions"
         ]
       },
       "RefreshTokenResponse": {
@@ -4820,11 +4828,27 @@
             "minimum": 0,
             "exclusiveMinimum": true,
             "description": "Access token expiry time in seconds"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Up-to-date array of role identifiers (re-fetched from database)"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Up-to-date effective permissions derived from current roles (deduplicated union)"
           }
         },
         "required": [
           "accessToken",
-          "expiresIn"
+          "expiresIn",
+          "roles",
+          "permissions"
         ]
       },
       "InitialOperatorSetupRequest": {
@@ -18044,6 +18068,13 @@
                         "type": "string"
                       },
                       "description": "Array of role identifiers"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Effective permissions derived from assigned roles (deduplicated union)"
                     }
                   },
                   "required": [
@@ -18052,7 +18083,8 @@
                     "expiresIn",
                     "operatorId",
                     "displayName",
-                    "roles"
+                    "roles",
+                    "permissions"
                   ]
                 }
               }
@@ -18110,11 +18142,27 @@
                       "minimum": 0,
                       "exclusiveMinimum": true,
                       "description": "Access token expiry time in seconds"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Up-to-date array of role identifiers (re-fetched from database)"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Up-to-date effective permissions derived from current roles (deduplicated union)"
                     }
                   },
                   "required": [
                     "accessToken",
-                    "expiresIn"
+                    "expiresIn",
+                    "roles",
+                    "permissions"
                   ]
                 }
               }
