@@ -88,7 +88,7 @@ function detectModeFromAction(action: GlobalActionResponse) {
     selectedMode.value = 'do-nothing'
   } else if (hasAbort && effects.length === 1) {
     selectedMode.value = 'strict'
-  } else if (hasModifyInput && !hasGenerateResponse && effects.length === 1) {
+  } else if (hasModifyInput && !hasGenerateResponse) {
     selectedMode.value = 'redact-only'
     const modifyEffect = effects.find(e => e.type === 'modify_user_input') as any
     if (modifyEffect?.template) redactTemplate.value = modifyEffect.template
@@ -119,12 +119,20 @@ function buildEffects() {
           type: 'modify_user_input' as const,
           template: redactTemplate.value,
         },
+        {
+          type: 'change_visibility' as const,
+          visibility: 'never' as const,
+        },
       ]
     case 'redact-only':
       return [
         {
           type: 'modify_user_input' as const,
           template: redactTemplate.value,
+        },
+        {
+          type: 'change_visibility' as const,
+          visibility: 'never' as const,
         },
       ]
     case 'do-nothing':
