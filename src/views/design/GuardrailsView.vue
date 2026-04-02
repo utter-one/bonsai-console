@@ -4,11 +4,12 @@ import { useRouter } from 'vue-router'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
-import { ShieldCheck, Search, X, Plus, Save, Check } from 'lucide-vue-next'
+import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import ConfigureModerationActionModal from '@/components/modals/ConfigureModerationActionModal.vue'
 
 const router = useRouter()
 const guardrailsStore = useGuardrailsStore()
@@ -48,12 +49,14 @@ const showSettingsSuccess = ref(false)
 const defaultGuardrailClassifierId = ref<string>('')
 
 // Moderation state
+const showConfigureModerationModal = ref(false)
 const moderationLoading = ref(false)
 const moderationError = ref<string | null>(null)
 const showModerationSuccess = ref(false)
 const moderationForm = ref({
   enabled: false,
   llmProviderId: '',
+  mode: 'strict' as 'strict' | 'standard',
   blockedCategories: [] as string[],
 })
 
@@ -149,6 +152,7 @@ async function loadProjectSettings() {
     moderationForm.value = {
       enabled: currentProject.value?.moderationConfig?.enabled ?? false,
       llmProviderId: currentProject.value?.moderationConfig?.llmProviderId || '',
+      mode: currentProject.value?.moderationConfig?.mode ?? 'strict',
       blockedCategories: currentProject.value?.moderationConfig?.blockedCategories ?? [],
     }
   } catch (err: any) {
@@ -186,6 +190,7 @@ async function saveModerationSettings() {
         ? {
             enabled: true,
             llmProviderId: moderationForm.value.llmProviderId,
+            mode: moderationForm.value.mode,
             ...(moderationForm.value.blockedCategories.length > 0 && {
               blockedCategories: moderationForm.value.blockedCategories,
             }),
@@ -231,9 +236,18 @@ function editGuardrail(guardrail: GuardrailResponse) {
     params: { projectId: projectId.value, guardrailId: guardrail.id }
   })
 }
+
+function navigateToModerationAction() {
+  showConfigureModerationModal.value = true
+}
 </script>
 
 <template>
+  <ConfigureModerationActionModal
+    v-if="showConfigureModerationModal"
+    :project-id="projectId"
+    @close="showConfigureModerationModal = false"
+  />
   <div class="container-constrained">
     <!-- Header -->
     <div class="page-header">
@@ -445,6 +459,51 @@ function editGuardrail(guardrail: GuardrailResponse) {
               <p class="form-help-text mt-1">
                 When enabled, each user message is screened by the moderation API before being processed
               </p>
+            </div>
+
+            <div v-if="moderationForm.enabled" class="form-group">
+              <label class="form-label">Moderation Mode</label>
+              <div class="space-y-2 mt-1">
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg border border-transparent hover:bg-gray-50 dark:hover:bg-gray-700" :class="moderationForm.mode === 'strict' ? 'border-primary-300 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-700' : ''">
+                  <input
+                    type="radio"
+                    value="strict"
+                    v-model="moderationForm.mode"
+                    class="form-checkbox mt-0.5 shrink-0"
+                    :disabled="moderationLoading"
+                  />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium text-gray-900 dark:text-white">Strict <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(default)</span></span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs before all other processing. The turn is held until the result is available, ensuring no flagged message is ever processed.</span>
+                  </span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg border border-transparent hover:bg-gray-50 dark:hover:bg-gray-700" :class="moderationForm.mode === 'standard' ? 'border-primary-300 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-700' : ''">
+                  <input
+                    type="radio"
+                    value="standard"
+                    v-model="moderationForm.mode"
+                    class="form-checkbox mt-0.5 shrink-0"
+                    :disabled="moderationLoading"
+                  />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium text-gray-900 dark:text-white">Standard</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs in parallel with filler sentence generation, reducing perceived latency. Flagged messages are still blocked before classification and response generation.</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div v-if="moderationForm.enabled" class="flex items-start justify-between gap-4 py-2">
+              <div>
+                <label class="form-label">Moderation Blocked Action</label>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Configure the effects that run when a user message is blocked by moderation — for example, generating a refusal response or ending the conversation.
+                </p>
+              </div>
+              <button @click="navigateToModerationAction" class="btn-secondary shrink-0">
+                <ShieldAlert class="inline-block mr-2 w-4 h-4 text-violet-500" />
+                Configure Action
+              </button>
             </div>
 
             <div v-if="moderationForm.enabled" class="form-group">
