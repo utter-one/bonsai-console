@@ -127,11 +127,11 @@ const availableDimensions = computed(() => currentSource.value?.dimensions ?? []
 const availableMetrics = computed(() => currentSource.value?.metrics ?? [])
 
 const unselectedDimensions = computed(() =>
-  availableDimensions.value.filter(d => !selectedDimensions.value.includes(d.id))
+  visibleDimensions.value.filter(d => !selectedDimensions.value.includes(d.id))
 )
 
 const unselectedFilterDimensions = computed(() =>
-  availableDimensions.value.filter(d => !dimensionFilters.value.some(f => f.dimensionId === d.id))
+  visibleDimensions.value.filter(d => !dimensionFilters.value.some(f => f.dimensionId === d.id))
 )
 
 function aggFnsForMetric(metric: SourceMetric): AggFn[] {
@@ -202,8 +202,33 @@ function removeDimension(id: string) {
   selectedDimensions.value = selectedDimensions.value.filter(d => d !== id)
 }
 
+function stripDimensionSuffix(label: string): string {
+  if (label.endsWith(' Name')) return label.slice(0, -5)
+  if (label.endsWith(' ID')) return label.slice(0, -3)
+  return label
+}
+
+const hiddenDimensionIds = computed(() => {
+  const hidden = new Set<string>()
+  const dims = availableDimensions.value
+  for (const dim of dims) {
+    if (dim.label.endsWith(' ID')) {
+      const baseName = dim.label.slice(0, -3)
+      if (dims.some(d => d.label === `${baseName} Name`)) {
+        hidden.add(dim.id)
+      }
+    }
+  }
+  return hidden
+})
+
+const visibleDimensions = computed(() =>
+  availableDimensions.value.filter(d => !hiddenDimensionIds.value.has(d.id))
+)
+
 function getDimensionLabel(id: string): string {
-  return availableDimensions.value.find(d => d.id === id)?.label ?? id
+  const label = availableDimensions.value.find(d => d.id === id)?.label ?? id
+  return stripDimensionSuffix(label)
 }
 
 function openFilterPicker() {
@@ -507,7 +532,7 @@ const tableColumns = computed(() => {
     cols.push({ key: '__bucket', label: 'Time', numeric: false })
   }
   for (const dimId of result.value.groupBy) {
-    const label = availableDimensions.value.find(d => d.id === dimId)?.label ?? dimId
+    const label = stripDimensionSuffix(availableDimensions.value.find(d => d.id === dimId)?.label ?? dimId)
     cols.push({ key: `dim:${dimId}`, label, numeric: false })
   }
   for (const metricSpec of result.value.metrics) {
@@ -1040,7 +1065,7 @@ function toggleExpand(key: string) {
               @click="addDimension(d.id); showDimPicker = false"
               class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              {{ d.label }}
+              {{ getDimensionLabel(d.id) }}
             </button>
           </div>
         </div>
@@ -1055,7 +1080,7 @@ function toggleExpand(key: string) {
       <span class="text-sm font-medium text-gray-600 dark:text-gray-400 shrink-0">Normalize By</span>
       <select v-model="selectedNormalizeBy" class="form-select-auto !py-2 text-sm">
         <option value="">None</option>
-        <option v-for="d in availableDimensions" :key="d.id" :value="d.id">{{ d.label }}</option>
+        <option v-for="d in visibleDimensions" :key="d.id" :value="d.id">{{ getDimensionLabel(d.id) }}</option>
       </select>
       <span class="text-xs text-gray-400 dark:text-gray-500">Aggregate metrics per unit before final aggregation</span>
     </div>
@@ -1146,7 +1171,7 @@ function toggleExpand(key: string) {
           >
             <div class="flex gap-2 mb-2">
               <select v-model="filterPickerDimensionId" class="form-select-auto text-xs flex-1" @click.stop>
-                <option v-for="d in unselectedFilterDimensions" :key="d.id" :value="d.id">{{ d.label }}</option>
+                <option v-for="d in unselectedFilterDimensions" :key="d.id" :value="d.id">{{ getDimensionLabel(d.id) }}</option>
               </select>
             </div>
             <div class="mb-2">
