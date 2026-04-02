@@ -1115,6 +1115,8 @@ export interface ModerationConfig {
   llmProviderId: string;
   /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
   blockedCategories?: string[];
+  /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation. */
+  mode?: "strict" | "standard";
 }
 
 /** Sample copy configuration settings */
@@ -1810,6 +1812,8 @@ export interface CreateProjectRequest {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation. */
+    mode?: "strict" | "standard";
   };
   /** Optional project-level LLM token cost management configuration */
   costManagementConfig?: CostManagementConfig;
@@ -1941,6 +1945,8 @@ export interface UpdateProjectRequest {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation. */
+    mode?: "strict" | "standard";
   } | null;
   /** Updated project-level LLM token cost management configuration. Set to null to remove. */
   costManagementConfig?: {
@@ -2023,6 +2029,8 @@ export interface ProjectResponse {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation. */
+    mode?: "strict" | "standard";
   } | null;
   /** Project-level LLM token cost management configuration */
   costManagementConfig: CostManagementConfig;
@@ -2118,6 +2126,8 @@ export interface ProjectListResponse {
       llmProviderId: string;
       /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
       blockedCategories?: string[];
+      /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation. */
+      mode?: "strict" | "standard";
     } | null;
     /** Project-level LLM token cost management configuration */
     costManagementConfig: CostManagementConfig;
@@ -6685,6 +6695,8 @@ export interface ModerationConfigExchangeV1 {
   llmHint: ProviderHint;
   /** List of category names that should cause the input to be blocked */
   blockedCategories?: string[];
+  /** Moderation execution mode: "strict" (default) runs before all processing; "standard" runs in parallel with filler generation */
+  mode?: "strict" | "standard";
 }
 
 /** Filler response settings with provider hint instead of provider UUID */
@@ -6731,6 +6743,8 @@ export interface ProjectExchangeV1 {
     llmHint: ProviderHint;
     /** List of category names that should cause the input to be blocked */
     blockedCategories?: string[];
+    /** Moderation execution mode: "strict" (default) runs before all processing; "standard" runs in parallel with filler generation */
+    mode?: "strict" | "standard";
   } | null;
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;

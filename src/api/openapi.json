@@ -1790,6 +1790,14 @@
               "type": "string"
             },
             "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "strict",
+              "standard"
+            ],
+            "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
           }
         },
         "required": [
@@ -3276,6 +3284,14 @@
                   "type": "string"
                 },
                 "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "standard"
+                ],
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
               }
             },
             "required": [
@@ -3613,6 +3629,14 @@
                   "type": "string"
                 },
                 "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "standard"
+                ],
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
               }
             },
             "required": [
@@ -3826,6 +3850,14 @@
                   "type": "string"
                 },
                 "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "standard"
+                ],
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
               }
             },
             "required": [
@@ -4078,6 +4110,14 @@
                         "type": "string"
                       },
                       "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "strict",
+                        "standard"
+                      ],
+                      "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                     }
                   },
                   "required": [
@@ -15189,6 +15229,14 @@
               "type": "string"
             },
             "description": "List of category names that should cause the input to be blocked"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "strict",
+              "standard"
+            ],
+            "description": "Moderation execution mode: \"strict\" (default) runs before all processing; \"standard\" runs in parallel with filler generation"
           }
         },
         "required": [
@@ -15311,6 +15359,14 @@
                   "type": "string"
                 },
                 "description": "List of category names that should cause the input to be blocked"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "standard"
+                ],
+                "description": "Moderation execution mode: \"strict\" (default) runs before all processing; \"standard\" runs in parallel with filler generation"
               }
             },
             "required": [
@@ -18361,6 +18417,14 @@
                           "type": "string"
                         },
                         "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "strict",
+                          "standard"
+                        ],
+                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                       }
                     },
                     "required": [
@@ -18568,6 +18632,14 @@
                             "type": "string"
                           },
                           "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "standard"
+                          ],
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                         }
                       },
                       "required": [
@@ -18987,6 +19059,14 @@
                                   "type": "string"
                                 },
                                 "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                              },
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "strict",
+                                  "standard"
+                                ],
+                                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                               }
                             },
                             "required": [
@@ -19276,6 +19356,14 @@
                             "type": "string"
                           },
                           "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "standard"
+                          ],
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                         }
                       },
                       "required": [
@@ -19550,6 +19638,14 @@
                           "type": "string"
                         },
                         "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "strict",
+                          "standard"
+                        ],
+                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                       }
                     },
                     "required": [
@@ -19771,6 +19867,14 @@
                             "type": "string"
                           },
                           "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "standard"
+                          ],
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                         }
                       },
                       "required": [
@@ -20102,6 +20206,14 @@
                             "type": "string"
                           },
                           "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "standard"
+                          ],
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                         }
                       },
                       "required": [
@@ -20403,6 +20515,14 @@
                             "type": "string"
                           },
                           "description": "List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "standard"
+                          ],
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
                         }
                       },
                       "required": [
