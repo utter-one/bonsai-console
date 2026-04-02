@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
-import { ShieldCheck, Search, X, Plus, Save, Check } from 'lucide-vue-next'
+import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -231,6 +231,13 @@ function editGuardrail(guardrail: GuardrailResponse) {
     params: { projectId: projectId.value, guardrailId: guardrail.id }
   })
 }
+
+function navigateToModerationAction() {
+  router.push({
+    name: 'design.globalActions.edit',
+    params: { projectId: projectId.value, globalActionId: '__moderation_blocked' }
+  })
+}
 </script>
 
 <template>
@@ -445,6 +452,19 @@ function editGuardrail(guardrail: GuardrailResponse) {
               <p class="form-help-text mt-1">
                 When enabled, each user message is screened by the moderation API before being processed
               </p>
+            </div>
+
+            <div class="flex items-start justify-between gap-4 py-2">
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Moderation Blocked Action</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Configure the effects that run when a user message is blocked by moderation — for example, generating a refusal response or ending the conversation.
+                </p>
+              </div>
+              <button @click="navigateToModerationAction" class="btn-secondary shrink-0">
+                <ShieldAlert class="inline-block mr-2 w-4 h-4 text-violet-500" />
+                Configure Action
+              </button>
             </div>
 
             <div v-if="moderationForm.enabled" class="form-group">
