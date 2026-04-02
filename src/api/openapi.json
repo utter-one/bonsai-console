@@ -1797,7 +1797,7 @@
               "strict",
               "standard"
             ],
-            "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+            "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
           }
         },
         "required": [
@@ -3291,7 +3291,7 @@
                   "strict",
                   "standard"
                 ],
-                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
               }
             },
             "required": [
@@ -3636,7 +3636,7 @@
                   "strict",
                   "standard"
                 ],
-                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
               }
             },
             "required": [
@@ -3857,7 +3857,7 @@
                   "strict",
                   "standard"
                 ],
-                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
               }
             },
             "required": [
@@ -4117,7 +4117,7 @@
                         "strict",
                         "standard"
                       ],
-                      "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                      "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                     }
                   },
                   "required": [
@@ -18424,7 +18424,7 @@
                           "strict",
                           "standard"
                         ],
-                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                       }
                     },
                     "required": [
@@ -18639,7 +18639,7 @@
                             "strict",
                             "standard"
                           ],
-                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                         }
                       },
                       "required": [
@@ -19066,7 +19066,7 @@
                                   "strict",
                                   "standard"
                                 ],
-                                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                                "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                               }
                             },
                             "required": [
@@ -19363,7 +19363,7 @@
                             "strict",
                             "standard"
                           ],
-                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                         }
                       },
                       "required": [
@@ -19645,7 +19645,7 @@
                           "strict",
                           "standard"
                         ],
-                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                        "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                       }
                     },
                     "required": [
@@ -19874,7 +19874,7 @@
                             "strict",
                             "standard"
                           ],
-                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                         }
                       },
                       "required": [
@@ -20213,7 +20213,7 @@
                             "strict",
                             "standard"
                           ],
-                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                         }
                       },
                       "required": [
@@ -20522,7 +20522,7 @@
                             "strict",
                             "standard"
                           ],
-                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs in parallel with filler sentence generation, reducing perceived latency while still blocking flagged input before classification and response generation."
+                          "description": "Moderation execution mode. \"strict\" (default): moderation runs before all other processing — the turn is held until the moderation result is available. \"standard\": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon."
                         }
                       },
                       "required": [
