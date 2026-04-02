@@ -17,14 +17,17 @@ const emit = defineEmits<{
 const router = useRouter()
 const globalActionsStore = useGlobalActionsStore()
 
-type ModerationMode = 'strict' | 'standard' | 'redact-only' | 'do-nothing'
+type ModerationMode = 'end-conversation' | 'prescripted' | 'redact-only' | 'nothing'
 
 const isLoading = ref(false)
 const isSaving = ref(false)
 const error = ref<string | null>(null)
 
-const selectedMode = ref<ModerationMode>('standard')
-const standardResponse = ref(
+const selectedMode = ref<ModerationMode>('prescripted')
+const endConversationResponse = ref(
+  "I'm sorry, but I can't process your request as it violates our usage policies. The conversation has been ended."
+)
+const prescriptedResponse = ref(
   "I'm sorry, but I'm unable to process your request as it contains content that may violate our usage policies. Please rephrase your message and try again."
 )
 
@@ -35,13 +38,13 @@ const redactTemplate = ref(DEFAULT_REDACT_TEMPLATE)
 
 const modes: { key: ModerationMode; label: string; description: string }[] = [
   {
-    key: 'strict',
-    label: 'Strict',
-    description: 'Abort the conversation immediately. No response is sent to the user.',
+    key: 'end-conversation',
+    label: 'End Conversation',
+    description: 'Send a prescripted response and end the conversation.',
   },
   {
-    key: 'standard',
-    label: 'Standard',
+    key: 'prescripted',
+    label: 'Prescripted Response',
     description: 'Send a prescripted response and redact the user\'s message. The original input is replaced before further processing.',
   },
   {
@@ -50,8 +53,8 @@ const modes: { key: ModerationMode; label: string; description: string }[] = [
     description: 'Silently replace the user\'s message with a placeholder. No explicit response is sent.',
   },
   {
-    key: 'do-nothing',
-    label: 'Do Nothing',
+    key: 'nothing',
+    label: 'Nothing',
     description: 'Pass through without taking any action. The conversation continues as normal.',
   },
 ]
@@ -69,7 +72,7 @@ async function loadExistingAction() {
   } catch (err: any) {
     if (err.response?.status === 404) {
       existingAction.value = null
-      selectedMode.value = 'standard'
+      selectedMode.value = 'prescripted'
     } else {
       error.value = err.response?.data?.message || 'Failed to load moderation action'
     }
@@ -80,40 +83,55 @@ async function loadExistingAction() {
 
 function detectModeFromAction(action: GlobalActionResponse) {
   const effects = action.effects ?? []
+  const hasEndConversation = effects.some(e => e.type === 'end_conversation')
   const hasAbort = effects.some(e => e.type === 'abort_conversation')
   const hasGenerateResponse = effects.some(e => e.type === 'generate_response')
   const hasModifyInput = effects.some(e => e.type === 'modify_user_input')
 
   if (effects.length === 0) {
-    selectedMode.value = 'do-nothing'
-  } else if (hasAbort && effects.length === 1) {
-    selectedMode.value = 'strict'
+    selectedMode.value = 'nothing'
+  } else if ((hasEndConversation || hasAbort) && hasGenerateResponse && !hasModifyInput) {
+    selectedMode.value = 'end-conversation'
+    const genEffect = effects.find(e => e.type === 'generate_response') as any
+    const firstResponse = genEffect?.prescriptedResponses?.[0]
+    if (firstResponse) endConversationResponse.value = firstResponse
+  } else if ((hasEndConversation || hasAbort) && !hasGenerateResponse) {
+    selectedMode.value = 'end-conversation'
   } else if (hasModifyInput && !hasGenerateResponse) {
     selectedMode.value = 'redact-only'
     const modifyEffect = effects.find(e => e.type === 'modify_user_input') as any
     if (modifyEffect?.template) redactTemplate.value = modifyEffect.template
   } else if (hasGenerateResponse && hasModifyInput) {
-    selectedMode.value = 'standard'
+    selectedMode.value = 'prescripted'
     const genEffect = effects.find(e => e.type === 'generate_response') as any
     const firstResponse = genEffect?.prescriptedResponses?.[0]
-    if (firstResponse) standardResponse.value = firstResponse
+    if (firstResponse) prescriptedResponse.value = firstResponse
     const modifyEffect = effects.find(e => e.type === 'modify_user_input') as any
     if (modifyEffect?.template) redactTemplate.value = modifyEffect.template
   } else {
-    selectedMode.value = 'standard'
+    selectedMode.value = 'prescripted'
   }
 }
 
 function buildEffects() {
   switch (selectedMode.value) {
-    case 'strict':
-      return [{ type: 'abort_conversation' as const }]
-    case 'standard':
+    case 'end-conversation':
       return [
         {
           type: 'generate_response' as const,
           responseMode: 'prescripted' as const,
-          prescriptedResponses: [standardResponse.value],
+          prescriptedResponses: [endConversationResponse.value],
+        },
+        {
+          type: 'end_conversation' as const,
+        },
+      ]
+    case 'prescripted':
+      return [
+        {
+          type: 'generate_response' as const,
+          responseMode: 'prescripted' as const,
+          prescriptedResponses: [prescriptedResponse.value],
         },
         {
           type: 'modify_user_input' as const,
@@ -135,7 +153,7 @@ function buildEffects() {
           visibility: 'never' as const,
         },
       ]
-    case 'do-nothing':
+    case 'nothing':
     default:
       return []
   }
@@ -207,19 +225,28 @@ function configureManually() {
         />
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 mb-0.5">
-            <ShieldAlert v-if="mode.key === 'strict'" class="w-4 h-4 text-red-500 shrink-0" />
-            <ShieldOff v-else-if="mode.key === 'standard'" class="w-4 h-4 text-violet-500 shrink-0" />
+            <ShieldAlert v-if="mode.key === 'end-conversation'" class="w-4 h-4 text-red-500 shrink-0" />
+            <ShieldOff v-else-if="mode.key === 'prescripted'" class="w-4 h-4 text-violet-500 shrink-0" />
             <EyeOff v-else-if="mode.key === 'redact-only'" class="w-4 h-4 text-amber-500 shrink-0" />
             <Minus v-else class="w-4 h-4 text-gray-400 shrink-0" />
             <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ mode.label }}</span>
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ mode.description }}</p>
 
-          <div v-if="mode.key === 'standard' && selectedMode === 'standard'" class="mt-3 space-y-3">
+          <div v-if="mode.key === 'end-conversation' && selectedMode === 'end-conversation'" class="mt-3">
+            <label class="form-label text-xs">Prescripted response</label>
+            <textarea
+              v-model="endConversationResponse"
+              class="form-textarea text-sm"
+              rows="3"
+              placeholder="Enter the response message sent to users before ending the conversation..."
+            />
+          </div>
+          <div v-if="mode.key === 'prescripted' && selectedMode === 'prescripted'" class="mt-3 space-y-3">
             <div>
               <label class="form-label text-xs">Prescripted response</label>
               <textarea
-                v-model="standardResponse"
+                v-model="prescriptedResponse"
                 class="form-textarea text-sm"
                 rows="3"
                 placeholder="Enter the response message sent to users when their message is blocked..."
