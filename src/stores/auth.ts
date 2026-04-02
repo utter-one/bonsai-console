@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import apiClient from '@/api/client'
 import type {
   LoginRequest,
-  OperatorResponse,
+  ProfileResponse,
   InitialOperatorSetupRequest,
   UpdateProfileRequest,
 } from '@/api/types'
@@ -11,7 +11,8 @@ import type {
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
   const refreshToken = ref<string | null>(localStorage.getItem('refreshToken'))
-  const currentOperator = ref<OperatorResponse | null>(null)
+  const currentOperator = ref<ProfileResponse | null>(null)
+  const permissions = ref<string[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -23,16 +24,23 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiClient.authLoginCreate(credentials)
-      const { accessToken: token, refreshToken: refresh } = response
+      const { accessToken: token, refreshToken: refresh, operatorId, displayName, roles, permissions: perms } = response
 
       accessToken.value = token
       refreshToken.value = refresh
+      permissions.value = perms
 
       localStorage.setItem('accessToken', token)
       localStorage.setItem('refreshToken', refresh)
 
-      // Fetch full profile after login
-      await fetchProfile()
+      currentOperator.value = {
+        id: operatorId,
+        name: displayName,
+        roles,
+        version: 0,
+        createdAt: null,
+        updatedAt: null,
+      }
 
       return response
     } catch (err: any) {
@@ -52,10 +60,15 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await apiClient.authRefreshCreate({
         refreshToken: refreshToken.value,
       })
-      const { accessToken: token } = response
+      const { accessToken: token, roles, permissions: perms } = response
 
       accessToken.value = token
+      permissions.value = perms
       localStorage.setItem('accessToken', token)
+
+      if (currentOperator.value) {
+        currentOperator.value = { ...currentOperator.value, roles }
+      }
 
       return response
     } catch (err) {
@@ -68,6 +81,7 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null
     refreshToken.value = null
     currentOperator.value = null
+    permissions.value = []
 
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
@@ -177,6 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken,
     refreshToken,
     currentOperator,
+    permissions,
     isLoading,
     error,
     isAuthenticated,
