@@ -9,6 +9,7 @@ import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import ConfigureModerationActionModal from '@/components/modals/ConfigureModerationActionModal.vue'
 
 const router = useRouter()
 const guardrailsStore = useGuardrailsStore()
@@ -48,6 +49,7 @@ const showSettingsSuccess = ref(false)
 const defaultGuardrailClassifierId = ref<string>('')
 
 // Moderation state
+const showConfigureModerationModal = ref(false)
 const moderationLoading = ref(false)
 const moderationError = ref<string | null>(null)
 const showModerationSuccess = ref(false)
@@ -233,14 +235,16 @@ function editGuardrail(guardrail: GuardrailResponse) {
 }
 
 function navigateToModerationAction() {
-  router.push({
-    name: 'design.globalActions.edit',
-    params: { projectId: projectId.value, globalActionId: '__moderation_blocked' }
-  })
+  showConfigureModerationModal.value = true
 }
 </script>
 
 <template>
+  <ConfigureModerationActionModal
+    v-if="showConfigureModerationModal"
+    :project-id="projectId"
+    @close="showConfigureModerationModal = false"
+  />
   <div class="container-constrained">
     <!-- Header -->
     <div class="page-header">
