@@ -487,7 +487,7 @@ function navigateToModerationAction() {
                   />
                   <span class="min-w-0">
                     <span class="block text-sm font-medium text-gray-900 dark:text-white">Standard</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs in parallel with filler sentence generation, reducing perceived latency. Flagged messages are still blocked before classification and response generation.</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs in parallel with filler sentence generation and processing, reducing perceived latency. Flagged messages are still blocked before regular actions take place.</span>
                   </span>
                 </label>
               </div>
