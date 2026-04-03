@@ -21,6 +21,8 @@ import {
   AzureBlobStorageSettings,
   AzureTtsSettings,
   CartesiaTtsSettings,
+  ChannelCatalogResponse,
+  ChannelInfo,
   ConversationTimelineResponse,
   CostManagementConfig,
   CreateToolRequest,
@@ -70,6 +72,8 @@ import {
   TokenUsageTrendResponse,
   ToolParameter,
   TtsModelInfo,
+  TwilioMessagingChannelConfig,
+  TwilioVoiceChannelConfig,
   UpdateToolRequest,
   VoiceInfo,
 } from "./data-contracts";
@@ -5392,7 +5396,13 @@ export class Api<
       /** Detailed description of provider purpose and use case */
       description?: string;
       /** Provider category: asr, tts, llm, or embeddings */
-      providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+      providerType:
+        | "asr"
+        | "tts"
+        | "llm"
+        | "embeddings"
+        | "storage"
+        | "channel";
       /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
       apiType: string;
       /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -5464,7 +5474,9 @@ export class Api<
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
-        | LocalStorageConfig;
+        | LocalStorageConfig
+        | TwilioMessagingChannelConfig
+        | TwilioVoiceChannelConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5481,7 +5493,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -5553,7 +5571,9 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5636,7 +5656,13 @@ export class Api<
           /** Description of provider purpose and use case */
           description: string | null;
           /** Provider category (asr, tts, llm, embeddings) */
-          providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+          providerType:
+            | "asr"
+            | "tts"
+            | "llm"
+            | "embeddings"
+            | "storage"
+            | "channel";
           /** Specific provider implementation */
           apiType: string;
           /** Provider-specific configuration object */
@@ -5708,7 +5734,9 @@ export class Api<
             | S3StorageConfig
             | AzureBlobStorageConfig
             | GcsStorageConfig
-            | LocalStorageConfig;
+            | LocalStorageConfig
+            | TwilioMessagingChannelConfig
+            | TwilioVoiceChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -5773,7 +5801,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -5845,7 +5879,9 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5897,7 +5933,13 @@ export class Api<
       /** Updated description of provider purpose */
       description?: string | null;
       /** Updated provider category */
-      providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
+      providerType?:
+        | "asr"
+        | "tts"
+        | "llm"
+        | "embeddings"
+        | "storage"
+        | "channel";
       /** Updated specific provider implementation */
       apiType?: string;
       /** Updated provider-specific configuration */
@@ -5969,7 +6011,9 @@ export class Api<
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
-        | LocalStorageConfig;
+        | LocalStorageConfig
+        | TwilioMessagingChannelConfig
+        | TwilioVoiceChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -5984,7 +6028,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -6056,7 +6106,9 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6216,6 +6268,17 @@ export class Api<
         }[];
         /** Moderation providers */
         moderation: ModerationProviderInfo[];
+        /** Communication channel providers */
+        channel: {
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
+        }[];
       },
       any
     >({
@@ -6446,6 +6509,40 @@ export class Api<
       void
     >({
       path: `/api/provider-catalog/${type}/${apiType}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns all communication channel types supported by this backend instance, including their capabilities and supported audio formats.
+   *
+   * @tags Channel Catalog
+   * @name ChannelCatalogList
+   * @summary List all supported channels
+   * @request GET:/api/channel-catalog
+   * @secure
+   */
+  channelCatalogList = (params: RequestParams = {}) =>
+    this.request<ChannelCatalogResponse, any>({
+      path: `/api/channel-catalog`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns details and capabilities for a single channel type.
+   *
+   * @tags Channel Catalog
+   * @name ChannelCatalogDetail
+   * @summary Get a channel by type
+   * @request GET:/api/channel-catalog/{type}
+   * @secure
+   */
+  channelCatalogDetail = (type: string, params: RequestParams = {}) =>
+    this.request<ChannelInfo, void>({
+      path: `/api/channel-catalog/${type}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -10666,7 +10763,12 @@ export class Api<
         /** Security settings controlling which channels and features this key permits */
         keySettings?: {
           /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-          allowedChannels?: ("websocket" | "webrtc")[];
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+          )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
             | "conversation_control"
@@ -10768,7 +10870,12 @@ export class Api<
           /** Security settings controlling which channels and features this key permits */
           keySettings?: {
             /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-            allowedChannels?: ("websocket" | "webrtc")[];
+            allowedChannels?: (
+              | "websocket"
+              | "webrtc"
+              | "twilio_voice"
+              | "twilio_messaging"
+            )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
               | "conversation_control"
@@ -10839,7 +10946,12 @@ export class Api<
         /** Security settings controlling which channels and features this key permits */
         keySettings?: {
           /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-          allowedChannels?: ("websocket" | "webrtc")[];
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+          )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
             | "conversation_control"
@@ -10922,7 +11034,12 @@ export class Api<
         /** Security settings controlling which channels and features this key permits */
         keySettings?: {
           /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-          allowedChannels?: ("websocket" | "webrtc")[];
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+          )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
             | "conversation_control"
@@ -11049,7 +11166,12 @@ export class Api<
           /** Security settings controlling which channels and features this key permits */
           keySettings?: {
             /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-            allowedChannels?: ("websocket" | "webrtc")[];
+            allowedChannels?: (
+              | "websocket"
+              | "webrtc"
+              | "twilio_voice"
+              | "twilio_messaging"
+            )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
               | "conversation_control"

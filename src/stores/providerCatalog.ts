@@ -61,7 +61,7 @@ export const useProviderCatalogStore = defineStore('providerCatalog', () => {
     try {
       const response = await apiClient.providerCatalogTtsList()
       if (!catalog.value) {
-        catalog.value = { asr: [], tts: response.providers, llm: [], storage: [], moderation: [] }
+        catalog.value = { asr: [], tts: response.providers, llm: [], storage: [], moderation: [], channel: [] }
       } else {
         catalog.value.tts = response.providers
       }

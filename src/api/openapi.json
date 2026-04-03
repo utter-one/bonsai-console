@@ -11031,7 +11031,8 @@
               "tts",
               "llm",
               "embeddings",
-              "storage"
+              "storage",
+              "channel"
             ],
             "description": "Provider category: asr, tts, llm, or embeddings"
           },
@@ -11283,6 +11284,12 @@
               },
               {
                 "$ref": "#/components/schemas/LocalStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -11305,6 +11312,52 @@
           "apiType",
           "config"
         ]
+      },
+      "TwilioMessagingChannelConfig": {
+        "type": "object",
+        "properties": {
+          "accountSid": {
+            "type": "string",
+            "description": "Twilio Account SID (starts with AC)"
+          },
+          "authToken": {
+            "type": "string",
+            "description": "Twilio Auth Token used for request signature validation and REST API authentication"
+          },
+          "fromNumber": {
+            "type": "string",
+            "description": "Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the \"From\" address for outbound messages"
+          }
+        },
+        "required": [
+          "accountSid",
+          "authToken",
+          "fromNumber"
+        ],
+        "additionalProperties": false
+      },
+      "TwilioVoiceChannelConfig": {
+        "type": "object",
+        "properties": {
+          "accountSid": {
+            "type": "string",
+            "description": "Twilio Account SID (starts with AC)"
+          },
+          "authToken": {
+            "type": "string",
+            "description": "Twilio Auth Token used for webhook signature validation"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Twilio phone number in E.164 format (e.g. +15551234567)"
+          }
+        },
+        "required": [
+          "accountSid",
+          "authToken",
+          "phoneNumber"
+        ],
+        "additionalProperties": false
       },
       "UpdateProviderRequest": {
         "type": "object",
@@ -11332,7 +11385,8 @@
               "tts",
               "llm",
               "embeddings",
-              "storage"
+              "storage",
+              "channel"
             ],
             "description": "Updated provider category"
           },
@@ -11584,6 +11638,12 @@
               },
               {
                 "$ref": "#/components/schemas/LocalStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -11638,7 +11698,8 @@
               "tts",
               "llm",
               "embeddings",
-              "storage"
+              "storage",
+              "channel"
             ],
             "description": "Provider category (asr, tts, llm, embeddings)"
           },
@@ -11890,6 +11951,12 @@
               },
               {
                 "$ref": "#/components/schemas/LocalStorageConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -11966,7 +12033,8 @@
                     "tts",
                     "llm",
                     "embeddings",
-                    "storage"
+                    "storage",
+                    "channel"
                   ],
                   "description": "Provider category (asr, tts, llm, embeddings)"
                 },
@@ -12218,6 +12286,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/LocalStorageConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -12768,6 +12842,38 @@
               "$ref": "#/components/schemas/ModerationProviderInfo"
             },
             "description": "Moderation providers"
+          },
+          "channel": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apiType": {
+                  "type": "string",
+                  "description": "Provider API type"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Human-readable provider name"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Additional information"
+                },
+                "features": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of supported features"
+                }
+              },
+              "required": [
+                "apiType",
+                "displayName"
+              ]
+            },
+            "description": "Communication channel providers"
           }
         },
         "required": [
@@ -12775,7 +12881,8 @@
           "tts",
           "llm",
           "storage",
-          "moderation"
+          "moderation",
+          "channel"
         ]
       },
       "AsrProvidersResponse": {
@@ -13206,7 +13313,9 @@
               "type": "string",
               "enum": [
                 "websocket",
-                "webrtc"
+                "webrtc",
+                "twilio_voice",
+                "twilio_messaging"
               ]
             },
             "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13363,7 +13472,9 @@
                   "type": "string",
                   "enum": [
                     "websocket",
-                    "webrtc"
+                    "webrtc",
+                    "twilio_voice",
+                    "twilio_messaging"
                   ]
                 },
                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13472,7 +13583,9 @@
                         "type": "string",
                         "enum": [
                           "websocket",
-                          "webrtc"
+                          "webrtc",
+                          "twilio_voice",
+                          "twilio_messaging"
                         ]
                       },
                       "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -14024,6 +14137,118 @@
           "unit"
         ],
         "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided."
+      },
+      "ChannelCapabilities": {
+        "type": "object",
+        "properties": {
+          "supportsVoiceInput": {
+            "type": "boolean",
+            "description": "Whether the channel supports receiving audio from the user"
+          },
+          "supportsTextInput": {
+            "type": "boolean",
+            "description": "Whether the channel supports receiving text messages from the user"
+          },
+          "supportsVoiceOutput": {
+            "type": "boolean",
+            "description": "Whether the channel supports sending audio to the user"
+          },
+          "supportsTextOutput": {
+            "type": "boolean",
+            "description": "Whether the channel supports sending text messages to the user"
+          },
+          "supportsCommands": {
+            "type": "boolean",
+            "description": "Whether the channel supports client-sent commands (e.g. go-to-stage, set-var)"
+          },
+          "supportsEvents": {
+            "type": "boolean",
+            "description": "Whether the channel supports server-sent event notifications"
+          },
+          "supportsIncomingConnections": {
+            "type": "boolean",
+            "description": "Whether the channel can accept user-initiated sessions (e.g. a client opening a WebSocket connection or a user calling a Twilio number)"
+          },
+          "supportsOutgoingConnections": {
+            "type": "boolean",
+            "description": "Whether the channel can initiate sessions to users (e.g. placing an outbound Twilio call or sending a proactive SMS)"
+          },
+          "supportedAudioFormats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mp3",
+                "opus",
+                "aac",
+                "flac",
+                "wav",
+                "pcm_8000",
+                "pcm_16000",
+                "pcm_22050",
+                "pcm_24000",
+                "pcm_44100",
+                "pcm_48000",
+                "mulaw",
+                "alaw"
+              ]
+            },
+            "description": "Audio formats accepted by this channel for voice input/output. Only present when voice is supported."
+          }
+        },
+        "required": [
+          "supportsVoiceInput",
+          "supportsTextInput",
+          "supportsVoiceOutput",
+          "supportsTextOutput",
+          "supportsCommands",
+          "supportsEvents",
+          "supportsIncomingConnections",
+          "supportsOutgoingConnections"
+        ]
+      },
+      "ChannelInfo": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Unique channel type identifier, e.g. \"websocket\" or \"webrtc\""
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-friendly channel name, e.g. \"WebSocket\" or \"WebRTC\""
+          },
+          "capabilities": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChannelCapabilities"
+              },
+              {
+                "description": "Capabilities supported by this channel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "capabilities"
+        ]
+      },
+      "ChannelCatalogResponse": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChannelInfo"
+            },
+            "description": "List of all channels supported by this backend instance"
+          }
+        },
+        "required": [
+          "channels"
+        ]
       },
       "CreateSampleCopyRequest": {
         "type": "object",
@@ -29693,7 +29918,8 @@
                       "tts",
                       "llm",
                       "embeddings",
-                      "storage"
+                      "storage",
+                      "channel"
                     ],
                     "description": "Provider category: asr, tts, llm, or embeddings"
                   },
@@ -29945,6 +30171,12 @@
                       },
                       {
                         "$ref": "#/components/schemas/LocalStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -29999,7 +30231,8 @@
                         "tts",
                         "llm",
                         "embeddings",
-                        "storage"
+                        "storage",
+                        "channel"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -30251,6 +30484,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/LocalStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -30480,7 +30719,8 @@
                               "tts",
                               "llm",
                               "embeddings",
-                              "storage"
+                              "storage",
+                              "channel"
                             ],
                             "description": "Provider category (asr, tts, llm, embeddings)"
                           },
@@ -30732,6 +30972,12 @@
                               },
                               {
                                 "$ref": "#/components/schemas/LocalStorageConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -30864,7 +31110,8 @@
                         "tts",
                         "llm",
                         "embeddings",
-                        "storage"
+                        "storage",
+                        "channel"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -31116,6 +31363,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/LocalStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -31219,7 +31472,8 @@
                       "tts",
                       "llm",
                       "embeddings",
-                      "storage"
+                      "storage",
+                      "channel"
                     ],
                     "description": "Updated provider category"
                   },
@@ -31471,6 +31725,12 @@
                       },
                       {
                         "$ref": "#/components/schemas/LocalStorageConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -31519,7 +31779,8 @@
                         "tts",
                         "llm",
                         "embeddings",
-                        "storage"
+                        "storage",
+                        "channel"
                       ],
                       "description": "Provider category (asr, tts, llm, embeddings)"
                     },
@@ -31771,6 +32032,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/LocalStorageConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -32143,6 +32410,38 @@
                         "$ref": "#/components/schemas/ModerationProviderInfo"
                       },
                       "description": "Moderation providers"
+                    },
+                    "channel": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "apiType": {
+                            "type": "string",
+                            "description": "Provider API type"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": "Human-readable provider name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Additional information"
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "List of supported features"
+                          }
+                        },
+                        "required": [
+                          "apiType",
+                          "displayName"
+                        ]
+                      },
+                      "description": "Communication channel providers"
                     }
                   },
                   "required": [
@@ -32150,7 +32449,8 @@
                     "tts",
                     "llm",
                     "storage",
-                    "moderation"
+                    "moderation",
+                    "channel"
                   ]
                 }
               }
@@ -32640,6 +32940,63 @@
           },
           "404": {
             "description": "Provider not found"
+          }
+        }
+      }
+    },
+    "/api/channel-catalog": {
+      "get": {
+        "tags": [
+          "Channel Catalog"
+        ],
+        "summary": "List all supported channels",
+        "description": "Returns all communication channel types supported by this backend instance, including their capabilities and supported audio formats.",
+        "responses": {
+          "200": {
+            "description": "List of supported channels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelCatalogResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/channel-catalog/{type}": {
+      "get": {
+        "tags": [
+          "Channel Catalog"
+        ],
+        "summary": "Get a channel by type",
+        "description": "Returns details and capabilities for a single channel type.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Channel type identifier, e.g. \"websocket\" or \"webrtc\""
+            },
+            "required": true,
+            "description": "Channel type identifier, e.g. \"websocket\" or \"webrtc\"",
+            "name": "type",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelInfo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel type not found"
           }
         }
       }
@@ -42412,7 +42769,9 @@
                             "type": "string",
                             "enum": [
                               "websocket",
-                              "webrtc"
+                              "webrtc",
+                              "twilio_voice",
+                              "twilio_messaging"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -42674,7 +43033,9 @@
                                   "type": "string",
                                   "enum": [
                                     "websocket",
-                                    "webrtc"
+                                    "webrtc",
+                                    "twilio_voice",
+                                    "twilio_messaging"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -42831,7 +43192,9 @@
                             "type": "string",
                             "enum": [
                               "websocket",
-                              "webrtc"
+                              "webrtc",
+                              "twilio_voice",
+                              "twilio_messaging"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43022,7 +43385,9 @@
                             "type": "string",
                             "enum": [
                               "websocket",
-                              "webrtc"
+                              "webrtc",
+                              "twilio_voice",
+                              "twilio_messaging"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43345,7 +43710,9 @@
                                   "type": "string",
                                   "enum": [
                                     "websocket",
-                                    "webrtc"
+                                    "webrtc",
+                                    "twilio_voice",
+                                    "twilio_messaging"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."

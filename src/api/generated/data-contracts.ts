@@ -5115,7 +5115,7 @@ export interface CreateProviderRequest {
   /** Detailed description of provider purpose and use case */
   description?: string;
   /** Provider category: asr, tts, llm, or embeddings */
-  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
   apiType: string;
   /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -5187,11 +5187,31 @@ export interface CreateProviderRequest {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
+}
+
+export interface TwilioMessagingChannelConfig {
+  /** Twilio Account SID (starts with AC) */
+  accountSid: string;
+  /** Twilio Auth Token used for request signature validation and REST API authentication */
+  authToken: string;
+  /** Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the "From" address for outbound messages */
+  fromNumber: string;
+}
+
+export interface TwilioVoiceChannelConfig {
+  /** Twilio Account SID (starts with AC) */
+  accountSid: string;
+  /** Twilio Auth Token used for webhook signature validation */
+  authToken: string;
+  /** Twilio phone number in E.164 format (e.g. +15551234567) */
+  phoneNumber: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5209,7 +5229,7 @@ export interface UpdateProviderRequest {
   /** Updated description of provider purpose */
   description?: string | null;
   /** Updated provider category */
-  providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Updated specific provider implementation */
   apiType?: string;
   /** Updated provider-specific configuration */
@@ -5281,7 +5301,9 @@ export interface UpdateProviderRequest {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -5303,7 +5325,7 @@ export interface ProviderResponse {
   /** Description of provider purpose and use case */
   description: string | null;
   /** Provider category (asr, tts, llm, embeddings) */
-  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Specific provider implementation */
   apiType: string;
   /** Provider-specific configuration object */
@@ -5375,7 +5397,9 @@ export interface ProviderResponse {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -5404,7 +5428,7 @@ export interface ProviderListResponse {
     /** Description of provider purpose and use case */
     description: string | null;
     /** Provider category (asr, tts, llm, embeddings) */
-    providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+    providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
     /** Specific provider implementation */
     apiType: string;
     /** Provider-specific configuration object */
@@ -5476,7 +5500,9 @@ export interface ProviderListResponse {
       | S3StorageConfig
       | AzureBlobStorageConfig
       | GcsStorageConfig
-      | LocalStorageConfig;
+      | LocalStorageConfig
+      | TwilioMessagingChannelConfig
+      | TwilioVoiceChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -5692,6 +5718,17 @@ export interface ProviderCatalog {
   }[];
   /** Moderation providers */
   moderation: ModerationProviderInfo[];
+  /** Communication channel providers */
+  channel: {
+    /** Provider API type */
+    apiType: string;
+    /** Human-readable provider name */
+    displayName: string;
+    /** Additional information */
+    description?: string;
+    /** List of supported features */
+    features?: string[];
+  }[];
 }
 
 export interface AsrProvidersResponse {
@@ -5852,7 +5889,12 @@ export interface AuditLogListResponse {
 
 export interface ApiKeySettings {
   /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-  allowedChannels?: ("websocket" | "webrtc")[];
+  allowedChannels?: (
+    | "websocket"
+    | "webrtc"
+    | "twilio_voice"
+    | "twilio_messaging"
+  )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
   allowedFeatures?: (
     | "conversation_control"
@@ -5923,7 +5965,12 @@ export interface ApiKeyResponse {
   /** Security settings controlling which channels and features this key permits */
   keySettings?: {
     /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-    allowedChannels?: ("websocket" | "webrtc")[];
+    allowedChannels?: (
+      | "websocket"
+      | "webrtc"
+      | "twilio_voice"
+      | "twilio_messaging"
+    )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
     allowedFeatures?: (
       | "conversation_control"
@@ -5970,7 +6017,12 @@ export interface ApiKeyListResponse {
     /** Security settings controlling which channels and features this key permits */
     keySettings?: {
       /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
-      allowedChannels?: ("websocket" | "webrtc")[];
+      allowedChannels?: (
+        | "websocket"
+        | "webrtc"
+        | "twilio_voice"
+        | "twilio_messaging"
+      )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
       allowedFeatures?: (
         | "conversation_control"
@@ -6200,6 +6252,55 @@ export interface RelativeTime {
   amount: number;
   /** Time unit */
   unit: "hours" | "days" | "weeks" | "months";
+}
+
+export interface ChannelCapabilities {
+  /** Whether the channel supports receiving audio from the user */
+  supportsVoiceInput: boolean;
+  /** Whether the channel supports receiving text messages from the user */
+  supportsTextInput: boolean;
+  /** Whether the channel supports sending audio to the user */
+  supportsVoiceOutput: boolean;
+  /** Whether the channel supports sending text messages to the user */
+  supportsTextOutput: boolean;
+  /** Whether the channel supports client-sent commands (e.g. go-to-stage, set-var) */
+  supportsCommands: boolean;
+  /** Whether the channel supports server-sent event notifications */
+  supportsEvents: boolean;
+  /** Whether the channel can accept user-initiated sessions (e.g. a client opening a WebSocket connection or a user calling a Twilio number) */
+  supportsIncomingConnections: boolean;
+  /** Whether the channel can initiate sessions to users (e.g. placing an outbound Twilio call or sending a proactive SMS) */
+  supportsOutgoingConnections: boolean;
+  /** Audio formats accepted by this channel for voice input/output. Only present when voice is supported. */
+  supportedAudioFormats?: (
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw"
+  )[];
+}
+
+export interface ChannelInfo {
+  /** Unique channel type identifier, e.g. "websocket" or "webrtc" */
+  type: string;
+  /** Human-friendly channel name, e.g. "WebSocket" or "WebRTC" */
+  name: string;
+  /** Capabilities supported by this channel */
+  capabilities: ChannelCapabilities;
+}
+
+export interface ChannelCatalogResponse {
+  /** List of all channels supported by this backend instance */
+  channels: ChannelInfo[];
 }
 
 export interface CreateSampleCopyRequest {
