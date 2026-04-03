@@ -85,6 +85,7 @@ function getProviderTypeBadgeClass(type: string) {
     case 'tts': return 'badge-warning'
     case 'embeddings': return 'badge-secondary'
     case 'storage': return 'badge-success'
+    case 'channel': return 'badge-violet'
     default: return 'badge-default'
   }
 }
@@ -111,6 +112,9 @@ const API_TYPE_COLORS: Record<string, string> = {
   'azure': '#0078d4',
   'speechmatics': '#00b09b',
   'assemblyai': '#3d5afe',
+  // Channel
+  'twilio_messaging': '#f22f46',
+  'twilio_voice': '#f22f46',
 }
 
 const API_TYPE_LABELS: Record<string, string> = {
@@ -133,6 +137,9 @@ const API_TYPE_LABELS: Record<string, string> = {
   'azure': 'Azure',
   'speechmatics': 'Speechmatics',
   'assemblyai': 'AssemblyAI',
+  // Channel
+  'twilio_messaging': 'Twilio Messaging',
+  'twilio_voice': 'Twilio Voice',
 }
 
 function getApiTypeLabel(apiType: string) {
@@ -210,12 +217,6 @@ function getApiTypeBadgeStyle(apiType: string) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('id')">
-                  <div class="flex items-center gap-1">
-                    ID
-                    <component :is="getSortIcon('id')" class="w-4 h-4" :class="sortKey === 'id' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell-sortable" @click="toggleSort('providerType')">
                   <div class="flex items-center gap-1">
                     Type
@@ -243,7 +244,6 @@ function getApiTypeBadgeStyle(apiType: string) {
                   @click="editProvider(provider)">
                     {{ provider.name }}
                 </td>
-                <td class="table-cell-mono">{{ provider.id }}</td>
                 <td class="table-cell">
                   <span :class="['badge', getProviderTypeBadgeClass(provider.providerType)]">
                     {{ provider.providerType.toUpperCase() }}

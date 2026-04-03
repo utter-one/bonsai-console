@@ -18,6 +18,8 @@ import S3Config from './S3Config.vue'
 import AzureBlobConfig from './AzureBlobStorageConfig.vue'
 import GCSConfig from './GoogleCloudStorageConfig.vue'
 import LocalStorageConfig from './LocalStorageConfig.vue'
+import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
+import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -195,6 +197,30 @@ const registry: Record<string, ProviderEntry> = {
     },
     validate(c) {
       return c.basePath ? null : { message: 'Base Path is required', details: [{ path: ['basePath'], message: 'Base Path is required', code: 'REQUIRED' }] }
+    },
+  },
+
+  'twilio_messaging:channel': {
+    component: TwilioMessagingChannelConfig,
+    buildConfig(c) { return { accountSid: c.accountSid, authToken: c.authToken, fromNumber: c.fromNumber } },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.accountSid) details.push({ path: ['accountSid'], message: 'Account SID is required', code: 'REQUIRED' })
+      if (!c.authToken) details.push({ path: ['authToken'], message: 'Auth Token is required', code: 'REQUIRED' })
+      if (!c.fromNumber) details.push({ path: ['fromNumber'], message: 'From Number is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'twilio_voice:channel': {
+    component: TwilioVoiceChannelConfig,
+    buildConfig(c) { return { accountSid: c.accountSid, authToken: c.authToken, phoneNumber: c.phoneNumber } },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.accountSid) details.push({ path: ['accountSid'], message: 'Account SID is required', code: 'REQUIRED' })
+      if (!c.authToken) details.push({ path: ['authToken'], message: 'Auth Token is required', code: 'REQUIRED' })
+      if (!c.phoneNumber) details.push({ path: ['phoneNumber'], message: 'Phone Number is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 }

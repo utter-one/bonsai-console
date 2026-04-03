@@ -12,6 +12,11 @@ export interface ProviderConfig {
   projectId: string
   keyFileJson: string
   basePath: string
+  // Channel config fields
+  accountSid: string
+  authToken: string
+  fromNumber: string
+  phoneNumber: string
 }
 
 export interface ProviderPreset {

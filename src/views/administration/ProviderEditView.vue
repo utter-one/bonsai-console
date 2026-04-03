@@ -33,7 +33,7 @@ const form = ref({
   name: '',
   description: '',
   tags: [] as string[],
-  providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings' | 'storage',
+  providerType: 'llm' as 'asr' | 'tts' | 'llm' | 'embeddings' | 'storage' | 'channel',
   apiType: '',
   config: {
     apiKey: '',
@@ -49,7 +49,12 @@ const form = ref({
     accountKey: '',
     projectId: '',
     keyFileJson: '',
-    basePath: ''
+    basePath: '',
+    // Channel config fields
+    accountSid: '',
+    authToken: '',
+    fromNumber: '',
+    phoneNumber: ''
   },
   createdBy: ''
 })
@@ -69,6 +74,7 @@ const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
+  { value: 'channel', label: 'Channel (Messaging & Voice)' },
   { value: 'embeddings', label: 'Embeddings' },
   { value: 'llm', label: 'LLM (Large Language Model)' },
   { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' },
@@ -94,6 +100,9 @@ const apiTypeOptions = computed(() => {
       break
     case 'storage':
       providers = providerCatalogStore.catalog.storage || []
+      break
+    case 'channel':
+      providers = providerCatalogStore.catalog.channel || []
       break
     default:
       return []
@@ -177,7 +186,12 @@ async function loadProvider() {
           accountKey: config.accountKey || '',
           projectId: config.projectId || '',
           keyFileJson: config.keyFileJson || '',
-          basePath: config.basePath || ''
+          basePath: config.basePath || '',
+          // Channel config fields
+          accountSid: config.accountSid || '',
+          authToken: config.authToken || '',
+          fromNumber: config.fromNumber || '',
+          phoneNumber: config.phoneNumber || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }
