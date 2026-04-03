@@ -3,7 +3,8 @@ import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import { ArrowLeft, Play } from 'lucide-vue-next'
-import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -14,6 +15,7 @@ import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import ConversationEventCard from '@/components/ConversationEventCard.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
 import { usePagination } from '@/composables'
 import PaginationControls from '@/components/PaginationControls.vue'
 import type { NormalizedEvent } from '../../components/events/eventHelpers'
@@ -53,6 +55,7 @@ const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
 const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
+const bugReportError = ref<ParsedError | null>(null)
 
 function toNormalizedEvent(event: ConversationEventResponse): NormalizedEvent {
   return {
@@ -177,6 +180,7 @@ function openBugReport(_event: ConversationEventResponse, index?: number) {
     eventIndex: index,
     stageId: conversation.value?.stageId || undefined
   }
+  bugReportError.value = null
   showBugReportModal.value = true
 }
 
@@ -190,7 +194,7 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
     await issuesStore.create(data as CreateIssueRequest)
     closeBugReportModal()
   } catch (error) {
-    console.error('Failed to create issue:', error)
+    bugReportError.value = parseApiError(error)
   }
 }
 
@@ -470,7 +474,7 @@ function fmtMs(value: number | null | undefined): string {
       <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div class="mx-auto">
           <!-- Events Timeline Tab -->
-          <div v-show="activeTab === 'events'" class="tab-content space-y-6">
+          <TabContent v-model="activeTab" tab="events" class="space-y-6">
             <div v-if="events.length === 0" class="text-center py-12 text-gray-500">
               No events recorded for this conversation
             </div>
@@ -501,24 +505,23 @@ function fmtMs(value: number | null | undefined): string {
               resource-name="events"
               class="rounded-lg"
             />
-          </div>
+          </TabContent>
 
           <!-- Metadata Tab -->
-          <MetadataTab v-if="conversation" v-show="activeTab === 'metadata'" :fields="metadataFields" />
+          <MetadataTab v-if="conversation" v-model="activeTab" tab="metadata" :fields="metadataFields" />
           <!-- History Tab -->
-          <div class="tab-content">
+          <TabContent v-model="activeTab" tab="history">
             <EntityHistoryView
               v-if="conversation"
-              v-show="activeTab === 'history'"
               :load-history="() => conversationsStore.fetchAuditLogs(projectId, conversationId)"
               :current-object="conversation"
               :active="activeTab === 'history'"
               :ignore-fields="['createdAt', 'archived', 'updatedAt']"
             />
-          </div>
+          </TabContent>
 
           <!-- Performance Tab -->
-          <div v-if="conversation" v-show="activeTab === 'performance'" class="tab-content">
+          <TabContent v-if="conversation" v-model="activeTab" tab="performance">
             <div v-if="analyticsStore.isLoadingTimeline" class="text-center py-12 text-gray-500 dark:text-gray-400">
               Loading performance data...
             </div>
@@ -635,7 +638,7 @@ function fmtMs(value: number | null | undefined): string {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
         </div>
       </div>
     </div>
@@ -668,6 +671,7 @@ function fmtMs(value: number | null | undefined): string {
     <IssueEditModal
       v-if="showBugReportModal"
       :issue="null"
+      :error="bugReportError"
       :prefill-data="bugReportPrefillData"
       @close="closeBugReportModal"
       @save="handleBugReportSave" />

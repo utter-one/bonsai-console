@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Plus, X } from 'lucide-vue-next'
+import FormField from '@/components/FormField.vue'
 import type {
   ElevenLabsTtsSettings,
   OpenAiTtsSettings,
@@ -69,10 +70,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (OpenAI)</h3>
 
             <!-- Instructions -->
-            <div class="form-group">
-              <label class="form-label">
-                Instructions <span class="text-gray-500">(optional, gpt-4o-mini-tts only)</span>
-              </label>
+            <FormField label="Instructions" hint="(optional, gpt-4o-mini-tts only)" class="w-full" help="Voice control instructions for gpt-4o-mini-tts model. Only supported by gpt-4o-mini-tts.">
               <textarea
                 v-model="(model as OpenAiTtsSettings).instructions"
                 rows="3"
@@ -80,16 +78,10 @@ function removeNoSpeechMarker(index: number) {
                 placeholder="Controls accent, tone, emotion, speed, whispering, etc."
                 :disabled="isLoading"
               ></textarea>
-              <p class="form-help-text">
-                Voice control instructions for gpt-4o-mini-tts model. Only supported by gpt-4o-mini-tts.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Speed -->
-            <div class="form-group">
-              <label class="form-label">
-                Speed: {{ ((model as any).speed ?? 1.0).toFixed(2) }}
-              </label>
+            <FormField :label="`Speed: ${((model as any).speed ?? 1.0).toFixed(2)}`" class="w-full" help="Speech speed (0.25-4.0), defaults to 1.0">
               <input
                 v-model.number="(model as any).speed"
                 type="range"
@@ -99,10 +91,7 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Speech speed (0.25-4.0), defaults to 1.0
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Voice Settings Section (Deepgram) -->
@@ -110,8 +99,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Deepgram)</h3>
 
             <!-- Sample Rate -->
-            <div class="form-group">
-              <label class="form-label">Sample Rate (Hz)</label>
+            <FormField label="Sample Rate (Hz)" class="w-full" help="Audio sample rate in Hz. Higher values provide better quality but larger file sizes. Common values: 8000, 16000, 24000, 48000.">
               <select
                 v-model.number="(model as DeepgramTtsSettings).sampleRate"
                 class="form-select-auto min-w-64"
@@ -123,16 +111,10 @@ function removeNoSpeechMarker(index: number) {
                 <option :value="24000">24000 Hz (Recommended)</option>
                 <option :value="48000">48000 Hz</option>
               </select>
-              <p class="form-help-text">
-                Audio sample rate in Hz. Higher values provide better quality but larger file sizes. Common values: 8000, 16000, 24000, 48000.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Bit Rate -->
-            <div class="form-group">
-              <label class="form-label">
-                Bit Rate <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Bit Rate" hint="(optional)" class="w-full" help="Bit rate for compressed formats (mp3, opus, aac). Higher values provide better quality.">
               <select
                 v-model.number="(model as DeepgramTtsSettings).bitRate"
                 class="form-select-auto min-w-64"
@@ -146,14 +128,10 @@ function removeNoSpeechMarker(index: number) {
                 <option :value="192000">192 kbps</option>
                 <option :value="256000">256 kbps</option>
               </select>
-              <p class="form-help-text">
-                Bit rate for compressed formats (mp3, opus, aac). Higher values provide better quality.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Container -->
-            <div class="form-group">
-              <label class="form-label">Container Format</label>
+            <FormField label="Container Format" class="w-full" help='Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container'>
               <select
                 v-model="(model as DeepgramTtsSettings).container"
                 class="form-select-auto min-w-64"
@@ -163,10 +141,7 @@ function removeNoSpeechMarker(index: number) {
                 <option value="wav">WAV</option>
                 <option value="ogg">Ogg</option>
               </select>
-              <p class="form-help-text">
-                Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Voice Settings Section (Cartesia) -->
@@ -174,8 +149,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Cartesia)</h3>
 
             <!-- Language -->
-            <div class="form-group">
-              <label class="form-label">Language</label>
+            <FormField label="Language" class="w-full" help="Language code for speech synthesis (e.g., en, es, fr). Sonic-3 supports 42 languages.">
               <select
                 v-model="(model as CartesiaTtsSettings).language"
                 class="form-select-auto min-w-64"
@@ -202,14 +176,10 @@ function removeNoSpeechMarker(index: number) {
                 <option value="fi">Finnish (fi)</option>
                 <option value="cs">Czech (cs)</option>
               </select>
-              <p class="form-help-text">
-                Language code for speech synthesis (e.g., en, es, fr). Sonic-3 supports 42 languages.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Speed -->
-            <div class="form-group">
-              <label class="form-label">Speed</label>
+            <FormField label="Speed" class="w-full" help='Speech speed control. Defaults to "normal".'>
               <select
                 v-model="(model as CartesiaTtsSettings).speed"
                 class="form-select-auto min-w-64"
@@ -221,16 +191,10 @@ function removeNoSpeechMarker(index: number) {
                 <option value="fast">Fast</option>
                 <option value="fastest">Fastest</option>
               </select>
-              <p class="form-help-text">
-                Speech speed control. Defaults to "normal".
-              </p>
-            </div>
+            </FormField>
 
             <!-- Emotion Tags -->
-            <div class="form-group">
-              <label class="form-label">
-                Emotion Tags <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Emotion Tags" hint="(optional)" class="w-full" help='Emotion tags for expressive speech (comma-separated, e.g., "positivity:high, curiosity"). See Cartesia emotion documentation.'>
               <textarea
                 v-model="emotionTagsInput"
                 rows="2"
@@ -238,16 +202,10 @@ function removeNoSpeechMarker(index: number) {
                 placeholder="positivity:high, curiosity"
                 :disabled="isLoading"
               ></textarea>
-              <p class="form-help-text">
-                Emotion tags for expressive speech (comma-separated, e.g., "positivity:high, curiosity"). See Cartesia emotion documentation.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Max Buffer Delay -->
-            <div class="form-group">
-              <label class="form-label">
-                Max Buffer Delay: {{ (model as CartesiaTtsSettings).maxBufferDelayMs ?? 3000 }}ms
-              </label>
+            <FormField :label="`Max Buffer Delay: ${(model as CartesiaTtsSettings).maxBufferDelayMs ?? 3000}ms`" class="w-full" help="Maximum time in milliseconds to buffer text chunks before sending to TTS (0-5000ms). Defaults to 3000ms. Set to 0 to disable buffering.">
               <input
                 v-model.number="(model as CartesiaTtsSettings).maxBufferDelayMs"
                 type="range"
@@ -257,10 +215,7 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Maximum time in milliseconds to buffer text chunks before sending to TTS (0-5000ms). Defaults to 3000ms. Set to 0 to disable buffering.
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Voice Settings Section (ElevenLabs) -->
@@ -268,10 +223,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (ElevenLabs)</h3>
 
             <!-- Stability -->
-            <div class="form-group">
-              <label class="form-label">
-                Stability: {{ ((model as ElevenLabsTtsSettings).stability ?? 0.5).toFixed(2) }}
-              </label>
+            <FormField :label="`Stability: ${((model as ElevenLabsTtsSettings).stability ?? 0.5).toFixed(2)}`" class="w-full" help="Voice stability (0.0-1.0), defaults to 0.5">
               <input
                 v-model.number="(model as ElevenLabsTtsSettings).stability"
                 type="range"
@@ -281,16 +233,10 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Voice stability (0.0-1.0), defaults to 0.5
-              </p>
-            </div>
+            </FormField>
 
             <!-- Similarity Boost -->
-            <div class="form-group">
-              <label class="form-label">
-                Similarity Boost: {{ ((model as ElevenLabsTtsSettings).similarityBoost ?? 0.75).toFixed(2) }}
-              </label>
+            <FormField :label="`Similarity Boost: ${((model as ElevenLabsTtsSettings).similarityBoost ?? 0.75).toFixed(2)}`" class="w-full" help="Similarity boost (0.0-1.0), defaults to 0.75">
               <input
                 v-model.number="(model as ElevenLabsTtsSettings).similarityBoost"
                 type="range"
@@ -300,16 +246,10 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Similarity boost (0.0-1.0), defaults to 0.75
-              </p>
-            </div>
+            </FormField>
 
             <!-- Style -->
-            <div class="form-group">
-              <label class="form-label">
-                Style: {{ ((model as ElevenLabsTtsSettings).style ?? 0).toFixed(2) }}
-              </label>
+            <FormField :label="`Style: ${((model as ElevenLabsTtsSettings).style ?? 0).toFixed(2)}`" class="w-full" help="Style setting for V2+ models (0.0-1.0), defaults to 0">
               <input
                 v-model.number="(model as ElevenLabsTtsSettings).style"
                 type="range"
@@ -319,16 +259,10 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Style setting for V2+ models (0.0-1.0), defaults to 0
-              </p>
-            </div>
+            </FormField>
 
             <!-- Speed -->
-            <div class="form-group">
-              <label class="form-label">
-                Speed: {{ ((model as any).speed ?? 1.0).toFixed(2) }}
-              </label>
+            <FormField :label="`Speed: ${((model as any).speed ?? 1.0).toFixed(2)}`" class="w-full" help="Speech speed (0.7-1.2), defaults to 1.0">
               <input
                 v-model.number="(model as any).speed"
                 type="range"
@@ -338,10 +272,7 @@ function removeNoSpeechMarker(index: number) {
                 class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Speech speed (0.7-1.2), defaults to 1.0
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Voice Settings Section (Azure) -->
@@ -349,10 +280,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Azure Speech)</h3>
 
             <!-- Style -->
-            <div class="form-group">
-              <label class="form-label">
-                Style
-              </label>
+            <FormField label="Style" class="w-full" help='Speaking style for voices that support it (e.g., "cheerful", "sad", "angry", "friendly"). Optional.'>
               <input
                 v-model="(model as AzureTtsSettings).style"
                 type="text"
@@ -360,16 +288,10 @@ function removeNoSpeechMarker(index: number) {
                 class="form-input"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Speaking style for voices that support it (e.g., "cheerful", "sad", "angry", "friendly"). Optional.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Rate -->
-            <div class="form-group">
-              <label class="form-label">
-                Rate
-              </label>
+            <FormField label="Rate" class="w-full" help='Speaking rate adjustment. Can be decimal (0.5 to 2.0) or percentage ("+10%", "-5%"). Defaults to 1.0 (normal speed).'>
               <input
                 v-model="(model as AzureTtsSettings).rate"
                 type="text"
@@ -377,16 +299,10 @@ function removeNoSpeechMarker(index: number) {
                 class="form-input max-w-64"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Speaking rate adjustment. Can be decimal (0.5 to 2.0) or percentage ("+10%", "-5%"). Defaults to 1.0 (normal speed).
-              </p>
-            </div>
+            </FormField>
 
             <!-- Pitch -->
-            <div class="form-group">
-              <label class="form-label">
-                Pitch
-              </label>
+            <FormField label="Pitch" class="w-full" help='Pitch adjustment. Can be percentage ("+5%", "-10%") or descriptive ("high", "low"). Range typically -50% to +50%.'>
               <input
                 v-model="(model as AzureTtsSettings).pitch"
                 type="text"
@@ -394,16 +310,10 @@ function removeNoSpeechMarker(index: number) {
                 class="form-input max-w-64"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Pitch adjustment. Can be percentage ("+5%", "-10%") or descriptive ("high", "low"). Range typically -50% to +50%.
-              </p>
-            </div>
+            </FormField>
 
             <!-- Inactivity Timeout (ElevenLabs only) -->
-            <div v-if="isElevenLabs" class="form-group">
-              <label class="form-label">
-                Inactivity Timeout (seconds)
-              </label>
+            <FormField v-if="isElevenLabs" label="Inactivity Timeout (seconds)" class="w-full" help="WebSocket inactivity timeout in seconds (defaults to 180)">
               <input
                 v-model.number="(model as ElevenLabsTtsSettings).inactivityTimeout"
                 type="number"
@@ -411,10 +321,7 @@ function removeNoSpeechMarker(index: number) {
                 class="form-input max-w-xs"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                WebSocket inactivity timeout in seconds (defaults to 180)
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Voice Settings Section (Amazon Polly) -->
@@ -422,10 +329,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Amazon Polly)</h3>
 
             <!-- Language Code -->
-            <div class="form-group">
-              <label class="form-label">
-                Language Code <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Language Code" hint="(optional)" class="w-full" help="BCP-47 language code override. By default inferred from the selected voice.">
               <input
                 v-model="(model as AmazonPollyTtsSettings).languageCode"
                 type="text"
@@ -433,10 +337,7 @@ function removeNoSpeechMarker(index: number) {
                 class="form-input"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                BCP-47 language code override. By default inferred from the selected voice.
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Boolean Settings Section -->
@@ -444,7 +345,7 @@ function removeNoSpeechMarker(index: number) {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Settings</h3>
 
             <!-- Use Speaker Boost (ElevenLabs only) -->
-            <div v-if="isElevenLabs" class="form-group">
+            <FormField v-if="isElevenLabs" help="Enable speaker boost for V2+ models (defaults to true)">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="(model as ElevenLabsTtsSettings).useSpeakerBoost"
@@ -456,13 +357,10 @@ function removeNoSpeechMarker(index: number) {
                   Enable Speaker Boost
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Enable speaker boost for V2+ models (defaults to true)
-              </p>
-            </div>
+            </FormField>
 
             <!-- Remove Exclamation Marks -->
-            <div class="form-group">
+            <FormField help="Replace exclamation marks with periods (can reduce overly excited speech)">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="(model as any).removeExclamationMarks"
@@ -474,13 +372,10 @@ function removeNoSpeechMarker(index: number) {
                   Remove Exclamation Marks
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Replace exclamation marks with periods (can reduce overly excited speech)
-              </p>
-            </div>
+            </FormField>
 
             <!-- Use Global Preview (ElevenLabs only) -->
-            <div v-if="isElevenLabs" class="form-group">
+            <FormField v-if="isElevenLabs" help="Use global preview endpoint for geographic proximity optimization (can reduce latency)">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="(model as ElevenLabsTtsSettings).useGlobalPreview"
@@ -492,13 +387,10 @@ function removeNoSpeechMarker(index: number) {
                   Use Global Preview
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Use global preview endpoint for geographic proximity optimization (can reduce latency)
-              </p>
-            </div>
+            </FormField>
 
             <!-- Use Sentence Splitter -->
-            <div class="form-group">
+            <FormField :help="isCartesia ? 'Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).' : 'Send only full sentences to TTS (can introduce small latency)'">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="(model as any).useSentenceSplitter"
@@ -510,13 +402,7 @@ function removeNoSpeechMarker(index: number) {
                   Use Sentence Splitter
                 </span>
               </label>
-              <p v-if="isCartesia" class="form-help-text mt-1">
-                Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).
-              </p>
-              <p v-else class="form-help-text mt-1">
-                Send only full sentences to TTS (can introduce small latency)
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- No Speech Markers Section -->

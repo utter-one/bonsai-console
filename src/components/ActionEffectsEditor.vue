@@ -5,8 +5,10 @@ import PromptEditor from './PromptEditor.vue'
 import FloatingDropdown from './FloatingDropdown.vue'
 import type { ActionOperations } from '@/composables/useActionForm'
 import type { ToolResponse } from '@/api/generated/data-contracts'
+import type { ParsedError } from '@/api/types'
 import { useMediaUpload } from '@/composables/useMediaUpload'
 import { defaultItemForArrayType } from '@/utils/arrayEditor'
+import FormField from './FormField.vue'
 
 const props = withDefaults(defineProps<{
   operations: ActionOperations
@@ -16,6 +18,7 @@ const props = withDefaults(defineProps<{
   stageVariables?: any[]
   actionParameters?: Record<string, any[]>
   projectConstants?: Record<string, any>
+  error?: ParsedError | null
 }>(), {
   availableClassifiers: () => [],
   availableStages: () => [],
@@ -23,6 +26,7 @@ const props = withDefaults(defineProps<{
   stageVariables: () => [],
   actionParameters: () => ({}),
   projectConstants: () => ({}),
+  error: null,
 })
 
 const selectedEffectId = ref<string | null>(null)
@@ -306,6 +310,86 @@ function getTypeBadgeColor(type: string): string {
 function selectStageVariable(modIndex: number, variableName: string) {
   props.operations.modifyVariables.modifications[modIndex]!.variableName = variableName
 }
+
+function getEffectIndex(type: string, callToolIdx = 0): number {
+  const ops = props.operations
+  let idx = 0
+  if (type === 'generateResponse') return idx
+  if (ops.generateResponse.enabled) idx++
+  if (type === 'endConversation') return idx
+  if (ops.endConversation.enabled) idx++
+  if (type === 'abortConversation') return idx
+  if (ops.abortConversation.enabled) idx++
+  if (type === 'goToStage') return idx
+  if (ops.goToStage.enabled) idx++
+  if (type === 'modifyUserInput') return idx
+  if (ops.modifyUserInput.enabled) idx++
+  if (type === 'modifyVariables') return idx
+  if (ops.modifyVariables.enabled) idx++
+  if (type === 'modifyUserProfile') return idx
+  if (ops.modifyUserProfile.enabled) idx++
+  if (type === 'callTool') {
+    let count = 0
+    for (let i = 0; i < ops.callTools.length; i++) {
+      if (i === callToolIdx) return idx + count
+      if (ops.callTools[i]!.toolId) count++
+    }
+    return idx + count
+  }
+  for (const ct of ops.callTools) {
+    if (ct.toolId) idx++
+  }
+  if (type === 'changeVisibility') return idx
+  if (ops.changeVisibility.enabled) idx++
+  if (type === 'banUser') return idx
+  return idx
+}
+
+const effectIndexToId = computed<Record<number, string>>(() => {
+  const ops = props.operations
+  const map: Record<number, string> = {}
+  let idx = 0
+  if (ops.generateResponse.enabled) map[idx++] = 'generateResponse'
+  if (ops.endConversation.enabled) map[idx++] = 'endConversation'
+  if (ops.abortConversation.enabled) map[idx++] = 'abortConversation'
+  if (ops.goToStage.enabled) map[idx++] = 'goToStage'
+  if (ops.modifyUserInput.enabled) map[idx++] = 'modifyUserInput'
+  if (ops.modifyVariables.enabled) map[idx++] = 'modifyVariables'
+  if (ops.modifyUserProfile.enabled) map[idx++] = 'modifyUserProfile'
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId) map[idx++] = `callTool_${i}`
+  }
+  if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
+  if (ops.banUser.enabled) map[idx++] = 'banUser'
+  return map
+})
+
+const effectsWithErrors = computed<Set<string>>(() => {
+  if (!props.error?.details?.length) return new Set()
+  const result = new Set<string>()
+  for (const detail of props.error.details) {
+    if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
+      const effectIdx = Number(detail.path[1])
+      const effectId = effectIndexToId.value[effectIdx]
+      if (effectId) result.add(effectId)
+    }
+  }
+  return result
+})
+
+watch(() => props.error, (err) => {
+  if (!err?.details?.length) return
+  for (const detail of err.details) {
+    if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
+      const effectIdx = Number(detail.path[1])
+      const effectId = effectIndexToId.value[effectIdx]
+      if (effectId) {
+        selectedEffectId.value = effectId
+        return
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -323,9 +407,16 @@ function selectStageVariable(modIndex: number, variableName: string) {
           <li v-for="effect in effectsList" :key="effect.id">
             <div
               class="flex items-center gap-1 px-3 py-2 cursor-pointer select-none group border-l-2"
-              :class="selectedEffectId === effect.id
-                ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 dark:border-primary-400'
-                : 'border-transparent hover:bg-gray-100 dark:hover:bg-gray-800'"
+              :class="[
+                effectsWithErrors.has(effect.id)
+                  ? 'border-red-400 dark:border-red-500'
+                  : selectedEffectId === effect.id
+                    ? 'border-primary-500 dark:border-primary-400'
+                    : 'border-transparent',
+                selectedEffectId === effect.id
+                  ? 'bg-primary-50 dark:bg-primary-900/20'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+              ]"
               @click="selectedEffectId = effect.id"
             >
               <span
@@ -336,6 +427,10 @@ function selectStageVariable(modIndex: number, variableName: string) {
               >
                 {{ effect.label }}
               </span>
+              <span
+                v-if="effectsWithErrors.has(effect.id)"
+                class="shrink-0 w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"
+              />
               <button
                 type="button"
                 @click.stop="removeEffect(effect.id)"
@@ -391,85 +486,78 @@ function selectStageVariable(modIndex: number, variableName: string) {
 
       <!-- Generate Response Editor -->
       <div v-else-if="selectedEffectType === 'generateResponse'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Response Mode</label>
+        <FormField label="Response Mode" help="How the response should be produced">
           <select v-model="operations.generateResponse.responseMode" class="form-select-auto min-w-64">
             <option value="generated">Generated (AI-generated)</option>
             <option value="prescripted">Prescripted (predefined responses)</option>
           </select>
-          <p class="form-help-text">How the response should be produced</p>
-        </div>
+        </FormField>
 
         <template v-if="operations.generateResponse.responseMode === 'prescripted'">
-          <div class="form-group">
-            <label class="form-label">Selection Strategy</label>
+          <FormField label="Selection Strategy" help="How to pick a response when multiple prescripted responses are provided">
             <select v-model="operations.generateResponse.prescriptedSelectionStrategy" class="form-select-auto min-w-64">
               <option value="random">Random</option>
               <option value="round_robin">Round Robin</option>
             </select>
-            <p class="form-help-text">How to pick a response when multiple prescripted responses are provided</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <div class="flex items-center justify-between mb-2">
-              <label class="form-label mb-0">Prescripted Responses</label>
-              <button type="button" class="btn-secondary" @click="addPrescriptedResponse()">+ Add Response</button>
-            </div>
-            <p class="form-help-text mb-3">Define the predefined responses to choose from</p>
-            <div v-if="operations.generateResponse.prescriptedResponses.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic py-2">
-              No prescripted responses yet. Click "Add Response" to add one.
-            </div>
-            <div class="space-y-3">
-              <div
-                v-for="(_, index) in operations.generateResponse.prescriptedResponses"
-                :key="index"
-                class="flex gap-2 items-start"
-              >
-                <textarea
-                  v-model="operations.generateResponse.prescriptedResponses[index]"
-                  rows="2"
-                  class="form-textarea flex-1 text-sm"
-                  :placeholder="`Response ${index + 1}...`"
-                ></textarea>
-                <button type="button" class="btn-danger" @click="removePrescriptedResponse(index)">Remove</button>
+          <FormField class="w-full">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="form-label mb-0">Prescripted Responses</label>
+                <button type="button" class="btn-secondary" @click="addPrescriptedResponse()">+ Add Response</button>
+              </div>
+              <p class="form-help-text mb-3">Define the predefined responses to choose from</p>
+              <div v-if="operations.generateResponse.prescriptedResponses.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic py-2">
+                No prescripted responses yet. Click "Add Response" to add one.
+              </div>
+              <div class="space-y-3">
+                <div
+                  v-for="(_, index) in operations.generateResponse.prescriptedResponses"
+                  :key="index"
+                  class="flex gap-2 items-start"
+                >
+                  <textarea
+                    v-model="operations.generateResponse.prescriptedResponses[index]"
+                    rows="2"
+                    class="form-textarea flex-1 text-sm"
+                    :placeholder="`Response ${index + 1}...`"
+                  ></textarea>
+                  <button type="button" class="btn-danger" @click="removePrescriptedResponse(index)">Remove</button>
+                </div>
               </div>
             </div>
-          </div>
+          </FormField>
         </template>
       </div>
 
       <!-- End Conversation Editor -->
       <div v-else-if="selectedEffectType === 'endConversation'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+        <FormField label="Reason" hint="(optional)" help="Optional reason for ending the conversation">
           <input
             v-model="operations.endConversation.reason"
             type="text"
             placeholder="User completed the flow"
             class="form-input"
           />
-          <p class="form-help-text">Optional reason for ending the conversation</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Abort Conversation Editor -->
       <div v-else-if="selectedEffectType === 'abortConversation'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+        <FormField label="Reason" hint="(optional)" help="Optional reason for aborting the conversation">
           <input
             v-model="operations.abortConversation.reason"
             type="text"
             placeholder="Safety violation detected"
             class="form-input"
           />
-          <p class="form-help-text">Optional reason for aborting the conversation</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Go To Stage Editor -->
       <div v-else-if="selectedEffectType === 'goToStage'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Target Stage <span class="required">*</span></label>
+        <FormField label="Target Stage" required :error="props.error" :path="['effects', getEffectIndex('goToStage'), 'stageId']" help="The stage to navigate to when this action is triggered">
           <select
             v-model="operations.goToStage.stageId"
             :required="operations.goToStage.enabled"
@@ -478,14 +566,12 @@ function selectStageVariable(modIndex: number, variableName: string) {
             <option value="">Select a stage...</option>
             <option v-for="stage in availableStages" :key="stage.id" :value="stage.id">{{ stage.name }}</option>
           </select>
-          <p class="form-help-text">The stage to navigate to when this action is triggered</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify User Input Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserInput'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Template <span class="required">*</span></label>
+        <FormField label="Template" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('modifyUserInput'), 'template']" :help="'Template to transform the user input. Use \{\{user.input\}\} to reference original input'">
           <PromptEditor
             v-model="operations.modifyUserInput.template"
             :disabled="!operations.modifyUserInput.enabled"
@@ -496,16 +582,12 @@ function selectStageVariable(modIndex: number, variableName: string) {
             min-height="6rem"
             aria-label="Modify user input template"
           />
-          <p class="form-help-text">
-            Template to transform the user input. Use <code>&#123;&#123;user.input&#125;&#125;</code> to reference original input
-          </p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify Variables Editor -->
       <div v-else-if="selectedEffectType === 'modifyVariables'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Variable Modifications</label>
+        <FormField label="Variable Modifications" class="w-full">
           <div class="space-y-4">
             <div
               v-for="(mod, index) in operations.modifyVariables.modifications"
@@ -596,13 +678,12 @@ function selectStageVariable(modIndex: number, variableName: string) {
               + Add Modification
             </button>
           </div>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify User Profile Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserProfile'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Profile Modifications</label>
+        <FormField label="Profile Modifications" class="w-full">
           <div class="space-y-4">
             <div
               v-for="(mod, index) in operations.modifyUserProfile.modifications"
@@ -653,51 +734,45 @@ function selectStageVariable(modIndex: number, variableName: string) {
               + Add Modification
             </button>
           </div>
-        </div>
+        </FormField>
       </div>
 
       <!-- Change Visibility Editor -->
       <div v-else-if="selectedEffectType === 'changeVisibility'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Visibility <span class="required">*</span></label>
+        <FormField label="Visibility" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'visibility']"
+          :help="operations.changeVisibility.visibility === 'always' ? 'Always visible regardless of context' :
+                 operations.changeVisibility.visibility === 'stage' ? 'Visible only while in the current stage' :
+                 operations.changeVisibility.visibility === 'never' ? 'Never visible' :
+                 'Visible based on a JavaScript condition expression'"
+        >
           <select v-model="operations.changeVisibility.visibility" class="form-select-auto min-w-48">
             <option value="always">Always</option>
             <option value="stage">Stage only</option>
             <option value="never">Never</option>
             <option value="conditional">Conditional</option>
           </select>
-          <p class="form-help-text">
-            <template v-if="operations.changeVisibility.visibility === 'always'">Always visible regardless of context</template>
-            <template v-else-if="operations.changeVisibility.visibility === 'stage'">Visible only while in the current stage</template>
-            <template v-else-if="operations.changeVisibility.visibility === 'never'">Never visible</template>
-            <template v-else>Visible based on a JavaScript condition expression</template>
-          </p>
-        </div>
+        </FormField>
 
-        <div v-if="operations.changeVisibility.visibility === 'conditional'" class="form-group">
-          <label class="form-label">Condition <span class="required">*</span></label>
+        <FormField v-if="operations.changeVisibility.visibility === 'conditional'" label="Condition" required :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'condition']" help="JavaScript expression evaluated against the conversation context; must return a boolean">
           <input
             v-model="operations.changeVisibility.condition"
             type="text"
             placeholder="vars.count > 0"
             class="form-input font-mono"
           />
-          <p class="form-help-text">JavaScript expression evaluated against the conversation context; must return a boolean</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Ban User Editor -->
       <div v-else-if="selectedEffectType === 'banUser'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+        <FormField label="Reason" hint="(optional)" help="Optional reason for banning the user. The user will be blocked from starting new conversations.">
           <input
             v-model="operations.banUser.reason"
             type="text"
             placeholder="Policy violation"
             class="form-input"
           />
-          <p class="form-help-text">Optional reason for banning the user. The user will be blocked from starting new conversations.</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Call Tool Editor -->
@@ -705,8 +780,7 @@ function selectStageVariable(modIndex: number, variableName: string) {
         v-else-if="selectedEffectType === 'callTool' && currentCallTool !== null"
         class="space-y-6"
       >
-        <div class="form-group">
-          <label class="form-label">Tool <span class="required">*</span></label>
+        <FormField label="Tool" required :error="props.error" :path="['effects', getEffectIndex('callTool', selectedCallToolIndex), 'toolId']">
           <select
             v-model="currentCallTool!.toolId"
             class="form-select-auto"
@@ -717,18 +791,13 @@ function selectStageVariable(modIndex: number, variableName: string) {
           <p v-if="currentToolObj?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
             {{ currentToolObj.description }}
           </p>
-        </div>
+        </FormField>
 
         <div v-if="currentToolObj && currentToolObj.parameters.length > 0" class="space-y-4">
           <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-300">Tool Parameters</h3>
 
-            <div v-for="param in currentToolObj.parameters" :key="param.name" class="form-group">
-              <label class="form-label text-sm">
-                {{ param.name }}
-                <span v-if="param.required" class="required">*</span>
-                <span v-else class="text-gray-500 text-xs ml-1">(optional)</span>
-              </label>
+            <FormField v-for="param in currentToolObj.parameters" :key="param.name" :label="param.name" :required="param.required" class="w-full" :help="`${param.description} (${param.type})`">
 
               <input
                 v-if="param.type === 'string'"
@@ -886,23 +955,21 @@ function selectStageVariable(modIndex: number, variableName: string) {
               </div>
 
               <p class="text-xs text-gray-500 mt-1">{{ param.description }} ({{ param.type }})</p>
-            </div>
+            </FormField>
           </div>
         </div>
 
-        <div
+        <p class="form-help-text"
           v-else-if="currentToolObj && currentToolObj.parameters.length === 0"
-          class="text-sm text-gray-500 dark:text-gray-400 py-4 border-t border-gray-200 dark:border-gray-700"
         >
           This tool doesn't require any parameters.
-        </div>
+        </p>
 
-        <div
+        <p class="form-help-text"
           v-else-if="!currentToolObj && availableTools.length > 0"
-          class="text-sm text-gray-500 dark:text-gray-400 py-4"
         >
           Select a tool to configure its parameters.
-        </div>
+        </p>
 
         <div
           v-else-if="availableTools.length === 0"

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { ArrowDownToLine, ArrowUpFromLine, X } from 'lucide-vue-next'
 import apiClient from '@/api/client'
-import type { LlmModelInfo } from '@/api/types'
+import type { LlmModelInfo, ParsedError } from '@/api/types'
 
 interface ProviderOption {
   id: string
@@ -116,6 +118,17 @@ const hasAtLeastOneLimit = computed(() => {
 
 const isValid = computed(() => !!form.value.providerId && !!form.value.modelName && !isDuplicate.value && hasAtLeastOneLimit.value)
 const isEditMode = computed(() => !!props.entry)
+
+const validationError = computed<ParsedError | null>(() => {
+  if (!isDuplicate.value) return null
+  return {
+    message: 'A rule for this provider & model already exists.',
+    details: [
+      { path: ['providerId'], message: 'Combination already in use', code: 'DUPLICATE' },
+      { path: ['modelName'], message: 'Combination already in use', code: 'DUPLICATE' },
+    ]
+  }
+})
 </script>
 
 <template>
@@ -123,16 +136,14 @@ const isEditMode = computed(() => !!props.entry)
     <div class="space-y-6">
       <!-- Provider + Model -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-group">
-          <label class="form-label">Provider <span class="required">*</span></label>
+        <FormField label="Provider" required :error="validationError" path="providerId">
           <select v-model="form.providerId" class="form-select" @change="handleProviderChange">
             <option value="">— select —</option>
             <option value="*">* (Any provider)</option>
             <option v-for="p in llmProviders" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Model <span class="required">*</span></label>
+        </FormField>
+        <FormField label="Model" required :error="validationError" path="modelName">
           <select
             v-model="form.modelName"
             class="form-select"
@@ -142,9 +153,9 @@ const isEditMode = computed(() => !!props.entry)
             <option value="*">* (Any model)</option>
             <option v-for="m in modelsList" :key="m.id" :value="m.id">{{ m.displayName }}</option>
           </select>
-          <p v-if="isDuplicate" class="mt-1 text-xs text-red-600 dark:text-red-400">A rule for this provider &amp; model already exists.</p>
-        </div>
+        </FormField>
       </div>
+      <ErrorDisplay :error="validationError" />
 
       <!-- Input + Output limits -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

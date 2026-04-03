@@ -4,12 +4,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOperatorsStore } from '@/stores'
 import { formatEnum } from '@/composables'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { OperatorResponse } from '@/api/types'
+import type { ApiErrorDetail, OperatorResponse, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,7 +22,7 @@ const adminsStore = useOperatorsStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'roles' | 'metadata' | 'history'>('basic')
 const form = ref({
@@ -39,6 +44,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'history', label: 'History', show: isEditMode.value },
 ])
 const currentOperator = ref<OperatorResponse | null>(null)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 const isSuperAdminSelected = computed(() => form.value.roles.includes('super_admin'))
 
 // Available roles
@@ -70,7 +76,7 @@ async function loadOperator() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load operator'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -78,6 +84,36 @@ async function loadOperator() {
 
 async function handleSubmit() {
   error.value = null
+
+  const validationDetails: ApiErrorDetail[] = []
+  if (!form.value.name.trim()) {
+    validationDetails.push({ path: ['name'], message: 'Name is required', code: 'REQUIRED' })
+  }
+  if (isEditMode.value && currentOperator.value) {
+    if (form.value.password && form.value.password.length < 8) {
+      validationDetails.push({ path: ['password'], message: 'Password must be at least 8 characters', code: 'INVALID_VALUE' })
+    }
+  } else {
+    if (!form.value.id) {
+      validationDetails.push({ path: ['id'], message: 'Operator ID is required', code: 'REQUIRED' })
+    } else if (!/^[a-z0-9-]+$/.test(form.value.id)) {
+      validationDetails.push({ path: ['id'], message: 'Operator ID must contain only lowercase letters, numbers, and hyphens', code: 'INVALID_VALUE' })
+    }
+    if (!form.value.password) {
+      validationDetails.push({ path: ['password'], message: 'Password is required for new operators', code: 'REQUIRED' })
+    } else if (form.value.password.length < 8) {
+      validationDetails.push({ path: ['password'], message: 'Password must be at least 8 characters', code: 'INVALID_VALUE' })
+    }
+    if (form.value.roles.length === 0) {
+      validationDetails.push({ path: ['roles'], message: 'At least one role must be selected', code: 'REQUIRED' })
+    }
+  }
+  if (validationDetails.length > 0) {
+    error.value = { message: 'Please correct the following errors', details: validationDetails }
+    switchToFirstErrorTab(error.value)
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -90,13 +126,7 @@ async function handleSubmit() {
         metadata: form.value.metadata
       }
 
-      // Only include password if it's provided
       if (form.value.password) {
-        if (form.value.password.length < 8) {
-          error.value = 'Password must be at least 8 characters'
-          isLoading.value = false
-          return
-        }
         updateData.password = form.value.password
       }
 
@@ -106,24 +136,6 @@ async function handleSubmit() {
       currentOperator.value = updated
     } else {
       // Create new operator
-      if (!form.value.password) {
-        error.value = 'Password is required for new operators'
-        isLoading.value = false
-        return
-      }
-
-      if (form.value.password.length < 8) {
-        error.value = 'Password must be at least 8 characters'
-        isLoading.value = false
-        return
-      }
-
-      if (form.value.roles.length === 0) {
-        error.value = 'At least one role must be selected'
-        isLoading.value = false
-        return
-      }
-
       const created = await adminsStore.create({
         id: form.value.id,
         name: form.value.name,
@@ -148,7 +160,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} operator`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -228,8 +241,8 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error && isEditMode" class="error-state">
-      {{ error }}
+    <div v-else-if="error && isEditMode && !currentOperator" class="error-state">
+      <ErrorDisplay :error="error" />
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Operators
       </button>
@@ -240,127 +253,94 @@ const metadataFields = computed(() => {
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+            <ErrorDisplay :error="error" />
 
-        <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Operator ID <span class="required">*</span>
-            </label>
-            <input
-              v-model="form.id"
-              type="text"
-              required
-              placeholder="operator-username"
-              class="form-input-mono"
-              :disabled="isEditMode || isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The operator ID cannot be changed after creation' 
-                : 'Unique identifier for this operator. Use lowercase letters, numbers, and hyphens only.' 
-              }}
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              Name <span class="required">*</span>
-            </label>
-            <input
-              v-model="form.name"
-              type="text"
-              required
-              placeholder="John Doe"
-              class="form-input"
-              :disabled="isLoading"
-            />
-            <p class="form-help-text">Full name or display name for this operator</p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              Password <span v-if="!isEditMode" class="required">*</span>
-              <span v-else class="text-gray-500">(leave empty to keep current)</span>
-            </label>
-            <input
-              v-model="form.password"
-              type="password"
-              :required="!isEditMode"
-              placeholder="••••••••"
-              class="form-input-mono"
-              :disabled="isLoading"
-            />
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'Enter a new password only if you want to change it. Must be at least 8 characters.' 
-                : 'Password must be at least 8 characters long.' 
-              }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Roles & Permissions Tab -->
-        <div v-show="activeTab === 'roles'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Assigned Roles <span class="required">*</span>
-            </label>
-            <div class="flex flex-col gap-3 mt-3">
-              <label
-                v-for="role in availableRoles"
-                :key="role"
-                :class="isSuperAdminSelected && role !== 'super_admin' ? 'checkbox-label-disabled' : 'checkbox-label'"
-              >
+            <!-- General Tab -->
+            <TabContent v-model="activeTab" tab="basic">
+              <FormField label="Operator ID" required :error="error" path="id" class="w-full" :hint="isEditMode ? 'ID cannot be changed' : undefined" :help="isEditMode ? 'The operator ID cannot be changed after creation' : 'Unique identifier for this operator. Use lowercase letters, numbers, and hyphens only.'">
                 <input
-                  type="checkbox"
-                  :checked="form.roles.includes(role)"
-                  :disabled="(isSuperAdminSelected && role !== 'super_admin') || isLoading"
-                  @change="toggleRole(role)"
-                  class="form-checkbox"
+                  v-model="form.id"
+                  type="text"
+                  placeholder="operator-username"
+                  class="form-input-mono"
+                  :class="{ 'form-input-disabled': isEditMode }"
+                  :disabled="isEditMode || isLoading"
                 />
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatEnum(role) }}</span>
-                  <span class="text-xs text-gray-500">
-                    {{ role === 'super_admin' ? 'Full system access (overrides all other roles)' : 
-                       role === 'content_manager' ? 'Manage content and projects' :
-                       role === 'support' ? 'View and assist with user issues' :
-                       role === 'developer' ? 'Technical configuration and integrations' :
-                       'Read-only access to the system' }}
-                  </span>
-                </div>
-              </label>
-            </div>
-            <p class="form-help-text mt-3">
-              Note: Selecting Super Admin will grant all permissions and disable other role options.
-            </p>
-          </div>
-        </div>
+              </FormField>
 
-        <!-- Metadata Tab -->
-        <MetadataTab
-          v-if="isEditMode && currentOperator"
-          v-show="activeTab === 'metadata'"
-          :fields="metadataFields"
-        />
-        <div class="tab-content">
-            <!-- History Tab -->
-            <EntityHistoryView
+              <FormField label="Name" required :error="error" path="name" class="w-full" help="Full name or display name for this operator">
+                <input
+                  v-model="form.name"
+                  type="text"
+                  placeholder="John Doe"
+                  class="form-input"
+                  :disabled="isLoading"
+                />
+              </FormField>
+
+              <FormField label="Password" :required="!isEditMode" :error="error" path="password" class="w-full" :hint="isEditMode ? 'leave empty to keep current' : undefined" :help="isEditMode ? 'Enter a new password only if you want to change it. Must be at least 8 characters.' : 'Password must be at least 8 characters long.'">
+                <input
+                  v-model="form.password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="form-input-mono"
+                  :disabled="isLoading"
+                />
+              </FormField>
+            </TabContent>
+
+            <!-- Roles & Permissions Tab -->
+            <TabContent v-model="activeTab" tab="roles">
+              <FormField label="Assigned Roles" required :error="error" path="roles" class="w-full" help="Note: Selecting Super Admin will grant all permissions and disable other role options.">
+                <div class="flex flex-col gap-3 mt-3">
+                  <label
+                    v-for="role in availableRoles"
+                    :key="role"
+                    :class="isSuperAdminSelected && role !== 'super_admin' ? 'checkbox-label-disabled' : 'checkbox-label'"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="form.roles.includes(role)"
+                      :disabled="(isSuperAdminSelected && role !== 'super_admin') || isLoading"
+                      @change="toggleRole(role)"
+                      class="form-checkbox"
+                    />
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatEnum(role) }}</span>
+                      <span class="text-xs text-gray-500">
+                        {{ role === 'super_admin' ? 'Full system access (overrides all other roles)' : 
+                           role === 'content_manager' ? 'Manage content and projects' :
+                           role === 'support' ? 'View and assist with user issues' :
+                           role === 'developer' ? 'Technical configuration and integrations' :
+                           'Read-only access to the system' }}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </FormField>
+            </TabContent>
+
+            <!-- Metadata Tab -->
+            <MetadataTab
               v-if="isEditMode && currentOperator"
-              v-show="activeTab === 'history'"
-              :load-history="() => adminsStore.fetchAuditLogs(currentOperator!.id)"
-              :current-version="currentOperator.version"
-              :current-object="currentOperator"
-              :active="activeTab === 'history'"
-              :update-fn="(data) => adminsStore.update(currentOperator!.id, data)"
-              :create-fn="(data) => adminsStore.create(data)"
-              :ignore-fields="['createdAt', 'updatedAt', 'version']"
-              @recover-success="() => router.go(0)"
+              v-model="activeTab"
+              tab="metadata"
+              :fields="metadataFields"
             />
-          </div>
+            <!-- History Tab -->
+            <TabContent v-model="activeTab" tab="history">
+              <EntityHistoryView
+                v-if="isEditMode && currentOperator"
+                :load-history="() => adminsStore.fetchAuditLogs(currentOperator!.id)"
+                :current-version="currentOperator.version"
+                :current-object="currentOperator"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => adminsStore.update(currentOperator!.id, data)"
+                :create-fn="(data) => adminsStore.create(data)"
+                :ignore-fields="['createdAt', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+            </TabContent>
           </form>
       </div>
     </div>

@@ -5,7 +5,8 @@ import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelecti
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits } from '@/api/types'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -17,6 +18,11 @@ import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
@@ -28,7 +34,7 @@ const providersStore = useProvidersStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
@@ -91,6 +97,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'danger', label: 'Danger Zone', show: isEditMode.value },
 ])
 const currentProject = ref<ProjectResponse | null>(null)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const isArchived = computed(() => !!currentProject.value?.archivedAt)
 const deleteConfirmName = ref('')
@@ -370,7 +377,7 @@ async function loadProject() {
       await loadApiKeys()
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load project'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -395,7 +402,16 @@ async function handleSubmit() {
   error.value = null
 
   if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId) {
-    error.value = 'An ASR provider must be selected when Speech Input is enabled.'
+    error.value = {
+      message: 'An ASR provider must be selected when Speech Input is enabled.',
+      details: [
+        {
+          path: ['asrConfig', 'asrProviderId'],
+          message: 'Select an ASR provider or disable Speech Input',
+          code: 'REQUIRED_FIELD'
+        }
+      ]
+    }
     activeTab.value = 'voice'
     return
   }
@@ -510,7 +526,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} project`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -750,7 +767,7 @@ function buildCostManagementConfig(): CostManagementConfig {
 
     <!-- Error State -->
     <div v-else-if="error && isEditMode && !currentProject" class="error-state">
-      {{ error }}
+      <ErrorDisplay :error="error" />
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Projects
       </button>
@@ -762,29 +779,21 @@ function buildCostManagementConfig(): CostManagementConfig {
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isArchived" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+        <ErrorDisplay :error="error" />
 
         <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Project Name <span class="required">*</span>
-            </label>
+        <TabContent v-model="activeTab" tab="basic">
+          <FormField label="Project Name" required :error="error" path="name" class="w-full" help="A descriptive name for your AI application project">
             <input
               v-model="form.name"
               type="text"
-              required
               placeholder="My AI Project"
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">A descriptive name for your AI application project</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Description</label>
+          <FormField label="Description" :error="error" path="description" class="w-full" help="Provide additional context about the project's purpose">
             <textarea
               v-model="form.description"
               rows="3"
@@ -792,11 +801,9 @@ function buildCostManagementConfig(): CostManagementConfig {
               class="form-textarea"
               :disabled="isLoading"
             ></textarea>
-            <p class="form-help-text">Provide additional context about the project's purpose</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Timezone</label>
+          <FormField label="Timezone" :error="error" path="timezone" class="min-w-60" help="IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)">
             <TimezoneSelector
               v-model="form.timezone"
               width="override"
@@ -804,11 +811,9 @@ function buildCostManagementConfig(): CostManagementConfig {
               :disabled="isLoading"
               class="max-w-96"
             />
-            <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Language</label>
+          <FormField label="Language" :error="error" path="languageCode" class="min-w-60" help="Default language for this project. Exposed as project.languageCode and project.language in scripts and templates.">
             <LanguageSelector
               v-model="form.languageCode"
               width="override"
@@ -816,11 +821,9 @@ function buildCostManagementConfig(): CostManagementConfig {
               :disabled="isLoading"
               class="max-w-96"
             />
-            <p class="form-help-text">Default language for this project. Exposed in scripts and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Conversation Timeout (seconds)</label>
+          <FormField label="Conversation Timeout (seconds)" :error="error" path="conversationTimeoutSeconds" class="min-w-48" help="Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.">
             <input
               :value="form.conversationTimeoutSeconds ?? ''"
               @change="(e) => {
@@ -838,12 +841,10 @@ function buildCostManagementConfig(): CostManagementConfig {
               class="form-input max-w-64"
               :disabled="isLoading"
             />
-            <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
-          </div>
+          </FormField>
 
           <!-- Project Color Picker -->
-          <div class="form-group">
-            <label class="form-label">Project Color</label>
+          <FormField label="Project Color" :error="error" path="primaryColor" help="Optional accent color shown in the top navigation bar when this project is active">
             <div class="mt-2">
               <!-- Color swatch grid: columns = hue families, rows = shades (300 / 600 / 900) -->
               <div class="flex gap-1 flex-wrap">
@@ -899,161 +900,148 @@ function buildCostManagementConfig(): CostManagementConfig {
                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">No color selected</span>
               </div>
             </div>
-            <p class="form-help-text mt-1">Optional accent color shown in the top navigation bar when this project is active</p>
-          </div>
+          </FormField>
 
-          <!-- Create Playground API Key Checkbox (only when creating) -->
-          <div v-if="!isEditMode" class="form-group bg-purple-50 p-4 rounded-lg border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
-            <label class="flex items-center cursor-pointer">
-              <input
-                v-model="createPlaygroundApiKey"
-                type="checkbox"
-                class="form-checkbox"
-                :disabled="isLoading"
-              />
-              <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                Create API key for Playground
-              </span>
-            </label>
-            <p class="form-help-text mt-1">
-              Automatically create a "Playground" API key for testing and development
-            </p>
-          </div>
-        </div>
-
-        <!-- Voice Settings Tab -->
-        <div v-show="activeTab === 'voice'" class="tab-content">
-          <div class="space-y-6">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Speech Recognition & Text To Speech Configuration</h3>
-              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
-                Configure voice capabilities for your conversations, including speech recognition (ASR) and text-to-speech (TTS).
-              </p>
-            </div>
-
-            <!-- Enable Speech Input Box -->
-            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+            <!-- Create Playground API Key Checkbox (only when creating) -->
+            <div v-if="!isEditMode" class="form-group bg-purple-50 p-4 rounded-lg border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
+              <label class="flex items-center cursor-pointer">
                 <input
-                  v-model="form.acceptVoice"
+                  v-model="createPlaygroundApiKey"
                   type="checkbox"
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
-                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-                  Enable Speech Input
+                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Create API key for Playground
                 </span>
               </label>
+              <p class="form-help-text mt-1">
+                Automatically create a "Playground" API key for testing and development
+              </p>
+            </div>
+          </TabContent>
 
-              <div v-if="form.acceptVoice" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <p class="form-help-text">
-                  Allow conversations to accept voice input from users using automatic speech recognition.
+          <!-- Voice Settings Tab -->
+          <TabContent v-model="activeTab" tab="voice">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Speech Recognition & Text To Speech Configuration</h3>
+                <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                  Configure voice capabilities for your conversations, including speech recognition (ASR) and text-to-speech (TTS).
                 </p>
+              </div>
 
-                <!-- ASR Provider -->
-                <div class="form-group">
-                  <label class="form-label">
-                    ASR Provider <span class="required">*</span>
-                  </label>
-                  <div class="flex flex-col md:flex-row gap-2">
-                    <select
-                      v-model="form.asrConfig.asrProviderId"
-                      class="form-select-auto min-w-64"
-                      :class="{ 'border-red-500': !form.asrConfig.asrProviderId }"
+              <!-- Enable Speech Input Box -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                  <input
+                    v-model="form.acceptVoice"
+                    type="checkbox"
+                    class="form-checkbox"
+                    :disabled="isLoading"
+                  />
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Speech Input
+                  </span>
+                </label>
+
+                <div v-if="form.acceptVoice" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                  <p class="form-help-text">
+                    Allow conversations to accept voice input from users using automatic speech recognition.
+                  </p>
+
+                  <!-- ASR Provider -->
+                  <CompositeFormField label="ASR Provider" required :error="error" help="Select the Automatic Speech Recognition provider for voice input.">
+                    <div class="flex flex-col md:flex-row gap-2">
+                      <FormField :path="['asrConfig', 'asrProviderId']">
+                        <select
+                          v-model="form.asrConfig.asrProviderId"
+                          class="form-select-auto min-w-64"
+                          :disabled="isLoading"
+                          @change="handleAsrProviderChange"
+                        >
+                          <option value="">None</option>
+                          <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
+                            {{ provider.name }}
+                          </option>
+                        </select>
+                      </FormField>
+                      <button
+                        type="button"
+                        @click="showAsrSettingsModal = true"
+                        class="btn-secondary whitespace-nowrap"
+                        :disabled="isLoading || !form.asrConfig.asrProviderId"
+                      >
+                        <Settings class="inline-block mr-1 w-4 h-4" />
+                        Settings...
+                      </button>
+                    </div>
+                  </CompositeFormField>
+
+                  <!-- Unintelligible Placeholder -->
+                  <FormField label="Unintelligible Placeholder" :error="error" :path="['asrConfig', 'unintelligiblePlaceholder']" class="w-full" help="Text to use when speech is unintelligible or cannot be transcribed">
+                    <input
+                      v-model="form.asrConfig.unintelligiblePlaceholder"
+                      type="text"
+                      placeholder="e.g., [unintelligible]"
+                      class="form-input"
                       :disabled="isLoading"
-                      @change="handleAsrProviderChange"
-                    >
-                      <option value="">None</option>
-                      <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
-                        {{ provider.name }}
-                      </option>
-                    </select>
+                    />
+                  </FormField>
+
+                  <!-- Server-side VAD -->
+                  <div class="flex items-center gap-3">
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.asrConfig.serverVadEnabled"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Enable Server-side VAD
+                      </span>
+                      <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
+                    </label>
                     <button
+                      v-if="form.asrConfig.serverVadEnabled"
                       type="button"
-                      @click="showAsrSettingsModal = true"
                       class="btn-secondary whitespace-nowrap"
-                      :disabled="isLoading || !form.asrConfig.asrProviderId"
+                      :disabled="isLoading"
+                      @click="showServerVadModal = true"
                     >
                       <Settings class="inline-block mr-1 w-4 h-4" />
                       Settings...
                     </button>
                   </div>
-                  <p class="form-help-text">
-                    Select the Automatic Speech Recognition provider for voice input.
-                  </p>
-                  <p v-if="!form.asrConfig.asrProviderId" class="text-xs text-red-600 mt-1">An ASR provider is required when speech input is enabled.</p>
                 </div>
+              </div>
 
-                <!-- Unintelligible Placeholder -->
-                <div class="form-group">
-                  <label class="form-label">
-                    Unintelligible Placeholder <span class="text-gray-500">(optional)</span>
-                  </label>
+              <!-- Voice Output -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                   <input
-                    v-model="form.asrConfig.unintelligiblePlaceholder"
-                    type="text"
-                    placeholder="e.g., [unintelligible]"
-                    class="form-input"
+                    v-model="form.generateVoice"
+                    type="checkbox"
+                    class="form-checkbox"
                     :disabled="isLoading"
                   />
-                  <p class="form-help-text">
-                    Text to use when speech is unintelligible or cannot be transcribed
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Speech Output
+                  </span>
+                </label>
+                <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                  <p class="form-help-text text-gray-500 dark:text-gray-400">
+                    Allow conversations to generate voice responses using text-to-speech
                   </p>
                 </div>
-
-                <!-- Server-side VAD -->
-                <div class="flex items-center gap-3">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.serverVadEnabled"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Enable Server-side VAD
-                    </span>
-                    <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
-                  </label>
-                  <button
-                    v-if="form.asrConfig.serverVadEnabled"
-                    type="button"
-                    class="btn-secondary whitespace-nowrap"
-                    :disabled="isLoading"
-                    @click="showServerVadModal = true"
-                  >
-                    <Settings class="inline-block mr-1 w-4 h-4" />
-                    Settings...
-                  </button>
-                </div>
               </div>
             </div>
-
-            <!-- Voice Output -->
-            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
-                <input
-                  v-model="form.generateVoice"
-                  type="checkbox"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
-                  Enable Speech Output
-                </span>
-              </label>
-              <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <p class="form-help-text text-gray-500 dark:text-gray-400">
-                  Allow conversations to generate voice responses using text-to-speech
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </TabContent>
 
 
-        <!-- Storage Tab -->
-        <div v-show="activeTab === 'storage'" class="tab-content">
+          <!-- Storage Tab -->
+          <TabContent v-model="activeTab" tab="storage">
           <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
             <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
             <p class="text-sm">
@@ -1068,13 +1056,10 @@ function buildCostManagementConfig(): CostManagementConfig {
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Storage Provider <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Storage Provider" :error="error" :path="['storageConfig', 'storageProviderId']" help="Select a storage provider to enable persistent storage of conversation artifacts">
               <select
                 v-model="form.storageConfig.storageProviderId"
-                class="form-select-auto min-w-64Tags for categorizing and filtering. Press Enter or comma to add a tag."
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="">None</option>
@@ -1082,10 +1067,7 @@ function buildCostManagementConfig(): CostManagementConfig {
                   {{ provider.name }} ({{ provider.apiType }})
                 </option>
               </select>
-              <p class="form-help-text">
-                Select a storage provider to enable persistent storage of conversation artifacts
-              </p>
-            </div>
+            </FormField>
 
             <div v-if="form.storageConfig.storageProviderId" class="space-y-4">
               <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
@@ -1115,10 +1097,10 @@ function buildCostManagementConfig(): CostManagementConfig {
               </p>
             </div>
           </div>
-        </div>
+          </TabContent>
 
-        <!-- Cost Management Tab -->
-        <div v-show="activeTab === 'costs'" class="tab-content">
+          <!-- Cost Management Tab -->
+          <TabContent v-model="activeTab" tab="costs">
           <div class="space-y-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Token Limits</h3>
@@ -1196,12 +1178,12 @@ function buildCostManagementConfig(): CostManagementConfig {
             </button>
 
           </div>
-        </div>
+          </TabContent>
 
-        </fieldset>
+          </fieldset>
 
-        <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
-        <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
+          <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
+          <TabContent v-model="activeTab" tab="apiKeys">
           <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
@@ -1268,19 +1250,20 @@ function buildCostManagementConfig(): CostManagementConfig {
               </table>
             </div>
           </div>
-        </div>
+          </TabContent>
 
-        <!-- Metadata Tab -->
-        <MetadataTab
-          v-if="isEditMode && currentProject"
-          v-show="activeTab === 'metadata'"
-          :fields="metadataFields"
-        />
-        <div class="tab-content" v-if="isEditMode && currentProject"
-            v-show="activeTab === 'history'">
+          <!-- Metadata Tab -->
+          <MetadataTab
+            v-if="isEditMode && currentProject"
+            v-model="activeTab"
+            tab="metadata"
+            :fields="metadataFields"
+          />
           <!-- History Tab -->
-          <EntityHistoryView
-            :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
+          <TabContent v-model="activeTab" tab="history">
+            <EntityHistoryView
+              v-if="isEditMode && currentProject"
+              :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
             :current-version="currentProject.version"
             :current-object="currentProject"
             :active="activeTab === 'history'"
@@ -1289,19 +1272,18 @@ function buildCostManagementConfig(): CostManagementConfig {
             :ignore-fields="['updatedAt', 'version', 'archivedAt', 'archivedBy']"
             @recover-success="loadProject"
           />
-        </div>
-        <!-- Danger Zone Tab -->
-        <div v-if="isEditMode" v-show="activeTab === 'danger'" class="tab-content">
+          </TabContent>
+          <!-- Danger Zone Tab -->
+          <TabContent v-if="isEditMode" v-model="activeTab" tab="danger">
           <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>
           <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
             Deleting a project will remove <strong>all</strong> related entities (agents, stages,
             classifiers, etc.). This cannot be undone. Type the project name below to confirm
             deletion.
           </p>
-          <div class="form-group mb-4">
-            <label class="form-label">Project name</label>
+          <FormField label="Project name" class="w-full">
             <input v-model="deleteConfirmName" type="text" class="form-input" :disabled="isLoading" />
-          </div>
+          </FormField>
           <button
             class="btn-danger"
             :disabled="isLoading || deleteConfirmName !== currentProject?.name"
@@ -1309,8 +1291,8 @@ function buildCostManagementConfig(): CostManagementConfig {
           >
             Delete Project
           </button>
-        </div>
-        </form>
+          </TabContent>
+          </form>
       </div>
     </div>
 

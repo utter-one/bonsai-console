@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import type { ParsedError, ApiErrorDetail } from '@/api/types'
 import type { ProviderConfig } from './providerPresets'
 import OpenAIConfig from './OpenAIConfig.vue'
 import FireworksConfig from './FireworksConfig.vue'
@@ -26,12 +27,12 @@ export interface ProviderEntry {
   init?: (config: ProviderConfig) => void
   // Builds the clean payload object to submit to the API
   buildConfig(config: ProviderConfig): Record<string, unknown>
-  // Returns a validation error message, or null if valid
-  validate(config: ProviderConfig): string | null
+  // Returns a ParsedError with field-level details, or null if valid
+  validate(config: ProviderConfig): ParsedError | null
 }
 
-function validateApiKey(config: ProviderConfig): string | null {
-  return config.apiKey ? null : 'API Key is required'
+function validateApiKey(config: ProviderConfig): ParsedError | null {
+  return config.apiKey ? null : { message: 'API Key is required', details: [{ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' }] }
 }
 
 const openAIEntry: ProviderEntry = {
@@ -93,7 +94,7 @@ const registry: Record<string, ProviderEntry> = {
     component: AssemblyAIConfig,
     init(c) { if (!c.region) c.region = 'eu' },
     buildConfig(c) { return { apiKey: c.apiKey, region: c.region || 'eu' } },
-    validate(c) { return c.apiKey ? null : 'API Key is required for AssemblyAI' },
+    validate(c) { return c.apiKey ? null : { message: 'API Key is required', details: [{ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' }] } },
   },
 
   'speechmatics:asr': {
@@ -107,9 +108,10 @@ const registry: Record<string, ProviderEntry> = {
     component: AzureASRConfig,
     buildConfig(c) { return { region: c.region, subscriptionKey: c.subscriptionKey } },
     validate(c) {
-      return !c.region || !c.subscriptionKey
-        ? 'Region and Subscription Key are required for Azure Speech'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+      if (!c.subscriptionKey) details.push({ path: ['subscriptionKey'], message: 'Subscription Key is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -117,9 +119,10 @@ const registry: Record<string, ProviderEntry> = {
     component: AzureTTSConfig,
     buildConfig(c) { return { region: c.region, subscriptionKey: c.subscriptionKey } },
     validate(c) {
-      return !c.region || !c.subscriptionKey
-        ? 'Region and Subscription Key are required for Azure Speech'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+      if (!c.subscriptionKey) details.push({ path: ['subscriptionKey'], message: 'Subscription Key is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -129,9 +132,11 @@ const registry: Record<string, ProviderEntry> = {
       return { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, region: c.region }
     },
     validate(c) {
-      return !c.accessKeyId || !c.secretAccessKey || !c.region
-        ? 'Access Key ID, Secret Access Key, and Region are required for Amazon Polly'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
+      if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
+      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -147,9 +152,11 @@ const registry: Record<string, ProviderEntry> = {
       return cfg
     },
     validate(c) {
-      return !c.accessKeyId || !c.secretAccessKey || !c.region
-        ? 'Access Key ID, Secret Access Key, and Region are required for S3'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
+      if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
+      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -161,9 +168,10 @@ const registry: Record<string, ProviderEntry> = {
       return cfg
     },
     validate(c) {
-      return !c.accountName || !c.accountKey
-        ? 'Account Name and Account Key are required for Azure Blob Storage'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.accountName) details.push({ path: ['accountName'], message: 'Account Name is required', code: 'REQUIRED' })
+      if (!c.accountKey) details.push({ path: ['accountKey'], message: 'Account Key is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -171,9 +179,10 @@ const registry: Record<string, ProviderEntry> = {
     component: GCSConfig,
     buildConfig(c) { return { projectId: c.projectId, keyFileJson: c.keyFileJson } },
     validate(c) {
-      return !c.projectId || !c.keyFileJson
-        ? 'Project ID and Key File JSON are required for Google Cloud Storage'
-        : null
+      const details: ApiErrorDetail[] = []
+      if (!c.projectId) details.push({ path: ['projectId'], message: 'Project ID is required', code: 'REQUIRED' })
+      if (!c.keyFileJson) details.push({ path: ['keyFileJson'], message: 'Key File JSON is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
 
@@ -185,7 +194,7 @@ const registry: Record<string, ProviderEntry> = {
       return cfg
     },
     validate(c) {
-      return c.basePath ? null : 'Base Path is required for Local Storage'
+      return c.basePath ? null : { message: 'Base Path is required', details: [{ path: ['basePath'], message: 'Base Path is required', code: 'REQUIRED' }] }
     },
   },
 }

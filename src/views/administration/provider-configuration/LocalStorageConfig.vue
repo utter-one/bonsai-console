@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ProviderConfig } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
+defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
 </script>
 
@@ -8,10 +11,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Local Storage Configuration</h3>
 
-    <div class="form-group">
-      <label class="form-label">
-        Base Path <span class="required">*</span>
-      </label>
+    <FormField label="Base Path" required :error="error" path="basePath" class="w-full" help="Base directory path for local file storage">
       <input
         v-model="config.basePath"
         type="text"
@@ -19,20 +19,15 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="/var/data/storage"
         class="form-input-mono"
       />
-      <p class="form-help-text">Base directory path for local file storage</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Base URL <span class="text-gray-500">(optional)</span>
-      </label>
+    <FormField label="Base URL" class="w-full" help="Base URL for generating file URLs (if files are served via HTTP)">
       <input
         v-model="config.baseUrl"
         type="url"
         placeholder="https://storage.example.com"
         class="form-input-mono"
       />
-      <p class="form-help-text">Base URL for generating file URLs (if files are served via HTTP)</p>
-    </div>
+    </FormField>
   </div>
 </template>

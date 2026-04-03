@@ -474,6 +474,7 @@
     <IssueEditModal
       v-if="showBugReportModal"
       :issue="null"
+      :error="bugReportError"
       :prefill-data="bugReportPrefillData"
       @close="closeBugReportModal"
       @save="handleBugReportSave" />
@@ -501,7 +502,8 @@ import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import ConversationEventCard from '@/components/ConversationEventCard.vue'
-import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
 import type { NormalizedEvent } from '../components/events/eventHelpers'
 
@@ -1102,6 +1104,7 @@ function openBugReport(event: ConversationEvent) {
     eventIndex: eventIndex >= 0 ? eventIndex : undefined,
     stageId: currentStage.value?.id || undefined
   }
+  bugReportError.value = null
   showBugReportModal.value = true
 }
 
@@ -1120,7 +1123,7 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
       timestamp: new Date()
     })
   } catch (error) {
-    console.error('Failed to create issue:', error)
+    bugReportError.value = parseApiError(error)
     addEvent({
       type: 'Error',
       message: 'Failed to create bug report',
@@ -1890,6 +1893,7 @@ const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
 const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
+const bugReportError = ref<ParsedError | null>(null)
 const currentConversationId = ref<string | null>(null)
 
 // Audio settings

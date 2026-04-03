@@ -9,6 +9,7 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -265,7 +266,7 @@ async function unbanUser() {
       <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
         <div class="mx-auto">
           <!-- Profile Tab -->
-          <div v-show="activeTab === 'profile'" class="tab-content">
+          <TabContent v-model="activeTab" tab="profile">
             <div>
               <div v-if="saveError" class="alert-error mb-4">{{ saveError }}</div>
 
@@ -329,10 +330,10 @@ async function unbanUser() {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Conversations Tab -->
-          <div v-show="activeTab === 'conversations'" class="tab-content">
+          <TabContent v-model="activeTab" tab="conversations">
             <div class="">
               <div class="flex items-center gap-3 mb-6">
                 <MessageSquare class="w-6 h-6 text-gray-600" />
@@ -395,19 +396,19 @@ async function unbanUser() {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Metadata Tab -->
-          <MetadataTab 
-            v-if="user" 
-            v-show="activeTab === 'metadata'" 
-            :fields="metadataFields" 
+          <MetadataTab
+            v-if="user"
+            v-model="activeTab"
+            tab="metadata"
+            :fields="metadataFields"
           />
-          <div v-show="activeTab === 'history'" class="tab-content">
           <!-- History Tab -->
+          <TabContent v-model="activeTab" tab="history">
             <EntityHistoryView
               v-if="user"
-              v-show="activeTab === 'history'"
               :load-history="() => usersStore.fetchAuditLogs(projectId, userId)"
               :current-object="user"
               :active="activeTab === 'history'"
@@ -416,10 +417,10 @@ async function unbanUser() {
               :ignore-fields="['createdAt', 'archived', 'updatedAt']"
               @recover-success="() => router.go(0)"
             />
-          </div>
+          </TabContent>
 
           <!-- Ban Tab -->
-          <div v-if="user" v-show="activeTab === 'ban'" class="tab-content">
+          <TabContent v-if="user" v-model="activeTab" tab="ban">
             <h3 class="text-lg font-semibold text-red-600 mb-2">Ban User</h3>
 
             <div v-if="banError" class="alert-error mb-4">{{ banError }}</div>
@@ -462,7 +463,7 @@ async function unbanUser() {
                 {{ isBanning ? 'Unbanning...' : 'Unban User' }}
               </button>
             </div>
-          </div>
+          </TabContent>
         </div>
       </div>
     </div>

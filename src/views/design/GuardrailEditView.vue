@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGuardrailsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { GuardrailResponse } from '@/api/types'
+import type { GuardrailResponse, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import ActionForm from '@/components/ActionForm.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
@@ -21,7 +23,7 @@ const projectsStore = useProjectsStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'metadata' | 'history'
@@ -106,7 +108,7 @@ async function loadGuardrail() {
       loadEffectsIntoOperations(currentGuardrail.value.effects || [], operations.value)
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load guardrail'
+      error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -120,7 +122,7 @@ async function handleSubmit() {
     const { effects: effectsArray, error: buildError } = buildEffectsFromOperations(operations.value)
 
     if (buildError) {
-      error.value = buildError
+      error.value = { message: buildError }
       isLoading.value = false
       return
     }
@@ -175,7 +177,7 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} guardrail`
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -231,18 +233,7 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Error Message -->
-    <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-4 dark:bg-red-900/30 dark:border-red-500">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400 dark:text-red-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-700 dark:text-red-200">{{ error }}</p>
-        </div>
-      </div>
-    </div>
+    <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
     <!-- Form Content -->
     <div class="flex-1 overflow-y-auto px-0 pb-4 bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
@@ -268,6 +259,7 @@ const metadataFields = computed(() => {
               :show-metadata="isEditMode"
               :metadata-fields="metadataFields"
               :show-history="isEditMode"
+              :error="error"
             >
               <template #history>
                 <div class="tab-content">

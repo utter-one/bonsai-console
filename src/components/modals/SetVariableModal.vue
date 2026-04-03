@@ -29,24 +29,21 @@
       <!-- Variable selection and value input -->
       <form v-else @submit.prevent="handleSubmit">
         <!-- Variable Selection -->
-        <div class="form-group">
-          <label class="form-label">
-            Variable <span class="text-red-500">*</span>
-          </label>
+        <FormField label="Variable" required class="w-full">
           <select v-model="selectedVariableName" class="form-select" required @change="onVariableChange">
             <option value="">Select a variable...</option>
             <option v-for="variable in availableVariables" :key="variable.name" :value="variable.name">
               {{ variable.name }} ({{ variable.type }})
             </option>
           </select>
-        </div>
+        </FormField>
 
         <!-- Value Input (shown when variable is selected) -->
-        <div v-if="selectedVariable" class="border-t border-gray-200 pt-4 mt-4 dark:border-gray-700">
+        <div v-if="selectedVariable" class="border-t border-gray-200 pt-4 dark:border-gray-700">
           <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Value</h3>
 
           <!-- String input -->
-          <div v-if="selectedVariable.type === 'string'" class="form-group">
+          <div v-if="selectedVariable.type === 'string'">
             <input
               v-model="variableValue"
               type="text"
@@ -56,7 +53,7 @@
           </div>
 
           <!-- Number input -->
-          <div v-else-if="selectedVariable.type === 'number'" class="form-group">
+          <div v-else-if="selectedVariable.type === 'number'">
             <input
               v-model.number="variableValue"
               type="number"
@@ -67,7 +64,7 @@
           </div>
 
           <!-- Boolean input -->
-          <div v-else-if="selectedVariable.type === 'boolean'" class="form-group">
+          <div v-else-if="selectedVariable.type === 'boolean'">
             <div class="flex items-center gap-2">
               <input
                 v-model="variableValue"
@@ -81,7 +78,7 @@
           </div>
 
           <!-- Object input (JSON) -->
-          <div v-else-if="selectedVariable.type === 'object'" class="form-group">
+          <div v-else-if="selectedVariable.type === 'object'">
             <textarea
               v-model="variableValueText"
               class="form-textarea font-mono text-sm"
@@ -93,7 +90,7 @@
           </div>
 
           <!-- String array input -->
-          <div v-else-if="selectedVariable.type === 'string[]'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'string[]'" class="space-y-2">
             <div v-for="(_item, index) in arrayValue" :key="index" class="flex gap-2">
               <input
                 v-model="arrayValue[index]"
@@ -121,7 +118,7 @@
           </div>
 
           <!-- Number array input -->
-          <div v-else-if="selectedVariable.type === 'number[]'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'number[]'" class="space-y-2">
             <div v-for="(_item, index) in arrayValue" :key="index" class="flex gap-2">
               <input
                 v-model.number="arrayValue[index]"
@@ -150,7 +147,7 @@
           </div>
 
           <!-- Boolean array input -->
-          <div v-else-if="selectedVariable.type === 'boolean[]'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'boolean[]'" class="space-y-2">
             <div v-for="(_item, index) in arrayValue" :key="index" class="flex gap-2 items-center">
               <div class="flex items-center gap-2 flex-1">
                 <input
@@ -182,7 +179,7 @@
           </div>
 
           <!-- Object array input (JSON objects) -->
-          <div v-else-if="selectedVariable.type === 'object[]'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'object[]'" class="space-y-2">
             <div v-for="(_item, index) in arrayValue" :key="index" class="space-y-1">
               <div class="flex gap-2">
                 <textarea
@@ -214,7 +211,7 @@
           </div>
 
           <!-- Image input -->
-          <div v-else-if="selectedVariable.type === 'image'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'image'" class="space-y-2">
             <input
               type="file"
               accept="image/*"
@@ -230,7 +227,7 @@
           </div>
 
           <!-- Image array input -->
-          <div v-else-if="selectedVariable.type === 'image[]'" class="form-group space-y-3">
+          <div v-else-if="selectedVariable.type === 'image[]'" class="space-y-3">
             <div v-for="(item, index) in arrayValue" :key="index" class="border border-gray-200 rounded-md p-3 dark:border-gray-700">
               <div class="flex gap-2 items-start">
                 <div class="flex-1">
@@ -268,7 +265,7 @@
           </div>
 
           <!-- Audio input -->
-          <div v-else-if="selectedVariable.type === 'audio'" class="form-group space-y-2">
+          <div v-else-if="selectedVariable.type === 'audio'" class="space-y-2">
             <input
               type="file"
               accept="audio/*"
@@ -286,7 +283,7 @@
           </div>
 
           <!-- Audio array input -->
-          <div v-else-if="selectedVariable.type === 'audio[]'" class="form-group space-y-3">
+          <div v-else-if="selectedVariable.type === 'audio[]'" class="space-y-3">
             <div v-for="(item, index) in arrayValue" :key="index" class="border border-gray-200 rounded-md p-3 dark:border-gray-700">
               <div class="flex gap-2 items-start">
                 <div class="flex-1">
@@ -352,6 +349,7 @@
 import { ref, computed } from 'vue'
 import { X, Plus } from 'lucide-vue-next'
 import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
 import type { StageResponse } from '@/api/types'
 import { useMediaUpload } from '@/composables/useMediaUpload'
 import { defaultItemForArrayType } from '@/utils/arrayEditor'

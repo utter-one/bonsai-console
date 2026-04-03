@@ -3,7 +3,8 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { ProviderResponse } from '@/api/types'
+import type { ProviderResponse, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -12,6 +13,10 @@ import { providerPresets } from './provider-configuration/providerPresets'
 import { lookupProvider } from './provider-configuration/providerRegistry'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,7 +25,7 @@ const providerCatalogStore = useProviderCatalogStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'config' | 'metadata' | 'history'>('basic')
 const form = ref({
@@ -60,6 +65,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'history', label: 'History', show: isEditMode.value },
 ])
 const currentProvider = ref<ProviderResponse | null>(null)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
@@ -181,7 +187,7 @@ async function loadProvider() {
       form.value.apiType = currentProvider.value.apiType
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load provider'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -190,15 +196,31 @@ async function loadProvider() {
 async function handleSubmit() {
   error.value = null
 
-  const entry = activeEntry.value
-  if (!entry) {
-    error.value = 'Please select a valid API type'
+  // Validate required fields
+  const validationDetails: ApiErrorDetail[] = []
+  if (!form.value.name.trim()) {
+    validationDetails.push({ path: ['name'], message: 'Name is required', code: 'REQUIRED' })
+  }
+  if (!form.value.apiType) {
+    validationDetails.push({ path: ['apiType'], message: 'API type is required', code: 'REQUIRED' })
+  }
+  if (validationDetails.length > 0) {
+    error.value = { message: 'Please correct the following errors', details: validationDetails }
+    switchToFirstErrorTab(error.value)
     return
   }
 
-  const validationError = entry.validate(form.value.config)
-  if (validationError) {
-    error.value = validationError
+  const entry = activeEntry.value
+  if (!entry) {
+    error.value = { message: 'Please select a valid API type', details: [{ path: ['apiType'], message: 'Please select a valid API type', code: 'INVALID_VALUE' }] }
+    switchToFirstErrorTab(error.value)
+    return
+  }
+
+  const configError = entry.validate(form.value.config)
+  if (configError) {
+    error.value = configError
+    activeTab.value = 'config'
     return
   }
 
@@ -266,7 +288,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} provider`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -328,7 +351,7 @@ const metadataFields = computed(() => {
 
     <!-- Error State -->
     <div v-else-if="error && isEditMode && !currentProvider" class="error-state">
-      {{ error }}
+      <ErrorDisplay :error="error" />
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Providers
       </button>
@@ -338,140 +361,108 @@ const metadataFields = computed(() => {
     <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
-        <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+            <!-- Error Message -->
+            <ErrorDisplay :error="error" />
 
-        <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Name <span class="required">*</span>
-            </label>
-            <input
-              v-model="form.name"
-              type="text"
-              required
-              placeholder="OpenAI GPT-4"
-              class="form-input"
-              :disabled="isLoading"
+            <!-- General Tab -->
+            <TabContent v-model="activeTab" tab="basic">
+              <FormField label="Name" required :error="error" path="name" class="w-full" help="A human-readable name for this provider">
+                <input
+                  v-model="form.name"
+                  type="text"
+                  placeholder="OpenAI GPT-4"
+                  class="form-input"
+                  :disabled="isLoading"
+                />
+              </FormField>
+
+              <FormField label="Description" :error="error" path="description" class="w-full" help="Optional description to help identify the purpose of this provider">
+                <textarea
+                  v-model="form.description"
+                  rows="3"
+                  class="form-textarea"
+                  placeholder="A brief description of this provider..."
+                  :disabled="isLoading"
+                ></textarea>
+              </FormField>
+
+              <TagsEditor v-model="form.tags" :disabled="isLoading" />
+            </TabContent>
+
+            <!-- Configuration Tab -->
+            <TabContent v-model="activeTab" tab="config">
+              <FormField label="Provider Type" required :error="error" path="providerType" class="w-fit" :hint="isEditMode ? 'type cannot be changed' : undefined" :help="isEditMode ? 'The provider type cannot be changed after creation' : 'Select the type of AI service this provider offers'">
+                <select
+                  v-model="form.providerType"
+                  class="form-select-auto min-w-64"
+                  :disabled="isEditMode || isLoading"
+                >
+                  <option v-for="type in providerTypes" :key="type.value" :value="type.value">
+                    {{ type.label }}
+                  </option>
+                </select>
+              </FormField>
+
+              <FormField label="API Type" required :error="error" path="apiType" class="w-fit" :help="selectedApiTypeDescription || 'The API implementation type for this provider'">
+                <select
+                  v-model="form.apiType"
+                  class="form-select-auto min-w-64"
+                  :disabled="isLoading || providerCatalogStore.isLoading"
+                  @change="handleApiTypeChange"
+                >
+                  <option value="" disabled>
+                    {{ providerCatalogStore.isLoading ? 'Loading providers...' : 'Select API type...' }}
+                  </option>
+                  <option v-for="type in apiTypeOptions" :key="type.value" :value="type.value">
+                    {{ type.label }}
+                  </option>
+                </select>
+              </FormField>
+
+              <div v-if="providerCatalogStore.isLoading" class="alert-info mb-6">
+                Loading available provider types...
+              </div>
+
+              <div v-else-if="!form.providerType" class="alert-info mb-6">
+                Please select a Provider Type above to see available API types.
+              </div>
+
+              <div v-else-if="!form.apiType" class="alert-info mb-6">
+                Please select an API Type above to configure provider-specific settings below.
+              </div>
+
+              <fieldset v-else :disabled="isLoading" class="border-0 m-0 p-0 min-w-0 w-full">
+                <component
+                  v-if="activeEntry"
+                  :is="activeEntry.component"
+                  v-model:config="form.config"
+                  :error="error"
+                  v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
+                />
+              </fieldset>
+            </TabContent>
+
+            <!-- Metadata Tab -->
+            <MetadataTab
+              v-if="isEditMode && currentProvider"
+              v-model="activeTab"
+              tab="metadata"
+              :fields="metadataFields"
             />
-            <p class="form-help-text">A human-readable name for this provider</p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              Description <span class="text-gray-500">(optional)</span>
-            </label>
-            <textarea
-              v-model="form.description"
-              rows="3"
-              class="form-textarea"
-              placeholder="A brief description of this provider..."
-              :disabled="isLoading"
-            ></textarea>
-            <p class="form-help-text">
-              Optional description to help identify the purpose of this provider
-            </p>
-          </div>
-
-          <TagsEditor v-model="form.tags" :disabled="isLoading" />
-        </div>
-
-        <!-- Configuration Tab -->
-        <div v-show="activeTab === 'config'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Provider Type <span class="required">*</span>
-            </label>
-            <select
-              v-model="form.providerType"
-              required
-              class="form-select-auto min-w-64"
-              :disabled="isEditMode || isLoading"
-            >
-              <option v-for="type in providerTypes" :key="type.value" :value="type.value">
-                {{ type.label }}
-              </option>
-            </select>
-            <p class="form-help-text">
-              {{ isEditMode 
-                ? 'The provider type cannot be changed after creation' 
-                : 'Select the type of AI service this provider offers' 
-              }}
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              API Type <span class="required">*</span>
-            </label>
-            <select
-              v-model="form.apiType"
-              required
-              class="form-select-auto min-w-64"
-              :disabled="isLoading || providerCatalogStore.isLoading"
-              @change="handleApiTypeChange"
-            >
-              <option value="" disabled>
-                {{ providerCatalogStore.isLoading ? 'Loading providers...' : 'Select API type...' }}
-              </option>
-              <option v-for="type in apiTypeOptions" :key="type.value" :value="type.value">
-                {{ type.label }}
-              </option>
-            </select>
-            <p v-if="selectedApiTypeDescription" class="form-help-text">
-              {{ selectedApiTypeDescription }}
-            </p>
-            <p v-else class="form-help-text">
-              The API implementation type for this provider
-            </p>
-          </div>
-
-          <div v-if="providerCatalogStore.isLoading" class="alert-info mb-6">
-            Loading available provider types...
-          </div>
-
-          <div v-else-if="!form.providerType" class="alert-info mb-6">
-            Please select a Provider Type above to see available API types.
-          </div>
-
-          <div v-else-if="!form.apiType" class="alert-info mb-6">
-            Please select an API Type above to configure provider-specific settings below.
-          </div>
-
-          <fieldset v-else :disabled="isLoading" class="border-0 m-0 p-0 min-w-0 w-full">
-            <component
-              v-if="activeEntry"
-              :is="activeEntry.component"
-              v-model:config="form.config"
-              v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
-            />
-          </fieldset>
-        </div>
-
-        <!-- Metadata Tab -->
-        <MetadataTab
-          v-if="isEditMode && currentProvider"
-          v-show="activeTab === 'metadata'"
-          :fields="metadataFields"
-        />
-        <div class="tab-content">
-          <!-- History Tab -->
-          <EntityHistoryView
-            v-if="isEditMode && currentProvider"
-            v-show="activeTab === 'history'"
-            :load-history="() => providersStore.fetchAuditLogs(currentProvider!.id)"
-            :current-version="currentProvider.version"
-            :current-object="currentProvider"
-            :active="activeTab === 'history'"
-            :update-fn="(data) => providersStore.update(currentProvider!.id, data)"
-            :create-fn="(data) => providersStore.create(data)"
-            :ignore-fields="['createdAt', 'updatedAt', 'version']"
-            @recover-success="() => router.go(0)"
-          />
-        </div>
+            <!-- History Tab -->
+            <TabContent v-model="activeTab" tab="history">
+              <EntityHistoryView
+                v-if="isEditMode && currentProvider"
+                :load-history="() => providersStore.fetchAuditLogs(currentProvider!.id)"
+                :current-version="currentProvider.version"
+                :current-object="currentProvider"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => providersStore.update(currentProvider!.id, data)"
+                :create-fn="(data) => providersStore.create(data)"
+                :ignore-fields="['createdAt', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
+              />
+            </TabContent>
         </form>
       </div>
     </div>

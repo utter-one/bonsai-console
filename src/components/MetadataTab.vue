@@ -9,6 +9,8 @@ interface MetadataField {
 // Props
 const props = defineProps<{
   fields: MetadataField[]
+  modelValue?: string
+  tab?: string
 }>()
 
 // Helper function to format dates
@@ -37,7 +39,11 @@ function getValueClass(field: MetadataField): string {
 </script>
 
 <template>
-  <div class="tab-content">
+  <div
+    class="tab-content"
+    :data-tab="tab"
+    v-show="!tab || !modelValue || modelValue === tab"
+  >
     <div class="metadata-container">
       <div
         v-for="(field, index) in fields"

@@ -3,7 +3,8 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
-import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
@@ -19,6 +20,7 @@ const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useS
 const showModal = ref(false)
 const selectedIssue = ref<IssueResponse | null>(null)
 const showArchived = ref(false)
+const issueError = ref<ParsedError | null>(null)
 
 // Whether a project is currently selected
 const hasProjectSelected = computed(() => !!projectSelectionStore.selectedProjectId)
@@ -145,11 +147,13 @@ async function handleStatusChange(issue: IssueResponse, newStatus: string) {
 
 function openCreateModal() {
   selectedIssue.value = null
+  issueError.value = null
   showModal.value = true
 }
 
 function openEditModal(issue: IssueResponse) {
   selectedIssue.value = issue
+  issueError.value = null
   showModal.value = true
 }
 
@@ -168,7 +172,7 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
     closeModal()
     await loadIssues()
   } catch (error) {
-    console.error('Failed to save issue:', error)
+    issueError.value = parseApiError(error)
   }
 }
 
@@ -309,6 +313,7 @@ async function handleRecoverSuccess() {
     <IssueEditModal
       v-if="showModal"
       :issue="selectedIssue"
+      :error="issueError"
       :prefill-data="selectedIssue ? undefined : { projectId: projectSelectionStore.selectedProjectId || undefined }"
       :is-read-only="selectedIssue ? isIssueArchived(selectedIssue) : false"
       :load-history="selectedIssue ? () => issuesStore.fetchAuditLogs(selectedIssue!.id.toString()) : undefined"

@@ -10,35 +10,27 @@
 
     <div v-if="activeTab === 'details'">
       <form id="category-form" @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label class="form-label">Name <span class="required">*</span></label>
+        <FormField label="Name" :path="'name'" :error="props.error" required class="w-full">
           <input
             v-model="form.name"
             type="text"
-            required
             class="form-input"
             placeholder="Category name"
             :disabled="disabled"
           />
-        </div>
+        </FormField>
 
-        <div class="form-group">
-          <label class="form-label">Prompt Trigger <span class="required">*</span></label>
+        <FormField label="Prompt Trigger" :path="'promptTrigger'" :error="props.error" required class="w-full" help="Phrase that activates this knowledge category in conversations">
           <input
             v-model="form.promptTrigger"
             type="text"
-            required
             class="form-input"
             placeholder="e.g. When the user asks about pricing..."
             :disabled="disabled"
           />
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Phrase that activates this knowledge category in conversations
-          </p>
-        </div>
+        </FormField>
 
-        <div class="form-group">
-          <label class="form-label">Knowledge Tags</label>
+        <FormField label="Knowledge Tags" class="w-full" help="Comma-separated tags for this category">
           <input
             v-model="tagsInput"
             type="text"
@@ -46,13 +38,9 @@
             placeholder="billing, pricing, plans"
             :disabled="disabled"
           />
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Comma-separated tags for this category
-          </p>
-        </div>
+        </FormField>
 
-        <div class="form-group">
-          <label class="form-label">Display Order</label>
+        <FormField label="Display Order">
           <input
             v-model.number="form.order"
             type="number"
@@ -60,7 +48,7 @@
             class="form-input max-w-32"
             :disabled="disabled"
           />
-        </div>
+        </FormField>
       </form>
     </div>
 
@@ -80,6 +68,7 @@
 
     <template #footer>
       <div v-if="!category || activeTab === 'details'" class="modal-footer">
+        <ErrorDisplay v-if="error" :error="error" class="flex-1 mr-2 self-start" />
         <button type="button" @click="emit('close')" class="btn-secondary">Cancel</button>
         <button v-if="!disabled" type="submit" form="category-form" class="btn-primary">
           {{ category ? 'Save Changes' : 'Create Category' }}
@@ -100,9 +89,13 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import type { ParsedError } from '@/api/types'
 
 const props = defineProps<{
   category: KnowledgeCategoryResponse | null
+  error?: ParsedError | null
   loadHistory?: () => Promise<any>
   updateFn?: (data: any) => Promise<any>
   createFn?: (data: any) => Promise<any>

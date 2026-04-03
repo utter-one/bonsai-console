@@ -5,7 +5,8 @@ import { useContextTransformersStore, useProvidersStore, useProjectSelectionStor
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
-import type { ContextTransformerResponse, LlmSettings } from '@/api/types'
+import type { ContextTransformerResponse, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -15,6 +16,11 @@ import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,7 +30,7 @@ const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata' | 'history'>('basic')
@@ -74,6 +80,7 @@ const currentTransformer = ref<ContextTransformerResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentTransformer)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentTransformer.value?.archived)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
@@ -128,15 +135,23 @@ async function loadTransformer() {
 async function handleSubmit() {
   error.value = null
 
-  if (!form.value.llmProviderId) {
-    error.value = 'LLM Provider is required. Please select an LLM provider.'
-    activeTab.value = 'prompt'
-    return
-  }
+  const validationDetails: ApiErrorDetail[] = []
 
-  if (!form.value.llmSettings) {
-    error.value = 'LLM Settings are required. Please configure the LLM settings.'
-    activeTab.value = 'prompt'
+  if (!form.value.name.trim())
+    validationDetails.push({ code: 'required', path: ['name'], message: 'Name is required.' })
+
+  if (!form.value.llmProviderId)
+    validationDetails.push({ code: 'required', path: ['llmProviderId'], message: 'LLM Provider is required.' })
+
+  if (!form.value.llmSettings)
+    validationDetails.push({ code: 'required', path: ['llmSettings'], message: 'LLM Settings are required. Click Settings... to configure.' })
+
+  if (!form.value.prompt.trim())
+    validationDetails.push({ code: 'required', path: ['prompt'], message: 'Transformation prompt is required.' })
+
+  if (validationDetails.length > 0) {
+    error.value = { message: validationDetails[0]!.message, details: validationDetails }
+    switchToFirstErrorTab(error.value)
     return
   }
 
@@ -207,7 +222,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} context transformer`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -291,16 +307,11 @@ const metadataFields = computed(() => {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <div v-if="error" class="alert-error mb-6">
-            {{ error }}
-          </div>
+          <ErrorDisplay :error="error" />
 
           <!-- General Tab -->
-          <div v-show="activeTab === 'basic'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">
-                Transformer ID <span class="text-gray-500">(optional)</span>
-              </label>
+          <TabContent v-model="activeTab" tab="basic">
+            <FormField label="Transformer ID" :error="error" path="id" class="w-full" hint="optional" :help="isEditMode ? 'Cannot be changed after creation.' : 'Custom identifier for the transformer. Leave empty to auto-generate.'">
               <input
                 v-model="form.id"
                 type="text"
@@ -309,33 +320,19 @@ const metadataFields = computed(() => {
                 :disabled="isLoading || isEditMode"
                 :class="{ 'form-input-disabled': isEditMode }"
               />
-              <p class="form-help-text">
-                Custom identifier for the transformer. Leave empty to auto-generate.
-                {{ isEditMode ? 'Cannot be changed after creation.' : '' }}
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Name <span class="required">*</span>
-              </label>
+            <FormField label="Name" required :error="error" path="name" class="w-full" help="Human-readable name for this context transformer">
               <input
                 v-model="form.name"
                 type="text"
-                required
                 placeholder="User Data Enricher"
                 class="form-input"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Human-readable name for this context transformer
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Description <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Description" :error="error" path="description" class="w-full" help="Optional description of the transformer's purpose and functionality">
               <textarea
                 v-model="form.description"
                 rows="3"
@@ -343,19 +340,15 @@ const metadataFields = computed(() => {
                 placeholder="Brief description of what this transformer does..."
                 :disabled="isLoading"
               ></textarea>
-              <p class="form-help-text">
-                Optional description of the transformer's purpose and functionality
-              </p>
-            </div>
+            </FormField>
 
             <TagsEditor v-model="form.tags" :disabled="isLoading" />
 
-          </div>
+          </TabContent>
 
           <!-- Variables Tab -->
-          <div v-show="activeTab === 'variables'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">Context Fields</label>
+          <TabContent v-model="activeTab" tab="variables">
+            <FormField label="Context Fields" class="w-full">
               <p class="form-help-text mb-4">
                 Select which stage variables this transformer should have access to. Selecting a variable makes its value
                 available in the transformation context. Arrays are selected as a whole with their full structure.
@@ -364,47 +357,42 @@ const metadataFields = computed(() => {
                 v-model="form.contextFields"
                 :project-id="projectId"
               />
-            </div>
-          </div>
+            </FormField>
+          </TabContent>
 
           <!-- Prompt Tab -->
-          <div v-show="activeTab === 'prompt'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">
-                LLM Provider <span class="required">*</span>
-              </label>
-              <div class="flex flex-col md:flex-row gap-2">
-                <select
-                  :value="form.llmProviderId"
-                  @change="handleLlmProviderChange"
-                  class="form-select-auto min-w-64"
-                  :disabled="isLoading"
-                >
-                  <option value="">Select an LLM provider</option>
-                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                    {{ provider.name }}
-                  </option>
-                </select>
-                <button
-                  type="button"
-                  @click="showLLMSettingsModal = true"
-                  class="btn-secondary whitespace-nowrap"
-                  :disabled="isLoading"
-                >
-                  <Settings class="inline-block mr-1 w-4 h-4" />
-                  Settings...
-                </button>
+          <TabContent v-model="activeTab" tab="prompt">
+            <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider to use for this transformer.">
+              <div class="flex flex-col md:flex-row gap-2 items-center">
+                <FormField path="llmProviderId">
+                  <select
+                    :value="form.llmProviderId"
+                    @change="handleLlmProviderChange"
+                    class="form-select-auto min-w-64"
+                    :disabled="isLoading"
+                  >
+                    <option value="">Select an LLM provider</option>
+                    <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                      {{ provider.name }}
+                    </option>
+                  </select>
+                </FormField>
+                <FormField path="llmSettings">
+                  <button
+                    type="button"
+                    @click="showLLMSettingsModal = true"
+                    class="btn-secondary whitespace-nowrap"
+                    :disabled="isLoading"
+                  >
+                    <Settings class="inline-block mr-1 w-4 h-4" />
+                    Settings...
+                  </button>
+                </FormField>
                 <LLMModelBadge :settings="form.llmSettings" />
               </div>
-              <p class="form-help-text">
-                The LLM provider to use for this transformer.
-              </p>
-            </div>
+            </CompositeFormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Transformation Prompt <span class="required">*</span>
-              </label>
+            <FormField label="Transformation Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt or instructions that define how the context should be transformed">
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading || isReadOnly"
@@ -413,23 +401,20 @@ const metadataFields = computed(() => {
                 aria-label="Context transformer prompt"
                 min-height="28rem"
               />
-              <p class="form-help-text">
-                The system prompt or instructions that define how the context should be transformed
-              </p>
-            </div>
-          </div>
+            </FormField>
+          </TabContent>
 
           <!-- Metadata Tab -->
           <MetadataTab
             v-if="isEditMode && currentTransformer"
-            v-show="activeTab === 'metadata'"
+            v-model="activeTab"
+            tab="metadata"
             :fields="metadataFields"
           />
-          <div class="tab-content">
-            <!-- History Tab -->
+          <!-- History Tab -->
+          <TabContent v-model="activeTab" tab="history">
             <EntityHistoryView
               v-if="isEditMode && currentTransformer"
-              v-show="activeTab === 'history'"
               :load-history="() => transformersStore.fetchAuditLogs(projectId, currentTransformer!.id)"
               :current-version="currentTransformer.version"
               :current-object="currentTransformer"
@@ -439,7 +424,7 @@ const metadataFields = computed(() => {
               :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
               @recover-success="() => router.go(0)"
             />
-          </div>
+          </TabContent>
           </fieldset>
         </form>
       </div>
