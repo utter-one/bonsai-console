@@ -2,9 +2,12 @@
 import { computed } from 'vue'
 import { providerPresets } from './providerPresets'
 import type { ProviderConfig, ProviderPreset } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
 const props = defineProps<{
   apiType: string
+  error?: ParsedError | null
 }>()
 
 const config = defineModel<ProviderConfig>('config', { required: true })
@@ -33,11 +36,7 @@ function resetBaseUrl() {
 <template>
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">OpenAI Configuration</h3>
-
-    <div class="form-group">
-      <label class="form-label">
-        API Key <span class="required">*</span>
-      </label>
+    <FormField label="API Key" required :error="error" path="apiKey" class="w-full" help="Your OpenAI API key">
       <input
         v-model="config.apiKey"
         type="password"
@@ -45,26 +44,18 @@ function resetBaseUrl() {
         placeholder="sk-..."
         class="form-input-mono"
       />
-      <p class="form-help-text">Your OpenAI API key</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Organization ID <span class="text-gray-500">(optional)</span>
-      </label>
+    <FormField label="Organization ID" class="w-full" help="Optional organization ID for OpenAI">
       <input
         v-model="config.organizationId"
         type="text"
         placeholder="org-..."
         class="form-input-mono"
       />
-      <p class="form-help-text">Optional organization ID for OpenAI</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Base URL <span class="text-gray-500">(optional)</span>
-      </label>
+    <FormField label="Base URL" class="w-full">
       <div class="flex gap-2">
         <div class="flex-1">
           <input
@@ -101,6 +92,6 @@ function resetBaseUrl() {
         <template v-else-if="defaultBaseUrl">Override the default endpoint URL. Click Reset to restore the default.</template>
         <template v-else>Optional custom base URL for this provider.</template>
       </p>
-    </div>
+    </FormField>
   </div>
 </template>

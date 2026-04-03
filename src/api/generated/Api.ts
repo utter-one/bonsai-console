@@ -70,6 +70,7 @@ import {
   TokenUsageTrendResponse,
   ToolParameter,
   TtsModelInfo,
+  UpdateToolRequest,
   VoiceInfo,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
@@ -10106,59 +10107,7 @@ export class Api<
   projectsToolsUpdate = (
     projectId: string,
     id: string,
-    data: {
-      /**
-       * Updated display name
-       * @minLength 1
-       */
-      name?: string;
-      /** Updated description */
-      description?: string | null;
-      /**
-       * Updated Handlebars prompt template (smart_function)
-       * @minLength 1
-       */
-      prompt?: string;
-      /** Updated LLM provider ID (smart_function) */
-      llmProviderId?: string | null;
-      /** Updated LLM provider-specific settings (smart_function) */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
-      /** Updated input format (smart_function) */
-      inputType?: "text" | "image" | "multi-modal";
-      /** Updated output format (smart_function) */
-      outputType?: "text" | "image" | "multi-modal";
-      /**
-       * Updated target URL (webhook)
-       * @format uri
-       */
-      url?: string;
-      /** Updated HTTP method (webhook) */
-      webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-      /** Updated HTTP headers (webhook) */
-      webhookHeaders?: Record<string, string>;
-      /** Updated request body template (webhook) */
-      webhookBody?: string | null;
-      /**
-       * Updated JavaScript code (script)
-       * @minLength 1
-       */
-      code?: string;
-      /** Updated parameters for the tool */
-      parameters?: ToolParameter[];
-      /** Updated tags */
-      tags?: string[];
-      /** Updated metadata */
-      metadata?: Record<string, any>;
-      /**
-       * Current version number for optimistic locking
-       * @min 1
-       */
-      version: number;
-    },
+    data: UpdateToolRequest,
     params: RequestParams = {},
   ) =>
     this.request<

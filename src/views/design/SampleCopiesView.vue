@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Plus, X, Save, Check, Trash2, Route, Drama, AlertTriangle } from 'lucide-vue-next'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import MultiSelectCell from '@/components/MultiSelectCell.vue'
@@ -13,7 +15,8 @@ import {
   useProjectsStore,
   useClassifiersStore,
 } from '@/stores'
-import type { CreateSampleCopyRequest, SampleCopyResponse } from '@/api/types'
+import type { CreateSampleCopyRequest, SampleCopyResponse, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useSpreadsheetBehavior } from '@/composables/useSpreadsheetBehavior'
 
@@ -81,6 +84,7 @@ interface RowState {
   isDirty: boolean
   isSaving: boolean
   saveError: string | null
+  validationErrors: Record<string, string>
 }
 
 interface DecoratorRowState {
@@ -91,15 +95,18 @@ interface DecoratorRowState {
   version: number
   isDirty: boolean
   isSaving: boolean
+  saveError: string | null
+  validationErrors: Record<string, string>
 }
 
 const rows = ref<RowState[]>([])
 const decoratorRows = ref<DecoratorRowState[]>([])
 const isSavingAll = ref(false)
 const showSaveAllSuccess = ref(false)
-const saveAllError = ref<string | null>(null)
+const copiesError = ref<ParsedError | null>(null)
 const isSavingAllDecorators = ref(false)
 const showSaveAllDecoratorSuccess = ref(false)
+const decoratorsError = ref<ParsedError | null>(null)
 
 const dirtyRowCount = computed(() => rows.value.filter(r => r.isDirty).length)
 const dirtyDecoratorCount = computed(() => decoratorRows.value.filter(d => d.isDirty).length)
@@ -125,6 +132,7 @@ function makeRowState(item: SampleCopyResponse): RowState {
     isDirty: false,
     isSaving: false,
     saveError: null,
+    validationErrors: {},
   }
 }
 
@@ -146,6 +154,7 @@ function makeNewRow(): RowState {
     isDirty: true,
     isSaving: false,
     saveError: null,
+    validationErrors: {},
   }
 }
 
@@ -158,6 +167,8 @@ function makeDecoratorRowState(item: { id: string; name: string; template: strin
     version: item.version,
     isDirty: false,
     isSaving: false,
+    saveError: null,
+    validationErrors: {},
   }
 }
 
@@ -254,10 +265,48 @@ function addRow() {
 function markDirty(row: RowState) {
   row.isDirty = true
   row.saveError = null
+  row.validationErrors = {}
 }
 
-async function saveRow(row: RowState) {
-  if (!projectId.value || row.isSaving || !row.isDirty) return
+function markDecoratorDirty(dr: DecoratorRowState) {
+  dr.isDirty = true
+  dr.saveError = null
+  dr.validationErrors = {}
+}
+
+function validateRow(row: RowState): ApiErrorDetail[] {
+  const details: ApiErrorDetail[] = []
+  if (!row.name.trim())
+    details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
+  if (!row.content.some(c => c.trim()))
+    details.push({ path: ['content'], message: 'At least one content item is required.', code: 'required' })
+  row.validationErrors = {}
+  for (const d of details)
+    row.validationErrors[String(d.path[0]!)] = d.message
+  if (details.length > 0)
+    row.saveError = details[0]!.message
+  return details
+}
+
+function validateDecoratorRow(dr: DecoratorRowState): ApiErrorDetail[] {
+  const details: ApiErrorDetail[] = []
+  if (!dr.name.trim())
+    details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
+  if (!dr.template.trim())
+    details.push({ path: ['template'], message: 'Template is required.', code: 'required' })
+  dr.validationErrors = {}
+  for (const d of details)
+    dr.validationErrors[String(d.path[0]!)] = d.message
+  if (details.length > 0)
+    dr.saveError = details[0]!.message
+  return details
+}
+
+async function saveRow(row: RowState): Promise<ParsedError | null> {
+  if (!projectId.value || row.isSaving || !row.isDirty) return null
+  const validationDetails = validateRow(row)
+  if (validationDetails.length > 0)
+    return { message: validationDetails[0]!.message, details: validationDetails }
   row.isSaving = true
   row.saveError = null
   try {
@@ -295,8 +344,11 @@ async function saveRow(row: RowState) {
       row.version = result.version
     }
     row.isDirty = false
+    return null
   } catch (err: any) {
-    row.saveError = err.response?.data?.message || 'Save failed'
+    const parsed = parseApiError(err)
+    row.saveError = parsed.message
+    return parsed
   } finally {
     row.isSaving = false
   }
@@ -320,10 +372,13 @@ async function saveAllRows() {
   const dirty = rows.value.filter(r => r.isDirty && !r.isSaving)
   if (dirty.length === 0) return
   isSavingAll.value = true
-  saveAllError.value = null
-  await Promise.all(dirty.map(row => saveRow(row)))
+  copiesError.value = null
+  const results = await Promise.all(dirty.map(row => saveRow(row)))
   isSavingAll.value = false
-  if (dirty.every(r => !r.saveError)) {
+  const allDetails = results.flatMap(r => r?.details ?? (r ? [{ path: [] as (string|number)[], message: r.message, code: 'error' }] : []))
+  if (allDetails.length > 0) {
+    copiesError.value = { message: allDetails[0]!.message, details: allDetails }
+  } else {
     showSaveAllSuccess.value = true
     setTimeout(() => { showSaveAllSuccess.value = false }, 2000)
   }
@@ -333,10 +388,16 @@ async function saveAllDecoratorRows() {
   const dirty = decoratorRows.value.filter(d => d.isDirty && !d.isSaving)
   if (dirty.length === 0) return
   isSavingAllDecorators.value = true
-  await Promise.all(dirty.map(dr => saveDecoratorRow(dr)))
+  decoratorsError.value = null
+  const results = await Promise.all(dirty.map(dr => saveDecoratorRow(dr)))
   isSavingAllDecorators.value = false
-  showSaveAllDecoratorSuccess.value = true
-  setTimeout(() => { showSaveAllDecoratorSuccess.value = false }, 2000)
+  const allDetails = results.flatMap(r => r?.details ?? (r ? [{ path: [] as (string|number)[], message: r.message, code: 'error' }] : []))
+  if (allDetails.length > 0) {
+    decoratorsError.value = { message: allDetails[0]!.message, details: allDetails }
+  } else {
+    showSaveAllDecoratorSuccess.value = true
+    setTimeout(() => { showSaveAllDecoratorSuccess.value = false }, 2000)
+  }
 }
 
 function onDecoratorChange(row: RowState, value: string) {
@@ -410,12 +471,18 @@ function addDecoratorRow() {
     version: 0,
     isDirty: true,
     isSaving: false,
+    saveError: null,
+    validationErrors: {},
   })
 }
 
-async function saveDecoratorRow(dr: DecoratorRowState) {
-  if (!projectId.value || dr.isSaving) return
+async function saveDecoratorRow(dr: DecoratorRowState): Promise<ParsedError | null> {
+  if (!projectId.value || dr.isSaving) return null
+  const validationDetails = validateDecoratorRow(dr)
+  if (validationDetails.length > 0)
+    return { message: validationDetails[0]!.message, details: validationDetails }
   dr.isSaving = true
+  dr.saveError = null
   try {
     if (!dr.id) {
       const result = await copyDecoratorsStore.create(projectId.value, {
@@ -433,8 +500,11 @@ async function saveDecoratorRow(dr: DecoratorRowState) {
       dr.version = result.version
     }
     dr.isDirty = false
-  } catch {
-    // error state managed by store
+    return null
+  } catch (err: any) {
+    const parsed = parseApiError(err)
+    dr.saveError = parsed.message
+    return parsed
   } finally {
     dr.isSaving = false
   }
@@ -553,8 +623,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 
             <!-- Sample Copy Classifier Setting -->
             <div class="mb-6">
-              <div class="form-group">
-                <label class="form-label">Sample Copy Classifier</label>
+              <FormField label="Sample Copy Classifier" class="w-full">
                 <div class="flex items-center gap-3">
                   <select
                     v-model="defaultSampleCopyClassifierId"
@@ -587,7 +656,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 </div>
                 <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
                 <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
-              </div>
+              </FormField>
             </div>
 
             <!-- Toolbar -->
@@ -648,8 +717,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               </button>
             </div>
 
-            <!-- Store error -->
-            <div v-if="sampleCopiesStore.error" class="alert-error mb-4">{{ sampleCopiesStore.error }}</div>
+            <ErrorDisplay :error="copiesError" class="mb-4" />
 
             <!-- Loading -->
             <div v-if="sampleCopiesStore.isLoading && rows.length === 0" class="text-center py-16 text-gray-400 dark:text-gray-500">
@@ -657,7 +725,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
             </div>
 
             <!-- Spreadsheet Table -->
-            <div v-else class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div v-else class="overflow-x-auto overflow-y-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
               <table
                 class="text-sm border-collapse"
                 :style="{ tableLayout: 'fixed', width: tableWidth + 'px' }"
@@ -715,7 +783,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     ]"
                   >
                     <!-- NAME -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['name'] }" :title="row.validationErrors['name']">
                       <input
                         v-model="row.name"
                         @input="markDirty(row)"
@@ -766,7 +834,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- SAMPLE CONTENT -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['content'] }" :title="row.validationErrors['content']">
                       <div class="space-y-1" data-content-cell>
                         <div
                           v-for="(_, idx) in row.content"
@@ -900,8 +968,8 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               </div>
             </div>
 
-            <div v-if="copyDecoratorsStore.error" class="alert-error mb-4">{{ copyDecoratorsStore.error }}</div>
-
+            <ErrorDisplay :error="decoratorsError" class="mb-4" />
+            
             <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <table class="w-full text-sm border-collapse">
                 <thead>
@@ -925,22 +993,22 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
                     :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : dr.isDirty ? 'bg-amber-50/60 dark:bg-amber-900/15' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
                   >
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['name'] }" :title="dr.validationErrors['name']">
                       <input
                         v-model="dr.name"
-                        @input="dr.isDirty = true"
+                        @input="markDecoratorDirty(dr)"
                         type="text"
                         placeholder="decorator name"
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
                     </td>
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['template'] }" :title="dr.validationErrors['template']">
                       <textarea
                         v-model="dr.template"
                         v-autosize
                         rows="1"
-                        @input="dr.isDirty = true"
+                        @input="markDecoratorDirty(dr)"
                         placeholder="Template string, use {{copyContent}} as the sample placeholder"
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
@@ -948,6 +1016,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
+                        <span v-if="dr.saveError" class="text-red-500 dark:text-red-400" :title="dr.saveError"><AlertTriangle class="w-4 h-4" /></span>
                         <span v-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"
@@ -1081,5 +1150,14 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
 
 :global(.dark) .spreadsheet-select:focus {
   border-color: rgb(16 185 129); /* emerald-500 */
+}
+
+.cell-error {
+  outline: 1.5px solid rgb(239 68 68);
+  outline-offset: -1.5px;
+}
+
+:global(.dark) .cell-error {
+  outline-color: rgb(248 113 113);
 }
 </style>

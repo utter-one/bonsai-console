@@ -18,25 +18,16 @@
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Language <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Language" class="w-full" help='Language code for speech recognition (e.g., "en-US", "es-ES", "fr-FR")'>
               <input
                 v-model="form.settings.language"
                 type="text"
                 placeholder="e.g., en-US, es-ES, fr-FR"
                 class="form-input"
               />
-              <p class="form-help-text">
-                Language code for speech recognition (e.g., "en-US", "es-ES", "fr-FR")
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Audio Format <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Audio Format" class="w-full" help="Audio input format for speech recognition">
               <select
                 v-model="form.settings.audioFormat"
                 class="form-select-auto min-w-64"
@@ -57,15 +48,9 @@
                 <option value="alaw">A-law</option>
                 <option value="linear16">Linear16</option>
               </select>
-              <p class="form-help-text">
-                Audio input format for speech recognition
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Dictionary Phrases <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Dictionary Phrases" class="w-full">
               <div class="flex gap-2 mb-2">
                 <input
                   v-model="newPhrase"
@@ -103,7 +88,7 @@
               <p class="form-help-text mt-2">
                 Custom phrases to improve recognition accuracy for domain-specific terms
               </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- ElevenLabs ASR Settings -->
@@ -115,25 +100,16 @@
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Model ID <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Model ID" class="w-full" help="Model to use for transcription (defaults to scribe_v2_realtime)">
               <input
                 v-model="form.settings.modelId"
                 type="text"
                 placeholder="e.g., scribe_v2_realtime"
                 class="form-input"
               />
-              <p class="form-help-text">
-                Model to use for transcription (defaults to scribe_v2_realtime)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Audio Format <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Audio Format" class="w-full" help="Audio encoding format for speech-to-text">
               <select
                 v-model="form.settings.audioFormat"
                 class="form-select-auto min-w-64"
@@ -145,27 +121,18 @@
                 <option value="pcm_24000">PCM 24kHz</option>
                 <option value="pcm_44100">PCM 44.1kHz</option>
               </select>
-              <p class="form-help-text">
-                Audio encoding format for speech-to-text
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Language Code <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Language Code" class="w-full" help='Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es")'>
               <input
                 v-model="form.settings.languageCode"
                 type="text"
                 placeholder="e.g., en, es, fr"
                 class="form-input"
               />
-              <p class="form-help-text">
-                Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es")
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Include Timestamps" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.includeTimestamps"
@@ -173,15 +140,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Include Timestamps
+                  Receive word-level timestamps in transcription results
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Receive word-level timestamps in transcription results
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Include Language Detection" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.includeLanguageDetection"
@@ -189,18 +153,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Include Language Detection
+                  Include detected language code in transcription results
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Include detected language code in transcription results
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Commit Strategy <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Commit Strategy" class="w-full" help="Strategy for committing transcriptions">
               <select
                 v-model="form.settings.commitStrategy"
                 class="form-select-auto min-w-64"
@@ -209,19 +167,13 @@
                 <option value="manual">Manual</option>
                 <option value="vad">Voice Activity Detection (VAD)</option>
               </select>
-              <p class="form-help-text">
-                Strategy for committing transcriptions
-              </p>
-            </div>
+            </FormField>
 
             <!-- VAD Settings (shown when commit strategy is VAD) -->
             <div v-if="form.settings.commitStrategy === 'vad'" class="pl-4 border-l-2 border-green-200 bg-green-50 p-4 rounded-r space-y-4 dark:bg-green-900/20 dark:border-green-800">
               <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Voice Activity Detection Settings</h4>
               
-              <div class="form-group">
-                <label class="form-label">
-                  Silence Threshold (seconds)
-                </label>
+              <FormField label="Silence Threshold (seconds)" hint="VAD" help="Silence duration before committing (0.3-3 seconds, default: 1.5)">
                 <input
                   v-model.number="form.settings.vadSilenceThresholdSecs"
                   type="number"
@@ -231,15 +183,9 @@
                   class="form-input max-w-xs"
                   placeholder="1.5"
                 />
-                <p class="form-help-text">
-                  Silence duration before committing (0.3-3 seconds, default: 1.5)
-                </p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  VAD Threshold
-                </label>
+              <FormField label="VAD Threshold" hint="VAD" help="Detection sensitivity (0.1-0.9, default: 0.4)">
                 <input
                   v-model.number="form.settings.vadThreshold"
                   type="number"
@@ -249,15 +195,9 @@
                   class="form-input max-w-xs"
                   placeholder="0.4"
                 />
-                <p class="form-help-text">
-                  Detection sensitivity (0.1-0.9, default: 0.4)
-                </p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  Minimum Speech Duration (ms)
-                </label>
+              <FormField label="Minimum Speech Duration (ms)" hint="VAD" help="Minimum speech duration (50-2000ms, default: 100)">
                 <input
                   v-model.number="form.settings.minSpeechDurationMs"
                   type="number"
@@ -267,15 +207,9 @@
                   class="form-input max-w-xs"
                   placeholder="100"
                 />
-                <p class="form-help-text">
-                  Minimum speech duration (50-2000ms, default: 100)
-                </p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  Minimum Silence Duration (ms)
-                </label>
+              <FormField label="Minimum Silence Duration (ms)" hint="VAD" help="Minimum silence duration (50-2000ms, default: 100)">
                 <input
                   v-model.number="form.settings.minSilenceDurationMs"
                   type="number"
@@ -285,13 +219,10 @@
                   class="form-input max-w-xs"
                   placeholder="100"
                 />
-                <p class="form-help-text">
-                  Minimum silence duration (50-2000ms, default: 100)
-                </p>
-              </div>
+              </FormField>
             </div>
 
-            <div class="form-group">
+            <FormField label="Enable Logging" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.enableLogging"
@@ -299,13 +230,10 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Enable Logging
+                  When disabled, zero retention mode is used (enterprise only)
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                When disabled, zero retention mode is used (enterprise only)
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Deepgram ASR Settings -->
@@ -317,10 +245,7 @@
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Model ID <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Model ID" class="w-full" help="Model to use for transcription (defaults to nova-3)">
               <select
                 v-model="form.settings.modelId"
                 class="form-select-auto min-w-64"
@@ -357,15 +282,9 @@
                 <option value="video">video</option>
                 <option value="custom">custom</option>
               </select>
-              <p class="form-help-text">
-                Model to use for transcription (defaults to nova-3)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Audio Format <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Audio Format" class="w-full" help="Audio encoding format for speech-to-text">
               <select
                 v-model="form.settings.audioFormat"
                 class="form-select-auto min-w-64"
@@ -377,27 +296,18 @@
                 <option value="pcm_24000">PCM 24kHz</option>
                 <option value="pcm_44100">PCM 44.1kHz</option>
               </select>
-              <p class="form-help-text">
-                Audio encoding format for speech-to-text
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Language <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Language" class="w-full" help='BCP-47 language tag (e.g., "en-US", "es", "fr")'>
               <input
                 v-model="form.settings.language"
                 type="text"
                 placeholder="e.g., en-US, es, fr"
                 class="form-input"
               />
-              <p class="form-help-text">
-                BCP-47 language tag (e.g., "en-US", "es", "fr")
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Enable Interim Results" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.interimResults"
@@ -405,15 +315,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Enable Interim Results
+                  Enable interim (partial) transcription results during streaming
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Enable interim (partial) transcription results during streaming
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Enable Endpointing" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="deepgramEndpointingEnabled"
@@ -421,12 +328,9 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Enable Endpointing
+                  Automatically finalize speech after a period of silence
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Automatically finalize speech after a period of silence
-              </p>
               <div v-if="deepgramEndpointingEnabled" class="mt-3">
                 <label class="form-label text-sm">
                   Silence Duration (ms)
@@ -443,9 +347,9 @@
                   Milliseconds of silence to wait before finalizing speech (minimum: 10)
                 </p>
               </div>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Smart Format" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.smartFormat"
@@ -453,15 +357,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Smart Format
+                  Apply formatting (punctuation, capitalization, currency, etc.) to improve readability
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Apply formatting (punctuation, capitalization, currency, etc.) to improve readability
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Punctuate" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.punctuate"
@@ -469,15 +370,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Punctuate
+                  Add punctuation and capitalization to transcript
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Add punctuation and capitalization to transcript
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Diarize" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.diarize"
@@ -485,18 +383,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Diarize
+                  Recognize and label different speakers in the audio
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Recognize and label different speakers in the audio
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Utterance End (ms) <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Utterance End (ms)" class="w-full" help="Milliseconds to wait before sending UtteranceEnd event (use with interim results)">
               <input
                 v-model.number="form.settings.utteranceEndMs"
                 type="number"
@@ -504,12 +396,9 @@
                 placeholder="Leave empty for default"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Milliseconds to wait before sending UtteranceEnd event (use with interim results)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="VAD Events" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.vadEvents"
@@ -517,13 +406,10 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  VAD Events
+                  Send SpeechStarted events when speech is detected
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Send SpeechStarted events when speech is detected
-              </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- AssemblyAI ASR Settings -->
@@ -535,14 +421,10 @@
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Sample Rate <span class="required">*</span>
-              </label>
+            <FormField label="Sample Rate" required class="w-full" help="Audio sample rate (default: 16000)">
               <select
                 v-model.number="form.settings.sampleRate"
                 class="form-select-auto min-w-64"
-                required
               >
                 <option :value="8000">8000 Hz</option>
                 <option :value="16000">16000 Hz (default)</option>
@@ -550,44 +432,28 @@
                 <option :value="24000">24000 Hz</option>
                 <option :value="44100">44100 Hz</option>
               </select>
-              <p class="form-help-text">
-                Audio sample rate (default: 16000)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Speech Model <span class="required">*</span>
-              </label>
+            <FormField label="Speech Model" required class="w-full" help="Model: English-only or multilingual support">
               <select
                 v-model="form.settings.speechModel"
                 class="form-select-auto min-w-64"
-                required
               >
                 <option value="universal-streaming-english">Universal Streaming (English)</option>
                 <option value="universal-streaming-multilingual">Universal Streaming (Multilingual)</option>
               </select>
-              <p class="form-help-text">
-                Model: English-only or multilingual support
-              </p>
-            </div>
+            </FormField>
 
-            <div v-if="form.settings.speechModel === 'universal-streaming-multilingual'" class="form-group">
-              <label class="form-label">
-                Language Code
-              </label>
+            <FormField v-if="form.settings.speechModel === 'universal-streaming-multilingual'" label="Language Code" class="w-full" help="Language for multilingual model (en, es, fr, de, it, pt)">
               <input
                 v-model="form.settings.language"
                 type="text"
                 placeholder="e.g., en, es, fr, de, it, pt"
                 class="form-input"
               />
-              <p class="form-help-text">
-                Language for multilingual model (en, es, fr, de, it, pt)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Format Turns" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.settings.formatTurns"
@@ -595,18 +461,12 @@
                   class="form-checkbox"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Format Turns (Add Capitalization & Punctuation)
+                  Add Capitalization &amp; Punctuation (warning: adds latency)
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Warning: Adds latency, not recommended for voice agents
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                VAD Threshold
-              </label>
+            <FormField label="VAD Threshold" help="Voice activity detection threshold (0.0-1.0, default: 0.4)">
               <input
                 v-model.number="form.settings.vadThreshold"
                 type="number"
@@ -616,15 +476,9 @@
                 placeholder="0.4"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Voice activity detection threshold (0.0-1.0, default: 0.4)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                End of Turn Confidence
-              </label>
+            <FormField label="End of Turn Confidence" help="Confidence threshold for end of turn (0.0-1.0, default: 0.4)">
               <input
                 v-model.number="form.settings.endOfTurnConfidenceThreshold"
                 type="number"
@@ -634,15 +488,9 @@
                 placeholder="0.4"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Confidence threshold for end of turn (0.0-1.0, default: 0.4)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Min Silence (Confident) (ms)
-              </label>
+            <FormField label="Min Silence (Confident) (ms)" help="Minimum silence when confident (default: 400ms)">
               <input
                 v-model.number="form.settings.minEndOfTurnSilenceWhenConfident"
                 type="number"
@@ -650,15 +498,9 @@
                 placeholder="400"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Minimum silence when confident (default: 400ms)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Max Turn Silence (ms)
-              </label>
+            <FormField label="Max Turn Silence (ms)" help="Maximum silence before end of turn (default: 1280ms)">
               <input
                 v-model.number="form.settings.maxTurnSilence"
                 type="number"
@@ -666,15 +508,9 @@
                 placeholder="1280"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Maximum silence before end of turn (default: 1280ms)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Inactivity Timeout (seconds) <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Inactivity Timeout (seconds)" class="w-full" help="Time before session termination (5-3600s, optional)">
               <input
                 v-model.number="form.settings.inactivityTimeout"
                 type="number"
@@ -683,15 +519,9 @@
                 placeholder="No timeout"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Time before session termination (5-3600s, optional)
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Custom Keywords <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Custom Keywords" class="w-full">
               <div class="flex gap-2 mb-2 max-w-xs">
                 <input
                   v-model="newKeyterm"
@@ -729,7 +559,7 @@
               <p class="form-help-text mt-2">
                 Custom words/phrases to improve recognition accuracy
               </p>
-            </div>
+            </FormField>
           </div>
 
           <!-- Speechmatics Settings -->
@@ -745,63 +575,40 @@
             </div>
 
             <!-- Audio Format -->
-            <div class="form-group">
-              <label class="form-label">
-                Audio Format <span class="required">*</span>
-              </label>
+            <FormField label="Audio Format" required class="w-full" help="Audio input format for speech recognition">
               <select
                 v-model="form.settings.audioFormat"
                 class="form-select-auto min-w-64"
-                required
               >
                 <option value="pcm_16000">PCM 16kHz (Recommended)</option>
                 <option value="pcm_8000">PCM 8kHz</option>
                 <option value="pcm_44100">PCM 44.1kHz</option>
               </select>
-              <p class="form-help-text">
-                Audio input format for speech recognition
-              </p>
-            </div>
+            </FormField>
 
             <!-- Transcription Mode -->
-            <div class="form-group">
-              <label class="form-label">
-                Transcription Mode <span class="required">*</span>
-              </label>
+            <FormField label="Transcription Mode" required class="w-full" help="Standard for faster processing or Enhanced for higher accuracy">
               <select
                 v-model="form.settings.transcriptionMode"
                 class="form-select-auto min-w-64"
-                required
               >
                 <option value="standard">Standard (Faster processing)</option>
                 <option value="enhanced">Enhanced (Higher accuracy)</option>
               </select>
-              <p class="form-help-text">
-                Standard for faster processing or Enhanced for higher accuracy
-              </p>
-            </div>
+            </FormField>
 
             <!-- Language -->
-            <div class="form-group">
-              <label class="form-label">
-                Language <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Language" class="w-full" help="Language code for speech recognition (BCP-47 format)">
               <input
                 v-model="form.settings.language"
                 type="text"
                 placeholder="e.g., en, en-US, es, fr"
                 class="form-input"
               />
-              <p class="form-help-text">
-                Language code for speech recognition (BCP-47 format)
-              </p>
-            </div>
+            </FormField>
 
             <!-- Max Delay -->
-            <div class="form-group">
-              <label class="form-label">
-                Max Delay (seconds) <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Max Delay (seconds)" class="w-full" help="Maximum delay for transcription results (0-10 seconds). Lower values reduce latency">
               <input
                 v-model.number="form.settings.maxDelay"
                 type="number"
@@ -811,10 +618,7 @@
                 placeholder="0-10"
                 class="form-input max-w-xs"
               />
-              <p class="form-help-text">
-                Maximum delay for transcription results (0-10 seconds). Lower values reduce latency
-              </p>
-            </div>
+            </FormField>
 
             <!-- Feature Toggles -->
             <div class="space-y-4">
@@ -870,10 +674,7 @@
             </div>
 
             <!-- Custom Vocabulary -->
-            <div class="form-group">
-              <label class="form-label">
-                Custom Vocabulary <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Custom Vocabulary" class="w-full">
               <div class="space-y-3">
                 <div class="flex gap-2 max-w-xs">
                   <input
@@ -913,7 +714,7 @@
                   Custom words or phrases to improve recognition accuracy
                 </p>
               </div>
-            </div>
+            </FormField>
           </div>
         </template>
 
@@ -933,6 +734,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { Plus, X } from 'lucide-vue-next'
+import FormField from '@/components/FormField.vue'
 import type { ProviderResponse } from '@/api/types'
 
 interface AsrConfig {

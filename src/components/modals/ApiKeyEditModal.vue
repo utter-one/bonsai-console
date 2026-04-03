@@ -12,38 +12,27 @@
           </div>
 
           <!-- Details tab -->
-          <div v-show="activeTab === 'details'">
-            <div class="form-group">
-              <label class="form-label">
-                API Key Name <span class="required">*</span>
-              </label>
+          <TabContent v-model="activeTab" tab="details">
+            <FormField label="API Key Name" :path="'name'" :error="validationError" required class="w-full" help="A descriptive name to identify this API key">
               <input
                 v-model="form.name"
                 type="text"
-                required
-                placeholder="Production API Key"
                 maxlength="255"
                 class="form-input"
+                placeholder="Production API Key"
               />
-              <p class="form-help-text">A descriptive name to identify this API key</p>
-            </div>
+            </FormField>
 
-            <div v-if="showNewKeyAlert && newKeyValue" class="form-group">
-              <label class="form-label">API Key</label>
+            <FormField label="API Key" class="w-full" help="Store this key securely">
               <div class="flex gap-2">
                 <input :value="newKeyValue" readonly class="form-input font-mono text-xs" />
                 <button @click="copyToClipboard" type="button" class="btn-secondary shrink-0">
                   {{ copied ? 'Copied!' : 'Copy' }}
                 </button>
               </div>
-              <p class="form-help-text">Store this key securely</p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Project 
-                <span v-if="!apiKey && !props.projectId" class="required">*</span>
-              </label>
+            <FormField label="Project" :path="'projectId'" :error="validationError" required class="w-full" :help="apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key'">
               <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
                 <option value="" disabled>Select a project</option>
                 <option v-for="option in projectOptions" :key="option.value" :value="option.value">
@@ -51,20 +40,13 @@
                 </option>
               </select>
               <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
-              <p class="form-help-text">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
-            </div>
+            </FormField>
 
-            <div v-if="apiKey" class="form-group">
-              <label class="flex items-center gap-2">
-                <input
-                  v-model="form.isActive"
-                  type="checkbox"
-                  class="form-checkbox"
-                />
-                <span class="form-label mb-0">Active</span>
-              </label>
-              <p class="form-help-text">Inactive keys cannot be used for authentication</p>
-            </div>
+            <FormField v-if="apiKey" label="Active" class="w-full" help="Inactive keys cannot be used for authentication">
+              <template #leading>
+                <input v-model="form.isActive" type="checkbox" class="form-checkbox" />
+              </template>
+            </FormField>
 
             <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
               <div class="text-sm space-y-1">
@@ -78,7 +60,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
         </div>
         <div v-if="apiKey && activeTab === 'settings'">
           <div v-if="isReadOnly" class="alert-warning mb-4">
@@ -86,13 +68,12 @@
           </div>
 
           <!-- Settings tab -->
-          <div v-show="activeTab === 'settings'">
+          <TabContent v-model="activeTab" tab="settings">
             <!-- Channels restriction -->
-            <div class="form-group">
-              <label class="flex items-center gap-2">
+            <FormField label="Restrict Channels" class="w-full">
+              <template #leading>
                 <input v-model="form.restrictChannels" type="checkbox" class="form-checkbox" />
-                <span class="form-label mb-0">Restrict Channels</span>
-              </label>
+              </template>
               <p class="mt-1 text-xs" :class="form.restrictChannels ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictChannels ? 'Only the selected channels are allowed.' : 'All channels are allowed.' }}</p>
               <div class="mt-2 space-y-1.5 pl-1">
                 <label
@@ -111,17 +92,14 @@
                   <span class="text-sm">{{ channel === 'websocket' ? 'WebSocket' : 'WebRTC' }}</span>
                 </label>
               </div>
-            </div>
+            </FormField>
 
             <!-- Features restriction -->
-            <div class="form-group">
-              <label class="flex items-center gap-2">
+            <FormField label="Restrict Features" :path="'features'" :error="validationError" class="w-full">
+              <template #leading>
                 <input v-model="form.restrictFeatures" type="checkbox" class="form-checkbox" />
-                <span class="form-label mb-0">Restrict Features</span>
-              </label>
+              </template>
               <p class="mt-1 text-xs" :class="form.restrictFeatures ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictFeatures ? 'Only the selected features are permitted.' : 'All features are permitted.' }}</p>
-              <p v-if="form.restrictFeatures && !hasInputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one input method must be selected.</p>
-              <p v-if="form.restrictFeatures && !hasOutputSelected" class="mt-1 text-xs text-red-500 dark:text-red-400">At least one output method must be selected.</p>
               <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 pl-1" :class="!form.restrictFeatures ? 'opacity-50' : ''">
                 <div v-for="group in FEATURE_GROUPS" :key="group.label">
                   <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">{{ group.label }}</div>
@@ -143,8 +121,8 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </FormField>
+          </TabContent>
         </div>
       </fieldset>
     </form>
@@ -164,6 +142,7 @@
     </div>
 
     <div class="modal-footer">
+      <ErrorDisplay :error="validationError" class="flex-1 mr-2 self-start" />
       <button type="button" @click="$emit('close')" class="btn-secondary">
         {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
       </button>
@@ -176,12 +155,15 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
-import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
+import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest, ParsedError, ApiErrorDetail } from '@/api/types'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useProjectsStore } from '@/stores/projects'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
 
 const ALL_CHANNELS = ['websocket', 'webrtc'] as const
 
@@ -245,6 +227,7 @@ const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
 const activeTab = ref<'details' | 'settings' | 'history'>('details')
+const validationError = ref<ParsedError | null>(null)
 
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'details', label: 'Details' },
@@ -332,9 +315,25 @@ const hasOutputSelected = computed(() =>
 )
 
 function handleSubmit() {
-  if (!form.value.name) return
-  if (!props.apiKey && !props.projectId && !form.value.projectId) return
-  if (!hasInputSelected.value || !hasOutputSelected.value) return
+  const apiErrorDetails:ApiErrorDetail[] = [];
+  validationError.value = null
+
+  if (!form.value.name)
+    apiErrorDetails.push({ path: ['name'], message: 'API key name is required.', code: 'too_small' })
+
+  if (!props.apiKey && !props.projectId && !form.value.projectId)
+    apiErrorDetails.push({ path: ['projectId'], message: 'A project must be selected.', code: 'required' })
+
+  if (!hasInputSelected.value || !hasOutputSelected.value)
+    apiErrorDetails.push({ path: ['features'], message: 'At least one input and one output feature must be enabled.', code: 'invalid' })
+
+  if (apiErrorDetails.length) {
+    validationError.value = {
+      message: 'Please fix the validation errors and try again.',
+      details: apiErrorDetails
+    }
+    return
+  }
 
   const keySettings: Record<string, any> = {}
   if (form.value.restrictChannels) {

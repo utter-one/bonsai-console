@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { MoreHorizontal } from 'lucide-vue-next'
 import MetadataTab from './MetadataTab.vue'
 import FloatingDropdown from './FloatingDropdown.vue'
@@ -7,7 +7,9 @@ import ActionEffectsEditor from './ActionEffectsEditor.vue'
 import type { ToolResponse } from '@/api/generated/data-contracts'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
-import type { ActionOperations } from '../composables'
+import FormField from './FormField.vue'
+import { useTabNavigation, type ActionOperations } from '../composables'
+import type { ParsedError } from '../api/types'
 
 interface ActionParameter {
   name: string
@@ -52,6 +54,7 @@ const props = withDefaults(
     stageVariables?: any[]
     actionParameters?: Record<string, any[]>
     projectConstants?: Record<string, any>
+    error?: ParsedError | null
   }>(),
   {
     parameters: () => [],
@@ -68,8 +71,20 @@ const props = withDefaults(
     stageVariables: () => [],
     actionParameters: () => ({}),
     projectConstants: () => ({}),
+    error: null,
   }
 )
+
+const activeTabRef = computed({
+  get: () => props.activeTab.value,
+  set: (v: string) => { props.activeTab.value = v },
+})
+
+const { switchToFirstErrorTab } = useTabNavigation(activeTabRef)
+
+watch(() => props.error, (err) => {
+  if (err) switchToFirstErrorTab(err)
+})
 
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'Basic' },
@@ -141,59 +156,37 @@ function getTypeBadgeColor(type: string): string {
 
     <div class="flex-1 min-h-0 flex flex-col">
     <!-- Basic Tab -->
-    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6 overflow-y-auto">
-      <div class="form-group">
-        <label class="form-label">
-          Name <span class="required">*</span>
-        </label>
+    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6 overflow-y-auto" data-tab="basic">
+      <FormField label="Name" :path="'name'" :error="props.error" required class="w-full" help="This name is used in templates and scripts to reference this action.">
         <input
           v-model="form.name"
           type="text"
-          required
           placeholder="Transfer to Human Agent"
           class="form-input"
         />
-        <p class="form-help-text">
-          This name is used in templates and scripts to reference this action.
-        </p>
-      </div>
+      </FormField>
 
-      <div class="form-group">
-        <label class="form-label">
-          Examples <span class="text-gray-500">(optional, one per line)</span>
-        </label>
+      <FormField label="Examples" hint="(optional, one per line)" class="w-full" help="Example phrases that should trigger this action">
         <textarea
           v-model="form.examples"
           rows="4"
           class="form-textarea"
           placeholder="I want to speak with someone&#10;Can I talk to an agent?&#10;Transfer me to a human"
         ></textarea>
-        <p class="form-help-text">
-          Example phrases that should trigger this action
-        </p>
-      </div>
+      </FormField>
     </div>
 
     <!-- Trigger Tab (simplified mode) -->
-    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto">
-      <div class="form-group">
-        <label class="form-label">
-          Classification Trigger
-        </label>
+    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
+      <FormField label="Classification Trigger" class="w-full" help="Classification label that triggers this guardrail">
         <input
           v-model="form.classificationTrigger"
           type="text"
           placeholder="offensive_language"
           class="form-input"
         />
-        <p class="form-help-text">
-          Classification label that triggers this guardrail
-        </p>
-      </div>
-      <div class="form-group">
-        <label class="form-label">
-          Override Classifier <span class="text-gray-500">(optional)</span>
-        </label>
+      </FormField>
+      <FormField label="Override Classifier" hint="(optional)" class="w-full" help="Override the stage's default classifier for this guardrail">
         <select
           v-model="form.overrideClassifierId"
           class="form-select-auto"
@@ -203,30 +196,21 @@ function getTypeBadgeColor(type: string): string {
             {{ classifier.name }}
           </option>
         </select>
-        <p class="form-help-text">
-          Override the stage's default classifier for this guardrail
-        </p>
-      </div>
+      </FormField>
     </div>
 
     <!-- Trigger Tab (full mode) -->
-    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto">
+    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
 
       <!-- Condition (always visible) -->
-      <div class="form-group">
-        <label class="form-label">
-          Condition <span class="text-gray-500">(optional)</span>
-        </label>
+      <FormField label="Condition" hint="(optional)" class="w-full" help="Optional JavaScript condition expression for action activation">
         <input
           v-model="form.condition"
           type="text"
           placeholder="context.variables.agent_available === true"
           class="form-input font-mono text-sm"
         />
-        <p class="form-help-text">
-          Optional JavaScript condition expression for action activation
-        </p>
-      </div>
+      </FormField>
 
       <!-- Trigger on User Input -->
       <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -322,8 +306,7 @@ function getTypeBadgeColor(type: string): string {
                 </button>
               </div>
               <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="form-label text-sm">Variable Path <span class="required">*</span></label>
+                <FormField label="Variable Path" required :path="['watchedVariables', index, 'path']" :error="props.error" class="w-full">
                   <div class="flex items-start gap-2">
                     <input
                       v-model="watched.path"
@@ -353,9 +336,9 @@ function getTypeBadgeColor(type: string): string {
                       </template>
                     </FloatingDropdown>
                   </div>
-                </div>
+                </FormField>
                 <div>
-                  <label class="form-label text-sm">Change Type <span class="required">*</span></label>
+                  <label class="form-label text-sm">Change Type</label>
                   <select v-model="watched.changeType" class="form-select-auto text-sm">
                     <option value="new">New (variable created)</option>
                     <option value="changed">Changed (value updated)</option>
@@ -378,9 +361,8 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Parameters Tab -->
-    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6 overflow-y-auto">
-      <div class="form-group">
-        <label class="form-label">Action Parameters</label>
+    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6 overflow-y-auto" data-tab="parameters">
+      <FormField label="Action Parameters" class="w-full">
         <p class="form-help-text mb-3">
           Define parameters that will be extracted from user input when this action is triggered.
         </p>
@@ -402,20 +384,18 @@ function getTypeBadgeColor(type: string): string {
             </div>
             
             <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="form-label text-sm">Parameter Name <span class="required">*</span></label>
+              <FormField label="Parameter Name" required :path="['parameters', index, 'name']" :error="props.error" class="w-full">
                 <input
                   v-model="param.name"
                   type="text"
-                  required
                   placeholder="destination_stage"
                   class="form-input font-mono text-sm"
                 />
-              </div>
+              </FormField>
 
               <div>
-                <label class="form-label text-sm">Type <span class="required">*</span></label>
-                <select v-model="param.type" class="form-select-auto text-sm" required>
+                <label class="form-label text-sm">Type</label>
+                <select v-model="param.type" class="form-select-auto text-sm">
                   <option value="string">string</option>
                   <option value="number">number</option>
                   <option value="boolean">boolean</option>
@@ -432,19 +412,14 @@ function getTypeBadgeColor(type: string): string {
               </div>
             </div>
 
-            <div>
-              <label class="form-label text-sm">Description <span class="required">*</span></label>
+            <FormField label="Description" required :path="['parameters', index, 'description']" :error="props.error" class="w-full" help="Describe what this parameter represents to help with extraction">
               <input
                 v-model="param.description"
                 type="text"
-                required
                 placeholder="The stage to transfer to"
                 class="form-input text-sm"
               />
-              <p class="text-xs text-gray-500 mt-1">
-                Describe what this parameter represents to help with extraction
-              </p>
-            </div>
+            </FormField>
 
             <div>
               <label class="flex items-center cursor-pointer">
@@ -471,11 +446,11 @@ function getTypeBadgeColor(type: string): string {
             + Add Parameter
           </button>
         </div>
-      </div>
+      </FormField>
     </div>
 
     <!-- Effects Tab -->
-    <div v-show="activeTab.value === 'effects'" class="flex-1 min-h-0 flex flex-col">
+    <div v-show="activeTab.value === 'effects'" class="flex-1 min-h-0 flex flex-col" data-tab="effects">
       <ActionEffectsEditor
         :operations="operations"
         :available-classifiers="availableClassifiers"
@@ -484,11 +459,12 @@ function getTypeBadgeColor(type: string): string {
         :stage-variables="stageVariables"
         :action-parameters="actionParameters"
         :project-constants="projectConstants"
+        :error="props.error"
       />
     </div>
 
     <!-- Metadata Tab -->
-    <div v-show="activeTab.value === 'metadata'" class="space-y-6 tab-content overflow-y-auto">
+    <div v-show="activeTab.value === 'metadata'" class="space-y-6 tab-content overflow-y-auto" data-tab="metadata">
       <MetadataTab
         v-if="showMetadata && metadataFields.length > 0"
         :fields="metadataFields"

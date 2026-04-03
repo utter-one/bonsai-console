@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import FormField from '@/components/FormField.vue'
 import { useProvidersStore, useProjectsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
 import {
   Brain,
@@ -16,6 +17,7 @@ import {
   BookOpen,
   AlertTriangle,
 } from 'lucide-vue-next'
+import type { ParsedError } from '../../api/types'
 
 const emit = defineEmits<{
   close: []
@@ -253,14 +255,14 @@ const apiKeysStore = useApiKeysStore()
 
 // Project form
 const projectForm = ref({ name: '', description: '' })
-const projectError = ref<string | null>(null)
+const projectError = ref<ParsedError | null>(null)
 const isCreatingProject = ref(false)
 const projectCreated = ref(false)
 
 async function submitProject() {
   projectError.value = null
   if (!projectForm.value.name.trim()) {
-    projectError.value = 'Project name is required'
+    projectError.value = { message: 'Project name is required', details: [{ path: ['name'], code: 'required', message: 'Project name is required' }] }
     return
   }
 
@@ -539,10 +541,7 @@ function navigateAndDismiss(name: string) {
             </a>
           </p>
 
-          <div v-if="projectError" class="alert-error mb-4 text-sm">{{ projectError }}</div>
-
-          <div class="form-group">
-            <label class="form-label">Project Name <span class="required">*</span></label>
+          <FormField :error="projectError" label="Project Name" required class="w-full">
             <input
               v-model="projectForm.name"
               type="text"
@@ -550,17 +549,16 @@ function navigateAndDismiss(name: string) {
               placeholder="e.g. Customer Support Bot"
               @keydown.enter="submitProject"
             />
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Description <span class="text-gray-400 text-xs">(optional)</span></label>
+          <FormField label="Description" class="w-full">
             <textarea
               v-model="projectForm.description"
               rows="3"
               class="form-textarea"
               placeholder="A short description of this project…"
             />
-          </div>
+          </FormField>
         </div>
 
         <!-- Step 3: Done -->

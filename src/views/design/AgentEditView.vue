@@ -5,7 +5,8 @@ import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectS
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Check, Settings, FlaskConical } from 'lucide-vue-next'
-import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings } from '@/api/types'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 
 type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | AmazonPollyTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -17,6 +18,11 @@ import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,7 +33,7 @@ const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata' | 'history'>('basic')
 const showFillerLLMSettingsModal = ref(false)
@@ -79,6 +85,7 @@ const currentAgent = ref<AgentResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentAgent)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentAgent.value?.archived)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const ttsProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'tts')
@@ -326,7 +333,7 @@ async function loadAgent() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load agent'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -334,23 +341,37 @@ async function loadAgent() {
 
 async function handleSubmit() {
   error.value = null
-  isLoading.value = true
 
-  // Validate required TTS fields when provider is selected
+  const validationDetails: ApiErrorDetail[] = []
+
+  if(!form.value.name.trim())
+    validationDetails.push({ path: ['name'], message: 'Name is required', code: 'required' })
+
+  if(!form.value.prompt.trim())
+    validationDetails.push({ path: ['prompt'], message: 'Prompt is required', code: 'required' })
+
   if (form.value.ttsProviderId) {
     if (!(form.value.ttsSettings as any).model && !isAmazonPolly.value) {
-      error.value = 'Model is required when TTS provider is selected'
-      isLoading.value = false
-      activeTab.value = 'voice'
-      return
+      validationDetails.push({ path: ['ttsSettings'], message: 'Model is required when a TTS provider is selected.', code: 'required' })
     }
-    const voiceValue = currentVoiceValue.value
-    if (!voiceValue) {
-      error.value = 'Voice is required when TTS provider is selected'
-      isLoading.value = false
-      activeTab.value = 'voice'
-      return
+    if (!currentVoiceValue.value) {
+      validationDetails.push({ path: ['ttsSettings'], message: 'Voice is required when a TTS provider is selected.', code: 'required' })
     }
+  }
+
+  if (form.value.fillerLlmProviderId) {
+    if (!form.value.fillerLlmSettings) {
+      validationDetails.push({ path: ['fillerLlmSettings'], message: 'LLM settings are required when a provider is selected.', code: 'required' })
+    }
+    if (!form.value.fillerPrompt) {
+      validationDetails.push({ path: ['fillerPrompt'], message: 'Filler prompt is required when a provider is selected.', code: 'required' })
+    }
+  }
+
+  if (validationDetails.length > 0) {
+    error.value = { message: 'Please correct the following errors', details: validationDetails }
+    switchToFirstErrorTab(error.value)
+    return
   }
 
   try {
@@ -440,7 +461,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} agent`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -522,31 +544,21 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+        <ErrorDisplay :error="error" />
 
         <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Name <span class="required">*</span>
-            </label>
+        <TabContent v-model="activeTab" tab="basic">
+          <FormField label="Name" required :error="error" path="name" class="w-full" help="A descriptive name for this agent">
             <input
               v-model="form.name"
               type="text"
-              required
               placeholder="My Agent"
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">A descriptive name for this agent</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">
-              Description <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField label="Description" :error="error" path="description" class="w-full" help="Optional description of what this agent is used for">
             <textarea
               v-model="form.description"
               rows="3"
@@ -554,20 +566,14 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               placeholder="Brief description of this agent's purpose..."
               :disabled="isLoading"
             ></textarea>
-            <p class="form-help-text">
-              Optional description of what this agent is used for
-            </p>
-          </div>
+          </FormField>
 
           <TagsEditor v-model="form.tags" :disabled="isLoading" />
-        </div>
+        </TabContent>
 
         <!-- Prompt Tab -->
-        <div v-show="activeTab === 'prompt'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              System Prompt <span class="required">*</span>
-            </label>
+        <TabContent v-model="activeTab" tab="prompt">
+          <FormField label="System Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt that defines this agent's behavior, personality, and capabilities">
             <PromptEditor
               v-model="form.prompt"
               :disabled="isLoading || isReadOnly"
@@ -576,19 +582,11 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               aria-label="Agent system prompt"
               min-height="28rem"
             />
-            <p class="form-help-text">
-              The system prompt that defines this agent's behavior, personality, and capabilities
-            </p>
-          </div>
-        </div>
-
-        <!-- Voice Tab -->
-        <div v-show="activeTab === 'voice'" class="tab-content">
+          </FormField>
+        </TabContent>
+        <TabContent v-model="activeTab" tab="voice">
           <!-- TTS Provider -->
-          <div class="form-group">
-            <label class="form-label">
-              TTS Provider <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField label="TTS Provider" :error="error" path="ttsProviderId" help="Select a text-to-speech provider for this agent">
             <select
               v-model="form.ttsProviderId"
               class="form-select-auto min-w-64"
@@ -600,16 +598,10 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
                 {{ provider.name }}
               </option>
             </select>
-            <p class="form-help-text">
-              Select a text-to-speech provider for this agent
-            </p>
-          </div>
+          </FormField>
 
           <!-- Model / Engine -->
-          <div v-if="form.ttsProviderId" class="form-group">
-            <label class="form-label">
-              {{ isAmazonPolly ? 'Engine' : 'Model' }} <span class="required">*</span>
-            </label>
+          <FormField v-if="form.ttsProviderId" :label="isAmazonPolly ? 'Engine' : 'Model'" required :error="error" path="ttsSettings" help="Select a model for speech synthesis">
             <select
               v-if="availableModels.length > 0"
               v-model="modelValue"
@@ -631,21 +623,10 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               :disabled="isLoading"
               required
             />
-            <p class="form-help-text">
-              {{ isAmazonPolly
-                ? 'Select a Polly engine. Each engine has its own set of available voices.'
-                : (availableModels.length > 0
-                  ? 'Select a model for speech synthesis'
-                  : 'Model ID to use for speech synthesis')
-              }}
-            </p>
-          </div>
+          </FormField>
 
           <!-- Voice ID -->
-          <div v-if="form.ttsProviderId" class="form-group">
-            <label class="form-label">
-              Voice ID <span class="required">*</span>
-            </label>
+          <FormField v-if="form.ttsProviderId" label="Voice ID" required :error="error" path="ttsSettings" help="Text-to-speech voice identifier">
             <select
               v-if="availableVoices.length > 0 && isModelSelected"
               v-model="form.ttsSettings.voiceId"
@@ -674,31 +655,20 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               placeholder="Select model first"
               disabled
             />
-            <p class="form-help-text">
-              {{ isModelSelected 
-                ? (availableVoices.length > 0 
-                  ? 'Select a voice for speech synthesis'
-                  : 'Text-to-speech voice identifier')
-                : 'Please select a model before choosing a voice'
-              }}
+          </FormField>
+          <template v-if="isAmazonPolly && availableVoices.length > 0">
+            <p class="form-help-text -mt-3">
+              * This voice is bilingual. For more information, see
+              <a href="https://docs.aws.amazon.com/polly/latest/dg/bilingual-voices.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Bilingual voices</a>.
             </p>
-            <template v-if="isAmazonPolly && availableVoices.length > 0">
-              <p class="form-help-text mt-1">
-                * This voice is bilingual. For more information, see
-                <a href="https://docs.aws.amazon.com/polly/latest/dg/bilingual-voices.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Bilingual voices</a>.
-              </p>
-              <p class="form-help-text mt-1">
-                ** These voices can be used with Newscaster speaking styles when used with the Neural format. For more information, see
-                <a href="https://docs.aws.amazon.com/polly/latest/dg/ntts-newscaster-style.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Applying the newscaster voice</a>.
-              </p>
-            </template>
-          </div>
+            <p class="form-help-text mt-1">
+              ** These voices can be used with Newscaster speaking styles when used with the Neural format. For more information, see
+              <a href="https://docs.aws.amazon.com/polly/latest/dg/ntts-newscaster-style.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Applying the newscaster voice</a>.
+            </p>
+          </template>
 
           <!-- Audio Format -->
-          <div v-if="form.ttsProviderId" class="form-group">
-            <label class="form-label">
-              Audio Format <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField v-if="form.ttsProviderId" label="Audio Format" :error="error" path="ttsSettings" help="Preferred audio output format (supported formats depend on the selected TTS provider)">
             <select
               v-model="audioFormatValue"
               class="form-select-auto min-w-64"
@@ -709,10 +679,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
                 {{ format }}
               </option>
             </select>
-            <p class="form-help-text">
-              Preferred audio output format for synthesized speech (supported formats depend on the selected TTS provider)
-            </p>
-          </div>
+          </FormField>
 
           <TtsProviderSettingsPanel
             v-if="form.ttsProviderId"
@@ -721,52 +688,45 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
             :is-loading="isLoading"
           />
 
-        </div>
-
-        <!-- Filler Responses Tab -->
-        <div v-show="activeTab === 'filler'" class="tab-content">
+        </TabContent>
+        <TabContent v-model="activeTab" tab="filler">
           <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
             <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
             <p class="text-sm">
               <span class="font-semibold">Experimental feature</span> — Filler Responses are under active development. Behaviour may change in future releases.
             </p>
           </div>
-          <div class="form-group">
-            <label class="form-label">
-              LLM Provider <span class="required">*</span>
-            </label>
-            <div class="flex flex-col md:flex-row gap-2">
-              <select
-                :value="form.fillerLlmProviderId"
-                @change="handleFillerLlmProviderChange"
-                class="form-select-auto min-w-64"
-                :disabled="isLoading"
-              >
-                <option value="">Disabled (no filler responses)</option>
-                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                  {{ provider.name }}
-                </option>
-              </select>
-              <button
-                type="button"
-                @click="showFillerLLMSettingsModal = true"
-                class="btn-secondary whitespace-nowrap"
-                :disabled="isLoading || !form.fillerLlmProviderId"
-              >
-                <Settings class="inline-block mr-1 w-4 h-4" />
-                Settings...
-              </button>
+          <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.">
+            <div class="flex flex-col md:flex-row gap-2 items-center">
+              <FormField path="fillerLlmProviderId">
+                <select
+                  :value="form.fillerLlmProviderId"
+                  @change="handleFillerLlmProviderChange"
+                  class="form-select-auto min-w-64"
+                  :disabled="isLoading"
+                >
+                  <option value="">Disabled (no filler responses)</option>
+                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                    {{ provider.name }}
+                  </option>
+                </select>
+              </FormField>
+              <FormField path="fillerLlmSettings">
+                <button
+                  type="button"
+                  @click="showFillerLLMSettingsModal = true"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading || !form.fillerLlmProviderId"
+                >
+                  <Settings class="inline-block mr-1 w-4 h-4" />
+                  Settings...
+                </button>
+              </FormField>
               <LLMModelBadge :settings="form.fillerLlmSettings" />
             </div>
-            <p class="form-help-text">
-              The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.
-            </p>
-          </div>
+          </CompositeFormField>
 
-          <div class="form-group">
-            <label class="form-label">
-              Filler Prompt <span class="required">*</span>
-            </label>
+          <FormField label="Filler Prompt" required :error="error" path="fillerPrompt" class="w-full" help="Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request">
             <PromptEditor
               v-model="form.fillerPrompt"
               :disabled="isLoading || !form.fillerLlmProviderId"
@@ -775,23 +735,20 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               aria-label="Filler response prompt"
               min-height="20rem"
             />
-            <p class="form-help-text">
-              Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request
-            </p>
-          </div>
-        </div>
+          </FormField>
+        </TabContent>
 
         <!-- Metadata Tab -->
         <MetadataTab
           v-if="isEditMode && currentAgent"
-          v-show="activeTab === 'metadata'"
+          v-model="activeTab"
+          tab="metadata"
           :fields="metadataFields"
         />
-        <div class="tab-content">
+        <TabContent v-model="activeTab" tab="history">
           <!-- History Tab -->
           <EntityHistoryView
             v-if="isEditMode && currentAgent"
-            v-show="activeTab === 'history'"
             :load-history="() => agentsStore.fetchAuditLogs(projectId, currentAgent!.id)"
             :current-version="currentAgent.version"
             :current-object="currentAgent"
@@ -801,7 +758,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
             :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
             @recover-success="() => router.go(0)"
           />
-        </div>
+        </TabContent>
         </fieldset>
         </form>
       </div>

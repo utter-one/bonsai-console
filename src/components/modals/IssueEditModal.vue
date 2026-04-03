@@ -17,25 +17,20 @@
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Row 1: Project, Stage, Conversation ID -->
           <div class="grid grid-cols-3 gap-4 mb-4">
-            <div class="form-group">
-              <label class="form-label">
-                Project <span class="required">*</span>
-              </label>
+            <FormField label="Project" :path="'projectId'" :error="props.error" required class="w-full">
               <select 
                 v-model="form.projectId" 
                 class="form-select"
                 :disabled="!!issue || (!!prefillData?.projectId && !!prefillData?.sessionId)"
-                required
               >
                 <option value="" disabled>Select a project</option>
                 <option v-for="project in projectOptions" :key="project.value" :value="project.value" :disabled="project.archived">
                   {{ project.label }}
                 </option>
               </select>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">Stage (optional)</label>
+            <FormField label="Stage" class="w-full">
               <select
                 v-model="form.stage"
                 class="form-select"
@@ -46,10 +41,9 @@
                   {{ stage.name }}
                 </option>
               </select>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">Conversation ID (optional)</label>
+            <FormField label="Conversation ID" class="w-full">
               <div class="relative">
                 <input
                   v-model="form.sessionId"
@@ -68,117 +62,93 @@
                   <ExternalLink class="w-4 h-4" />
                 </a>
               </div>
-            </div>
+            </FormField>
           </div>
 
           <!-- Row 2: Environment, Build Version -->
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="form-group">
-              <label class="form-label">
-                Environment
-              </label>
+            <FormField label="Environment" class="w-full">
               <select v-model="form.environment" class="form-select" :disabled="!environmentOptions.length">
                 <option value="">{{!environmentOptions.length ? 'No environments available' : 'None'}}</option>
                 <option v-for="env in environmentOptions" :key="env.id" :value="env.id">
                   {{ env.description }}
                 </option>
               </select>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Build Version <span class="required">*</span>
-              </label>
+            <FormField label="Build Version" :path="'buildVersion'" :error="props.error" required class="w-full">
               <input
                 v-model="form.buildVersion"
                 type="text"
                 placeholder="e.g., v1.2.3"
                 class="form-input"
-                required
               />
-            </div>
+            </FormField>
           </div>
 
           <!-- Row 3: Category, Severity, Status -->
           <div class="grid grid-cols-3 gap-4 mb-4">
-            <div class="form-group">
-              <label class="form-label">
-                Category <span class="required">*</span>
-              </label>
-              <select v-model="form.category" class="form-select" required>
+            <FormField label="Category" :path="'category'" :error="props.error" required class="w-full">
+              <select v-model="form.category" class="form-select">
                 <option value="" disabled>Select category</option>
                 <option v-for="cat in categoryOptions" :key="cat" :value="cat">
                   {{ cat }}
                 </option>
               </select>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Severity <span class="required">*</span>
-              </label>
-              <select v-model="form.severity" class="form-select" required>
+            <FormField label="Severity" :path="'severity'" :error="props.error" required class="w-full">
+              <select v-model="form.severity" class="form-select">
                 <option value="" disabled>Select severity</option>
                 <option v-for="sev in severityOptions" :key="sev" :value="sev">
                   {{ sev }}
                 </option>
               </select>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Status <span class="required">*</span>
-              </label>
-              <select v-model="form.status" class="form-select" :disabled="!issue" required>
+            <FormField label="Status" :path="'status'" :error="props.error" required class="w-full">
+              <select v-model="form.status" class="form-select" :disabled="!issue">
                 <option value="" disabled>Select status</option>
                 <option v-for="stat in statusOptions" :key="stat" :value="stat">
                   {{ stat }}
                 </option>
               </select>
-            </div>
+            </FormField>
           </div>
 
           <!-- Bug Description -->
-          <div class="form-group">
-            <label class="form-label">
-              Bug Description <span class="required">*</span>
-            </label>
+          <FormField label="Bug Description" :path="'bugDescription'" :error="props.error" required class="w-full">
             <textarea
               v-model="form.bugDescription"
               rows="4"
-              required
               placeholder="Describe the bug in detail..."
               class="form-textarea"
             ></textarea>
-          </div>
+          </FormField>
 
           <!-- Expected Behaviour -->
-          <div class="form-group">
-            <label class="form-label">
-              Expected Behaviour <span class="required">*</span>
-            </label>
+          <FormField label="Expected Behaviour" :path="'expectedBehaviour'" :error="props.error" required class="w-full">
             <textarea
               v-model="form.expectedBehaviour"
               rows="4"
-              required
               placeholder="Describe what should happen instead..."
               class="form-textarea"
             ></textarea>
-          </div>
+          </FormField>
 
           <!-- Comments -->
-          <div class="form-group">
-            <label class="form-label">Comments</label>
+          <FormField label="Comments" class="w-full">
             <textarea
               v-model="form.comments"
               rows="2"
               placeholder="Additional notes or comments..."
               class="form-textarea"
             ></textarea>
-          </div>
+          </FormField>
         </fieldset>
 
         <div class="modal-footer">
+          <ErrorDisplay v-if="error" :error="error" class="flex-1 mr-2 self-start" />
           <button type="button" @click="$emit('close')" class="btn-secondary">
             {{ isReadOnly ? 'Close' : 'Cancel' }}
           </button>
@@ -210,7 +180,8 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useProjectsStore } from '@/stores/projects'
 import { useEnvironmentsStore } from '@/stores/environments'
 import { useStagesStore } from '@/stores/stages'
@@ -220,6 +191,7 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import FormField from '@/components/FormField.vue'
 
 interface PrefillData {
   projectId?: string
@@ -232,6 +204,7 @@ const props = defineProps<{
   issue: IssueResponse | null
   prefillData?: PrefillData
   isReadOnly?: boolean
+  error?: ParsedError | null
   loadHistory?: () => Promise<any>
   updateFn?: (data: any) => Promise<any>
   createFn?: (data: any) => Promise<any>

@@ -2,68 +2,48 @@
   <BaseModal title="Edit Profile" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label class="form-label">
-            Name <span class="required">*</span>
-          </label>
+        <FormField label="Name" required :error="validationError" path="name" class="w-full">
           <input
             v-model="form.name"
             type="text"
-            required
             class="form-input"
             placeholder="Enter display name"
           />
-        </div>
+        </FormField>
 
         <div class="h-px bg-gray-300 my-4"></div>
 
-        <div class="form-group">
-          <label class="form-label">
-            Change Password (optional)
-          </label>
-          <p class="text-sm text-gray-600 mb-2">Leave fields empty to keep current password</p>
-        </div>
+        <p class="text-sm text-gray-600 mb-4">Leave password fields empty to keep current password</p>
 
-        <div class="form-group">
-          <label class="form-label">Current Password</label>
+        <FormField label="Current Password" :error="validationError" path="oldPassword" class="w-full">
           <input
             v-model="form.oldPassword"
             type="password"
             class="form-input"
             placeholder="Enter current password"
-            :required="!!form.newPassword"
           />
-        </div>
+        </FormField>
 
-        <div class="form-group">
-          <label class="form-label">New Password</label>
+        <FormField label="New Password" :error="validationError" path="newPassword" class="w-full">
           <input
             v-model="form.newPassword"
             type="password"
             class="form-input"
             placeholder="Enter new password"
-            :required="!!form.oldPassword"
           />
-        </div>
+        </FormField>
 
-        <div class="form-group">
-          <label class="form-label">Confirm New Password</label>
+        <FormField label="Confirm New Password" :error="validationError" path="confirmPassword" class="w-full">
           <input
             v-model="form.confirmPassword"
             type="password"
             class="form-input"
             placeholder="Confirm new password"
-            :required="!!form.newPassword"
           />
-        </div>
+        </FormField>
 
-        <div v-if="validationError" class="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm mb-4">
-          {{ validationError }}
-        </div>
-
-        <div v-if="authStore.error" class="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm mb-4">
-          {{ authStore.error }}
-        </div>
+        <ErrorDisplay :error="validationError" />
+        <ErrorDisplay :error="authStore.error ? { message: authStore.error } : null" />
 
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
@@ -80,7 +60,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useAuthStore } from '@/stores'
+import type { ParsedError, ApiErrorDetail } from '@/api/types'
 
 const emit = defineEmits<{
   close: []
@@ -109,37 +92,41 @@ const form = ref({
   confirmPassword: '',
 })
 
-const validationError = ref<string | null>(null)
+const validationError = ref<ParsedError | null>(null)
 
 const handleSubmit = async () => {
   validationError.value = null
-  
-  // Validate password change if attempting to change password
-  if (form.value.oldPassword || form.value.newPassword || form.value.confirmPassword) {
+
+  const details: ApiErrorDetail[] = []
+
+  if (!form.value.name.trim()) {
+    details.push({ path: ['name'], code: 'required', message: 'Name is required' })
+  }
+
+  const isChangingPassword = form.value.oldPassword || form.value.newPassword || form.value.confirmPassword
+
+  if (isChangingPassword) {
     if (!form.value.oldPassword) {
-      validationError.value = 'Current password is required to change password'
-      return
+      details.push({ path: ['oldPassword'], code: 'required', message: 'Current password is required to change password' })
     }
     if (!form.value.newPassword) {
-      validationError.value = 'New password is required'
-      return
+      details.push({ path: ['newPassword'], code: 'required', message: 'New password is required' })
+    } else if (form.value.newPassword !== form.value.confirmPassword) {
+      details.push({ path: ['confirmPassword'], code: 'invalid', message: 'Passwords do not match' })
     }
-    if (form.value.newPassword !== form.value.confirmPassword) {
-      validationError.value = 'New passwords do not match'
-      return
-    }
-    if (form.value.newPassword.length < 1) {
-      validationError.value = 'New password must be at least 1 character'
-      return
-    }
+  }
+
+  if (details.length > 0) {
+    validationError.value = { message: 'Please fix the validation errors and try again.', details }
+    return
   }
 
   // Check if anything has changed
   const hasDisplayNameChange = form.value.name !== authStore.currentOperator?.name
-  const hasPasswordChange = form.value.oldPassword && form.value.newPassword
+  const hasPasswordChange = !!form.value.oldPassword && !!form.value.newPassword
 
   if (!hasDisplayNameChange && !hasPasswordChange) {
-    validationError.value = 'No changes to save'
+    validationError.value = { message: 'No changes to save' }
     return
   }
 

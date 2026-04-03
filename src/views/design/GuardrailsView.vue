@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import FormField from '@/components/FormField.vue'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
+import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
@@ -52,6 +54,7 @@ const defaultGuardrailClassifierId = ref<string>('')
 const showConfigureModerationModal = ref(false)
 const moderationLoading = ref(false)
 const moderationError = ref<string | null>(null)
+const moderationValidationError = ref<ParsedError | null>(null)
 const showModerationSuccess = ref(false)
 const moderationForm = ref({
   enabled: false,
@@ -91,6 +94,7 @@ const availableModerationCategories = computed(() => {
 
 watch(() => moderationForm.value.llmProviderId, () => {
   moderationForm.value.blockedCategories = []
+  moderationValidationError.value = null
 })
 
 // Search
@@ -181,6 +185,14 @@ async function saveProjectSettings() {
 
 async function saveModerationSettings() {
   if (!currentProject.value) return
+  moderationValidationError.value = null
+  if (moderationForm.value.enabled && !moderationForm.value.llmProviderId) {
+    moderationValidationError.value = {
+      message: 'A moderation provider is required when content moderation is enabled',
+      details: [{ code: 'required', path: ['llmProviderId'], message: 'A moderation provider is required' }]
+    }
+    return
+  }
   moderationLoading.value = true
   moderationError.value = null
   try {
@@ -287,8 +299,7 @@ function navigateToModerationAction() {
 
         <!-- Guardrails Classifier Setting -->
         <div class="mb-6">
-          <div class="form-group">
-            <label class="form-label">Guardrails Classifier</label>
+          <FormField label="Guardrails Classifier" class="w-full">
             <div class="flex items-center gap-3">
               <select
                 v-model="defaultGuardrailClassifierId"
@@ -317,7 +328,7 @@ function navigateToModerationAction() {
             </div>
             <p class="form-help-text">The classifier used to evaluate all guardrails in this project on every user input turn.</p>
             <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
-          </div>
+          </FormField>
         </div>
 
         <!-- Search Bar -->
@@ -446,20 +457,17 @@ function navigateToModerationAction() {
               </button>
             </div>
 
-            <div class="form-group">
-              <label class="flex items-center gap-3 cursor-pointer">
+            <FormField label="Enable content moderation" class="w-full" help="When enabled, each user message is screened by the moderation API before being processed">
+              
+              <template #leading>
                 <input
                   type="checkbox"
                   v-model="moderationForm.enabled"
                   class="form-checkbox"
                   :disabled="moderationLoading"
                 />
-                <span class="form-label mb-0">Enable content moderation</span>
-              </label>
-              <p class="form-help-text mt-1">
-                When enabled, each user message is screened by the moderation API before being processed
-              </p>
-            </div>
+              </template>
+            </FormField>
 
             <div v-if="moderationForm.enabled" class="form-group">
               <label class="form-label">Moderation Mode</label>
@@ -506,8 +514,9 @@ function navigateToModerationAction() {
               </button>
             </div>
 
-            <div v-if="moderationForm.enabled" class="form-group">
-              <label class="form-label">Moderation Provider <span class="text-red-500">*</span></label>
+            <FormField v-if="moderationForm.enabled" label="Moderation Provider" required :error="moderationValidationError" path="llmProviderId" 
+              help="Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API"
+            >
               <select
                 v-model="moderationForm.llmProviderId"
                 class="form-select-auto"
@@ -518,18 +527,14 @@ function navigateToModerationAction() {
                   {{ provider.name }} ({{ provider.apiType }})
                 </option>
               </select>
-              <p class="form-help-text">
-                Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API
+            </FormField>
+            <div class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
+              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
               </p>
-              <div v-if="moderationLlmProviders.length === 0" class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
-                <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                  No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
-                </p>
-              </div>
             </div>
 
-            <div v-if="moderationForm.enabled && moderationForm.llmProviderId" class="form-group">
-              <label class="form-label">Blocked Categories</label>
+            <FormField v-if="moderationForm.enabled && moderationForm.llmProviderId" label="Blocked Categories" class="w-full">
               <p class="form-help-text mb-3">
                 Select which flagged categories will block the message. If none are selected, any flagged category will block it.
               </p>
@@ -559,7 +564,7 @@ function navigateToModerationAction() {
               <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
                 <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
               </div>
-            </div>
+            </FormField>
 
             <div v-if="!moderationForm.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
               <p class="text-sm text-gray-600 dark:text-gray-400">

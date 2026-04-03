@@ -3,10 +3,14 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { useTableSort, useLlmProviderSelect } from '@/composables'
+import { useTableSort, useLlmProviderSelect, useTabNavigation } from '@/composables'
 import { useCopyPaste } from '@/composables/useCopyPaste'
 import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X, ChevronDown } from 'lucide-vue-next'
-import type { StageResponse, LlmSettings, StageAction } from '@/api/types'
+import type { StageResponse, LlmSettings, StageAction, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
@@ -20,6 +24,7 @@ import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
 
 // Lifecycle action constants
 const LIFECYCLE_ACTIONS = {
@@ -63,10 +68,12 @@ const projectsStore = useProjectsStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
-const loadError = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
+const loadError = ref<ParsedError | null>(null)
+const actionModalError = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata' | 'history'>('basic')
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 const showLLMSettingsModal = ref(false)
 const showActionModal = ref(false)
 const showDuplicateModal = ref(false)
@@ -169,9 +176,15 @@ const projectTransformers = computed(() =>
 
 const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
   () => form.value.llmProviderId,
-  (v) => { form.value.llmProviderId = v },
+  (v) => {
+    form.value.llmProviderId = v;
+    if (error.value?.details?.some(d => d.path[0] === 'llmProviderId')) error.value = null
+  },
   () => form.value.llmSettings,
-  (v) => { form.value.llmSettings = v }
+  (v) => {
+    form.value.llmSettings = v;
+    if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
+  }
 )
 
 function selectClassifierFilter(value: string) {
@@ -217,8 +230,6 @@ async function loadStage() {
   if (!stageId.value) return
   
   isLoading.value = true
-  error.value = null
-  
   try {
     currentStage.value = await stagesStore.fetchById(projectId.value, stageId.value)
     if (currentStage.value) {
@@ -244,7 +255,7 @@ async function loadStage() {
       }
     }
   } catch (err: any) {
-    loadError.value = err.response?.data?.message || 'Failed to load stage'
+    loadError.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -253,22 +264,35 @@ async function loadStage() {
 async function handleSubmit() {
   error.value = null
 
-  // Validate required fields
-  if (!form.value.llmProviderId) {
-    error.value = 'LLM Provider is required. Please select an LLM provider.'
-    activeTab.value = 'prompt'
-    return
-  }
+  const errorDetails: ApiErrorDetail[] = []
 
-  if (!form.value.llmSettings) {
-    error.value = 'LLM Settings are required. Please configure the LLM settings.'
-    activeTab.value = 'prompt'
-    return
-  }
+  if(!form.value.name.trim())
+    errorDetails.push({ code: 'required', path: ['name'], message: 'Name is required' })
 
-  if (duplicateVariableNames.value.length > 0) {
-    error.value = `Duplicate variable names detected: ${duplicateVariableNames.value.join(', ')}. Variable names must be unique within each level.`
-    activeTab.value = 'memory'
+  if(!form.value.agentId)
+    errorDetails.push({ code: 'required', path: ['agentId'], message: 'Agent selection is required' })
+
+  if(!form.value.enterBehavior)
+    errorDetails.push({ code: 'required', path: ['enterBehavior'], message: 'Enter behavior is required' })
+
+  if(!form.value.llmProviderId)
+    errorDetails.push({ code: 'required', path: ['llmProviderId'], message: 'LLM Provider is required' })
+
+  if(!form.value.llmSettings)
+    errorDetails.push({ code: 'required', path: ['llmSettings'], message: 'LLM Settings are required' })
+
+  if(!form.value.prompt.trim())
+    errorDetails.push({ code: 'required', path: ['prompt'], message: 'Prompt is required' })
+
+  if (duplicateVariableNames.value.length > 0)
+    errorDetails.push({ code: 'duplicate', path: ['variableDescriptors'], message: `Duplicate variable names detected: ${duplicateVariableNames.value.join(', ')}. Variable names must be unique within each level.` })
+
+  if (errorDetails.length > 0) {
+    error.value = {
+      message: 'Please fix the validation errors and try again.',
+      details: errorDetails
+    }
+    switchToFirstErrorTab(error.value)
     return
   }
 
@@ -353,7 +377,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} stage`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -399,6 +424,7 @@ const actionParametersForCompletion = computed(() => {
 function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
   showLLMSettingsModal.value = false
+  if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
 }
 
 // Action management functions
@@ -422,7 +448,7 @@ function editAction(key: string) {
 function deleteAction(key: string) {
   // Prevent deletion of lifecycle actions
   if (isLifecycleAction(key)) {
-    alert('Lifecycle actions cannot be deleted. Use "Clear" to remove the configuration instead.')
+    error.value = { message: 'Lifecycle actions cannot be deleted. Use "Clear" to remove the configuration instead.' }
     return
   }
   
@@ -446,19 +472,6 @@ function handleActionDuplicate(data: { name: string }) {
   
   const originalAction = form.value.actions[duplicatingActionKey.value]
   if (!originalAction) return
-  
-  // Check if key already exists
-  if (form.value.actions[data.name]) {
-    alert(`Action with key "${data.name}" already exists. Please choose a different key.`)
-    return
-  }
-
-  // Check if name already exists
-  const duplicateName = Object.values(form.value.actions).find(action => action.name === data.name)
-  if (duplicateName) {
-    alert(`An action with name "${data.name}" already exists. Please choose a different name.`)
-    return
-  }
 
   // Clone the action with new key and name
   const newActions = { ...form.value.actions }
@@ -483,7 +496,7 @@ function copyAllActions() {
   }
   
   if (Object.keys(regularActions).length === 0) {
-    alert('No actions to copy')
+    error.value = { message: 'No actions to copy' }
     return
   }
   
@@ -496,7 +509,7 @@ function copyAllActions() {
     alert(`Copied ${Object.keys(regularActions).length} action(s) to clipboard`)
   } catch (err) {
     console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy actions to clipboard')
+    error.value = { message: 'Failed to copy actions to clipboard' }
   }
 }
 
@@ -505,7 +518,7 @@ async function pasteActions() {
     const clipboardText = await navigator.clipboard.readText()
     
     if (!clipboardText) {
-      alert('Clipboard is empty')
+      error.value = { message: 'Clipboard is empty' }
       return
     }
     
@@ -514,13 +527,13 @@ async function pasteActions() {
     try {
       parsedActions = JSON.parse(clipboardText)
     } catch (err) {
-      alert('Clipboard does not contain valid JSON data')
+      error.value = { message: 'Clipboard does not contain valid JSON data' }
       return
     }
     
     // Validate structure
     if (!parsedActions || typeof parsedActions !== 'object') {
-      alert('Clipboard does not contain valid actions data')
+      error.value = { message: 'Clipboard does not contain valid actions data' }
       return
     }
     
@@ -529,7 +542,7 @@ async function pasteActions() {
     showPasteModal.value = true
   } catch (err) {
     console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
+    error.value = { message: 'Failed to read from clipboard. Please make sure you have clipboard permissions.' }
   }
 }
 
@@ -621,7 +634,7 @@ function handleActionSave(data: { key: string; action: StageAction }) {
     ([key, action]) => key !== data.key && action.name === data.action.name
   )
   if (duplicate) {
-    alert(`An action with name "${data.action.name}" already exists. Please choose a different name.`)
+    actionModalError.value = { message: `An action with name "${data.action.name}" already exists. Please choose a different name.` }
     return
   }
   const newActions = { ...form.value.actions }
@@ -896,7 +909,7 @@ function toggleNode(path: number[]) {
 
     <!-- Error State -->
     <div v-else-if="loadError && isEditMode" class="error-state">
-      {{ loadError }}
+      <ErrorDisplay :error="loadError" />
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Stages
       </button>
@@ -908,16 +921,11 @@ function toggleNode(path: number[]) {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <div v-if="error" class="alert-error mb-6">
-            {{ error }}
-          </div>
+          <ErrorDisplay v-if="error" :error="error" class="mb-6" />
 
           <!-- General Tab -->
-          <div v-show="activeTab === 'basic'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">
-                Name <span class="required">*</span>
-              </label>
+          <TabContent v-model="activeTab" tab="basic">
+            <FormField label="Name" required :error="error" path="name" help="Human-readable name for this stage" class="w-full">
               <input
                 v-model="form.name"
                 type="text"
@@ -926,15 +934,9 @@ function toggleNode(path: number[]) {
                 class="form-input"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Human-readable name for this stage
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Description <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Description" :error="error" path="description" help="Optional description of what this stage does" class="w-full">
               <textarea
                 v-model="form.description"
                 rows="3"
@@ -942,17 +944,11 @@ function toggleNode(path: number[]) {
                 placeholder="Brief description of this stage's purpose..."
                 :disabled="isLoading"
               ></textarea>
-              <p class="form-help-text">
-                Optional description of what this stage does
-              </p>
-            </div>
+            </FormField>
 
             <TagsEditor v-model="form.tags" :disabled="isLoading" />
 
-            <div class="form-group">
-              <label class="form-label">
-                Agent <span class="required">*</span>
-              </label>
+            <FormField label="Agent" required :error="error" path="agentId" help="The AI agent to use for this stage">
               <select
                 v-model="form.agentId"
                 required
@@ -964,15 +960,9 @@ function toggleNode(path: number[]) {
                   {{ agent.name }}
                 </option>
               </select>
-              <p class="form-help-text">
-                The AI agent to use for this stage
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Default Enter Behavior <span class="required">*</span>
-              </label>
+            <FormField label="Default Enter Behavior" required :error="error" path="enterBehavior" help="What should happen when entering this stage">
               <select
                 v-model="form.enterBehavior"
                 required
@@ -982,51 +972,43 @@ function toggleNode(path: number[]) {
                 <option value="generate_response">Generate Response</option>
                 <option value="await_user_input">Await User Input</option>
               </select>
-              <p class="form-help-text">
-                What should happen when entering this stage
-              </p>
-            </div>
-          </div>
+            </FormField>
+          </TabContent>
 
           <!-- Prompt Tab -->
-          <div v-show="activeTab === 'prompt'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">
-                LLM Provider <span class="required">*</span>
-              </label>
+          <TabContent v-model="activeTab" tab="prompt">
+            <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider to use for this stage">
               <div class="flex flex-col md:flex-row gap-2">
-                <select
-                  :value="form.llmProviderId"
-                  @change="handleLlmProviderChange"
-                  required
-                  class="form-select-auto min-w-64"
-                  :disabled="isLoading"
-                >
-                  <option value="">Select an LLM provider</option>
-                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                    {{ provider.name }}
-                  </option>
-                </select>
-                <button
-                  type="button"
-                  @click="showLLMSettingsModal = true"
-                  class="btn-secondary whitespace-nowrap"
-                  :disabled="isLoading"
-                >
-                  <Settings class="inline-block mr-1 w-4 h-4" />
-                  Settings...
-                </button>
+                <FormField path="llmProviderId">
+                  <select
+                    :value="form.llmProviderId"
+                    @change="handleLlmProviderChange"
+                    required
+                    class="form-select-auto min-w-64"
+                    :disabled="isLoading"
+                  >
+                    <option value="">Select an LLM provider</option>
+                    <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                      {{ provider.name }}
+                    </option>
+                  </select>
+                </FormField>
+                <FormField path="llmSettings">
+                  <button
+                    type="button"
+                    @click="showLLMSettingsModal = true"
+                    class="btn-secondary whitespace-nowrap h-10.5"
+                    :disabled="isLoading"
+                  >
+                    <Settings class="inline-block mr-1 w-4 h-4" />
+                    Settings...
+                  </button>
+                </FormField>
                 <LLMModelBadge :settings="form.llmSettings" />
               </div>
-              <p class="form-help-text">
-                The LLM provider to use for this stage
-              </p>
-            </div>
+            </CompositeFormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Stage Prompt <span class="required">*</span>
-              </label>
+            <FormField label="Stage Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt or instructions specific to this stage">
               <PromptEditor
                 v-model="form.prompt"
                 :disabled="isLoading || isReadOnly"
@@ -1039,16 +1021,13 @@ function toggleNode(path: number[]) {
                 aria-label="Stage prompt"
                 min-height="28rem"
               />
-              <p class="form-help-text">
-                The system prompt or instructions specific to this stage
-              </p>
-            </div>
-          </div>
+            </FormField>
+          </TabContent>
 
           <!-- Features Tab -->
-          <div v-show="activeTab === 'features'" class="tab-content">
+          <TabContent v-model="activeTab" tab="features">
             
-            <div class="form-group">
+            <FormField help="Allow this stage to access the knowledge base">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.useKnowledge"
@@ -1060,12 +1039,9 @@ function toggleNode(path: number[]) {
                   Enable Knowledge Base
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Allow this stage to access the knowledge base
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField help="Allow this stage to execute global actions">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.useGlobalActions"
@@ -1077,16 +1053,10 @@ function toggleNode(path: number[]) {
                   Enable Global Actions
                 </span>
               </label>
-              <p class="form-help-text mt-1">
-                Allow this stage to execute global actions
-              </p>
-            </div>
+            </FormField>
 
             <div class="mt-6">
-              <div class="form-group">
-                <label class="form-label">
-                  Default Classifier <span class="text-gray-500">(required for actions)</span>
-                </label>
+              <FormField label="Default Classifier" hint="(required for actions)" :error="error" path="defaultClassifierId" help="Default classifier for this stage. Individual actions can override this using &quot;Override Classifier ID&quot; in action settings.">
                 <select
                   v-model="form.defaultClassifierId"
                   class="form-select-auto min-w-64"
@@ -1108,18 +1078,11 @@ function toggleNode(path: number[]) {
                   <AlertTriangle class="mt-0.5 w-4 h-4 shrink-0" />
                   <span>Actions triggered by user input classification won't work without a Default Classifier assigned.</span>
                 </div>
-
-                <p class="form-help-text">
-                  Default classifier for this stage. Individual actions can override this using "Override Classifier ID" in action settings.
-                </p>
-              </div>
+              </FormField>
             </div>
 
             <div class="mt-6">
-              <div class="form-group">
-                <label class="form-label">
-                  Attached Transformers <span class="text-gray-500">(optional)</span>
-                </label>
+              <FormField label="Attached Transformers" :error="error" path="transformerIds" class="w-full">
                 <div class="space-y-2">
                   <label
                     v-for="transformer in projectTransformers"
@@ -1141,16 +1104,12 @@ function toggleNode(path: number[]) {
                     No transformers available for this project
                   </p>
                 </div>
-              </div>
+              </FormField>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Memory Tab -->
-          <div v-show="activeTab === 'memory'" class="tab-content">
-            <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
-              <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-              Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
-            </div>
+          <TabContent v-model="activeTab" tab="memory">
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
@@ -1191,35 +1150,37 @@ function toggleNode(path: number[]) {
               </div>
             </div>
 
-            <!-- Empty State -->
-            <div v-if="form.variableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-              <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
-              <p class="text-sm text-gray-400 dark:text-gray-500">
-                Click "Add Variable" to define your first variable
-              </p>
-            </div>
-
-            <!-- Tree View -->
-            <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-              <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                <template v-for="(descriptor, index) in form.variableDescriptors" :key="index">
-                  <VariableTreeNode
-                    :descriptor="descriptor"
-                    :path="[index]"
-                    :expanded-nodes="expandedNodes"
-                    @toggle="toggleNode"
-                    @update-name="updateVariableName"
-                    @update-type="updateVariableType"
-                    @delete="deleteVariable"
-                    @add-nested="addNestedVariable"
-                  />
-                </template>
+            <FormField :error="error" path="variableDescriptors" class="w-full">
+              <!-- Empty State -->
+              <div v-if="form.variableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500">
+                  Click "Add Variable" to define your first variable
+                </p>
               </div>
-            </div>
-          </div>
+
+              <!-- Tree View -->
+              <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <template v-for="(descriptor, index) in form.variableDescriptors" :key="index">
+                    <VariableTreeNode
+                      :descriptor="descriptor"
+                      :path="[index]"
+                      :expanded-nodes="expandedNodes"
+                      @toggle="toggleNode"
+                      @update-name="updateVariableName"
+                      @update-type="updateVariableType"
+                      @delete="deleteVariable"
+                      @add-nested="addNestedVariable"
+                    />
+                  </template>
+                </div>
+              </div>
+            </FormField>
+          </TabContent>
 
           <!-- Actions Tab -->
-          <div v-show="activeTab === 'actions'" class="tab-content">
+          <TabContent v-model="activeTab" tab="actions">
             <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
@@ -1418,10 +1379,10 @@ function toggleNode(path: number[]) {
                 </table>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Lifecycle Tab -->
-          <div v-show="activeTab === 'lifecycle'" class="tab-content">
+          <TabContent v-model="activeTab" tab="lifecycle">
             <div class="mb-6">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Lifecycle Actions</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -1489,29 +1450,24 @@ function toggleNode(path: number[]) {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Metadata Tab -->
-          <MetadataTab
-            v-if="isEditMode && currentStage"
-            v-show="activeTab === 'metadata'"
-            :fields="metadataFields"
-          />
+          <MetadataTab v-if="isEditMode && currentStage" v-model="activeTab" tab="metadata" :fields="metadataFields" />
           <!-- History Tab -->
-           <div class="tab-content">
-              <EntityHistoryView
-                v-if="isEditMode && currentStage"
-                v-show="activeTab === 'history'"
-                :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
-                :current-version="currentStage.version"
-                :current-object="currentStage"
-                :active="activeTab === 'history'"
-                :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
-                :create-fn="(data) => stagesStore.create(projectId, data)"
-                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-                @recover-success="() => router.go(0)"
-              />
-           </div>
+          <TabContent v-model="activeTab" tab="history">
+            <EntityHistoryView
+              v-if="isEditMode && currentStage"
+              :load-history="() => stagesStore.fetchAuditLogs(projectId, currentStage!.id)"
+              :current-version="currentStage.version"
+              :current-object="currentStage"
+              :active="activeTab === 'history'"
+              :update-fn="(data) => stagesStore.update(projectId, currentStage!.id, data)"
+              :create-fn="(data) => stagesStore.create(projectId, data)"
+              :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+              @recover-success="() => router.go(0)"
+            />
+          </TabContent>
           </fieldset>
         </form>
       </div>
@@ -1536,6 +1492,7 @@ function toggleNode(path: number[]) {
       :stage-variables="stageVariablesForCompletion"
       :action-parameters="actionParametersForCompletion"
       :project-constants="projectConstantsForCompletion"
+      :error="actionModalError"
       @close="showActionModal = false"
       @save="handleActionSave"
     />

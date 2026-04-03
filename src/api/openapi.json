@@ -9131,7 +9131,6 @@
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
             "description": "ID of the LLM provider to use for this tool"
           },
           "llmSettings": {
@@ -9177,6 +9176,7 @@
           "name",
           "type",
           "prompt",
+          "llmProviderId",
           "inputType",
           "outputType"
         ]
@@ -9354,7 +9354,7 @@
           }
         }
       },
-      "UpdateToolRequest": {
+      "UpdateSmartFunctionTool": {
         "type": "object",
         "properties": {
           "name": {
@@ -9367,15 +9367,47 @@
             "nullable": true,
             "description": "Updated description"
           },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Updated parameters for the tool (smart_function)"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags (smart_function)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated metadata (smart_function)"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking (smart_function)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "smart_function"
+            ],
+            "description": "Tool executes an LLM call"
+          },
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated Handlebars prompt template (smart_function)"
+            "description": "Updated Handlebars prompt template"
           },
           "llmProviderId": {
             "type": "string",
-            "nullable": true,
-            "description": "Updated LLM provider ID (smart_function)"
+            "description": "Updated LLM provider ID"
           },
           "llmSettings": {
             "anyOf": [
@@ -9395,7 +9427,7 @@
                 "nullable": true
               }
             ],
-            "description": "Updated LLM provider-specific settings (smart_function)"
+            "description": "Updated LLM provider-specific settings"
           },
           "inputType": {
             "type": "string",
@@ -9414,6 +9446,61 @@
               "multi-modal"
             ],
             "description": "Updated output format (smart_function)"
+          }
+        },
+        "required": [
+          "version",
+          "type",
+          "llmProviderId",
+          "inputType",
+          "outputType"
+        ]
+      },
+      "UpdateWebhookTool": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated description"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            },
+            "description": "Updated parameters for the tool (smart_function)"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags (smart_function)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated metadata (smart_function)"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking (smart_function)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "webhook"
+            ],
+            "description": "Tool makes an HTTP request"
           },
           "url": {
             "type": "string",
@@ -9443,42 +9530,92 @@
             "type": "string",
             "nullable": true,
             "description": "Updated request body template (webhook)"
-          },
-          "code": {
+          }
+        },
+        "required": [
+          "version",
+          "type",
+          "url"
+        ]
+      },
+      "UpdateScriptTool": {
+        "type": "object",
+        "properties": {
+          "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Updated JavaScript code (script)"
+            "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated description"
           },
           "parameters": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ToolParameter"
             },
-            "description": "Updated parameters for the tool"
+            "description": "Updated parameters for the tool (smart_function)"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Updated tags"
+            "description": "Updated tags (smart_function)"
           },
           "metadata": {
             "type": "object",
             "additionalProperties": {
               "nullable": true
             },
-            "description": "Updated metadata"
+            "description": "Updated metadata (smart_function)"
           },
           "version": {
             "type": "integer",
             "minimum": 1,
-            "description": "Current version number for optimistic locking"
+            "description": "Current version number for optimistic locking (smart_function)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "script"
+            ],
+            "description": "Tool executes isolated JavaScript code"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated JavaScript code (script)"
           }
         },
         "required": [
-          "version"
+          "version",
+          "type",
+          "code"
         ]
+      },
+      "UpdateToolRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/UpdateSmartFunctionTool"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateWebhookTool"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateScriptTool"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "smart_function": "#/components/schemas/UpdateSmartFunctionTool",
+            "webhook": "#/components/schemas/UpdateWebhookTool",
+            "script": "#/components/schemas/UpdateScriptTool"
+          }
+        }
       },
       "DeleteToolRequest": {
         "type": "object",
@@ -40940,130 +41077,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Updated display name"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateSmartFunctionTool"
                   },
-                  "description": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Updated description"
+                  {
+                    "$ref": "#/components/schemas/UpdateWebhookTool"
                   },
-                  "prompt": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Updated Handlebars prompt template (smart_function)"
-                  },
-                  "llmProviderId": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Updated LLM provider ID (smart_function)"
-                  },
-                  "llmSettings": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/components/schemas/OpenAILlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/AnthropicLlmSettings"
-                      },
-                      {
-                        "$ref": "#/components/schemas/GeminiLlmSettings"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ],
-                    "description": "Updated LLM provider-specific settings (smart_function)"
-                  },
-                  "inputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Updated input format (smart_function)"
-                  },
-                  "outputType": {
-                    "type": "string",
-                    "enum": [
-                      "text",
-                      "image",
-                      "multi-modal"
-                    ],
-                    "description": "Updated output format (smart_function)"
-                  },
-                  "url": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "Updated target URL (webhook)"
-                  },
-                  "webhookMethod": {
-                    "type": "string",
-                    "enum": [
-                      "GET",
-                      "POST",
-                      "PUT",
-                      "PATCH",
-                      "DELETE"
-                    ],
-                    "description": "Updated HTTP method (webhook)"
-                  },
-                  "webhookHeaders": {
-                    "type": "object",
-                    "nullable": true,
-                    "additionalProperties": {
-                      "type": "string"
-                    },
-                    "description": "Updated HTTP headers (webhook)"
-                  },
-                  "webhookBody": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Updated request body template (webhook)"
-                  },
-                  "code": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Updated JavaScript code (script)"
-                  },
-                  "parameters": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/ToolParameter"
-                    },
-                    "description": "Updated parameters for the tool"
-                  },
-                  "tags": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "Updated tags"
-                  },
-                  "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "nullable": true
-                    },
-                    "description": "Updated metadata"
-                  },
-                  "version": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "description": "Current version number for optimistic locking"
+                  {
+                    "$ref": "#/components/schemas/UpdateScriptTool"
                   }
-                },
-                "required": [
-                  "version"
-                ]
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "smart_function": "#/components/schemas/UpdateSmartFunctionTool",
+                    "webhook": "#/components/schemas/UpdateWebhookTool",
+                    "script": "#/components/schemas/UpdateScriptTool"
+                  }
+                }
               }
             }
           }

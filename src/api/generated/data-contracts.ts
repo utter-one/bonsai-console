@@ -17,6 +17,17 @@ export enum ToolType {
   Script = "script",
 }
 
+export type UpdateToolRequest =
+  | ({
+      type: "smart_function";
+    } & UpdateSmartFunctionTool)
+  | ({
+      type: "webhook";
+    } & UpdateWebhookTool)
+  | ({
+      type: "script";
+    } & UpdateScriptTool);
+
 export type CreateToolRequest =
   | ({
       type: "smart_function";
@@ -4269,7 +4280,7 @@ export interface CreateSmartFunctionTool {
    */
   prompt: string;
   /** ID of the LLM provider to use for this tool */
-  llmProviderId?: string | null;
+  llmProviderId: string;
   /** LLM provider-specific settings for this tool */
   llmSettings?:
     | OpenAILlmSettings
@@ -4359,7 +4370,7 @@ export interface CreateScriptTool {
   code: string;
 }
 
-export interface UpdateToolRequest {
+export interface UpdateSmartFunctionTool {
   /**
    * Updated display name
    * @minLength 1
@@ -4367,50 +4378,98 @@ export interface UpdateToolRequest {
   name?: string;
   /** Updated description */
   description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
   /**
-   * Updated Handlebars prompt template (smart_function)
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool executes an LLM call */
+  type: "smart_function";
+  /**
+   * Updated Handlebars prompt template
    * @minLength 1
    */
   prompt?: string;
-  /** Updated LLM provider ID (smart_function) */
-  llmProviderId?: string | null;
-  /** Updated LLM provider-specific settings (smart_function) */
+  /** Updated LLM provider ID */
+  llmProviderId: string;
+  /** Updated LLM provider-specific settings */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
   /** Updated input format (smart_function) */
-  inputType?: "text" | "image" | "multi-modal";
+  inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
-  outputType?: "text" | "image" | "multi-modal";
+  outputType: "text" | "image" | "multi-modal";
+}
+
+export interface UpdateWebhookTool {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool makes an HTTP request */
+  type: "webhook";
   /**
    * Updated target URL (webhook)
    * @format uri
    */
-  url?: string;
+  url: string;
   /** Updated HTTP method (webhook) */
   webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Updated HTTP headers (webhook) */
   webhookHeaders?: Record<string, string>;
   /** Updated request body template (webhook) */
   webhookBody?: string | null;
+}
+
+export interface UpdateScriptTool {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool executes isolated JavaScript code */
+  type: "script";
   /**
    * Updated JavaScript code (script)
    * @minLength 1
    */
-  code?: string;
-  /** Updated parameters for the tool */
-  parameters?: ToolParameter[];
-  /** Updated tags */
-  tags?: string[];
-  /** Updated metadata */
-  metadata?: Record<string, any>;
-  /**
-   * Current version number for optimistic locking
-   * @min 1
-   */
-  version: number;
+  code: string;
 }
 
 export interface DeleteToolRequest {

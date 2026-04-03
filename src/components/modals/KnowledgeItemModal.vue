@@ -10,32 +10,27 @@
 
     <div v-if="!item || activeTab === 'details'">
     <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label class="form-label">Question <span class="required">*</span></label>
+      <FormField label="Question" :path="'question'" :error="props.error" required class="w-full">
         <input
           v-model="form.question"
           type="text"
-          required
           class="form-input"
           placeholder="What is the question the user might ask?"
           :disabled="disabled"
         />
-      </div>
+      </FormField>
 
-      <div class="form-group">
-        <label class="form-label">Answer <span class="required">*</span></label>
+      <FormField label="Answer" :path="'answer'" :error="props.error" required class="w-full">
         <textarea
           v-model="form.answer"
-          required
           class="form-textarea"
           rows="5"
           placeholder="Provide the answer that the assistant should give..."
           :disabled="disabled"
         />
-      </div>
+      </FormField>
 
-      <div class="form-group">
-        <label class="form-label">Display Order</label>
+      <FormField label="Display Order">
         <input
           v-model.number="form.order"
           type="number"
@@ -43,9 +38,10 @@
           class="form-input max-w-32"
           :disabled="disabled"
         />
-      </div>
+      </FormField>
 
       <div class="modal-footer">
+        <ErrorDisplay v-if="error" :error="error" class="flex-1 mr-2 self-start" />
         <button type="button" @click="$emit('close')" class="btn-secondary">
           Cancel
         </button>
@@ -83,10 +79,14 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import type { ParsedError } from '@/api/types'
 
 const props = defineProps<{
   item: KnowledgeItemResponse | null
   categoryArchived?: boolean
+  error?: ParsedError | null
   loadHistory?: () => Promise<any>
   updateFn?: (data: any) => Promise<any>
   createFn?: (data: any) => Promise<any>
