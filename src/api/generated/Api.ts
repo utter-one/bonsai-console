@@ -70,6 +70,7 @@ import {
   TokenUsageTrendResponse,
   ToolParameter,
   TtsModelInfo,
+  UpdateToolRequest,
   VoiceInfo,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
@@ -734,11 +735,11 @@ export class Api<
         asrProviderId?: string;
         /** ASR-specific settings including model, language preferences, etc. */
         settings?:
-        | AzureAsrSettings
-        | ElevenLabsAsrSettings
-        | DeepgramAsrSettings
-        | AssemblyAiAsrSettings
-        | SpeechmaticsAsrSettings;
+          | AzureAsrSettings
+          | ElevenLabsAsrSettings
+          | DeepgramAsrSettings
+          | AssemblyAiAsrSettings
+          | SpeechmaticsAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -762,10 +763,10 @@ export class Api<
         storageProviderId?: string;
         /** Storage-specific settings including bucket, prefix, etc. */
         settings?:
-        | S3StorageSettings
-        | AzureBlobStorageSettings
-        | GcsStorageSettings
-        | LocalStorageSettings;
+          | S3StorageSettings
+          | AzureBlobStorageSettings
+          | GcsStorageSettings
+          | LocalStorageSettings;
       };
       /** Optional content moderation configuration */
       moderationConfig?: {
@@ -824,11 +825,11 @@ export class Api<
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
           settings?:
-          | AzureAsrSettings
-          | ElevenLabsAsrSettings
-          | DeepgramAsrSettings
-          | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -846,10 +847,10 @@ export class Api<
           storageProviderId?: string;
           /** Storage-specific settings including bucket, prefix, etc. */
           settings?:
-          | S3StorageSettings
-          | AzureBlobStorageSettings
-          | GcsStorageSettings
-          | LocalStorageSettings;
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
         } | null;
         /** Content moderation configuration */
         moderationConfig: {
@@ -977,11 +978,11 @@ export class Api<
             asrProviderId?: string;
             /** ASR-specific settings including model, language preferences, etc. */
             settings?:
-            | AzureAsrSettings
-            | ElevenLabsAsrSettings
-            | DeepgramAsrSettings
-            | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+              | AzureAsrSettings
+              | ElevenLabsAsrSettings
+              | DeepgramAsrSettings
+              | AssemblyAiAsrSettings
+              | SpeechmaticsAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -999,10 +1000,10 @@ export class Api<
             storageProviderId?: string;
             /** Storage-specific settings including bucket, prefix, etc. */
             settings?:
-            | S3StorageSettings
-            | AzureBlobStorageSettings
-            | GcsStorageSettings
-            | LocalStorageSettings;
+              | S3StorageSettings
+              | AzureBlobStorageSettings
+              | GcsStorageSettings
+              | LocalStorageSettings;
           } | null;
           /** Content moderation configuration */
           moderationConfig: {
@@ -1094,11 +1095,11 @@ export class Api<
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
           settings?:
-          | AzureAsrSettings
-          | ElevenLabsAsrSettings
-          | DeepgramAsrSettings
-          | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1116,10 +1117,10 @@ export class Api<
           storageProviderId?: string;
           /** Storage-specific settings including bucket, prefix, etc. */
           settings?:
-          | S3StorageSettings
-          | AzureBlobStorageSettings
-          | GcsStorageSettings
-          | LocalStorageSettings;
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
         } | null;
         /** Content moderation configuration */
         moderationConfig: {
@@ -1209,11 +1210,11 @@ export class Api<
         asrProviderId?: string;
         /** ASR-specific settings including model, language preferences, etc. */
         settings?:
-        | AzureAsrSettings
-        | ElevenLabsAsrSettings
-        | DeepgramAsrSettings
-        | AssemblyAiAsrSettings
-        | SpeechmaticsAsrSettings;
+          | AzureAsrSettings
+          | ElevenLabsAsrSettings
+          | DeepgramAsrSettings
+          | AssemblyAiAsrSettings
+          | SpeechmaticsAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1231,10 +1232,10 @@ export class Api<
         storageProviderId?: string;
         /** Storage-specific settings including bucket, prefix, etc. */
         settings?:
-        | S3StorageSettings
-        | AzureBlobStorageSettings
-        | GcsStorageSettings
-        | LocalStorageSettings;
+          | S3StorageSettings
+          | AzureBlobStorageSettings
+          | GcsStorageSettings
+          | LocalStorageSettings;
       } | null;
       /** Updated content moderation configuration */
       moderationConfig?: {
@@ -1295,11 +1296,11 @@ export class Api<
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
           settings?:
-          | AzureAsrSettings
-          | ElevenLabsAsrSettings
-          | DeepgramAsrSettings
-          | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1317,10 +1318,10 @@ export class Api<
           storageProviderId?: string;
           /** Storage-specific settings including bucket, prefix, etc. */
           settings?:
-          | S3StorageSettings
-          | AzureBlobStorageSettings
-          | GcsStorageSettings
-          | LocalStorageSettings;
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
         } | null;
         /** Content moderation configuration */
         moderationConfig: {
@@ -1433,11 +1434,11 @@ export class Api<
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
           settings?:
-          | AzureAsrSettings
-          | ElevenLabsAsrSettings
-          | DeepgramAsrSettings
-          | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1455,10 +1456,10 @@ export class Api<
           storageProviderId?: string;
           /** Storage-specific settings including bucket, prefix, etc. */
           settings?:
-          | S3StorageSettings
-          | AzureBlobStorageSettings
-          | GcsStorageSettings
-          | LocalStorageSettings;
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
         } | null;
         /** Content moderation configuration */
         moderationConfig: {
@@ -1555,11 +1556,11 @@ export class Api<
           asrProviderId?: string;
           /** ASR-specific settings including model, language preferences, etc. */
           settings?:
-          | AzureAsrSettings
-          | ElevenLabsAsrSettings
-          | DeepgramAsrSettings
-          | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+            | AzureAsrSettings
+            | ElevenLabsAsrSettings
+            | DeepgramAsrSettings
+            | AssemblyAiAsrSettings
+            | SpeechmaticsAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1577,10 +1578,10 @@ export class Api<
           storageProviderId?: string;
           /** Storage-specific settings including bucket, prefix, etc. */
           settings?:
-          | S3StorageSettings
-          | AzureBlobStorageSettings
-          | GcsStorageSettings
-          | LocalStorageSettings;
+            | S3StorageSettings
+            | AzureBlobStorageSettings
+            | GcsStorageSettings
+            | LocalStorageSettings;
         } | null;
         /** Content moderation configuration */
         moderationConfig: {
@@ -2010,15 +2011,15 @@ export class Api<
     query: {
       /** Analytics source to query */
       source:
-      | "conversations"
-      | "events"
-      | "turns"
-      | "tool_calls"
-      | "classifications"
-      | "transformations"
-      | "moderation"
-      | "stage_visits"
-      | "llm_calls";
+        | "conversations"
+        | "events"
+        | "turns"
+        | "tool_calls"
+        | "classifications"
+        | "transformations"
+        | "moderation"
+        | "stage_visits"
+        | "llm_calls";
       /**
        * Dimension IDs to group results by (max 5)
        * @maxItems 5
@@ -2261,10 +2262,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2357,10 +2358,10 @@ export class Api<
           llmProviderId: string | null;
           /** LLM provider-specific settings */
           llmSettings?:
-          | OpenAILlmSettings
-          | OpenAILegacyLlmSettings
-          | AnthropicLlmSettings
-          | GeminiLlmSettings;
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2438,10 +2439,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2529,10 +2530,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2653,10 +2654,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2752,10 +2753,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -2850,10 +2851,10 @@ export class Api<
           llmProviderId: string | null;
           /** LLM provider-specific settings */
           llmSettings?:
-          | OpenAILlmSettings
-          | OpenAILegacyLlmSettings
-          | AnthropicLlmSettings
-          | GeminiLlmSettings;
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -2933,10 +2934,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3028,10 +3029,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3154,10 +3155,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3436,216 +3437,216 @@ export class Api<
           conversationId: string;
           /** Type of the conversation event */
           eventType:
-          | "message"
-          | "classification"
-          | "transformation"
-          | "execution_plan"
-          | "action"
-          | "command"
-          | "tool_call"
-          | "conversation_start"
-          | "conversation_resume"
-          | "conversation_end"
-          | "conversation_aborted"
-          | "conversation_failed"
-          | "jump_to_stage"
-          | "moderation"
-          | "variables_updated"
-          | "user_profile_updated"
-          | "user_input_modified"
-          | "user_banned"
-          | "visibility_changed"
-          | "sample_copy_selection";
-          /** Event data payload */
-          eventData:
-          | {
-            role: "user" | "assistant";
-            text: string;
-            originalText: string;
-            visibility?: {
-              /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
-              visibility: "always" | "stage" | "never" | "conditional";
-              /** Condition for visibility, evaluated against conversation variables */
-              condition?: string;
-            };
-            metadata?: Record<string, any>;
-          }
-          | {
-            classifierId: string;
-            input: string;
-            actions: {
-              classifierId: string;
-              classifierName: string;
-              actions: {
-                name: string;
-                parameters: Record<string, ParameterValue>;
-              }[];
-            }[];
-            metadata?: Record<string, any>;
-          }
-          | {
-            transformerId: string;
-            input: string;
-            appliedFields: string[];
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** ID of the stage where execution is taking place */
-            stageId: string;
-            /** Names of all matched actions in original order */
-            actions: string[];
-            /** Final ordered list of effects after filtering, sorting, and conflict resolution */
-            effects: {
-              /** Name of the action this effect originates from */
-              actionName: string;
-              /** The effect to be executed */
-              effect: Effect;
-            }[];
-            /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
-            lifecycleContext:
-            | "on_enter"
-            | "on_leave"
-            | "on_fallback"
+            | "message"
+            | "classification"
+            | "transformation"
+            | "execution_plan"
+            | "action"
+            | "command"
+            | "tool_call"
             | "conversation_start"
             | "conversation_resume"
             | "conversation_end"
-            | "conversation_abort"
+            | "conversation_aborted"
             | "conversation_failed"
-            | null;
-            metadata?: Record<string, any>;
-          }
-          | {
-            actionName: string;
-            stageId: string;
-            effects: Effect[];
-            metadata?: Record<string, any>;
-          }
-          | {
-            command:
-            | "go_to_stage"
-            | "set_var"
-            | "get_var"
-            | "get_all_vars"
-            | "run_action"
-            | "call_tool";
-            parameters?: Record<string, ParameterValue>;
-            metadata?: Record<string, any>;
-          }
-          | {
-            toolId: string;
-            toolName: string;
-            toolType?: "smart_function" | "webhook" | "script";
-            parameters: Record<string, ParameterValue>;
-            success: boolean;
-            result?: any;
-            error?: string;
-            /** Name of the action that triggered this tool call, if triggered by an action effect */
-            sourceActionName?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            stageId: string;
-            initialVariables?: Record<string, ParameterValue>;
-            metadata?: Record<string, any>;
-          }
-          | {
-            previousStatus:
-            | "initialized"
-            | "awaiting_user_input"
-            | "receiving_user_voice"
-            | "processing_user_input"
-            | "generating_response"
-            | "finished"
-            | "aborted"
-            | "failed";
-            stageId: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            reason?: string;
-            stageId: string;
-            /** Name of the action that triggered conversation end, if triggered by an action effect */
-            sourceActionName?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            reason: string;
-            stageId: string;
-            /** Name of the action that triggered conversation abort, if triggered by an action effect */
-            sourceActionName?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            reason: string;
-            stageId?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            fromStageId: string;
-            toStageId: string;
-            /** Name of the action that triggered this stage jump, if triggered by an action effect */
-            sourceActionName?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            input: string;
-            flagged: boolean;
-            blockingCategories: string[];
-            detectedCategories: string[];
-            durationMs: number;
-            startMs: number;
-            endMs: number;
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** Name of the action that triggered this variable update */
-            sourceActionName: string;
-            /** Snapshot of all conversation variables after the update */
-            variables: Record<string, ParameterValue>;
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** Name of the action that triggered this profile update */
-            sourceActionName: string;
-            /** Updated user profile data */
-            profile: Record<string, ParameterValue>;
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** Name of the action that triggered this input modification */
-            sourceActionName: string;
-            /** The modified user input after template rendering */
-            modifiedInput: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** Name of the action that triggered the ban */
-            sourceActionName: string;
-            /** Optional reason for the ban */
-            reason?: string;
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** Name of the action that triggered this visibility change */
-            sourceActionName: string;
-            /** The new visibility settings for current turn messages */
-            visibility: {
-              /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
-              visibility: "always" | "stage" | "never" | "conditional";
-              /** Condition for visibility, evaluated against conversation variables */
-              condition?: string;
-            };
-            metadata?: Record<string, any>;
-          }
-          | {
-            /** ID of the classifier that performed the selection */
-            classifierId: string;
-            /** The user input that triggered the selection */
-            input: string;
-            /** Identifier of selected sample copy, or null if none was selected */
-            sampleCopy: string | null;
-            metadata?: Record<string, any>;
-          };
+            | "jump_to_stage"
+            | "moderation"
+            | "variables_updated"
+            | "user_profile_updated"
+            | "user_input_modified"
+            | "user_banned"
+            | "visibility_changed"
+            | "sample_copy_selection";
+          /** Event data payload */
+          eventData:
+            | {
+                role: "user" | "assistant";
+                text: string;
+                originalText: string;
+                visibility?: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
+                metadata?: Record<string, any>;
+              }
+            | {
+                classifierId: string;
+                input: string;
+                actions: {
+                  classifierId: string;
+                  classifierName: string;
+                  actions: {
+                    name: string;
+                    parameters: Record<string, ParameterValue>;
+                  }[];
+                }[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                transformerId: string;
+                input: string;
+                appliedFields: string[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** ID of the stage where execution is taking place */
+                stageId: string;
+                /** Names of all matched actions in original order */
+                actions: string[];
+                /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+                effects: {
+                  /** Name of the action this effect originates from */
+                  actionName: string;
+                  /** The effect to be executed */
+                  effect: Effect;
+                }[];
+                /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+                lifecycleContext:
+                  | "on_enter"
+                  | "on_leave"
+                  | "on_fallback"
+                  | "conversation_start"
+                  | "conversation_resume"
+                  | "conversation_end"
+                  | "conversation_abort"
+                  | "conversation_failed"
+                  | null;
+                metadata?: Record<string, any>;
+              }
+            | {
+                actionName: string;
+                stageId: string;
+                effects: Effect[];
+                metadata?: Record<string, any>;
+              }
+            | {
+                command:
+                  | "go_to_stage"
+                  | "set_var"
+                  | "get_var"
+                  | "get_all_vars"
+                  | "run_action"
+                  | "call_tool";
+                parameters?: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                toolId: string;
+                toolName: string;
+                toolType?: "smart_function" | "webhook" | "script";
+                parameters: Record<string, ParameterValue>;
+                success: boolean;
+                result?: any;
+                error?: string;
+                /** Name of the action that triggered this tool call, if triggered by an action effect */
+                sourceActionName?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                stageId: string;
+                initialVariables?: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                previousStatus:
+                  | "initialized"
+                  | "awaiting_user_input"
+                  | "receiving_user_voice"
+                  | "processing_user_input"
+                  | "generating_response"
+                  | "finished"
+                  | "aborted"
+                  | "failed";
+                stageId: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                reason?: string;
+                stageId: string;
+                /** Name of the action that triggered conversation end, if triggered by an action effect */
+                sourceActionName?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                reason: string;
+                stageId: string;
+                /** Name of the action that triggered conversation abort, if triggered by an action effect */
+                sourceActionName?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                reason: string;
+                stageId?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                fromStageId: string;
+                toStageId: string;
+                /** Name of the action that triggered this stage jump, if triggered by an action effect */
+                sourceActionName?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                input: string;
+                flagged: boolean;
+                blockingCategories: string[];
+                detectedCategories: string[];
+                durationMs: number;
+                startMs: number;
+                endMs: number;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this variable update */
+                sourceActionName: string;
+                /** Snapshot of all conversation variables after the update */
+                variables: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this profile update */
+                sourceActionName: string;
+                /** Updated user profile data */
+                profile: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this input modification */
+                sourceActionName: string;
+                /** The modified user input after template rendering */
+                modifiedInput: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered the ban */
+                sourceActionName: string;
+                /** Optional reason for the ban */
+                reason?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this visibility change */
+                sourceActionName: string;
+                /** The new visibility settings for current turn messages */
+                visibility: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** ID of the classifier that performed the selection */
+                classifierId: string;
+                /** The user input that triggered the selection */
+                input: string;
+                /** Identifier of selected sample copy, or null if none was selected */
+                sampleCopy: string | null;
+                metadata?: Record<string, any>;
+              };
           /** ID of the stage that was active when the event occurred */
           stageId: string | null;
           /**
@@ -3709,216 +3710,216 @@ export class Api<
         conversationId: string;
         /** Type of the conversation event */
         eventType:
-        | "message"
-        | "classification"
-        | "transformation"
-        | "execution_plan"
-        | "action"
-        | "command"
-        | "tool_call"
-        | "conversation_start"
-        | "conversation_resume"
-        | "conversation_end"
-        | "conversation_aborted"
-        | "conversation_failed"
-        | "jump_to_stage"
-        | "moderation"
-        | "variables_updated"
-        | "user_profile_updated"
-        | "user_input_modified"
-        | "user_banned"
-        | "visibility_changed"
-        | "sample_copy_selection";
-        /** Event data payload */
-        eventData:
-        | {
-          role: "user" | "assistant";
-          text: string;
-          originalText: string;
-          visibility?: {
-            /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
-            visibility: "always" | "stage" | "never" | "conditional";
-            /** Condition for visibility, evaluated against conversation variables */
-            condition?: string;
-          };
-          metadata?: Record<string, any>;
-        }
-        | {
-          classifierId: string;
-          input: string;
-          actions: {
-            classifierId: string;
-            classifierName: string;
-            actions: {
-              name: string;
-              parameters: Record<string, ParameterValue>;
-            }[];
-          }[];
-          metadata?: Record<string, any>;
-        }
-        | {
-          transformerId: string;
-          input: string;
-          appliedFields: string[];
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** ID of the stage where execution is taking place */
-          stageId: string;
-          /** Names of all matched actions in original order */
-          actions: string[];
-          /** Final ordered list of effects after filtering, sorting, and conflict resolution */
-          effects: {
-            /** Name of the action this effect originates from */
-            actionName: string;
-            /** The effect to be executed */
-            effect: Effect;
-          }[];
-          /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
-          lifecycleContext:
-          | "on_enter"
-          | "on_leave"
-          | "on_fallback"
+          | "message"
+          | "classification"
+          | "transformation"
+          | "execution_plan"
+          | "action"
+          | "command"
+          | "tool_call"
           | "conversation_start"
           | "conversation_resume"
           | "conversation_end"
-          | "conversation_abort"
+          | "conversation_aborted"
           | "conversation_failed"
-          | null;
-          metadata?: Record<string, any>;
-        }
-        | {
-          actionName: string;
-          stageId: string;
-          effects: Effect[];
-          metadata?: Record<string, any>;
-        }
-        | {
-          command:
-          | "go_to_stage"
-          | "set_var"
-          | "get_var"
-          | "get_all_vars"
-          | "run_action"
-          | "call_tool";
-          parameters?: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
-        }
-        | {
-          toolId: string;
-          toolName: string;
-          toolType?: "smart_function" | "webhook" | "script";
-          parameters: Record<string, ParameterValue>;
-          success: boolean;
-          result?: any;
-          error?: string;
-          /** Name of the action that triggered this tool call, if triggered by an action effect */
-          sourceActionName?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          stageId: string;
-          initialVariables?: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
-        }
-        | {
-          previousStatus:
-          | "initialized"
-          | "awaiting_user_input"
-          | "receiving_user_voice"
-          | "processing_user_input"
-          | "generating_response"
-          | "finished"
-          | "aborted"
-          | "failed";
-          stageId: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          reason?: string;
-          stageId: string;
-          /** Name of the action that triggered conversation end, if triggered by an action effect */
-          sourceActionName?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          reason: string;
-          stageId: string;
-          /** Name of the action that triggered conversation abort, if triggered by an action effect */
-          sourceActionName?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          reason: string;
-          stageId?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          fromStageId: string;
-          toStageId: string;
-          /** Name of the action that triggered this stage jump, if triggered by an action effect */
-          sourceActionName?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          input: string;
-          flagged: boolean;
-          blockingCategories: string[];
-          detectedCategories: string[];
-          durationMs: number;
-          startMs: number;
-          endMs: number;
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** Name of the action that triggered this variable update */
-          sourceActionName: string;
-          /** Snapshot of all conversation variables after the update */
-          variables: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** Name of the action that triggered this profile update */
-          sourceActionName: string;
-          /** Updated user profile data */
-          profile: Record<string, ParameterValue>;
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** Name of the action that triggered this input modification */
-          sourceActionName: string;
-          /** The modified user input after template rendering */
-          modifiedInput: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** Name of the action that triggered the ban */
-          sourceActionName: string;
-          /** Optional reason for the ban */
-          reason?: string;
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** Name of the action that triggered this visibility change */
-          sourceActionName: string;
-          /** The new visibility settings for current turn messages */
-          visibility: {
-            /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
-            visibility: "always" | "stage" | "never" | "conditional";
-            /** Condition for visibility, evaluated against conversation variables */
-            condition?: string;
-          };
-          metadata?: Record<string, any>;
-        }
-        | {
-          /** ID of the classifier that performed the selection */
-          classifierId: string;
-          /** The user input that triggered the selection */
-          input: string;
-          /** Identifier of selected sample copy, or null if none was selected */
-          sampleCopy: string | null;
-          metadata?: Record<string, any>;
-        };
+          | "jump_to_stage"
+          | "moderation"
+          | "variables_updated"
+          | "user_profile_updated"
+          | "user_input_modified"
+          | "user_banned"
+          | "visibility_changed"
+          | "sample_copy_selection";
+        /** Event data payload */
+        eventData:
+          | {
+              role: "user" | "assistant";
+              text: string;
+              originalText: string;
+              visibility?: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
+              metadata?: Record<string, any>;
+            }
+          | {
+              classifierId: string;
+              input: string;
+              actions: {
+                classifierId: string;
+                classifierName: string;
+                actions: {
+                  name: string;
+                  parameters: Record<string, ParameterValue>;
+                }[];
+              }[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              transformerId: string;
+              input: string;
+              appliedFields: string[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** ID of the stage where execution is taking place */
+              stageId: string;
+              /** Names of all matched actions in original order */
+              actions: string[];
+              /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+              effects: {
+                /** Name of the action this effect originates from */
+                actionName: string;
+                /** The effect to be executed */
+                effect: Effect;
+              }[];
+              /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+              lifecycleContext:
+                | "on_enter"
+                | "on_leave"
+                | "on_fallback"
+                | "conversation_start"
+                | "conversation_resume"
+                | "conversation_end"
+                | "conversation_abort"
+                | "conversation_failed"
+                | null;
+              metadata?: Record<string, any>;
+            }
+          | {
+              actionName: string;
+              stageId: string;
+              effects: Effect[];
+              metadata?: Record<string, any>;
+            }
+          | {
+              command:
+                | "go_to_stage"
+                | "set_var"
+                | "get_var"
+                | "get_all_vars"
+                | "run_action"
+                | "call_tool";
+              parameters?: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              toolId: string;
+              toolName: string;
+              toolType?: "smart_function" | "webhook" | "script";
+              parameters: Record<string, ParameterValue>;
+              success: boolean;
+              result?: any;
+              error?: string;
+              /** Name of the action that triggered this tool call, if triggered by an action effect */
+              sourceActionName?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              stageId: string;
+              initialVariables?: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              previousStatus:
+                | "initialized"
+                | "awaiting_user_input"
+                | "receiving_user_voice"
+                | "processing_user_input"
+                | "generating_response"
+                | "finished"
+                | "aborted"
+                | "failed";
+              stageId: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              reason?: string;
+              stageId: string;
+              /** Name of the action that triggered conversation end, if triggered by an action effect */
+              sourceActionName?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              reason: string;
+              stageId: string;
+              /** Name of the action that triggered conversation abort, if triggered by an action effect */
+              sourceActionName?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              reason: string;
+              stageId?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              fromStageId: string;
+              toStageId: string;
+              /** Name of the action that triggered this stage jump, if triggered by an action effect */
+              sourceActionName?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              input: string;
+              flagged: boolean;
+              blockingCategories: string[];
+              detectedCategories: string[];
+              durationMs: number;
+              startMs: number;
+              endMs: number;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this variable update */
+              sourceActionName: string;
+              /** Snapshot of all conversation variables after the update */
+              variables: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this profile update */
+              sourceActionName: string;
+              /** Updated user profile data */
+              profile: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this input modification */
+              sourceActionName: string;
+              /** The modified user input after template rendering */
+              modifiedInput: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered the ban */
+              sourceActionName: string;
+              /** Optional reason for the ban */
+              reason?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this visibility change */
+              sourceActionName: string;
+              /** The new visibility settings for current turn messages */
+              visibility: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** ID of the classifier that performed the selection */
+              classifierId: string;
+              /** The user input that triggered the selection */
+              input: string;
+              /** Identifier of selected sample copy, or null if none was selected */
+              sampleCopy: string | null;
+              metadata?: Record<string, any>;
+            };
         /** ID of the stage that was active when the event occurred */
         stageId: string | null;
         /**
@@ -4869,12 +4870,12 @@ export class Api<
       ttsProviderId?: string;
       /** TTS provider-specific settings */
       ttsSettings?:
-      | ElevenLabsTtsSettings
-      | OpenAiTtsSettings
-      | DeepgramTtsSettings
-      | CartesiaTtsSettings
-      | AzureTtsSettings
-      | AmazonPollyTtsSettings;
+        | ElevenLabsTtsSettings
+        | OpenAiTtsSettings
+        | DeepgramTtsSettings
+        | CartesiaTtsSettings
+        | AzureTtsSettings
+        | AmazonPollyTtsSettings;
       /**
        * Tags for categorizing and filtering this agent
        * @default []
@@ -4903,12 +4904,12 @@ export class Api<
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
         ttsSettings?:
-        | ElevenLabsTtsSettings
-        | OpenAiTtsSettings
-        | DeepgramTtsSettings
-        | CartesiaTtsSettings
-        | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5003,12 +5004,12 @@ export class Api<
           ttsProviderId: string | null;
           /** TTS provider-specific settings */
           ttsSettings?:
-          | ElevenLabsTtsSettings
-          | OpenAiTtsSettings
-          | DeepgramTtsSettings
-          | CartesiaTtsSettings
-          | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+            | ElevenLabsTtsSettings
+            | OpenAiTtsSettings
+            | DeepgramTtsSettings
+            | CartesiaTtsSettings
+            | AzureTtsSettings
+            | AmazonPollyTtsSettings;
           /** Tags for categorizing and filtering this agent */
           tags: string[];
           /** Additional agent-specific metadata */
@@ -5088,12 +5089,12 @@ export class Api<
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
         ttsSettings?:
-        | ElevenLabsTtsSettings
-        | OpenAiTtsSettings
-        | DeepgramTtsSettings
-        | CartesiaTtsSettings
-        | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5152,12 +5153,12 @@ export class Api<
       ttsProviderId?: string | null;
       /** Updated TTS provider-specific settings */
       ttsSettings?:
-      | ElevenLabsTtsSettings
-      | OpenAiTtsSettings
-      | DeepgramTtsSettings
-      | CartesiaTtsSettings
-      | AzureTtsSettings
-      | AmazonPollyTtsSettings;
+        | ElevenLabsTtsSettings
+        | OpenAiTtsSettings
+        | DeepgramTtsSettings
+        | CartesiaTtsSettings
+        | AzureTtsSettings
+        | AmazonPollyTtsSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -5168,10 +5169,10 @@ export class Api<
         llmProviderId: string;
         /** LLM provider-specific settings for filler generation */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -5202,12 +5203,12 @@ export class Api<
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
         ttsSettings?:
-        | ElevenLabsTtsSettings
-        | OpenAiTtsSettings
-        | DeepgramTtsSettings
-        | CartesiaTtsSettings
-        | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5330,12 +5331,12 @@ export class Api<
         ttsProviderId: string | null;
         /** TTS provider-specific settings */
         ttsSettings?:
-        | ElevenLabsTtsSettings
-        | OpenAiTtsSettings
-        | DeepgramTtsSettings
-        | CartesiaTtsSettings
-        | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+          | ElevenLabsTtsSettings
+          | OpenAiTtsSettings
+          | DeepgramTtsSettings
+          | CartesiaTtsSettings
+          | AzureTtsSettings
+          | AmazonPollyTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5396,74 +5397,74 @@ export class Api<
       apiType: string;
       /** Provider-specific configuration object (varies by providerType and apiType) */
       config:
-      | {
-        /** OpenAI API key */
-        apiKey: string;
-        /** Optional organization ID */
-        organizationId?: string;
-        /** Optional base URL for OpenAI-compatible APIs */
-        baseUrl?: string;
-      }
-      | {
-        /** Anthropic API key */
-        apiKey: string;
-        /** Optional base URL for custom endpoints */
-        baseUrl?: string;
-      }
-      | {
-        /** Google API key */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with ElevenLabs */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with OpenAI */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with Deepgram */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with Cartesia */
-        apiKey: string;
-      }
-      | {
-        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-        region: string;
-        /** The subscription key to use for the speech service */
-        subscriptionKey: string;
-      }
-      | {
-        /** The Azure region to use for the speech recognition service */
-        region: string;
-        /** The subscription key to use for the speech recognition service */
-        subscriptionKey: string;
-      }
-      | {
-        /** API key for authenticating with AssemblyAI */
-        apiKey: string;
-        /**
-         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-         * @default "us"
-         */
-        region?: "us" | "eu";
-      }
-      | {
-        /** API key for authenticating with Speechmatics */
-        apiKey: string;
-        /**
-         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-         * @default "us"
-         */
-        region?: "us" | "eu" | "apac";
-      }
-      | S3StorageConfig
-      | AzureBlobStorageConfig
-      | GcsStorageConfig
-      | LocalStorageConfig;
+        | {
+            /** OpenAI API key */
+            apiKey: string;
+            /** Optional organization ID */
+            organizationId?: string;
+            /** Optional base URL for OpenAI-compatible APIs */
+            baseUrl?: string;
+          }
+        | {
+            /** Anthropic API key */
+            apiKey: string;
+            /** Optional base URL for custom endpoints */
+            baseUrl?: string;
+          }
+        | {
+            /** Google API key */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with ElevenLabs */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with OpenAI */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Deepgram */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Cartesia */
+            apiKey: string;
+          }
+        | {
+            /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+            region: string;
+            /** The subscription key to use for the speech service */
+            subscriptionKey: string;
+          }
+        | {
+            /** The Azure region to use for the speech recognition service */
+            region: string;
+            /** The subscription key to use for the speech recognition service */
+            subscriptionKey: string;
+          }
+        | {
+            /** API key for authenticating with AssemblyAI */
+            apiKey: string;
+            /**
+             * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+             * @default "us"
+             */
+            region?: "us" | "eu";
+          }
+        | {
+            /** API key for authenticating with Speechmatics */
+            apiKey: string;
+            /**
+             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * @default "us"
+             */
+            region?: "us" | "eu" | "apac";
+          }
+        | S3StorageConfig
+        | AzureBlobStorageConfig
+        | GcsStorageConfig
+        | LocalStorageConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5485,74 +5486,74 @@ export class Api<
         apiType: string;
         /** Provider-specific configuration object */
         config:
-        | {
-          /** OpenAI API key */
-          apiKey: string;
-          /** Optional organization ID */
-          organizationId?: string;
-          /** Optional base URL for OpenAI-compatible APIs */
-          baseUrl?: string;
-        }
-        | {
-          /** Anthropic API key */
-          apiKey: string;
-          /** Optional base URL for custom endpoints */
-          baseUrl?: string;
-        }
-        | {
-          /** Google API key */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with ElevenLabs */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with OpenAI */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Deepgram */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Cartesia */
-          apiKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-          region: string;
-          /** The subscription key to use for the speech service */
-          subscriptionKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech recognition service */
-          region: string;
-          /** The subscription key to use for the speech recognition service */
-          subscriptionKey: string;
-        }
-        | {
-          /** API key for authenticating with AssemblyAI */
-          apiKey: string;
-          /**
-           * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-           * @default "us"
-           */
-          region?: "us" | "eu";
-        }
-        | {
-          /** API key for authenticating with Speechmatics */
-          apiKey: string;
-          /**
-           * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-           * @default "us"
-           */
-          region?: "us" | "eu" | "apac";
-        }
-        | S3StorageConfig
-        | AzureBlobStorageConfig
-        | GcsStorageConfig
-        | LocalStorageConfig;
+          | {
+              /** OpenAI API key */
+              apiKey: string;
+              /** Optional organization ID */
+              organizationId?: string;
+              /** Optional base URL for OpenAI-compatible APIs */
+              baseUrl?: string;
+            }
+          | {
+              /** Anthropic API key */
+              apiKey: string;
+              /** Optional base URL for custom endpoints */
+              baseUrl?: string;
+            }
+          | {
+              /** Google API key */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with ElevenLabs */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with OpenAI */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
+              apiKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech recognition service */
+              region: string;
+              /** The subscription key to use for the speech recognition service */
+              subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
+            }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5640,74 +5641,74 @@ export class Api<
           apiType: string;
           /** Provider-specific configuration object */
           config:
-          | {
-            /** OpenAI API key */
-            apiKey: string;
-            /** Optional organization ID */
-            organizationId?: string;
-            /** Optional base URL for OpenAI-compatible APIs */
-            baseUrl?: string;
-          }
-          | {
-            /** Anthropic API key */
-            apiKey: string;
-            /** Optional base URL for custom endpoints */
-            baseUrl?: string;
-          }
-          | {
-            /** Google API key */
-            apiKey: string;
-          }
-          | {
-            /** API key for authenticating with ElevenLabs */
-            apiKey: string;
-          }
-          | {
-            /** API key for authenticating with OpenAI */
-            apiKey: string;
-          }
-          | {
-            /** API key for authenticating with Deepgram */
-            apiKey: string;
-          }
-          | {
-            /** API key for authenticating with Cartesia */
-            apiKey: string;
-          }
-          | {
-            /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-            region: string;
-            /** The subscription key to use for the speech service */
-            subscriptionKey: string;
-          }
-          | {
-            /** The Azure region to use for the speech recognition service */
-            region: string;
-            /** The subscription key to use for the speech recognition service */
-            subscriptionKey: string;
-          }
-          | {
-            /** API key for authenticating with AssemblyAI */
-            apiKey: string;
-            /**
-             * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-             * @default "us"
-             */
-            region?: "us" | "eu";
-          }
-          | {
-            /** API key for authenticating with Speechmatics */
-            apiKey: string;
-            /**
-             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-             * @default "us"
-             */
-            region?: "us" | "eu" | "apac";
-          }
-          | S3StorageConfig
-          | AzureBlobStorageConfig
-          | GcsStorageConfig
-          | LocalStorageConfig;
+            | {
+                /** OpenAI API key */
+                apiKey: string;
+                /** Optional organization ID */
+                organizationId?: string;
+                /** Optional base URL for OpenAI-compatible APIs */
+                baseUrl?: string;
+              }
+            | {
+                /** Anthropic API key */
+                apiKey: string;
+                /** Optional base URL for custom endpoints */
+                baseUrl?: string;
+              }
+            | {
+                /** Google API key */
+                apiKey: string;
+              }
+            | {
+                /** API key for authenticating with ElevenLabs */
+                apiKey: string;
+              }
+            | {
+                /** API key for authenticating with OpenAI */
+                apiKey: string;
+              }
+            | {
+                /** API key for authenticating with Deepgram */
+                apiKey: string;
+              }
+            | {
+                /** API key for authenticating with Cartesia */
+                apiKey: string;
+              }
+            | {
+                /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+                region: string;
+                /** The subscription key to use for the speech service */
+                subscriptionKey: string;
+              }
+            | {
+                /** The Azure region to use for the speech recognition service */
+                region: string;
+                /** The subscription key to use for the speech recognition service */
+                subscriptionKey: string;
+              }
+            | {
+                /** API key for authenticating with AssemblyAI */
+                apiKey: string;
+                /**
+                 * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+                 * @default "us"
+                 */
+                region?: "us" | "eu";
+              }
+            | {
+                /** API key for authenticating with Speechmatics */
+                apiKey: string;
+                /**
+                 * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "apac";
+              }
+            | S3StorageConfig
+            | AzureBlobStorageConfig
+            | GcsStorageConfig
+            | LocalStorageConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -5777,74 +5778,74 @@ export class Api<
         apiType: string;
         /** Provider-specific configuration object */
         config:
-        | {
-          /** OpenAI API key */
-          apiKey: string;
-          /** Optional organization ID */
-          organizationId?: string;
-          /** Optional base URL for OpenAI-compatible APIs */
-          baseUrl?: string;
-        }
-        | {
-          /** Anthropic API key */
-          apiKey: string;
-          /** Optional base URL for custom endpoints */
-          baseUrl?: string;
-        }
-        | {
-          /** Google API key */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with ElevenLabs */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with OpenAI */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Deepgram */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Cartesia */
-          apiKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-          region: string;
-          /** The subscription key to use for the speech service */
-          subscriptionKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech recognition service */
-          region: string;
-          /** The subscription key to use for the speech recognition service */
-          subscriptionKey: string;
-        }
-        | {
-          /** API key for authenticating with AssemblyAI */
-          apiKey: string;
-          /**
-           * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-           * @default "us"
-           */
-          region?: "us" | "eu";
-        }
-        | {
-          /** API key for authenticating with Speechmatics */
-          apiKey: string;
-          /**
-           * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-           * @default "us"
-           */
-          region?: "us" | "eu" | "apac";
-        }
-        | S3StorageConfig
-        | AzureBlobStorageConfig
-        | GcsStorageConfig
-        | LocalStorageConfig;
+          | {
+              /** OpenAI API key */
+              apiKey: string;
+              /** Optional organization ID */
+              organizationId?: string;
+              /** Optional base URL for OpenAI-compatible APIs */
+              baseUrl?: string;
+            }
+          | {
+              /** Anthropic API key */
+              apiKey: string;
+              /** Optional base URL for custom endpoints */
+              baseUrl?: string;
+            }
+          | {
+              /** Google API key */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with ElevenLabs */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with OpenAI */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
+              apiKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech recognition service */
+              region: string;
+              /** The subscription key to use for the speech recognition service */
+              subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
+            }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5901,74 +5902,74 @@ export class Api<
       apiType?: string;
       /** Updated provider-specific configuration */
       config?:
-      | {
-        /** OpenAI API key */
-        apiKey: string;
-        /** Optional organization ID */
-        organizationId?: string;
-        /** Optional base URL for OpenAI-compatible APIs */
-        baseUrl?: string;
-      }
-      | {
-        /** Anthropic API key */
-        apiKey: string;
-        /** Optional base URL for custom endpoints */
-        baseUrl?: string;
-      }
-      | {
-        /** Google API key */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with ElevenLabs */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with OpenAI */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with Deepgram */
-        apiKey: string;
-      }
-      | {
-        /** API key for authenticating with Cartesia */
-        apiKey: string;
-      }
-      | {
-        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-        region: string;
-        /** The subscription key to use for the speech service */
-        subscriptionKey: string;
-      }
-      | {
-        /** The Azure region to use for the speech recognition service */
-        region: string;
-        /** The subscription key to use for the speech recognition service */
-        subscriptionKey: string;
-      }
-      | {
-        /** API key for authenticating with AssemblyAI */
-        apiKey: string;
-        /**
-         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-         * @default "us"
-         */
-        region?: "us" | "eu";
-      }
-      | {
-        /** API key for authenticating with Speechmatics */
-        apiKey: string;
-        /**
-         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-         * @default "us"
-         */
-        region?: "us" | "eu" | "apac";
-      }
-      | S3StorageConfig
-      | AzureBlobStorageConfig
-      | GcsStorageConfig
-      | LocalStorageConfig;
+        | {
+            /** OpenAI API key */
+            apiKey: string;
+            /** Optional organization ID */
+            organizationId?: string;
+            /** Optional base URL for OpenAI-compatible APIs */
+            baseUrl?: string;
+          }
+        | {
+            /** Anthropic API key */
+            apiKey: string;
+            /** Optional base URL for custom endpoints */
+            baseUrl?: string;
+          }
+        | {
+            /** Google API key */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with ElevenLabs */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with OpenAI */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Deepgram */
+            apiKey: string;
+          }
+        | {
+            /** API key for authenticating with Cartesia */
+            apiKey: string;
+          }
+        | {
+            /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+            region: string;
+            /** The subscription key to use for the speech service */
+            subscriptionKey: string;
+          }
+        | {
+            /** The Azure region to use for the speech recognition service */
+            region: string;
+            /** The subscription key to use for the speech recognition service */
+            subscriptionKey: string;
+          }
+        | {
+            /** API key for authenticating with AssemblyAI */
+            apiKey: string;
+            /**
+             * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+             * @default "us"
+             */
+            region?: "us" | "eu";
+          }
+        | {
+            /** API key for authenticating with Speechmatics */
+            apiKey: string;
+            /**
+             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * @default "us"
+             */
+            region?: "us" | "eu" | "apac";
+          }
+        | S3StorageConfig
+        | AzureBlobStorageConfig
+        | GcsStorageConfig
+        | LocalStorageConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -5988,74 +5989,74 @@ export class Api<
         apiType: string;
         /** Provider-specific configuration object */
         config:
-        | {
-          /** OpenAI API key */
-          apiKey: string;
-          /** Optional organization ID */
-          organizationId?: string;
-          /** Optional base URL for OpenAI-compatible APIs */
-          baseUrl?: string;
-        }
-        | {
-          /** Anthropic API key */
-          apiKey: string;
-          /** Optional base URL for custom endpoints */
-          baseUrl?: string;
-        }
-        | {
-          /** Google API key */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with ElevenLabs */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with OpenAI */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Deepgram */
-          apiKey: string;
-        }
-        | {
-          /** API key for authenticating with Cartesia */
-          apiKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
-          region: string;
-          /** The subscription key to use for the speech service */
-          subscriptionKey: string;
-        }
-        | {
-          /** The Azure region to use for the speech recognition service */
-          region: string;
-          /** The subscription key to use for the speech recognition service */
-          subscriptionKey: string;
-        }
-        | {
-          /** API key for authenticating with AssemblyAI */
-          apiKey: string;
-          /**
-           * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
-           * @default "us"
-           */
-          region?: "us" | "eu";
-        }
-        | {
-          /** API key for authenticating with Speechmatics */
-          apiKey: string;
-          /**
-           * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
-           * @default "us"
-           */
-          region?: "us" | "eu" | "apac";
-        }
-        | S3StorageConfig
-        | AzureBlobStorageConfig
-        | GcsStorageConfig
-        | LocalStorageConfig;
+          | {
+              /** OpenAI API key */
+              apiKey: string;
+              /** Optional organization ID */
+              organizationId?: string;
+              /** Optional base URL for OpenAI-compatible APIs */
+              baseUrl?: string;
+            }
+          | {
+              /** Anthropic API key */
+              apiKey: string;
+              /** Optional base URL for custom endpoints */
+              baseUrl?: string;
+            }
+          | {
+              /** Google API key */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with ElevenLabs */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with OpenAI */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Deepgram */
+              apiKey: string;
+            }
+          | {
+              /** API key for authenticating with Cartesia */
+              apiKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+              region: string;
+              /** The subscription key to use for the speech service */
+              subscriptionKey: string;
+            }
+          | {
+              /** The Azure region to use for the speech recognition service */
+              region: string;
+              /** The subscription key to use for the speech recognition service */
+              subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with AssemblyAI */
+              apiKey: string;
+              /**
+               * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+               * @default "us"
+               */
+              region?: "us" | "eu";
+            }
+          | {
+              /** API key for authenticating with Speechmatics */
+              apiKey: string;
+              /**
+               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * @default "us"
+               */
+              region?: "us" | "eu" | "apac";
+            }
+          | S3StorageConfig
+          | AzureBlobStorageConfig
+          | GcsStorageConfig
+          | LocalStorageConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6397,51 +6398,51 @@ export class Api<
   ) =>
     this.request<
       | {
-        /** Provider API type */
-        apiType: string;
-        /** Human-readable provider name */
-        displayName: string;
-        /** Models available for this provider */
-        models: AsrModelInfo[];
-        /** Languages commonly supported across models (for reference) */
-        languages: LanguageInfo[];
-        /** Additional information */
-        description?: string;
-      }
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Models available for this provider */
+          models: AsrModelInfo[];
+          /** Languages commonly supported across models (for reference) */
+          languages: LanguageInfo[];
+          /** Additional information */
+          description?: string;
+        }
       | {
-        /** Provider API type */
-        apiType: string;
-        /** Human-readable provider name */
-        displayName: string;
-        /** Models available for this provider */
-        models: TtsModelInfo[];
-        /** Voices available (can be provider-specific or model-specific) */
-        voices: VoiceInfo[];
-        /** Languages commonly supported across models (for reference) */
-        languages: LanguageInfo[];
-        /** Additional information */
-        description?: string;
-      }
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Models available for this provider */
+          models: TtsModelInfo[];
+          /** Voices available (can be provider-specific or model-specific) */
+          voices: VoiceInfo[];
+          /** Languages commonly supported across models (for reference) */
+          languages: LanguageInfo[];
+          /** Additional information */
+          description?: string;
+        }
       | {
-        /** Provider API type */
-        apiType: string;
-        /** Human-readable provider name */
-        displayName: string;
-        /** Models available for this provider */
-        models: LlmModelInfo[];
-        /** Additional information */
-        description?: string;
-      }
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Models available for this provider */
+          models: LlmModelInfo[];
+          /** Additional information */
+          description?: string;
+        }
       | {
-        /** Provider API type */
-        apiType: string;
-        /** Human-readable provider name */
-        displayName: string;
-        /** Additional information */
-        description?: string;
-        /** List of supported features */
-        features?: string[];
-      },
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
+        },
       void
     >({
       path: `/api/provider-catalog/${type}/${apiType}`,
@@ -9254,10 +9255,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9370,10 +9371,10 @@ export class Api<
           llmProviderId: string | null;
           /** LLM provider-specific settings */
           llmSettings?:
-          | OpenAILlmSettings
-          | OpenAILegacyLlmSettings
-          | AnthropicLlmSettings
-          | GeminiLlmSettings;
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -9471,10 +9472,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9605,10 +9606,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9749,10 +9750,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9834,10 +9835,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -9948,10 +9949,10 @@ export class Api<
           llmProviderId: string | null;
           /** LLM provider-specific settings (smart_function only) */
           llmSettings?:
-          | OpenAILlmSettings
-          | OpenAILegacyLlmSettings
-          | AnthropicLlmSettings
-          | GeminiLlmSettings;
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10047,10 +10048,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10106,59 +10107,7 @@ export class Api<
   projectsToolsUpdate = (
     projectId: string,
     id: string,
-    data: {
-      /**
-       * Updated display name
-       * @minLength 1
-       */
-      name?: string;
-      /** Updated description */
-      description?: string | null;
-      /**
-       * Updated Handlebars prompt template (smart_function)
-       * @minLength 1
-       */
-      prompt?: string;
-      /** Updated LLM provider ID (smart_function) */
-      llmProviderId?: string | null;
-      /** Updated LLM provider-specific settings (smart_function) */
-      llmSettings?:
-      | OpenAILlmSettings
-      | OpenAILegacyLlmSettings
-      | AnthropicLlmSettings
-      | GeminiLlmSettings;
-      /** Updated input format (smart_function) */
-      inputType?: "text" | "image" | "multi-modal";
-      /** Updated output format (smart_function) */
-      outputType?: "text" | "image" | "multi-modal";
-      /**
-       * Updated target URL (webhook)
-       * @format uri
-       */
-      url?: string;
-      /** Updated HTTP method (webhook) */
-      webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-      /** Updated HTTP headers (webhook) */
-      webhookHeaders?: Record<string, string>;
-      /** Updated request body template (webhook) */
-      webhookBody?: string | null;
-      /**
-       * Updated JavaScript code (script)
-       * @minLength 1
-       */
-      code?: string;
-      /** Updated parameters for the tool */
-      parameters?: ToolParameter[];
-      /** Updated tags */
-      tags?: string[];
-      /** Updated metadata */
-      metadata?: Record<string, any>;
-      /**
-       * Current version number for optimistic locking
-       * @min 1
-       */
-      version: number;
-    },
+    data: UpdateToolRequest,
     params: RequestParams = {},
   ) =>
     this.request<
@@ -10179,10 +10128,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10321,10 +10270,10 @@ export class Api<
         llmProviderId: string | null;
         /** LLM provider-specific settings (smart_function only) */
         llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
