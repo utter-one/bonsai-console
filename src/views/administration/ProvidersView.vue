@@ -50,9 +50,11 @@ const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'embed
 ]
 
 // Computed
-const filteredProviders = computed(() => {
-  if (providerTypeFilter.value === 'all') return providersStore.items
-  return providersStore.items.filter(p => p.providerType === providerTypeFilter.value)
+const filteredProviders = computed(() => providersStore.items)
+
+// Watch for provider type filter changes and reload data
+watch(providerTypeFilter, () => {
+  pagination.reset()
 })
 
 // Watch for sort changes and reload data
@@ -74,7 +76,15 @@ onMounted(async () => {
 async function loadProviders() {
   try {
     const orderBy = getOrderBy()
-    await providersStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
+    const filters: Record<string, any> = {}
+    if (providerTypeFilter.value !== 'all') {
+      filters.providerType = { op: 'eq', value: providerTypeFilter.value }
+    }
+    await providersStore.fetchAll(pagination.getParams({
+      ...(orderBy ? { orderBy } : {}),
+      ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}),
+      ...(Object.keys(filters).length ? { filters } : {})
+    }))
   } catch (error) {
     console.error('Failed to load providers:', error)
   }
