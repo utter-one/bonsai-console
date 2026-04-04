@@ -89,7 +89,7 @@
                     :checked="form.allowedChannels.includes(channel)"
                     @change="form.allowedChannels.includes(channel) ? form.allowedChannels.splice(form.allowedChannels.indexOf(channel), 1) : form.allowedChannels.push(channel)"
                   />
-                  <span class="text-sm">{{ channel === 'websocket' ? 'WebSocket' : 'WebRTC' }}</span>
+                  <span class="text-sm">{{ CHANNEL_LABELS[channel] }}</span>
                 </label>
               </div>
             </FormField>
@@ -165,7 +165,16 @@ import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 
-const ALL_CHANNELS = ['websocket', 'webrtc'] as const
+const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp'] as const
+type AllowedChannel = typeof ALL_CHANNELS[number]
+
+const CHANNEL_LABELS: Record<AllowedChannel, string> = {
+  websocket: 'WebSocket',
+  webrtc: 'WebRTC',
+  twilio_voice: 'Twilio Voice',
+  twilio_messaging: 'Twilio Messaging',
+  whatsapp: 'WhatsApp',
+}
 
 const FEATURE_LABELS: Record<string, string> = {
   conversation_control: 'Conversation Control',
@@ -211,7 +220,7 @@ const form = ref({
   version: undefined as number | undefined,
   projectId: props.projectId || '',
   restrictChannels: false,
-  allowedChannels: [] as ('websocket' | 'webrtc')[],
+  allowedChannels: [] as AllowedChannel[],
   restrictFeatures: false,
   allowedFeatures: [] as string[],
 })
@@ -275,7 +284,7 @@ watch(
         version: newApiKey.version,
         projectId: newApiKey.projectId || props.projectId || '',
         restrictChannels: !!newApiKey.keySettings?.allowedChannels,
-        allowedChannels: (newApiKey.keySettings?.allowedChannels ?? []) as ('websocket' | 'webrtc')[],
+        allowedChannels: (newApiKey.keySettings?.allowedChannels ?? []) as AllowedChannel[],
         restrictFeatures: !!newApiKey.keySettings?.allowedFeatures,
         allowedFeatures: newApiKey.keySettings?.allowedFeatures ?? [],
       }
