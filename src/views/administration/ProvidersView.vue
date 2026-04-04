@@ -161,7 +161,7 @@ function getApiTypeBadgeStyle(apiType: string) {
       <div class="page-header">
         <div>
           <h1 class="page-title">Providers</h1>
-          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Embeddings, Storage)</p>
+          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Channels, Storage)</p>
         </div>
         <button @click="createProvider" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
