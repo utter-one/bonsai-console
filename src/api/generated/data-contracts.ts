@@ -5189,7 +5189,8 @@ export interface CreateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
-    | TwilioVoiceChannelConfig;
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5212,6 +5213,17 @@ export interface TwilioVoiceChannelConfig {
   authToken: string;
   /** Twilio phone number in E.164 format (e.g. +15551234567) */
   phoneNumber: string;
+}
+
+export interface WhatsAppChannelConfig {
+  /** Meta phone number ID used in the Graph API URL for outbound messages (e.g. 123456789012345) */
+  phoneNumberId: string;
+  /** Permanent Meta access token used as Bearer auth for outbound Graph API calls */
+  accessToken: string;
+  /** Meta app secret used to validate incoming webhook signatures via HMAC-SHA256 */
+  appSecret: string;
+  /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
+  verifyToken: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5303,7 +5315,8 @@ export interface UpdateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
-    | TwilioVoiceChannelConfig;
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -5399,7 +5412,8 @@ export interface ProviderResponse {
     | GcsStorageConfig
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
-    | TwilioVoiceChannelConfig;
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -5502,7 +5516,8 @@ export interface ProviderListResponse {
       | GcsStorageConfig
       | LocalStorageConfig
       | TwilioMessagingChannelConfig
-      | TwilioVoiceChannelConfig;
+      | TwilioVoiceChannelConfig
+      | WhatsAppChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -5894,6 +5909,7 @@ export interface ApiKeySettings {
     | "webrtc"
     | "twilio_voice"
     | "twilio_messaging"
+    | "whatsapp"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
   allowedFeatures?: (
@@ -5970,6 +5986,7 @@ export interface ApiKeyResponse {
       | "webrtc"
       | "twilio_voice"
       | "twilio_messaging"
+      | "whatsapp"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
     allowedFeatures?: (
@@ -6022,6 +6039,7 @@ export interface ApiKeyListResponse {
         | "webrtc"
         | "twilio_voice"
         | "twilio_messaging"
+        | "whatsapp"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
       allowedFeatures?: (

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { CloudCog, Search, X, Plus } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -24,8 +24,36 @@ const pagination = usePagination({
   onPageChange: loadProviders
 })
 
+// Provider type filter with localStorage persistence
+const PROVIDER_TYPE_FILTER_KEY = 'filter-providers-type'
+const savedTypeFilter = localStorage.getItem(PROVIDER_TYPE_FILTER_KEY)
+const providerTypeFilter = ref<'all' | 'llm' | 'asr' | 'tts' | 'channel'>(
+  (['all', 'llm', 'asr', 'tts', 'channel'].includes(savedTypeFilter as string) ? savedTypeFilter as any : 'all')
+)
+
+watch(providerTypeFilter, (val) => {
+  if (val === 'all') {
+    localStorage.removeItem(PROVIDER_TYPE_FILTER_KEY)
+  } else {
+    localStorage.setItem(PROVIDER_TYPE_FILTER_KEY, val)
+  }
+})
+
+const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'channel'; label: string; icon?: Component }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'llm', label: 'LLM', icon: Brain },
+  { value: 'asr', label: 'ASR', icon: Mic },
+  { value: 'tts', label: 'TTS', icon: Volume2 },
+  { value: 'channel', label: 'Channel', icon: Plug2 },
+]
+
 // Computed
 const filteredProviders = computed(() => providersStore.items)
+
+// Watch for provider type filter changes and reload data
+watch(providerTypeFilter, () => {
+  pagination.reset()
+})
 
 // Watch for sort changes and reload data
 watch([sortKey, sortOrder], () => {
@@ -46,7 +74,15 @@ onMounted(async () => {
 async function loadProviders() {
   try {
     const orderBy = getOrderBy()
-    await providersStore.fetchAll(pagination.getParams({ ...(orderBy ? { orderBy } : {}), ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
+    const filters: Record<string, any> = {}
+    if (providerTypeFilter.value !== 'all') {
+      filters.providerType = { op: 'eq', value: providerTypeFilter.value }
+    }
+    await providersStore.fetchAll(pagination.getParams({
+      ...(orderBy ? { orderBy } : {}),
+      ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}),
+      ...(Object.keys(filters).length ? { filters } : {})
+    }))
   } catch (error) {
     console.error('Failed to load providers:', error)
   }
@@ -63,7 +99,10 @@ async function deleteProvider(provider: ProviderResponse) {
 }
 
 function createProvider() {
-  router.push({ name: 'administration.providers.create' })
+  router.push({
+    name: 'administration.providers.create',
+    ...(providerTypeFilter.value !== 'all' ? { query: { providerType: providerTypeFilter.value } } : {})
+  })
 }
 
 function editProvider(provider: ProviderResponse) {
@@ -115,6 +154,7 @@ const API_TYPE_COLORS: Record<string, string> = {
   // Channel
   'twilio_messaging': '#f22f46',
   'twilio_voice': '#f22f46',
+  'whatsapp': '#25d366',
 }
 
 const API_TYPE_LABELS: Record<string, string> = {
@@ -140,6 +180,7 @@ const API_TYPE_LABELS: Record<string, string> = {
   // Channel
   'twilio_messaging': 'Twilio Messaging',
   'twilio_voice': 'Twilio Voice',
+  'whatsapp': 'WhatsApp',
 }
 
 function getApiTypeLabel(apiType: string) {
@@ -159,7 +200,7 @@ function getApiTypeBadgeStyle(apiType: string) {
       <div class="page-header">
         <div>
           <h1 class="page-title">Providers</h1>
-          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Embeddings, Storage)</p>
+          <p class="page-subtitle">Configure AI providers (LLM, ASR, TTS, Channels, Storage)</p>
         </div>
         <button @click="createProvider" class="btn-primary">
           <Plus class="inline-block mr-2 w-4 h-4" />
@@ -181,6 +222,25 @@ function getApiTypeBadgeStyle(apiType: string) {
         </button>
       </div>
 
+      <!-- Provider Type Filter -->
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button
+          v-for="opt in providerTypeFilterOptions"
+          :key="opt.value"
+          type="button"
+          @click="providerTypeFilter = opt.value"
+          :class="[
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all',
+            providerTypeFilter === opt.value
+              ? 'bg-primary-500 text-white border-primary-500 dark:bg-primary-600 dark:border-primary-600'
+              : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:border-gray-500'
+          ]"
+        >
+          <component v-if="opt.icon" :is="opt.icon" class="w-3.5 h-3.5" />
+          {{ opt.label }}
+        </button>
+      </div>
+
       <!-- Loading State -->
       <div v-if="providersStore.isLoading" class="loading-state">
         Loading providers...
@@ -195,7 +255,7 @@ function getApiTypeBadgeStyle(apiType: string) {
       <div v-else-if="filteredProviders.length === 0" class="empty-state">
         <CloudCog class="empty-state-icon" />
         <p class="empty-state-title">No providers found</p>
-        <p v-if="searchQuery">Try adjusting your search criteria</p>
+        <p v-if="searchQuery || providerTypeFilter !== 'all'">Try adjusting your search criteria or filter</p>
         <template v-else>
           <p>Connect an AI service to power your projects</p>
           <button class="btn-primary mt-4" @click="createProvider">

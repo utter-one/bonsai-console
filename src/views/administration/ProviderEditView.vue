@@ -54,7 +54,12 @@ const form = ref({
     accountSid: '',
     authToken: '',
     fromNumber: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    // WhatsApp channel config fields
+    phoneNumberId: '',
+    accessToken: '',
+    appSecret: '',
+    verifyToken: ''
   },
   createdBy: ''
 })
@@ -62,6 +67,15 @@ const form = ref({
 // Computed
 const providerId = computed(() => route.params.providerId as string | undefined)
 const isEditMode = computed(() => !!providerId.value)
+
+// Pre-select provider type from query param (passed from list view filter)
+if (!isEditMode.value) {
+  const queryProviderType = route.query.providerType as string | undefined
+  const validTypes = ['asr', 'tts', 'llm', 'channel']
+  if (queryProviderType && validTypes.includes(queryProviderType)) {
+    form.value.providerType = queryProviderType as typeof form.value.providerType
+  }
+}
 
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
@@ -75,9 +89,7 @@ const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
   { value: 'channel', label: 'Channel (Messaging & Voice)' },
-  { value: 'embeddings', label: 'Embeddings' },
   { value: 'llm', label: 'LLM (Large Language Model)' },
-  { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' },
   { value: 'tts', label: 'TTS (Text-to-Speech)' }
 ]
 
@@ -191,7 +203,12 @@ async function loadProvider() {
           accountSid: config.accountSid || '',
           authToken: config.authToken || '',
           fromNumber: config.fromNumber || '',
-          phoneNumber: config.phoneNumber || ''
+          phoneNumber: config.phoneNumber || '',
+          // WhatsApp channel config fields
+          phoneNumberId: config.phoneNumberId || '',
+          accessToken: config.accessToken || '',
+          appSecret: config.appSecret || '',
+          verifyToken: config.verifyToken || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }

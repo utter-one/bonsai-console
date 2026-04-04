@@ -76,6 +76,7 @@ import {
   TwilioVoiceChannelConfig,
   UpdateToolRequest,
   VoiceInfo,
+  WhatsAppChannelConfig,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
@@ -5476,7 +5477,8 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig
         | TwilioMessagingChannelConfig
-        | TwilioVoiceChannelConfig;
+        | TwilioVoiceChannelConfig
+        | WhatsAppChannelConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5573,7 +5575,8 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
-          | TwilioVoiceChannelConfig;
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5736,7 +5739,8 @@ export class Api<
             | GcsStorageConfig
             | LocalStorageConfig
             | TwilioMessagingChannelConfig
-            | TwilioVoiceChannelConfig;
+            | TwilioVoiceChannelConfig
+            | WhatsAppChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -5881,7 +5885,8 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
-          | TwilioVoiceChannelConfig;
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6013,7 +6018,8 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig
         | TwilioMessagingChannelConfig
-        | TwilioVoiceChannelConfig;
+        | TwilioVoiceChannelConfig
+        | WhatsAppChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -6108,7 +6114,8 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
-          | TwilioVoiceChannelConfig;
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -10768,6 +10775,7 @@ export class Api<
             | "webrtc"
             | "twilio_voice"
             | "twilio_messaging"
+            | "whatsapp"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -10875,6 +10883,7 @@ export class Api<
               | "webrtc"
               | "twilio_voice"
               | "twilio_messaging"
+              | "whatsapp"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
@@ -10951,6 +10960,7 @@ export class Api<
             | "webrtc"
             | "twilio_voice"
             | "twilio_messaging"
+            | "whatsapp"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11039,6 +11049,7 @@ export class Api<
             | "webrtc"
             | "twilio_voice"
             | "twilio_messaging"
+            | "whatsapp"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11171,6 +11182,7 @@ export class Api<
               | "webrtc"
               | "twilio_voice"
               | "twilio_messaging"
+              | "whatsapp"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (

@@ -20,6 +20,7 @@ import GCSConfig from './GoogleCloudStorageConfig.vue'
 import LocalStorageConfig from './LocalStorageConfig.vue'
 import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
+import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -220,6 +221,19 @@ const registry: Record<string, ProviderEntry> = {
       if (!c.accountSid) details.push({ path: ['accountSid'], message: 'Account SID is required', code: 'REQUIRED' })
       if (!c.authToken) details.push({ path: ['authToken'], message: 'Auth Token is required', code: 'REQUIRED' })
       if (!c.phoneNumber) details.push({ path: ['phoneNumber'], message: 'Phone Number is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'whatsapp:channel': {
+    component: WhatsAppChannelConfig,
+    buildConfig(c) { return { phoneNumberId: c.phoneNumberId, accessToken: c.accessToken, appSecret: c.appSecret, verifyToken: c.verifyToken } },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.phoneNumberId) details.push({ path: ['phoneNumberId'], message: 'Phone Number ID is required', code: 'REQUIRED' })
+      if (!c.accessToken) details.push({ path: ['accessToken'], message: 'Access Token is required', code: 'REQUIRED' })
+      if (!c.appSecret) details.push({ path: ['appSecret'], message: 'App Secret is required', code: 'REQUIRED' })
+      if (!c.verifyToken) details.push({ path: ['verifyToken'], message: 'Verify Token is required', code: 'REQUIRED' })
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },
