@@ -84,7 +84,7 @@ const isEditMode = computed(() => !!projectId.value)
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'voice', label: 'Voice' },
-  { key: 'storage', label: () => [
+  { key: 'storage', show: false, label: () => [
     'Storage',
     h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
       h(FlaskConical, { class: 'w-3 h-3' })

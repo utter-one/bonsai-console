@@ -71,7 +71,7 @@ const isEditMode = computed(() => !!providerId.value)
 // Pre-select provider type from query param (passed from list view filter)
 if (!isEditMode.value) {
   const queryProviderType = route.query.providerType as string | undefined
-  const validTypes = ['asr', 'tts', 'llm', 'embeddings', 'storage', 'channel']
+  const validTypes = ['asr', 'tts', 'llm', 'channel']
   if (queryProviderType && validTypes.includes(queryProviderType)) {
     form.value.providerType = queryProviderType as typeof form.value.providerType
   }
@@ -89,9 +89,7 @@ const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
   { value: 'channel', label: 'Channel (Messaging & Voice)' },
-  { value: 'embeddings', label: 'Embeddings' },
   { value: 'llm', label: 'LLM (Large Language Model)' },
-  { value: 'storage', label: 'Storage (S3, Azure Blob, GCS)' },
   { value: 'tts', label: 'TTS (Text-to-Speech)' }
 ]
 
