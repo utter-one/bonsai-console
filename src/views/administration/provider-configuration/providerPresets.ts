@@ -17,6 +17,11 @@ export interface ProviderConfig {
   authToken: string
   fromNumber: string
   phoneNumber: string
+  // WhatsApp channel config fields
+  phoneNumberId: string
+  accessToken: string
+  appSecret: string
+  verifyToken: string
 }
 
 export interface ProviderPreset {

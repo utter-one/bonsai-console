@@ -11290,6 +11290,9 @@
               },
               {
                 "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/WhatsAppChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -11356,6 +11359,34 @@
           "accountSid",
           "authToken",
           "phoneNumber"
+        ],
+        "additionalProperties": false
+      },
+      "WhatsAppChannelConfig": {
+        "type": "object",
+        "properties": {
+          "phoneNumberId": {
+            "type": "string",
+            "description": "Meta phone number ID used in the Graph API URL for outbound messages (e.g. 123456789012345)"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Permanent Meta access token used as Bearer auth for outbound Graph API calls"
+          },
+          "appSecret": {
+            "type": "string",
+            "description": "Meta app secret used to validate incoming webhook signatures via HMAC-SHA256"
+          },
+          "verifyToken": {
+            "type": "string",
+            "description": "Static verification token echoed back during the one-time Meta webhook challenge/verification GET request"
+          }
+        },
+        "required": [
+          "phoneNumberId",
+          "accessToken",
+          "appSecret",
+          "verifyToken"
         ],
         "additionalProperties": false
       },
@@ -11644,6 +11675,9 @@
               },
               {
                 "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/WhatsAppChannelConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -11957,6 +11991,9 @@
               },
               {
                 "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/WhatsAppChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -12292,6 +12329,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WhatsAppChannelConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -13315,7 +13355,8 @@
                 "websocket",
                 "webrtc",
                 "twilio_voice",
-                "twilio_messaging"
+                "twilio_messaging",
+                "whatsapp"
               ]
             },
             "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13474,7 +13515,8 @@
                     "websocket",
                     "webrtc",
                     "twilio_voice",
-                    "twilio_messaging"
+                    "twilio_messaging",
+                    "whatsapp"
                   ]
                 },
                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13585,7 +13627,8 @@
                           "websocket",
                           "webrtc",
                           "twilio_voice",
-                          "twilio_messaging"
+                          "twilio_messaging",
+                          "whatsapp"
                         ]
                       },
                       "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -30177,6 +30220,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WhatsAppChannelConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -30490,6 +30536,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/WhatsAppChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -30978,6 +31027,9 @@
                               },
                               {
                                 "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/WhatsAppChannelConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -31369,6 +31421,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/WhatsAppChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -31731,6 +31786,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WhatsAppChannelConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -32038,6 +32096,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/TwilioVoiceChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/WhatsAppChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -42771,7 +42832,8 @@
                               "websocket",
                               "webrtc",
                               "twilio_voice",
-                              "twilio_messaging"
+                              "twilio_messaging",
+                              "whatsapp"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43035,7 +43097,8 @@
                                     "websocket",
                                     "webrtc",
                                     "twilio_voice",
-                                    "twilio_messaging"
+                                    "twilio_messaging",
+                                    "whatsapp"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43194,7 +43257,8 @@
                               "websocket",
                               "webrtc",
                               "twilio_voice",
-                              "twilio_messaging"
+                              "twilio_messaging",
+                              "whatsapp"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43387,7 +43451,8 @@
                               "websocket",
                               "webrtc",
                               "twilio_voice",
-                              "twilio_messaging"
+                              "twilio_messaging",
+                              "whatsapp"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -43712,7 +43777,8 @@
                                     "websocket",
                                     "webrtc",
                                     "twilio_voice",
-                                    "twilio_messaging"
+                                    "twilio_messaging",
+                                    "whatsapp"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."

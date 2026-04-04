@@ -54,7 +54,12 @@ const form = ref({
     accountSid: '',
     authToken: '',
     fromNumber: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    // WhatsApp channel config fields
+    phoneNumberId: '',
+    accessToken: '',
+    appSecret: '',
+    verifyToken: ''
   },
   createdBy: ''
 })
@@ -191,7 +196,12 @@ async function loadProvider() {
           accountSid: config.accountSid || '',
           authToken: config.authToken || '',
           fromNumber: config.fromNumber || '',
-          phoneNumber: config.phoneNumber || ''
+          phoneNumber: config.phoneNumber || '',
+          // WhatsApp channel config fields
+          phoneNumberId: config.phoneNumberId || '',
+          accessToken: config.accessToken || '',
+          appSecret: config.appSecret || '',
+          verifyToken: config.verifyToken || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }

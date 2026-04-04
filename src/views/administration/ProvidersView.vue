@@ -115,6 +115,7 @@ const API_TYPE_COLORS: Record<string, string> = {
   // Channel
   'twilio_messaging': '#f22f46',
   'twilio_voice': '#f22f46',
+  'whatsapp': '#25d366',
 }
 
 const API_TYPE_LABELS: Record<string, string> = {
@@ -140,6 +141,7 @@ const API_TYPE_LABELS: Record<string, string> = {
   // Channel
   'twilio_messaging': 'Twilio Messaging',
   'twilio_voice': 'Twilio Voice',
+  'whatsapp': 'WhatsApp',
 }
 
 function getApiTypeLabel(apiType: string) {
