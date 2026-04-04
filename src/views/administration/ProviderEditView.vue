@@ -68,6 +68,15 @@ const form = ref({
 const providerId = computed(() => route.params.providerId as string | undefined)
 const isEditMode = computed(() => !!providerId.value)
 
+// Pre-select provider type from query param (passed from list view filter)
+if (!isEditMode.value) {
+  const queryProviderType = route.query.providerType as string | undefined
+  const validTypes = ['asr', 'tts', 'llm', 'embeddings', 'storage', 'channel']
+  if (queryProviderType && validTypes.includes(queryProviderType)) {
+    form.value.providerType = queryProviderType as typeof form.value.providerType
+  }
+}
+
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'config', label: 'Configuration' },
