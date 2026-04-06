@@ -44,7 +44,7 @@
     "swagger-typescript-api": "^13.2.16",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
-    "vite": "^5.4.21",
+    "vite": "^6.4.2",
     "vitepress": "^1.6.4",
     "vue-tsc": "^3.1.4"
   }
