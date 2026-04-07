@@ -7,7 +7,8 @@ export function useLlmProviderSelect(
   setSettings: (v: LlmSettings | null) => void
 ) {
   function handleProviderChange(event: Event) {
-    const newProviderId = (event.target as HTMLSelectElement).value
+    const target = event.target as HTMLSelectElement
+    const newProviderId = target.value
 
     if (!newProviderId) {
       setProviderId('')
@@ -19,7 +20,10 @@ export function useLlmProviderSelect(
       const confirmed = window.confirm(
         'Changing the LLM provider will reset the current LLM settings. Do you want to continue?'
       )
-      if (!confirmed) return
+      if (!confirmed) {
+        target.value = getProviderId()
+        return
+      }
       setSettings(null)
     }
 
