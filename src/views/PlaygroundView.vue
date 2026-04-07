@@ -1242,13 +1242,13 @@ const isConversationActive = computed(() => wsClient.value?.isInConversation.val
 const projectAcceptsVoice = computed(() => {
   const wsSettings = wsClient.value?.projectSettings.value
   if (wsSettings) return wsSettings.acceptVoice
-  return projectSelectionStore.selectedProject?.acceptVoice ?? true
+  return projectSelectionStore.selectedProject?.acceptVoice ?? false
 })
 
 const projectGeneratesVoice = computed(() => {
   const wsSettings = wsClient.value?.projectSettings.value
   if (wsSettings) return wsSettings.generateVoice
-  return projectSelectionStore.selectedProject?.generateVoice ?? true
+  return projectSelectionStore.selectedProject?.generateVoice ?? false
 })
 
 // Filter presets based on project voice capabilities
