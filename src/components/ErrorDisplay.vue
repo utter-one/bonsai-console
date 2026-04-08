@@ -29,7 +29,7 @@ watch(
         <span>{{ error.message }}</span>
       </div>
       <!-- Button dismissing the this component-->
-      <button @click="dismissed=true" class="self-end text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+      <button type="button" @click="dismissed=true" class="self-end text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
         Dismiss
       </button>
     </div>

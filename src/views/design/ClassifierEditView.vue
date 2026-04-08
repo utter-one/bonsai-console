@@ -313,7 +313,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <ErrorDisplay :error="error" />
+        <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
         <!-- General Tab -->
         <TabContent v-model="activeTab" tab="basic">

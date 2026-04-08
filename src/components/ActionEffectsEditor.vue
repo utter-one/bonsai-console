@@ -560,7 +560,6 @@ watch(() => props.error, (err) => {
         <FormField label="Target Stage" required :error="props.error" :path="['effects', getEffectIndex('goToStage'), 'stageId']" help="The stage to navigate to when this action is triggered">
           <select
             v-model="operations.goToStage.stageId"
-            :required="operations.goToStage.enabled"
             class="form-select-auto min-w-64"
           >
             <option value="">Select a stage...</option>
@@ -606,36 +605,37 @@ watch(() => props.error, (err) => {
               </div>
 
               <div class="space-y-2">
-                <label class="form-label text-sm">Variable Name</label>
-                <div class="flex items-start gap-2">
-                  <input
-                    v-model="mod.variableName"
-                    type="text"
-                    placeholder="cart_total"
-                    class="form-input font-mono text-sm flex-1"
-                  />
-                  <FloatingDropdown
-                    v-if="stageVariables.length > 0"
-                    :items="stageVariablesWithTypes"
-                    item-key="name"
-                    trigger-class="btn-secondary mt-0.5"
-                    trigger-title="Select from defined variables"
-                    @select="(v) => selectStageVariable(index, v.name)"
-                  >
-                    <template #trigger>
-                      <MoreHorizontal :size="16" />
-                    </template>
-                    <template #item="{ item }">
-                      <span class="font-mono text-gray-900 dark:text-gray-100">{{ item.name }}</span>
-                      <span
-                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                        :class="getTypeBadgeColor(item.type)"
-                      >
-                        {{ item.displayType }}
-                      </span>
-                    </template>
-                  </FloatingDropdown>
-                </div>
+                <FormField label="Variable Name" required :error="props.error" :path="['effects', getEffectIndex('modifyVariables'), 'modifications', index, 'variableName']" class="w-full">
+                  <div class="flex items-start gap-2">
+                    <input
+                      v-model="mod.variableName"
+                      type="text"
+                      placeholder="cart_total"
+                      class="form-input font-mono text-sm flex-1"
+                    />
+                    <FloatingDropdown
+                      v-if="stageVariables.length > 0"
+                      :items="stageVariablesWithTypes"
+                      item-key="name"
+                      trigger-class="btn-secondary mt-0.5"
+                      trigger-title="Select from defined variables"
+                      @select="(v) => selectStageVariable(index, v.name)"
+                    >
+                      <template #trigger>
+                        <MoreHorizontal :size="16" />
+                      </template>
+                      <template #item="{ item }">
+                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ item.name }}</span>
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
+                          :class="getTypeBadgeColor(item.type)"
+                        >
+                          {{ item.displayType }}
+                        </span>
+                      </template>
+                    </FloatingDropdown>
+                  </div>
+                </FormField>
 
                 <div v-if="mod.variableName && stageVariables.length > 0" class="flex items-center gap-2">
                   <template v-for="variable in stageVariables" :key="variable.name">
@@ -701,10 +701,9 @@ watch(() => props.error, (err) => {
                 </button>
               </div>
 
-              <div>
-                <label class="form-label text-sm">Field Name</label>
+              <FormField required :error="props.error" :path="['effects', getEffectIndex('modifyUserProfile'), 'modifications', index, 'fieldName']" label="Field Name" class="w-full">
                 <input v-model="mod.fieldName" type="text" placeholder="email" class="form-input font-mono text-sm" />
-              </div>
+              </FormField>
 
               <div>
                 <label class="form-label text-sm">Operation</label>
@@ -803,7 +802,6 @@ watch(() => props.error, (err) => {
                 v-if="param.type === 'string'"
                 v-model="currentParams[param.name]"
                 type="text"
-                :required="param.required"
                 :placeholder="param.description"
                 class="form-input text-sm"
               />
@@ -812,7 +810,6 @@ watch(() => props.error, (err) => {
                 v-else-if="param.type === 'number'"
                 v-model.number="currentParams[param.name]"
                 type="number"
-                :required="param.required"
                 :placeholder="param.description"
                 class="form-input text-sm"
               />
@@ -829,7 +826,6 @@ watch(() => props.error, (err) => {
               <div v-else-if="param.type === 'object'" class="space-y-1">
                 <textarea
                   v-model="currentParams[param.name]"
-                  :required="param.required"
                   :placeholder="param.description + ' (JSON format)'"
                   class="form-textarea text-sm font-mono"
                   rows="4"
@@ -841,7 +837,6 @@ watch(() => props.error, (err) => {
                 <select
                   v-model="currentParams[param.name]"
                   class="form-select text-sm"
-                  :required="param.required"
                 >
                   <option value="">Select image variable...</option>
                   <option v-for="variable in imageVariables" :key="variable.name" :value="`{{vars.${variable.name}}}`">
@@ -857,7 +852,6 @@ watch(() => props.error, (err) => {
                   accept="audio/*"
                   @change="handleAudioUpload($event, param.name)"
                   class="form-input text-sm"
-                  :required="param.required"
                 />
                 <div v-if="currentParams[param.name]" class="mt-2">
                   <audio
@@ -875,7 +869,6 @@ watch(() => props.error, (err) => {
                 <select
                   v-model="currentParams[param.name]"
                   class="form-select text-sm"
-                  :required="param.required"
                 >
                   <option value="">Select image array variable...</option>
                   <option v-for="variable in imageArrayVariables" :key="variable.name" :value="`{{vars.${variable.name}}}`">

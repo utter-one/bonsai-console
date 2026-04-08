@@ -4,12 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGuardrailsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { GuardrailResponse, ParsedError } from '@/api/types'
+import type { ApiErrorDetail, GuardrailResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import ActionForm from '@/components/ActionForm.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
+import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, validateEffects, type ActionOperations } from '@/composables'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -116,6 +116,22 @@ async function loadGuardrail() {
 
 async function handleSubmit() {
   error.value = null
+
+  const errorDetails: ApiErrorDetail[] = []
+
+  if(!form.value.name.trim())
+    errorDetails.push({ path: ['name'], message: 'Name is required', code: 'too_small' })
+  
+  const effectsValidationError = validateEffects(operations.value)
+  if (effectsValidationError)
+    errorDetails.push(...(effectsValidationError.details || []))
+
+  if(errorDetails.length > 0) {
+    error.value = { message: 'Please fix the errors in the form', details: errorDetails }
+    activeTab.value = 'basic'
+    return
+  }
+
   isLoading.value = true
 
   try {

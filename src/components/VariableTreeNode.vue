@@ -18,7 +18,7 @@
       <div v-else class="w-4"></div>
 
       <!-- Variable Name (Editable) -->
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 items-start min-w-0">
         <input
           v-if="isEditingName"
           v-model="editName"
@@ -28,6 +28,7 @@
           @keyup.esc="cancelEdit"
           ref="nameInput"
           class="form-input py-1 px-2 text-sm font-mono"
+          :class="{ 'border-red-400 ring-1 ring-red-400': hasError }"
           placeholder="field_name"
         />
         <button
@@ -36,10 +37,12 @@
           @click="startEditName"
           class="text-left w-full"
         >
-          <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">
+          <code class="text-sm font-mono bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded"
+            :class="{ 'ring-2 ring-red-500 dark:ring-red-400': hasError }">
             {{ descriptor.name }}
           </code>
         </button>
+        <p v-if="errorMessage" class="text-xs text-red-500 dark:text-red-400 pt-1 mt-0.5">{{ errorMessage }}</p>
       </div>
 
       <!-- Type Selector (Inline) -->
@@ -98,6 +101,7 @@
         :path="[...path, index]"
         :level="level + 1"
         :expanded-nodes="expandedNodes"
+        :error-paths="errorPaths"
         @toggle="$emit('toggle', $event)"
         @update-name="$emit('update-name', $event)"
         @update-type="$emit('update-type', $event)"
@@ -118,9 +122,14 @@ const props = withDefaults(defineProps<{
   path: number[]
   level?: number
   expandedNodes: Set<string>
+  errorPaths?: Map<string, string>
 }>(), {
-  level: 0
+  level: 0,
+  errorPaths: () => new Map()
 })
+
+const errorMessage = computed(() => props.errorPaths.get(props.path.join('-')) ?? null)
+const hasError = computed(() => errorMessage.value !== null)
 
 const emit = defineEmits<{
   toggle: [path: number[]]

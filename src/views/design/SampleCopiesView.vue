@@ -278,8 +278,20 @@ function validateRow(row: RowState): ApiErrorDetail[] {
   const details: ApiErrorDetail[] = []
   if (!row.name.trim())
     details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
+  if (!row.promptTrigger.trim())
+    details.push({ path: ['promptTrigger'], message: 'When to occur is required.', code: 'required' })
   if (!row.content.some(c => c.trim()))
     details.push({ path: ['content'], message: 'At least one content item is required.', code: 'required' })
+  // Duplicate name check
+  const allNames = rows.value.map(r => r.name.trim()).filter(Boolean)
+  const seen = new Set<string>()
+  for (const n of allNames) {
+    if (seen.has(n) && n === row.name.trim()) {
+      details.push({ path: ['name'], message: 'Name must be unique.', code: 'duplicate' })
+      break
+    }
+    seen.add(n)
+  }
   row.validationErrors = {}
   for (const d of details)
     row.validationErrors[String(d.path[0]!)] = d.message
@@ -294,6 +306,16 @@ function validateDecoratorRow(dr: DecoratorRowState): ApiErrorDetail[] {
     details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
   if (!dr.template.trim())
     details.push({ path: ['template'], message: 'Template is required.', code: 'required' })
+  // Duplicate name check
+  const allNames = decoratorRows.value.map(r => r.name.trim()).filter(Boolean)
+  const seen = new Set<string>()
+  for (const n of allNames) {
+    if (seen.has(n) && n === dr.name.trim()) {
+      details.push({ path: ['name'], message: 'Name must be unique.', code: 'duplicate' })
+      break
+    }
+    seen.add(n)
+  }
   dr.validationErrors = {}
   for (const d of details)
     dr.validationErrors[String(d.path[0]!)] = d.message
@@ -783,7 +805,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     ]"
                   >
                     <!-- NAME -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['name'] }" :title="row.validationErrors['name']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['name'] }">
                       <input
                         v-model="row.name"
                         @input="markDirty(row)"
@@ -793,6 +815,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono font-medium"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="row.validationErrors['name']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['name'] }}</p>
                     </td>
 
                     <!-- STAGES -->
@@ -820,7 +843,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- TRIGGER -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['promptTrigger'] }">
                       <textarea
                         v-model="row.promptTrigger"
                         v-autosize
@@ -831,10 +854,11 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="row.validationErrors['promptTrigger']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['promptTrigger'] }}</p>
                     </td>
 
                     <!-- SAMPLE CONTENT -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['content'] }" :title="row.validationErrors['content']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['content'] }">
                       <div class="space-y-1" data-content-cell>
                         <div
                           v-for="(_, idx) in row.content"
@@ -868,6 +892,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                           @click="addContent(row)"
                           class="flex items-center gap-0.5 text-xs text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mt-0.5"
                         ><Plus class="w-3 h-3" /> Add</button>
+                        <p v-if="row.validationErrors['content']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['content'] }}</p>
                       </div>
                     </td>
 
@@ -916,13 +941,6 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <!-- ACTIONS -->
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
-                        <span
-                          v-if="row.saveError"
-                          class="text-red-500 dark:text-red-400"
-                          :title="row.saveError"
-                        >
-                          <AlertTriangle class="w-4 h-4" />
-                        </span>
                         <span v-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"
@@ -993,7 +1011,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
                     :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : dr.isDirty ? 'bg-amber-50/60 dark:bg-amber-900/15' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
                   >
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['name'] }" :title="dr.validationErrors['name']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['name'] }">
                       <input
                         v-model="dr.name"
                         @input="markDecoratorDirty(dr)"
@@ -1002,8 +1020,9 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="dr.validationErrors['name']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ dr.validationErrors['name'] }}</p>
                     </td>
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['template'] }" :title="dr.validationErrors['template']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['template'] }">
                       <textarea
                         v-model="dr.template"
                         v-autosize
@@ -1013,10 +1032,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="dr.validationErrors['template']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ dr.validationErrors['template'] }}</p>
                     </td>
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
-                        <span v-if="dr.saveError" class="text-red-500 dark:text-red-400" :title="dr.saveError"><AlertTriangle class="w-4 h-4" /></span>
                         <span v-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"

@@ -169,6 +169,19 @@ function validate(): ParsedError | null {
     }
   }
 
+  for (let i = 0; i < form.value.parameters.length; i++) {
+    const p = form.value.parameters[i]!
+    if (!p.name.trim()) {
+      details.push({ path: ['parameters', i, 'name'], code: 'required', message: `Parameter ${i + 1}: name is required` })
+    }
+    if (!p.description.trim()) {
+      details.push({ path: ['parameters', i, 'description'], code: 'required', message: `Parameter ${i + 1}: description is required` })
+    }
+    if (!p.type) {
+      details.push({ path: ['parameters', i, 'type'], code: 'required', message: `Parameter ${i + 1}: type is required` })
+    }
+  }
+
   return details.length > 0 ? { message: 'Please fill in all required fields', details } : null
 }
 
@@ -397,7 +410,7 @@ const metadataFields = computed(() => {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <ErrorDisplay :error="error" />
+          <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
           <!-- General Tab -->
           <TabContent v-model="activeTab" tab="basic">
@@ -752,20 +765,17 @@ const metadataFields = computed(() => {
                   </div>
                   
                   <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="form-label text-sm">Parameter Name <span class="required">*</span></label>
+                    <FormField label="Parameter Name" required :error="error" :path="['parameters', index, 'name']">
                       <input
                         v-model="param.name"
                         type="text"
-                        required
                         placeholder="input_data"
                         class="form-input font-mono text-sm"
                       />
-                    </div>
+                    </FormField>
 
-                    <div>
-                      <label class="form-label text-sm">Type <span class="required">*</span></label>
-                      <select v-model="param.type" class="form-select-auto text-sm" required>
+                    <FormField label="Type" required :error="error" :path="['parameters', index, 'type']">
+                      <select v-model="param.type" class="form-select-auto text-sm">
                         <option value="string">string</option>
                         <option value="number">number</option>
                         <option value="boolean">boolean</option>
@@ -779,22 +789,17 @@ const metadataFields = computed(() => {
                         <option value="audio">audio</option>
                         <option value="audio[]">audio[]</option>
                       </select>
-                    </div>
+                    </FormField>
                   </div>
 
-                  <div>
-                    <label class="form-label text-sm">Description <span class="required">*</span></label>
+                  <FormField label="Description" required :error="error" :path="['parameters', index, 'description']" class="w-full" help="Describe what this parameter represents for documentation">
                     <input
                       v-model="param.description"
                       type="text"
-                      required
                       placeholder="The data to process"
                       class="form-input text-sm"
                     />
-                    <p class="text-xs text-gray-500 mt-1">
-                      Describe what this parameter represents for documentation
-                    </p>
-                  </div>
+                  </FormField>
 
                   <div>
                     <label class="flex items-center cursor-pointer">

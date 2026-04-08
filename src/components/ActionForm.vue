@@ -338,7 +338,7 @@ function getTypeBadgeColor(type: string): string {
                   </div>
                 </FormField>
                 <div>
-                  <label class="form-label text-sm">Change Type</label>
+                  <label class="form-label text-md">Change Type</label>
                   <select v-model="watched.changeType" class="form-select-auto text-sm">
                     <option value="new">New (variable created)</option>
                     <option value="changed">Changed (value updated)</option>
