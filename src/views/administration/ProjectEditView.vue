@@ -5,7 +5,7 @@ import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelecti
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError } from '@/api/types'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
@@ -401,18 +401,17 @@ async function loadApiKeys() {
 async function handleSubmit() {
   error.value = null
 
-  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId) {
-    error.value = {
-      message: 'An ASR provider must be selected when Speech Input is enabled.',
-      details: [
-        {
-          path: ['asrConfig', 'asrProviderId'],
-          message: 'Select an ASR provider or disable Speech Input',
-          code: 'REQUIRED_FIELD'
-        }
-      ]
-    }
-    activeTab.value = 'voice'
+  const errorDetails: ApiErrorDetail[] = []
+
+  if (form.value.name.trim() === '')
+    errorDetails.push({ path: ['name'], message: 'Project name is required', code: 'REQUIRED_FIELD' })
+
+  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
+      errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+    
+  if (errorDetails.length > 0) {
+    error.value = { message: 'Please fix the errors below', details: errorDetails }
+    switchToFirstErrorTab(error.value)
     return
   }
 
@@ -774,12 +773,12 @@ function buildCostManagementConfig(): CostManagementConfig {
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-900">
+    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isArchived" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <ErrorDisplay :error="error" />
+        <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
         <!-- General Tab -->
         <TabContent v-model="activeTab" tab="basic">

@@ -278,8 +278,20 @@ function validateRow(row: RowState): ApiErrorDetail[] {
   const details: ApiErrorDetail[] = []
   if (!row.name.trim())
     details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
+  if (!row.promptTrigger.trim())
+    details.push({ path: ['promptTrigger'], message: 'When to occur is required.', code: 'required' })
   if (!row.content.some(c => c.trim()))
     details.push({ path: ['content'], message: 'At least one content item is required.', code: 'required' })
+  // Duplicate name check
+  const allNames = rows.value.map(r => r.name.trim()).filter(Boolean)
+  const seen = new Set<string>()
+  for (const n of allNames) {
+    if (seen.has(n) && n === row.name.trim()) {
+      details.push({ path: ['name'], message: 'Name must be unique.', code: 'duplicate' })
+      break
+    }
+    seen.add(n)
+  }
   row.validationErrors = {}
   for (const d of details)
     row.validationErrors[String(d.path[0]!)] = d.message
@@ -294,6 +306,16 @@ function validateDecoratorRow(dr: DecoratorRowState): ApiErrorDetail[] {
     details.push({ path: ['name'], message: 'Name is required.', code: 'required' })
   if (!dr.template.trim())
     details.push({ path: ['template'], message: 'Template is required.', code: 'required' })
+  // Duplicate name check
+  const allNames = decoratorRows.value.map(r => r.name.trim()).filter(Boolean)
+  const seen = new Set<string>()
+  for (const n of allNames) {
+    if (seen.has(n) && n === dr.name.trim()) {
+      details.push({ path: ['name'], message: 'Name must be unique.', code: 'duplicate' })
+      break
+    }
+    seen.add(n)
+  }
   dr.validationErrors = {}
   for (const d of details)
     dr.validationErrors[String(d.path[0]!)] = d.message
@@ -556,7 +578,30 @@ watch(projectId, (pid) => {
   colWidths.value = loadColWidths(pid)
 })
 
-const tableWidth = computed(() => colWidths.value.reduce((a, b) => a + b, 0) + 64)
+const ACTIONS_COL_WIDTH = 64
+
+const COL_CONSTRAINTS = [
+  { min: 100, max: 300 }, // name
+  { min: 90,  max: 200 }, // stages
+  { min: 90,  max: 200 }, // agents
+  { min: 140, max: 340 }, // trigger
+  { min: 160, max: 500 }, // content
+  { min: 48,  max: 80  }, // amount
+  { min: 100, max: 180 }, // distribution
+  { min: 100, max: 200 }, // type/decorator
+]
+
+const totalColWeight = computed(() => colWidths.value.reduce((a, b) => a + b, 0) + ACTIONS_COL_WIDTH)
+
+function colWidthPct(i: number): string {
+  return (colWidths.value[i]! / totalColWeight.value * 100).toFixed(3) + '%'
+}
+
+function actionsColWidthPct(): string {
+  return (ACTIONS_COL_WIDTH / totalColWeight.value * 100).toFixed(3) + '%'
+}
+
+const tableMinWidth = computed(() => COL_CONSTRAINTS.reduce((s, c) => s + c.min, 0) + ACTIONS_COL_WIDTH)
 
 function startResize(e: MouseEvent, colIdx: number) {
   e.preventDefault()
@@ -728,29 +773,37 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
             <div v-else class="overflow-x-auto overflow-y-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
               <table
                 class="text-sm border-collapse"
-                :style="{ tableLayout: 'fixed', width: tableWidth + 'px' }"
+                :style="{ tableLayout: 'fixed', width: '100%', minWidth: tableMinWidth + 'px' }"
                 @keydown="onTableKeydown"
               >
                 <colgroup>
-                  <col v-for="(w, i) in colWidths" :key="i" :style="{ width: w + 'px' }" />
-                  <col style="width: 64px" />
+                  <col
+                    v-for="(_, i) in colWidths"
+                    :key="i"
+                    :style="{
+                      width: colWidthPct(i),
+                      minWidth: COL_CONSTRAINTS[i]?.min + 'px',
+                      maxWidth: COL_CONSTRAINTS[i]?.max + 'px',
+                    }"
+                  />
+                  <col :style="{ width: actionsColWidthPct(), minWidth: ACTIONS_COL_WIDTH + 'px' }" />
                 </colgroup>
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[0]?.min + 'px', maxWidth: COL_CONSTRAINTS[0]?.max + 'px' }">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[1]?.min + 'px', maxWidth: COL_CONSTRAINTS[1]?.max + 'px' }">
                       <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 1)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[2]?.min + 'px', maxWidth: COL_CONSTRAINTS[2]?.max + 'px' }">
                       <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 2)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
-                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[3]?.min + 'px', maxWidth: COL_CONSTRAINTS[3]?.max + 'px' }">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[4]?.min + 'px', maxWidth: COL_CONSTRAINTS[4]?.max + 'px' }">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
+                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[5]?.min + 'px', maxWidth: COL_CONSTRAINTS[5]?.max + 'px' }">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[6]?.min + 'px', maxWidth: COL_CONSTRAINTS[6]?.max + 'px' }">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[7]?.min + 'px', maxWidth: COL_CONSTRAINTS[7]?.max + 'px' }">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -783,7 +836,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     ]"
                   >
                     <!-- NAME -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['name'] }" :title="row.validationErrors['name']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['name'] }">
                       <input
                         v-model="row.name"
                         @input="markDirty(row)"
@@ -793,6 +846,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono font-medium"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="row.validationErrors['name']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['name'] }}</p>
                     </td>
 
                     <!-- STAGES -->
@@ -820,7 +874,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     </td>
 
                     <!-- TRIGGER -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['promptTrigger'] }">
                       <textarea
                         v-model="row.promptTrigger"
                         v-autosize
@@ -831,10 +885,11 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="row.validationErrors['promptTrigger']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['promptTrigger'] }}</p>
                     </td>
 
                     <!-- SAMPLE CONTENT -->
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['content'] }" :title="row.validationErrors['content']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-700" :class="{ 'cell-error': row.validationErrors['content'] }">
                       <div class="space-y-1" data-content-cell>
                         <div
                           v-for="(_, idx) in row.content"
@@ -868,6 +923,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                           @click="addContent(row)"
                           class="flex items-center gap-0.5 text-xs text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mt-0.5"
                         ><Plus class="w-3 h-3" /> Add</button>
+                        <p v-if="row.validationErrors['content']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ row.validationErrors['content'] }}</p>
                       </div>
                     </td>
 
@@ -916,13 +972,6 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     <!-- ACTIONS -->
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
-                        <span
-                          v-if="row.saveError"
-                          class="text-red-500 dark:text-red-400"
-                          :title="row.saveError"
-                        >
-                          <AlertTriangle class="w-4 h-4" />
-                        </span>
                         <span v-if="row.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"
@@ -993,7 +1042,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                     class="border-b border-gray-100 dark:border-gray-800 last:border-0 align-top group"
                     :class="dr.id === null ? 'bg-emerald-50/40 dark:bg-emerald-900/10' : dr.isDirty ? 'bg-amber-50/60 dark:bg-amber-900/15' : 'hover:bg-gray-50/40 dark:hover:bg-gray-700'"
                   >
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['name'] }" :title="dr.validationErrors['name']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['name'] }">
                       <input
                         v-model="dr.name"
                         @input="markDecoratorDirty(dr)"
@@ -1002,8 +1051,9 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="dr.validationErrors['name']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ dr.validationErrors['name'] }}</p>
                     </td>
-                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['template'] }" :title="dr.validationErrors['template']">
+                    <td class="px-2 py-1.5 border-r border-gray-100 dark:border-gray-800" :class="{ 'cell-error': dr.validationErrors['template'] }">
                       <textarea
                         v-model="dr.template"
                         v-autosize
@@ -1013,10 +1063,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         class="spreadsheet-input font-mono"
                         :disabled="isReadOnly"
                       />
+                      <p v-if="dr.validationErrors['template']" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ dr.validationErrors['template'] }}</p>
                     </td>
                     <td class="px-2 py-1.5">
                       <div class="flex items-center justify-end gap-1">
-                        <span v-if="dr.saveError" class="text-red-500 dark:text-red-400" :title="dr.saveError"><AlertTriangle class="w-4 h-4" /></span>
                         <span v-if="dr.isSaving" class="block w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
                         <button
                           v-if="!isReadOnly"

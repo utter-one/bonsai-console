@@ -63,7 +63,7 @@ import { HelpCircle } from 'lucide-vue-next'
 import BaseModal from '@/components/BaseModal.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
-import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
+import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, validateEffects } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
 import type { StageAction, ParsedError, ApiErrorDetail } from '@/api/types'
 
@@ -215,6 +215,7 @@ watch(() => props.action, (action) => {
 }, { immediate: true })
 
 function handleSubmit() {
+  internalError.value = null
   const validationDetails: ApiErrorDetail[] = []
 
   if (!form.value.name.trim()) {
@@ -237,6 +238,11 @@ function handleSubmit() {
     if (!p.description.trim()) {
       validationDetails.push({ path: ['parameters', i, 'description'], message: `Parameter ${i + 1}: description is required.`, code: 'required' })
     }
+  }
+
+  const effectsValidationError = validateEffects(operations.value)
+  if (effectsValidationError && effectsValidationError.details?.length) {
+    validationDetails.push(...effectsValidationError.details)
   }
 
   if (validationDetails.length > 0) {

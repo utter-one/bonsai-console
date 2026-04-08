@@ -212,7 +212,7 @@ const metadataFields = computed(() => {
         <div class="mx-auto">
           <form @submit.prevent="handleSubmit">
             <!-- Error Message -->
-            <ErrorDisplay :error="error" />
+            <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
             <!-- General Tab -->
             <TabContent v-model="activeTab" tab="basic">

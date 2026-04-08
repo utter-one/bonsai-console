@@ -352,10 +352,12 @@ async function handleSubmit() {
 
   if (form.value.ttsProviderId) {
     if (!(form.value.ttsSettings as any).model && !isAmazonPolly.value) {
-      validationDetails.push({ path: ['ttsSettings'], message: 'Model is required when a TTS provider is selected.', code: 'required' })
+      validationDetails.push({ path: ['ttsSettings', 'model'], message: 'Model is required when a TTS provider is selected.', code: 'required' })
+    } else if (isAmazonPolly.value && !(form.value.ttsSettings as AmazonPollyTtsSettings).engine) {
+      validationDetails.push({ path: ['ttsSettings', 'engine'], message: 'Engine is required for Amazon Polly when it is selected as the TTS provider.', code: 'required' })
     }
     if (!currentVoiceValue.value) {
-      validationDetails.push({ path: ['ttsSettings'], message: 'Voice is required when a TTS provider is selected.', code: 'required' })
+      validationDetails.push({ path: ['ttsSettings', 'voiceId'], message: 'Voice is required when a TTS provider is selected.', code: 'required' })
     }
   }
 
@@ -544,7 +546,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <ErrorDisplay :error="error" />
+        <ErrorDisplay :error="error" class="mx-8 mt-4"/>
 
         <!-- General Tab -->
         <TabContent v-model="activeTab" tab="basic">
@@ -601,7 +603,31 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
           </FormField>
 
           <!-- Model / Engine -->
-          <FormField v-if="form.ttsProviderId" :label="isAmazonPolly ? 'Engine' : 'Model'" required :error="error" path="ttsSettings" help="Select a model for speech synthesis">
+          <FormField v-if="form.ttsProviderId && !isAmazonPolly" label="Model" required :error="error" :path="['ttsSettings', 'model']" help="Select a model for speech synthesis">
+            <select
+              v-if="availableModels.length > 0"
+              v-model="modelValue"
+              class="form-select-auto min-w-64"
+              :disabled="isLoading"
+              required
+            >
+              <option value="">Select a model</option>
+              <option v-for="model in availableModels" :key="model.id" :value="model.id">
+                {{ model.displayName }}{{ model.recommended ? ' (recommended)' : '' }}
+              </option>
+            </select>
+            <input
+              v-else
+              v-model="modelValue"
+              type="text"
+              class="form-input-mono"
+              placeholder="e.g., eleven_flash_v2_5, eleven_multilingual_v2"
+              :disabled="isLoading"
+              required
+            />
+          </FormField>
+
+          <FormField v-if="form.ttsProviderId && isAmazonPolly" label="Engine" required :error="error" :path="['ttsSettings', 'engine']" help="Select an engine for Amazon Polly">
             <select
               v-if="availableModels.length > 0"
               v-model="modelValue"
@@ -626,7 +652,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
           </FormField>
 
           <!-- Voice ID -->
-          <FormField v-if="form.ttsProviderId" label="Voice ID" required :error="error" path="ttsSettings" help="Text-to-speech voice identifier">
+          <FormField v-if="form.ttsProviderId" label="Voice ID" required :error="error" :path="['ttsSettings', 'voiceId']" help="Text-to-speech voice identifier">
             <select
               v-if="availableVoices.length > 0 && isModelSelected"
               v-model="form.ttsSettings.voiceId"

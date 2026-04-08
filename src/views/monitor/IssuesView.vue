@@ -21,6 +21,7 @@ const showModal = ref(false)
 const selectedIssue = ref<IssueResponse | null>(null)
 const showArchived = ref(false)
 const issueError = ref<ParsedError | null>(null)
+const loadError = ref<string | null>(null)
 
 // Whether a project is currently selected
 const hasProjectSelected = computed(() => !!projectSelectionStore.selectedProjectId)
@@ -68,6 +69,7 @@ onMounted(() => {
 
 // Methods
 async function loadIssues() {
+  loadError.value = null
   try {
     const filters: any = {}
     if (projectSelectionStore.selectedProjectId) {
@@ -76,8 +78,8 @@ async function loadIssues() {
       filters.projectStatus = projectStatus.value
     }
     await issuesStore.fetchAll(pagination.getParams({ filters, ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
-  } catch (error) {
-    console.error('Failed to load issues:', error)
+  } catch (error: any) {
+    loadError.value = error?.response?.data?.message || 'Failed to load issues'
   }
 }
 
@@ -231,8 +233,8 @@ async function handleRecoverSuccess() {
       </div>
 
       <!-- Error State -->
-      <div v-else-if="issuesStore.error" class="error-state">
-        {{ issuesStore.error }}
+      <div v-else-if="loadError" class="error-state">
+        {{ loadError }}
       </div>
 
       <!-- Empty State -->

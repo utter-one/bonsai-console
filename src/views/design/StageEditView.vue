@@ -909,7 +909,7 @@ function toggleNode(path: number[]) {
 
     <!-- Error State -->
     <div v-else-if="loadError && isEditMode" class="error-state">
-      <ErrorDisplay :error="loadError" />
+      <ErrorDisplay :error="loadError" class="mx-8 mt-4"/>
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Stages
       </button>
@@ -921,7 +921,7 @@ function toggleNode(path: number[]) {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <ErrorDisplay v-if="error" :error="error" class="mb-6" />
+          <ErrorDisplay v-if="error" :error="error" class="mx-8 mt-4" />
 
           <!-- General Tab -->
           <TabContent v-model="activeTab" tab="basic">

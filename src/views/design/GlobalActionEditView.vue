@@ -4,12 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check, ShieldAlert } from 'lucide-vue-next'
-import type { GlobalActionResponse, ParsedError } from '@/api/types'
+import type { ApiErrorDetail, GlobalActionResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import ActionForm from '@/components/ActionForm.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
+import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, validateEffects, type ActionOperations } from '@/composables'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -144,6 +144,39 @@ async function loadGlobalAction() {
 
 async function handleSubmit() {
   error.value = null
+  const errorDetails: ApiErrorDetail[] = []
+  if(!form.value.name.trim())
+    errorDetails.push({ path: ['name'], message: 'Action name is required.', code: 'too_small' })
+
+  form.value.parameters.forEach((param, index) => {
+    if(!param.name.trim()) {
+      errorDetails.push({ path: ['parameters', index , 'name'], message: 'Parameter name is required.', code: 'too_small' })
+    }
+    if(!param.type) {
+      errorDetails.push({ path: ['parameters', index, 'type'], message: 'Parameter type is required.', code: 'required' })
+    }
+    if(!param.description.trim()) {
+      errorDetails.push({ path: ['parameters', index, 'description'], message: 'Parameter description is required.', code: 'too_small' })
+    }
+  })
+
+  if (form.value.triggerOnTransformation) {
+    form.value.watchedVariables.forEach((variable, index) => {
+      if (!variable.path.trim()) {
+        errorDetails.push({ path: ['watchedVariables', index, 'path'], message: 'Variable path is required.', code: 'too_small' })
+      }
+    })
+  }
+
+  const effectsValidationError = validateEffects(operations.value)
+  if (effectsValidationError)
+    errorDetails.push(...(effectsValidationError.details || []))
+  
+  if (errorDetails.length > 0) {
+    error.value = { message: 'Please fix the validation errors.', details: errorDetails }
+    return
+  }
+
   isLoading.value = true
 
   try {

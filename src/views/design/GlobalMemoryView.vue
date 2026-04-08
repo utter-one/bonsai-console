@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useCopyPaste } from '@/composables/useCopyPaste'
-import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
+import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste } from 'lucide-vue-next'
 import VariableTreeNode from '@/components/VariableTreeNode.vue'
 import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
 import type { ProjectResponse, ParameterValue } from '@/api/types'
@@ -53,26 +53,33 @@ const form = ref({
 
 const expandedNodes = ref<Set<string>>(new Set())
 
-const duplicateVariableNames = computed(() => {
-  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
-    const seen = new Set<string>()
-    const dupes: string[] = []
-    for (const d of descriptors) {
-      if (seen.has(d.name)) {
-        if (!dupes.includes(d.name)) dupes.push(d.name)
-      } else {
-        seen.add(d.name)
-      }
-    }
-    for (const d of descriptors) {
-      if (d.objectSchema && d.objectSchema.length > 0) {
-        dupes.push(...findDuplicates(d.objectSchema))
-      }
-    }
-    return dupes
+const variableErrorPaths = ref<Map<string, string>>(new Map())
+
+function validateVariablesRecursive(
+  descriptors: Array<{ name: string; objectSchema?: any[] }>,
+  pathPrefix: string,
+  errorPaths: Map<string, string>
+): void {
+  const nameCounts = new Map<string, number[]>()
+  for (let i = 0; i < descriptors.length; i++) {
+    const name = descriptors[i]!.name?.trim() || ''
+    if (!nameCounts.has(name)) nameCounts.set(name, [])
+    nameCounts.get(name)!.push(i)
   }
-  return findDuplicates(form.value.userProfileVariableDescriptors)
-})
+  for (let i = 0; i < descriptors.length; i++) {
+    const d = descriptors[i]!
+    const pathKey = pathPrefix ? `${pathPrefix}-${i}` : `${i}`
+    const name = d.name?.trim() || ''
+    if (!name) {
+      errorPaths.set(pathKey, 'Name is required.')
+    } else if (nameCounts.get(name)!.length > 1) {
+      errorPaths.set(pathKey, 'Duplicate name.')
+    }
+    if (d.objectSchema && d.objectSchema.length > 0) {
+      validateVariablesRecursive(d.objectSchema, pathKey, errorPaths)
+    }
+  }
+}
 
 // Constants state
 type ConstantType = 'string' | 'number' | 'boolean' | 'json'
@@ -85,16 +92,7 @@ interface ConstantEntry {
 
 const constants = ref<ConstantEntry[]>([])
 
-const duplicateConstantKeys = computed(() => {
-  const keys = constants.value.map(c => c.key.trim()).filter(Boolean)
-  const seen = new Set<string>()
-  const duplicates: string[] = []
-  for (const key of keys) {
-    if (seen.has(key)) duplicates.push(key)
-    seen.add(key)
-  }
-  return [...new Set(duplicates)]
-})
+const constantErrors = ref<(string | null)[]>([])
 
 watch(projectId, () => {
   loadProject()
@@ -165,8 +163,38 @@ async function loadProject() {
 async function handleSubmit() {
   if (!currentProject.value) return
 
-  isLoading.value = true
   error.value = null
+  const newVariableErrorPaths = new Map<string, string>()
+  validateVariablesRecursive(form.value.userProfileVariableDescriptors, '', newVariableErrorPaths)
+  variableErrorPaths.value = newVariableErrorPaths
+
+  const nameCounts = new Map<string, number[]>()
+  for (let i = 0; i < constants.value.length; i++) {
+    const key = constants.value[i]!.key.trim()
+    if (!nameCounts.has(key)) nameCounts.set(key, [])
+    nameCounts.get(key)!.push(i)
+  }
+  const newConstantErrors: (string | null)[] = constants.value.map((entry) => {
+    const key = entry.key.trim()
+    if (!key) return 'Key is required.'
+    if (nameCounts.get(key)!.length > 1) return 'Duplicate key.'
+    return null
+  })
+  constantErrors.value = newConstantErrors
+
+  const hasVariableErrors = newVariableErrorPaths.size > 0
+  const hasConstantErrors = newConstantErrors.some(e => e !== null)
+  if (hasVariableErrors || hasConstantErrors) {
+    error.value = 'Please fix the highlighted fields before saving.'
+    if (hasVariableErrors) {
+      activeTab.value = 'userProfile'
+    } else {
+      activeTab.value = 'constants'
+    }
+    return
+  }
+
+  isLoading.value = true
 
   try {
     const updated = await projectsStore.update(currentProject.value.id, {
@@ -424,11 +452,6 @@ async function pasteConstants() {
                 </p>
               </div>
 
-              <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
-                <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-                Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
-              </div>
-
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
@@ -485,6 +508,7 @@ async function pasteConstants() {
                       :descriptor="descriptor"
                       :path="[index]"
                       :expanded-nodes="expandedNodes"
+                      :error-paths="variableErrorPaths"
                       @toggle="toggleNode"
                       @update-name="updateVariableName"
                       @update-type="updateVariableType"
@@ -500,11 +524,6 @@ async function pasteConstants() {
             <div v-show="activeTab === 'constants'" class="tab-content">
               <div v-if="error" class="alert-error mb-6">
                 {{ error }}
-              </div>
-
-              <div v-if="duplicateConstantKeys.length > 0" class="alert-error mb-4">
-                <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-                Duplicate constant keys detected: <strong>{{ duplicateConstantKeys.join(', ') }}</strong>. Keys must be unique.
               </div>
 
               <div class="flex items-center justify-between mb-4">
@@ -567,16 +586,19 @@ async function pasteConstants() {
                   </div>
                   <!-- Rows -->
                   <template v-for="(entry, index) in constants" :key="index">
-                    <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-start gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <!-- Key -->
-                      <input
-                        v-model="entry.key"
-                        type="text"
-                        placeholder="constant_name"
-                        class="form-input py-1 px-2 text-sm font-mono"
-                        :disabled="isLoading"
-                        :class="{ 'border-red-400': duplicateConstantKeys.includes(entry.key.trim()) && entry.key.trim() }"
-                      />
+                      <div>
+                        <input
+                          v-model="entry.key"
+                          type="text"
+                          placeholder="constant_name"
+                          class="form-input py-1 px-2 text-sm font-mono"
+                          :class="{ 'border-red-400 ring-1 ring-red-400': constantErrors[index] }"
+                          :disabled="isLoading"
+                        />
+                        <p v-if="constantErrors[index]" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ constantErrors[index] }}</p>
+                      </div>
                       <!-- Type -->
                       <select
                         v-model="entry.type"
