@@ -25,7 +25,6 @@ import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useTabNavigation } from '@/composables/useTabNavigation'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
-import type { Api } from '../../api/generated/Api'
 
 const route = useRoute()
 const router = useRouter()
