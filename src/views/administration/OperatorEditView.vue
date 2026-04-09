@@ -96,8 +96,8 @@ async function handleSubmit() {
   } else {
     if (!form.value.id) {
       validationDetails.push({ path: ['id'], message: 'Operator ID is required', code: 'REQUIRED' })
-    } else if (!/^[a-z0-9-]+$/.test(form.value.id)) {
-      validationDetails.push({ path: ['id'], message: 'Operator ID must contain only lowercase letters, numbers, and hyphens', code: 'INVALID_VALUE' })
+    } else if (!/^([a-z0-9-]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/.test(form.value.id)) {
+      validationDetails.push({ path: ['id'], message: 'Operator ID must be a valid email address or contain only lowercase letters, numbers, and hyphens', code: 'INVALID_VALUE' })
     }
     if (!form.value.password) {
       validationDetails.push({ path: ['password'], message: 'Password is required for new operators', code: 'REQUIRED' })
@@ -257,11 +257,11 @@ const metadataFields = computed(() => {
 
             <!-- General Tab -->
             <TabContent v-model="activeTab" tab="basic">
-              <FormField label="Operator ID" required :error="error" path="id" class="w-full" :hint="isEditMode ? 'ID cannot be changed' : undefined" :help="isEditMode ? 'The operator ID cannot be changed after creation' : 'Unique identifier for this operator. Use lowercase letters, numbers, and hyphens only.'">
+              <FormField label="Operator ID" required :error="error" path="id" class="w-full" :hint="isEditMode ? 'ID cannot be changed' : undefined" :help="isEditMode ? 'The operator ID cannot be changed after creation' : 'Unique identifier for this operator. Email address or a combination of lowercase letters, numbers, and hyphens.'">
                 <input
                   v-model="form.id"
                   type="text"
-                  placeholder="operator-username"
+                  placeholder="operator-username or email@example.com"
                   class="form-input-mono"
                   :class="{ 'form-input-disabled': isEditMode }"
                   :disabled="isEditMode || isLoading"
