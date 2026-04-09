@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useSearch, formatEnum } from '@/composables'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -19,7 +20,6 @@ const dateTimeRange = ref<DateTimeRange>(null)
 
 // Action filter state
 const actionFilter = ref<'all' | 'CREATE' | 'UPDATE' | 'DELETE'>('all')
-const showActionDropdown = ref(false)
 
 const actionFilterOptions = [
   { value: 'all', label: 'All Actions' },
@@ -30,7 +30,6 @@ const actionFilterOptions = [
 
 // Entity type filter state
 const entityTypeFilter = ref<string>('all')
-const showEntityTypeDropdown = ref(false)
 
 const entityTypeFilterOptions = [
   { value: 'all', label: 'All Entity Types' },
@@ -113,30 +112,9 @@ watch(() => projectSelectionStore.selectedProjectId, () => {
 // Lifecycle
 onMounted(async () => {
   await loadAuditLogs()
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
 })
 
 // Methods
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  const actionDropdown = document.querySelector('.action-filter-dropdown')
-  const actionButton = document.querySelector('.action-filter-button')
-  const entityTypeDropdown = document.querySelector('.entity-type-filter-dropdown')
-  const entityTypeButton = document.querySelector('.entity-type-filter-button')
-
-  if (actionDropdown && !actionDropdown.contains(target) && !actionButton?.contains(target)) {
-    showActionDropdown.value = false
-  }
-
-  if (entityTypeDropdown && !entityTypeDropdown.contains(target) && !entityTypeButton?.contains(target)) {
-    showEntityTypeDropdown.value = false
-  }
-}
-
 async function loadAuditLogs() {
   try {
     const filters: any = {}
@@ -208,12 +186,10 @@ function getActionBadgeClass(action: string): string {
 
 function selectActionFilter(value: typeof actionFilter.value) {
   actionFilter.value = value
-  showActionDropdown.value = false
 }
 
 function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
   entityTypeFilter.value = value
-  showEntityTypeDropdown.value = false
 }
 </script>
 
@@ -236,48 +212,40 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
           <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
           <!-- Action Filter -->
-          <div class="relative">
-            <button
-              @click="showActionDropdown = !showActionDropdown"
-              class="action-filter-button filter-btn !shadow-none">
+          <FloatingDropdown align="left" trigger-class="filter-btn !shadow-none">
+            <template #trigger>
               <span>{{ currentActionFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
-            </button>
-
-            <!-- Action Dropdown -->
-            <div v-if="showActionDropdown" class="action-filter-dropdown filter-dropdown-panel min-w-[180px]">
+            </template>
+            <template #default="{ close }">
               <button
                 v-for="option in actionFilterOptions"
                 :key="option.value"
-                @click="selectActionFilter(option.value)"
+                @click="selectActionFilter(option.value); close()"
                 class="filter-dropdown-item"
                 :class="{ 'filter-dropdown-item-active': actionFilter === option.value }">
                 {{ option.label }}
               </button>
-            </div>
-          </div>
+            </template>
+          </FloatingDropdown>
 
           <!-- Entity Type Filter -->
-          <div class="relative">
-            <button
-              @click="showEntityTypeDropdown = !showEntityTypeDropdown"
-              class="entity-type-filter-button filter-btn !shadow-none">
+          <FloatingDropdown align="left" trigger-class="filter-btn !shadow-none">
+            <template #trigger>
               <span>{{ currentEntityTypeFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
-            </button>
-
-            <!-- Entity Type Dropdown -->
-            <div v-if="showEntityTypeDropdown" class="entity-type-filter-dropdown filter-dropdown-panel min-w-[200px]">
+            </template>
+            <template #default="{ close }">
               <button
                 v-for="option in entityTypeFilterOptions"
                 :key="option.value"
-                @click="selectEntityTypeFilter(option.value)"
+                @click="selectEntityTypeFilter(option.value); close()"
                 class="filter-dropdown-item"
                 :class="{ 'filter-dropdown-item-active': entityTypeFilter === option.value }">
                 {{ option.label }}
               </button>
-            </div>
-          </div>
+            </template>
+          </FloatingDropdown>
         </div>
 
         <!-- Search Bar (Always Visible) -->

@@ -30,7 +30,7 @@
         ref="actionFormRef"
         :form="form"
         :operations="operations"
-        :active-tab="activeTab"
+        v-model:active-tab="activeTab"
         :parameters="parameters"
         :available-classifiers="projectClassifiers"
         :available-stages="projectStages"
@@ -134,7 +134,7 @@ const emit = defineEmits<{
 
 type TabType = 'basic' | 'trigger' | 'parameters' | 'effects'
 
-const activeTab = reactive({ value: 'basic' as TabType })
+const activeTab = ref<TabType>('basic')
 
 // Action key is managed internally (auto-generated for new actions, fixed for existing)
 const actionKey = reactive({ value: '' })

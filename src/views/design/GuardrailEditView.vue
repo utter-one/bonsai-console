@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGuardrailsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
@@ -27,7 +27,7 @@ const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'metadata' | 'history'
-const activeTab = reactive({ value: 'basic' as TabType })
+const activeTab = ref<TabType>('basic')
 
 // Separate fields not in ActionFormData
 const guardrailTags = ref<string[]>([])
@@ -261,7 +261,7 @@ const metadataFields = computed(() => {
               :form="form"
               :parameters="[]"
               :operations="operations"
-              :active-tab="activeTab"
+              v-model:active-tab="activeTab"
               :available-classifiers="projectClassifiers"
               :available-stages="projectStages"
               :available-tools="projectTools"
@@ -284,7 +284,7 @@ const metadataFields = computed(() => {
                     :load-history="() => guardrailsStore.fetchAuditLogs(projectId, currentGuardrail!.id)"
                     :current-version="currentGuardrail.version"
                     :current-object="currentGuardrail"
-                    :active="activeTab.value === 'history'"
+                    :active="activeTab === 'history'"
                     :update-fn="(data) => guardrailsStore.update(projectId, currentGuardrail!.id, data)"
                     :create-fn="(data) => guardrailsStore.create(projectId, data)"
                     :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
@@ -295,7 +295,7 @@ const metadataFields = computed(() => {
             </ActionForm>
 
             <!-- Tags Field -->
-            <div v-show="activeTab.value === 'basic'" class="px-6">
+            <div v-show="activeTab === 'basic'" class="px-6">
               <TagsEditor v-model="guardrailTags" />
             </div>
 
