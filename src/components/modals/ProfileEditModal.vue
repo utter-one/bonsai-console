@@ -43,7 +43,6 @@
         </FormField>
 
         <ErrorDisplay :error="validationError" />
-        <ErrorDisplay :error="authStore.error ? { message: authStore.error } : null" />
 
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
@@ -63,6 +62,7 @@ import BaseModal from '@/components/BaseModal.vue'
 import FormField from '@/components/FormField.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useAuthStore } from '@/stores'
+import { parseApiError } from '@/utils/errors'
 import type { ParsedError, ApiErrorDetail } from '@/api/types'
 
 const emit = defineEmits<{
@@ -146,7 +146,7 @@ const handleSubmit = async () => {
     emit('saved')
     emit('close')
   } catch (err) {
-    // Error is already set in the store
+    validationError.value = parseApiError(err)
   }
 }
 </script>
