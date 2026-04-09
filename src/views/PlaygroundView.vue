@@ -1164,15 +1164,26 @@ async function handleConversationEvent(event: WSConversationEvent) {
 
   // Handle message events - update existing events with final metadata
   if (isMessageEvent(event)) {
-    // Find existing User or AI event by matching the text
-    const existingEvent = conversationEvents.value.find(e => 
-      (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
-      (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
-    )
+    // For AI messages, first try to match by outputTurnId (handles filler response case where
+    // the final event text differs from what was accumulated via transcript chunks)
+    let existingEvent: ConversationEvent | undefined
+    if (event.eventData.role === 'assistant' && event.outputTurnId) {
+      existingEvent = conversationEvents.value.find(e =>
+        e.type === 'AI' && e.outputTurnId === event.outputTurnId
+      )
+    }
+    // Fall back to text matching (for user messages or when no outputTurnId match)
+    if (!existingEvent) {
+      existingEvent = conversationEvents.value.find(e =>
+        (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
+        (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
+      )
+    }
 
     if (existingEvent) {
       // Update existing event with message event data (includes metadata with systemPrompt)
       existingEvent.wsEvent = event
+      existingEvent.message = event.eventData.text
       existingEvent.isRealTime = false
     } else {
       // No existing event found - create new one (shouldn't normally happen but safe fallback)
