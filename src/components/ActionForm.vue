@@ -35,12 +35,13 @@ interface ActionFormData {
   examples: string
 }
 
+const activeTab = defineModel<string>('activeTab', { default: 'basic' })
+
 const props = withDefaults(
   defineProps<{
     form: ActionFormData
     operations: ActionOperations
     parameters?: ActionParameter[]
-    activeTab: { value: string }
     availableClassifiers?: Array<{ id: string; name: string }>
     availableStages?: Array<{ id: string; name: string }>
     availableTools?: ToolResponse[]
@@ -75,12 +76,7 @@ const props = withDefaults(
   }
 )
 
-const activeTabRef = computed({
-  get: () => props.activeTab.value,
-  set: (v: string) => { props.activeTab.value = v },
-})
-
-const { switchToFirstErrorTab } = useTabNavigation(activeTabRef)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 watch(() => props.error, (err) => {
   if (err) switchToFirstErrorTab(err)
@@ -148,15 +144,14 @@ function getTypeBadgeColor(type: string): string {
     <!-- Tab Navigation -->
     <div v-if="showTabs" class="tabs-container shrink-0">
       <TabNavigator
-        :model-value="activeTab.value"
-        @update:model-value="(v) => { activeTab.value = v }"
+        v-model="activeTab"
         :tabs="tabs"
       />
     </div>
 
     <div class="flex-1 min-h-0 flex flex-col">
     <!-- Basic Tab -->
-    <div v-show="activeTab.value === 'basic'" class="tab-content space-y-6 overflow-y-auto" data-tab="basic">
+    <div v-show="activeTab === 'basic'" class="tab-content space-y-6 overflow-y-auto" data-tab="basic">
       <FormField label="Name" :path="'name'" :error="props.error" required class="w-full" help="This name is used in templates and scripts to reference this action.">
         <input
           v-model="form.name"
@@ -177,7 +172,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Trigger Tab (simplified mode) -->
-    <div v-if="simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
+    <div v-if="simpleTrigger" v-show="activeTab === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
       <FormField label="Classification Trigger" class="w-full" help="Classification label that triggers this guardrail">
         <input
           v-model="form.classificationTrigger"
@@ -200,7 +195,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Trigger Tab (full mode) -->
-    <div v-if="!simpleTrigger" v-show="activeTab.value === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
+    <div v-if="!simpleTrigger" v-show="activeTab === 'trigger'" class="tab-content space-y-4 overflow-y-auto" data-tab="trigger">
 
       <!-- Condition (always visible) -->
       <FormField label="Condition" hint="(optional)" class="w-full" help="Optional JavaScript condition expression for action activation">
@@ -361,7 +356,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Parameters Tab -->
-    <div v-if="showParameters" v-show="activeTab.value === 'parameters'" class="tab-content space-y-6 overflow-y-auto" data-tab="parameters">
+    <div v-if="showParameters" v-show="activeTab === 'parameters'" class="tab-content space-y-6 overflow-y-auto" data-tab="parameters">
       <FormField label="Action Parameters" class="w-full">
         <p class="form-help-text mb-3">
           Define parameters that will be extracted from user input when this action is triggered.
@@ -450,7 +445,7 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Effects Tab -->
-    <div v-show="activeTab.value === 'effects'" class="flex-1 min-h-0 flex flex-col" data-tab="effects">
+    <div v-show="activeTab === 'effects'" class="flex-1 min-h-0 flex flex-col" data-tab="effects">
       <ActionEffectsEditor
         :operations="operations"
         :available-classifiers="availableClassifiers"
@@ -464,14 +459,14 @@ function getTypeBadgeColor(type: string): string {
     </div>
 
     <!-- Metadata Tab -->
-    <div v-show="activeTab.value === 'metadata'" class="space-y-6 tab-content overflow-y-auto" data-tab="metadata">
+    <div v-show="activeTab === 'metadata'" class="space-y-6 tab-content overflow-y-auto" data-tab="metadata">
       <MetadataTab
         v-if="showMetadata && metadataFields.length > 0"
         :fields="metadataFields"
       />
     </div>
     <!-- History Tab -->
-    <div v-show="activeTab.value === 'history'">
+    <div v-show="activeTab === 'history'">
       <slot name="history" />
     </div>
     </div>
