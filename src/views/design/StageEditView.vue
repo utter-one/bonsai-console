@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStagesStore, useAgentsStore, useProvidersStore, useClassifiersStore, useContextTransformersStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { useTableSort, useLlmProviderSelect, useTabNavigation } from '@/composables'
-import { useCopyPaste } from '@/composables/useCopyPaste'
-import { ArrowLeft, Save, Plus, Settings, Trash2, CheckCircle, Circle, Copy, Pencil, Clipboard, ClipboardPaste, AlertTriangle, Check, Search, X, ChevronDown } from 'lucide-vue-next'
-import type { StageResponse, LlmSettings, StageAction, ParsedError, ApiErrorDetail } from '@/api/types'
+import { useLlmProviderSelect, useTabNavigation } from '@/composables'
+import { ArrowLeft, Save, Settings, AlertTriangle, Check } from 'lucide-vue-next'
+import type { StageResponse, StageAction, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import FormField from '@/components/FormField.vue'
@@ -16,43 +15,18 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
-import StageActionModal from '@/components/modals/StageActionModal.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
-import ActionDuplicateModal from '@/components/modals/ActionDuplicateModal.vue'
-import ActionsPasteModal from '@/components/modals/ActionsPasteModal.vue'
-import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
-import VariableTreeNode from '@/components/VariableTreeNode.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
+import StageVariablesTab from '@/components/StageVariablesTab.vue'
+import StageActionsPanel from '@/components/StageActionsPanel.vue'
+import StageLifecycleActionsSection from '@/components/StageLifecycleActionsSection.vue'
 
-// Lifecycle action constants
-const LIFECYCLE_ACTIONS = {
-  ON_ENTER: '__on_enter',
-  ON_LEAVE: '__on_leave',
-  ON_FALLBACK: '__on_fallback',
-} as const
-
-const LIFECYCLE_ACTION_INFO = {
-  [LIFECYCLE_ACTIONS.ON_ENTER]: {
-    name: 'On Enter',
-    description: 'Executes when entering this stage',
-    context: 'on_enter',
-  },
-  [LIFECYCLE_ACTIONS.ON_LEAVE]: {
-    name: 'On Leave',
-    description: 'Executes when leaving this stage',
-    context: 'on_leave',
-  },
-  [LIFECYCLE_ACTIONS.ON_FALLBACK]: {
-    name: 'On Fallback',
-    description: 'Executes when no action matches user input',
-    context: 'on_fallback',
-  },
-} as const
+const LIFECYCLE_ACTION_KEYS = ['__on_enter', '__on_leave', '__on_fallback']
 
 function isLifecycleAction(key: string): boolean {
-  return Object.values(LIFECYCLE_ACTIONS).includes(key as any)
+  return LIFECYCLE_ACTION_KEYS.includes(key)
 }
 
 const route = useRoute()
@@ -70,38 +44,10 @@ const projectsStore = useProjectsStore()
 const isLoading = ref(false)
 const error = ref<ParsedError | null>(null)
 const loadError = ref<ParsedError | null>(null)
-const actionModalError = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'features' | 'memory' | 'actions' | 'lifecycle' | 'metadata' | 'history'>('basic')
 const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 const showLLMSettingsModal = ref(false)
-const showActionModal = ref(false)
-const showDuplicateModal = ref(false)
-const showPasteModal = ref(false)
-const editingActionKey = ref<string | null>(null)
-const editingAction = ref<StageAction | null>(null)
-const duplicatingActionKey = ref<string | null>(null)
-const clipboardActions = ref<Record<string, StageAction> | null>(null)
-const actionsSearchQuery = ref('')
-const actionsClassifierFilter = ref('')
-const showClassifierDropdown = ref(false)
-const isLifecycleActionKey = ref(false)
-
-const {
-  clipboardData: clipboardVariables,
-  showPasteModal: showVariablesPasteModal,
-  copyAll: copyAllVariablesBase,
-  openPasteModal: openVariablesPasteModal,
-  closePasteModal: closeVariablesPasteModal,
-} = useCopyPaste<any>('variable')
-
-function copyAllVariables() {
-  copyAllVariablesBase(form.value.variableDescriptors)
-}
-
-async function pasteVariables() {
-  await openVariablesPasteModal()
-}
 const form = ref({
   id: '',
   name: '',
@@ -174,36 +120,8 @@ const projectTransformers = computed(() =>
   transformersStore.items
 )
 
-const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
-  () => form.value.llmProviderId,
-  (v) => {
-    form.value.llmProviderId = v;
-    if (error.value?.details?.some(d => d.path[0] === 'llmProviderId')) error.value = null
-  },
-  () => form.value.llmSettings,
-  (v) => {
-    form.value.llmSettings = v;
-    if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
-  }
-)
-
-function selectClassifierFilter(value: string) {
-  actionsClassifierFilter.value = value
-  showClassifierDropdown.value = false
-}
-
-function handleActionsClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  const dropdown = document.querySelector('.classifier-filter-dropdown')
-  const button = document.querySelector('.classifier-filter-button')
-  if (dropdown && !dropdown.contains(target) && !button?.contains(target)) {
-    showClassifierDropdown.value = false
-  }
-}
-
 // Lifecycle
 onMounted(async () => {
-  document.addEventListener('click', handleActionsClickOutside)
   // Load related data
   await Promise.all([
     providersStore.fetchAll(),
@@ -219,10 +137,6 @@ onMounted(async () => {
   if (isEditMode.value) {
     await loadStage()
   }
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleActionsClickOutside)
 })
 
 // Methods
@@ -409,17 +323,26 @@ const projectConstantsForCompletion = computed(() => projectsStore.currentItem?.
 
 const actionParametersForCompletion = computed(() => {
   const result: Record<string, any[]> = {}
-  
-  // Extract parameters from all actions (excluding lifecycle actions)
-  // Use action.name as key since the backend references actions by name, not UUID key
   for (const [key, action] of Object.entries(form.value.actions)) {
     if (!isLifecycleAction(key) && action.parameters && action.parameters.length > 0) {
       result[action.name] = action.parameters
     }
   }
-  
   return result
 })
+
+const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.llmProviderId,
+  (v) => {
+    form.value.llmProviderId = v;
+    if (error.value?.details?.some(d => d.path[0] === 'llmProviderId')) error.value = null
+  },
+  () => form.value.llmSettings,
+  (v) => {
+    form.value.llmSettings = v;
+    if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
+  }
+)
 
 function handleLLMSettingsSave(settings: Record<string, any>) {
   form.value.llmSettings = settings as LlmSettings
@@ -427,329 +350,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
 }
 
-// Action management functions
-function addAction() {
-  editingActionKey.value = null
-  editingAction.value = null
-  isLifecycleActionKey.value = false
-  showActionModal.value = true
-}
-
-function editAction(key: string) {
-  const action = form.value.actions[key]
-  if (!action) return
-  
-  editingActionKey.value = key
-  editingAction.value = action
-  isLifecycleActionKey.value = isLifecycleAction(key)
-  showActionModal.value = true
-}
-
-function deleteAction(key: string) {
-  // Prevent deletion of lifecycle actions
-  if (isLifecycleAction(key)) {
-    error.value = { message: 'Lifecycle actions cannot be deleted. Use "Clear" to remove the configuration instead.' }
-    return
-  }
-  
-  if (confirm(`Are you sure you want to delete action "${key}"?`)) {
-    const newActions = { ...form.value.actions }
-    delete newActions[key]
-    form.value.actions = newActions
-  }
-}
-
-function duplicateAction(key: string) {
-  const action = form.value.actions[key]
-  if (!action) return
-  
-  duplicatingActionKey.value = key
-  showDuplicateModal.value = true
-}
-
-function handleActionDuplicate(data: { name: string }) {
-  if (!duplicatingActionKey.value) return
-  
-  const originalAction = form.value.actions[duplicatingActionKey.value]
-  if (!originalAction) return
-
-  // Clone the action with new key and name
-  const newActions = { ...form.value.actions }
-  newActions[crypto.randomUUID()] = {
-    ...originalAction,
-    name: data.name
-  }
-  form.value.actions = newActions
-  
-  // Reset state and close modal
-  duplicatingActionKey.value = null
-  showDuplicateModal.value = false
-}
-
-function copyAllActions() {
-  // Filter out lifecycle actions when copying
-  const regularActions: Record<string, StageAction> = {}
-  for (const [key, action] of Object.entries(form.value.actions)) {
-    if (!isLifecycleAction(key)) {
-      regularActions[key] = action
-    }
-  }
-  
-  if (Object.keys(regularActions).length === 0) {
-    error.value = { message: 'No actions to copy' }
-    return
-  }
-  
-  try {
-    // Copy to clipboard as JSON
-    const jsonData = JSON.stringify(regularActions, null, 2)
-    navigator.clipboard.writeText(jsonData)
-    
-    // Show success feedback
-    alert(`Copied ${Object.keys(regularActions).length} action(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    error.value = { message: 'Failed to copy actions to clipboard' }
-  }
-}
-
-async function pasteActions() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    
-    if (!clipboardText) {
-      error.value = { message: 'Clipboard is empty' }
-      return
-    }
-    
-    // Try to parse as JSON
-    let parsedActions: Record<string, StageAction>
-    try {
-      parsedActions = JSON.parse(clipboardText)
-    } catch (err) {
-      error.value = { message: 'Clipboard does not contain valid JSON data' }
-      return
-    }
-    
-    // Validate structure
-    if (!parsedActions || typeof parsedActions !== 'object') {
-      error.value = { message: 'Clipboard does not contain valid actions data' }
-      return
-    }
-    
-    // Store in state and show modal
-    clipboardActions.value = parsedActions
-    showPasteModal.value = true
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    error.value = { message: 'Failed to read from clipboard. Please make sure you have clipboard permissions.' }
-  }
-}
-
-function handleActionsPaste(keys: string[]) {
-  if (!clipboardActions.value) return
-  
-  const newActions = { ...form.value.actions }
-  let pastedCount = 0
-  let overwrittenCount = 0
-  
-  for (const key of keys) {
-    if (clipboardActions.value[key]) {
-      const isOverwrite = !!newActions[key] && !isLifecycleAction(key)
-      newActions[key] = clipboardActions.value[key]
-      pastedCount++
-      if (isOverwrite) {
-        overwrittenCount++
-      }
-    }
-  }
-  
-  form.value.actions = newActions
-  showPasteModal.value = false
-  clipboardActions.value = null
-  
-  if (pastedCount > 0) {
-    const message = overwrittenCount > 0
-      ? `Successfully pasted ${pastedCount} action(s) (${overwrittenCount} overwritten)`
-      : `Successfully pasted ${pastedCount} action(s)`
-    alert(message)
-  }
-}
-
-function handleVariablesPaste(indices: number[]) {
-  if (!clipboardVariables.value) return
-  
-  let pastedCount = 0
-  let overwrittenCount = 0
-  
-  for (const index of indices) {
-    const variable = clipboardVariables.value[index]
-    if (!variable) continue
-    
-    // Check if variable with this name already exists
-    const existingIndex = form.value.variableDescriptors.findIndex(v => v.name === variable.name)
-    
-    if (existingIndex !== -1) {
-      // Overwrite existing variable
-      form.value.variableDescriptors[existingIndex] = JSON.parse(JSON.stringify(variable))
-      overwrittenCount++
-    } else {
-      // Add new variable
-      form.value.variableDescriptors.push(JSON.parse(JSON.stringify(variable)))
-    }
-    pastedCount++
-  }
-  
-  closeVariablesPasteModal()
-  
-  if (pastedCount > 0) {
-    const message = overwrittenCount > 0
-      ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
-      : `Successfully pasted ${pastedCount} variable(s)`
-    alert(message)
-  }
-}
-
-function configureLifecycleAction(key: string) {
-  editingActionKey.value = key
-  editingAction.value = form.value.actions[key] || null
-  isLifecycleActionKey.value = true
-  showActionModal.value = true
-}
-
-function clearLifecycleAction(key: string) {
-  if (confirm(`Are you sure you want to clear the "${LIFECYCLE_ACTION_INFO[key as keyof typeof LIFECYCLE_ACTION_INFO].name}" action?`)) {
-    const newActions = { ...form.value.actions }
-    delete newActions[key]
-    form.value.actions = newActions
-  }
-}
-
-function isLifecycleActionConfigured(key: string): boolean {
-  return !!form.value.actions[key]
-}
-
-function handleActionSave(data: { key: string; action: StageAction }) {
-  const duplicate = Object.entries(form.value.actions).find(
-    ([key, action]) => key !== data.key && action.name === data.action.name
-  )
-  if (duplicate) {
-    actionModalError.value = { message: `An action with name "${data.action.name}" already exists. Please choose a different name.` }
-    return
-  }
-  const newActions = { ...form.value.actions }
-  newActions[data.key] = data.action
-  form.value.actions = newActions
-  showActionModal.value = false
-}
-
-const { sortKey: actionsSortKey, sortOrder: actionsSortOrder, toggleSort: toggleActionsSort, getSortIcon: getActionsSortIcon } = useTableSort('sort-stage-actions')
-
-const classifierNameById = computed(() => {
-  const map: Record<string, string> = {}
-  for (const c of classifiersStore.items) {
-    map[c.id] = c.name
-  }
-  return map
-})
-
-const currentClassifierFilterLabel = computed(() => {
-  if (!actionsClassifierFilter.value) return 'All Classifiers'
-  if (actionsClassifierFilter.value === '__default') return 'Default'
-  return classifierNameById.value[actionsClassifierFilter.value] ?? actionsClassifierFilter.value
-})
-
-const actionsClassifierOptions = computed(() => {
-  const ids = new Set<string | null>()
-  for (const [key, action] of Object.entries(form.value.actions)) {
-    if (!isLifecycleAction(key)) {
-      ids.add(action.overrideClassifierId ?? null)
-    }
-  }
-  const options: { value: string; label: string }[] = []
-  if (ids.has(null)) {
-    options.push({ value: '__default', label: 'Default' })
-  }
-  for (const id of ids) {
-    if (id !== null) {
-      options.push({ value: id, label: classifierNameById.value[id] ?? id })
-    }
-  }
-  return options
-})
-
-const actionsList = computed(() => {
-  const query = actionsSearchQuery.value.toLowerCase().trim()
-  const classifierFilter = actionsClassifierFilter.value
-  const list = Object.entries(form.value.actions)
-    .filter(([key]) => !isLifecycleAction(key))
-    .map(([key, action]) => ({
-      key,
-      ...action
-    }))
-    .filter(action => {
-      if (query) {
-        const matchesQuery = (
-          (action.name || '').toLowerCase().includes(query) ||
-          (action.classificationTrigger || '').toLowerCase().includes(query) ||
-          (action.overrideClassifierId ? (classifierNameById.value[action.overrideClassifierId] ?? '').toLowerCase().includes(query) : false)
-        )
-        if (!matchesQuery) return false
-      }
-      if (classifierFilter) {
-        if (classifierFilter === '__default') {
-          if (action.overrideClassifierId) return false
-        } else {
-          if (action.overrideClassifierId !== classifierFilter) return false
-        }
-      }
-      return true
-    })
-
-  if (!actionsSortKey.value || !actionsSortOrder.value) return list
-
-  return [...list].sort((a, b) => {
-    let comparison = 0
-    switch (actionsSortKey.value) {
-      case 'key':
-        comparison = a.key.localeCompare(b.key)
-        break
-      case 'name':
-        comparison = (a.name || '').localeCompare(b.name || '')
-        break
-      case 'triggers': {
-        const countA = (a.triggerOnUserInput ? 1 : 0) + (a.triggerOnClientCommand ? 1 : 0) + (a.triggerOnTransformation ? 1 : 0)
-        const countB = (b.triggerOnUserInput ? 1 : 0) + (b.triggerOnClientCommand ? 1 : 0) + (b.triggerOnTransformation ? 1 : 0)
-        comparison = countA - countB
-        break
-      }
-      case 'classification':
-        comparison = (a.classificationTrigger || '').localeCompare(b.classificationTrigger || '')
-        break
-      case 'classifier': {
-        const nameA = a.overrideClassifierId ? (classifierNameById.value[a.overrideClassifierId] ?? a.overrideClassifierId) : ''
-        const nameB = b.overrideClassifierId ? (classifierNameById.value[b.overrideClassifierId] ?? b.overrideClassifierId) : ''
-        comparison = nameA.localeCompare(nameB)
-        break
-      }
-      case 'effects':
-        comparison = (a.effects?.length || 0) - (b.effects?.length || 0)
-        break
-    }
-    return actionsSortOrder.value === 'asc' ? comparison : -comparison
-  })
-})
-
-const lifecycleActions = computed(() => {
-  return Object.values(LIFECYCLE_ACTIONS).map(key => ({
-    key,
-    info: LIFECYCLE_ACTION_INFO[key as keyof typeof LIFECYCLE_ACTION_INFO],
-    action: form.value.actions[key] || null,
-    isConfigured: isLifecycleActionConfigured(key),
-  }))
-})
-
-// Duplicate variable name detection (checked at each tree level)
+// Duplicate variable name detection (used in handleSubmit validation)
 const duplicateVariableNames = computed(() => {
   function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
     const seen = new Set<string>()
@@ -770,97 +371,6 @@ const duplicateVariableNames = computed(() => {
   }
   return findDuplicates(form.value.variableDescriptors)
 })
-
-// Variable descriptor management with inline tree editing
-const expandedNodes = ref<Set<string>>(new Set())
-
-function getDescriptorByPath(path: number[]): any {
-  let current: any = { objectSchema: form.value.variableDescriptors }
-  for (const index of path) {
-    current = current.objectSchema[index]
-    if (!current) return null
-  }
-  return current
-}
-
-function addRootVariable() {
-  const newDescriptor = {
-    name: 'new_variable',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  }
-  form.value.variableDescriptors.push(newDescriptor)
-}
-
-function addNestedVariable(path: number[]) {
-  const parent = getDescriptorByPath(path)
-  if (!parent) return
-  
-  if (!parent.objectSchema) {
-    parent.objectSchema = []
-  }
-  
-  const newDescriptor = {
-    name: 'new_field',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  }
-  
-  parent.objectSchema.push(newDescriptor)
-  
-  // Auto-expand parent
-  expandedNodes.value.add(path.join('-'))
-}
-
-function updateVariableName(data: { path: number[]; name: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.name = data.name
-  }
-}
-
-function updateVariableType(data: { path: number[]; type: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.type = data.type
-    descriptor.isArray = data.type.endsWith('[]')
-    
-    // Clear objectSchema if changing away from object type
-    const isObject = data.type === 'object' || data.type === 'object[]'
-    if (!isObject && descriptor.objectSchema) {
-      descriptor.objectSchema = []
-    }
-  }
-}
-
-function deleteVariable(path: number[]) {
-  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
-  
-  if (path.length === 1) {
-    const index = path[0]
-    if (index !== undefined) {
-      form.value.variableDescriptors.splice(index, 1)
-    }
-  } else {
-    const parentPath = path.slice(0, -1)
-    const index = path[path.length - 1]
-    const parent = getDescriptorByPath(parentPath)
-    if (parent?.objectSchema && index !== undefined) {
-      parent.objectSchema.splice(index, 1)
-    }
-  }
-}
-
-function toggleNode(path: number[]) {
-  const key = path.join('-')
-  if (expandedNodes.value.has(key)) {
-    expandedNodes.value.delete(key)
-  } else {
-    expandedNodes.value.add(key)
-  }
-}
 
 
 </script>
@@ -1110,346 +620,32 @@ function toggleNode(path: number[]) {
 
           <!-- Memory Tab -->
           <TabContent v-model="activeTab" tab="memory">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Click field names to edit, change types inline
-                </p>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  @click="copyAllVariables"
-                  class="btn-secondary"
-                  :disabled="isLoading || form.variableDescriptors.length === 0"
-                  title="Copy all variables to clipboard"
-                >
-                  <Clipboard class="inline-block mr-1 w-4 h-4" />
-                  Copy
-                </button>
-                <button
-                  type="button"
-                  @click="pasteVariables"
-                  class="btn-secondary"
-                  :disabled="isLoading"
-                  title="Paste variables from clipboard"
-                >
-                  <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
-                  Paste
-                </button>
-                <button
-                  type="button"
-                  @click="addRootVariable"
-                  class="btn-primary"
-                  :disabled="isLoading"
-                >
-                  <Plus class="inline-block mr-1 w-4 h-4" />
-                  Add Variable
-                </button>
-              </div>
-            </div>
-
-            <FormField :error="error" path="variableDescriptors" class="w-full">
-              <!-- Empty State -->
-              <div v-if="form.variableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-                <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
-                <p class="text-sm text-gray-400 dark:text-gray-500">
-                  Click "Add Variable" to define your first variable
-                </p>
-              </div>
-
-              <!-- Tree View -->
-              <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-                <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                  <template v-for="(descriptor, index) in form.variableDescriptors" :key="index">
-                    <VariableTreeNode
-                      :descriptor="descriptor"
-                      :path="[index]"
-                      :expanded-nodes="expandedNodes"
-                      @toggle="toggleNode"
-                      @update-name="updateVariableName"
-                      @update-type="updateVariableType"
-                      @delete="deleteVariable"
-                      @add-nested="addNestedVariable"
-                    />
-                  </template>
-                </div>
-              </div>
-            </FormField>
+            <StageVariablesTab
+              v-model="form.variableDescriptors"
+              :is-loading="isLoading"
+              :error="error"
+            />
           </TabContent>
 
           <!-- Actions Tab -->
           <TabContent v-model="activeTab" tab="actions">
-            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-0 justify-between mb-4">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stage Actions</h3>
-                <p class="text-sm text-gray-600 mt-1">
-                  Define custom actions that can be triggered during conversations
-                </p>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  @click="copyAllActions"
-                  class="btn-secondary"
-                  :disabled="isLoading || actionsList.length === 0"
-                  title="Copy all actions to clipboard"
-                >
-                  <Clipboard class="inline-block mr-1 w-4 h-4" />
-                  Copy
-                </button>
-                <button
-                  type="button"
-                  @click="pasteActions"
-                  class="btn-secondary"
-                  :disabled="isLoading"
-                  title="Paste actions from clipboard"
-                >
-                  <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
-                  Paste
-                </button>
-                <button
-                  type="button"
-                  @click="addAction"
-                  class="btn-primary"
-                  :disabled="isLoading"
-                >
-                  <Plus class="inline-block mr-1 w-4 h-4" />
-                  Add Action
-                </button>
-              </div>
-            </div>
-
-            <!-- Search & Filters -->
-            <div class="mb-6 flex items-center gap-3">
-              <div class="relative">
-                <button
-                  type="button"
-                  @click="showClassifierDropdown = !showClassifierDropdown"
-                  class="classifier-filter-button filter-btn shadow-none!"
-                >
-                  <span>{{ currentClassifierFilterLabel }}</span>
-                  <ChevronDown class="w-4 h-4 ml-2" />
-                </button>
-                <div v-if="showClassifierDropdown" class="classifier-filter-dropdown filter-dropdown-panel min-w-50">
-                  <button
-                    type="button"
-                    @click="selectClassifierFilter('')"
-                    class="filter-dropdown-item"
-                    :class="{ 'filter-dropdown-item-active': actionsClassifierFilter === '' }"
-                  >
-                    All Classifiers
-                  </button>
-                  <button
-                    v-for="opt in actionsClassifierOptions"
-                    :key="opt.value"
-                    type="button"
-                    @click="selectClassifierFilter(opt.value)"
-                    class="filter-dropdown-item"
-                    :class="{ 'filter-dropdown-item-active': actionsClassifierFilter === opt.value }"
-                  >
-                    {{ opt.label }}
-                  </button>
-                </div>
-              </div>
-              <div class="relative min-w-25 grow">
-                <Search class="input-icon-left" />
-                <input
-                  v-model="actionsSearchQuery"
-                  type="text"
-                  placeholder="Search by name or classification..."
-                  class="search-input"
-                />
-                <button
-                  v-if="actionsSearchQuery"
-                  type="button"
-                  @click="actionsSearchQuery = ''"
-                  class="input-icon-right"
-                >
-                  <X class="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <!-- Empty State -->
-            <div v-if="actionsList.length === 0" class="text-center py-12">
-              <p class="text-gray-500 mb-4">{{ actionsSearchQuery || actionsClassifierFilter ? 'No actions match your filters' : 'No actions defined yet' }}</p>
-            </div>
-
-            <!-- Actions Table -->
-            <div v-else class="table-container">
-              <div class="table-wrapper">
-                <table class="table">
-                  <thead class="table-header">
-                    <tr>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('name')">
-                        <div class="flex items-center gap-1">
-                          Name
-                          <component :is="getActionsSortIcon('name')" class="w-4 h-4" :class="actionsSortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('triggers')">
-                        <div class="flex items-center gap-1">
-                          Triggers
-                          <component :is="getActionsSortIcon('triggers')" class="w-4 h-4" :class="actionsSortKey === 'triggers' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('classification')">
-                        <div class="flex items-center gap-1">
-                          Classification
-                          <component :is="getActionsSortIcon('classification')" class="w-4 h-4" :class="actionsSortKey === 'classification' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('classifier')">
-                        <div class="flex items-center gap-1">
-                          Classifier
-                          <component :is="getActionsSortIcon('classifier')" class="w-4 h-4" :class="actionsSortKey === 'classifier' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
-                      <th class="table-header-cell-sortable" @click="toggleActionsSort('effects')">
-                        <div class="flex items-center gap-1">
-                          Effects
-                          <component :is="getActionsSortIcon('effects')" class="w-4 h-4" :class="actionsSortKey === 'effects' ? 'text-primary-600' : 'text-gray-400'" />
-                        </div>
-                      </th>
-                      <th class="table-header-cell-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody class="table-body">
-                    <tr v-for="action in actionsList" :key="action.key" class="table-row">
-                      <td class="table-clickable-cell" @click="editAction(action.key)">
-                        {{ action.name }}
-                      </td>
-                      <td class="table-cell">
-                        <div class="flex flex-col gap-1">
-                          <span v-if="action.triggerOnUserInput" class="badge-primary text-xs whitespace-nowrap">User Input</span>
-                          <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
-                          <span v-if="action.triggerOnTransformation" class="badge-primary text-xs whitespace-nowrap">Transformation</span>
-                        </div>
-                      </td>
-                      <td class="table-cell">
-                        <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">
-                          {{ action.classificationTrigger }}
-                        </code>
-                        <span v-else class="text-gray-400 text-sm">—</span>
-                      </td>
-                      <td class="table-cell">
-                        <span v-if="action.overrideClassifierId" class="text-sm text-gray-700 dark:text-gray-300">
-                          {{ classifierNameById[action.overrideClassifierId] ?? action.overrideClassifierId }}
-                        </span>
-                        <span v-else class="text-gray-400 text-sm">Default</span>
-                      </td>
-                      <td class="table-cell-muted">
-                        {{ action.effects?.length || 0 }}
-                      </td>
-                      <td class="table-cell-right">
-                        <div class="flex-end">
-                          <button
-                            type="button"
-                            @click="editAction(action.key)"
-                            class="btn-secondary btn-sm"
-                            :disabled="isLoading"
-                            title="Edit action"
-                          >
-                            <Pencil class="inline-block w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            @click="duplicateAction(action.key)"
-                            class="btn-secondary btn-sm"
-                            :disabled="isLoading"
-                            title="Duplicate action"
-                          >
-                            <Copy class="inline-block w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            @click="deleteAction(action.key)"
-                            class="btn-danger btn-sm"
-                            :disabled="isLoading"
-                            title="Delete action"
-                          >
-                            <Trash2 class="inline-block w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <StageActionsPanel
+              v-model="form.actions"
+              :classifiers="projectClassifiers"
+              :stage-variables="stageVariablesForCompletion"
+              :project-constants="projectConstantsForCompletion"
+              :is-loading="isLoading"
+            />
           </TabContent>
 
           <!-- Lifecycle Tab -->
           <TabContent v-model="activeTab" tab="lifecycle">
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Lifecycle Actions</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Special system actions that execute at specific lifecycle points in the conversation flow.
-                These are optional but provide powerful hooks for initialization, cleanup, and fallback handling.
-              </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div 
-                v-for="lifecycle in lifecycleActions" 
-                :key="lifecycle.key"
-                class="lifecycle-action-card"
-              >
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                      <h4 class="font-medium text-gray-900 dark:text-white">{{ lifecycle.info.name }}</h4>
-                      <span 
-                        v-if="lifecycle.isConfigured" 
-                        class="badge-configured"
-                      >
-                        <CheckCircle class="w-3 h-3 mr-1 inline-block" />
-                        Configured
-                      </span>
-                      <span 
-                        v-else
-                        class="badge-unconfigured"
-                      >
-                        <Circle class="w-3 h-3 mr-1 inline-block" />
-                        Not Set
-                      </span>
-                    </div>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ lifecycle.info.description }}</p>
-                  </div>
-                </div>
-                
-                <div v-if="lifecycle.action" class="mb-3 text-sm">
-                  <p class="text-gray-700 dark:text-gray-300 font-medium">{{ lifecycle.action.name }}</p>
-                  <p class="text-gray-500 text-xs mt-1">
-                    {{ lifecycle.action.effects?.length || 0 }} effect(s)
-                  </p>
-                </div>
-                
-                <div class="flex gap-2">
-                  <button
-                    type="button"
-                    @click="configureLifecycleAction(lifecycle.key)"
-                    class="btn-secondary btn-sm flex-1"
-                    :disabled="isLoading"
-                  >
-                    <Settings class="w-3 h-3 mr-1 inline-block" />
-                    {{ lifecycle.isConfigured ? 'Edit' : 'Configure' }}
-                  </button>
-                  <button
-                    v-if="lifecycle.isConfigured"
-                    type="button"
-                    @click="clearLifecycleAction(lifecycle.key)"
-                    class="btn-danger btn-sm"
-                    :disabled="isLoading"
-                    title="Clear action"
-                  >
-                    <Trash2 class="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <StageLifecycleActionsSection
+              v-model="form.actions"
+              :stage-variables="stageVariablesForCompletion"
+              :project-constants="projectConstantsForCompletion"
+              :is-loading="isLoading"
+            />
           </TabContent>
 
           <!-- Metadata Tab -->
@@ -1483,47 +679,6 @@ function toggleNode(path: number[]) {
       @save="handleLLMSettingsSave"
     />
 
-    <!-- Stage Action Modal -->
-    <StageActionModal
-      v-if="showActionModal"
-      :action="editingAction"
-      :editing-key="editingActionKey"
-      :is-lifecycle-action="isLifecycleActionKey"
-      :stage-variables="stageVariablesForCompletion"
-      :action-parameters="actionParametersForCompletion"
-      :project-constants="projectConstantsForCompletion"
-      :error="actionModalError"
-      @close="showActionModal = false"
-      @save="handleActionSave"
-    />
-
-    <!-- Action Duplicate Modal -->
-    <ActionDuplicateModal
-      v-if="showDuplicateModal && duplicatingActionKey"
-      :original-key="duplicatingActionKey"
-      :original-name="form.actions[duplicatingActionKey]?.name || ''"
-      :existing-names="Object.values(form.actions).map(a => a.name)"
-      @close="showDuplicateModal = false"
-      @save="handleActionDuplicate"
-    />
-
-    <!-- Actions Paste Modal -->
-    <ActionsPasteModal
-      v-if="showPasteModal && clipboardActions"
-      :clipboard-actions="clipboardActions"
-      :existing-keys="Object.keys(form.actions).filter(k => !isLifecycleAction(k))"
-      @close="showPasteModal = false"
-      @save="handleActionsPaste"
-    />
-
-    <!-- Variables Paste Modal -->
-    <VariablesPasteModal
-      v-if="showVariablesPasteModal && clipboardVariables"
-      :clipboard-variables="clipboardVariables"
-      :existing-names="form.variableDescriptors.map(v => v.name)"
-      @close="closeVariablesPasteModal"
-      @save="handleVariablesPaste"
-    />
   </div>
 </template>
 
