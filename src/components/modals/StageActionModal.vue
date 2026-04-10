@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-6xl fixed-height-modal" @click.stop>
-      <div class="modal-header flex items-center justify-between">
+  <BaseModal title="" size="full" :fixed-height="true" @close="$emit('close')">
+    <template #header>
+      <div class="modal-header">
         <h2 class="m-0 text-xl font-semibold">{{ modalTitle }}</h2>
         <a
           href="/help/design/actions.html"
@@ -12,56 +12,60 @@
           <HelpCircle :size="16" />
         </a>
       </div>
+    </template>
       
-      <!-- Lifecycle Action Info -->
-      <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
-        <p class="text-sm text-blue-800 dark:text-blue-300">
-          <strong>Lifecycle Action:</strong> {{ lifecycleInfo }}
-        </p>
-        <p class="text-xs text-blue-700 dark:text-blue-400 mt-1">
-          Note: Some effects may be restricted based on the lifecycle context. Trigger settings are not applicable.
-        </p>
-      </div>
-
-      <form @submit.prevent="handleSubmit" class="flex flex-col flex-1 min-h-0">
-        <!-- Use shared ActionForm component -->
-        <ActionForm
-          ref="actionFormRef"
-          :form="form"
-          :operations="operations"
-          :active-tab="activeTab"
-          :parameters="parameters"
-          :available-classifiers="projectClassifiers"
-          :available-stages="projectStages"
-          :available-tools="projectTools"
-          :stage-variables="stageVariables"
-          :action-parameters="actionParameters"
-          :project-constants="projectConstants"
-          :show-parameters="!isLifecycleAction"
-          :show-trigger="!isLifecycleAction"
-          :show-tabs="true"
-        />
-
-        <div class="flex gap-3 justify-end border-t border-gray-200 mt-auto pt-4">
-          <button type="button" @click="$emit('close')" class="btn-secondary">
-            Cancel
-          </button>
-          <button type="submit" class="btn-primary">
-            {{ editingKey ? 'Save Changes' : 'Create Action' }}
-          </button>
-        </div>
-      </form>
+    <!-- Lifecycle Action Info -->
+    <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+      <p class="text-sm text-blue-800 dark:text-blue-300">
+        <strong>Lifecycle Action:</strong> {{ lifecycleInfo }}
+      </p>
+      <p class="text-xs text-blue-700 dark:text-blue-400 mt-1">
+        Note: Some effects may be restricted based on the lifecycle context. Trigger settings are not applicable.
+      </p>
     </div>
-  </div>
+
+    <form @submit.prevent="handleSubmit" class="flex flex-col flex-1 min-h-0">
+      <!-- Use shared ActionForm component -->
+      <ActionForm
+        ref="actionFormRef"
+        :form="form"
+        :operations="operations"
+        v-model:active-tab="activeTab"
+        :parameters="parameters"
+        :available-classifiers="projectClassifiers"
+        :available-stages="projectStages"
+        :available-tools="projectTools"
+        :stage-variables="stageVariables"
+        :action-parameters="actionParameters"
+        :project-constants="projectConstants"
+        :show-parameters="!isLifecycleAction"
+        :show-trigger="!isLifecycleAction"
+        :show-tabs="true"
+        :error="displayError"
+      />
+
+      <div class="modal-footer">
+        <ErrorDisplay :error="displayError" class="flex-1 mr-2" />
+        <button type="button" @click="$emit('close')" class="btn-secondary">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary">
+          {{ editingKey ? 'Save Changes' : 'Create Action' }}
+        </button>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed, reactive } from 'vue'
 import { HelpCircle } from 'lucide-vue-next'
+import BaseModal from '@/components/BaseModal.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useClassifiersStore, useStagesStore, useToolsStore } from '@/stores'
-import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations } from '@/composables'
+import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, validateEffects } from '@/composables'
 import ActionForm from '@/components/ActionForm.vue'
-import type { StageAction } from '@/api/types'
+import type { StageAction, ParsedError, ApiErrorDetail } from '@/api/types'
 
 const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
@@ -90,6 +94,7 @@ const props = defineProps<{
   stageVariables?: any[]
   actionParameters?: Record<string, any[]>
   projectConstants?: Record<string, any>
+  error?: ParsedError | null
 }>()
 
 const projectClassifiers = computed(() => {
@@ -129,10 +134,13 @@ const emit = defineEmits<{
 
 type TabType = 'basic' | 'trigger' | 'parameters' | 'effects'
 
-const activeTab = reactive({ value: 'basic' as TabType })
+const activeTab = ref<TabType>('basic')
 
 // Action key is managed internally (auto-generated for new actions, fixed for existing)
 const actionKey = reactive({ value: '' })
+
+const internalError = ref<ParsedError | null>(null)
+const displayError = computed(() => internalError.value || props.error || null)
 
 const form = ref({
   name: '',
@@ -157,6 +165,7 @@ const parameters = ref<Array<{
 
 // Initialize form when action prop changes
 watch(() => props.action, (action) => {
+  internalError.value = null
   if (action && props.editingKey) {
     actionKey.value = props.editingKey
     form.value = {
@@ -206,7 +215,38 @@ watch(() => props.action, (action) => {
 }, { immediate: true })
 
 function handleSubmit() {
-  if (!form.value.name) {
+  internalError.value = null
+  const validationDetails: ApiErrorDetail[] = []
+
+  if (!form.value.name.trim()) {
+    validationDetails.push({ path: ['name'], message: 'Action name is required.', code: 'too_small' })
+  }
+
+  if (form.value.triggerOnTransformation) {
+    for (let i = 0; i < form.value.watchedVariables.length; i++) {
+      if (!form.value.watchedVariables[i]!.path.trim()) {
+        validationDetails.push({ path: ['watchedVariables', i, 'path'], message: `Watched variable ${i + 1}: variable path is required.`, code: 'required' })
+      }
+    }
+  }
+
+  for (let i = 0; i < parameters.value.length; i++) {
+    const p = parameters.value[i]!
+    if (!p.name.trim()) {
+      validationDetails.push({ path: ['parameters', i, 'name'], message: `Parameter ${i + 1}: name is required.`, code: 'required' })
+    }
+    if (!p.description.trim()) {
+      validationDetails.push({ path: ['parameters', i, 'description'], message: `Parameter ${i + 1}: description is required.`, code: 'required' })
+    }
+  }
+
+  const effectsValidationError = validateEffects(operations.value)
+  if (effectsValidationError && effectsValidationError.details?.length) {
+    validationDetails.push(...effectsValidationError.details)
+  }
+
+  if (validationDetails.length > 0) {
+    internalError.value = { message: validationDetails[0]!.message, details: validationDetails }
     return
   }
 
@@ -214,7 +254,7 @@ function handleSubmit() {
   const result = buildEffectsFromOperations(operations.value)
 
   if (result.error) {
-    alert(result.error)
+    internalError.value = { message: result.error }
     return
   }
 
@@ -239,16 +279,3 @@ function handleSubmit() {
 }
 </script>
 
-<style scoped>
-.max-w-6xl {
-  max-width: 72rem;
-}
-
-.fixed-height-modal {
-  height: 80vh;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-</style>

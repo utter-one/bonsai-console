@@ -17,6 +17,17 @@ export enum ToolType {
   Script = "script",
 }
 
+export type UpdateToolRequest =
+  | ({
+      type: "smart_function";
+    } & UpdateSmartFunctionTool)
+  | ({
+      type: "webhook";
+    } & UpdateWebhookTool)
+  | ({
+      type: "script";
+    } & UpdateScriptTool);
+
 export type CreateToolRequest =
   | ({
       type: "smart_function";
@@ -55,7 +66,10 @@ export type Effect =
     } & GenerateResponseEffect)
   | ({
       type: "change_visibility";
-    } & ChangeVisibilityEffect);
+    } & ChangeVisibilityEffect)
+  | ({
+      type: "ban_user";
+    } & BanUserEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -607,7 +621,7 @@ export interface ElevenLabsTtsSettings {
   /** Voice UUID to use for speech synthesis */
   voiceId?: string;
   /** Preferred audio output format for synthesized speech */
-  audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_44100";
+  audioFormat?: "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100";
   /** Markers to identify sections of text that should not be spoken */
   noSpeechMarkers?: {
     start: string;
@@ -688,8 +702,14 @@ export interface DeepgramTtsSettings {
   model?: "aura-1" | "aura-2";
   /** Voice ID to use for speech synthesis (e.g., "thalia-en", "andromeda-en"). Combined with model to form full model string (e.g., "aura-2-thalia-en") */
   voiceId?: string;
-  /** Preferred audio output format. Streaming supports: linear16, opus, mulaw, alaw. REST-only: mp3, flac, aac */
-  audioFormat?: "linear16" | "opus" | "mulaw" | "alaw" | "mp3" | "flac" | "aac";
+  /** Preferred audio output format. Defaults to "pcm_16000" */
+  audioFormat?:
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_24000"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw";
   /**
    * Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format
    * @min 0
@@ -731,7 +751,6 @@ export interface CartesiaTtsSettings {
     | "pcm_24000"
     | "pcm_44100"
     | "pcm_48000"
-    | "opus"
     | "mulaw"
     | "alaw";
   /** Speech speed control. Defaults to "normal" */
@@ -810,6 +829,29 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface ServerVadConfig {
+  /**
+   * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
+   * @min 0
+   * @max 3
+   */
+  mode?: number;
+  /** Duration of each VAD processing frame in milliseconds. Must be 10, 20, or 30. Default: 20. */
+  frameDurationMs?: 10 | 20 | 30;
+  /**
+   * Amount of silence (in ms) to prepend before the detected speech start as a pre-roll buffer. Default: 300.
+   * @min 0
+   * @max 1000
+   */
+  silencePaddingMs?: number;
+  /**
+   * Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800.
+   * @min 100
+   * @max 5000
+   */
+  autoEndSilenceDurationMs?: number;
+}
+
 /** ASR configuration settings */
 export interface AsrConfig {
   /** ID of the ASR provider (e.g., "azure-speech", "openai-whisper") */
@@ -825,6 +867,8 @@ export interface AsrConfig {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
   voiceActivityDetection?: boolean;
+  /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+  serverVad?: ServerVadConfig;
 }
 
 /** Azure Speech Recognition settings */
@@ -847,8 +891,7 @@ export interface AzureAsrSettings {
     | "pcm_44100"
     | "pcm_48000"
     | "mulaw"
-    | "alaw"
-    | "linear16";
+    | "alaw";
   [key: string]: any;
 }
 
@@ -1083,6 +1126,14 @@ export interface ModerationConfig {
   llmProviderId: string;
   /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
   blockedCategories?: string[];
+  /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+  mode?: "strict" | "standard";
+}
+
+/** Sample copy configuration settings */
+export interface SampleCopyConfig {
+  /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+  defaultClassifierId?: string;
 }
 
 export interface FillerSettings {
@@ -1099,6 +1150,46 @@ export interface FillerSettings {
    * @minLength 1
    */
   prompt: string;
+}
+
+export interface RequestTypeLimits {
+  /**
+   * Maximum tokens for completion (response generation) calls
+   * @min 1
+   */
+  completion?: number;
+  /**
+   * Maximum tokens for classifier calls
+   * @min 1
+   */
+  classification?: number;
+  /**
+   * Maximum tokens for smart_function tool calls
+   * @min 1
+   */
+  tool?: number;
+  /**
+   * Maximum tokens for context transformer calls
+   * @min 1
+   */
+  transformation?: number;
+  /**
+   * Maximum tokens for filler sentence generation calls
+   * @min 1
+   */
+  filler?: number;
+}
+
+export interface ProviderModelLimits {
+  /** Maximum output token caps per request type. Enforced as a hard ceiling over the entity-level defaultMaxTokens. */
+  outputTokensLimits?: RequestTypeLimits;
+  /** Maximum input context token caps per request type. When exceeded, the oldest non-system messages are trimmed from history before the call. */
+  inputTokensLimits?: RequestTypeLimits;
+}
+
+export interface CostManagementConfig {
+  /** Token cap definitions keyed by provider API type and model name */
+  limits: Record<string, Record<string, ProviderModelLimits>>;
 }
 
 export interface S3StorageConfig {
@@ -1277,6 +1368,13 @@ export interface ChangeVisibilityEffect {
   visibility: "always" | "stage" | "never" | "conditional";
   /** JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional" */
   condition?: string;
+}
+
+export interface BanUserEffect {
+  /** Effect type */
+  type: "ban_user";
+  /** Optional reason for banning the user */
+  reason?: string;
 }
 
 export interface CallToolEffect {
@@ -1592,6 +1690,10 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   /** Updated profile data (merges with existing profile) */
   profile?: Record<string, any>;
+  /** Whether the user is banned from starting conversations */
+  banned?: boolean;
+  /** Reason for banning the user (null to clear) */
+  banReason?: string | null;
 }
 
 export interface UserResponse {
@@ -1601,6 +1703,10 @@ export interface UserResponse {
   projectId: string;
   /** User profile data as key-value pairs */
   profile: Record<string, any>;
+  /** Whether the user is banned from starting conversations */
+  banned: boolean;
+  /** Reason the user was banned */
+  banReason?: string | null;
   /**
    * Timestamp when the user was created
    * @format date-time
@@ -1624,6 +1730,10 @@ export interface UserListResponse {
     projectId: string;
     /** User profile data as key-value pairs */
     profile: Record<string, any>;
+    /** Whether the user is banned from starting conversations */
+    banned: boolean;
+    /** Reason the user was banned */
+    banReason?: string | null;
     /**
      * Timestamp when the user was created
      * @format date-time
@@ -1681,6 +1791,8 @@ export interface CreateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   };
   /**
    * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -1711,7 +1823,11 @@ export interface CreateProjectRequest {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+    mode?: "strict" | "standard";
   };
+  /** Optional project-level LLM token cost management configuration */
+  costManagementConfig?: CostManagementConfig;
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;
   /** Additional metadata for the project */
@@ -1732,6 +1848,8 @@ export interface CreateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
   defaultGuardrailClassifierId?: string | null;
+  /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+  sampleCopyConfig?: SampleCopyConfig;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -1812,6 +1930,8 @@ export interface UpdateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice?: boolean;
@@ -1836,6 +1956,13 @@ export interface UpdateProjectRequest {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+    mode?: "strict" | "standard";
+  } | null;
+  /** Updated project-level LLM token cost management configuration. Set to null to remove. */
+  costManagementConfig?: {
+    /** Token cap definitions keyed by provider API type and model name */
+    limits: Record<string, Record<string, ProviderModelLimits>>;
   } | null;
   /** Updated constants key-value store */
   constants?: Record<string, ParameterValue>;
@@ -1851,6 +1978,11 @@ export interface UpdateProjectRequest {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
   defaultGuardrailClassifierId?: string | null;
+  /** Updated sample copy configuration. Set to null to clear. */
+  sampleCopyConfig?: {
+    /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+    defaultClassifierId?: string;
+  } | null;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -1882,6 +2014,8 @@ export interface ProjectResponse {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+    serverVad?: ServerVadConfig;
   } | null;
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice: boolean;
@@ -1906,7 +2040,11 @@ export interface ProjectResponse {
     llmProviderId: string;
     /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
     blockedCategories?: string[];
+    /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+    mode?: "strict" | "standard";
   } | null;
+  /** Project-level LLM token cost management configuration */
+  costManagementConfig: CostManagementConfig;
   /** Key-value store of constants used in templating and conversation logic */
   constants: Record<string, ParameterValue>;
   /** Additional metadata for the project */
@@ -1921,6 +2059,11 @@ export interface ProjectResponse {
   userProfileVariableDescriptors: FieldDescriptor[];
   /** ID of the classifier used to evaluate guardrails for all conversations in this project */
   defaultGuardrailClassifierId: string | null;
+  /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+  sampleCopyConfig?: {
+    /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+    defaultClassifierId?: string;
+  } | null;
   /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
   conversationTimeoutSeconds: number | null;
   /** The version number of the project */
@@ -1968,6 +2111,8 @@ export interface ProjectListResponse {
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
       voiceActivityDetection?: boolean;
+      /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+      serverVad?: ServerVadConfig;
     } | null;
     /** Whether conversations can accept voice input (requires asrConfig fully populated) */
     acceptVoice: boolean;
@@ -1992,7 +2137,11 @@ export interface ProjectListResponse {
       llmProviderId: string;
       /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
       blockedCategories?: string[];
+      /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+      mode?: "strict" | "standard";
     } | null;
+    /** Project-level LLM token cost management configuration */
+    costManagementConfig: CostManagementConfig;
     /** Key-value store of constants used in templating and conversation logic */
     constants: Record<string, ParameterValue>;
     /** Additional metadata for the project */
@@ -2007,6 +2156,11 @@ export interface ProjectListResponse {
     userProfileVariableDescriptors: FieldDescriptor[];
     /** ID of the classifier used to evaluate guardrails for all conversations in this project */
     defaultGuardrailClassifierId: string | null;
+    /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+    sampleCopyConfig?: {
+      /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+      defaultClassifierId?: string;
+    } | null;
     /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
     conversationTimeoutSeconds: number | null;
     /** The version number of the project */
@@ -2276,6 +2430,8 @@ export interface LoginResponse {
   displayName: string;
   /** Array of role identifiers */
   roles: string[];
+  /** Effective permissions derived from assigned roles (deduplicated union) */
+  permissions: string[];
 }
 
 export interface RefreshTokenResponse {
@@ -2287,6 +2443,10 @@ export interface RefreshTokenResponse {
    * @exclusiveMin true
    */
   expiresIn: number;
+  /** Up-to-date array of role identifiers (re-fetched from database) */
+  roles: string[];
+  /** Up-to-date effective permissions derived from current roles (deduplicated union) */
+  permissions: string[];
 }
 
 export interface InitialOperatorSetupRequest {
@@ -2887,8 +3047,8 @@ export interface ConversationResponse {
   projectId: string;
   /** Identifier of the user associated with this conversation */
   userId: string;
-  /** Client identifier for the conversation */
-  clientId: string;
+  /** ID of the WebSocket session that initiated this conversation */
+  sessionId: string;
   /** Current stage identifier for the conversation */
   stageId: string;
   /** Stage identifier at the start of the conversation */
@@ -2926,8 +3086,8 @@ export interface ConversationListResponse {
     projectId: string;
     /** Identifier of the user associated with this conversation */
     userId: string;
-    /** Client identifier for the conversation */
-    clientId: string;
+    /** ID of the WebSocket session that initiated this conversation */
+    sessionId: string;
     /** Current stage identifier for the conversation */
     stageId: string;
     /** Stage identifier at the start of the conversation */
@@ -2987,6 +3147,7 @@ export interface ConversationEventResponse {
     | "message"
     | "classification"
     | "transformation"
+    | "execution_plan"
     | "action"
     | "command"
     | "tool_call"
@@ -2996,7 +3157,13 @@ export interface ConversationEventResponse {
     | "conversation_aborted"
     | "conversation_failed"
     | "jump_to_stage"
-    | "moderation";
+    | "moderation"
+    | "variables_updated"
+    | "user_profile_updated"
+    | "user_input_modified"
+    | "user_banned"
+    | "visibility_changed"
+    | "sample_copy_selection";
   /** Event data payload */
   eventData:
     | {
@@ -3031,6 +3198,31 @@ export interface ConversationEventResponse {
         metadata?: Record<string, any>;
       }
     | {
+        /** ID of the stage where execution is taking place */
+        stageId: string;
+        /** Names of all matched actions in original order */
+        actions: string[];
+        /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+        effects: {
+          /** Name of the action this effect originates from */
+          actionName: string;
+          /** The effect to be executed */
+          effect: Effect;
+        }[];
+        /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+        lifecycleContext:
+          | "on_enter"
+          | "on_leave"
+          | "on_fallback"
+          | "conversation_start"
+          | "conversation_resume"
+          | "conversation_end"
+          | "conversation_abort"
+          | "conversation_failed"
+          | null;
+        metadata?: Record<string, any>;
+      }
+    | {
         actionName: string;
         stageId: string;
         effects: Effect[];
@@ -3055,6 +3247,8 @@ export interface ConversationEventResponse {
         success: boolean;
         result?: any;
         error?: string;
+        /** Name of the action that triggered this tool call, if triggered by an action effect */
+        sourceActionName?: string;
         metadata?: Record<string, any>;
       }
     | {
@@ -3078,11 +3272,15 @@ export interface ConversationEventResponse {
     | {
         reason?: string;
         stageId: string;
+        /** Name of the action that triggered conversation end, if triggered by an action effect */
+        sourceActionName?: string;
         metadata?: Record<string, any>;
       }
     | {
         reason: string;
         stageId: string;
+        /** Name of the action that triggered conversation abort, if triggered by an action effect */
+        sourceActionName?: string;
         metadata?: Record<string, any>;
       }
     | {
@@ -3093,6 +3291,8 @@ export interface ConversationEventResponse {
     | {
         fromStageId: string;
         toStageId: string;
+        /** Name of the action that triggered this stage jump, if triggered by an action effect */
+        sourceActionName?: string;
         metadata?: Record<string, any>;
       }
     | {
@@ -3101,8 +3301,61 @@ export interface ConversationEventResponse {
         blockingCategories: string[];
         detectedCategories: string[];
         durationMs: number;
+        startMs: number;
+        endMs: number;
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** Name of the action that triggered this variable update */
+        sourceActionName: string;
+        /** Snapshot of all conversation variables after the update */
+        variables: Record<string, ParameterValue>;
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** Name of the action that triggered this profile update */
+        sourceActionName: string;
+        /** Updated user profile data */
+        profile: Record<string, ParameterValue>;
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** Name of the action that triggered this input modification */
+        sourceActionName: string;
+        /** The modified user input after template rendering */
+        modifiedInput: string;
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** Name of the action that triggered the ban */
+        sourceActionName: string;
+        /** Optional reason for the ban */
+        reason?: string;
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** Name of the action that triggered this visibility change */
+        sourceActionName: string;
+        /** The new visibility settings for current turn messages */
+        visibility: {
+          /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+          visibility: "always" | "stage" | "never" | "conditional";
+          /** Condition for visibility, evaluated against conversation variables */
+          condition?: string;
+        };
+        metadata?: Record<string, any>;
+      }
+    | {
+        /** ID of the classifier that performed the selection */
+        classifierId: string;
+        /** The user input that triggered the selection */
+        input: string;
+        /** Identifier of selected sample copy, or null if none was selected */
+        sampleCopy: string | null;
         metadata?: Record<string, any>;
       };
+  /** ID of the stage that was active when the event occurred */
+  stageId: string | null;
   /**
    * Timestamp when the event occurred
    * @format date-time
@@ -3126,6 +3379,7 @@ export interface ConversationEventListResponse {
       | "message"
       | "classification"
       | "transformation"
+      | "execution_plan"
       | "action"
       | "command"
       | "tool_call"
@@ -3135,7 +3389,13 @@ export interface ConversationEventListResponse {
       | "conversation_aborted"
       | "conversation_failed"
       | "jump_to_stage"
-      | "moderation";
+      | "moderation"
+      | "variables_updated"
+      | "user_profile_updated"
+      | "user_input_modified"
+      | "user_banned"
+      | "visibility_changed"
+      | "sample_copy_selection";
     /** Event data payload */
     eventData:
       | {
@@ -3170,6 +3430,31 @@ export interface ConversationEventListResponse {
           metadata?: Record<string, any>;
         }
       | {
+          /** ID of the stage where execution is taking place */
+          stageId: string;
+          /** Names of all matched actions in original order */
+          actions: string[];
+          /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+          effects: {
+            /** Name of the action this effect originates from */
+            actionName: string;
+            /** The effect to be executed */
+            effect: Effect;
+          }[];
+          /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+          lifecycleContext:
+            | "on_enter"
+            | "on_leave"
+            | "on_fallback"
+            | "conversation_start"
+            | "conversation_resume"
+            | "conversation_end"
+            | "conversation_abort"
+            | "conversation_failed"
+            | null;
+          metadata?: Record<string, any>;
+        }
+      | {
           actionName: string;
           stageId: string;
           effects: Effect[];
@@ -3194,6 +3479,8 @@ export interface ConversationEventListResponse {
           success: boolean;
           result?: any;
           error?: string;
+          /** Name of the action that triggered this tool call, if triggered by an action effect */
+          sourceActionName?: string;
           metadata?: Record<string, any>;
         }
       | {
@@ -3217,11 +3504,15 @@ export interface ConversationEventListResponse {
       | {
           reason?: string;
           stageId: string;
+          /** Name of the action that triggered conversation end, if triggered by an action effect */
+          sourceActionName?: string;
           metadata?: Record<string, any>;
         }
       | {
           reason: string;
           stageId: string;
+          /** Name of the action that triggered conversation abort, if triggered by an action effect */
+          sourceActionName?: string;
           metadata?: Record<string, any>;
         }
       | {
@@ -3232,6 +3523,8 @@ export interface ConversationEventListResponse {
       | {
           fromStageId: string;
           toStageId: string;
+          /** Name of the action that triggered this stage jump, if triggered by an action effect */
+          sourceActionName?: string;
           metadata?: Record<string, any>;
         }
       | {
@@ -3240,8 +3533,61 @@ export interface ConversationEventListResponse {
           blockingCategories: string[];
           detectedCategories: string[];
           durationMs: number;
+          startMs: number;
+          endMs: number;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** Name of the action that triggered this variable update */
+          sourceActionName: string;
+          /** Snapshot of all conversation variables after the update */
+          variables: Record<string, ParameterValue>;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** Name of the action that triggered this profile update */
+          sourceActionName: string;
+          /** Updated user profile data */
+          profile: Record<string, ParameterValue>;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** Name of the action that triggered this input modification */
+          sourceActionName: string;
+          /** The modified user input after template rendering */
+          modifiedInput: string;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** Name of the action that triggered the ban */
+          sourceActionName: string;
+          /** Optional reason for the ban */
+          reason?: string;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** Name of the action that triggered this visibility change */
+          sourceActionName: string;
+          /** The new visibility settings for current turn messages */
+          visibility: {
+            /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+            visibility: "always" | "stage" | "never" | "conditional";
+            /** Condition for visibility, evaluated against conversation variables */
+            condition?: string;
+          };
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** ID of the classifier that performed the selection */
+          classifierId: string;
+          /** The user input that triggered the selection */
+          input: string;
+          /** Identifier of selected sample copy, or null if none was selected */
+          sampleCopy: string | null;
           metadata?: Record<string, any>;
         };
+    /** ID of the stage that was active when the event occurred */
+    stageId: string | null;
     /**
      * Timestamp when the event occurred
      * @format date-time
@@ -3934,7 +4280,7 @@ export interface CreateSmartFunctionTool {
    */
   prompt: string;
   /** ID of the LLM provider to use for this tool */
-  llmProviderId?: string | null;
+  llmProviderId: string;
   /** LLM provider-specific settings for this tool */
   llmSettings?:
     | OpenAILlmSettings
@@ -4024,7 +4370,7 @@ export interface CreateScriptTool {
   code: string;
 }
 
-export interface UpdateToolRequest {
+export interface UpdateSmartFunctionTool {
   /**
    * Updated display name
    * @minLength 1
@@ -4032,50 +4378,98 @@ export interface UpdateToolRequest {
   name?: string;
   /** Updated description */
   description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
   /**
-   * Updated Handlebars prompt template (smart_function)
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool executes an LLM call */
+  type: "smart_function";
+  /**
+   * Updated Handlebars prompt template
    * @minLength 1
    */
   prompt?: string;
-  /** Updated LLM provider ID (smart_function) */
-  llmProviderId?: string | null;
-  /** Updated LLM provider-specific settings (smart_function) */
+  /** Updated LLM provider ID */
+  llmProviderId: string;
+  /** Updated LLM provider-specific settings */
   llmSettings?:
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings;
   /** Updated input format (smart_function) */
-  inputType?: "text" | "image" | "multi-modal";
+  inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
-  outputType?: "text" | "image" | "multi-modal";
+  outputType: "text" | "image" | "multi-modal";
+}
+
+export interface UpdateWebhookTool {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool makes an HTTP request */
+  type: "webhook";
   /**
    * Updated target URL (webhook)
    * @format uri
    */
-  url?: string;
+  url: string;
   /** Updated HTTP method (webhook) */
   webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Updated HTTP headers (webhook) */
   webhookHeaders?: Record<string, string>;
   /** Updated request body template (webhook) */
   webhookBody?: string | null;
+}
+
+export interface UpdateScriptTool {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /** Updated parameters for the tool (smart_function) */
+  parameters?: ToolParameter[];
+  /** Updated tags (smart_function) */
+  tags?: string[];
+  /** Updated metadata (smart_function) */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking (smart_function)
+   * @min 1
+   */
+  version: number;
+  /** Tool executes isolated JavaScript code */
+  type: "script";
   /**
    * Updated JavaScript code (script)
    * @minLength 1
    */
-  code?: string;
-  /** Updated parameters for the tool */
-  parameters?: ToolParameter[];
-  /** Updated tags */
-  tags?: string[];
-  /** Updated metadata */
-  metadata?: Record<string, any>;
-  /**
-   * Current version number for optimistic locking
-   * @min 1
-   */
-  version: number;
+  code: string;
 }
 
 export interface DeleteToolRequest {
@@ -4721,7 +5115,7 @@ export interface CreateProviderRequest {
   /** Detailed description of provider purpose and use case */
   description?: string;
   /** Provider category: asr, tts, llm, or embeddings */
-  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
   apiType: string;
   /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -4793,11 +5187,43 @@ export interface CreateProviderRequest {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
+}
+
+export interface TwilioMessagingChannelConfig {
+  /** Twilio Account SID (starts with AC) */
+  accountSid: string;
+  /** Twilio Auth Token used for request signature validation and REST API authentication */
+  authToken: string;
+  /** Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the "From" address for outbound messages */
+  fromNumber: string;
+}
+
+export interface TwilioVoiceChannelConfig {
+  /** Twilio Account SID (starts with AC) */
+  accountSid: string;
+  /** Twilio Auth Token used for webhook signature validation */
+  authToken: string;
+  /** Twilio phone number in E.164 format (e.g. +15551234567) */
+  phoneNumber: string;
+}
+
+export interface WhatsAppChannelConfig {
+  /** Meta phone number ID used in the Graph API URL for outbound messages (e.g. 123456789012345) */
+  phoneNumberId: string;
+  /** Permanent Meta access token used as Bearer auth for outbound Graph API calls */
+  accessToken: string;
+  /** Meta app secret used to validate incoming webhook signatures via HMAC-SHA256 */
+  appSecret: string;
+  /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
+  verifyToken: string;
 }
 
 export interface UpdateProviderRequest {
@@ -4815,7 +5241,7 @@ export interface UpdateProviderRequest {
   /** Updated description of provider purpose */
   description?: string | null;
   /** Updated provider category */
-  providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Updated specific provider implementation */
   apiType?: string;
   /** Updated provider-specific configuration */
@@ -4887,7 +5313,10 @@ export interface UpdateProviderRequest {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -4909,7 +5338,7 @@ export interface ProviderResponse {
   /** Description of provider purpose and use case */
   description: string | null;
   /** Provider category (asr, tts, llm, embeddings) */
-  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
   /** Specific provider implementation */
   apiType: string;
   /** Provider-specific configuration object */
@@ -4981,7 +5410,10 @@ export interface ProviderResponse {
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
-    | LocalStorageConfig;
+    | LocalStorageConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -5010,7 +5442,7 @@ export interface ProviderListResponse {
     /** Description of provider purpose and use case */
     description: string | null;
     /** Provider category (asr, tts, llm, embeddings) */
-    providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+    providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
     /** Specific provider implementation */
     apiType: string;
     /** Provider-specific configuration object */
@@ -5082,7 +5514,10 @@ export interface ProviderListResponse {
       | S3StorageConfig
       | AzureBlobStorageConfig
       | GcsStorageConfig
-      | LocalStorageConfig;
+      | LocalStorageConfig
+      | TwilioMessagingChannelConfig
+      | TwilioVoiceChannelConfig
+      | WhatsAppChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -5298,6 +5733,17 @@ export interface ProviderCatalog {
   }[];
   /** Moderation providers */
   moderation: ModerationProviderInfo[];
+  /** Communication channel providers */
+  channel: {
+    /** Provider API type */
+    apiType: string;
+    /** Human-readable provider name */
+    displayName: string;
+    /** Additional information */
+    description?: string;
+    /** List of supported features */
+    features?: string[];
+  }[];
 }
 
 export interface AsrProvidersResponse {
@@ -5456,6 +5902,30 @@ export interface AuditLogListResponse {
   limit?: number | null;
 }
 
+export interface ApiKeySettings {
+  /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+  allowedChannels?: (
+    | "websocket"
+    | "webrtc"
+    | "twilio_voice"
+    | "twilio_messaging"
+    | "whatsapp"
+  )[];
+  /** Permitted feature capabilities. If absent, all features are allowed. */
+  allowedFeatures?: (
+    | "conversation_control"
+    | "voice_input"
+    | "text_input"
+    | "voice_output"
+    | "text_output"
+    | "vars_access"
+    | "stage_control"
+    | "run_action"
+    | "call_tool"
+    | "events"
+  )[];
+}
+
 export interface CreateApiKeyRequest {
   /**
    * A descriptive name for the API key
@@ -5465,6 +5935,8 @@ export interface CreateApiKeyRequest {
   name: string;
   /** Additional metadata for the API key */
   metadata?: Record<string, any>;
+  /** Security settings controlling which channels and features this key permits. If absent, all channels and features are allowed. */
+  keySettings?: ApiKeySettings;
 }
 
 export interface UpdateApiKeyRequest {
@@ -5478,6 +5950,8 @@ export interface UpdateApiKeyRequest {
   isActive?: boolean;
   /** Updated metadata for the API key */
   metadata?: Record<string, any>;
+  /** Updated security settings. If absent, existing settings are preserved. */
+  keySettings?: ApiKeySettings;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -5504,6 +5978,30 @@ export interface ApiKeyResponse {
   isActive: boolean;
   /** Additional metadata */
   metadata?: Record<string, any>;
+  /** Security settings controlling which channels and features this key permits */
+  keySettings?: {
+    /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+    allowedChannels?: (
+      | "websocket"
+      | "webrtc"
+      | "twilio_voice"
+      | "twilio_messaging"
+      | "whatsapp"
+    )[];
+    /** Permitted feature capabilities. If absent, all features are allowed. */
+    allowedFeatures?: (
+      | "conversation_control"
+      | "voice_input"
+      | "text_input"
+      | "voice_output"
+      | "text_output"
+      | "vars_access"
+      | "stage_control"
+      | "run_action"
+      | "call_tool"
+      | "events"
+    )[];
+  } | null;
   /** Version number for optimistic locking */
   version: number;
   /** ISO timestamp of creation */
@@ -5533,6 +6031,30 @@ export interface ApiKeyListResponse {
     isActive: boolean;
     /** Additional metadata */
     metadata?: Record<string, any>;
+    /** Security settings controlling which channels and features this key permits */
+    keySettings?: {
+      /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+      allowedChannels?: (
+        | "websocket"
+        | "webrtc"
+        | "twilio_voice"
+        | "twilio_messaging"
+        | "whatsapp"
+      )[];
+      /** Permitted feature capabilities. If absent, all features are allowed. */
+      allowedFeatures?: (
+        | "conversation_control"
+        | "voice_input"
+        | "text_input"
+        | "voice_output"
+        | "text_output"
+        | "vars_access"
+        | "stage_control"
+        | "run_action"
+        | "call_tool"
+        | "events"
+      )[];
+    } | null;
     /** Version number for optimistic locking */
     version: number;
     /** ISO timestamp of creation */
@@ -5587,6 +6109,529 @@ export interface LatencyTrendPoint {
   avgLlmDurationMs: number | null;
   /** Average time to first audio in this bucket */
   avgTimeToFirstAudioMs: number | null;
+}
+
+export interface TokenUsageByEventType {
+  /** Event type (message, classification, transformation, tool_call) */
+  eventType: string;
+  /** Number of events with token usage data */
+  eventCount: number;
+  /** Total prompt (input) tokens */
+  totalPromptTokens: number;
+  /** Total completion (output) tokens */
+  totalCompletionTokens: number;
+  /** Total tokens (prompt + completion) */
+  totalTokens: number;
+}
+
+export interface TokenUsageTrendPoint {
+  /** Time bucket start (ISO 8601) */
+  bucket: string;
+  /** Number of events with token usage data in this bucket */
+  eventCount: number;
+  /** Total prompt tokens in this bucket */
+  totalPromptTokens: number;
+  /** Total completion tokens in this bucket */
+  totalCompletionTokens: number;
+  /** Total tokens in this bucket */
+  totalTokens: number;
+}
+
+export interface SourceDimension {
+  /** Dimension identifier used in groupBy[] and filters */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Known enumerable values, if applicable */
+  values?: string[];
+}
+
+export interface SourceMetric {
+  /** Metric identifier used in metrics[] after the aggregation function */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Unit of measurement */
+  unit: "ms" | "tokens" | "count" | "boolean";
+}
+
+export interface SourceEntry {
+  /** Source identifier used in the source query parameter */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Description of what this source provides */
+  description: string;
+  /** Available dimensions for groupBy and filtering */
+  dimensions: SourceDimension[];
+  /** Available numeric metrics for aggregation */
+  metrics: SourceMetric[];
+}
+
+export interface SliceQueryRow {
+  /** Time bucket start (ISO 8601) if interval is set, null otherwise */
+  bucket: string | null;
+  /** Dimension values for this group */
+  dimensions: Record<string, string | null>;
+  /** Metric values for this group, keyed by the metric spec from the request */
+  metrics: Record<string, number | null>;
+}
+
+export interface SavedSliceQuery {
+  /** Unique identifier of the saved query */
+  id: string;
+  /** Name of the saved query */
+  name: string;
+  /** Project this query belongs to */
+  projectId: string;
+  /** Operator who created this query, or null if the operator has been deleted */
+  operatorId: string | null;
+  /** The saved slice query configuration */
+  query: SliceQuery;
+  /** Whether this query is visible to all operators in the project */
+  isShared: boolean;
+  /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the query was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the query was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+/** The saved slice query configuration */
+export interface SliceQuery {
+  /** Analytics source to query */
+  source:
+    | "conversations"
+    | "events"
+    | "turns"
+    | "tool_calls"
+    | "classifications"
+    | "transformations"
+    | "moderation"
+    | "stage_visits"
+    | "llm_calls";
+  /**
+   * Dimension IDs to group results by (max 5)
+   * @maxItems 5
+   * @default []
+   */
+  groupBy?: string[];
+  /** Time bucket interval for time-series aggregation */
+  interval?: "hour" | "day" | "week" | "month";
+  /**
+   * Metric specifications: "count" or "{aggFn}:{metricId}" (e.g. "avg:durationMs", "p95:totalTurnDurationMs")
+   * @maxItems 10
+   * @minItems 1
+   */
+  metrics: string[];
+  /** Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare "count" metric. */
+  normalizeBy?: string;
+  /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+  relativeTime?: RelativeTime;
+  /**
+   * Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+   * @format date-time
+   */
+  from?: string | null;
+  /**
+   * End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+   * @format date-time
+   */
+  to?: string | null;
+  /** Filter to a single conversation */
+  conversationId?: string;
+  /** Additional equality filters: key = dimension ID, value = exact match value */
+  filters?: Record<string, string>;
+  /**
+   * Maximum number of rows to return (default 1000, max 10000)
+   * @min 1
+   * @max 10000
+   * @default 1000
+   */
+  limit?: number;
+}
+
+/** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+export interface RelativeTime {
+  /**
+   * Number of units to look back
+   * @min 1
+   * @max 100000
+   */
+  amount: number;
+  /** Time unit */
+  unit: "hours" | "days" | "weeks" | "months";
+}
+
+export interface ChannelCapabilities {
+  /** Whether the channel supports receiving audio from the user */
+  supportsVoiceInput: boolean;
+  /** Whether the channel supports receiving text messages from the user */
+  supportsTextInput: boolean;
+  /** Whether the channel supports sending audio to the user */
+  supportsVoiceOutput: boolean;
+  /** Whether the channel supports sending text messages to the user */
+  supportsTextOutput: boolean;
+  /** Whether the channel supports client-sent commands (e.g. go-to-stage, set-var) */
+  supportsCommands: boolean;
+  /** Whether the channel supports server-sent event notifications */
+  supportsEvents: boolean;
+  /** Whether the channel can accept user-initiated sessions (e.g. a client opening a WebSocket connection or a user calling a Twilio number) */
+  supportsIncomingConnections: boolean;
+  /** Whether the channel can initiate sessions to users (e.g. placing an outbound Twilio call or sending a proactive SMS) */
+  supportsOutgoingConnections: boolean;
+  /** Audio formats accepted by this channel for voice input/output. Only present when voice is supported. */
+  supportedAudioFormats?: (
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw"
+  )[];
+}
+
+export interface ChannelInfo {
+  /** Unique channel type identifier, e.g. "websocket" or "webrtc" */
+  type: string;
+  /** Human-friendly channel name, e.g. "WebSocket" or "WebRTC" */
+  name: string;
+  /** Capabilities supported by this channel */
+  capabilities: ChannelCapabilities;
+}
+
+export interface ChannelCatalogResponse {
+  /** List of all channels supported by this backend instance */
+  channels: ChannelInfo[];
+}
+
+export interface CreateSampleCopyRequest {
+  /**
+   * Unique identifier for the sample copy (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the sample copy, used as identifier throughout the system
+   * @minLength 1
+   */
+  name: string;
+  /** Optional array of stage IDs this sample copy applies to */
+  stages?: string[];
+  /** Optional array of agent IDs this sample copy applies to */
+  agents?: string[];
+  /**
+   * Trigger string used by the classifier to activate this sample copy
+   * @minLength 1
+   */
+  promptTrigger: string;
+  /** ID of the classifier to use; if not set the default classifier will be used */
+  classifierOverrideId?: string | null;
+  /**
+   * Array of variant answers to select from
+   * @minItems 1
+   */
+  content: string[];
+  /**
+   * Number of samples to select from the content array
+   * @min 1
+   * @default 1
+   */
+  amount?: number;
+  /**
+   * Method used to select samples: random selection or sequential round-robin
+   * @default "random"
+   */
+  samplingMethod?: "random" | "round_robin";
+  /**
+   * Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects
+   * @default "regular"
+   */
+  mode?: "regular" | "forced";
+  /** ID of the copy decorator to apply to selected content; if not set no decoration is applied */
+  decoratorId?: string | null;
+}
+
+export interface UpdateSampleCopyRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated array of stage IDs */
+  stages?: string[] | null;
+  /** Updated array of agent IDs */
+  agents?: string[] | null;
+  /**
+   * Updated classifier trigger string
+   * @minLength 1
+   */
+  promptTrigger?: string;
+  /** Updated classifier override ID */
+  classifierOverrideId?: string | null;
+  /**
+   * Updated array of variant answers
+   * @minItems 1
+   */
+  content?: string[];
+  /**
+   * Updated number of samples to select
+   * @min 1
+   */
+  amount?: number;
+  /** Updated sampling method */
+  samplingMethod?: "random" | "round_robin";
+  /** Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+  mode?: "regular" | "forced";
+  /** Updated copy decorator ID; set to null to remove the decorator */
+  decoratorId?: string | null;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteSampleCopyRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface SampleCopyResponse {
+  /** Unique identifier for the sample copy */
+  id: string;
+  /** ID of the project this sample copy belongs to */
+  projectId: string;
+  /** Display name of the sample copy */
+  name: string;
+  /** Array of stage IDs this sample copy applies to */
+  stages: string[] | null;
+  /** Array of agent IDs this sample copy applies to */
+  agents: string[] | null;
+  /** Trigger string used by the classifier */
+  promptTrigger: string;
+  /** ID of the classifier override, or null if using the default */
+  classifierOverrideId: string | null;
+  /** Array of variant answers */
+  content: string[];
+  /** Number of samples to select */
+  amount: number;
+  /** Method used to select samples */
+  samplingMethod: "random" | "round_robin";
+  /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+  mode: "regular" | "forced";
+  /** ID of the copy decorator applied to selected content, or null if none */
+  decoratorId: string | null;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the sample copy was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the sample copy was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
+}
+
+export interface SampleCopyListResponse {
+  /** Array of sample copies in the current page */
+  items: {
+    /** Unique identifier for the sample copy */
+    id: string;
+    /** ID of the project this sample copy belongs to */
+    projectId: string;
+    /** Display name of the sample copy */
+    name: string;
+    /** Array of stage IDs this sample copy applies to */
+    stages: string[] | null;
+    /** Array of agent IDs this sample copy applies to */
+    agents: string[] | null;
+    /** Trigger string used by the classifier */
+    promptTrigger: string;
+    /** ID of the classifier override, or null if using the default */
+    classifierOverrideId: string | null;
+    /** Array of variant answers */
+    content: string[];
+    /** Number of samples to select */
+    amount: number;
+    /** Method used to select samples */
+    samplingMethod: "random" | "round_robin";
+    /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+    mode: "regular" | "forced";
+    /** ID of the copy decorator applied to selected content, or null if none */
+    decoratorId: string | null;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the sample copy was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the sample copy was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
+  }[];
+  /**
+   * Total number of sample copies matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateCopyDecoratorRequest {
+  /**
+   * Unique identifier for the copy decorator (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Human-readable display name of the copy decorator
+   * @minLength 1
+   */
+  name: string;
+  /**
+   * Template string used to decorate selected sample copy content
+   * @minLength 1
+   */
+  template: string;
+}
+
+export interface UpdateCopyDecoratorRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /**
+   * Updated template string
+   * @minLength 1
+   */
+  template?: string;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteCopyDecoratorRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface CopyDecoratorResponse {
+  /** Unique identifier for the copy decorator */
+  id: string;
+  /** ID of the project this copy decorator belongs to */
+  projectId: string;
+  /** Human-readable display name of the copy decorator */
+  name: string;
+  /** Template string used to decorate sample copy content */
+  template: string;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the copy decorator was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the copy decorator was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /** Whether this entity belongs to an archived project */
+  archived?: boolean;
+}
+
+export interface CopyDecoratorListResponse {
+  /** Array of copy decorators in the current page */
+  items: {
+    /** Unique identifier for the copy decorator */
+    id: string;
+    /** ID of the project this copy decorator belongs to */
+    projectId: string;
+    /** Human-readable display name of the copy decorator */
+    name: string;
+    /** Template string used to decorate sample copy content */
+    template: string;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the copy decorator was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the copy decorator was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+    /** Whether this entity belongs to an archived project */
+    archived?: boolean;
+  }[];
+  /**
+   * Total number of copy decorators matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
 }
 
 export interface VersionResponse {
@@ -5807,6 +6852,8 @@ export interface AsrConfigExchangeV1 {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection */
   voiceActivityDetection?: boolean;
+  /** Server-side VAD configuration */
+  serverVad?: ServerVadConfig;
 }
 
 /** Storage configuration with provider hint instead of provider UUID */
@@ -5832,6 +6879,8 @@ export interface ModerationConfigExchangeV1 {
   llmHint: ProviderHint;
   /** List of category names that should cause the input to be blocked */
   blockedCategories?: string[];
+  /** Moderation execution mode: "strict" (default) runs before all processing; "standard" runs in parallel with filler generation */
+  mode?: "strict" | "standard";
 }
 
 /** Filler response settings with provider hint instead of provider UUID */
@@ -5878,6 +6927,8 @@ export interface ProjectExchangeV1 {
     llmHint: ProviderHint;
     /** List of category names that should cause the input to be blocked */
     blockedCategories?: string[];
+    /** Moderation execution mode: "strict" (default) runs before all processing; "standard" runs in parallel with filler generation */
+    mode?: "strict" | "standard";
   } | null;
   /** Key-value store of constants used in templating and conversation logic */
   constants?: Record<string, ParameterValue>;
@@ -6273,6 +7324,12 @@ export interface LatencyStatsResponse {
   llmDurationMs: LatencyMetric;
   /** TTS synthesis duration (voice only) */
   ttsDurationMs: LatencyMetric;
+  /** TTS WebSocket connection duration (voice only) */
+  ttsConnectDurationMs: LatencyMetric;
+  /** Stage transition duration when a go_to_stage effect fired */
+  stageTransitionDurationMs: LatencyMetric;
+  /** Prompt template rendering duration */
+  promptRenderDurationMs: LatencyMetric;
   /** Moderation API call duration */
   moderationDurationMs: LatencyMetric;
   /** Classification and transformation processing duration */
@@ -6319,18 +7376,70 @@ export interface ConversationTimelineTurn {
   timestamp: string;
   /** Input source: text or voice */
   source: string | null;
+  /** Unix timestamp (ms) when the turn started processing */
+  turnStartMs: number | null;
+  /** Unix timestamp (ms) when ASR recognition started */
+  asrStartMs: number | null;
+  /** Unix timestamp (ms) when ASR recognition completed */
+  asrEndMs: number | null;
   /** ASR transcription duration */
   asrDurationMs: number | null;
+  /** Unix timestamp (ms) when the moderation API call started */
+  moderationStartMs: number | null;
+  /** Unix timestamp (ms) when the moderation API call completed */
+  moderationEndMs: number | null;
   /** Content moderation duration */
   moderationDurationMs: number | null;
+  /** Unix timestamp (ms) when filler sentence generation started */
+  fillerStartMs: number | null;
+  /** Unix timestamp (ms) when filler sentence generation completed */
+  fillerEndMs: number | null;
   /** Classification and transformation duration */
   processingDurationMs: number | null;
+  /** Unix timestamp (ms) when user input processing (classification + transformation) started */
+  processingStartMs: number | null;
+  /** Unix timestamp (ms) when user input processing completed */
+  processingEndMs: number | null;
   /** Knowledge base retrieval duration */
   knowledgeRetrievalDurationMs: number | null;
+  /** Unix timestamp (ms) when knowledge retrieval started */
+  knowledgeRetrievalStartMs: number | null;
+  /** Unix timestamp (ms) when knowledge retrieval completed */
+  knowledgeRetrievalEndMs: number | null;
   /** Action execution duration */
   actionsDurationMs: number | null;
+  /** Unix timestamp (ms) when action execution started */
+  actionsStartMs: number | null;
+  /** Unix timestamp (ms) when action execution completed */
+  actionsEndMs: number | null;
   /** Filler sentence generation duration */
   fillerDurationMs: number | null;
+  /** Unix timestamp (ms) when a stage transition (go_to_stage effect) started; null when no transition occurred */
+  stageTransitionStartMs: number | null;
+  /** Unix timestamp (ms) when the stage transition completed (stage data reloaded, providers re-wired, on_enter executed) */
+  stageTransitionEndMs: number | null;
+  /** Stage transition duration (go_to_stage effect); null when no transition occurred */
+  stageTransitionDurationMs: number | null;
+  /** Unix timestamp (ms) when the TTS WebSocket connection was initiated (voice path only) */
+  ttsConnectStartMs: number | null;
+  /** Unix timestamp (ms) when the TTS WebSocket connection was established and ready (voice path only) */
+  ttsConnectEndMs: number | null;
+  /** TTS WebSocket connection establishment duration (voice path only) */
+  ttsConnectDurationMs: number | null;
+  /** Unix timestamp (ms) when prompt template rendering started */
+  promptRenderStartMs: number | null;
+  /** Unix timestamp (ms) when prompt template rendering completed */
+  promptRenderEndMs: number | null;
+  /** Prompt template rendering duration */
+  promptRenderDurationMs: number | null;
+  /** Unix timestamp (ms) when LLM generation started */
+  llmStartMs: number | null;
+  /** Unix timestamp (ms) when LLM generation completed */
+  llmEndMs: number | null;
+  /** Unix timestamp (ms) when the first LLM token was received */
+  firstTokenMs: number | null;
+  /** Unix timestamp (ms) when the first audio chunk was delivered to the client */
+  firstAudioMs: number | null;
   /** LLM start to first token */
   timeToFirstTokenMs: number | null;
   /** Turn start to first LLM token */
@@ -6339,8 +7448,54 @@ export interface ConversationTimelineTurn {
   timeToFirstAudioMs: number | null;
   /** Total LLM call duration */
   llmDurationMs: number | null;
+  /** Unix timestamp (ms) when TTS synthesis started */
+  ttsStartMs: number | null;
+  /** Unix timestamp (ms) when TTS synthesis completed */
+  ttsEndMs: number | null;
   /** TTS synthesis duration */
   ttsDurationMs: number | null;
+  /** Unix timestamp (ms) when the turn completed (after TTS on voice path, after LLM on text path) */
+  turnEndMs: number | null;
   /** Total turn duration from start to completion */
   totalTurnDurationMs: number | null;
+}
+
+export interface TokenUsageStatsResponse {
+  /** Total number of events with token usage data */
+  totalEvents: number;
+  /** Total prompt (input) tokens across all event types */
+  totalPromptTokens: number;
+  /** Total completion (output) tokens across all event types */
+  totalCompletionTokens: number;
+  /** Total tokens across all event types */
+  totalTokens: number;
+  /** Token usage breakdown by event type */
+  byEventType: TokenUsageByEventType[];
+}
+
+export interface TokenUsageTrendResponse {
+  /** Aggregation interval used (hour, day, or week) */
+  interval: string;
+  /** Time-bucketed data points */
+  points: TokenUsageTrendPoint[];
+}
+
+export interface SourceCatalogResponse {
+  /** List of all available analytics sources */
+  sources: SourceEntry[];
+}
+
+export interface SliceQueryResponse {
+  /** Source that was queried */
+  source: string;
+  /** Time bucket interval used, if any */
+  interval?: string;
+  /** Dimensions that results are grouped by */
+  groupBy: string[];
+  /** Dimension used as the inner aggregation unit, if two-phase aggregation was applied */
+  normalizeBy?: string;
+  /** Metric specifications that were computed */
+  metrics: string[];
+  /** Result rows */
+  rows: SliceQueryRow[];
 }

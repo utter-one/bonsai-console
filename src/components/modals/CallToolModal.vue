@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-2xl" @click.stop>
-      <h2 class="modal-header">Call Tool</h2>
+  <BaseModal title="Call Tool" size="lg" @close="$emit('close')">
       
       <div class="mb-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">Select a tool and provide its parameters</p>
@@ -257,13 +255,15 @@
           Call Tool
         </button>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { useToolsStore } from '@/stores'
+import { useMediaUpload } from '@/composables/useMediaUpload'
+import { defaultItemForArrayType } from '@/utils/arrayEditor'
 
 const props = defineProps<{
   projectId: string
@@ -275,6 +275,7 @@ const emit = defineEmits<{
 }>()
 
 const toolsStore = useToolsStore()
+const { processAudio, processImage } = useMediaUpload()
 
 const selectedToolId = ref<string | null>(null)
 const parameterValues = ref<Record<string, any>>({})
@@ -347,20 +348,7 @@ function addArrayItem(paramName: string, paramType: string) {
   if (!Array.isArray(parameterValues.value[paramName])) {
     parameterValues.value[paramName] = []
   }
-  
-  if (paramType === 'string[]') {
-    parameterValues.value[paramName].push('')
-  } else if (paramType === 'number[]') {
-    parameterValues.value[paramName].push(0)
-  } else if (paramType === 'boolean[]') {
-    parameterValues.value[paramName].push(false)
-  } else if (paramType === 'object[]') {
-    parameterValues.value[paramName].push('{}')
-  } else if (paramType === 'image[]') {
-    parameterValues.value[paramName].push(null)
-  } else if (paramType === 'audio[]') {
-    parameterValues.value[paramName].push(null)
-  }
+  parameterValues.value[paramName].push(defaultItemForArrayType(paramType))
 }
 
 function removeArrayItem(paramName: string, index: number) {
@@ -369,132 +357,34 @@ function removeArrayItem(paramName: string, index: number) {
   }
 }
 
-function handleImageUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    const img = new Image()
-    img.onload = () => {
-      parameterValues.value[paramName] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
-  }
-  reader.readAsDataURL(file)
+async function handleImageUpload(event: Event, paramName: string) {
+  const result = await processImage(event)
+  if (!result) return
+  parameterValues.value[paramName] = result
 }
 
-function handleAudioUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    
-    parameterValues.value[paramName] = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
-  }
-  reader.readAsDataURL(file)
+async function handleAudioUpload(event: Event, paramName: string) {
+  const result = await processAudio(event)
+  if (!result) return
+  parameterValues.value[paramName] = result
 }
 
-function handleImageArrayUpload(event: Event, paramName: string, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png'
-    
-    const img = new Image()
-    img.onload = () => {
-      if (!Array.isArray(parameterValues.value[paramName])) {
-        parameterValues.value[paramName] = []
-      }
-      parameterValues.value[paramName][index] = {
-        data: base64Data,
-        mimeType,
-        metadata: {
-          width: img.width,
-          height: img.height
-        }
-      }
-    }
-    img.src = dataUrl
+async function handleImageArrayUpload(event: Event, paramName: string, index: number) {
+  const result = await processImage(event)
+  if (!result) return
+  if (!Array.isArray(parameterValues.value[paramName])) {
+    parameterValues.value[paramName] = []
   }
-  reader.readAsDataURL(file)
+  parameterValues.value[paramName][index] = result
 }
 
-function handleAudioArrayUpload(event: Event, paramName: string, index: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const header = parts[0]!
-    const base64Data = parts[1]!
-    const mimeType = header.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    
-    if (!Array.isArray(parameterValues.value[paramName])) {
-      parameterValues.value[paramName] = []
-    }
-    parameterValues.value[paramName][index] = {
-      data: base64Data,
-      format,
-      mimeType,
-      metadata: {}
-    }
+async function handleAudioArrayUpload(event: Event, paramName: string, index: number) {
+  const result = await processAudio(event)
+  if (!result) return
+  if (!Array.isArray(parameterValues.value[paramName])) {
+    parameterValues.value[paramName] = []
   }
-  reader.readAsDataURL(file)
+  parameterValues.value[paramName][index] = result
 }
 
 function handleCallTool() {

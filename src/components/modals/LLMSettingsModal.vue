@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">LLM Settings</h2>
+  <BaseModal title="LLM Settings" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit">
         <div v-if="!selectedProvider" class="alert-error mb-4">
@@ -10,10 +8,7 @@
 
         <template v-else>
           <!-- Model Name (Required for all providers) -->
-          <div class="form-group">
-            <label class="form-label">
-              Model <span class="required">*</span>
-            </label>
+          <FormField label="Model" required :error="validationError" path="model" class="w-full">
 
             <!-- Custom model toggle -->
             <div class="mb-3">
@@ -124,13 +119,10 @@
                 {{ selectedModelInfo.contextWindow.toLocaleString() }} tokens
               </span>
             </div>
-          </div>
+          </FormField>
 
           <!-- Max Tokens -->
-          <div class="form-group">
-            <label class="form-label">
-              Max Tokens <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField label="Max Tokens" class="w-full">
             <input
               v-model.number="form.defaultMaxTokens"
               type="number"
@@ -141,14 +133,11 @@
             <p class="form-help-text">
               Maximum output tokens{{ hasReasoningCapability ? ' (includes reasoning/thinking tokens)' : '' }}
             </p>
-          </div>
+          </FormField>
 
           <!-- OpenAI Reasoning Settings -->
           <template v-if="isOpenAI">
-            <div class="form-group">
-              <label class="form-label">
-                Reasoning Effort <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Reasoning Effort" class="w-full">
               <select v-model="form.reasoningEffort" class="form-select">
                 <option :value="null">None (use temperature/topP)</option>
                 <option value="minimal">Minimal</option>
@@ -160,12 +149,9 @@
               <p class="form-help-text">
                 Controls internal reasoning depth. When set, temperature and topP are disabled.
               </p>
-            </div>
+            </FormField>
 
-            <div v-if="form.reasoningEffort" class="form-group">
-              <label class="form-label">
-                Reasoning Summary <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField v-if="form.reasoningEffort" label="Reasoning Summary" class="w-full">
               <select v-model="form.reasoningSummary" class="form-select">
                 <option :value="null">Disabled</option>
                 <option value="auto">Auto - Adapts to model</option>
@@ -175,15 +161,12 @@
               <p class="form-help-text">
                 Generate a summary of the model's reasoning process for debugging
               </p>
-            </div>
+            </FormField>
           </template>
 
           <!-- Anthropic Thinking Settings -->
           <template v-if="isAnthropic">
-            <div class="form-group">
-              <label class="form-label">
-                Thinking Mode <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Thinking Mode" class="w-full">
               <select v-model="form.thinkingMode" class="form-select">
                 <option :value="null">Disabled</option>
                 <option value="enabled">Enabled - Manual token budget</option>
@@ -192,12 +175,9 @@
               <p class="form-help-text">
                 Enable Claude's extended thinking capability for internal reasoning
               </p>
-            </div>
+            </FormField>
 
-            <div v-if="form.thinkingMode === 'enabled'" class="form-group">
-              <label class="form-label">
-                Thinking Budget Tokens <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField v-if="form.thinkingMode === 'enabled'" label="Thinking Budget Tokens" :error="validationError" path="thinkingBudgetTokens" class="w-full">
               <input
                 v-model.number="form.thinkingBudgetTokens"
                 type="number"
@@ -208,15 +188,12 @@
               <p class="form-help-text">
                 Maximum tokens for internal reasoning (min: 1024). Recommended: 4096-16384 for most tasks.
               </p>
-            </div>
+            </FormField>
           </template>
 
           <!-- Gemini Thinking Settings -->
           <template v-if="isGemini">
-            <div class="form-group">
-              <label class="form-label">
-                Thinking Level <span class="text-gray-500">(Gemini 3 models)</span>
-              </label>
+            <FormField label="Thinking Level" hint="Gemini 3 models" class="w-full">
               <select v-model="form.thinkingLevel" class="form-select">
                 <option :value="null">Not set</option>
                 <option value="minimal">Minimal - Best for chat/high-throughput</option>
@@ -227,12 +204,9 @@
               <p class="form-help-text">
                 Controls reasoning depth using predefined levels (for gemini-3-pro, gemini-3-flash)
               </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Thinking Budget <span class="text-gray-500">(Gemini 2.5 models)</span>
-              </label>
+            <FormField label="Thinking Budget" hint="Gemini 2.5 models" class="w-full">
               <input
                 v-model.number="form.thinkingBudget"
                 type="number"
@@ -243,31 +217,30 @@
               <p class="form-help-text">
                 Token budget for thinking. -1: Dynamic (default), 0: Disabled, 128-32768: Specific budget (for gemini-2.5-pro, gemini-2.5-flash)
               </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
+            <FormField label="Include Thoughts" class="w-full">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="form.includeThoughts"
                   type="checkbox"
                   class="form-checkbox mr-2"
                 />
-                <span class="form-label mb-0">Include Thoughts</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Include thought summaries in the response</span>
               </label>
-              <p class="form-help-text">
+              <p class="form-help-text mt-1">
                 Include thought summaries in the response for debugging and transparency
               </p>
-            </div>
+            </FormField>
           </template>
 
           <!-- Temperature -->
-          <div class="form-group" :class="{ 'opacity-50': isTemperatureDisabled }">
-            <label class="form-label">
-              Temperature <span class="text-gray-500">(optional)</span>
-              <span v-if="isTemperatureDisabled" class="text-red-500 text-sm ml-2">
-                (Disabled with reasoning/thinking)
-              </span>
-            </label>
+          <div :class="{ 'opacity-50': isTemperatureDisabled }">
+            <FormField
+              label="Temperature"
+              :hint="isTemperatureDisabled ? 'Disabled with reasoning/thinking' : undefined"
+              class="w-full"
+            >
             <input
               v-model.number="form.defaultTemperature"
               type="number"
@@ -280,20 +253,19 @@
             />
             <p class="form-help-text">
               Sampling temperature ({{ temperatureRange }}){{ isTemperatureDisabled ? ' - Not compatible with reasoning/thinking' : '' }}
-            </p>
+              </p>
+            </FormField>
           </div>
 
           <!-- Top P -->
-          <div class="form-group" :class="{ 'opacity-50': isTopPDisabled }">
-            <label class="form-label">
-              Top P <span class="text-gray-500">(optional)</span>
-              <span v-if="isTopPLimited" class="text-yellow-600 text-sm ml-2">
-                (Limited to 0.95-1.0 with thinking)
-              </span>
-              <span v-else-if="isTopPDisabled" class="text-red-500 text-sm ml-2">
-                (Disabled with reasoning)
-              </span>
-            </label>
+          <div :class="{ 'opacity-50': isTopPDisabled }">
+            <FormField
+              label="Top P"
+              :hint="isTopPDisabled ? 'Disabled with reasoning' : isTopPLimited ? 'Limited to 0.95-1.0 with thinking' : undefined"
+              :error="validationError"
+              path="defaultTopP"
+              class="w-full"
+            >
             <input
               v-model.number="form.defaultTopP"
               type="number"
@@ -306,14 +278,12 @@
             />
             <p class="form-help-text">
               Nucleus sampling threshold{{ isTopPLimited ? ' (0.95-1.0 with thinking enabled)' : ' (0-1)' }}
-            </p>
+              </p>
+            </FormField>
           </div>
 
           <!-- Top K (Gemini only) -->
-          <div v-if="isGemini" class="form-group">
-            <label class="form-label">
-              Top K <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField v-if="isGemini" label="Top K" class="w-full">
             <input
               v-model.number="form.defaultTopK"
               type="number"
@@ -323,14 +293,11 @@
             />
             <p class="form-help-text">
               Top-k sampling parameter
-            </p>
-          </div>
+              </p>
+          </FormField>
 
           <!-- Timeout -->
-          <div class="form-group">
-            <label class="form-label">
-              Timeout <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField label="Timeout" class="w-full">
             <input
               v-model.number="form.timeout"
               type="number"
@@ -340,14 +307,11 @@
             />
             <p class="form-help-text">
               Request timeout in milliseconds
-            </p>
-          </div>
+              </p>
+          </FormField>
 
           <!-- Anthropic Version (Anthropic only) -->
-          <div v-if="isAnthropic" class="form-group">
-            <label class="form-label">
-              Anthropic API Version <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField v-if="isAnthropic" label="Anthropic API Version" class="w-full">
             <input
               v-model="form.anthropicVersion"
               type="text"
@@ -356,13 +320,11 @@
             />
             <p class="form-help-text">
               Anthropic API version to use
-            </p>
-          </div>
+              </p>
+          </FormField>
         </template>
 
-        <div v-if="validationError" class="alert-error">
-          {{ validationError }}
-        </div>
+        <ErrorDisplay :error="validationError" />
 
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
@@ -373,13 +335,15 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { ProviderResponse, LlmSettings } from '@/api/types'
+import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import type { ProviderResponse, LlmSettings, ParsedError } from '@/api/types'
 import type { LlmModelInfo } from '@/api/generated/data-contracts'
 import apiClient from '@/api/client'
 import { Wrench, Eye, FileJson, Zap, Brain, Image } from 'lucide-vue-next'
@@ -436,7 +400,7 @@ const form = ref<LLMSettingsForm>({
 })
 
 const useCustomModel = ref(false)
-const validationError = ref<string | null>(null)
+const validationError = ref<ParsedError | null>(null)
 
 const selectedProvider = computed(() => 
   props.providers.find(p => p.id === props.selectedProviderId)
@@ -572,9 +536,19 @@ function onCustomModelToggle() {
 
 const handleSubmit = () => {
   validationError.value = null
-  
+
+  const validationDetails: import('@/api/types').ApiErrorDetail[] = []
   if (!form.value.model) {
-    validationError.value = 'Model name is required'
+    validationDetails.push({ path: ['model'], message: 'Model name is required', code: 'REQUIRED' })
+  }
+  if (form.value.defaultTopP !== null && !isTopPDisabled.value && isTopPLimited.value && form.value.defaultTopP < 0.95) {
+    validationDetails.push({ path: ['defaultTopP'], message: 'Top P must be between 0.95 and 1.0 when using Anthropic thinking mode', code: 'INVALID_VALUE' })
+  }
+  if (isAnthropic.value && form.value.thinkingMode === 'enabled' && form.value.thinkingBudgetTokens !== null && form.value.thinkingBudgetTokens < 1024) {
+    validationDetails.push({ path: ['thinkingBudgetTokens'], message: 'Thinking budget tokens must be at least 1024', code: 'INVALID_VALUE' })
+  }
+  if (validationDetails.length > 0) {
+    validationError.value = { message: 'Please correct the following errors', details: validationDetails }
     return
   }
 
@@ -592,11 +566,6 @@ const handleSubmit = () => {
     settings.defaultTemperature = form.value.defaultTemperature
   }
   if (form.value.defaultTopP !== null && !isTopPDisabled.value) {
-    // Validate topP range for Anthropic with thinking
-    if (isTopPLimited.value && form.value.defaultTopP < 0.95) {
-      validationError.value = 'Top P must be between 0.95 and 1.0 when using Anthropic thinking mode'
-      return
-    }
     settings.defaultTopP = form.value.defaultTopP
   }
   
@@ -623,10 +592,6 @@ const handleSubmit = () => {
       settings.thinkingMode = form.value.thinkingMode
     }
     if (form.value.thinkingMode === 'enabled' && form.value.thinkingBudgetTokens !== null) {
-      if (form.value.thinkingBudgetTokens < 1024) {
-        validationError.value = 'Thinking budget tokens must be at least 1024'
-        return
-      }
       settings.thinkingBudgetTokens = form.value.thinkingBudgetTokens
     }
   }

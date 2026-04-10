@@ -4,7 +4,8 @@ import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useSearch } from '@/composables'
 import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag } from 'lucide-vue-next'
-import type { KnowledgeCategoryResponse, KnowledgeItemResponse } from '@/api/types'
+import type { KnowledgeCategoryResponse, KnowledgeItemResponse, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import KnowledgeCategoryModal from '@/components/modals/KnowledgeCategoryModal.vue'
 import KnowledgeItemModal from '@/components/modals/KnowledgeItemModal.vue'
 
@@ -19,10 +20,14 @@ const expandedCategories = ref<Set<string>>(new Set())
 // Modal state 
 const showCategoryModal = ref(false)
 const editingCategory = ref<KnowledgeCategoryResponse | null>(null)
+const categoryError = ref<ParsedError | null>(null)
 
 const showItemModal = ref(false)
 const editingItem = ref<KnowledgeItemResponse | null>(null)
 const itemModalCategoryId = ref<string>('')
+const itemError = ref<ParsedError | null>(null)
+
+const loadError = ref<string | null>(null)
 
 // computed helper to locate the category currently being edited/created for items
 const activeCategory = computed(() =>
@@ -58,14 +63,15 @@ onMounted(() => loadCategories())
 // Data loading 
 async function loadCategories() {
   if (!projectId.value) return
+  loadError.value = null
   try {
     await knowledgeStore.fetchCategories(projectId.value, {
       filters: {},
       orderBy: 'order',
       ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}),
     })
-  } catch {
-    // error is handled in the store
+  } catch (err: any) {
+    loadError.value = err.response?.data?.message || 'Failed to load knowledge categories'
   }
 }
 
@@ -88,12 +94,14 @@ function isExpanded(categoryId: string) {
 function openCreateCategory() {
   if (projectIsArchived.value) return
   editingCategory.value = null
+  categoryError.value = null
   showCategoryModal.value = true
 }
 
 function openEditCategory(category: KnowledgeCategoryResponse, event: MouseEvent) {
   event.stopPropagation()
   editingCategory.value = category
+  categoryError.value = null
   showCategoryModal.value = true
 }
 
@@ -118,7 +126,7 @@ async function handleCategorySubmit(data: {
     }
     showCategoryModal.value = false
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Failed to save category')
+    categoryError.value = parseApiError(err)
   }
 }
 
@@ -144,6 +152,7 @@ function openCreateItem(categoryId: string, event: MouseEvent) {
   if (projectIsArchived.value) return
   editingItem.value = null
   itemModalCategoryId.value = categoryId
+  itemError.value = null
   showItemModal.value = true
   // Auto-expand so items are visible after creation
   expandedCategories.value = new Set([...expandedCategories.value, categoryId])
@@ -152,6 +161,7 @@ function openCreateItem(categoryId: string, event: MouseEvent) {
 function openEditItem(item: KnowledgeItemResponse, categoryId: string) {
   editingItem.value = item
   itemModalCategoryId.value = categoryId
+  itemError.value = null
   showItemModal.value = true
 }
 
@@ -170,7 +180,7 @@ async function handleItemSubmit(data: { question: string; answer: string; order:
     }
     showItemModal.value = false
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Failed to save item')
+    itemError.value = parseApiError(err)
   }
 }
 
@@ -235,8 +245,8 @@ async function handleItemRecoverSuccess() {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="knowledgeStore.error" class="error-state">
-      {{ knowledgeStore.error }}
+    <div v-else-if="loadError" class="error-state">
+      {{ loadError }}
     </div>
 
     <!-- Empty State -->
@@ -367,6 +377,7 @@ async function handleItemRecoverSuccess() {
     <KnowledgeCategoryModal
       v-if="showCategoryModal"
       :category="editingCategory"
+      :error="categoryError"
       :load-history="editingCategory ? () => knowledgeStore.fetchCategoryAuditLogs(projectId, editingCategory!.id) : undefined"
       :update-fn="editingCategory ? (data) => knowledgeStore.updateCategory(projectId, editingCategory!.id, data) : undefined"
       :create-fn="editingCategory ? (data) => knowledgeStore.createCategory(projectId, data) : undefined"
@@ -379,6 +390,7 @@ async function handleItemRecoverSuccess() {
     <KnowledgeItemModal
       v-if="showItemModal"
       :item="editingItem"
+      :error="itemError"
       :category-archived="activeCategory ? activeCategory.archived : false"
       :load-history="editingItem ? () => knowledgeStore.fetchItemAuditLogs(projectId, editingItem!.id) : undefined"
       :update-fn="editingItem ? (data) => knowledgeStore.updateItem(projectId, editingItem!.id, itemModalCategoryId, data) : undefined"

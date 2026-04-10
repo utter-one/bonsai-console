@@ -20,6 +20,7 @@ In the **Design** section you build the brain of your AI assistant:
 - **Tools** — Register callable AI functions for tasks like translation, summarization, or data lookup.
 - **Knowledge Base** — Add FAQ-style content the AI can draw on to answer common questions accurately.
 - **Global Memory** — Define project constants (shared values available in all prompts) and the user profile schema (custom fields stored per end user).
+- **Sample Copies** — Deliver pre-written prescripted answers selected from variant pools, with optional forced-response mode that bypasses the LLM entirely.
 
 ### Monitor Activity
 

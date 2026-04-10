@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
@@ -79,10 +79,6 @@ function editEnvironment(env: EnvironmentResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function openMigrateModal(env: EnvironmentResponse) {
   migratingEnvironment.value = env

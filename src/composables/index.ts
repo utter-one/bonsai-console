@@ -3,8 +3,14 @@ import { useAuthStore } from '@/stores'
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-vue-next'
 
 export * from './useActionForm'
+export * from './useTabNavigation'
+export * from './useLlmProviderSelect'
+export * from './useClickOutside'
 export * from './useContextualHelp'
+export * from './useCopyPaste'
+export * from './useMediaUpload'
 export * from './useSearch'
+export * from './useSpreadsheetBehavior'
 export * from './useWebSocketClient'
 export * from './useAudioPlayback'
 export * from './useAudioRecording'
@@ -16,6 +22,11 @@ export * from './useAudioDevices'
  */
 export function formatEnum(enumId: string): string {
   return enumId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+}
+
+export function formatDate(date: string | null | undefined): string {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleString()
 }
 
 /**

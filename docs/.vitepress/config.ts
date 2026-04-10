@@ -1,10 +1,12 @@
 import { defineConfig } from 'vitepress'
 
+const isDocsDockerBuild = process.env.DOCS_DOCKER_BUILD === 'true'
+
 export default defineConfig({
   title: 'Bonsai Console Help',
   description: 'Documentation and help for the Bonsai Console admin panel',
-  base: '/help/',
-  outDir: '../dist/help',
+  base: isDocsDockerBuild ? '/' : '/help/',
+  outDir: isDocsDockerBuild ? '../dist' : '../dist/help',
 
   themeConfig: {
     nav: [
@@ -56,6 +58,7 @@ export default defineConfig({
             { text: 'Tools', link: '/design/tools' },
             { text: 'Knowledge Base', link: '/design/knowledge' },
             { text: 'Global Memory', link: '/design/global-memory' },
+            { text: 'Sample Copies', link: '/design/sample-copies' },
           ],
         },
       ],
@@ -90,7 +93,8 @@ export default defineConfig({
     socialLinks: [],
 
     footer: {
-      message: 'Bonsai Console Help',
+      message: 'Released under the Apache-2.0 License.',
+      copyright: 'Copyright © HearMe (utter.one) & contributors',
     },
 
     search: {

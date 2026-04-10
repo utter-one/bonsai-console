@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import FormField from '@/components/FormField.vue'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
+import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch } from '@/composables'
-import { ShieldCheck, Search, X, Plus, Save, Check } from 'lucide-vue-next'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import ConfigureModerationActionModal from '@/components/modals/ConfigureModerationActionModal.vue'
 
 const router = useRouter()
 const guardrailsStore = useGuardrailsStore()
@@ -18,6 +23,11 @@ const providerCatalogStore = useProviderCatalogStore()
 
 type TabType = 'guardrails' | 'moderation'
 const activeTab = ref<TabType>('guardrails')
+
+const tabs: TabDefinition[] = [
+  { key: 'guardrails', label: 'Guardrails' },
+  { key: 'moderation', label: 'Moderation' },
+]
 
 // Sorting
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-guardrails')
@@ -41,12 +51,15 @@ const showSettingsSuccess = ref(false)
 const defaultGuardrailClassifierId = ref<string>('')
 
 // Moderation state
+const showConfigureModerationModal = ref(false)
 const moderationLoading = ref(false)
 const moderationError = ref<string | null>(null)
+const moderationValidationError = ref<ParsedError | null>(null)
 const showModerationSuccess = ref(false)
 const moderationForm = ref({
   enabled: false,
   llmProviderId: '',
+  mode: 'strict' as 'strict' | 'standard',
   blockedCategories: [] as string[],
 })
 
@@ -81,6 +94,7 @@ const availableModerationCategories = computed(() => {
 
 watch(() => moderationForm.value.llmProviderId, () => {
   moderationForm.value.blockedCategories = []
+  moderationValidationError.value = null
 })
 
 // Search
@@ -142,6 +156,7 @@ async function loadProjectSettings() {
     moderationForm.value = {
       enabled: currentProject.value?.moderationConfig?.enabled ?? false,
       llmProviderId: currentProject.value?.moderationConfig?.llmProviderId || '',
+      mode: currentProject.value?.moderationConfig?.mode ?? 'strict',
       blockedCategories: currentProject.value?.moderationConfig?.blockedCategories ?? [],
     }
   } catch (err: any) {
@@ -170,6 +185,14 @@ async function saveProjectSettings() {
 
 async function saveModerationSettings() {
   if (!currentProject.value) return
+  moderationValidationError.value = null
+  if (moderationForm.value.enabled && !moderationForm.value.llmProviderId) {
+    moderationValidationError.value = {
+      message: 'A moderation provider is required when content moderation is enabled',
+      details: [{ code: 'required', path: ['llmProviderId'], message: 'A moderation provider is required' }]
+    }
+    return
+  }
   moderationLoading.value = true
   moderationError.value = null
   try {
@@ -179,6 +202,7 @@ async function saveModerationSettings() {
         ? {
             enabled: true,
             llmProviderId: moderationForm.value.llmProviderId,
+            mode: moderationForm.value.mode,
             ...(moderationForm.value.blockedCategories.length > 0 && {
               blockedCategories: moderationForm.value.blockedCategories,
             }),
@@ -205,10 +229,6 @@ async function deleteGuardrail(guardrail: GuardrailResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function createGuardrail() {
   if (projectIsArchived.value) return
@@ -224,9 +244,18 @@ function editGuardrail(guardrail: GuardrailResponse) {
     params: { projectId: projectId.value, guardrailId: guardrail.id }
   })
 }
+
+function navigateToModerationAction() {
+  showConfigureModerationModal.value = true
+}
 </script>
 
 <template>
+  <ConfigureModerationActionModal
+    v-if="showConfigureModerationModal"
+    :project-id="projectId"
+    @close="showConfigureModerationModal = false"
+  />
   <div class="container-constrained">
     <!-- Header -->
     <div class="page-header">
@@ -246,22 +275,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          type="button"
-          @click="activeTab = 'guardrails'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'guardrails' }]"
-        >
-          Guardrails
-        </button>
-        <button
-          type="button"
-          @click="activeTab = 'moderation'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'moderation' }]"
-        >
-          Moderation
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Content -->
@@ -281,8 +295,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
 
         <!-- Guardrails Classifier Setting -->
         <div class="mb-6">
-          <div class="form-group">
-            <label class="form-label">Guardrails Classifier</label>
+          <FormField label="Guardrails Classifier" class="w-full">
             <div class="flex items-center gap-3">
               <select
                 v-model="defaultGuardrailClassifierId"
@@ -311,7 +324,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
             </div>
             <p class="form-help-text">The classifier used to evaluate all guardrails in this project on every user input turn.</p>
             <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
-          </div>
+          </FormField>
         </div>
 
         <!-- Search Bar -->
@@ -440,23 +453,66 @@ function editGuardrail(guardrail: GuardrailResponse) {
               </button>
             </div>
 
-            <div class="form-group">
-              <label class="flex items-center gap-3 cursor-pointer">
+            <FormField label="Enable content moderation" class="w-full" help="When enabled, each user message is screened by the moderation API before being processed">
+              
+              <template #leading>
                 <input
                   type="checkbox"
                   v-model="moderationForm.enabled"
                   class="form-checkbox"
                   :disabled="moderationLoading"
                 />
-                <span class="form-label mb-0">Enable content moderation</span>
-              </label>
-              <p class="form-help-text mt-1">
-                When enabled, each user message is screened by the moderation API before being processed
-              </p>
-            </div>
+              </template>
+            </FormField>
 
             <div v-if="moderationForm.enabled" class="form-group">
-              <label class="form-label">Moderation Provider <span class="text-red-500">*</span></label>
+              <label class="form-label">Moderation Mode</label>
+              <div class="space-y-2 mt-1">
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg border border-transparent hover:bg-gray-50 dark:hover:bg-gray-700" :class="moderationForm.mode === 'strict' ? 'border-primary-300 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-700' : ''">
+                  <input
+                    type="radio"
+                    value="strict"
+                    v-model="moderationForm.mode"
+                    class="form-checkbox mt-0.5 shrink-0"
+                    :disabled="moderationLoading"
+                  />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium text-gray-900 dark:text-white">Strict <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(default)</span></span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs before all other processing. The turn is held until the result is available, ensuring no flagged message is ever processed.</span>
+                  </span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg border border-transparent hover:bg-gray-50 dark:hover:bg-gray-700" :class="moderationForm.mode === 'standard' ? 'border-primary-300 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-700' : ''">
+                  <input
+                    type="radio"
+                    value="standard"
+                    v-model="moderationForm.mode"
+                    class="form-checkbox mt-0.5 shrink-0"
+                    :disabled="moderationLoading"
+                  />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium text-gray-900 dark:text-white">Standard</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moderation runs after filler generation, in parallel with classification and knowledge retrieval, reducing perceived latency. Flagged messages are still blocked before classification results are acted upon.</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div v-if="moderationForm.enabled" class="flex items-start justify-between gap-4 py-2">
+              <div>
+                <label class="form-label">Moderation Blocked Action</label>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Configure the effects that run when a user message is blocked by moderation — for example, generating a refusal response or ending the conversation.
+                </p>
+              </div>
+              <button @click="navigateToModerationAction" class="btn-secondary shrink-0">
+                <ShieldAlert class="inline-block mr-2 w-4 h-4 text-violet-500" />
+                Configure Action
+              </button>
+            </div>
+
+            <FormField v-if="moderationForm.enabled" label="Moderation Provider" required :error="moderationValidationError" path="llmProviderId" 
+              help="Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API"
+            >
               <select
                 v-model="moderationForm.llmProviderId"
                 class="form-select-auto"
@@ -467,18 +523,14 @@ function editGuardrail(guardrail: GuardrailResponse) {
                   {{ provider.name }} ({{ provider.apiType }})
                 </option>
               </select>
-              <p class="form-help-text">
-                Only OpenAI and Mistral providers are listed as they are the only ones that support the moderation API
+            </FormField>
+            <div class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
+              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
               </p>
-              <div v-if="moderationLlmProviders.length === 0" class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
-                <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                  No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
-                </p>
-              </div>
             </div>
 
-            <div v-if="moderationForm.enabled && moderationForm.llmProviderId" class="form-group">
-              <label class="form-label">Blocked Categories</label>
+            <FormField v-if="moderationForm.enabled && moderationForm.llmProviderId" label="Blocked Categories" class="w-full">
               <p class="form-help-text mb-3">
                 Select which flagged categories will block the message. If none are selected, any flagged category will block it.
               </p>
@@ -508,7 +560,7 @@ function editGuardrail(guardrail: GuardrailResponse) {
               <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
                 <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
               </div>
-            </div>
+            </FormField>
 
             <div v-if="!moderationForm.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
               <p class="text-sm text-gray-600 dark:text-gray-400">

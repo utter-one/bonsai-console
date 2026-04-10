@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig } from '@/api/types'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
+import apiClient from '@/api/client'
+import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
+import CostLimitEntryModal from '@/components/modals/CostLimitEntryModal.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import { PROJECT_COLOR_FAMILIES, getProjectColorHex } from '@/assets/projectColors'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 import StorageSettingsModal from '@/components/modals/StorageSettingsModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation, formatDate } from '@/composables'
+import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
+import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,9 +34,9 @@ const providersStore = useProvidersStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -32,37 +45,59 @@ const form = ref({
     asrProviderId: '',
     settings: {} as any,
     unintelligiblePlaceholder: '',
-    voiceActivityDetection: false
+    voiceActivityDetection: false,
+    serverVadEnabled: false,
+    serverVad: {
+      mode: undefined as number | undefined,
+      frameDurationMs: undefined as (10 | 20 | 30) | undefined,
+      silencePaddingMs: undefined as number | undefined,
+      autoEndSilenceDurationMs: undefined as number | undefined,
+    }
   },
   storageConfig: {
     storageProviderId: '',
     settings: {} as any
   },
-  acceptVoice: false,
   generateVoice: false,
+  acceptVoice: false,
   timezone: null as string | null,
   languageCode: null as string | null,
   conversationTimeoutSeconds: 120 as number | null,
   primaryColor: null as string | null,
   version: undefined as number | undefined,
+  costLimitEntries: [] as CostLimitEntry[],
 })
 
 const showApiKeyModal = ref(false)
 const selectedApiKey = ref<ApiKeyResponse | null>(null)
 const apiKeysLoading = ref(false)
 const apiKeysError = ref<string | null>(null)
-const newPhrase = ref('')
-const newKeyterm = ref('')
-const newVocabWord = ref('')
 const createPlaygroundApiKey = ref(true)
 const showStorageSettingsModal = ref(false)
-const deepgramEndpointingEnabled = ref(true)
-const deepgramEndpointingValue = ref(300)
+const showAsrSettingsModal = ref(false)
+const showServerVadModal = ref(false)
 
 // Computed
 const projectId = computed(() => route.params.projectId as string | undefined)
 const isEditMode = computed(() => !!projectId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'voice', label: 'Voice' },
+  { key: 'storage', show: false, label: () => [
+    'Storage',
+    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
+      h(FlaskConical, { class: 'w-3 h-3' })
+    )
+  ] },
+  { key: 'costs', label: 'Cost Management' },
+  { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+  { key: 'danger', label: 'Danger Zone', show: isEditMode.value },
+])
 const currentProject = ref<ProjectResponse | null>(null)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const isArchived = computed(() => !!currentProject.value?.archivedAt)
 const deleteConfirmName = ref('')
@@ -75,6 +110,98 @@ const storageProviders = computed(() =>
   providersStore.items.filter(p => p.providerType === 'storage')
 )
 
+const llmProviders = computed(() => 
+  providersStore.items.filter(p => p.providerType === 'llm')
+)
+
+const llmProviderOptions = computed(() =>
+  [...llmProviders.value].sort((a, b) => a.name.localeCompare(b.name))
+)
+
+function providerNameForId(id: string): string {
+  return llmProviders.value.find(p => p.id === id)?.name ?? id
+}
+
+// Cache of providerId -> modelId -> displayName, built lazily as models are fetched
+const modelDisplayNames = ref<Record<string, Record<string, string>>>({})
+
+async function ensureModelsLoaded(providerId: string) {
+  if (!providerId || modelDisplayNames.value[providerId]) return
+  try {
+    const response = await apiClient.providersModelsList(providerId)
+    const map: Record<string, string> = {}
+    for (const m of response.models) map[m.id] = m.displayName
+    modelDisplayNames.value = { ...modelDisplayNames.value, [providerId]: map }
+  } catch {
+    // silently ignore — fall back to raw ID
+  }
+}
+
+function modelNameForEntry(entry: CostLimitEntry): string {
+  if (entry.modelName === '*') return '* (Any model)'
+  return modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName
+}
+
+const requestTypeLabels: Record<string, string> = {
+  completion: 'Compl',
+  classification: 'Class',
+  tool: 'Tool',
+  transformation: 'Trans',
+  filler: 'Filler',
+}
+
+function limitsForDisplay(limits: CostLimitEntry['inputTokensLimits']): { label: string; value: number }[] {
+  return Object.entries(limits)
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => ({ label: requestTypeLabels[k] ?? k, value: v as number }))
+}
+
+const showCostLimitModal = ref(false)
+const editingCostLimitEntry = ref<CostLimitEntry | null>(null)
+const editingCostLimitIndex = ref<number | null>(null)
+
+function openAddCostLimitEntry() {
+  editingCostLimitEntry.value = null
+  editingCostLimitIndex.value = null
+  showCostLimitModal.value = true
+}
+
+function openEditCostLimitEntry(index: number) {
+  editingCostLimitEntry.value = form.value.costLimitEntries[index] ?? null
+  editingCostLimitIndex.value = index
+  showCostLimitModal.value = true
+}
+
+function handleCostLimitEntrySave(entry: CostLimitEntry) {
+  if (editingCostLimitIndex.value !== null) {
+    form.value.costLimitEntries.splice(editingCostLimitIndex.value, 1, entry)
+  } else {
+    form.value.costLimitEntries.push(entry)
+  }
+  ensureModelsLoaded(entry.providerId)
+  showCostLimitModal.value = false
+}
+
+function removeCostLimitEntry(index: number) {
+  form.value.costLimitEntries.splice(index, 1)
+}
+
+function costLimitSortKey(entry: CostLimitEntry): [string, string] {
+  const provider = entry.providerId === '*' ? '' : providerNameForId(entry.providerId).toLowerCase()
+  const model = entry.modelName === '*' ? '' : (modelDisplayNames.value[entry.providerId]?.[entry.modelName] ?? entry.modelName).toLowerCase()
+  return [provider, model]
+}
+
+const sortedCostLimitEntries = computed(() =>
+  form.value.costLimitEntries
+    .map((entry, originalIndex) => ({ entry, originalIndex }))
+    .sort((a, b) => {
+      const [ap, am] = costLimitSortKey(a.entry)
+      const [bp, bm] = costLimitSortKey(b.entry)
+      return ap !== bp ? ap.localeCompare(bp) : am.localeCompare(bm)
+    })
+)
+
 const selectedStorageProvider = computed(() => {
   if (!form.value.storageConfig.storageProviderId) return null
   return storageProviders.value.find(p => p.id === form.value.storageConfig.storageProviderId) || null
@@ -85,69 +212,9 @@ const selectedAsrProvider = computed(() => {
   return asrProviders.value.find(p => p.id === form.value.asrConfig.asrProviderId) || null
 })
 
-const isAzureAsrProvider = computed(() => {
-  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
-  return apiType === 'azure-speech' || apiType === 'azure'
-})
-
-const isElevenLabsAsrProvider = computed(() => {
-  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
-  return apiType === 'elevenlabs-scribe' || apiType === 'elevenlabs'
-})
-
-const isDeepgramAsrProvider = computed(() => {
-  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
-  return apiType === 'deepgram'
-})
-
-const isAssemblyAiAsrProvider = computed(() => {
-  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
-  return apiType === 'assemblyai'
-})
-
-const isSpeechmaticsAsrProvider = computed(() => {
-  const apiType = selectedAsrProvider.value?.apiType?.toLowerCase()
-  return apiType === 'speechmatics'
-})
-
-// Sync endpointing checkbox/input state from form settings
-watch(() => form.value.asrConfig.settings.endpointing, (value) => {
-  if (isDeepgramAsrProvider.value) {
-    if (value === false) {
-      deepgramEndpointingEnabled.value = false
-      deepgramEndpointingValue.value = 300
-    } else if (typeof value === 'number') {
-      deepgramEndpointingEnabled.value = true
-      deepgramEndpointingValue.value = value
-    } else {
-      // undefined or other - default to enabled with 300ms
-      deepgramEndpointingEnabled.value = true
-      deepgramEndpointingValue.value = 300
-    }
-  }
-}, { immediate: true })
-
-// Update form settings when checkbox changes
-watch(deepgramEndpointingEnabled, (enabled) => {
-  if (isDeepgramAsrProvider.value) {
-    if (enabled) {
-      form.value.asrConfig.settings.endpointing = deepgramEndpointingValue.value
-    } else {
-      form.value.asrConfig.settings.endpointing = false
-    }
-  }
-})
-
-// Update form settings when input value changes
-watch(deepgramEndpointingValue, (value) => {
-  if (isDeepgramAsrProvider.value && deepgramEndpointingEnabled.value) {
-    form.value.asrConfig.settings.endpointing = value
-  }
-})
-
 const filteredApiKeys = computed(() => {
   if (!currentProject.value) return []
-  return apiKeysStore.items
+  return [...apiKeysStore.items].sort((a, b) => a.name.localeCompare(b.name))
 })
 
 const metadataFields = computed(() => {
@@ -163,7 +230,7 @@ const metadataFields = computed(() => {
 // Lifecycle
 onMounted(async () => {
   await providersStore.fetchAll()
-  
+
   if (isEditMode.value) {
     await loadProject()
   }
@@ -276,26 +343,41 @@ async function loadProject() {
           asrProviderId: currentProject.value.asrConfig?.asrProviderId || '',
           settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
-          voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false
+          voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
+          serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
+          serverVad: {
+            mode: currentProject.value.asrConfig?.serverVad?.mode,
+            frameDurationMs: currentProject.value.asrConfig?.serverVad?.frameDurationMs,
+            silencePaddingMs: currentProject.value.asrConfig?.serverVad?.silencePaddingMs,
+            autoEndSilenceDurationMs: currentProject.value.asrConfig?.serverVad?.autoEndSilenceDurationMs,
+          }
         },
         storageConfig: {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
           settings: currentProject.value.storageConfig?.settings || {}
         },
-        acceptVoice: currentProject.value.acceptVoice ?? false,
         generateVoice: currentProject.value.generateVoice ?? false,
+        acceptVoice: currentProject.value.acceptVoice ?? false,
         timezone: currentProject.value.timezone ?? null,
         languageCode: currentProject.value.languageCode ?? null,
         conversationTimeoutSeconds: currentProject.value.conversationTimeoutSeconds ?? null,
         primaryColor: currentProject.value.metadata?.primaryColor ?? null,
         version: currentProject.value.version,
+        costLimitEntries: currentProject.value.costManagementConfig
+          ? configToCostLimitEntries(currentProject.value.costManagementConfig)
+          : [],
       }
-      
+
+      // Load model display names for configured entries
+      for (const entry of form.value.costLimitEntries) {
+        ensureModelsLoaded(entry.providerId)
+      }
+
       // Load API keys for edit mode
       await loadApiKeys()
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load project'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -318,6 +400,21 @@ async function loadApiKeys() {
 
 async function handleSubmit() {
   error.value = null
+
+  const errorDetails: ApiErrorDetail[] = []
+
+  if (form.value.name.trim() === '')
+    errorDetails.push({ path: ['name'], message: 'Project name is required', code: 'REQUIRED_FIELD' })
+
+  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
+      errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+    
+  if (errorDetails.length > 0) {
+    error.value = { message: 'Please fix the errors below', details: errorDetails }
+    switchToFirstErrorTab(error.value)
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -328,7 +425,15 @@ async function handleSubmit() {
         settings: form.value.asrConfig.settings
       }),
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
-      voiceActivityDetection: form.value.asrConfig.voiceActivityDetection
+      voiceActivityDetection: form.value.asrConfig.voiceActivityDetection,
+      ...(form.value.asrConfig.serverVadEnabled && {
+        serverVad: {
+          ...(form.value.asrConfig.serverVad.mode !== undefined && { mode: form.value.asrConfig.serverVad.mode }),
+          ...(form.value.asrConfig.serverVad.frameDurationMs !== undefined && { frameDurationMs: form.value.asrConfig.serverVad.frameDurationMs }),
+          ...(form.value.asrConfig.serverVad.silencePaddingMs !== undefined && { silencePaddingMs: form.value.asrConfig.serverVad.silencePaddingMs }),
+          ...(form.value.asrConfig.serverVad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: form.value.asrConfig.serverVad.autoEndSilenceDurationMs }),
+        }
+      })
     } : undefined
 
     // Build storage config only if provider is selected
@@ -359,6 +464,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
+        costManagementConfig: buildCostManagementConfig(),
       })
       
       // Update currentProject with the response to get the new version
@@ -384,6 +490,7 @@ async function handleSubmit() {
         languageCode: form.value.languageCode,
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
+        costManagementConfig: buildCostManagementConfig(),
       })
 
       // Set currentProject to the newly created project
@@ -418,7 +525,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} project`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -426,27 +534,6 @@ async function handleSubmit() {
 
 function goBack() {
   router.push({ name: 'administration.projects' })
-}
-
-async function handleArchiveUnarchive() {
-  if (!currentProject.value) return
-  const action = isArchived.value ? 'unarchive' : 'archive'
-  if (!confirm(`${action === 'archive' ? 'Archive' : 'Unarchive'} project "${currentProject.value.name}"?`)) return
-  try {
-    if (action === 'archive') {
-      currentProject.value = await projectsStore.archive(currentProject.value.id, currentProject.value.version)
-    } else {
-      currentProject.value = await projectsStore.unarchive(currentProject.value.id, currentProject.value.version)
-    }
-    // refresh selection store if this project is currently selected
-    const projSel = useProjectSelectionStore()
-    const updatedId = currentProject.value?.id
-    if (updatedId && projSel.selectedProjectId === updatedId) {
-      projSel.setSelectedProjectId(updatedId)
-    }
-  } catch (err: any) {
-    alert(err.response?.data?.message || `Failed to ${action} project`)
-  }
 }
 
 async function handleDeleteProject() {
@@ -472,60 +559,18 @@ async function handleDeleteProject() {
   }
 }
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString()
+
+function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: boolean }) {
+  form.value.asrConfig.settings = data.settings
+  form.value.asrConfig.voiceActivityDetection = data.voiceActivityDetection
+  showAsrSettingsModal.value = false
 }
 
-// Dictionary phrases management (Azure ASR)
-function addDictionaryPhrase() {
-  if (!newPhrase.value.trim()) return
-  
-  if (!form.value.asrConfig.settings.dictionaryPhrases) {
-    form.value.asrConfig.settings.dictionaryPhrases = []
-  }
-  
-  form.value.asrConfig.settings.dictionaryPhrases.push(newPhrase.value.trim())
-  newPhrase.value = ''
+function handleServerVadSettingsSave(config: { mode: number | undefined; frameDurationMs: (10 | 20 | 30) | undefined; silencePaddingMs: number | undefined; autoEndSilenceDurationMs: number | undefined }) {
+  form.value.asrConfig.serverVad = config
+  showServerVadModal.value = false
 }
 
-function removeDictionaryPhrase(index: number | string) {
-  if (form.value.asrConfig.settings.dictionaryPhrases) {
-    form.value.asrConfig.settings.dictionaryPhrases.splice(Number(index), 1)
-  }
-}
-
-function addKeyterm() {
-  if (!newKeyterm.value.trim()) return
-  
-  if (!form.value.asrConfig.settings.keytermsPrompt) {
-    form.value.asrConfig.settings.keytermsPrompt = []
-  }
-  
-  form.value.asrConfig.settings.keytermsPrompt.push(newKeyterm.value.trim())
-  newKeyterm.value = ''
-}
-
-function removeKeyterm(index: number | string) {
-  if (form.value.asrConfig.settings.keytermsPrompt) {
-    form.value.asrConfig.settings.keytermsPrompt.splice(Number(index), 1)
-  }
-}
-
-function addSpeechmaticsVocab() {
-  if (!newVocabWord.value.trim()) return
-  if (!form.value.asrConfig.settings.additionalVocab) {
-    form.value.asrConfig.settings.additionalVocab = []
-  }
-  form.value.asrConfig.settings.additionalVocab.push(newVocabWord.value.trim())
-  newVocabWord.value = ''
-}
-
-function removeSpeechmaticsVocab(index: number | string) {
-  if (form.value.asrConfig.settings.additionalVocab) {
-    form.value.asrConfig.settings.additionalVocab.splice(Number(index), 1)
-  }
-}
 
 // API Key management
 function handleCreateApiKey() {
@@ -616,6 +661,61 @@ function handleStorageSettingsSave(settings: any) {
 function handleStorageSettingsClose() {
   showStorageSettingsModal.value = false
 }
+
+// Cost Management helpers
+function configToCostLimitEntries(config: CostManagementConfig): CostLimitEntry[] {
+  const entries: CostLimitEntry[] = []
+  for (const [providerId, models] of Object.entries(config.limits)) {
+    for (const [modelName, limits] of Object.entries(models)) {
+      entries.push({
+        providerId,
+        modelName,
+        outputTokensLimits: {
+          completion: limits.outputTokensLimits?.completion,
+          classification: limits.outputTokensLimits?.classification,
+          tool: limits.outputTokensLimits?.tool,
+          transformation: limits.outputTokensLimits?.transformation,
+          filler: limits.outputTokensLimits?.filler,
+        },
+        inputTokensLimits: {
+          completion: limits.inputTokensLimits?.completion,
+          classification: limits.inputTokensLimits?.classification,
+          tool: limits.inputTokensLimits?.tool,
+          transformation: limits.inputTokensLimits?.transformation,
+          filler: limits.inputTokensLimits?.filler,
+        },
+      })
+    }
+  }
+  return entries
+}
+
+function buildCostManagementConfig(): CostManagementConfig {
+  const limits: Record<string, Record<string, ProviderModelLimits>> = {}
+  for (const entry of form.value.costLimitEntries) {
+    if (!entry.providerId || !entry.modelName) continue
+    if (!limits[entry.providerId]) limits[entry.providerId] = {}
+    const pml: ProviderModelLimits = {}
+    const outTokens: RequestTypeLimits = {}
+    if (entry.outputTokensLimits.completion) outTokens.completion = entry.outputTokensLimits.completion
+    if (entry.outputTokensLimits.classification) outTokens.classification = entry.outputTokensLimits.classification
+    if (entry.outputTokensLimits.tool) outTokens.tool = entry.outputTokensLimits.tool
+    if (entry.outputTokensLimits.transformation) outTokens.transformation = entry.outputTokensLimits.transformation
+    if (entry.outputTokensLimits.filler) outTokens.filler = entry.outputTokensLimits.filler
+    if (Object.keys(outTokens).length > 0) pml.outputTokensLimits = outTokens
+    const inTokens: RequestTypeLimits = {}
+    if (entry.inputTokensLimits.completion) inTokens.completion = entry.inputTokensLimits.completion
+    if (entry.inputTokensLimits.classification) inTokens.classification = entry.inputTokensLimits.classification
+    if (entry.inputTokensLimits.tool) inTokens.tool = entry.inputTokensLimits.tool
+    if (entry.inputTokensLimits.transformation) inTokens.transformation = entry.inputTokensLimits.transformation
+    if (entry.inputTokensLimits.filler) inTokens.filler = entry.inputTokensLimits.filler
+    if (Object.keys(inTokens).length > 0) pml.inputTokensLimits = inTokens
+    ;(limits[entry.providerId] as Record<string, ProviderModelLimits>)[entry.modelName] = pml
+  }
+  return { limits }
+}
+
+
 </script>
 
 <template>
@@ -638,9 +738,6 @@ function handleStorageSettingsClose() {
         <button type="button" @click="goBack" class="btn-secondary" :disabled="isLoading">
           Cancel
         </button>
-        <button v-if="isEditMode" type="button" @click="handleArchiveUnarchive" :class="isArchived ? 'btn-secondary' : 'btn-danger'" :disabled="isLoading">
-          {{ isArchived ? 'Unarchive' : 'Archive' }}
-        </button>
         <button v-if="!isArchived" @click="handleSubmit" class="btn-primary" :disabled="isLoading || showSuccess">
           <Check v-if="showSuccess" class="inline-block mr-2 w-4 h-4" />
           <Save v-else class="inline-block mr-2 w-4 h-4" />
@@ -655,64 +752,7 @@ function handleStorageSettingsClose() {
     </div>
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'voice'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'voice' }]"
-          type="button"
-        >
-          Voice
-        </button>
-        <button
-          @click="activeTab = 'storage'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'storage' }]"
-          type="button"
-        >
-          Storage
-          <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-            <FlaskConical class="w-3 h-3" />
-          </span>
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'apiKeys'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'apiKeys' }]"
-          type="button"
-        >
-          API Keys
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'danger'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'danger' }]"
-          type="button"
-        >
-          Danger Zone
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->
@@ -722,41 +762,33 @@ function handleStorageSettingsClose() {
 
     <!-- Error State -->
     <div v-else-if="error && isEditMode && !currentProject" class="error-state">
-      {{ error }}
+      <ErrorDisplay :error="error" />
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Projects
       </button>
     </div>
 
     <!-- Form -->
-    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-900">
+    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isArchived" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+        <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
         <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Project Name <span class="required">*</span>
-            </label>
+        <TabContent v-model="activeTab" tab="basic">
+          <FormField label="Project Name" required :error="error" path="name" class="w-full" help="A descriptive name for your AI application project">
             <input
               v-model="form.name"
               type="text"
-              required
               placeholder="My AI Project"
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">A descriptive name for your AI application project</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Description</label>
+          <FormField label="Description" :error="error" path="description" class="w-full" help="Provide additional context about the project's purpose">
             <textarea
               v-model="form.description"
               rows="3"
@@ -764,11 +796,9 @@ function handleStorageSettingsClose() {
               class="form-textarea"
               :disabled="isLoading"
             ></textarea>
-            <p class="form-help-text">Provide additional context about the project's purpose</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Timezone</label>
+          <FormField label="Timezone" :error="error" path="timezone" class="min-w-60" help="IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)">
             <TimezoneSelector
               v-model="form.timezone"
               width="override"
@@ -776,11 +806,9 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
               class="max-w-96"
             />
-            <p class="form-help-text">IANA timezone used as the default for conversations in this project (e.g. Europe/Warsaw, America/New_York)</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Language</label>
+          <FormField label="Language" :error="error" path="languageCode" class="min-w-60" help="Default language for this project. Exposed as project.languageCode and project.language in scripts and templates.">
             <LanguageSelector
               v-model="form.languageCode"
               width="override"
@@ -788,11 +816,9 @@ function handleStorageSettingsClose() {
               :disabled="isLoading"
               class="max-w-96"
             />
-            <p class="form-help-text">Default language for this project. Exposed in scripts and templates as <code>project.languageCode</code> and <code>project.language</code>.</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">Conversation Timeout (seconds)</label>
+          <FormField label="Conversation Timeout (seconds)" :error="error" path="conversationTimeoutSeconds" class="min-w-48" help="Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.">
             <input
               :value="form.conversationTimeoutSeconds ?? ''"
               @change="(e) => {
@@ -810,12 +836,10 @@ function handleStorageSettingsClose() {
               class="form-input max-w-64"
               :disabled="isLoading"
             />
-            <p class="form-help-text">Automatically abort conversations with no activity after this many seconds (60–3600). Leave empty to disable.</p>
-          </div>
+          </FormField>
 
           <!-- Project Color Picker -->
-          <div class="form-group">
-            <label class="form-label">Project Color</label>
+          <FormField label="Project Color" :error="error" path="primaryColor" help="Optional accent color shown in the top navigation bar when this project is active">
             <div class="mt-2">
               <!-- Color swatch grid: columns = hue families, rows = shades (300 / 600 / 900) -->
               <div class="flex gap-1 flex-wrap">
@@ -871,1066 +895,148 @@ function handleStorageSettingsClose() {
                 <span v-else class="text-xs text-gray-400 dark:text-gray-500">No color selected</span>
               </div>
             </div>
-            <p class="form-help-text mt-1">Optional accent color shown in the top navigation bar when this project is active</p>
-          </div>
+          </FormField>
 
-          <!-- Create Playground API Key Checkbox (only when creating) -->
-          <div v-if="!isEditMode" class="form-group bg-purple-50 p-4 rounded-lg border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
-            <label class="flex items-center cursor-pointer">
-              <input
-                v-model="createPlaygroundApiKey"
-                type="checkbox"
-                class="form-checkbox"
-                :disabled="isLoading"
-              />
-              <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                Create API key for Playground
-              </span>
-            </label>
-            <p class="form-help-text mt-1">
-              Automatically create a "Playground" API key for testing and development
-            </p>
-          </div>
-        </div>
-
-        <!-- Voice Settings Tab -->
-        <div v-show="activeTab === 'voice'" class="tab-content">
-          <div class="space-y-6">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Voice Input & Output Configuration</h3>
-              <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
-                Configure voice capabilities for your conversations, including speech recognition (ASR) and text-to-speech (TTS).
-              </p>
-            </div>
-            
-            <!-- Voice Input Checkbox (Top) -->
-            <div class="form-group bg-blue-50 p-4 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+            <!-- Create Playground API Key Checkbox (only when creating) -->
+            <div v-if="!isEditMode" class="form-group bg-purple-50 p-4 rounded-lg border border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
               <label class="flex items-center cursor-pointer">
                 <input
-                  v-model="form.acceptVoice"
+                  v-model="createPlaygroundApiKey"
                   type="checkbox"
                   class="form-checkbox"
                   :disabled="isLoading"
                 />
                 <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Enable Voice Input
+                  Create API key for Playground
                 </span>
               </label>
               <p class="form-help-text mt-1">
-                Allow conversations to accept voice input (requires ASR provider configured below)
+                Automatically create a "Playground" API key for testing and development
               </p>
             </div>
+          </TabContent>
 
-            <!-- Voice Output Checkbox -->
-            <div class="form-group bg-green-50 p-4 rounded-lg border border-green-200 dark:bg-green-900/20 dark:border-green-800">
-              <label class="flex items-center cursor-pointer">
-                <input
-                  v-model="form.generateVoice"
-                  type="checkbox"
-                  class="form-checkbox"
-                  :disabled="isLoading"
-                />
-                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Enable Voice Output
-                </span>
-              </label>
-              <p class="form-help-text mt-1 text-gray-500 dark:text-gray-400">
-                Allow conversations to generate voice responses using text-to-speech
-              </p>
-            </div>
-
-            <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
-              <h4 class="text-base font-semibold text-gray-900 mb-4 dark:text-white">ASR Configuration</h4>
-              
-              <div class="form-group">
-                <label class="form-label">
-                  Unintelligible Placeholder <span class="text-gray-500">(optional)</span>
-                </label>
-                <input
-                  v-model="form.asrConfig.unintelligiblePlaceholder"
-                  type="text"
-                  placeholder="e.g., [unintelligible]"
-                  class="form-input"
-                  :disabled="isLoading"
-                />
-                <p class="form-help-text">
-                  Text to use when speech is unintelligible or cannot be transcribed
+          <!-- Voice Settings Tab -->
+          <TabContent v-model="activeTab" tab="voice">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Speech Recognition & Text To Speech Configuration</h3>
+                <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                  Configure voice capabilities for your conversations, including speech recognition (ASR) and text-to-speech (TTS).
                 </p>
               </div>
 
-              <div class="form-group">
-                <label class="flex items-center cursor-pointer">
+              <!-- Enable Speech Input Box -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                   <input
-                    v-model="form.asrConfig.voiceActivityDetection"
+                    v-model="form.acceptVoice"
                     type="checkbox"
                     class="form-checkbox"
                     :disabled="isLoading"
                   />
-                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Enable Voice Activity Detection
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Speech Input
                   </span>
                 </label>
-                <p class="form-help-text mt-1">
-                  Automatically start/stop recording based on speech presence
-                </p>
-              </div>
 
-              <div class="form-group mt-6">
-                <label class="form-label">
-                  ASR Provider
-                  <span v-if="form.acceptVoice" class="required">*</span>
-                  <span v-else class="text-gray-500">(optional)</span>
-                </label>
-                <select
-                  v-model="form.asrConfig.asrProviderId"
-                  class="form-select-auto min-w-64"
-                  :disabled="isLoading"
-                  :required="form.acceptVoice"
-                  @change="handleAsrProviderChange"
-                >
-                  <option value="">None</option>
-                  <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
-                    {{ provider.name }}
-                  </option>
-                </select>
-                <p class="form-help-text">
-                  Select the Automatic Speech Recognition provider for voice input{{ form.acceptVoice ? ' (required when voice input is enabled)' : '' }}
-                </p>
-              </div>
-
-              <!-- Azure ASR Settings -->
-              <div v-if="form.asrConfig.asrProviderId && isAzureAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
-                <div class="form-group">
-                  <label class="form-label">
-                    Language <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model="form.asrConfig.settings.language"
-                    type="text"
-                    placeholder="e.g., en-US, es-ES, fr-FR"
-                    class="form-input"
-                    :disabled="isLoading"
-                  />
+                <div v-if="form.acceptVoice" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
                   <p class="form-help-text">
-                    Language code for speech recognition (e.g., "en-US", "es-ES", "fr-FR")
+                    Allow conversations to accept voice input from users using automatic speech recognition.
                   </p>
-                </div>
 
-                <div class="form-group">
-                  <label class="form-label">
-                    Audio Format <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option :value="undefined">Default</option>
-                    <option value="mp3">MP3</option>
-                    <option value="opus">Opus</option>
-                    <option value="aac">AAC</option>
-                    <option value="flac">FLAC</option>
-                    <option value="wav">WAV</option>
-                    <option value="pcm_8000">PCM 8kHz</option>
-                    <option value="pcm_16000">PCM 16kHz</option>
-                    <option value="pcm_22050">PCM 22.05kHz</option>
-                    <option value="pcm_24000">PCM 24kHz</option>
-                    <option value="pcm_44100">PCM 44.1kHz</option>
-                    <option value="pcm_48000">PCM 48kHz</option>
-                    <option value="mulaw">μ-law</option>
-                    <option value="alaw">A-law</option>
-                    <option value="linear16">Linear16</option>
-                  </select>
-                  <p class="form-help-text">
-                    Audio input format for speech recognition
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Dictionary Phrases <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <div class="flex gap-2 mb-2">
-                    <input
-                      v-model="newPhrase"
-                      type="text"
-                      placeholder="Add a phrase"
-                      class="form-input max-w-64"
-                      :disabled="isLoading"
-                      @keyup.enter="addDictionaryPhrase"
-                    />
-                    <button
-                      type="button"
-                      @click="addDictionaryPhrase"
-                      class="btn-secondary whitespace-nowrap"
-                      :disabled="isLoading"
-                    >
-                      <Plus class="inline-block w-4 h-4 mr-1" />
-                      Add
-                    </button>
-                  </div>
-                  <div v-if="form.asrConfig.settings.dictionaryPhrases && form.asrConfig.settings.dictionaryPhrases.length > 0" class="space-y-2">
-                    <div
-                      v-for="(phrase, index) in form.asrConfig.settings.dictionaryPhrases"
-                      :key="index"
-                      class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                    >
-                      <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ phrase }}</span>
+                  <!-- ASR Provider -->
+                  <CompositeFormField label="ASR Provider" required :error="error" help="Select the Automatic Speech Recognition provider for voice input.">
+                    <div class="flex flex-col md:flex-row gap-2">
+                      <FormField :path="['asrConfig', 'asrProviderId']">
+                        <select
+                          v-model="form.asrConfig.asrProviderId"
+                          class="form-select-auto min-w-64"
+                          :disabled="isLoading"
+                          @change="handleAsrProviderChange"
+                        >
+                          <option value="">None</option>
+                          <option v-for="provider in asrProviders" :key="provider.id" :value="provider.id">
+                            {{ provider.name }}
+                          </option>
+                        </select>
+                      </FormField>
                       <button
                         type="button"
-                        @click="removeDictionaryPhrase(index)"
-                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                        title="Remove phrase"
-                        :disabled="isLoading"
+                        @click="showAsrSettingsModal = true"
+                        class="btn-secondary whitespace-nowrap"
+                        :disabled="isLoading || !form.asrConfig.asrProviderId"
                       >
-                        <X class="w-4 h-4" />
+                        <Settings class="inline-block mr-1 w-4 h-4" />
+                        Settings...
                       </button>
                     </div>
-                  </div>
-                  <p class="form-help-text mt-2">
-                    Custom phrases to improve recognition accuracy for domain-specific terms
-                  </p>
-                </div>
-              </div>
+                  </CompositeFormField>
 
-              <!-- ElevenLabs ASR Settings -->
-              <div v-if="form.asrConfig.asrProviderId && isElevenLabsAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
-                <div class="form-group">
-                  <label class="form-label">
-                    Model ID <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model="form.asrConfig.settings.modelId"
-                    type="text"
-                    placeholder="e.g., scribe_v2_realtime"
-                    class="form-input"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Model to use for transcription (defaults to scribe_v2_realtime)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Audio Format <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option :value="undefined">Default (PCM 16kHz)</option>
-                    <option value="pcm_8000">PCM 8kHz</option>
-                    <option value="pcm_16000">PCM 16kHz</option>
-                    <option value="pcm_22050">PCM 22.05kHz</option>
-                    <option value="pcm_24000">PCM 24kHz</option>
-                    <option value="pcm_44100">PCM 44.1kHz</option>
-                  </select>
-                  <p class="form-help-text">
-                    Audio encoding format for speech-to-text
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Language Code <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model="form.asrConfig.settings.languageCode"
-                    type="text"
-                    placeholder="e.g., en, es, fr"
-                    class="form-input"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Language code in ISO 639-1 or ISO 639-3 format (e.g., "en", "es")
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
+                  <!-- Unintelligible Placeholder -->
+                  <FormField label="Unintelligible Placeholder" :error="error" :path="['asrConfig', 'unintelligiblePlaceholder']" class="w-full" help="Text to use when speech is unintelligible or cannot be transcribed">
                     <input
-                      v-model="form.asrConfig.settings.includeTimestamps"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Include Timestamps
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Receive word-level timestamps in transcription results
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.includeLanguageDetection"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Include Language Detection
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Include detected language code in transcription results
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Commit Strategy <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.commitStrategy"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option :value="undefined">Default (Manual)</option>
-                    <option value="manual">Manual</option>
-                    <option value="vad">Voice Activity Detection (VAD)</option>
-                  </select>
-                  <p class="form-help-text">
-                    Strategy for committing transcriptions
-                  </p>
-                </div>
-
-                <!-- VAD Settings (shown when commit strategy is VAD) -->
-                <div v-if="form.asrConfig.settings.commitStrategy === 'vad'" class="pl-4 border-l-2 border-green-200 bg-green-50 p-4 rounded-r space-y-4 dark:bg-green-900/20 dark:border-green-800">
-                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Voice Activity Detection Settings</h4>
-                  
-                  <div class="form-group">
-                    <label class="form-label">
-                      Silence Threshold (seconds)
-                    </label>
-                    <input
-                      v-model.number="form.asrConfig.settings.vadSilenceThresholdSecs"
-                      type="number"
-                      min="0.3"
-                      max="3"
-                      step="0.1"
-                      class="form-input max-w-xs"
-                      placeholder="1.5"
-                      :disabled="isLoading"
-                    />
-                    <p class="form-help-text">
-                      Silence duration before committing (0.3-3 seconds, default: 1.5)
-                    </p>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">
-                      VAD Threshold
-                    </label>
-                    <input
-                      v-model.number="form.asrConfig.settings.vadThreshold"
-                      type="number"
-                      min="0.1"
-                      max="0.9"
-                      step="0.05"
-                      class="form-input max-w-xs"
-                      placeholder="0.4"
-                      :disabled="isLoading"
-                    />
-                    <p class="form-help-text">
-                      Detection sensitivity (0.1-0.9, default: 0.4)
-                    </p>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">
-                      Minimum Speech Duration (ms)
-                    </label>
-                    <input
-                      v-model.number="form.asrConfig.settings.minSpeechDurationMs"
-                      type="number"
-                      min="50"
-                      max="2000"
-                      step="10"
-                      class="form-input max-w-xs"
-                      placeholder="100"
-                      :disabled="isLoading"
-                    />
-                    <p class="form-help-text">
-                      Minimum speech duration (50-2000ms, default: 100)
-                    </p>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">
-                      Minimum Silence Duration (ms)
-                    </label>
-                    <input
-                      v-model.number="form.asrConfig.settings.minSilenceDurationMs"
-                      type="number"
-                      min="50"
-                      max="2000"
-                      step="10"
-                      class="form-input max-w-xs"
-                      placeholder="100"
-                      :disabled="isLoading"
-                    />
-                    <p class="form-help-text">
-                      Minimum silence duration (50-2000ms, default: 100)
-                    </p>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.enableLogging"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Enable Logging
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    When disabled, zero retention mode is used (enterprise only)
-                  </p>
-                </div>
-              </div>
-
-              <!-- Deepgram ASR Settings -->
-              <div v-if="form.asrConfig.asrProviderId && isDeepgramAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
-                <div class="form-group">
-                  <label class="form-label">
-                    Model ID <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.modelId"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option :value="undefined">Default (nova-3)</option>
-                    <option value="nova-3">nova-3</option>
-                    <option value="nova-3-general">nova-3-general</option>
-                    <option value="nova-3-medical">nova-3-medical</option>
-                    <option value="nova-2">nova-2</option>
-                    <option value="nova-2-general">nova-2-general</option>
-                    <option value="nova-2-meeting">nova-2-meeting</option>
-                    <option value="nova-2-finance">nova-2-finance</option>
-                    <option value="nova-2-conversationalai">nova-2-conversationalai</option>
-                    <option value="nova-2-voicemail">nova-2-voicemail</option>
-                    <option value="nova-2-video">nova-2-video</option>
-                    <option value="nova-2-medical">nova-2-medical</option>
-                    <option value="nova-2-drivethru">nova-2-drivethru</option>
-                    <option value="nova-2-automotive">nova-2-automotive</option>
-                    <option value="nova">nova</option>
-                    <option value="nova-general">nova-general</option>
-                    <option value="nova-phonecall">nova-phonecall</option>
-                    <option value="nova-medical">nova-medical</option>
-                    <option value="enhanced">enhanced</option>
-                    <option value="enhanced-general">enhanced-general</option>
-                    <option value="enhanced-meeting">enhanced-meeting</option>
-                    <option value="enhanced-phonecall">enhanced-phonecall</option>
-                    <option value="enhanced-finance">enhanced-finance</option>
-                    <option value="base">base</option>
-                    <option value="meeting">meeting</option>
-                    <option value="phonecall">phonecall</option>
-                    <option value="finance">finance</option>
-                    <option value="conversationalai">conversationalai</option>
-                    <option value="voicemail">voicemail</option>
-                    <option value="video">video</option>
-                    <option value="custom">custom</option>
-                  </select>
-                  <p class="form-help-text">
-                    Model to use for transcription (defaults to nova-3)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Audio Format <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.audioFormat"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option :value="undefined">Default (PCM 16kHz)</option>
-                    <option value="pcm_8000">PCM 8kHz</option>
-                    <option value="pcm_16000">PCM 16kHz</option>
-                    <option value="pcm_22050">PCM 22.05kHz</option>
-                    <option value="pcm_24000">PCM 24kHz</option>
-                    <option value="pcm_44100">PCM 44.1kHz</option>
-                  </select>
-                  <p class="form-help-text">
-                    Audio encoding format for speech-to-text
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Language <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model="form.asrConfig.settings.language"
-                    type="text"
-                    placeholder="e.g., en-US, es, fr"
-                    class="form-input"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    BCP-47 language tag (e.g., "en-US", "es", "fr")
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.interimResults"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Enable Interim Results
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Enable interim (partial) transcription results during streaming
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="deepgramEndpointingEnabled"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Enable Endpointing
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Automatically finalize speech after a period of silence
-                  </p>
-                  <div v-if="deepgramEndpointingEnabled" class="mt-3">
-                    <label class="form-label text-sm">
-                      Silence Duration (ms)
-                    </label>
-                    <input
-                      v-model.number="deepgramEndpointingValue"
-                      type="number"
-                      min="10"
-                      required
-                      placeholder="300"
-                      class="form-input max-w-xs"
-                      :disabled="isLoading"
-                    />
-                    <p class="form-help-text">
-                      Milliseconds of silence to wait before finalizing speech (minimum: 10)
-                    </p>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.smartFormat"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Smart Format
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Apply formatting (punctuation, capitalization, currency, etc.) to improve readability
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.punctuate"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Punctuate
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Add punctuation and capitalization to transcript
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.diarize"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Diarize
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Recognize and label different speakers in the audio
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Utterance End (ms) <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.utteranceEndMs"
-                    type="number"
-                    min="10"
-                    placeholder="Leave empty for default"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Milliseconds to wait before sending UtteranceEnd event (use with interim results)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.vadEvents"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      VAD Events
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Send SpeechStarted events when speech is detected
-                  </p>
-                </div>
-              </div>
-
-              <!-- AssemblyAI ASR Settings -->
-              <div v-if="form.asrConfig.asrProviderId && isAssemblyAiAsrProvider" class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800">
-                <div class="form-group">
-                  <label class="form-label">
-                    Sample Rate <span class="required">*</span>
-                  </label>
-                  <select
-                    v-model.number="form.asrConfig.settings.sampleRate"
-                    class="form-select-auto min-w-64"
-                    required
-                    :disabled="isLoading"
-                  >
-                    <option :value="8000">8000 Hz</option>
-                    <option :value="16000">16000 Hz (default)</option>
-                    <option :value="22050">22050 Hz</option>
-                    <option :value="24000">24000 Hz</option>
-                    <option :value="44100">44100 Hz</option>
-                  </select>
-                  <p class="form-help-text">
-                    Audio sample rate (default: 16000)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Speech Model <span class="required">*</span>
-                  </label>
-                  <select
-                    v-model="form.asrConfig.settings.speechModel"
-                    class="form-select-auto min-w-64"
-                    required
-                    :disabled="isLoading"
-                  >
-                    <option value="universal-streaming-english">Universal Streaming (English)</option>
-                    <option value="universal-streaming-multilingual">Universal Streaming (Multilingual)</option>
-                  </select>
-                  <p class="form-help-text">
-                    Model: English-only or multilingual support
-                  </p>
-                </div>
-
-                <div v-if="form.asrConfig.settings.speechModel === 'universal-streaming-multilingual'" class="form-group">
-                  <label class="form-label">
-                    Language Code
-                  </label>
-                  <input
-                    v-model="form.asrConfig.settings.language"
-                    type="text"
-                    placeholder="e.g., en, es, fr, de, it, pt"
-                    class="form-input"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Language for multilingual model (en, es, fr, de, it, pt)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      v-model="form.asrConfig.settings.formatTurns"
-                      type="checkbox"
-                      class="form-checkbox"
-                      :disabled="isLoading"
-                    />
-                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Format Turns (Add Capitalization & Punctuation)
-                    </span>
-                  </label>
-                  <p class="form-help-text mt-1">
-                    Warning: Adds latency, not recommended for voice agents
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    VAD Threshold
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.vadThreshold"
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    placeholder="0.4"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Voice activity detection threshold (0.0-1.0, default: 0.4)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    End of Turn Confidence
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.endOfTurnConfidenceThreshold"
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    placeholder="0.4"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Confidence threshold for end of turn (0.0-1.0, default: 0.4)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Min Silence (Confident) (ms)
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.minEndOfTurnSilenceWhenConfident"
-                    type="number"
-                    min="0"
-                    placeholder="400"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Minimum silence when confident (default: 400ms)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Max Turn Silence (ms)
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.maxTurnSilence"
-                    type="number"
-                    min="0"
-                    placeholder="1280"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Maximum silence before end of turn (default: 1280ms)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Inactivity Timeout (seconds) <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    v-model.number="form.asrConfig.settings.inactivityTimeout"
-                    type="number"
-                    min="5"
-                    max="3600"
-                    placeholder="No timeout"
-                    class="form-input max-w-xs"
-                    :disabled="isLoading"
-                  />
-                  <p class="form-help-text">
-                    Time before session termination (5-3600s, optional)
-                  </p>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    Custom Keywords <span class="text-gray-500">(optional)</span>
-                  </label>
-                  <div class="flex gap-2 mb-2 max-w-xs">
-                    <input
-                      v-model="newKeyterm"
+                      v-model="form.asrConfig.unintelligiblePlaceholder"
                       type="text"
-                      placeholder="Add a keyword"
+                      placeholder="e.g., [unintelligible]"
                       class="form-input"
                       :disabled="isLoading"
-                      @keyup.enter="addKeyterm"
                     />
+                  </FormField>
+
+                  <!-- Server-side VAD -->
+                  <div class="flex items-center gap-3">
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.asrConfig.serverVadEnabled"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Enable Server-side VAD
+                      </span>
+                      <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Experimental</span>
+                    </label>
                     <button
+                      v-if="form.asrConfig.serverVadEnabled"
                       type="button"
-                      @click="addKeyterm"
                       class="btn-secondary whitespace-nowrap"
                       :disabled="isLoading"
+                      @click="showServerVadModal = true"
                     >
-                      <Plus class="inline-block w-4 h-4 mr-1" />
-                      Add
+                      <Settings class="inline-block mr-1 w-4 h-4" />
+                      Settings...
                     </button>
                   </div>
-                  <div v-if="form.asrConfig.settings.keytermsPrompt && form.asrConfig.settings.keytermsPrompt.length > 0" class="space-y-2">
-                    <div
-                      v-for="(keyterm, index) in form.asrConfig.settings.keytermsPrompt"
-                      :key="index"
-                      class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                    >
-                      <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ keyterm }}</span>
-                      <button
-                        type="button"
-                        @click="removeKeyterm(index)"
-                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                        title="Remove keyword"
-                        :disabled="isLoading"
-                      >
-                        <X class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <p class="form-help-text mt-2">
-                    Custom words/phrases to improve recognition accuracy
-                  </p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Speechmatics Settings -->
-          <div 
-            v-if="form.asrConfig.asrProviderId && isSpeechmaticsAsrProvider" 
-            class="space-y-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-r mt-4 dark:bg-blue-900/20 dark:border-blue-800"
-          >
-            <div>
-              <h4 class="text-md font-semibold text-gray-900 mb-1 dark:text-white">Speechmatics Settings</h4>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Configure Speechmatics speech recognition settings for this project
-              </p>
-            </div>
-
-            <!-- Audio Format -->
-            <div class="form-group">
-              <label class="form-label">
-                Audio Format <span class="required">*</span>
-              </label>
-              <select
-                v-model="form.asrConfig.settings.audioFormat"
-                class="form-select-auto min-w-64"
-                required
-                :disabled="isLoading"
-              >
-                <option value="pcm_16000">PCM 16kHz (Recommended)</option>
-                <option value="pcm_8000">PCM 8kHz</option>
-                <option value="pcm_44100">PCM 44.1kHz</option>
-              </select>
-              <p class="form-help-text">
-                Audio input format for speech recognition
-              </p>
-            </div>
-
-            <!-- Transcription Mode -->
-            <div class="form-group">
-              <label class="form-label">
-                Transcription Mode <span class="required">*</span>
-              </label>
-              <select
-                v-model="form.asrConfig.settings.transcriptionMode"
-                class="form-select-auto min-w-64"
-                required
-                :disabled="isLoading"
-              >
-                <option value="standard">Standard (Faster processing)</option>
-                <option value="enhanced">Enhanced (Higher accuracy)</option>
-              </select>
-              <p class="form-help-text">
-                Standard for faster processing or Enhanced for higher accuracy
-              </p>
-            </div>
-
-            <!-- Language -->
-            <div class="form-group">
-              <label class="form-label">
-                Language <span class="text-gray-500">(optional)</span>
-              </label>
-              <input
-                v-model="form.asrConfig.settings.language"
-                type="text"
-                placeholder="e.g., en, en-US, es, fr"
-                class="form-input"
-                :disabled="isLoading"
-              />
-              <p class="form-help-text">
-                Language code for speech recognition (BCP-47 format)
-              </p>
-            </div>
-
-            <!-- Max Delay -->
-            <div class="form-group">
-              <label class="form-label">
-                Max Delay (seconds) <span class="text-gray-500">(optional)</span>
-              </label>
-              <input
-                v-model.number="form.asrConfig.settings.maxDelay"
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                placeholder="0-10"
-                class="form-input max-w-xs"
-                :disabled="isLoading"
-              />
-              <p class="form-help-text">
-                Maximum delay for transcription results (0-10 seconds). Lower values reduce latency
-              </p>
-            </div>
-
-            <!-- Feature Toggles -->
-            <div class="space-y-4">
-              <h5 class="text-sm font-medium text-gray-900 dark:text-white">Features</h5>
-              
-              <!-- Enable Punctuation -->
-              <div class="flex items-start">
-                <input
-                  id="speechmatics-punctuation"
-                  v-model="form.asrConfig.settings.enablePunctuation"
-                  type="checkbox"
-                  class="form-checkbox mt-1"
-                  :disabled="isLoading"
-                />
-                <label for="speechmatics-punctuation" class="ml-3 flex-1">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Punctuation</span>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Add automatic punctuation to transcripts (default: enabled)
-                  </p>
-                </label>
-              </div>
-
-              <!-- Enable Formatting -->
-              <div class="flex items-start">
-                <input
-                  id="speechmatics-formatting"
-                  v-model="form.asrConfig.settings.enableFormatting"
-                  type="checkbox"
-                  class="form-checkbox mt-1"
-                  :disabled="isLoading"
-                />
-                <label for="speechmatics-formatting" class="ml-3 flex-1">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Formatting</span>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Format numbers, dates, currency, and other entities automatically
-                  </p>
-                </label>
-              </div>
-
-              <!-- Enable Diarization -->
-              <div class="flex items-start">
-                <input
-                  id="speechmatics-diarization"
-                  v-model="form.asrConfig.settings.enableDiarization"
-                  type="checkbox"
-                  class="form-checkbox mt-1"
-                  :disabled="isLoading"
-                />
-                <label for="speechmatics-diarization" class="ml-3 flex-1">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">Enable Speaker Diarization</span>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Detect and label different speakers in the audio
-                  </p>
-                </label>
-              </div>
-            </div>
-
-            <!-- Custom Vocabulary -->
-            <div class="form-group">
-              <label class="form-label">
-                Custom Vocabulary <span class="text-gray-500">(optional)</span>
-              </label>
-              <div class="space-y-3">
-                <div class="flex gap-2 max-w-xs">
+              <!-- Voice Output -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                   <input
-                    v-model="newVocabWord"
-                    type="text"
-                    placeholder="Enter word or phrase"
-                    class="form-input flex-1"
+                    v-model="form.generateVoice"
+                    type="checkbox"
+                    class="form-checkbox"
                     :disabled="isLoading"
-                    @keyup.enter="addSpeechmaticsVocab"
                   />
-                  <button
-                    type="button"
-                    @click="addSpeechmaticsVocab"
-                    class="btn-secondary whitespace-nowrap"
-                    :disabled="isLoading"
-                  >
-                    <Plus class="inline-block w-4 h-4 mr-1" />
-                    Add
-                  </button>
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Speech Output
+                  </span>
+                </label>
+                <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                  <p class="form-help-text text-gray-500 dark:text-gray-400">
+                    Allow conversations to generate voice responses using text-to-speech
+                  </p>
                 </div>
-                <div v-if="form.asrConfig.settings.additionalVocab && form.asrConfig.settings.additionalVocab.length > 0" class="space-y-2">
-                  <div
-                    v-for="(word, index) in form.asrConfig.settings.additionalVocab"
-                    :key="index"
-                    class="flex items-center gap-2 bg-white px-3 py-2 rounded border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                  >
-                    <span class="flex-1 text-sm text-gray-900 dark:text-gray-200">{{ word }}</span>
-                    <button
-                      type="button"
-                      @click="removeSpeechmaticsVocab(index)"
-                      class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                      title="Remove vocabulary item"
-                      :disabled="isLoading"
-                    >
-                      <X class="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <p class="form-help-text mt-2">
-                  Custom words or phrases to improve recognition accuracy
-                </p>
               </div>
             </div>
-          </div>
-        </div>
+          </TabContent>
 
-        <!-- Storage Tab -->
-        <div v-show="activeTab === 'storage'" class="tab-content">
+
+          <!-- Storage Tab -->
+          <TabContent v-model="activeTab" tab="storage">
           <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
             <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
             <p class="text-sm">
@@ -1945,13 +1051,10 @@ function handleStorageSettingsClose() {
               </p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                Storage Provider <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Storage Provider" :error="error" :path="['storageConfig', 'storageProviderId']" help="Select a storage provider to enable persistent storage of conversation artifacts">
               <select
                 v-model="form.storageConfig.storageProviderId"
-                class="form-select-auto min-w-64Tags for categorizing and filtering. Press Enter or comma to add a tag."
+                class="form-select-auto min-w-64"
                 :disabled="isLoading"
               >
                 <option value="">None</option>
@@ -1959,10 +1062,7 @@ function handleStorageSettingsClose() {
                   {{ provider.name }} ({{ provider.apiType }})
                 </option>
               </select>
-              <p class="form-help-text">
-                Select a storage provider to enable persistent storage of conversation artifacts
-              </p>
-            </div>
+            </FormField>
 
             <div v-if="form.storageConfig.storageProviderId" class="space-y-4">
               <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
@@ -1992,12 +1092,93 @@ function handleStorageSettingsClose() {
               </p>
             </div>
           </div>
-        </div>
+          </TabContent>
 
-        </fieldset>
+          <!-- Cost Management Tab -->
+          <TabContent v-model="activeTab" tab="costs">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Token Limits</h3>
+              <p class="text-sm text-gray-600 mb-1 dark:text-gray-400">
+                Define per-model token limits to control LLM costs across all conversations in this project.
+                Limits are keyed by provider and model name (e.g. <code>gpt-4o</code>).
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Output token limits</strong> are enforced as a hard ceiling over entity-level defaults.
+                <strong>Input token limits</strong> cause oldest messages to be trimmed from context when exceeded.
+              </p>
+            </div>
 
-        <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
-        <div v-show="activeTab === 'apiKeys' && isEditMode" class="tab-content">
+            <!-- Limit rules table -->
+            <div v-if="form.costLimitEntries.length > 0" class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Provider</th>
+                      <th class="table-header-cell">Model</th>
+                      <th class="table-header-cell">Input Limits</th>
+                      <th class="table-header-cell">Output Limits</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="{ entry, originalIndex } in sortedCostLimitEntries" :key="originalIndex" class="table-row">
+                      <td class="table-clickable-cell" @click="openEditCostLimitEntry(originalIndex)">{{ providerNameForId(entry.providerId) }}</td>
+                      <td class="table-cell">{{ modelNameForEntry(entry) }}</td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.inputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.inputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell">
+                        <ul v-if="limitsForDisplay(entry.outputTokensLimits).length" class="space-y-0.5">
+                          <li v-for="l in limitsForDisplay(entry.outputTokensLimits)" :key="l.label" class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
+                            <span class="text-gray-400 dark:text-gray-500">&bull;</span>
+                            <span>{{ l.label }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ l.value.toLocaleString() }}</span>
+                          </li>
+                        </ul>
+                        <span v-else class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
+                      </td>
+                      <td class="table-cell-right">
+                        <div class="flex justify-end gap-2">
+                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)">Edit</button>
+                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)">
+                            <Trash2 class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div v-else class="flex flex-col items-center justify-center py-10 gap-2 text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <p class="text-sm">No limit rules configured.</p>
+              <p class="text-xs">Add a rule to set token limits for a specific provider and model.</p>
+            </div>
+
+            <!-- Add rule button -->
+            <button type="button" @click="openAddCostLimitEntry" class="btn-secondary" :disabled="isLoading">
+              <Plus class="inline-block w-4 h-4 mr-2" />
+              Add Limit Rule
+            </button>
+
+          </div>
+          </TabContent>
+
+          </fieldset>
+
+          <!-- API Keys Tab (outside fieldset so delete buttons are never disabled) -->
+          <TabContent v-model="activeTab" tab="apiKeys">
           <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between mb-4">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">API Keys</h3>
@@ -2021,74 +1202,63 @@ function handleStorageSettingsClose() {
             No API keys yet. Create one to get started.
           </div>
 
-          <div v-else class="space-y-2">
-            <div
-              v-for="apiKey in filteredApiKeys"
-              :key="apiKey.id"
-              class="bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow dark:bg-gray-800 dark:border-gray-700"
-            >
-              <div class="flex flex-col md:flex-row gap-3 md:gap-0 md:items-center justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ apiKey.name }}</h4>
-                    <span
-                      :class="[
-                        'badge',
-                        apiKey.isActive ? 'badge-active' : 'badge-inactive'
-                      ]"
-                    >
-                      {{ apiKey.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </div>
-                  <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ apiKey.keyPreview }}</p>
-                  <div class="text-xs text-gray-500 mt-1">
-                    <span>Created: {{ formatDate(apiKey.createdAt) }}</span>
-                    <span class="mx-2">•</span>
-                    <span>Last used: {{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
-                  </div>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    @click="handleToggleApiKey(apiKey)"
-                    class="btn-secondary text-sm"
-                    :title="apiKey.isActive ? 'Deactivate' : 'Activate'"
-                    type="button"
-                    :disabled="isArchived"
-                  >
-                    {{ apiKey.isActive ? 'Deactivate' : 'Activate' }}
-                  </button>
-                  <button
-                    @click="handleEditApiKey(apiKey)"
-                    class="btn-secondary text-sm"
-                    type="button"
-                  >
-                    {{ isArchived ? 'View' : 'Edit' }}
-                  </button>
-                  <button
-                    @click="handleDeleteApiKey(apiKey)"
-                    class="btn-danger text-sm"
-                    type="button"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+          <div v-else class="table-container">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead class="table-header">
+                  <tr>
+                    <th class="table-header-cell">Name</th>
+                    <th class="table-header-cell">Key</th>
+                    <th class="table-header-cell">Active</th>
+                    <th class="table-header-cell">Last Used</th>
+                    <th class="table-header-cell">Created</th>
+                    <th class="table-header-cell-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <tr v-for="apiKey in filteredApiKeys" :key="apiKey.id" class="table-row">
+                    <td class="table-clickable-cell" @click="handleEditApiKey(apiKey)">{{ apiKey.name }}</td>
+                    <td class="table-cell"><code class="font-mono text-sm">{{ apiKey.keyPreview }}</code></td>
+                    <td class="table-cell">
+                      <input
+                        type="checkbox"
+                        :checked="apiKey.isActive"
+                        @change="handleToggleApiKey(apiKey)"
+                        class="form-checkbox cursor-pointer"
+                        :disabled="isArchived"
+                      />
+                    </td>
+                    <td class="table-cell-muted">{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</td>
+                    <td class="table-cell-muted">{{ formatDate(apiKey.createdAt) }}</td>
+                    <td class="table-cell-right">
+                      <div class="flex justify-end gap-2">
+                        <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">
+                          {{ isArchived ? 'View' : 'Edit' }}
+                        </button>
+                        <button @click="handleDeleteApiKey(apiKey)" class="btn-danger btn-sm" type="button">
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
+          </TabContent>
 
-        <!-- Metadata Tab -->
-        <MetadataTab
-          v-if="isEditMode && currentProject"
-          v-show="activeTab === 'metadata'"
-          :fields="metadataFields"
-        />
-        <div class="tab-content">
-          <!-- History Tab -->
-          <EntityHistoryView
+          <!-- Metadata Tab -->
+          <MetadataTab
             v-if="isEditMode && currentProject"
-            v-show="activeTab === 'history'"
-            :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
+            v-model="activeTab"
+            tab="metadata"
+            :fields="metadataFields"
+          />
+          <!-- History Tab -->
+          <TabContent v-model="activeTab" tab="history">
+            <EntityHistoryView
+              v-if="isEditMode && currentProject"
+              :load-history="() => projectsStore.fetchAuditLogs(currentProject!.id)"
             :current-version="currentProject.version"
             :current-object="currentProject"
             :active="activeTab === 'history'"
@@ -2097,19 +1267,18 @@ function handleStorageSettingsClose() {
             :ignore-fields="['updatedAt', 'version', 'archivedAt', 'archivedBy']"
             @recover-success="loadProject"
           />
-        </div>
-        <!-- Danger Zone Tab -->
-        <div v-if="isEditMode" v-show="activeTab === 'danger'" class="tab-content">
+          </TabContent>
+          <!-- Danger Zone Tab -->
+          <TabContent v-if="isEditMode" v-model="activeTab" tab="danger">
           <h3 class="text-lg font-semibold text-red-600 mb-2">Danger Zone</h3>
           <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
             Deleting a project will remove <strong>all</strong> related entities (agents, stages,
             classifiers, etc.). This cannot be undone. Type the project name below to confirm
             deletion.
           </p>
-          <div class="form-group mb-4">
-            <label class="form-label">Project name</label>
+          <FormField label="Project name" class="w-full">
             <input v-model="deleteConfirmName" type="text" class="form-input" :disabled="isLoading" />
-          </div>
+          </FormField>
           <button
             class="btn-danger"
             :disabled="isLoading || deleteConfirmName !== currentProject?.name"
@@ -2117,10 +1286,21 @@ function handleStorageSettingsClose() {
           >
             Delete Project
           </button>
-        </div>
-        </form>
+          </TabContent>
+          </form>
       </div>
     </div>
+
+    <!-- Cost Limit Entry Modal -->
+    <CostLimitEntryModal
+      v-if="showCostLimitModal"
+      :entry="editingCostLimitEntry"
+      :llm-providers="llmProviderOptions"
+      :existing-entries="form.costLimitEntries"
+      :editing-index="editingCostLimitIndex"
+      @close="showCostLimitModal = false"
+      @save="handleCostLimitEntrySave"
+    />
 
     <!-- API Key Edit Modal -->
     <ApiKeyEditModal
@@ -2130,6 +1310,23 @@ function handleStorageSettingsClose() {
       :is-read-only="isArchived"
       @close="handleApiKeyModalClose"
       @save="handleApiKeySave"
+    />
+
+    <!-- ASR Settings Modal -->
+    <AsrSettingsModal
+      v-if="showAsrSettingsModal"
+      :selected-provider="selectedAsrProvider"
+      :asr-config="form.asrConfig"
+      @close="showAsrSettingsModal = false"
+      @save="handleAsrSettingsSave"
+    />
+
+    <!-- Server VAD Settings Modal -->
+    <ServerVadSettingsModal
+      v-if="showServerVadModal"
+      :config="form.asrConfig.serverVad"
+      @close="showServerVadModal = false"
+      @save="handleServerVadSettingsSave"
     />
 
     <!-- Storage Settings Modal -->

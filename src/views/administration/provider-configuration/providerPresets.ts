@@ -12,6 +12,16 @@ export interface ProviderConfig {
   projectId: string
   keyFileJson: string
   basePath: string
+  // Channel config fields
+  accountSid: string
+  authToken: string
+  fromNumber: string
+  phoneNumber: string
+  // WhatsApp channel config fields
+  phoneNumberId: string
+  accessToken: string
+  appSecret: string
+  verifyToken: string
 }
 
 export interface ProviderPreset {

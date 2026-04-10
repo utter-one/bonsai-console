@@ -50,16 +50,16 @@ async function generateTypes() {
     'EndConversationEffect',
     'AbortConversationEffect',
     'GoToStageEffect',
-    'RunScriptEffect',
     'ModifyUserInputEffect',
     'ModifyVariablesEffect',
     'VariableOperation',
     'ModifyUserProfileEffect',
     'UserProfileOperation',
     'CallToolEffect',
-    'CallWebhookEffect',
     'GenerateResponseEffect',
-    'ChangeVisibilityEffect'
+    'ChangeVisibilityEffect',
+    'BanUserEffect',
+    'ServerVadConfig'
   ]
 
   // Group definitions by category
@@ -67,10 +67,11 @@ async function generateTypes() {
     shared: [
       'ImageParameterValue', 'AudioParameterValue', 'ParameterValue',
       'Effect', 'EndConversationEffect', 'AbortConversationEffect',
-      'GoToStageEffect', 'RunScriptEffect', 'ModifyUserInputEffect',
+      'GoToStageEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
-      'UserProfileOperation', 'CallToolEffect', 'CallWebhookEffect',
-      'GenerateResponseEffect', 'ChangeVisibilityEffect'
+      'UserProfileOperation', 'CallToolEffect', 
+      'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect',
+      'ServerVadConfig'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [

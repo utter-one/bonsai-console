@@ -1,15 +1,8 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-3xl" @click.stop>
-      <h2 class="modal-header">
-        Paste Variables
-      </h2>
+  <BaseModal title="Paste Variables" size="3xl" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        <div class="form-group">
-          <label class="form-label">
-            Select Variables to Paste
-          </label>
+        <FormField label="Select Variables to Paste" class="w-full">
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
             Choose which top-level variables to paste into this stage. Variables with duplicate names will overwrite existing ones.
           </p>
@@ -49,7 +42,7 @@
               </label>
             </div>
           </div>
-        </div>
+        </FormField>
 
         <div class="modal-footer">
           <div class="flex gap-2">
@@ -70,12 +63,13 @@
           </div>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
 
 type VariableDescriptor = {
   name: string

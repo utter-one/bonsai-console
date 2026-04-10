@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ProviderConfig } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
+defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
 </script>
 
@@ -8,10 +11,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Google Cloud Storage Configuration</h3>
 
-    <div class="form-group">
-      <label class="form-label">
-        GCP Project ID <span class="required">*</span>
-      </label>
+    <FormField label="GCP Project ID" required :error="error" path="projectId" class="w-full" help="Your Google Cloud project ID">
       <input
         v-model="config.projectId"
         type="text"
@@ -19,13 +19,9 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="my-project-id"
         class="form-input-mono"
       />
-      <p class="form-help-text">Your Google Cloud project ID</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Service Account Key (JSON) <span class="required">*</span>
-      </label>
+    <FormField label="Service Account Key (JSON)" required :error="error" path="keyFileJson" class="w-full" help="The complete JSON content of your service account key file">
       <textarea
         v-model="config.keyFileJson"
         rows="6"
@@ -33,7 +29,6 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder='{"type": "service_account", "project_id": "...", ...}'
         class="form-textarea font-mono text-sm"
       ></textarea>
-      <p class="form-help-text">The complete JSON content of your service account key file</p>
-    </div>
+    </FormField>
   </div>
 </template>

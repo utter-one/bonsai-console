@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check } from 'lucide-vue-next'
+import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
+import { formatDate } from '@/composables'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,12 +24,29 @@ const user = ref<UserResponse | null>(null)
 const conversations = ref<ConversationResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history'>('profile')
+const activeTab = ref<'profile' | 'conversations' | 'metadata' | 'history' | 'ban'>('profile')
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'profile', label: 'Profile' },
+  { key: 'conversations', label: () => [
+    'Conversations',
+    conversations.value.length > 0
+      ? h('span', { class: 'ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }, String(conversations.value.length))
+      : null
+  ] },
+  { key: 'metadata', label: 'Metadata', show: !!user.value },
+  { key: 'history', label: 'History', show: !!user.value },
+  { key: 'ban', label: 'Ban', show: !!user.value },
+])
 
 const editableProfile = ref<Array<{ key: string; value: string }>>([])
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 const showSuccess = ref(false)
+
+const banReason = ref('')
+const isBanning = ref(false)
+const banError = ref<string | null>(null)
 
 onMounted(async () => {
   await loadUserData()
@@ -129,10 +150,6 @@ function viewConversation(conversation: ConversationResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function formatStatusLabel(status: string): string {
   return status
@@ -165,6 +182,39 @@ const metadataFields = computed(() => {
   ]
 })
 
+async function banUser() {
+  if (!confirm('Are you sure you want to ban this user? They will be blocked from starting conversations.')) return
+  banError.value = null
+  isBanning.value = true
+  try {
+    user.value = await usersStore.update(projectId.value, userId.value, {
+      banned: true,
+      banReason: banReason.value.trim() || null
+    })
+  } catch (err: any) {
+    banError.value = err.response?.data?.message || 'Failed to ban user'
+  } finally {
+    isBanning.value = false
+  }
+}
+
+async function unbanUser() {
+  if (!confirm('Are you sure you want to unban this user?')) return
+  banError.value = null
+  isBanning.value = true
+  try {
+    user.value = await usersStore.update(projectId.value, userId.value, {
+      banned: false,
+      banReason: null
+    })
+    banReason.value = ''
+  } catch (err: any) {
+    banError.value = err.response?.data?.message || 'Failed to unban user'
+  } finally {
+    isBanning.value = false
+  }
+}
+
 
 </script>
 
@@ -193,41 +243,7 @@ const metadataFields = computed(() => {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button 
-            @click="activeTab = 'profile'" 
-            :class="['tab-button', { 'tab-button-active': activeTab === 'profile' }]"
-            type="button"
-          >
-            Profile
-          </button>
-          <button 
-            @click="activeTab = 'conversations'" 
-            :class="['tab-button relative', { 'tab-button-active': activeTab === 'conversations' }]"
-            type="button"
-          >
-            Conversations
-            <span class="absolute top-1 -right-4 ml-2 px-1 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
-              {{ conversations.length }}
-            </span>
-          </button>
-          <button 
-            v-if="user" 
-            @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]" 
-            type="button"
-          >
-            Metadata
-          </button>
-          <button 
-            v-if="user" 
-            @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" 
-            type="button"
-          >
-            History
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->
@@ -247,7 +263,7 @@ const metadataFields = computed(() => {
       <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
         <div class="mx-auto">
           <!-- Profile Tab -->
-          <div v-show="activeTab === 'profile'" class="tab-content">
+          <TabContent v-model="activeTab" tab="profile">
             <div>
               <div v-if="saveError" class="alert-error mb-4">{{ saveError }}</div>
 
@@ -311,10 +327,10 @@ const metadataFields = computed(() => {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Conversations Tab -->
-          <div v-show="activeTab === 'conversations'" class="tab-content">
+          <TabContent v-model="activeTab" tab="conversations">
             <div class="">
               <div class="flex items-center gap-3 mb-6">
                 <MessageSquare class="w-6 h-6 text-gray-600" />
@@ -377,19 +393,19 @@ const metadataFields = computed(() => {
                 </div>
               </div>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Metadata Tab -->
-          <MetadataTab 
-            v-if="user" 
-            v-show="activeTab === 'metadata'" 
-            :fields="metadataFields" 
+          <MetadataTab
+            v-if="user"
+            v-model="activeTab"
+            tab="metadata"
+            :fields="metadataFields"
           />
-          <div class="tab-content">
           <!-- History Tab -->
+          <TabContent v-model="activeTab" tab="history">
             <EntityHistoryView
               v-if="user"
-              v-show="activeTab === 'history'"
               :load-history="() => usersStore.fetchAuditLogs(projectId, userId)"
               :current-object="user"
               :active="activeTab === 'history'"
@@ -398,7 +414,53 @@ const metadataFields = computed(() => {
               :ignore-fields="['createdAt', 'archived', 'updatedAt']"
               @recover-success="() => router.go(0)"
             />
-          </div>
+          </TabContent>
+
+          <!-- Ban Tab -->
+          <TabContent v-if="user" v-model="activeTab" tab="ban">
+            <h3 class="text-lg font-semibold text-red-600 mb-2">Ban User</h3>
+
+            <div v-if="banError" class="alert-error mb-4">{{ banError }}</div>
+
+            <div v-if="!user.banned">
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Banning this user will prevent them from starting new conversations. You can optionally provide a reason.
+              </p>
+              <div class="form-group mb-4">
+                <label class="form-label">Ban reason <span class="text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  v-model="banReason"
+                  class="form-textarea"
+                  rows="3"
+                  placeholder="Reason for banning this user..."
+                  :disabled="isBanning"
+                />
+              </div>
+              <button class="btn-danger" :disabled="isBanning" @click="banUser" type="button">
+                <Ban class="inline-block mr-2 w-4 h-4" />
+                {{ isBanning ? 'Banning...' : 'Ban User' }}
+              </button>
+            </div>
+
+            <div v-else>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                This user is currently banned and cannot start new conversations.
+              </p>
+              <div class="form-group mb-4">
+                <label class="form-label">Ban reason</label>
+                <textarea
+                  :value="user.banReason || ''"
+                  class="form-textarea form-input-disabled"
+                  rows="3"
+                  disabled
+                />
+              </div>
+              <button class="btn-secondary" :disabled="isBanning" @click="unbanUser" type="button">
+                <ShieldCheck class="inline-block mr-2 w-4 h-4" />
+                {{ isBanning ? 'Unbanning...' : 'Unban User' }}
+              </button>
+            </div>
+          </TabContent>
         </div>
       </div>
     </div>
@@ -406,6 +468,19 @@ const metadataFields = computed(() => {
 </template>
 
 <style scoped>
+.tab-button-danger {
+  color: rgb(185 28 28);
+}
+
+.tab-button-danger:hover {
+  color: rgb(153 27 27);
+}
+
+.tab-button-danger-active {
+  color: rgb(185 28 28);
+  border-bottom-color: rgb(185 28 28);
+}
+
 .badge-active {
   background-color: rgb(220 252 231);
   color: rgb(22 101 52);

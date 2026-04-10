@@ -1,7 +1,5 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" @click.stop>
-      <h2 class="modal-header">{{ title }}</h2>
+  <BaseModal :title="title ?? 'Select Stage'" size="lg" @close="$emit('close')">
       
       <div class="mb-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">Select a stage to continue</p>
@@ -43,12 +41,12 @@
           Close
         </button>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { useStagesStore } from '@/stores'
 import type { StageResponse } from '@/api/types'
 

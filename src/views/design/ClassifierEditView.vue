@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassifiersStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
+import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Settings, Check } from 'lucide-vue-next'
-import type { ClassifierResponse, LlmSettings } from '@/api/types'
+import type { ApiErrorDetail, ClassifierResponse, LlmSettings, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,7 +29,7 @@ const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'metadata' | 'history'>('basic')
@@ -68,20 +77,29 @@ Respond with a JSON object:
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const classifierId = computed(() => route.params.classifierId as string | undefined)
 const isEditMode = computed(() => !!classifierId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'prompt', label: 'Prompt' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentClassifier = ref<ClassifierResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentClassifier)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentClassifier.value?.archived)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
 )
 
-watch(() => form.value.llmProviderId, (newVal) => {
-  if (!newVal) {
-    form.value.llmSettings = null
-  }
-})
+const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
+  () => form.value.llmProviderId,
+  (v) => { form.value.llmProviderId = v },
+  () => form.value.llmSettings,
+  (v) => { form.value.llmSettings = v }
+)
 
 // Lifecycle
 onMounted(async () => {
@@ -122,16 +140,26 @@ async function loadClassifier() {
 
 async function handleSubmit() {
   error.value = null
+  const errorDetails: ApiErrorDetail[] = [];
 
-  if (!form.value.llmProviderId) {
-    error.value = 'LLM Provider is required. Please select an LLM provider.'
-    activeTab.value = 'prompt'
-    return
-  }
+  if (!form.value.name.trim())
+    errorDetails.push({ code: 'required', path: ['name'], message: 'Name is required' })
+  
+  if (!form.value.llmProviderId)
+    errorDetails.push({ code: 'required', path: ['llmProviderId'], message: 'LLM Provider is required' })
 
-  if (!form.value.llmSettings) {
-    error.value = 'LLM Settings are required. Please configure the LLM settings.'
-    activeTab.value = 'prompt'
+  if (!form.value.llmSettings)
+    errorDetails.push({ code: 'required', path: ['llmSettings'], message: 'LLM Settings are required' })
+
+  if(!form.value.prompt.trim())
+    errorDetails.push({ code: 'required', path: ['prompt'], message: 'Prompt is required' })
+
+  if(errorDetails.length > 0) {
+    error.value = {
+      message: 'Please fix the validation errors and try again.',
+      details: errorDetails
+    }
+    switchToFirstErrorTab(error.value)
     return
   }
 
@@ -204,7 +232,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} classifier`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -264,38 +293,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'prompt'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'prompt' }]"
-          type="button"
-        >
-          Prompt
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
     <div v-if="isLoading && isEditMode" class="loading-state">
       Loading classifier...
@@ -315,31 +313,21 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <div v-if="error" class="alert-error mb-6">
-          {{ error }}
-        </div>
+        <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
         <!-- General Tab -->
-        <div v-show="activeTab === 'basic'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              Name <span class="required">*</span>
-            </label>
+        <TabContent v-model="activeTab" tab="basic">
+          <FormField label="Name" required :error="error" path="name" class="w-full" help="A descriptive name for this classifier">
             <input
               v-model="form.name"
               type="text"
-              required
               placeholder="Intent Classifier"
               class="form-input"
               :disabled="isLoading"
             />
-            <p class="form-help-text">A descriptive name for this classifier</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <label class="form-label">
-              Description <span class="text-gray-500">(optional)</span>
-            </label>
+          <FormField label="Description" :error="error" path="description" class="w-full" help="Optional description to help identify the purpose of this classifier">
             <textarea
               v-model="form.description"
               rows="3"
@@ -347,51 +335,44 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
               placeholder="A brief description of what this classifier does..."
               :disabled="isLoading"
             ></textarea>
-            <p class="form-help-text">
-              Optional description to help identify the purpose of this classifier
-            </p>
-          </div>
+          </FormField>
 
           <TagsEditor v-model="form.tags" :disabled="isLoading" />
-        </div>
+        </TabContent>
 
         <!-- Prompt Tab -->
-        <div v-show="activeTab === 'prompt'" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">
-              LLM Provider <span class="required">*</span>
-            </label>
-            <div class="flex flex-col md:flex-row gap-2">
-              <select
-                v-model="form.llmProviderId"
-                class="form-select-auto min-w-64"
-                :disabled="isLoading"
-              >
-                <option value="">Select an LLM provider</option>
-                <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                  {{ provider.name }}
-                </option>
-              </select>
-              <button
-                type="button"
-                @click="showLLMSettingsModal = true"
-                class="btn-secondary whitespace-nowrap"
-                :disabled="isLoading"
-              >
-                <Settings class="inline-block mr-1 w-4 h-4" />
-                Settings...
-              </button>
+        <TabContent v-model="activeTab" tab="prompt">
+          <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider to use for this classifier.">
+            <div class="flex flex-col md:flex-row gap-2 items-center">
+              <FormField path="llmProviderId">
+                <select
+                  :value="form.llmProviderId"
+                  @change="handleLlmProviderChange"
+                  class="form-select-auto min-w-64"
+                  :disabled="isLoading"
+                >
+                  <option value="">Select an LLM provider</option>
+                  <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
+                    {{ provider.name }}
+                  </option>
+                </select>
+              </FormField>
+              <FormField path="llmSettings">
+                <button
+                  type="button"
+                  @click="showLLMSettingsModal = true"
+                  class="btn-secondary whitespace-nowrap"
+                  :disabled="isLoading"
+                >
+                  <Settings class="inline-block mr-1 w-4 h-4" />
+                  Settings...
+                </button>
+              </FormField>
               <LLMModelBadge :settings="form.llmSettings" />
             </div>
-            <p class="form-help-text">
-              The LLM provider to use for this classifier.
-            </p>
-          </div>
+          </CompositeFormField>
 
-          <div class="form-group">
-            <label class="form-label">
-              Classification Prompt <span class="required">*</span>
-            </label>
+          <FormField label="Classification Prompt" required :error="error" path="prompt" class="w-full" help="The prompt that defines how the classifier should categorize user inputs.">
             <PromptEditor
               v-model="form.prompt"
               :disabled="isLoading || isReadOnly"
@@ -400,31 +381,30 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
               aria-label="Classifier prompt"
               min-height="28rem"
             />
-            <p class="form-help-text">
-              The prompt that defines how the classifier should categorize user inputs. Include instructions on what intents to identify and how to classify them.
-            </p>
-          </div>
-        </div>
+          </FormField>
+        </TabContent>
 
         <!-- Metadata Tab -->
         <MetadataTab
           v-if="isEditMode && currentClassifier"
-          v-show="activeTab === 'metadata'"
+          v-model="activeTab"
+          tab="metadata"
           :fields="metadataFields"
         />
         <!-- History Tab -->
-        <EntityHistoryView
-          v-if="isEditMode && currentClassifier"
-          v-show="activeTab === 'history'"
-          :load-history="() => classifiersStore.fetchAuditLogs(projectId, currentClassifier!.id)"
-          :current-version="currentClassifier.version"
-          :current-object="currentClassifier"
-          :active="activeTab === 'history'"
-          :update-fn="(data) => classifiersStore.update(projectId, currentClassifier!.id, data)"
-          :create-fn="(data) => classifiersStore.create(projectId, data)"
-          :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
-          @recover-success="() => router.go(0)"
-        />
+        <TabContent v-model="activeTab" tab="history">
+          <EntityHistoryView
+            v-if="isEditMode && currentClassifier"
+            :load-history="() => classifiersStore.fetchAuditLogs(projectId, currentClassifier!.id)"
+            :current-version="currentClassifier.version"
+            :current-object="currentClassifier"
+            :active="activeTab === 'history'"
+            :update-fn="(data) => classifiersStore.update(projectId, currentClassifier!.id, data)"
+            :create-fn="(data) => classifiersStore.create(projectId, data)"
+            :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+            @recover-success="() => router.go(0)"
+          />
+        </TabContent>
         </fieldset>
         </form>
       </div>

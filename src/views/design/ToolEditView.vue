@@ -3,15 +3,21 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { ArrowLeft, Save, Settings, FileText, Image as ImageIcon, Layers, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
-import type { ToolResponse, LlmSettings, ToolParameter } from '@/api/types'
+import { ArrowLeft, Save, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
+import type { ToolResponse, LlmSettings, ToolParameter, ParsedError, ApiErrorDetail } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import PromptEditor from '@/components/PromptEditor.vue'
-import JavaScriptEditor from '@/components/JavaScriptEditor.vue'
-import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
-import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
+import SmartFunctionConfig from '@/components/tools/SmartFunctionConfig.vue'
+import WebhookConfig from '@/components/tools/WebhookConfig.vue'
+import ScriptConfig from '@/components/tools/ScriptConfig.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,10 +27,10 @@ const projectSelectionStore = useProjectSelectionStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
+const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'config' | 'parameters' | 'metadata' | 'history'>('basic')
-const showLLMSettingsModal = ref(false)
 const form = ref({
   id: '',
   name: '',
@@ -53,10 +59,20 @@ const form = ref({
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const toolId = computed(() => route.params.toolId as string | undefined)
 const isEditMode = computed(() => !!toolId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'config', label: configTabLabel.value },
+  { key: 'parameters', label: 'Parameters' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentTool = ref<ToolResponse | null>(null)
 
 const { projectIsArchived } = useProjectReadOnly(currentTool)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentTool.value?.archived)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
+const resolvedType = computed(() => currentTool.value?.type ?? form.value.type)
 
 const llmProviders = computed(() => 
   providersStore.items.filter(p => p.providerType === 'llm')
@@ -110,14 +126,72 @@ async function loadTool() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load tool'
+    loadError.value = parseApiError(err).message
   } finally {
     isLoading.value = false
   }
 }
 
+function validate(): ParsedError | null {
+  const details: ApiErrorDetail[] = []
+
+  if (!form.value.name.trim()) {
+    details.push({ path: ['name'], code: 'required', message: 'Name is required' })
+  }
+
+  const type = isEditMode.value ? currentTool.value?.type : form.value.type
+  if (type === 'smart_function') {
+    if (!form.value.inputType) {
+      details.push({ path: ['inputType'], code: 'required', message: 'Input type is required' })
+    }
+    if (!form.value.outputType) {
+      details.push({ path: ['outputType'], code: 'required', message: 'Output type is required' })
+    }
+    if (!form.value.llmProviderId) {
+      details.push({ path: ['llmProviderId'], code: 'required', message: 'LLM provider is required' })
+    }
+    else if (!form.value.llmSettings) {
+      details.push({ path: ['llmSettings'], code: 'required', message: 'LLM settings are required' })
+    }
+    if (!form.value.prompt.trim()) {
+      details.push({ path: ['prompt'], code: 'required', message: 'Tool prompt is required' })
+    }
+  } else if (type === 'webhook') {
+    if (!form.value.url.trim()) {
+      details.push({ path: ['url'], code: 'required', message: 'Webhook URL is required' })
+    }
+  } else if (type === 'script') {
+    if (!form.value.code.trim()) {
+      details.push({ path: ['code'], code: 'required', message: 'Script code is required' })
+    }
+  }
+
+  for (let i = 0; i < form.value.parameters.length; i++) {
+    const p = form.value.parameters[i]!
+    if (!p.name.trim()) {
+      details.push({ path: ['parameters', i, 'name'], code: 'required', message: `Parameter ${i + 1}: name is required` })
+    }
+    if (!p.description.trim()) {
+      details.push({ path: ['parameters', i, 'description'], code: 'required', message: `Parameter ${i + 1}: description is required` })
+    }
+    if (!p.type) {
+      details.push({ path: ['parameters', i, 'type'], code: 'required', message: `Parameter ${i + 1}: type is required` })
+    }
+  }
+
+  return details.length > 0 ? { message: 'Please fill in all required fields', details } : null
+}
+
 async function handleSubmit() {
   error.value = null
+
+  const validationError = validate()
+  if (validationError) {
+    error.value = validationError
+    switchToFirstErrorTab(validationError)
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -126,6 +200,7 @@ async function handleSubmit() {
       const updateData: any = {
         version: currentTool.value.version,
         name: form.value.name,
+        type: form.value.type,
         description: form.value.description || null,
         tags: form.value.tags,
         parameters: form.value.parameters,
@@ -170,8 +245,8 @@ async function handleSubmit() {
           prompt: form.value.prompt,
           llmProviderId: form.value.llmProviderId || null,
           llmSettings: form.value.llmSettings || undefined,
-          inputType: (form.value.inputType || 'text') as 'text' | 'image' | 'multi-modal',
-          outputType: (form.value.outputType || 'text') as 'text' | 'image' | 'multi-modal'
+          inputType: form.value.inputType,
+          outputType: form.value.outputType
         }
       } else if (form.value.type === 'webhook') {
         createData = {
@@ -208,7 +283,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} tool`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -216,11 +292,6 @@ async function handleSubmit() {
 
 function goBack() {
   router.push({ name: 'design.tools', params: { projectId: projectId.value } })
-}
-
-function handleLLMSettingsSave(settings: Record<string, any>) {
-  form.value.llmSettings = settings as LlmSettings
-  showLLMSettingsModal.value = false
 }
 
 function recordToHeaderPairs(record: Record<string, string> | null | undefined): { key: string; value: string }[] {
@@ -234,14 +305,6 @@ function headerPairsToRecord(pairs: { key: string; value: string }[]): Record<st
     if (pair.key.trim()) result[pair.key.trim()] = pair.value
   }
   return result
-}
-
-function addHeader() {
-  form.value.webhookHeaderPairs.push({ key: '', value: '' })
-}
-
-function removeHeader(index: number) {
-  form.value.webhookHeaderPairs.splice(index, 1)
 }
 
 function addParameter() {
@@ -302,45 +365,7 @@ const metadataFields = computed(() => {
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <nav class="tabs-nav" aria-label="Tabs">
-        <button
-          @click="activeTab = 'basic'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-          type="button"
-        >
-          General
-        </button>
-        <button
-          @click="activeTab = 'config'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'config' }]"
-          type="button"
-        >
-          {{ configTabLabel }}
-        </button>
-        <button
-          @click="activeTab = 'parameters'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'parameters' }]"
-          type="button"
-        >
-          Parameters
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'metadata'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-          type="button"
-        >
-          Metadata
-        </button>
-        <button
-          v-if="isEditMode"
-          @click="activeTab = 'history'"
-          :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-          type="button"
-        >
-          History
-        </button>
-      </nav>
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
     <!-- Loading State -->
@@ -349,8 +374,8 @@ const metadataFields = computed(() => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error && isEditMode" class="error-state">
-      {{ error }}
+    <div v-else-if="loadError && isEditMode" class="error-state">
+      {{ loadError }}
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Tools
       </button>
@@ -362,15 +387,12 @@ const metadataFields = computed(() => {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <div v-if="error" class="alert-error mb-6">
-            {{ error }}
-          </div>
+          <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
           <!-- General Tab -->
-          <div v-show="activeTab === 'basic'" class="tab-content">
+          <TabContent v-model="activeTab" tab="basic">
             <!-- Type Selector (create) / Type Badge (edit) -->
-            <div class="form-group">
-              <label class="form-label">Tool Type <span v-if="!isEditMode" class="required">*</span></label>
+            <FormField label="Tool Type" :required="!isEditMode" class="w-full" :help="!isEditMode ? 'Select how this tool processes requests' : undefined">
               <div v-if="!isEditMode" class="flex gap-2">
                 <button
                   type="button"
@@ -432,12 +454,9 @@ const metadataFields = computed(() => {
                 <span class="text-xs text-gray-500">Type cannot be changed after creation.</span>
               </div>
               <p v-if="!isEditMode" class="form-help-text">Select how this tool processes requests</p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Tool ID <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Tool ID" :error="error" path="id" class="w-full" hint="optional" :help="isEditMode ? 'Cannot be changed after creation.' : 'Custom identifier for the tool. Leave empty to auto-generate.'">
               <input
                 v-model="form.id"
                 type="text"
@@ -446,33 +465,19 @@ const metadataFields = computed(() => {
                 :disabled="isLoading || isEditMode"
                 :class="{ 'form-input-disabled': isEditMode }"
               />
-              <p class="form-help-text">
-                Custom identifier for the tool. Leave empty to auto-generate.
-                {{ isEditMode ? 'Cannot be changed after creation.' : '' }}
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Name <span class="required">*</span>
-              </label>
+            <FormField label="Name" required :error="error" path="name" class="w-full" help="Human-readable name for this tool">
               <input
                 v-model="form.name"
                 type="text"
-                required
                 placeholder="Data Analyzer"
                 class="form-input"
                 :disabled="isLoading"
               />
-              <p class="form-help-text">
-                Human-readable name for this tool
-              </p>
-            </div>
+            </FormField>
 
-            <div class="form-group">
-              <label class="form-label">
-                Description <span class="text-gray-500">(optional)</span>
-              </label>
+            <FormField label="Description" :error="error" path="description" class="w-full" help="Optional description of the tool's purpose and functionality">
               <textarea
                 v-model="form.description"
                 rows="3"
@@ -480,266 +485,45 @@ const metadataFields = computed(() => {
                 placeholder="Brief description of what this tool does..."
                 :disabled="isLoading"
               ></textarea>
-              <p class="form-help-text">
-                Optional description of the tool's purpose and functionality
-              </p>
-            </div>
+            </FormField>
 
             <TagsEditor v-model="form.tags" :disabled="isLoading" />
-          </div>
+          </TabContent>
 
           <!-- Config Tab (Prompt / Webhook / Script) -->
-          <div v-show="activeTab === 'config'" class="tab-content">
-
-            <!-- Smart Function: input/output types, LLM provider + prompt -->
-            <template v-if="(!isEditMode && form.type === 'smart_function') || (isEditMode && currentTool?.type === 'smart_function')">
-              <div class="form-group">
-                <label class="form-label">Input Type <span class="required">*</span></label>
-                <div class="flex gap-2">
-                  <button
-                    type="button"
-                    @click="form.inputType = 'text'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.inputType === 'text'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <FileText class="w-5 h-5" />
-                    Text
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.inputType = 'image'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.inputType === 'image'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <ImageIcon class="w-5 h-5" />
-                    Image
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.inputType = 'multi-modal'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.inputType === 'multi-modal'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <Layers class="w-5 h-5" />
-                    Multi-modal
-                  </button>
-                </div>
-                <p class="form-help-text">The expected data type for tool input</p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Output Type <span class="required">*</span></label>
-                <div class="flex gap-2">
-                  <button
-                    type="button"
-                    @click="form.outputType = 'text'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.outputType === 'text'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <FileText class="w-5 h-5" />
-                    Text
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.outputType = 'image'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.outputType === 'image'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <ImageIcon class="w-5 h-5" />
-                    Image
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.outputType = 'multi-modal'"
-                    :class="[
-                      'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
-                      form.outputType === 'multi-modal'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
-                    ]"
-                    :disabled="isLoading"
-                  >
-                    <Layers class="w-5 h-5" />
-                    Multi-modal
-                  </button>
-                </div>
-                <p class="form-help-text">The expected data type for tool output</p>
-              </div>
-              <div class="form-group">
-                <label class="form-label">
-                  LLM Provider <span class="required">*</span>
-                </label>
-                <div class="flex flex-col md:flex-row gap-2">
-                  <select
-                    v-model="form.llmProviderId"
-                    class="form-select-auto min-w-64"
-                    :disabled="isLoading"
-                  >
-                    <option value="">Select an LLM provider</option>
-                    <option v-for="provider in llmProviders" :key="provider.id" :value="provider.id">
-                      {{ provider.name }}
-                    </option>
-                  </select>
-                  <button
-                    type="button"
-                    @click="showLLMSettingsModal = true"
-                    class="btn-secondary whitespace-nowrap"
-                    :disabled="isLoading"
-                  >
-                    <Settings class="inline-block mr-1 w-4 h-4" />
-                    Settings...
-                  </button>
-                  <LLMModelBadge :settings="form.llmSettings" />
-                </div>
-                <p class="form-help-text">
-                  The LLM provider to use for this tool
-                </p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  Tool Prompt <span class="required">*</span>
-                </label>
-                <PromptEditor
-                  v-model="form.prompt"
-                  :disabled="isLoading || isReadOnly"
-                  show-toolbar
-                  placeholder="You are a tool that analyzes data and provides insights..."
-                  aria-label="Tool prompt"
-                  min-height="28rem"
-                />
-                <p class="form-help-text">
-                  The system prompt or instructions for this tool's operation
-                </p>
-              </div>
-            </template>
-
-            <!-- Webhook: url, method, headers, body -->
-            <template v-else-if="(!isEditMode && form.type === 'webhook') || (isEditMode && currentTool?.type === 'webhook')">
-              <div class="form-group">
-                <label class="form-label">URL <span class="required">*</span></label>
-                <input
-                  v-model="form.url"
-                  type="url"
-                  required
-                  placeholder="https://example.com/webhook"
-                  class="form-input font-mono"
-                  :disabled="isLoading"
-                />
-                <p class="form-help-text">The endpoint URL to call when this tool is invoked</p>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">HTTP Method</label>
-                <select v-model="form.webhookMethod" class="form-select-auto" :disabled="isLoading">
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="PATCH">PATCH</option>
-                  <option value="DELETE">DELETE</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Headers <span class="text-gray-500">(optional)</span></label>
-                <div class="space-y-2">
-                  <div
-                    v-for="(header, index) in form.webhookHeaderPairs"
-                    :key="index"
-                    class="flex gap-2 items-center"
-                  >
-                    <input
-                      v-model="header.key"
-                      type="text"
-                      placeholder="Header name"
-                      class="form-input font-mono flex-1"
-                      :disabled="isLoading"
-                    />
-                    <input
-                      v-model="header.value"
-                      type="text"
-                      placeholder="Value"
-                      class="form-input font-mono flex-1"
-                      :disabled="isLoading"
-                    />
-                    <button
-                      type="button"
-                      @click="removeHeader(index)"
-                      class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 shrink-0"
-                      :disabled="isLoading"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    @click="addHeader"
-                    class="btn-secondary"
-                    :disabled="isLoading"
-                  >
-                    + Add Header
-                  </button>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Request Body Template <span class="text-gray-500">(optional)</span></label>
-                <textarea
-                  v-model="form.webhookBody"
-                  rows="6"
-                  class="form-textarea font-mono"
-                  placeholder='{{"param": context.params.myParam}}'
-                  :disabled="isLoading"
-                ></textarea>
-                <p class="form-help-text">Template for the request body sent to the webhook endpoint</p>
-              </div>
-            </template>
-
-            <!-- Script: code editor -->
-            <template v-else>
-              <div class="form-group">
-                <label class="form-label">Script Code <span class="required">*</span></label>
-                <JavaScriptEditor
-                  v-model="form.code"
-                  :disabled="isLoading || isReadOnly"
-                  show-toolbar
-                  min-height="28rem"
-                />
-                <p class="form-help-text">JavaScript code to execute when this tool is invoked. Has full flow control (stage navigation, end/abort conversation).</p>
-              </div>
-            </template>
-
-          </div>
+          <TabContent v-model="activeTab" tab="config">
+            <SmartFunctionConfig
+              v-if="resolvedType === 'smart_function'"
+              v-model:prompt="form.prompt"
+              v-model:llm-provider-id="form.llmProviderId"
+              v-model:llm-settings="form.llmSettings"
+              v-model:input-type="form.inputType"
+              v-model:output-type="form.outputType"
+              :llm-providers="llmProviders"
+              :is-loading="isLoading"
+              :error="error"
+            />
+            <WebhookConfig
+              v-else-if="resolvedType === 'webhook'"
+              v-model:url="form.url"
+              v-model:method="form.webhookMethod"
+              v-model:headers="form.webhookHeaderPairs"
+              v-model:body="form.webhookBody"
+              :is-loading="isLoading"
+              :error="error"
+            />
+            <ScriptConfig
+              v-else-if="resolvedType === 'script'"
+              v-model="form.code"
+              :is-loading="isLoading"
+              :is-read-only="isReadOnly"
+              :error="error"
+            />
+          </TabContent>
 
           <!-- Parameters Tab -->
-          <div v-show="activeTab === 'parameters'" class="tab-content">
-            <div class="form-group">
-              <label class="form-label">Tool Parameters</label>
+          <TabContent v-model="activeTab" tab="parameters">
+            <FormField label="Tool Parameters" class="w-full">
               <p class="form-help-text mb-3">
                 Define parameters that this tool expects to receive when invoked. These are used for validation and documentation.
               </p>
@@ -761,20 +545,17 @@ const metadataFields = computed(() => {
                   </div>
                   
                   <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="form-label text-sm">Parameter Name <span class="required">*</span></label>
+                    <FormField label="Parameter Name" required :error="error" :path="['parameters', index, 'name']">
                       <input
                         v-model="param.name"
                         type="text"
-                        required
                         placeholder="input_data"
                         class="form-input font-mono text-sm"
                       />
-                    </div>
+                    </FormField>
 
-                    <div>
-                      <label class="form-label text-sm">Type <span class="required">*</span></label>
-                      <select v-model="param.type" class="form-select-auto text-sm" required>
+                    <FormField label="Type" required :error="error" :path="['parameters', index, 'type']">
+                      <select v-model="param.type" class="form-select-auto text-sm">
                         <option value="string">string</option>
                         <option value="number">number</option>
                         <option value="boolean">boolean</option>
@@ -788,22 +569,17 @@ const metadataFields = computed(() => {
                         <option value="audio">audio</option>
                         <option value="audio[]">audio[]</option>
                       </select>
-                    </div>
+                    </FormField>
                   </div>
 
-                  <div>
-                    <label class="form-label text-sm">Description <span class="required">*</span></label>
+                  <FormField label="Description" required :error="error" :path="['parameters', index, 'description']" class="w-full" help="Describe what this parameter represents for documentation">
                     <input
                       v-model="param.description"
                       type="text"
-                      required
                       placeholder="The data to process"
                       class="form-input text-sm"
                     />
-                    <p class="text-xs text-gray-500 mt-1">
-                      Describe what this parameter represents for documentation
-                    </p>
-                  </div>
+                  </FormField>
 
                   <div>
                     <label class="flex items-center cursor-pointer">
@@ -831,20 +607,18 @@ const metadataFields = computed(() => {
                   + Add Parameter
                 </button>
               </div>
-            </div>
-          </div>
-
-          <!-- Metadata Tab -->
+            </FormField>
+          </TabContent>
           <MetadataTab
             v-if="isEditMode && currentTool"
-            v-show="activeTab === 'metadata'"
+            v-model="activeTab"
+            tab="metadata"
             :fields="metadataFields"
           />
-          <div class="tab-content">
-            <!-- History Tab -->
+          <!-- History Tab -->
+          <TabContent v-model="activeTab" tab="history">
             <EntityHistoryView
               v-if="isEditMode && currentTool"
-              v-show="activeTab === 'history'"
               :load-history="() => toolsStore.fetchAuditLogs(projectId, currentTool!.id)"
               :current-version="currentTool.version"
               :current-object="currentTool"
@@ -854,21 +628,11 @@ const metadataFields = computed(() => {
               :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
               @recover-success="() => router.go(0)"
             />
-          </div>
+          </TabContent>
           </fieldset>
         </form>
       </div>
     </div>
-
-    <!-- LLM Settings Modal -->
-    <LLMSettingsModal
-      v-if="showLLMSettingsModal"
-      :settings="form.llmSettings"
-      :selected-provider-id="form.llmProviderId"
-      :providers="llmProviders"
-      @close="showLLMSettingsModal = false"
-      @save="handleLLMSettingsSave"
-    />
   </div>
 </template>
 

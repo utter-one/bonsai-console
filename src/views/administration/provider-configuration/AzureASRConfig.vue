@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ProviderConfig } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
+defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
 </script>
 
@@ -8,10 +11,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Speech Configuration</h3>
 
-    <div class="form-group">
-      <label class="form-label">
-        Region <span class="required">*</span>
-      </label>
+    <FormField label="Region" required :error="error" path="region" class="w-full" help="Azure region for the Speech service (e.g., eastus, westeurope)">
       <input
         v-model="config.region"
         type="text"
@@ -19,13 +19,9 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="eastus"
         class="form-input-mono"
       />
-      <p class="form-help-text">Azure region for the Speech service (e.g., eastus, westeurope)</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Subscription Key <span class="required">*</span>
-      </label>
+    <FormField label="Subscription Key" required :error="error" path="subscriptionKey" class="w-full" help="Your Azure Speech service subscription key">
       <input
         v-model="config.subscriptionKey"
         type="password"
@@ -33,7 +29,6 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="..."
         class="form-input-mono"
       />
-      <p class="form-help-text">Your Azure Speech service subscription key</p>
-    </div>
+    </FormField>
   </div>
 </template>

@@ -1,134 +1,201 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content-lg" @click.stop>
-      <h2 class="modal-header">{{ apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key' }}</h2>
-      
-      <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
-        <nav class="tabs-nav">
-          <button @click="activeTab = 'details'" :class="['tab-button', { 'tab-button-active': activeTab === 'details' }]" type="button">Details</button>
-          <button v-if="loadHistory" @click="activeTab = 'history'" :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]" type="button">History</button>
-        </nav>
-      </div>
-
-      <div v-show="!apiKey || activeTab === 'details'">
-      <div v-if="isReadOnly" class="alert-warning mb-4">
-        This API key is read-only because its project is archived.
-      </div>
-      <div v-if="showNewKeyAlert && newKeyValue" class="alert-success mb-4">
-        <div class="flex items-start gap-3">
-          <svg class="w-5 h-5 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-          </svg>
-          <div class="flex-1">
-            <p class="font-medium mb-2">This is your API Key</p>
-            <div class="bg-gray-800 p-3 rounded border border-green-600 font-mono text-sm break-all text-green-400">
-              {{ newKeyValue }}
-            </div>
-            <button 
-              @click="copyToClipboard" 
-              type="button"
-              class="mt-2 btn-secondary text-sm"
-            >
-              {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <form @submit.prevent="handleSubmit">
-        <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
-        <div class="form-group">
-          <label class="form-label">
-            API Key Name <span class="required">*</span>
-          </label>
-          <input
-            v-model="form.name"
-            type="text"
-            required
-            placeholder="Production API Key"
-            maxlength="255"
-            class="form-input"
-          />
-          <p class="form-hint">A descriptive name to identify this API key</p>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
-            Project 
-            <span v-if="!apiKey && !props.projectId" class="required">*</span>
-          </label>
-          <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
-            <option value="" disabled>Select a project</option>
-            <option v-for="option in projectOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-          <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
-          <p class="form-hint">{{ apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key' }}</p>
-        </div>
-
-        <div v-if="apiKey" class="form-group">
-          <label class="flex items-center gap-2">
-            <input
-              v-model="form.isActive"
-              type="checkbox"
-              class="form-checkbox"
-            />
-            <span class="form-label mb-0">Active</span>
-          </label>
-          <p class="form-hint">Inactive keys cannot be used for authentication</p>
-        </div>
-
-        <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
-          <div class="text-sm space-y-1">
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400">Created:</span>
-              <span>{{ formatDate(apiKey.createdAt) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
-              <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
-            </div>
-          </div>
-        </div>
-        </fieldset>
-
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">
-            {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
-          </button>
-          <button v-if="!isReadOnly" type="submit" class="btn-primary">
-            {{ apiKey ? 'Save Changes' : 'Create API Key' }}
-          </button>
-        </div>
-      </form>
-      </div>
-
-      <div v-if="apiKey" v-show="activeTab === 'history'">
-        <EntityHistoryView
-          v-if="loadHistory"
-          :load-history="loadHistory"
-          :current-object="apiKey"
-          :current-version="apiKey.version"
-          :active="activeTab === 'history'"
-          :update-fn="updateFn"
-          :create-fn="createFn"
-          :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
-          @recover-success="emit('recoverSuccess')"
-        />
-        <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn-secondary">Close</button>
-        </div>
-      </div>
+  <BaseModal :title="apiKey ? (isReadOnly ? 'View API Key' : 'Edit API Key') : 'Create New API Key'" size="xl" @close="$emit('close')">
+    <div v-if="apiKey" class="border-b border-gray-200 dark:border-gray-700 mb-4">
+      <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
-  </div>
+
+    <form v-show="activeTab !== 'history'">
+      <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
+        <div v-if="!apiKey || activeTab === 'details'">
+          <div v-if="isReadOnly" class="alert-warning mb-4">
+            This API key is read-only because its project is archived.
+          </div>
+
+          <!-- Details tab -->
+          <TabContent v-model="activeTab" tab="details">
+            <FormField label="API Key Name" :path="'name'" :error="validationError" required class="w-full" help="A descriptive name to identify this API key">
+              <input
+                v-model="form.name"
+                type="text"
+                maxlength="255"
+                class="form-input"
+                placeholder="Production API Key"
+              />
+            </FormField>
+
+            <FormField label="API Key" class="w-full" help="Store this key securely">
+              <div class="flex gap-2">
+                <input :value="newKeyValue" readonly class="form-input font-mono text-xs" />
+                <button @click="copyToClipboard" type="button" class="btn-secondary shrink-0">
+                  {{ copied ? 'Copied!' : 'Copy' }}
+                </button>
+              </div>
+            </FormField>
+
+            <FormField label="Project" :path="'projectId'" :error="validationError" required class="w-full" :help="apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key'">
+              <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
+                <option value="" disabled>Select a project</option>
+                <option v-for="option in projectOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
+            </FormField>
+
+            <FormField v-if="apiKey" label="Active" class="w-full" help="Inactive keys cannot be used for authentication">
+              <template #leading>
+                <input v-model="form.isActive" type="checkbox" class="form-checkbox" />
+              </template>
+            </FormField>
+
+            <div v-if="apiKey" class="card-info border border-gray-200 dark:border-gray-700">
+              <div class="text-sm space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Created:</span>
+                  <span>{{ formatDate(apiKey.createdAt) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
+                  <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
+                </div>
+              </div>
+            </div>
+          </TabContent>
+        </div>
+        <div v-if="apiKey && activeTab === 'settings'">
+          <div v-if="isReadOnly" class="alert-warning mb-4">
+            This API key is read-only because its project is archived.
+          </div>
+
+          <!-- Settings tab -->
+          <TabContent v-model="activeTab" tab="settings">
+            <!-- Channels restriction -->
+            <FormField label="Restrict Channels" class="w-full">
+              <template #leading>
+                <input v-model="form.restrictChannels" type="checkbox" class="form-checkbox" />
+              </template>
+              <p class="mt-1 text-xs" :class="form.restrictChannels ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictChannels ? 'Only the selected channels are allowed.' : 'All channels are allowed.' }}</p>
+              <div class="mt-2 space-y-1.5 pl-1">
+                <label
+                  v-for="channel in ALL_CHANNELS"
+                  :key="channel"
+                  class="flex items-center gap-2"
+                  :class="!form.restrictChannels ? 'opacity-50' : ''"
+                >
+                  <input
+                    type="checkbox"
+                    class="form-checkbox"
+                    :disabled="!form.restrictChannels"
+                    :checked="form.allowedChannels.includes(channel)"
+                    @change="form.allowedChannels.includes(channel) ? form.allowedChannels.splice(form.allowedChannels.indexOf(channel), 1) : form.allowedChannels.push(channel)"
+                  />
+                  <span class="text-sm">{{ CHANNEL_LABELS[channel] }}</span>
+                </label>
+              </div>
+            </FormField>
+
+            <!-- Features restriction -->
+            <FormField label="Restrict Features" :path="'features'" :error="validationError" class="w-full">
+              <template #leading>
+                <input v-model="form.restrictFeatures" type="checkbox" class="form-checkbox" />
+              </template>
+              <p class="mt-1 text-xs" :class="form.restrictFeatures ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'">{{ form.restrictFeatures ? 'Only the selected features are permitted.' : 'All features are permitted.' }}</p>
+              <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 pl-1" :class="!form.restrictFeatures ? 'opacity-50' : ''">
+                <div v-for="group in FEATURE_GROUPS" :key="group.label">
+                  <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">{{ group.label }}</div>
+                  <div class="space-y-1.5">
+                    <label
+                      v-for="feature in group.features"
+                      :key="feature"
+                      class="flex items-center gap-2"
+                    >
+                      <input
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="!form.restrictFeatures"
+                        :checked="form.allowedFeatures.includes(feature)"
+                        @change="form.allowedFeatures.includes(feature) ? form.allowedFeatures.splice(form.allowedFeatures.indexOf(feature), 1) : form.allowedFeatures.push(feature)"
+                      />
+                      <span class="text-sm">{{ FEATURE_LABELS[feature] }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </FormField>
+          </TabContent>
+        </div>
+      </fieldset>
+    </form>
+
+    <div v-if="apiKey && activeTab === 'history'">
+      <EntityHistoryView
+        v-if="loadHistory"
+        :load-history="loadHistory"
+        :current-object="apiKey"
+        :current-version="apiKey.version"
+        :active="activeTab === 'history'"
+        :update-fn="updateFn"
+        :create-fn="createFn"
+        :ignore-fields="['archived', 'updatedAt', 'version', 'key', 'keyPreview']"
+        @recover-success="emit('recoverSuccess')"
+      />
+    </div>
+
+    <div class="modal-footer">
+      <ErrorDisplay :error="validationError" class="flex-1 mr-2 self-start" />
+      <button type="button" @click="$emit('close')" class="btn-secondary">
+        {{ showNewKeyAlert ? 'Close' : (isReadOnly ? 'Close' : 'Cancel') }}
+      </button>
+      <button v-if="!isReadOnly" @click="handleSubmit" class="btn-primary">
+        {{ apiKey ? 'Save Changes' : 'Create API Key' }}
+      </button>
+    </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
-import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
+import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest, ParsedError, ApiErrorDetail } from '@/api/types'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { useProjectsStore } from '@/stores/projects'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import { formatDate } from '../../composables'
+
+const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp'] as const
+type AllowedChannel = typeof ALL_CHANNELS[number]
+
+const CHANNEL_LABELS: Record<AllowedChannel, string> = {
+  websocket: 'WebSocket',
+  webrtc: 'WebRTC',
+  twilio_voice: 'Twilio Voice',
+  twilio_messaging: 'Twilio Messaging',
+  whatsapp: 'WhatsApp',
+}
+
+const FEATURE_LABELS: Record<string, string> = {
+  conversation_control: 'Conversation Control',
+  voice_input: 'Voice Input',
+  text_input: 'Text Input',
+  voice_output: 'Voice Output',
+  text_output: 'Text Output',
+  vars_access: 'Variables Access',
+  stage_control: 'Stage Control',
+  run_action: 'Run Action',
+  call_tool: 'Call Tool',
+  events: 'Events',
+}
+
+const FEATURE_GROUPS = [
+  { label: 'Input', features: ['voice_input', 'text_input'] as const },
+  { label: 'Output', features: ['voice_output', 'text_output'] as const },
+  { label: 'Data & Actions', features: ['vars_access', 'run_action', 'call_tool', 'events'] as const },
+  { label: 'Conversation', features: ['conversation_control', 'stage_control'] as const },
+]
 
 const props = defineProps<{
   apiKey: ApiKeyResponse | null
@@ -153,6 +220,10 @@ const form = ref({
   metadata: {} as Record<string, any>,
   version: undefined as number | undefined,
   projectId: props.projectId || '',
+  restrictChannels: false,
+  allowedChannels: [] as AllowedChannel[],
+  restrictFeatures: false,
+  allowedFeatures: [] as string[],
 })
 
 const projectsStore = useProjectsStore()
@@ -165,7 +236,14 @@ const projectOptions = computed(() =>
 const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
 const copied = ref(false)
-const activeTab = ref<'details' | 'history'>('details')
+const activeTab = ref<'details' | 'settings' | 'history'>('details')
+const validationError = ref<ParsedError | null>(null)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'details', label: 'Details' },
+  { key: 'settings', label: 'Settings' },
+  { key: 'history', label: 'History', show: !!props.loadHistory },
+])
 
 watch(() => props.apiKey, () => {
   activeTab.value = 'details'
@@ -179,6 +257,24 @@ watch(
 )
 
 watch(
+  () => form.value.restrictChannels,
+  (enabled, wasEnabled) => {
+    if (enabled && !wasEnabled && form.value.allowedChannels.length === 0) {
+      form.value.allowedChannels = [...ALL_CHANNELS]
+    }
+  }
+)
+
+watch(
+  () => form.value.restrictFeatures,
+  (enabled, wasEnabled) => {
+    if (enabled && !wasEnabled && form.value.allowedFeatures.length === 0) {
+      form.value.allowedFeatures = FEATURE_GROUPS.flatMap(g => [...g.features])
+    }
+  }
+)
+
+watch(
   () => props.apiKey,
   (newApiKey) => {
     if (newApiKey) {
@@ -188,6 +284,10 @@ watch(
         metadata: newApiKey.metadata ?? {},
         version: newApiKey.version,
         projectId: newApiKey.projectId || props.projectId || '',
+        restrictChannels: !!newApiKey.keySettings?.allowedChannels,
+        allowedChannels: (newApiKey.keySettings?.allowedChannels ?? []) as AllowedChannel[],
+        restrictFeatures: !!newApiKey.keySettings?.allowedFeatures,
+        allowedFeatures: newApiKey.keySettings?.allowedFeatures ?? [],
       }
       emit('project-selected', form.value.projectId)
       // Show the key if it was just created
@@ -202,6 +302,10 @@ watch(
         metadata: {},
         version: undefined,
         projectId: props.projectId || '',
+        restrictChannels: false,
+        allowedChannels: [],
+        restrictFeatures: false,
+        allowedFeatures: [],
       }
       newKeyValue.value = null
       showNewKeyAlert.value = false
@@ -210,11 +314,48 @@ watch(
   { immediate: true }
 )
 
+const INPUT_FEATURES = ['voice_input', 'text_input']
+const OUTPUT_FEATURES = ['voice_output', 'text_output']
+
+const hasInputSelected = computed(() =>
+  !form.value.restrictFeatures || INPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+const hasOutputSelected = computed(() =>
+  !form.value.restrictFeatures || OUTPUT_FEATURES.some(f => form.value.allowedFeatures.includes(f))
+)
+
 function handleSubmit() {
-  if (!form.value.name) return
-  if (!props.apiKey && !props.projectId && !form.value.projectId) return
+  const apiErrorDetails:ApiErrorDetail[] = [];
+  validationError.value = null
+
+  if (!form.value.name)
+    apiErrorDetails.push({ path: ['name'], message: 'API key name is required.', code: 'too_small' })
+
+  if (!props.apiKey && !props.projectId && !form.value.projectId)
+    apiErrorDetails.push({ path: ['projectId'], message: 'A project must be selected.', code: 'required' })
+
+  if (!hasInputSelected.value || !hasOutputSelected.value)
+    apiErrorDetails.push({ path: ['features'], message: 'At least one input and one output feature must be enabled.', code: 'invalid' })
+
+  if (apiErrorDetails.length) {
+    validationError.value = {
+      message: 'Please fix the validation errors and try again.',
+      details: apiErrorDetails
+    }
+    return
+  }
+
+  const keySettings: Record<string, any> = {}
+  if (form.value.restrictChannels) {
+    keySettings.allowedChannels = form.value.allowedChannels
+  }
+  if (form.value.restrictFeatures) {
+    keySettings.allowedFeatures = form.value.allowedFeatures
+  }
+
   const data: any = {
     name: form.value.name,
+    keySettings,
   }
   if (!props.apiKey) {
     // Creating new key
@@ -225,12 +366,8 @@ function handleSubmit() {
     data.metadata = form.value.metadata
     data.version = form.value.version
   }
+  console.log('Submitting API key data:', data)
   emit('save', data)
-}
-
-function formatDate(dateString: string | null) {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleString()
 }
 
 async function copyToClipboard() {
