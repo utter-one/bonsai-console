@@ -198,8 +198,9 @@ async function handleSubmit() {
   if(!form.value.prompt.trim())
     errorDetails.push({ code: 'required', path: ['prompt'], message: 'Prompt is required' })
 
-  if (duplicateVariableNames.value.length > 0)
-    errorDetails.push({ code: 'duplicate', path: ['variableDescriptors'], message: `Duplicate variable names detected: ${duplicateVariableNames.value.join(', ')}. Variable names must be unique within each level.` })
+  const variablesValid = variablesTabRef.value?.validate() ?? true
+  if (!variablesValid)
+    errorDetails.push({ code: 'invalid', path: ['variableDescriptors'], message: 'Variable names must be unique and non-empty at each level.' })
 
   if (errorDetails.length > 0) {
     error.value = {
@@ -350,29 +351,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
 }
 
-// Duplicate variable name detection (used in handleSubmit validation)
-const duplicateVariableNames = computed(() => {
-  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
-    const seen = new Set<string>()
-    const dupes: string[] = []
-    for (const d of descriptors) {
-      if (seen.has(d.name)) {
-        if (!dupes.includes(d.name)) dupes.push(d.name)
-      } else {
-        seen.add(d.name)
-      }
-    }
-    for (const d of descriptors) {
-      if (d.objectSchema && d.objectSchema.length > 0) {
-        dupes.push(...findDuplicates(d.objectSchema))
-      }
-    }
-    return dupes
-  }
-  return findDuplicates(form.value.variableDescriptors)
-})
-
-
+const variablesTabRef = ref<InstanceType<typeof StageVariablesTab> | null>(null)
 </script>
 
 <template>
@@ -621,6 +600,7 @@ const duplicateVariableNames = computed(() => {
           <!-- Memory Tab -->
           <TabContent v-model="activeTab" tab="memory">
             <StageVariablesTab
+              ref="variablesTabRef"
               v-model="form.variableDescriptors"
               :is-loading="isLoading"
               :error="error"
