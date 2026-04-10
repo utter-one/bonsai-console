@@ -27,3 +27,5 @@ docs/.vitepress/cache
 *.njsproj
 *.sln
 *.sw?
+
+.notes

@@ -119,6 +119,7 @@ Unified component for displaying read-only metadata in edit views:
 - Props: `fields` array with `{ label, value, format? }` structure
 - Format options: `'date'` (auto-formats timestamps), `'mono'` (monospace font), `'default'`
 - Automatically handles null/undefined values (displays "N/A")
+- Supports `tab` / `v-model` props for use with the tab system (same pattern as `TabContent`)
 
 **Example:**
 ```typescript
@@ -139,9 +140,109 @@ In template:
 ```vue
 <MetadataTab
   v-if="isEditMode && currentResource"
-  v-show="activeTab === 'metadata'"
+  v-model="activeTab"
+  tab="metadata"
   :fields="metadataFields"
 />
+```
+
+### TabContent Component
+Wraps a tab's content with `v-show` and `data-tab` attribute. Works with `useTabNavigation` to auto-switch tabs on validation errors.
+
+Props:
+- `tab` — the tab key string (matches `TabNavigator` key)
+- `modelValue` — the currently active tab (bind with `v-model`)
+
+**Example:**
+```vue
+import TabContent from '@/components/TabContent.vue'
+
+// In script: provide activeTab ref
+const activeTab = ref<'general' | 'advanced'>('general')
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
+
+// In template:
+<TabContent v-model="activeTab" tab="general">
+  <!-- fields -->
+</TabContent>
+<TabContent v-model="activeTab" tab="advanced">
+  <!-- fields -->
+</TabContent>
+```
+
+Extra conditions go on the `TabContent` element itself, not inside:
+```vue
+<!-- Only mount when editing -->
+<TabContent v-model="activeTab" tab="metadata" v-if="isEditMode">
+  ...
+</TabContent>
+```
+
+### FormField Component
+Standard form field wrapper. Has two modes depending on whether it is a direct child of `CompositeFormField`.
+
+**Standalone mode** (default): renders `div.form-group` with label, required/optional badge, error ring on the inner wrapper, and error/help text below.
+
+Props:
+- `label` — field label text
+- `error` — `ParsedError | null` from the store
+- `path` — field path for error matching (e.g. `'name'`, `['actions', 0, 'name']`)
+- `required` — shows `*` badge; default shows `(optional)`
+- `hint` — replaces the required/optional badge with custom text
+- `help` — help text shown when no error is present
+- Class passthrough: applied to the inner wrapper div. Defaults to `w-fit`; pass any `w-*` class to override.
+
+```vue
+import FormField from '@/components/FormField.vue'
+
+<FormField label="Name" required :error="error" path="name" class="w-full" help="Human-readable name">
+  <input v-model="form.name" class="form-input" />
+</FormField>
+
+<FormField label="Description" :error="error" path="description" class="w-full">
+  <textarea v-model="form.description" class="form-textarea" />
+</FormField>
+```
+
+**Child mode** (inside `CompositeFormField`): no label, no help text, no `form-group` wrapper. Only renders a plain div with the error ring. Path is automatically registered with the parent.
+
+```vue
+<CompositeFormField label="Provider" required :error="error" help="Select provider and configure settings">
+  <div class="flex gap-2">
+    <FormField path="providerId">
+      <select v-model="form.providerId" class="form-select-auto" />
+    </FormField>
+    <FormField path="providerSettings">
+      <button type="button" class="btn-secondary">Settings...</button>
+    </FormField>
+  </div>
+</CompositeFormField>
+```
+
+### CompositeFormField Component
+Container for grouped controls that share a single label and a single error text. Uses provide/inject so child `FormField`s auto-register their paths — no manual `paths` array needed.
+
+Props: identical to `FormField` standalone (`label`, `error`, `required`, `hint`, `help`).
+
+The parent shows the first error found across all registered child paths. Each child `FormField` shows an error ring independently.
+
+```vue
+import CompositeFormField from '@/components/CompositeFormField.vue'
+import FormField from '@/components/FormField.vue'
+
+<CompositeFormField label="LLM Provider" required :error="error" help="Select a provider then configure its settings">
+  <div class="flex flex-col md:flex-row gap-2">
+    <FormField path="llmProviderId">
+      <select :value="form.llmProviderId" @change="handleProviderChange" class="form-select-auto min-w-64">
+        <option value="">Select a provider</option>
+        <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }}</option>
+      </select>
+    </FormField>
+    <FormField path="llmSettings">
+      <button type="button" @click="showSettings = true" class="btn-secondary">Settings...</button>
+    </FormField>
+  </div>
+</CompositeFormField>
 ```
 
 ### Modal Components

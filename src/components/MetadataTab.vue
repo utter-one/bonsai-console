@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDate } from '../composables';
+
 // Define the metadata item structure
 interface MetadataField {
   label: string
@@ -9,13 +11,10 @@ interface MetadataField {
 // Props
 const props = defineProps<{
   fields: MetadataField[]
+  modelValue?: string
+  tab?: string
 }>()
 
-// Helper function to format dates
-function formatDate(date: string | null | undefined): string {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 // Helper function to format value based on type
 function formatValue(field: MetadataField): string {
@@ -37,7 +36,11 @@ function getValueClass(field: MetadataField): string {
 </script>
 
 <template>
-  <div class="tab-content">
+  <div
+    class="tab-content"
+    :data-tab="tab"
+    v-show="!tab || !modelValue || modelValue === tab"
+  >
     <div class="metadata-container">
       <div
         v-for="(field, index) in fields"

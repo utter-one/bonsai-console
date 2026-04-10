@@ -6,6 +6,12 @@ import type {
   LatencyPercentilesResponse,
   LatencyTrendResponse,
   ConversationTimelineResponse,
+  TokenUsageStatsResponse,
+  TokenUsageTrendResponse,
+  SourceCatalogResponse,
+  SliceQueryResponse,
+  SavedSliceQuery,
+  SliceQuery,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -95,6 +101,128 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     timelineError.value = null
   }
 
+  const tokenUsageStats = ref<TokenUsageStatsResponse | null>(null)
+  const tokenUsageTrend = ref<TokenUsageTrendResponse | null>(null)
+  const isLoadingTokenUsage = ref(false)
+  const tokenUsageError = ref<string | null>(null)
+
+  async function fetchTokenUsageStats(projectId: string, query?: LatencyFilterQuery) {
+    try {
+      tokenUsageStats.value = await apiClient.projectsAnalyticsUsageList(projectId, query)
+    } catch (err: any) {
+      tokenUsageError.value = err.response?.data?.message || 'Failed to load token usage statistics'
+      throw err
+    }
+  }
+
+  async function fetchTokenUsageTrend(projectId: string, query?: TrendFilterQuery) {
+    try {
+      tokenUsageTrend.value = await apiClient.projectsAnalyticsUsageTrendList(projectId, query)
+    } catch (err: any) {
+      tokenUsageError.value = err.response?.data?.message || 'Failed to load token usage trend'
+      throw err
+    }
+  }
+
+  async function fetchAllTokenUsage(projectId: string, query?: TrendFilterQuery) {
+    isLoadingTokenUsage.value = true
+    tokenUsageError.value = null
+    try {
+      const { interval: _interval, ...statsQuery } = query || {}
+      await Promise.all([
+        fetchTokenUsageStats(projectId, statsQuery),
+        fetchTokenUsageTrend(projectId, query),
+      ])
+    } catch {
+      // individual errors already set
+    } finally {
+      isLoadingTokenUsage.value = false
+    }
+  }
+
+  const sourceCatalog = ref<SourceCatalogResponse | null>(null)
+  const isLoadingCatalog = ref(false)
+  const catalogError = ref<string | null>(null)
+
+  async function fetchSourceCatalog(projectId: string) {
+    isLoadingCatalog.value = true
+    catalogError.value = null
+    try {
+      sourceCatalog.value = await apiClient.projectsAnalyticsSourcesList(projectId)
+    } catch (err: any) {
+      catalogError.value = err.response?.data?.message || 'Failed to load analytics sources'
+      throw err
+    } finally {
+      isLoadingCatalog.value = false
+    }
+  }
+
+  const sliceResult = ref<SliceQueryResponse | null>(null)
+  const isLoadingQuery = ref(false)
+  const queryError = ref<string | null>(null)
+
+  async function runQuery(projectId: string, params: Parameters<typeof apiClient.projectsAnalyticsQueryList>[1]) {
+    isLoadingQuery.value = true
+    queryError.value = null
+    sliceResult.value = null
+    try {
+      sliceResult.value = await apiClient.projectsAnalyticsQueryList(projectId, params)
+    } catch (err: any) {
+      const data = err.response?.data
+      if (data?.message) {
+        queryError.value = data.message
+      } else if (data?.error) {
+        queryError.value = data.error
+      } else if (typeof data === 'string' && data) {
+        queryError.value = data
+      } else {
+        queryError.value = `Query failed (HTTP ${err.response?.status ?? 'unknown'})`
+      }
+      throw err
+    } finally {
+      isLoadingQuery.value = false
+    }
+  }
+
+  function clearResult() {
+    sliceResult.value = null
+    queryError.value = null
+  }
+
+  const savedQueries = ref<SavedSliceQuery[]>([])
+  const isLoadingSavedQueries = ref(false)
+  const savedQueriesError = ref<string | null>(null)
+
+  async function fetchSavedQueries(projectId: string) {
+    isLoadingSavedQueries.value = true
+    savedQueriesError.value = null
+    try {
+      savedQueries.value = await apiClient.projectsAnalyticsSavedQueriesList(projectId)
+    } catch (err: any) {
+      savedQueriesError.value = err.response?.data?.message || 'Failed to load saved queries'
+      throw err
+    } finally {
+      isLoadingSavedQueries.value = false
+    }
+  }
+
+  async function createSavedQuery(projectId: string, data: { name: string; query: SliceQuery; isShared?: boolean; metadata?: Record<string, any> }) {
+    const created = await apiClient.projectsAnalyticsSavedQueriesCreate(projectId, data)
+    savedQueries.value = [...savedQueries.value, created]
+    return created
+  }
+
+  async function updateSavedQuery(projectId: string, id: string, data: { name?: string; query?: SliceQuery; isShared?: boolean; metadata?: Record<string, any>; version: number }) {
+    const updated = await apiClient.projectsAnalyticsSavedQueriesUpdate(projectId, id, data)
+    savedQueries.value = savedQueries.value.map(q => q.id === id ? updated : q)
+    return updated
+  }
+
+  async function deleteSavedQuery(projectId: string, id: string, version: number) {
+    await apiClient.projectsAnalyticsSavedQueriesDelete(projectId, id, { version })
+    savedQueries.value = savedQueries.value.filter(q => q.id !== id)
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -110,5 +238,28 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     fetchAll,
     fetchConversationTimeline,
     clearTimeline,
+    tokenUsageStats,
+    tokenUsageTrend,
+    isLoadingTokenUsage,
+    tokenUsageError,
+    fetchTokenUsageStats,
+    fetchTokenUsageTrend,
+    fetchAllTokenUsage,
+    sourceCatalog,
+    isLoadingCatalog,
+    catalogError,
+    fetchSourceCatalog,
+    sliceResult,
+    isLoadingQuery,
+    queryError,
+    runQuery,
+    clearResult,
+    savedQueries,
+    isLoadingSavedQueries,
+    savedQueriesError,
+    fetchSavedQueries,
+    createSavedQuery,
+    updateSavedQuery,
+    deleteSavedQuery,
   }
 })

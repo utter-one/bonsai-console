@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ProviderConfig } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
+defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
 </script>
 
@@ -8,10 +11,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Deepgram Configuration</h3>
 
-    <div class="form-group">
-      <label class="form-label">
-        API Key <span class="required">*</span>
-      </label>
+    <FormField label="API Key" required :error="error" path="apiKey" class="w-full" help="Your Deepgram API key">
       <input
         v-model="config.apiKey"
         type="password"
@@ -19,7 +19,6 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="..."
         class="form-input-mono"
       />
-      <p class="form-help-text">Your Deepgram API key</p>
-    </div>
+    </FormField>
   </div>
 </template>

@@ -1,46 +1,35 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content max-w-lg" @click.stop>
-      <h2 class="modal-header">
-        Duplicate Action
-      </h2>
+  <BaseModal title="Duplicate Action" size="lg" @close="$emit('close')">
       
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        <div class="form-group">
-          <label class="form-label">
-            New Action Name <span class="required">*</span>
-          </label>
+        <FormField label="New Action Name" required class="w-full" :error="error" help="Display name for the new action">
           <input
             v-model="form.name"
             type="text"
-            required
             class="form-input"
-            :class="{ 'border-red-500': nameConflict }"
             placeholder="e.g., My Action"
           />
-          <p v-if="nameConflict" class="text-red-500 text-sm mt-1">
-            An action with this name already exists. Please choose a different name.
-          </p>
-          <p v-else class="form-help-text">
-            Display name for the new action
-          </p>
-        </div>
+        </FormField>
 
         <div class="modal-footer">
+          <ErrorDisplay :error="error" class="flex-1 mr-2" />
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
           </button>
-          <button type="submit" class="btn-primary" :disabled="nameConflict">
+          <button type="submit" class="btn-primary">
             Duplicate Action
           </button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import type { ParsedError } from '@/api/types'
 
 const props = defineProps<{
   originalKey: string
@@ -57,15 +46,26 @@ const form = ref({
   name: ''
 })
 
-const nameConflict = computed(() =>
-  props.existingNames.includes(form.value.name.trim())
-)
+const error = ref<ParsedError | null>(null)
+
 
 watch(() => props.originalName, (name) => {
   form.value.name = name ? `${name} (Copy)` : ''
 }, { immediate: true })
 
+watch(() => form.value.name, () => {
+  error.value = null
+})
+
 function handleSubmit() {
+  if (!form.value.name.trim()) {
+    error.value = { message: 'Action name is required.' }
+    return
+  }
+  if (props.existingNames.includes(form.value.name.trim())) {
+    error.value = { message: 'An action with this name already exists. Please choose a different name.' }
+    return
+  }
   emit('save', { name: form.value.name })
 }
 </script>

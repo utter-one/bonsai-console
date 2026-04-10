@@ -3,10 +3,17 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
-import type { EnvironmentResponse } from '@/api/types'
+import type { EnvironmentResponse, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
+import FormField from '@/components/FormField.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
+import { useTabNavigation } from '@/composables/useTabNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,7 +21,7 @@ const environmentsStore = useEnvironmentsStore()
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'metadata' | 'history'>('basic')
 const form = ref({
@@ -28,7 +35,14 @@ const form = ref({
 // Computed
 const environmentId = computed(() => route.params.environmentId as string | undefined)
 const isEditMode = computed(() => !!environmentId.value)
+
+const tabs = computed<TabDefinition[]>(() => [
+  { key: 'basic', label: 'General' },
+  { key: 'metadata', label: 'Metadata', show: isEditMode.value },
+  { key: 'history', label: 'History', show: isEditMode.value },
+])
 const currentEnvironment = ref<EnvironmentResponse | null>(null)
+const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 // Lifecycle
 onMounted(async () => {
@@ -56,7 +70,7 @@ async function loadEnvironment() {
       }
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to load environment'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -84,23 +98,14 @@ async function handleSubmit() {
       currentEnvironment.value = updated
     } else {
       // Validate required fields for creation
-      if (!form.value.description) {
-        error.value = 'Description is required'
-        isLoading.value = false
-        return
-      }
-      if (!form.value.url) {
-        error.value = 'URL is required'
-        isLoading.value = false
-        return
-      }
-      if (!form.value.login) {
-        error.value = 'Login is required'
-        isLoading.value = false
-        return
-      }
-      if (!form.value.password) {
-        error.value = 'Password is required'
+      const validationDetails: import('@/api/types').ApiErrorDetail[] = []
+      if (!form.value.description) validationDetails.push({ path: ['description'], message: 'Description is required', code: 'REQUIRED' })
+      if (!form.value.url) validationDetails.push({ path: ['url'], message: 'URL is required', code: 'REQUIRED' })
+      if (!form.value.login) validationDetails.push({ path: ['login'], message: 'Login is required', code: 'REQUIRED' })
+      if (!form.value.password) validationDetails.push({ path: ['password'], message: 'Password is required', code: 'REQUIRED' })
+      if (validationDetails.length > 0) {
+        error.value = { message: 'Please correct the following errors', details: validationDetails }
+        switchToFirstErrorTab(error.value)
         isLoading.value = false
         return
       }
@@ -132,7 +137,8 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} environment`
+    error.value = parseApiError(err)
+    switchToFirstErrorTab(error.value)
   } finally {
     isLoading.value = false
   }
@@ -185,31 +191,7 @@ const metadataFields = computed(() => {
 
       <!-- Tabs -->
       <div class="tabs-container">
-        <nav class="tabs-nav" aria-label="Tabs">
-          <button
-            @click="activeTab = 'basic'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'basic' }]"
-            type="button"
-          >
-            General
-          </button>
-          <button
-            v-if="isEditMode"
-            @click="activeTab = 'metadata'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'metadata' }]"
-            type="button"
-          >
-            Metadata
-          </button>
-          <button
-            v-if="isEditMode"
-            @click="activeTab = 'history'"
-            :class="['tab-button', { 'tab-button-active': activeTab === 'history' }]"
-            type="button"
-          >
-            History
-          </button>
-        </nav>
+        <TabNavigator v-model="activeTab" :tabs="tabs" />
       </div>
 
       <!-- Loading State -->
@@ -219,7 +201,7 @@ const metadataFields = computed(() => {
 
       <!-- Error State (load failure) -->
       <div v-else-if="error && isEditMode && !currentEnvironment" class="error-state">
-        {{ error }}
+        <ErrorDisplay :error="error" />
         <button @click="goBack" class="btn-secondary mt-4">
           Back to Environments
         </button>
@@ -230,17 +212,11 @@ const metadataFields = computed(() => {
         <div class="mx-auto">
           <form @submit.prevent="handleSubmit">
             <!-- Error Message -->
-            <div v-if="error" class="alert-error mb-6">
-              {{ error }}
-            </div>
+            <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
             <!-- General Tab -->
-            <div v-show="activeTab === 'basic'" class="tab-content">
-              <div class="form-group">
-                <label class="form-label">
-                  Environment ID
-                  <span v-if="!isEditMode" class="text-gray-500 text-xs ml-1">(optional, auto-generated if empty)</span>
-                </label>
+            <TabContent v-model="activeTab" tab="basic">
+              <FormField label="Environment ID" :error="error" path="id" class="w-full" hint="optional" :help="isEditMode ? 'The environment ID cannot be changed after creation' : 'Optional. Unique identifier using lowercase letters, numbers, and hyphens.'">
                 <input
                   v-model="form.id"
                   type="text"
@@ -249,93 +225,60 @@ const metadataFields = computed(() => {
                   :class="{ 'form-input-disabled': isEditMode }"
                   :disabled="isEditMode || isLoading"
                 />
-                <p class="form-help-text">
-                  {{ isEditMode
-                    ? 'The environment ID cannot be changed after creation'
-                    : 'Optional. Unique identifier using lowercase letters, numbers, and hyphens.'
-                  }}
-                </p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  Description <span class="required">*</span>
-                </label>
+              <FormField label="Description" required :error="error" path="description" class="w-full" help="Human-readable description of this environment">
                 <input
                   v-model="form.description"
                   type="text"
-                  required
                   placeholder="Production environment"
                   class="form-input"
                   :disabled="isLoading"
                 />
-                <p class="form-help-text">Human-readable description of this environment</p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  URL <span class="required">*</span>
-                </label>
+              <FormField label="URL" required :error="error" path="url" class="w-full" help="Base URL of the target server instance">
                 <input
                   v-model="form.url"
                   type="url"
-                  required
                   placeholder="https://api.example.com"
                   class="form-input-mono"
                   :disabled="isLoading"
                 />
-                <p class="form-help-text">Base URL of the target server instance</p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  Login <span class="required">*</span>
-                </label>
+              <FormField label="Login" required :error="error" path="login" class="w-full" help="Authentication username for this environment">
                 <input
                   v-model="form.login"
                   type="text"
-                  required
                   placeholder="admin"
                   class="form-input max-w-xs"
                   :disabled="isLoading"
                 />
-                <p class="form-help-text">Authentication username for this environment</p>
-              </div>
+              </FormField>
 
-              <div class="form-group">
-                <label class="form-label">
-                  Password
-                  <span v-if="!isEditMode" class="required">*</span>
-                  <span v-else class="text-gray-500 text-xs ml-1">(leave empty to keep current)</span>
-                </label>
+              <FormField label="Password" :required="!isEditMode" :error="error" path="password" class="w-full" :hint="isEditMode ? 'leave empty to keep current' : undefined" :help="isEditMode ? 'Enter a new password only if you want to change it.' : 'Authentication password for this environment.'">
                 <input
                   v-model="form.password"
                   type="password"
-                  :required="!isEditMode"
                   placeholder="••••••••"
                   class="form-input-mono max-w-xs"
                   :disabled="isLoading"
                 />
-                <p class="form-help-text">
-                  {{ isEditMode
-                    ? 'Enter a new password only if you want to change it.'
-                    : 'Authentication password for this environment.'
-                  }}
-                </p>
-              </div>
-            </div>
+              </FormField>
+            </TabContent>
 
             <!-- Metadata Tab -->
             <MetadataTab
               v-if="isEditMode && currentEnvironment"
-              v-show="activeTab === 'metadata'"
+              v-model="activeTab"
+              tab="metadata"
               :fields="metadataFields"
             />
-            <div class="tab-content">
-              <!-- History Tab -->
+            <!-- History Tab -->
+            <TabContent v-model="activeTab" tab="history">
               <EntityHistoryView
                 v-if="isEditMode && currentEnvironment"
-                v-show="activeTab === 'history'"
                 :load-history="() => environmentsStore.fetchAuditLogs(currentEnvironment!.id)"
                 :current-version="currentEnvironment.version"
                 :current-object="currentEnvironment"
@@ -345,7 +288,7 @@ const metadataFields = computed(() => {
                 :ignore-fields="['createdAt', 'updatedAt', 'version']"
                 @recover-success="() => router.go(0)"
               />
-            </div>
+            </TabContent>
           </form>
         </div>
       </div>

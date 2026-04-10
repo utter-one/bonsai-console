@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import apiClient from '@/api/client'
-import type { ListParams } from '@/api/types'
+import type { ListParams, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 
 export interface ResourceStoreOptions {
   endpoint: string
@@ -20,7 +21,7 @@ export interface ProjectResourceStoreOptions {
 export function createProjectResourceStore<T extends { id: string | number }, CreateRequest, UpdateRequest>(
   options: ProjectResourceStoreOptions
 ) {
-  const { resourceName, apiResourceName } = options
+  const { apiResourceName } = options
 
   // Build method prefix: e.g., 'agents' -> 'projectsAgents'
   const prefix = `projects${apiResourceName.charAt(0).toUpperCase()}${apiResourceName.slice(1)}`
@@ -28,7 +29,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
   const items = ref<T[]>([])
   const currentItem = ref<T | null>(null)
   const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<ParsedError | null>(null)
   const pagination = ref({
     total: 0,
     offset: 0,
@@ -64,7 +65,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
       }
       return data
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch ${resourceName}s`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -80,7 +81,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
       currentItem.value = response as T
       return response as T
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -97,7 +98,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
       items.value = ([result, ...items.value] as any)
       return result
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to create ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -121,7 +122,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
       }
       return result
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to update ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -143,7 +144,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
         currentItem.value = null
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to delete ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -155,7 +156,7 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
       const response = await apiMethods.auditLogs(projectId, id, { ...params })
       return response
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch audit logs`
+      error.value = parseApiError(err)
       throw err
     }
   }
@@ -178,12 +179,12 @@ export function createProjectResourceStore<T extends { id: string | number }, Cr
 export function createResourceStore<T extends { id: string | number }, CreateRequest, UpdateRequest>(
   options: ResourceStoreOptions
 ) {
-  const { resourceName, apiResourceName } = options
+  const { apiResourceName } = options
 
   const items = ref<T[]>([])
   const currentItem = ref<T | null>(null)
   const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<ParsedError | null>(null)
   const pagination = ref({
     total: 0,
     offset: 0,
@@ -215,7 +216,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
       }
       return data
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch ${resourceName}s`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -231,7 +232,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
       currentItem.value = response as T
       return response as T
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -248,7 +249,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
       items.value = ([result, ...items.value] as any)
       return result
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to create ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -273,7 +274,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
       }
       return result
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to update ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -296,7 +297,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
         currentItem.value = null
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to delete ${resourceName}`
+      error.value = parseApiError(err)
       throw err
     } finally {
       isLoading.value = false
@@ -308,7 +309,7 @@ export function createResourceStore<T extends { id: string | number }, CreateReq
       const response = await apiMethods.auditLogs(id, { ...params })
       return response
     } catch (err: any) {
-      error.value = err.response?.data?.message || `Failed to fetch audit logs`
+      error.value = parseApiError(err)
       throw err
     }
   }

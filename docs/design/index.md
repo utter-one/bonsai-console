@@ -16,6 +16,7 @@ At a high level, designing a conversation means defining:
 8. **AI-powered utility functions** → [Tools](./tools)
 9. **FAQ content for consistent answers** → [Knowledge Base](./knowledge)
 10. **User profile schema and project constants** → [Global Memory](./global-memory)
+11. **Pre-written prescripted answers with variant sampling** → [Sample Copies](./sample-copies)
 
 ## Where to Start
 

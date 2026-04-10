@@ -48,6 +48,12 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   // Design — Knowledge
   'design.knowledge':                    '/design/knowledge',
 
+  // Design — Global Memory
+  'design.globalMemory':                 '/design/global-memory',
+
+  // Design — Sample Copies
+  'design.sampleCopies':                 '/design/sample-copies',
+
   // Monitor
   'monitor':                             '/monitor/',
   'monitor.conversations':              '/monitor/conversations',
@@ -57,6 +63,10 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   'monitor.issues':                      '/monitor/issues',
   'monitor.auditLogs':                   '/monitor/audit-logs',
   'monitor.auditLogDetail':             '/monitor/audit-logs',
+  'monitor.analytics':                   '/monitor/analytics',
+  'monitor.analytics.latency':          '/monitor/analytics',
+  'monitor.analytics.tokenUsage':       '/monitor/analytics',
+  'monitor.analytics.explore':          '/monitor/analytics',
 
   // Administration
   'administration':                      '/administration/',

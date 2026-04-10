@@ -3,7 +3,7 @@ import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToolsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import { Hammer, Search, X, Plus, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -85,10 +85,6 @@ async function deleteTool(tool: ToolResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 
 

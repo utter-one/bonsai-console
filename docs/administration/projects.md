@@ -28,6 +28,25 @@ Controls how user speech is transcribed:
 - **Unintelligible Placeholder** — Text used when speech can't be transcribed (default: `[unintelligible]`).
 - **Voice Activity Detection** — Automatically detect when the user starts and stops speaking.
 
+#### Server-side VAD
+
+::: warning Experimental Feature
+Server-side VAD is under active development. Behaviour may change in future releases.
+:::
+
+**Enable Server-side VAD** switches from client-driven voice input (where the client explicitly signals start/end of speech) to continuous audio streaming with automatic speech boundary detection on the server.
+
+When enabled, the following settings become available:
+
+| Setting | Description | Default |
+|---|---|---|
+| **Aggressiveness Mode** | How aggressively non-speech audio is filtered out (0 = least aggressive, 3 = most aggressive) | 2 |
+| **Frame Duration** | Duration of each VAD processing frame. Must be 10, 20, or 30 ms | 20 ms |
+| **Silence Pre-roll Padding** | Silence prepended before detected speech as a pre-roll buffer (0–1000 ms) | 300 ms |
+| **Auto-End Silence Duration** | How long silence after speech must persist before end-of-utterance is triggered (100–5000 ms) | 800 ms |
+
+Server-side VAD is useful when clients cannot reliably detect speech boundaries themselves (e.g. embedded devices or browser environments without access to audio APIs).
+
 ### Storage Configuration
 
 ::: warning Experimental Feature

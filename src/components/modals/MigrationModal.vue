@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
-  Globe, ArrowDownToLine, CheckCircle, XCircle, Loader,
+  Globe, ArrowDownToLine, CheckCircle, XCircle, Loader, X,
   ChevronDown, ChevronUp, AlertTriangle, RefreshCw,
 } from 'lucide-vue-next'
+import BaseModal from '@/components/BaseModal.vue'
 import type { EnvironmentResponse, MigrationJob, MigrationPreview, EntityStub } from '@/api/types'
 import apiClient from '@/api/client'
 
@@ -264,14 +265,18 @@ onUnmounted(stopPolling)
 </script>
 
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content" style="max-width: 600px; width: 100%;" @click.stop>
-
-      <!-- Header -->
-      <div class="modal-header flex items-center gap-2">
-        <ArrowDownToLine class="w-5 h-5 text-primary-600" />
-        Migrate from Environment
+  <BaseModal title="Migrate from Environment" size="lg" @close="$emit('close')">
+    <template #header>
+      <div class="modal-header">
+        <div class="flex items-center gap-2">
+          <ArrowDownToLine class="w-5 h-5 text-primary-600" />
+          <span class="text-xl font-semibold text-gray-900 dark:text-gray-100">Migrate from Environment</span>
+        </div>
+        <button @click="$emit('close')" class="btn-icon">
+          <X class="w-5 h-5" />
+        </button>
       </div>
+    </template>
 
       <!-- Environment info badge -->
       <div class="flex items-center gap-2 px-4 py-2 mb-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -543,6 +548,5 @@ onUnmounted(stopPolling)
         </div>
       </template>
 
-    </div>
-  </div>
+  </BaseModal>
 </template>

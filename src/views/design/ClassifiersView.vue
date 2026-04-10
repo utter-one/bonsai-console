@@ -3,7 +3,7 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClassifiersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import { Target, Search, X, Plus } from 'lucide-vue-next'
 import type { ClassifierResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -88,10 +88,6 @@ function editClassifier(classifier: ClassifierResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 
 </script>

@@ -2,8 +2,13 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { Trash2, Plus, MoreHorizontal } from 'lucide-vue-next'
 import PromptEditor from './PromptEditor.vue'
+import FloatingDropdown from './FloatingDropdown.vue'
 import type { ActionOperations } from '@/composables/useActionForm'
 import type { ToolResponse } from '@/api/generated/data-contracts'
+import type { ParsedError } from '@/api/types'
+import { useMediaUpload } from '@/composables/useMediaUpload'
+import { defaultItemForArrayType } from '@/utils/arrayEditor'
+import FormField from './FormField.vue'
 
 const props = withDefaults(defineProps<{
   operations: ActionOperations
@@ -13,6 +18,7 @@ const props = withDefaults(defineProps<{
   stageVariables?: any[]
   actionParameters?: Record<string, any[]>
   projectConstants?: Record<string, any>
+  error?: ParsedError | null
 }>(), {
   availableClassifiers: () => [],
   availableStages: () => [],
@@ -20,9 +26,12 @@ const props = withDefaults(defineProps<{
   stageVariables: () => [],
   actionParameters: () => ({}),
   projectConstants: () => ({}),
+  error: null,
 })
 
 const selectedEffectId = ref<string | null>(null)
+
+const { processAudio } = useMediaUpload()
 
 const EFFECT_PRIORITY = {
   callTool: 2,
@@ -34,6 +43,7 @@ const EFFECT_PRIORITY = {
   endConversation: 200,
   abortConversation: 201,
   goToStage: 202,
+  banUser: 300,
 } as const
 
 const effectsList = computed(() => {
@@ -47,6 +57,7 @@ const effectsList = computed(() => {
   if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: EFFECT_PRIORITY.modifyVariables })
   if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
   if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
+  if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: EFFECT_PRIORITY.banUser })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
     list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
@@ -84,21 +95,18 @@ const addableEffects = computed(() => {
     { key: 'modifyVariables', label: 'Modify Variables' },
     { key: 'modifyUserProfile', label: 'Modify User Profile' },
     { key: 'changeVisibility', label: 'Change Visibility' },
+    { key: 'banUser', label: 'Ban User' },
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
-const showAddDropdown = ref(false)
-
 function addSingleEffect(key: string) {
   ;(props.operations as any)[key].enabled = true
-  showAddDropdown.value = false
   selectedEffectId.value = key
 }
 
 function addToolCall() {
   props.operations.callTools.push({ toolId: '', parameters: {} })
   const index = props.operations.callTools.length - 1
-  showAddDropdown.value = false
   selectedEffectId.value = `callTool_${index}`
 }
 
@@ -217,11 +225,7 @@ function addArrayItem(paramName: string, paramType: string) {
   if (idx < 0 || !toolParamsByIndex[idx]) return
   const params = toolParamsByIndex[idx]!
   if (!Array.isArray(params[paramName])) params[paramName] = []
-  if (paramType === 'string[]') params[paramName].push('')
-  else if (paramType === 'number[]') params[paramName].push(0)
-  else if (paramType === 'boolean[]') params[paramName].push(false)
-  else if (paramType === 'object[]') params[paramName].push('{}')
-  else if (paramType === 'audio[]') params[paramName].push(null)
+  params[paramName].push(defaultItemForArrayType(paramType))
 }
 
 function removeArrayItem(paramName: string, itemIndex: number) {
@@ -231,50 +235,22 @@ function removeArrayItem(paramName: string, itemIndex: number) {
   if (Array.isArray(params[paramName])) params[paramName].splice(itemIndex, 1)
 }
 
-function handleAudioUpload(event: Event, paramName: string) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+async function handleAudioUpload(event: Event, paramName: string) {
   const idx = selectedCallToolIndex.value
   if (idx < 0 || !toolParamsByIndex[idx]) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const mimeType = parts[0]!.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    toolParamsByIndex[idx]![paramName] = { data: parts[1]!, format, mimeType, metadata: {} }
-  }
-  reader.readAsDataURL(file)
+  const result = await processAudio(event)
+  if (!result) return
+  toolParamsByIndex[idx]![paramName] = result
 }
 
-function handleAudioArrayUpload(event: Event, paramName: string, itemIndex: number) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+async function handleAudioArrayUpload(event: Event, paramName: string, itemIndex: number) {
   const idx = selectedCallToolIndex.value
   if (idx < 0 || !toolParamsByIndex[idx]) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    if (!dataUrl) return
-    const parts = dataUrl.split(',')
-    if (parts.length !== 2) return
-    const mimeType = parts[0]!.match(/:(.*?);/)?.[1] || 'audio/mpeg'
-    let format: 'pcm' | 'mp3' | 'wav' | 'opus' = 'mp3'
-    if (mimeType.includes('wav')) format = 'wav'
-    else if (mimeType.includes('opus')) format = 'opus'
-    else if (mimeType.includes('pcm')) format = 'pcm'
-    const params = toolParamsByIndex[idx]!
-    if (!Array.isArray(params[paramName])) params[paramName] = []
-    params[paramName][itemIndex] = { data: parts[1]!, format, mimeType, metadata: {} }
-  }
-  reader.readAsDataURL(file)
+  const result = await processAudio(event)
+  if (!result) return
+  const params = toolParamsByIndex[idx]!
+  if (!Array.isArray(params[paramName])) params[paramName] = []
+  params[paramName][itemIndex] = result
 }
 
 function addVariableModification() {
@@ -331,16 +307,89 @@ function getTypeBadgeColor(type: string): string {
   return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
 }
 
-const openVariableDropdown = ref<number | null>(null)
-
-function toggleVariableDropdown(index: number) {
-  openVariableDropdown.value = openVariableDropdown.value === index ? null : index
-}
-
 function selectStageVariable(modIndex: number, variableName: string) {
   props.operations.modifyVariables.modifications[modIndex]!.variableName = variableName
-  openVariableDropdown.value = null
 }
+
+function getEffectIndex(type: string, callToolIdx = 0): number {
+  const ops = props.operations
+  let idx = 0
+  if (type === 'generateResponse') return idx
+  if (ops.generateResponse.enabled) idx++
+  if (type === 'endConversation') return idx
+  if (ops.endConversation.enabled) idx++
+  if (type === 'abortConversation') return idx
+  if (ops.abortConversation.enabled) idx++
+  if (type === 'goToStage') return idx
+  if (ops.goToStage.enabled) idx++
+  if (type === 'modifyUserInput') return idx
+  if (ops.modifyUserInput.enabled) idx++
+  if (type === 'modifyVariables') return idx
+  if (ops.modifyVariables.enabled) idx++
+  if (type === 'modifyUserProfile') return idx
+  if (ops.modifyUserProfile.enabled) idx++
+  if (type === 'callTool') {
+    let count = 0
+    for (let i = 0; i < ops.callTools.length; i++) {
+      if (i === callToolIdx) return idx + count
+      if (ops.callTools[i]!.toolId) count++
+    }
+    return idx + count
+  }
+  for (const ct of ops.callTools) {
+    if (ct.toolId) idx++
+  }
+  if (type === 'changeVisibility') return idx
+  if (ops.changeVisibility.enabled) idx++
+  if (type === 'banUser') return idx
+  return idx
+}
+
+const effectIndexToId = computed<Record<number, string>>(() => {
+  const ops = props.operations
+  const map: Record<number, string> = {}
+  let idx = 0
+  if (ops.generateResponse.enabled) map[idx++] = 'generateResponse'
+  if (ops.endConversation.enabled) map[idx++] = 'endConversation'
+  if (ops.abortConversation.enabled) map[idx++] = 'abortConversation'
+  if (ops.goToStage.enabled) map[idx++] = 'goToStage'
+  if (ops.modifyUserInput.enabled) map[idx++] = 'modifyUserInput'
+  if (ops.modifyVariables.enabled) map[idx++] = 'modifyVariables'
+  if (ops.modifyUserProfile.enabled) map[idx++] = 'modifyUserProfile'
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId) map[idx++] = `callTool_${i}`
+  }
+  if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
+  if (ops.banUser.enabled) map[idx++] = 'banUser'
+  return map
+})
+
+const effectsWithErrors = computed<Set<string>>(() => {
+  if (!props.error?.details?.length) return new Set()
+  const result = new Set<string>()
+  for (const detail of props.error.details) {
+    if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
+      const effectIdx = Number(detail.path[1])
+      const effectId = effectIndexToId.value[effectIdx]
+      if (effectId) result.add(effectId)
+    }
+  }
+  return result
+})
+
+watch(() => props.error, (err) => {
+  if (!err?.details?.length) return
+  for (const detail of err.details) {
+    if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
+      const effectIdx = Number(detail.path[1])
+      const effectId = effectIndexToId.value[effectIdx]
+      if (effectId) {
+        selectedEffectId.value = effectId
+        return
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -358,9 +407,16 @@ function selectStageVariable(modIndex: number, variableName: string) {
           <li v-for="effect in effectsList" :key="effect.id">
             <div
               class="flex items-center gap-1 px-3 py-2 cursor-pointer select-none group border-l-2"
-              :class="selectedEffectId === effect.id
-                ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 dark:border-primary-400'
-                : 'border-transparent hover:bg-gray-100 dark:hover:bg-gray-800'"
+              :class="[
+                effectsWithErrors.has(effect.id)
+                  ? 'border-red-400 dark:border-red-500'
+                  : selectedEffectId === effect.id
+                    ? 'border-primary-500 dark:border-primary-400'
+                    : 'border-transparent',
+                selectedEffectId === effect.id
+                  ? 'bg-primary-50 dark:bg-primary-900/20'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+              ]"
               @click="selectedEffectId = effect.id"
             >
               <span
@@ -371,6 +427,10 @@ function selectStageVariable(modIndex: number, variableName: string) {
               >
                 {{ effect.label }}
               </span>
+              <span
+                v-if="effectsWithErrors.has(effect.id)"
+                class="shrink-0 w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"
+              />
               <button
                 type="button"
                 @click.stop="removeEffect(effect.id)"
@@ -386,39 +446,32 @@ function selectStageVariable(modIndex: number, variableName: string) {
 
       <!-- Add Effect Footer -->
       <div class="p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div class="relative">
-          <button
-            type="button"
-            class="w-full btn-secondary text-sm flex items-center justify-center gap-1.5"
-            @click="showAddDropdown = !showAddDropdown"
-          >
+        <FloatingDropdown
+          align="left"
+          min-width="180px"
+          trigger-class="w-full btn-secondary text-sm flex items-center justify-center gap-1.5"
+          :items="addableEffects"
+          item-key="key"
+          @select="(e) => addSingleEffect(e.key)"
+        >
+          <template #trigger>
             <Plus :size="14" />
             Add Effect
-          </button>
-          <div v-if="showAddDropdown" class="fixed inset-0 z-40" @click="showAddDropdown = false"></div>
-          <div
-            v-if="showAddDropdown"
-            class="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1 max-h-64 overflow-y-auto"
-          >
-            <button
-              v-for="effect in addableEffects"
-              :key="effect.key"
-              type="button"
-              @click="addSingleEffect(effect.key)"
-              class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-            >
-              {{ effect.label }}
-            </button>
+          </template>
+          <template #item="{ item }">
+            {{ item.label }}
+          </template>
+          <template #default="{ close }">
             <div v-if="addableEffects.length > 0" class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
             <button
               type="button"
-              @click="addToolCall()"
+              @click="addToolCall(); close()"
               class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
             >
               Call Tool
             </button>
-          </div>
-        </div>
+          </template>
+        </FloatingDropdown>
       </div>
     </div>
 
@@ -433,101 +486,91 @@ function selectStageVariable(modIndex: number, variableName: string) {
 
       <!-- Generate Response Editor -->
       <div v-else-if="selectedEffectType === 'generateResponse'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Response Mode</label>
+        <FormField label="Response Mode" help="How the response should be produced">
           <select v-model="operations.generateResponse.responseMode" class="form-select-auto min-w-64">
             <option value="generated">Generated (AI-generated)</option>
             <option value="prescripted">Prescripted (predefined responses)</option>
           </select>
-          <p class="form-help-text">How the response should be produced</p>
-        </div>
+        </FormField>
 
         <template v-if="operations.generateResponse.responseMode === 'prescripted'">
-          <div class="form-group">
-            <label class="form-label">Selection Strategy</label>
+          <FormField label="Selection Strategy" help="How to pick a response when multiple prescripted responses are provided">
             <select v-model="operations.generateResponse.prescriptedSelectionStrategy" class="form-select-auto min-w-64">
               <option value="random">Random</option>
               <option value="round_robin">Round Robin</option>
             </select>
-            <p class="form-help-text">How to pick a response when multiple prescripted responses are provided</p>
-          </div>
+          </FormField>
 
-          <div class="form-group">
-            <div class="flex items-center justify-between mb-2">
-              <label class="form-label mb-0">Prescripted Responses</label>
-              <button type="button" class="btn-secondary" @click="addPrescriptedResponse()">+ Add Response</button>
-            </div>
-            <p class="form-help-text mb-3">Define the predefined responses to choose from</p>
-            <div v-if="operations.generateResponse.prescriptedResponses.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic py-2">
-              No prescripted responses yet. Click "Add Response" to add one.
-            </div>
-            <div class="space-y-3">
-              <div
-                v-for="(_, index) in operations.generateResponse.prescriptedResponses"
-                :key="index"
-                class="flex gap-2 items-start"
-              >
-                <textarea
-                  v-model="operations.generateResponse.prescriptedResponses[index]"
-                  rows="2"
-                  class="form-textarea flex-1 text-sm"
-                  :placeholder="`Response ${index + 1}...`"
-                ></textarea>
-                <button type="button" class="btn-danger" @click="removePrescriptedResponse(index)">Remove</button>
+          <FormField class="w-full">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="form-label mb-0">Prescripted Responses</label>
+                <button type="button" class="btn-secondary" @click="addPrescriptedResponse()">+ Add Response</button>
+              </div>
+              <p class="form-help-text mb-3">Define the predefined responses to choose from</p>
+              <div v-if="operations.generateResponse.prescriptedResponses.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic py-2">
+                No prescripted responses yet. Click "Add Response" to add one.
+              </div>
+              <div class="space-y-3">
+                <div
+                  v-for="(_, index) in operations.generateResponse.prescriptedResponses"
+                  :key="index"
+                  class="flex gap-2 items-start"
+                >
+                  <textarea
+                    v-model="operations.generateResponse.prescriptedResponses[index]"
+                    rows="2"
+                    class="form-textarea flex-1 text-sm"
+                    :placeholder="`Response ${index + 1}...`"
+                  ></textarea>
+                  <button type="button" class="btn-danger" @click="removePrescriptedResponse(index)">Remove</button>
+                </div>
               </div>
             </div>
-          </div>
+          </FormField>
         </template>
       </div>
 
       <!-- End Conversation Editor -->
       <div v-else-if="selectedEffectType === 'endConversation'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+        <FormField label="Reason" hint="(optional)" help="Optional reason for ending the conversation">
           <input
             v-model="operations.endConversation.reason"
             type="text"
             placeholder="User completed the flow"
             class="form-input"
           />
-          <p class="form-help-text">Optional reason for ending the conversation</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Abort Conversation Editor -->
       <div v-else-if="selectedEffectType === 'abortConversation'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Reason <span class="text-gray-500">(optional)</span></label>
+        <FormField label="Reason" hint="(optional)" help="Optional reason for aborting the conversation">
           <input
             v-model="operations.abortConversation.reason"
             type="text"
             placeholder="Safety violation detected"
             class="form-input"
           />
-          <p class="form-help-text">Optional reason for aborting the conversation</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Go To Stage Editor -->
       <div v-else-if="selectedEffectType === 'goToStage'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Target Stage <span class="required">*</span></label>
+        <FormField label="Target Stage" required :error="props.error" :path="['effects', getEffectIndex('goToStage'), 'stageId']" help="The stage to navigate to when this action is triggered">
           <select
             v-model="operations.goToStage.stageId"
-            :required="operations.goToStage.enabled"
             class="form-select-auto min-w-64"
           >
             <option value="">Select a stage...</option>
             <option v-for="stage in availableStages" :key="stage.id" :value="stage.id">{{ stage.name }}</option>
           </select>
-          <p class="form-help-text">The stage to navigate to when this action is triggered</p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify User Input Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserInput'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Template <span class="required">*</span></label>
+        <FormField label="Template" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('modifyUserInput'), 'template']" :help="'Template to transform the user input. Use \{\{user.input\}\} to reference original input'">
           <PromptEditor
             v-model="operations.modifyUserInput.template"
             :disabled="!operations.modifyUserInput.enabled"
@@ -538,16 +581,12 @@ function selectStageVariable(modIndex: number, variableName: string) {
             min-height="6rem"
             aria-label="Modify user input template"
           />
-          <p class="form-help-text">
-            Template to transform the user input. Use <code>&#123;&#123;user.input&#125;&#125;</code> to reference original input
-          </p>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify Variables Editor -->
       <div v-else-if="selectedEffectType === 'modifyVariables'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Variable Modifications</label>
+        <FormField label="Variable Modifications" class="w-full">
           <div class="space-y-4">
             <div
               v-for="(mod, index) in operations.modifyVariables.modifications"
@@ -566,47 +605,37 @@ function selectStageVariable(modIndex: number, variableName: string) {
               </div>
 
               <div class="space-y-2">
-                <label class="form-label text-sm">Variable Name</label>
-                <div class="flex items-start gap-2">
-                  <input
-                    v-model="mod.variableName"
-                    type="text"
-                    placeholder="cart_total"
-                    class="form-input font-mono text-sm flex-1"
-                  />
-                  <div v-if="stageVariables.length > 0" class="relative">
-                    <button
-                      type="button"
-                      @click.stop="toggleVariableDropdown(index)"
-                      class="btn-secondary mt-0.5"
-                      title="Select from defined variables"
+                <FormField label="Variable Name" required :error="props.error" :path="['effects', getEffectIndex('modifyVariables'), 'modifications', index, 'variableName']" class="w-full">
+                  <div class="flex items-start gap-2">
+                    <input
+                      v-model="mod.variableName"
+                      type="text"
+                      placeholder="cart_total"
+                      class="form-input font-mono text-sm flex-1"
+                    />
+                    <FloatingDropdown
+                      v-if="stageVariables.length > 0"
+                      :items="stageVariablesWithTypes"
+                      item-key="name"
+                      trigger-class="btn-secondary mt-0.5"
+                      trigger-title="Select from defined variables"
+                      @select="(v) => selectStageVariable(index, v.name)"
                     >
-                      <MoreHorizontal :size="16" />
-                    </button>
-                    <div v-if="openVariableDropdown === index" class="fixed inset-0 z-40" @click="openVariableDropdown = null"></div>
-                    <div
-                      v-if="openVariableDropdown === index"
-                      @click.stop
-                      class="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto"
-                    >
-                      <button
-                        v-for="variable in stageVariablesWithTypes"
-                        :key="variable.name"
-                        type="button"
-                        @click="selectStageVariable(index, variable.name)"
-                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
-                      >
-                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ variable.name }}</span>
+                      <template #trigger>
+                        <MoreHorizontal :size="16" />
+                      </template>
+                      <template #item="{ item }">
+                        <span class="font-mono text-gray-900 dark:text-gray-100">{{ item.name }}</span>
                         <span
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                          :class="getTypeBadgeColor(variable.type)"
+                          :class="getTypeBadgeColor(item.type)"
                         >
-                          {{ variable.displayType }}
+                          {{ item.displayType }}
                         </span>
-                      </button>
-                    </div>
+                      </template>
+                    </FloatingDropdown>
                   </div>
-                </div>
+                </FormField>
 
                 <div v-if="mod.variableName && stageVariables.length > 0" class="flex items-center gap-2">
                   <template v-for="variable in stageVariables" :key="variable.name">
@@ -649,13 +678,12 @@ function selectStageVariable(modIndex: number, variableName: string) {
               + Add Modification
             </button>
           </div>
-        </div>
+        </FormField>
       </div>
 
       <!-- Modify User Profile Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserProfile'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Profile Modifications</label>
+        <FormField label="Profile Modifications" class="w-full">
           <div class="space-y-4">
             <div
               v-for="(mod, index) in operations.modifyUserProfile.modifications"
@@ -673,10 +701,9 @@ function selectStageVariable(modIndex: number, variableName: string) {
                 </button>
               </div>
 
-              <div>
-                <label class="form-label text-sm">Field Name</label>
+              <FormField required :error="props.error" :path="['effects', getEffectIndex('modifyUserProfile'), 'modifications', index, 'fieldName']" label="Field Name" class="w-full">
                 <input v-model="mod.fieldName" type="text" placeholder="email" class="form-input font-mono text-sm" />
-              </div>
+              </FormField>
 
               <div>
                 <label class="form-label text-sm">Operation</label>
@@ -706,37 +733,45 @@ function selectStageVariable(modIndex: number, variableName: string) {
               + Add Modification
             </button>
           </div>
-        </div>
+        </FormField>
       </div>
 
       <!-- Change Visibility Editor -->
       <div v-else-if="selectedEffectType === 'changeVisibility'" class="space-y-6">
-        <div class="form-group">
-          <label class="form-label">Visibility <span class="required">*</span></label>
+        <FormField label="Visibility" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'visibility']"
+          :help="operations.changeVisibility.visibility === 'always' ? 'Always visible regardless of context' :
+                 operations.changeVisibility.visibility === 'stage' ? 'Visible only while in the current stage' :
+                 operations.changeVisibility.visibility === 'never' ? 'Never visible' :
+                 'Visible based on a JavaScript condition expression'"
+        >
           <select v-model="operations.changeVisibility.visibility" class="form-select-auto min-w-48">
             <option value="always">Always</option>
             <option value="stage">Stage only</option>
             <option value="never">Never</option>
             <option value="conditional">Conditional</option>
           </select>
-          <p class="form-help-text">
-            <template v-if="operations.changeVisibility.visibility === 'always'">Always visible regardless of context</template>
-            <template v-else-if="operations.changeVisibility.visibility === 'stage'">Visible only while in the current stage</template>
-            <template v-else-if="operations.changeVisibility.visibility === 'never'">Never visible</template>
-            <template v-else>Visible based on a JavaScript condition expression</template>
-          </p>
-        </div>
+        </FormField>
 
-        <div v-if="operations.changeVisibility.visibility === 'conditional'" class="form-group">
-          <label class="form-label">Condition <span class="required">*</span></label>
+        <FormField v-if="operations.changeVisibility.visibility === 'conditional'" label="Condition" required :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'condition']" help="JavaScript expression evaluated against the conversation context; must return a boolean">
           <input
             v-model="operations.changeVisibility.condition"
             type="text"
             placeholder="vars.count > 0"
             class="form-input font-mono"
           />
-          <p class="form-help-text">JavaScript expression evaluated against the conversation context; must return a boolean</p>
-        </div>
+        </FormField>
+      </div>
+
+      <!-- Ban User Editor -->
+      <div v-else-if="selectedEffectType === 'banUser'" class="space-y-6">
+        <FormField label="Reason" hint="(optional)" help="Optional reason for banning the user. The user will be blocked from starting new conversations.">
+          <input
+            v-model="operations.banUser.reason"
+            type="text"
+            placeholder="Policy violation"
+            class="form-input"
+          />
+        </FormField>
       </div>
 
       <!-- Call Tool Editor -->
@@ -744,8 +779,7 @@ function selectStageVariable(modIndex: number, variableName: string) {
         v-else-if="selectedEffectType === 'callTool' && currentCallTool !== null"
         class="space-y-6"
       >
-        <div class="form-group">
-          <label class="form-label">Tool <span class="required">*</span></label>
+        <FormField label="Tool" required :error="props.error" :path="['effects', getEffectIndex('callTool', selectedCallToolIndex), 'toolId']">
           <select
             v-model="currentCallTool!.toolId"
             class="form-select-auto"
@@ -756,24 +790,18 @@ function selectStageVariable(modIndex: number, variableName: string) {
           <p v-if="currentToolObj?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
             {{ currentToolObj.description }}
           </p>
-        </div>
+        </FormField>
 
         <div v-if="currentToolObj && currentToolObj.parameters.length > 0" class="space-y-4">
           <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-300">Tool Parameters</h3>
 
-            <div v-for="param in currentToolObj.parameters" :key="param.name" class="form-group">
-              <label class="form-label text-sm">
-                {{ param.name }}
-                <span v-if="param.required" class="required">*</span>
-                <span v-else class="text-gray-500 text-xs ml-1">(optional)</span>
-              </label>
+            <FormField v-for="param in currentToolObj.parameters" :key="param.name" :label="param.name" :required="param.required" class="w-full" :help="`${param.description} (${param.type})`">
 
               <input
                 v-if="param.type === 'string'"
                 v-model="currentParams[param.name]"
                 type="text"
-                :required="param.required"
                 :placeholder="param.description"
                 class="form-input text-sm"
               />
@@ -782,7 +810,6 @@ function selectStageVariable(modIndex: number, variableName: string) {
                 v-else-if="param.type === 'number'"
                 v-model.number="currentParams[param.name]"
                 type="number"
-                :required="param.required"
                 :placeholder="param.description"
                 class="form-input text-sm"
               />
@@ -799,7 +826,6 @@ function selectStageVariable(modIndex: number, variableName: string) {
               <div v-else-if="param.type === 'object'" class="space-y-1">
                 <textarea
                   v-model="currentParams[param.name]"
-                  :required="param.required"
                   :placeholder="param.description + ' (JSON format)'"
                   class="form-textarea text-sm font-mono"
                   rows="4"
@@ -811,7 +837,6 @@ function selectStageVariable(modIndex: number, variableName: string) {
                 <select
                   v-model="currentParams[param.name]"
                   class="form-select text-sm"
-                  :required="param.required"
                 >
                   <option value="">Select image variable...</option>
                   <option v-for="variable in imageVariables" :key="variable.name" :value="`{{vars.${variable.name}}}`">
@@ -827,7 +852,6 @@ function selectStageVariable(modIndex: number, variableName: string) {
                   accept="audio/*"
                   @change="handleAudioUpload($event, param.name)"
                   class="form-input text-sm"
-                  :required="param.required"
                 />
                 <div v-if="currentParams[param.name]" class="mt-2">
                   <audio
@@ -845,7 +869,6 @@ function selectStageVariable(modIndex: number, variableName: string) {
                 <select
                   v-model="currentParams[param.name]"
                   class="form-select text-sm"
-                  :required="param.required"
                 >
                   <option value="">Select image array variable...</option>
                   <option v-for="variable in imageArrayVariables" :key="variable.name" :value="`{{vars.${variable.name}}}`">
@@ -925,23 +948,21 @@ function selectStageVariable(modIndex: number, variableName: string) {
               </div>
 
               <p class="text-xs text-gray-500 mt-1">{{ param.description }} ({{ param.type }})</p>
-            </div>
+            </FormField>
           </div>
         </div>
 
-        <div
+        <p class="form-help-text"
           v-else-if="currentToolObj && currentToolObj.parameters.length === 0"
-          class="text-sm text-gray-500 dark:text-gray-400 py-4 border-t border-gray-200 dark:border-gray-700"
         >
           This tool doesn't require any parameters.
-        </div>
+        </p>
 
-        <div
+        <p class="form-help-text"
           v-else-if="!currentToolObj && availableTools.length > 0"
-          class="text-sm text-gray-500 dark:text-gray-400 py-4"
         >
           Select a tool to configure its parameters.
-        </div>
+        </p>
 
         <div
           v-else-if="availableTools.length === 0"

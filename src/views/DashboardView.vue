@@ -6,6 +6,7 @@ import {
   useAuditLogsStore,
   useProjectSelectionStore,
 } from '@/stores'
+import { formatEnum } from '@/composables'
 import apiClient from '@/api/client'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
@@ -16,6 +17,7 @@ import {
   Bug,
   CheckCircle,
   XCircle,
+  Ban,
   Activity,
   ChevronRight,
   FolderOpen,
@@ -34,12 +36,13 @@ const isLoadingGlobal = ref(true)
 const userCount = ref(0)
 const isLoadingUsers = ref(false)
 
-const convCounts = ref({ active: 0, finished: 0, failed: 0 })
-const convTotal = computed(() => convCounts.value.active + convCounts.value.finished + convCounts.value.failed)
+const convCounts = ref({ active: 0, finished: 0, aborted: 0, failed: 0 })
+const convTotal = computed(() => convCounts.value.active + convCounts.value.finished + convCounts.value.aborted + convCounts.value.failed)
 const isLoadingConversations = ref(false)
 const conversationsError = ref<string | null>(null)
 
 const issueCounts = ref({ critical: 0, major: 0, minor: 0, trivial: 0 })
+const issueTotal = computed(() => issueCounts.value.critical + issueCounts.value.major + issueCounts.value.minor + issueCounts.value.trivial)
 const isLoadingIssues = ref(false)
 const issuesError = ref<string | null>(null)
 
@@ -96,7 +99,7 @@ async function loadConversationCounts(pid: string) {
   isLoadingConversations.value = true
   conversationsError.value = null
   try {
-    const [activeRes, finishedRes, failedRes] = await Promise.all([
+    const [activeRes, finishedRes, abortedRes, failedRes] = await Promise.all([
       (apiClient as any).projectsConversationsList(pid, {
         limit: 1,
         filters: { status: { op: 'in', value: ACTIVE_STATUSES } },
@@ -107,12 +110,17 @@ async function loadConversationCounts(pid: string) {
       }),
       (apiClient as any).projectsConversationsList(pid, {
         limit: 1,
-        filters: { status: { op: 'in', value: ['aborted', 'failed'] } },
+        filters: { status: 'aborted' },
+      }),
+      (apiClient as any).projectsConversationsList(pid, {
+        limit: 1,
+        filters: { status: 'failed' },
       }),
     ])
     convCounts.value = {
       active: activeRes?.total ?? 0,
       finished: finishedRes?.total ?? 0,
+      aborted: abortedRes?.total ?? 0,
       failed: failedRes?.total ?? 0,
     }
   } catch (err: any) {
@@ -186,6 +194,21 @@ function formatRelativeTime(dateStr: string | null): string {
   return `${days}d ago`
 }
 
+function getEntityName(log: any): string {
+  const name = log.newEntity?.name ?? log.oldEntity?.name
+  return name ?? `[${log.entityId}]`
+}
+
+function getEntityVersion(log: any): string {
+  const oldV = log.oldEntity?.version
+  const newV = log.newEntity?.version
+  if (log.action === 'UPDATE' && oldV != null && newV != null) {
+    return oldV !== newV ? `v${oldV} → v${newV}` : `v${newV}`
+  }
+  const v = newV ?? oldV
+  return v != null ? `v${v}` : ''
+}
+
 function getActionBadgeClass(action: string): string {
   switch (action) {
     case 'CREATE': return 'badge badge-success'
@@ -206,8 +229,8 @@ function getActionBadgeClass(action: string): string {
 
     <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
       <div>
-        <h1 class="m-0 mb-2 text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p class="m-0 text-base text-gray-600 dark:text-gray-400">Platform health and recent activity overview</p>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Platform health and recent activity overview</p>
       </div>
       <button
         v-if="!isLoadingGlobal && (projectsStore.count ?? 0) === 0"
@@ -222,13 +245,14 @@ function getActionBadgeClass(action: string): string {
     <!-- Global Stat Tiles -->
     <div class="grid-stats mb-8">
       <div class="stat-card">
-        <BriefcaseBusiness class="text-primary-500 flex-shrink-0" :size="36" />
+        <MessageSquare class="text-primary-500 flex-shrink-0" :size="36" />
         <div class="flex-1">
           <div class="stat-value">
-            <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(projectsStore.count ?? 0) }}</span>
+            <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
+            <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
+            <span v-else>{{ formatCount(convTotal) }}</span>
           </div>
-          <div class="stat-label">Projects</div>
+          <div class="stat-label">Conversations</div>
         </div>
       </div>
 
@@ -245,15 +269,26 @@ function getActionBadgeClass(action: string): string {
       </div>
 
       <div class="stat-card">
-        <MessageSquare class="text-primary-500 flex-shrink-0" :size="36" />
-        <div class="flex-1">
-          <div class="stat-value">
-            <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
-            <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
-            <span v-else>{{ formatCount(convTotal) }}</span>
+        <template v-if="projectId">
+          <Bug class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="stat-value">
+              <span v-if="isLoadingIssues" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(issueTotal) }}</span>
+            </div>
+            <div class="stat-label">Issues</div>
           </div>
-          <div class="stat-label">Conversations</div>
-        </div>
+        </template>
+        <template v-else>
+          <BriefcaseBusiness class="text-primary-500 flex-shrink-0" :size="36" />
+          <div class="flex-1">
+            <div class="stat-value">
+              <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(projectsStore.count ?? 0) }}</span>
+            </div>
+            <div class="stat-label">Projects</div>
+          </div>
+        </template>
       </div>
 
       <div class="stat-card">
@@ -299,21 +334,34 @@ function getActionBadgeClass(action: string): string {
 
         <div v-else-if="conversationsError" class="alert-error">{{ conversationsError }}</div>
 
-        <div v-else class="grid grid-cols-3 gap-3">
-          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-8 text-center">
-            <Activity class="mx-auto mb-3 text-blue-500" :size="28" />
-            <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
-            <div class="text-xs text-blue-600 dark:text-blue-400 mt-2">Active</div>
+        <div v-else class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-5 flex items-center gap-4">
+            <Activity class="text-blue-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ formatCount(convCounts.active) }}</div>
+              <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">Active</div>
+            </div>
           </div>
-          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 p-8 text-center">
-            <CheckCircle class="mx-auto mb-3 text-green-500" :size="28" />
-            <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
-            <div class="text-xs text-green-600 dark:text-green-400 mt-2">Finished</div>
+          <div class="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 p-5 flex items-center gap-4">
+            <CheckCircle class="text-green-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-green-700 dark:text-green-300">{{ formatCount(convCounts.finished) }}</div>
+              <div class="text-xs text-green-600 dark:text-green-400 mt-1">Finished</div>
+            </div>
           </div>
-          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 p-8 text-center">
-            <XCircle class="mx-auto mb-3 text-red-500" :size="28" />
-            <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
-            <div class="text-xs text-red-600 dark:text-red-400 mt-2">Failed / Aborted</div>
+          <div class="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-900 p-5 flex items-center gap-4">
+            <Ban class="text-orange-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-orange-700 dark:text-orange-300">{{ formatCount(convCounts.aborted) }}</div>
+              <div class="text-xs text-orange-600 dark:text-orange-400 mt-1">Aborted</div>
+            </div>
+          </div>
+          <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 p-5 flex items-center gap-4">
+            <XCircle class="text-red-500 flex-shrink-0" :size="32" />
+            <div>
+              <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
+              <div class="text-xs text-red-600 dark:text-red-400 mt-1">Failed</div>
+            </div>
           </div>
         </div>
         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
@@ -401,8 +449,9 @@ function getActionBadgeClass(action: string): string {
         >
           <span :class="getActionBadgeClass(log.action)" class="flex-shrink-0 w-16 justify-center">{{ log.action }}</span>
           <div class="flex-1 min-w-0 flex items-baseline gap-2">
-            <span class="text-sm font-medium text-gray-900 dark:text-white capitalize flex-shrink-0">{{ log.entityType }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 font-mono truncate">{{ log.entityId }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">{{ formatEnum(log.entityType) }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ getEntityName(log) }}</span>
+            <span v-if="getEntityVersion(log)" class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">{{ getEntityVersion(log) }}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span v-if="log.userId" class="text-xs font-mono text-gray-400 dark:text-gray-500 truncate" :title="log.userId">{{ log.userId }}</span>

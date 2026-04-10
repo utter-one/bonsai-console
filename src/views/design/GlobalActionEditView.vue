@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalActionsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check, ShieldAlert } from 'lucide-vue-next'
-import type { GlobalActionResponse } from '@/api/types'
+import type { ApiErrorDetail, GlobalActionResponse, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import ActionForm from '@/components/ActionForm.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, type ActionOperations } from '@/composables'
+import { createDefaultOperations, loadEffectsIntoOperations, buildEffectsFromOperations, validateEffects, type ActionOperations } from '@/composables'
 import TagsEditor from '@/components/TagsEditor.vue'
 
 const route = useRoute()
@@ -30,12 +32,12 @@ const SPECIAL_ACTION_NAMES: Record<string, string> = {
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const specialActionNotFound = ref(false)
 
 type TabType = 'basic' | 'trigger' | 'effects' | 'metadata' | 'history'
-const activeTab = reactive({ value: 'basic' as TabType })
+const activeTab = ref<TabType>('basic')
 
 // Separate fields not in ActionFormData
 const actionTags = ref<string[]>([])
@@ -74,25 +76,19 @@ const isSpecialAction = computed(() => (globalActionId.value || '').startsWith('
 
 const specialActionDisplayName = computed(() => SPECIAL_ACTION_NAMES[globalActionId.value || ''] ?? null)
 
-const projectClassifiers = computed(() => 
-  classifiersStore.items.filter(() => true)
-)
-
-const projectStages = computed(() => 
-  stagesStore.items.filter(() => true)
-)
-
-const projectTools = computed(() => 
-  toolsStore.items.filter(() => true)
-)
+const projectClassifiers = computed(() => classifiersStore.items)
+const projectStages = computed(() => stagesStore.items)
+const projectTools = computed(() => toolsStore.items)
 
 // Lifecycle
 onMounted(async () => {
   // Load classifiers and stages for dropdowns
-  await classifiersStore.fetchAll(projectId.value)
-  await stagesStore.fetchAll(projectId.value)
-  await toolsStore.fetchAll(projectId.value)
-  await projectsStore.fetchById(projectId.value)
+  await Promise.all([
+    classifiersStore.fetchAll(projectId.value),
+    stagesStore.fetchAll(projectId.value),
+    toolsStore.fetchAll(projectId.value),
+    projectsStore.fetchById(projectId.value),
+  ])
   
   if (isEditMode.value) {
     await loadGlobalAction()
@@ -133,7 +129,7 @@ async function loadGlobalAction() {
     if (err.response?.status === 404 && (globalActionId.value || '').startsWith('__')) {
       specialActionNotFound.value = true
     } else {
-      error.value = err.response?.data?.message || 'Failed to load global action'
+      error.value = parseApiError(err)
     }
   } finally {
     isLoading.value = false
@@ -142,6 +138,39 @@ async function loadGlobalAction() {
 
 async function handleSubmit() {
   error.value = null
+  const errorDetails: ApiErrorDetail[] = []
+  if(!form.value.name.trim())
+    errorDetails.push({ path: ['name'], message: 'Action name is required.', code: 'too_small' })
+
+  form.value.parameters.forEach((param, index) => {
+    if(!param.name.trim()) {
+      errorDetails.push({ path: ['parameters', index , 'name'], message: 'Parameter name is required.', code: 'too_small' })
+    }
+    if(!param.type) {
+      errorDetails.push({ path: ['parameters', index, 'type'], message: 'Parameter type is required.', code: 'required' })
+    }
+    if(!param.description.trim()) {
+      errorDetails.push({ path: ['parameters', index, 'description'], message: 'Parameter description is required.', code: 'too_small' })
+    }
+  })
+
+  if (form.value.triggerOnTransformation) {
+    form.value.watchedVariables.forEach((variable, index) => {
+      if (!variable.path.trim()) {
+        errorDetails.push({ path: ['watchedVariables', index, 'path'], message: 'Variable path is required.', code: 'too_small' })
+      }
+    })
+  }
+
+  const effectsValidationError = validateEffects(operations.value)
+  if (effectsValidationError)
+    errorDetails.push(...(effectsValidationError.details || []))
+  
+  if (errorDetails.length > 0) {
+    error.value = { message: 'Please fix the validation errors.', details: errorDetails }
+    return
+  }
+
   isLoading.value = true
 
   try {
@@ -149,7 +178,7 @@ async function handleSubmit() {
     const { effects: effectsArray, error: buildError } = buildEffectsFromOperations(operations.value)
     
     if (buildError) {
-      error.value = buildError
+      error.value = { message: buildError }
       isLoading.value = false
       return
     }
@@ -227,7 +256,7 @@ async function handleSubmit() {
       showSuccess.value = false
     }, 3000)
   } catch (err: any) {
-    error.value = err.response?.data?.message || `Failed to ${isEditMode.value ? 'update' : 'create'} global action`
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -255,7 +284,7 @@ async function initializeSpecialAction() {
     form.value = { ...form.value, name: created.name }
     specialActionNotFound.value = false
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Failed to initialize action'
+    error.value = parseApiError(err)
   } finally {
     isLoading.value = false
   }
@@ -311,18 +340,7 @@ const metadataFields = computed(() => {
       This global action is read-only because the project is archived.
     </div>
     <!-- Error Message -->
-    <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mx-8 mt-4 dark:bg-red-900/30 dark:border-red-500">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400 dark:text-red-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-700 dark:text-red-200">{{ error }}</p>
-        </div>
-      </div>
-    </div>
+    <ErrorDisplay :error="error" class="mx-8 mt-4" />
 
     <!-- Special Action Not Found -->
     <div v-if="specialActionNotFound" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
@@ -346,7 +364,7 @@ const metadataFields = computed(() => {
             :form="form"
             :parameters="form.parameters"
             :operations="operations"
-            :active-tab="activeTab"
+            v-model:active-tab="activeTab"
             :available-classifiers="projectClassifiers"
             :available-stages="projectStages"
             :available-tools="projectTools"
@@ -359,6 +377,7 @@ const metadataFields = computed(() => {
             :show-metadata="isEditMode"
             :metadata-fields="metadataFields"
             :show-history="isEditMode"
+            :error="error"
           >
             <template #history>
               <EntityHistoryView
@@ -366,7 +385,7 @@ const metadataFields = computed(() => {
                 :load-history="() => globalActionsStore.fetchAuditLogs(projectId, currentGlobalAction!.id)"
                 :current-version="currentGlobalAction.version"
                 :current-object="currentGlobalAction"
-                :active="activeTab.value === 'history'"
+                :active="activeTab === 'history'"
                 :update-fn="(data) => globalActionsStore.update(projectId, currentGlobalAction!.id, data)"
                 :create-fn="(data) => globalActionsStore.create(projectId, data)"
                 :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
@@ -376,7 +395,7 @@ const metadataFields = computed(() => {
           </ActionForm>
 
           <!-- Tags Field -->
-          <div v-show="activeTab.value === 'basic'" class="px-6">
+          <div v-show="activeTab === 'basic'" class="px-6">
             <TagsEditor v-model="actionTags" />
           </div>
           </fieldset>

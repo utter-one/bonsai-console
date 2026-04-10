@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, formatDate } from '@/composables'
 import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
-import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
@@ -19,6 +20,8 @@ const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useS
 const showModal = ref(false)
 const selectedIssue = ref<IssueResponse | null>(null)
 const showArchived = ref(false)
+const issueError = ref<ParsedError | null>(null)
+const loadError = ref<string | null>(null)
 
 // Whether a project is currently selected
 const hasProjectSelected = computed(() => !!projectSelectionStore.selectedProjectId)
@@ -66,6 +69,7 @@ onMounted(() => {
 
 // Methods
 async function loadIssues() {
+  loadError.value = null
   try {
     const filters: any = {}
     if (projectSelectionStore.selectedProjectId) {
@@ -74,15 +78,11 @@ async function loadIssues() {
       filters.projectStatus = projectStatus.value
     }
     await issuesStore.fetchAll(pagination.getParams({ filters, ...(textSearchQuery.value ? { textSearch: textSearchQuery.value } : {}) }))
-  } catch (error) {
-    console.error('Failed to load issues:', error)
+  } catch (error: any) {
+    loadError.value = error?.response?.data?.message || 'Failed to load issues'
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function truncateText(text: string, maxLength: number = 50): string {
   if (text.length <= maxLength) return text
@@ -145,11 +145,13 @@ async function handleStatusChange(issue: IssueResponse, newStatus: string) {
 
 function openCreateModal() {
   selectedIssue.value = null
+  issueError.value = null
   showModal.value = true
 }
 
 function openEditModal(issue: IssueResponse) {
   selectedIssue.value = issue
+  issueError.value = null
   showModal.value = true
 }
 
@@ -168,7 +170,7 @@ async function handleSave(data: CreateIssueRequest | UpdateIssueRequest) {
     closeModal()
     await loadIssues()
   } catch (error) {
-    console.error('Failed to save issue:', error)
+    issueError.value = parseApiError(error)
   }
 }
 
@@ -227,8 +229,8 @@ async function handleRecoverSuccess() {
       </div>
 
       <!-- Error State -->
-      <div v-else-if="issuesStore.error" class="error-state">
-        {{ issuesStore.error }}
+      <div v-else-if="loadError" class="error-state">
+        {{ loadError }}
       </div>
 
       <!-- Empty State -->
@@ -309,6 +311,7 @@ async function handleRecoverSuccess() {
     <IssueEditModal
       v-if="showModal"
       :issue="selectedIssue"
+      :error="issueError"
       :prefill-data="selectedIssue ? undefined : { projectId: projectSelectionStore.selectedProjectId || undefined }"
       :is-read-only="selectedIssue ? isIssueArchived(selectedIssue) : false"
       :load-history="selectedIssue ? () => issuesStore.fetchAuditLogs(selectedIssue!.id.toString()) : undefined"

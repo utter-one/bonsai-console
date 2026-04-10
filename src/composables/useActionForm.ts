@@ -1,4 +1,4 @@
-import type { Effect } from '@/api/types'
+import type { Effect, ParsedError, ApiErrorDetail } from '@/api/types'
 
 export interface ActionOperations {
   generateResponse: {
@@ -25,6 +25,7 @@ export interface ActionOperations {
     visibility: 'always' | 'stage' | 'never' | 'conditional'
     condition: string
   }
+  banUser: { enabled: boolean; reason: string }
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -38,6 +39,7 @@ export function createDefaultOperations(): ActionOperations {
     modifyUserProfile: { enabled: false, modifications: [] },
     callTools: [],
     changeVisibility: { enabled: false, visibility: 'always', condition: '' },
+    banUser: { enabled: false, reason: '' },
   }
 }
 
@@ -52,6 +54,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.modifyUserProfile.enabled = false
   operations.callTools = []
   operations.changeVisibility.enabled = false
+  operations.banUser.enabled = false
 
   // Load existing effects
   effects.forEach(effect => {
@@ -99,6 +102,10 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.changeVisibility.enabled = true
         operations.changeVisibility.visibility = effect.visibility || 'always'
         operations.changeVisibility.condition = effect.condition || ''
+        break
+      case 'ban_user':
+        operations.banUser.enabled = true
+        operations.banUser.reason = ('reason' in effect ? effect.reason : '') || ''
         break
     }
   })
@@ -207,5 +214,78 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     effectsArray.push(cvEffect as Effect)
   }
 
+  if (operations.banUser.enabled) {
+    effectsArray.push({
+      type: 'ban_user',
+      reason: operations.banUser.reason || undefined
+    } as Effect)
+  }
+
   return { effects: effectsArray, error: null }
+}
+
+export function validateEffects(operations: ActionOperations): ParsedError | null {
+  const details: ApiErrorDetail[] = []
+
+  // Compute base index for modifyVariables in the effects array
+  function getModifyVariablesIndex(): number {
+    let idx = 0
+    if (operations.generateResponse.enabled) idx++
+    if (operations.endConversation.enabled) idx++
+    if (operations.abortConversation.enabled) idx++
+    if (operations.goToStage.enabled) idx++
+    if (operations.modifyUserInput.enabled) idx++
+    return idx
+  }
+
+  if (operations.goToStage.enabled) {
+    let effectIdx = 0
+    if (operations.generateResponse.enabled) effectIdx++
+    if (operations.endConversation.enabled) effectIdx++
+    if (operations.abortConversation.enabled) effectIdx++
+    if (!operations.goToStage.stageId) {
+      details.push({ path: ['effects', effectIdx, 'stageId'], message: 'Target stage is required.', code: 'required' })
+    }
+  }
+
+  if (operations.modifyUserInput.enabled) {
+    let effectIdx = 0
+    if (operations.generateResponse.enabled) effectIdx++
+    if (operations.endConversation.enabled) effectIdx++
+    if (operations.abortConversation.enabled) effectIdx++
+    if (operations.goToStage.enabled) effectIdx++
+    if (!operations.modifyUserInput.template?.trim()) {
+      details.push({ path: ['effects', effectIdx, 'template'], message: 'Template is required.', code: 'required' })
+    }
+  }
+
+  if (operations.modifyVariables.enabled) {
+    const effectIdx = getModifyVariablesIndex()
+    const mods = operations.modifyVariables.modifications
+    if (mods.length === 0) {
+      details.push({ path: ['effects', effectIdx], message: 'Add at least one variable modification.', code: 'too_small' })
+    } else {
+      for (let i = 0; i < mods.length; i++) {
+        if (!mods[i]!.variableName?.trim()) {
+          details.push({ path: ['effects', effectIdx, 'modifications', i, 'variableName'], message: 'Variable name is required.', code: 'required' })
+        }
+      }
+    }
+  }
+
+  if (operations.modifyUserProfile.enabled) {
+    const effectIdx = getModifyVariablesIndex() + (operations.modifyVariables.enabled ? 1 : 0)
+    const mods = operations.modifyUserProfile.modifications
+    if (mods.length === 0) {
+      details.push({ path: ['effects', effectIdx], message: 'Add at least one profile modification.', code: 'too_small' })
+    } else {
+      for (let i = 0; i < mods.length; i++) {
+        if (!mods[i]!.fieldName?.trim()) {
+          details.push({ path: ['effects', effectIdx, 'modifications', i, 'fieldName'], message: 'Field name is required.', code: 'required' })
+        }
+      }
+    }
+  }
+
+  return details.length > 0 ? { message: 'Please fill in all required fields', details } : null
 }

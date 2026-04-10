@@ -3,7 +3,7 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { formatEnum, usePagination, useTableSort, useSearch } from '@/composables'
+import { formatEnum, formatDate, usePagination, useTableSort, useSearch } from '@/composables'
 import { Route, Search, X, Plus } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -94,10 +94,6 @@ async function deleteStage(stage: StageResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 
 </script>

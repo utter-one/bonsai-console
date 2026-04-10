@@ -1,5 +1,5 @@
 import { ref, onUnmounted, type Ref } from 'vue'
-import { NexusWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, type StartConversationOptions } from '@/api/websocket'
+import { BonsaiWebSocketClient, createWebSocketUrl, type WebSocketEventHandlers, type StartConversationOptions } from '@/api/websocket'
 
 /**
  * Composable for managing a WebSocket conversation client.
@@ -51,7 +51,7 @@ export function useWebSocketClient(
     }
   }
 ) {
-  const client: Ref<NexusWebSocketClient | null> = ref(null)
+  const client: Ref<BonsaiWebSocketClient | null> = ref(null)
   const isConnected = ref(false)
   const isInConversation = ref(false)
   const error = ref<Error | null>(null)
@@ -68,7 +68,7 @@ export function useWebSocketClient(
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
       const wsUrl = createWebSocketUrl(apiBaseUrl)
 
-      client.value = new NexusWebSocketClient({
+      client.value = new BonsaiWebSocketClient({
         url: wsUrl,
         apiKey,
         sessionSettings: options?.sessionSettings,
@@ -226,6 +226,30 @@ export function useWebSocketClient(
   }
 
   /**
+   * Reset the VAD chunk ordinal. Call before starting a new server-VAD stream.
+   */
+  function resetVadStreaming() {
+    client.value?.resetVadStreaming()
+  }
+
+  /**
+   * Send a voice audio chunk in server-side VAD mode (no inputTurnId required).
+   */
+  async function sendVadVoiceChunk(base64Audio: string) {
+    if (!client.value) {
+      throw new Error('Client not connected')
+    }
+
+    try {
+      error.value = null
+      await client.value.sendVadVoiceChunk(base64Audio)
+    } catch (err) {
+      error.value = err instanceof Error ? err : new Error(String(err))
+      throw err
+    }
+  }
+
+  /**
    * Disconnect from the WebSocket server
    */
   function disconnect() {
@@ -262,5 +286,7 @@ export function useWebSocketClient(
     startVoiceInput,
     sendVoiceChunk,
     endVoiceInput,
+    resetVadStreaming,
+    sendVadVoiceChunk,
   }
 }

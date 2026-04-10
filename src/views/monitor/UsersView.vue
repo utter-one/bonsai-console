@@ -2,7 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUsersStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, formatDate } from '@/composables'
 import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -60,10 +60,6 @@ function viewUser(user: UserResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function getProfileDisplay(profile: Record<string, any>): string {
   // Try common profile fields

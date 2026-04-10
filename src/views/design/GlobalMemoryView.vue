@@ -2,10 +2,12 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste, AlertTriangle } from 'lucide-vue-next'
-import VariableTreeNode from '@/components/VariableTreeNode.vue'
-import VariablesPasteModal from '@/components/modals/VariablesPasteModal.vue'
+import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste } from 'lucide-vue-next'
+import TabContent from '@/components/TabContent.vue'
+import MemoryVariablesTab from '@/components/MemoryVariablesTab.vue'
 import type { ProjectResponse, ParameterValue } from '@/api/types'
+import TabNavigator from '@/components/TabNavigator.vue'
+import type { TabDefinition } from '@/components/TabNavigator.vue'
 
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -16,12 +18,14 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
+const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null)
 const currentProject = ref<ProjectResponse | null>(null)
 const activeTab = ref<'userProfile' | 'constants'>('userProfile')
 
-// User Profile state
-const showVariablesPasteModal = ref(false)
-const clipboardVariables = ref<Array<any> | null>(null)
+const tabs: TabDefinition[] = [
+  { key: 'userProfile', label: 'User Profile' },
+  { key: 'constants', label: 'Constants' },
+]
 
 const form = ref({
   version: undefined as number | undefined,
@@ -32,29 +36,6 @@ const form = ref({
     isArray: boolean
     objectSchema?: Array<any>
   }>,
-})
-
-const expandedNodes = ref<Set<string>>(new Set())
-
-const duplicateVariableNames = computed(() => {
-  function findDuplicates(descriptors: Array<{ name: string; objectSchema?: any[] }>): string[] {
-    const seen = new Set<string>()
-    const dupes: string[] = []
-    for (const d of descriptors) {
-      if (seen.has(d.name)) {
-        if (!dupes.includes(d.name)) dupes.push(d.name)
-      } else {
-        seen.add(d.name)
-      }
-    }
-    for (const d of descriptors) {
-      if (d.objectSchema && d.objectSchema.length > 0) {
-        dupes.push(...findDuplicates(d.objectSchema))
-      }
-    }
-    return dupes
-  }
-  return findDuplicates(form.value.userProfileVariableDescriptors)
 })
 
 // Constants state
@@ -68,16 +49,7 @@ interface ConstantEntry {
 
 const constants = ref<ConstantEntry[]>([])
 
-const duplicateConstantKeys = computed(() => {
-  const keys = constants.value.map(c => c.key.trim()).filter(Boolean)
-  const seen = new Set<string>()
-  const duplicates: string[] = []
-  for (const key of keys) {
-    if (seen.has(key)) duplicates.push(key)
-    seen.add(key)
-  }
-  return [...new Set(duplicates)]
-})
+const constantErrors = ref<(string | null)[]>([])
 
 watch(projectId, () => {
   loadProject()
@@ -148,8 +120,36 @@ async function loadProject() {
 async function handleSubmit() {
   if (!currentProject.value) return
 
-  isLoading.value = true
   error.value = null
+
+  const variablesValid = variablesTabRef.value?.validate() ?? true
+
+  const nameCounts = new Map<string, number[]>()
+  for (let i = 0; i < constants.value.length; i++) {
+    const key = constants.value[i]!.key.trim()
+    if (!nameCounts.has(key)) nameCounts.set(key, [])
+    nameCounts.get(key)!.push(i)
+  }
+  const newConstantErrors: (string | null)[] = constants.value.map((entry) => {
+    const key = entry.key.trim()
+    if (!key) return 'Key is required.'
+    if (nameCounts.get(key)!.length > 1) return 'Duplicate key.'
+    return null
+  })
+  constantErrors.value = newConstantErrors
+
+  const hasConstantErrors = newConstantErrors.some(e => e !== null)
+  if (!variablesValid || hasConstantErrors) {
+    error.value = 'Please fix the highlighted fields before saving.'
+    if (!variablesValid) {
+      activeTab.value = 'userProfile'
+    } else {
+      activeTab.value = 'constants'
+    }
+    return
+  }
+
+  isLoading.value = true
 
   try {
     const updated = await projectsStore.update(currentProject.value.id, {
@@ -173,148 +173,6 @@ async function handleSubmit() {
   }
 }
 
-// User Profile functions
-function getDescriptorByPath(path: number[]): any {
-  let current: any = { objectSchema: form.value.userProfileVariableDescriptors }
-  for (const index of path) {
-    current = current.objectSchema[index]
-    if (!current) return null
-  }
-  return current
-}
-
-function addRootVariable() {
-  form.value.userProfileVariableDescriptors.push({
-    name: 'new_variable',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  })
-}
-
-function addNestedVariable(path: number[]) {
-  const parent = getDescriptorByPath(path)
-  if (!parent) return
-  if (!parent.objectSchema) {
-    parent.objectSchema = []
-  }
-  parent.objectSchema.push({
-    name: 'new_field',
-    type: 'string' as const,
-    isArray: false,
-    objectSchema: []
-  })
-  expandedNodes.value.add(path.join('-'))
-}
-
-function updateVariableName(data: { path: number[]; name: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.name = data.name
-  }
-}
-
-function updateVariableType(data: { path: number[]; type: string }) {
-  const descriptor = getDescriptorByPath(data.path)
-  if (descriptor) {
-    descriptor.type = data.type
-    descriptor.isArray = data.type.endsWith('[]')
-    const isObject = data.type === 'object' || data.type === 'object[]'
-    if (!isObject && descriptor.objectSchema) {
-      descriptor.objectSchema = []
-    }
-  }
-}
-
-function deleteVariable(path: number[]) {
-  if (!confirm('Are you sure you want to delete this variable and all its nested fields?')) return
-  if (path.length === 1) {
-    const index = path[0]
-    if (index !== undefined) {
-      form.value.userProfileVariableDescriptors.splice(index, 1)
-    }
-  } else {
-    const parentPath = path.slice(0, -1)
-    const index = path[path.length - 1]
-    const parent = getDescriptorByPath(parentPath)
-    if (parent?.objectSchema && index !== undefined) {
-      parent.objectSchema.splice(index, 1)
-    }
-  }
-}
-
-function toggleNode(path: number[]) {
-  const key = path.join('-')
-  if (expandedNodes.value.has(key)) {
-    expandedNodes.value.delete(key)
-  } else {
-    expandedNodes.value.add(key)
-  }
-}
-
-function copyAllVariables() {
-  if (form.value.userProfileVariableDescriptors.length === 0) {
-    alert('No variables to copy')
-    return
-  }
-  try {
-    const jsonData = JSON.stringify(form.value.userProfileVariableDescriptors, null, 2)
-    navigator.clipboard.writeText(jsonData)
-    alert(`Copied ${form.value.userProfileVariableDescriptors.length} variable(s) to clipboard`)
-  } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
-    alert('Failed to copy variables to clipboard')
-  }
-}
-
-async function pasteVariables() {
-  try {
-    const clipboardText = await navigator.clipboard.readText()
-    if (!clipboardText) { alert('Clipboard is empty'); return }
-    let parsedVariables: Array<any>
-    try {
-      parsedVariables = JSON.parse(clipboardText)
-    } catch {
-      alert('Clipboard does not contain valid JSON data'); return
-    }
-    if (!Array.isArray(parsedVariables)) {
-      alert('Clipboard does not contain valid variables data (must be an array)'); return
-    }
-    clipboardVariables.value = parsedVariables
-    showVariablesPasteModal.value = true
-  } catch (err) {
-    console.error('Failed to read clipboard:', err)
-    alert('Failed to read from clipboard. Please make sure you have clipboard permissions.')
-  }
-}
-
-function handleVariablesPaste(indices: number[]) {
-  if (!clipboardVariables.value) return
-  let pastedCount = 0
-  let overwrittenCount = 0
-  for (const index of indices) {
-    const variable = clipboardVariables.value[index]
-    if (!variable) continue
-    const existingIndex = form.value.userProfileVariableDescriptors.findIndex(v => v.name === variable.name)
-    if (existingIndex !== -1) {
-      form.value.userProfileVariableDescriptors[existingIndex] = JSON.parse(JSON.stringify(variable))
-      overwrittenCount++
-    } else {
-      form.value.userProfileVariableDescriptors.push(JSON.parse(JSON.stringify(variable)))
-    }
-    pastedCount++
-  }
-  showVariablesPasteModal.value = false
-  clipboardVariables.value = null
-  if (pastedCount > 0) {
-    const message = overwrittenCount > 0
-      ? `Successfully pasted ${pastedCount} variable(s) (${overwrittenCount} overwritten)`
-      : `Successfully pasted ${pastedCount} variable(s)`
-    alert(message)
-  }
-}
-
-// Constants functions
 function addConstant() {
   constants.value.push({ key: '', type: 'string', value: '' })
 }
@@ -418,27 +276,12 @@ async function pasteConstants() {
         <div class="mx-auto">
           <!-- Tabs -->
           <div class="tabs-container">
-            <nav class="tabs-nav" aria-label="Tabs">
-              <button
-                type="button"
-                @click="activeTab = 'userProfile'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'userProfile' }]"
-              >
-                User Profile
-              </button>
-              <button
-                type="button"
-                @click="activeTab = 'constants'"
-                :class="['tab-button', { 'tab-button-active': activeTab === 'constants' }]"
-              >
-                Constants
-              </button>
-            </nav>
+            <TabNavigator v-model="activeTab" :tabs="tabs" />
           </div>
 
           <fieldset :disabled="projectIsArchived" class="border-0 p-0 m-0 min-w-0 w-full">
             <!-- User Profile Tab -->
-            <div v-show="activeTab === 'userProfile'" class="tab-content">
+            <TabContent v-model="activeTab" tab="userProfile">
               <div v-if="error" class="alert-error mb-6">
                 {{ error }}
               </div>
@@ -458,87 +301,20 @@ async function pasteConstants() {
                 </p>
               </div>
 
-              <div v-if="duplicateVariableNames.length > 0" class="alert-error mb-4">
-                <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-                Duplicate variable names detected: <strong>{{ duplicateVariableNames.join(', ') }}</strong>. Variable names must be unique within each level.
-              </div>
-
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Define the schema for user profile variables available in conversations of this project
-                  </p>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    type="button"
-                    @click="copyAllVariables"
-                    class="btn-secondary"
-                    :disabled="isLoading || form.userProfileVariableDescriptors.length === 0"
-                    title="Copy all variables to clipboard"
-                  >
-                    <Clipboard class="inline-block mr-1 w-4 h-4" />
-                    Copy
-                  </button>
-                  <button
-                    type="button"
-                    @click="pasteVariables"
-                    class="btn-secondary"
-                    :disabled="isLoading"
-                    title="Paste variables from clipboard"
-                  >
-                    <ClipboardPaste class="inline-block mr-1 w-4 h-4" />
-                    Paste
-                  </button>
-                  <button
-                    type="button"
-                    @click="addRootVariable"
-                    class="btn-primary"
-                    :disabled="isLoading"
-                  >
-                    <Plus class="inline-block mr-1 w-4 h-4" />
-                    Add Variable
-                  </button>
-                </div>
-              </div>
-
-              <!-- Empty State -->
-              <div v-if="form.userProfileVariableDescriptors.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-                <p class="text-gray-500 dark:text-gray-400 mb-4">No user profile variable descriptors defined yet</p>
-                <p class="text-sm text-gray-400 dark:text-gray-500">
-                  Click "Add Variable" to define your first variable
-                </p>
-              </div>
-
-              <!-- Tree View -->
-              <div v-else class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-                <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                  <template v-for="(descriptor, index) in form.userProfileVariableDescriptors" :key="index">
-                    <VariableTreeNode
-                      :descriptor="descriptor"
-                      :path="[index]"
-                      :expanded-nodes="expandedNodes"
-                      @toggle="toggleNode"
-                      @update-name="updateVariableName"
-                      @update-type="updateVariableType"
-                      @delete="deleteVariable"
-                      @add-nested="addNestedVariable"
-                    />
-                  </template>
-                </div>
-              </div>
-            </div>
+              <MemoryVariablesTab
+                ref="variablesTabRef"
+                v-model="form.userProfileVariableDescriptors"
+                :is-loading="isLoading"
+                :error="null"
+                description="Define the schema for user profile variables available in conversations of this project"
+                empty-label="No user profile variable descriptors defined yet"
+              />
+            </TabContent>
 
             <!-- Constants Tab -->
-            <div v-show="activeTab === 'constants'" class="tab-content">
+            <TabContent v-model="activeTab" tab="constants">
               <div v-if="error" class="alert-error mb-6">
                 {{ error }}
-              </div>
-
-              <div v-if="duplicateConstantKeys.length > 0" class="alert-error mb-4">
-                <AlertTriangle class="inline-block mr-2 w-4 h-4" />
-                Duplicate constant keys detected: <strong>{{ duplicateConstantKeys.join(', ') }}</strong>. Keys must be unique.
               </div>
 
               <div class="flex items-center justify-between mb-4">
@@ -601,16 +377,19 @@ async function pasteConstants() {
                   </div>
                   <!-- Rows -->
                   <template v-for="(entry, index) in constants" :key="index">
-                    <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <div class="col-span-4 grid grid-cols-[1fr_auto_2fr_auto] items-start gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <!-- Key -->
-                      <input
-                        v-model="entry.key"
-                        type="text"
-                        placeholder="constant_name"
-                        class="form-input py-1 px-2 text-sm font-mono"
-                        :disabled="isLoading"
-                        :class="{ 'border-red-400': duplicateConstantKeys.includes(entry.key.trim()) && entry.key.trim() }"
-                      />
+                      <div>
+                        <input
+                          v-model="entry.key"
+                          type="text"
+                          placeholder="constant_name"
+                          class="form-input py-1 px-2 text-sm font-mono"
+                          :class="{ 'border-red-400 ring-1 ring-red-400': constantErrors[index] }"
+                          :disabled="isLoading"
+                        />
+                        <p v-if="constantErrors[index]" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ constantErrors[index] }}</p>
+                      </div>
                       <!-- Type -->
                       <select
                         v-model="entry.type"
@@ -657,19 +436,10 @@ async function pasteConstants() {
                   </template>
                 </div>
               </div>
-            </div>
+            </TabContent>
           </fieldset>
         </div>
       </div>
     </div><!-- end rounded panel -->
-
-    <!-- Variables Paste Modal -->
-    <VariablesPasteModal
-      v-if="showVariablesPasteModal && clipboardVariables"
-      :clipboard-variables="clipboardVariables"
-      :existing-names="form.userProfileVariableDescriptors.map(v => v.name)"
-      @close="showVariablesPasteModal = false"
-      @save="handleVariablesPaste"
-    />
   </div>
 </template>

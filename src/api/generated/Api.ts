@@ -13,6 +13,7 @@
 import {
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
+  ApiKeySettings,
   AsrModelInfo,
   AssemblyAiAsrSettings,
   AzureAsrSettings,
@@ -20,7 +21,10 @@ import {
   AzureBlobStorageSettings,
   AzureTtsSettings,
   CartesiaTtsSettings,
+  ChannelCatalogResponse,
+  ChannelInfo,
   ConversationTimelineResponse,
+  CostManagementConfig,
   CreateToolRequest,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
@@ -51,14 +55,28 @@ import {
   ParameterValue,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
+  ProviderModelLimits,
+  RelativeTime,
   S3StorageConfig,
   S3StorageSettings,
+  SampleCopyConfig,
+  SavedSliceQuery,
+  ServerVadConfig,
+  SliceQuery,
+  SliceQueryResponse,
+  SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
+  TokenUsageStatsResponse,
+  TokenUsageTrendResponse,
   ToolParameter,
   TtsModelInfo,
+  TwilioMessagingChannelConfig,
+  TwilioVoiceChannelConfig,
+  UpdateToolRequest,
   VoiceInfo,
+  WhatsAppChannelConfig,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
@@ -545,6 +563,8 @@ export class Api<
         displayName: string;
         /** Array of role identifiers */
         roles: string[];
+        /** Effective permissions derived from assigned roles (deduplicated union) */
+        permissions: string[];
       },
       void
     >({
@@ -585,6 +605,10 @@ export class Api<
          * @exclusiveMin true
          */
         expiresIn: number;
+        /** Up-to-date array of role identifiers (re-fetched from database) */
+        roles: string[];
+        /** Up-to-date effective permissions derived from current roles (deduplicated union) */
+        permissions: string[];
       },
       void
     >({
@@ -725,6 +749,8 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+        serverVad?: ServerVadConfig;
       };
       /**
        * Whether conversations can accept voice input (requires asrConfig fully populated)
@@ -755,7 +781,11 @@ export class Api<
         llmProviderId: string;
         /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
         blockedCategories?: string[];
+        /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+        mode?: "strict" | "standard";
       };
+      /** Optional project-level LLM token cost management configuration */
+      costManagementConfig?: CostManagementConfig;
       /** Key-value store of constants used in templating and conversation logic */
       constants?: Record<string, ParameterValue>;
       /** Additional metadata for the project */
@@ -776,6 +806,8 @@ export class Api<
       userProfileVariableDescriptors?: FieldDescriptor[];
       /** ID of the classifier used to evaluate guardrails for all conversations in this project. When set, all project guardrails are evaluated against this classifier on every user input turn. */
       defaultGuardrailClassifierId?: string | null;
+      /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+      sampleCopyConfig?: SampleCopyConfig;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -807,6 +839,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -831,7 +865,11 @@ export class Api<
           llmProviderId: string;
           /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
           blockedCategories?: string[];
+          /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+          mode?: "strict" | "standard";
         } | null;
+        /** Project-level LLM token cost management configuration */
+        costManagementConfig: CostManagementConfig;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -846,6 +884,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -949,6 +992,8 @@ export class Api<
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
             voiceActivityDetection?: boolean;
+            /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+            serverVad?: ServerVadConfig;
           } | null;
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
@@ -973,7 +1018,11 @@ export class Api<
             llmProviderId: string;
             /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
             blockedCategories?: string[];
+            /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+            mode?: "strict" | "standard";
           } | null;
+          /** Project-level LLM token cost management configuration */
+          costManagementConfig: CostManagementConfig;
           /** Key-value store of constants used in templating and conversation logic */
           constants: Record<string, ParameterValue>;
           /** Additional metadata for the project */
@@ -988,6 +1037,11 @@ export class Api<
           userProfileVariableDescriptors: FieldDescriptor[];
           /** ID of the classifier used to evaluate guardrails for all conversations in this project */
           defaultGuardrailClassifierId: string | null;
+          /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+          sampleCopyConfig?: {
+            /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+            defaultClassifierId?: string;
+          } | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
           /** The version number of the project */
@@ -1055,6 +1109,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1079,7 +1135,11 @@ export class Api<
           llmProviderId: string;
           /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
           blockedCategories?: string[];
+          /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+          mode?: "strict" | "standard";
         } | null;
+        /** Project-level LLM token cost management configuration */
+        costManagementConfig: CostManagementConfig;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1094,6 +1154,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1159,6 +1224,8 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+        serverVad?: ServerVadConfig;
       } | null;
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
@@ -1183,6 +1250,13 @@ export class Api<
         llmProviderId: string;
         /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
         blockedCategories?: string[];
+        /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+        mode?: "strict" | "standard";
+      } | null;
+      /** Updated project-level LLM token cost management configuration. Set to null to remove. */
+      costManagementConfig?: {
+        /** Token cap definitions keyed by provider API type and model name */
+        limits: Record<string, Record<string, ProviderModelLimits>>;
       } | null;
       /** Updated constants key-value store */
       constants?: Record<string, ParameterValue>;
@@ -1198,6 +1272,11 @@ export class Api<
       userProfileVariableDescriptors?: FieldDescriptor[];
       /** Updated ID of the classifier used to evaluate guardrails. Set to null to disable guardrail classification. */
       defaultGuardrailClassifierId?: string | null;
+      /** Updated sample copy configuration. Set to null to clear. */
+      sampleCopyConfig?: {
+        /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+        defaultClassifierId?: string;
+      } | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -1231,6 +1310,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1255,7 +1336,11 @@ export class Api<
           llmProviderId: string;
           /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
           blockedCategories?: string[];
+          /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+          mode?: "strict" | "standard";
         } | null;
+        /** Project-level LLM token cost management configuration */
+        costManagementConfig: CostManagementConfig;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1270,6 +1355,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1358,6 +1448,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1382,7 +1474,11 @@ export class Api<
           llmProviderId: string;
           /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
           blockedCategories?: string[];
+          /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+          mode?: "strict" | "standard";
         } | null;
+        /** Project-level LLM token cost management configuration */
+        costManagementConfig: CostManagementConfig;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1397,6 +1493,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1469,6 +1570,8 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
+          serverVad?: ServerVadConfig;
         } | null;
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
@@ -1493,7 +1596,11 @@ export class Api<
           llmProviderId: string;
           /** List of category names that should cause the input to be blocked. If omitted or empty, any flagged category will block the input. Category names are provider-specific. OpenAI categories: harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/instructions, self-harm/intent, sexual, sexual/minors, violence, violence/graphic. Mistral categories: sexual, hate_and_discrimination, violence_and_threats, dangerous_and_criminal_content, selfharm, health, financial, law, pii. */
           blockedCategories?: string[];
+          /** Moderation execution mode. "strict" (default): moderation runs before all other processing — the turn is held until the moderation result is available. "standard": moderation runs after filler generation, in parallel with classification/knowledge retrieval (processTextInput), reducing perceived latency while still blocking flagged input before classification results are acted upon. */
+          mode?: "strict" | "standard";
         } | null;
+        /** Project-level LLM token cost management configuration */
+        costManagementConfig: CostManagementConfig;
         /** Key-value store of constants used in templating and conversation logic */
         constants: Record<string, ParameterValue>;
         /** Additional metadata for the project */
@@ -1508,6 +1615,11 @@ export class Api<
         userProfileVariableDescriptors: FieldDescriptor[];
         /** ID of the classifier used to evaluate guardrails for all conversations in this project */
         defaultGuardrailClassifierId: string | null;
+        /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
+        sampleCopyConfig?: {
+          /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
+          defaultClassifierId?: string;
+        } | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1789,6 +1901,308 @@ export class Api<
       method: "GET",
       secure: true,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns aggregated LLM token usage statistics broken down by event type (message, classification, transformation, tool_call). Includes total prompt tokens, completion tokens, and combined totals.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsUsageList
+   * @summary Get aggregated token usage statistics
+   * @request GET:/api/projects/{projectId}/analytics/usage
+   * @secure
+   */
+  projectsAnalyticsUsageList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<TokenUsageStatsResponse, void>({
+      path: `/api/projects/${projectId}/analytics/usage`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a time-series of token consumption bucketed by the specified interval (hour, day, or week). Useful for tracking LLM usage growth and optimizing prompt costs.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsUsageTrendList
+   * @summary Get token usage trend over time
+   * @request GET:/api/projects/{projectId}/analytics/usage/trend
+   * @secure
+   */
+  projectsAnalyticsUsageTrendList = (
+    projectId: string,
+    query?: {
+      /**
+       * Start of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter by stage ID */
+      stageId?: string;
+      /** Filter by input source (text or voice) */
+      source?: "text" | "voice";
+      /**
+       * Time bucket interval for the trend (hour, day, or week)
+       * @default "day"
+       */
+      interval?: "hour" | "day" | "week";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<TokenUsageTrendResponse, void>({
+      path: `/api/projects/${projectId}/analytics/usage/trend`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the available analytics sources with their queryable dimensions and metrics. Use this to discover what can be queried via the /analytics/query endpoint.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSourcesList
+   * @summary Get analytics source catalog
+   * @request GET:/api/projects/{projectId}/analytics/sources
+   * @secure
+   */
+  projectsAnalyticsSourcesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SourceCatalogResponse, void>({
+      path: `/api/projects/${projectId}/analytics/sources`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Generic analytics query engine. Specify a source, metrics to aggregate, optional groupBy dimensions, time interval for bucketing, and filters. Use normalizeBy to enable two-phase aggregation: metrics are first summed within each unit of that dimension (e.g. conversationId), then the requested aggregation function is applied across those sums — enabling queries like "average total tokens per conversation". Returns flat rows with dimension values and computed metrics. Use GET /analytics/sources to discover available sources, dimensions, and metrics.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsQueryList
+   * @summary Slice-and-dice analytics query
+   * @request GET:/api/projects/{projectId}/analytics/query
+   * @secure
+   */
+  projectsAnalyticsQueryList = (
+    projectId: string,
+    query: {
+      /** Analytics source to query */
+      source:
+        | "conversations"
+        | "events"
+        | "turns"
+        | "tool_calls"
+        | "classifications"
+        | "transformations"
+        | "moderation"
+        | "stage_visits"
+        | "llm_calls";
+      /**
+       * Dimension IDs to group results by (max 5)
+       * @maxItems 5
+       * @default []
+       */
+      groupBy?: string[];
+      /** Time bucket interval for time-series aggregation */
+      interval?: "hour" | "day" | "week" | "month";
+      /**
+       * Metric specifications: "count" or "{aggFn}:{metricId}" (e.g. "avg:durationMs", "p95:totalTurnDurationMs")
+       * @maxItems 10
+       * @minItems 1
+       */
+      metrics: string[];
+      /** Dimension ID to use as the inner aggregation unit for two-phase aggregation. When set, metrics are first summed within each (groupBy + normalizeBy) group, then the requested aggregation function is applied across those sums. Example: normalizeBy=conversationId with avg:promptTokens gives the average total prompt tokens per conversation. Not compatible with the bare "count" metric. */
+      normalizeBy?: string;
+      /** Relative time range (e.g. { amount: 7, unit: "days" }). Mutually exclusive with from/to — takes precedence if all three are provided. */
+      relativeTime?: RelativeTime;
+      /**
+       * Start of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * End of the date range (inclusive). ISO 8601 format. Ignored when relativeTime is set.
+       * @format date-time
+       */
+      to?: string | null;
+      /** Filter to a single conversation */
+      conversationId?: string;
+      /** Additional equality filters: key = dimension ID, value = exact match value */
+      filters?: Record<string, string>;
+      /**
+       * Maximum number of rows to return (default 1000, max 10000)
+       * @min 1
+       * @max 10000
+       * @default 1000
+       */
+      limit?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SliceQueryResponse, void>({
+      path: `/api/projects/${projectId}/analytics/query`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the operator's own saved queries plus all shared queries within the project
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesList
+   * @summary List saved slice queries
+   * @request GET:/api/projects/{projectId}/analytics/saved-queries
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery[], any>({
+      path: `/api/projects/${projectId}/analytics/saved-queries`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Saves a named slice query configuration for later reuse. The name must be unique within the project.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesCreate
+   * @summary Create a saved slice query
+   * @request POST:/api/projects/{projectId}/analytics/saved-queries
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique name for this saved query within the project
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      /** The full slice query configuration to save */
+      query: SliceQuery;
+      /**
+       * Whether this query is visible to all operators in the project
+       * @default false
+       */
+      isShared?: boolean;
+      /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing saved slice query with optimistic locking. Only the owning operator or a super_admin may update.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesUpdate
+   * @summary Update a saved slice query
+   * @request PUT:/api/projects/{projectId}/analytics/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated name for this saved query
+       * @minLength 1
+       * @maxLength 255
+       */
+      name?: string;
+      /** Updated slice query configuration */
+      query?: SliceQuery;
+      /** Updated sharing flag */
+      isShared?: boolean;
+      /** Arbitrary key-value metadata, e.g. chart display settings from the UI */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedSliceQuery, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a saved slice query with optimistic locking. Only the owning operator or a super_admin may delete.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsSavedQueriesDelete
+   * @summary Delete a saved slice query
+   * @request DELETE:/api/projects/{projectId}/analytics/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsSavedQueriesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/analytics/saved-queries/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       ...params,
     });
   /**
@@ -2801,8 +3215,8 @@ export class Api<
         projectId: string;
         /** Identifier of the user associated with this conversation */
         userId: string;
-        /** Client identifier for the conversation */
-        clientId: string;
+        /** ID of the WebSocket session that initiated this conversation */
+        sessionId: string;
         /** Current stage identifier for the conversation */
         stageId: string;
         /** Stage identifier at the start of the conversation */
@@ -2859,7 +3273,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Retrieves a paginated list of conversations with optional filtering, sorting, and search. Supports filtering by userId, clientId, stageId, status, and timestamps.
+   * @description Retrieves a paginated list of conversations with optional filtering, sorting, and search. Supports filtering by userId, sessionId, stageId, status, and timestamps.
    *
    * @tags Conversations
    * @name ProjectsConversationsList
@@ -2913,8 +3327,8 @@ export class Api<
           projectId: string;
           /** Identifier of the user associated with this conversation */
           userId: string;
-          /** Client identifier for the conversation */
-          clientId: string;
+          /** ID of the WebSocket session that initiated this conversation */
+          sessionId: string;
           /** Current stage identifier for the conversation */
           stageId: string;
           /** Stage identifier at the start of the conversation */
@@ -3031,6 +3445,7 @@ export class Api<
             | "message"
             | "classification"
             | "transformation"
+            | "execution_plan"
             | "action"
             | "command"
             | "tool_call"
@@ -3040,7 +3455,13 @@ export class Api<
             | "conversation_aborted"
             | "conversation_failed"
             | "jump_to_stage"
-            | "moderation";
+            | "moderation"
+            | "variables_updated"
+            | "user_profile_updated"
+            | "user_input_modified"
+            | "user_banned"
+            | "visibility_changed"
+            | "sample_copy_selection";
           /** Event data payload */
           eventData:
             | {
@@ -3075,6 +3496,31 @@ export class Api<
                 metadata?: Record<string, any>;
               }
             | {
+                /** ID of the stage where execution is taking place */
+                stageId: string;
+                /** Names of all matched actions in original order */
+                actions: string[];
+                /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+                effects: {
+                  /** Name of the action this effect originates from */
+                  actionName: string;
+                  /** The effect to be executed */
+                  effect: Effect;
+                }[];
+                /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+                lifecycleContext:
+                  | "on_enter"
+                  | "on_leave"
+                  | "on_fallback"
+                  | "conversation_start"
+                  | "conversation_resume"
+                  | "conversation_end"
+                  | "conversation_abort"
+                  | "conversation_failed"
+                  | null;
+                metadata?: Record<string, any>;
+              }
+            | {
                 actionName: string;
                 stageId: string;
                 effects: Effect[];
@@ -3099,6 +3545,8 @@ export class Api<
                 success: boolean;
                 result?: any;
                 error?: string;
+                /** Name of the action that triggered this tool call, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3122,11 +3570,15 @@ export class Api<
             | {
                 reason?: string;
                 stageId: string;
+                /** Name of the action that triggered conversation end, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
                 reason: string;
                 stageId: string;
+                /** Name of the action that triggered conversation abort, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3137,6 +3589,8 @@ export class Api<
             | {
                 fromStageId: string;
                 toStageId: string;
+                /** Name of the action that triggered this stage jump, if triggered by an action effect */
+                sourceActionName?: string;
                 metadata?: Record<string, any>;
               }
             | {
@@ -3145,8 +3599,61 @@ export class Api<
                 blockingCategories: string[];
                 detectedCategories: string[];
                 durationMs: number;
+                startMs: number;
+                endMs: number;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this variable update */
+                sourceActionName: string;
+                /** Snapshot of all conversation variables after the update */
+                variables: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this profile update */
+                sourceActionName: string;
+                /** Updated user profile data */
+                profile: Record<string, ParameterValue>;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this input modification */
+                sourceActionName: string;
+                /** The modified user input after template rendering */
+                modifiedInput: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered the ban */
+                sourceActionName: string;
+                /** Optional reason for the ban */
+                reason?: string;
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** Name of the action that triggered this visibility change */
+                sourceActionName: string;
+                /** The new visibility settings for current turn messages */
+                visibility: {
+                  /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                  visibility: "always" | "stage" | "never" | "conditional";
+                  /** Condition for visibility, evaluated against conversation variables */
+                  condition?: string;
+                };
+                metadata?: Record<string, any>;
+              }
+            | {
+                /** ID of the classifier that performed the selection */
+                classifierId: string;
+                /** The user input that triggered the selection */
+                input: string;
+                /** Identifier of selected sample copy, or null if none was selected */
+                sampleCopy: string | null;
                 metadata?: Record<string, any>;
               };
+          /** ID of the stage that was active when the event occurred */
+          stageId: string | null;
           /**
            * Timestamp when the event occurred
            * @format date-time
@@ -3211,6 +3718,7 @@ export class Api<
           | "message"
           | "classification"
           | "transformation"
+          | "execution_plan"
           | "action"
           | "command"
           | "tool_call"
@@ -3220,7 +3728,13 @@ export class Api<
           | "conversation_aborted"
           | "conversation_failed"
           | "jump_to_stage"
-          | "moderation";
+          | "moderation"
+          | "variables_updated"
+          | "user_profile_updated"
+          | "user_input_modified"
+          | "user_banned"
+          | "visibility_changed"
+          | "sample_copy_selection";
         /** Event data payload */
         eventData:
           | {
@@ -3255,6 +3769,31 @@ export class Api<
               metadata?: Record<string, any>;
             }
           | {
+              /** ID of the stage where execution is taking place */
+              stageId: string;
+              /** Names of all matched actions in original order */
+              actions: string[];
+              /** Final ordered list of effects after filtering, sorting, and conflict resolution */
+              effects: {
+                /** Name of the action this effect originates from */
+                actionName: string;
+                /** The effect to be executed */
+                effect: Effect;
+              }[];
+              /** Lifecycle context in which execution is taking place; null for user-input-triggered executions */
+              lifecycleContext:
+                | "on_enter"
+                | "on_leave"
+                | "on_fallback"
+                | "conversation_start"
+                | "conversation_resume"
+                | "conversation_end"
+                | "conversation_abort"
+                | "conversation_failed"
+                | null;
+              metadata?: Record<string, any>;
+            }
+          | {
               actionName: string;
               stageId: string;
               effects: Effect[];
@@ -3279,6 +3818,8 @@ export class Api<
               success: boolean;
               result?: any;
               error?: string;
+              /** Name of the action that triggered this tool call, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3302,11 +3843,15 @@ export class Api<
           | {
               reason?: string;
               stageId: string;
+              /** Name of the action that triggered conversation end, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
               reason: string;
               stageId: string;
+              /** Name of the action that triggered conversation abort, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3317,6 +3862,8 @@ export class Api<
           | {
               fromStageId: string;
               toStageId: string;
+              /** Name of the action that triggered this stage jump, if triggered by an action effect */
+              sourceActionName?: string;
               metadata?: Record<string, any>;
             }
           | {
@@ -3325,8 +3872,61 @@ export class Api<
               blockingCategories: string[];
               detectedCategories: string[];
               durationMs: number;
+              startMs: number;
+              endMs: number;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this variable update */
+              sourceActionName: string;
+              /** Snapshot of all conversation variables after the update */
+              variables: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this profile update */
+              sourceActionName: string;
+              /** Updated user profile data */
+              profile: Record<string, ParameterValue>;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this input modification */
+              sourceActionName: string;
+              /** The modified user input after template rendering */
+              modifiedInput: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered the ban */
+              sourceActionName: string;
+              /** Optional reason for the ban */
+              reason?: string;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Name of the action that triggered this visibility change */
+              sourceActionName: string;
+              /** The new visibility settings for current turn messages */
+              visibility: {
+                /** Visibility setting for the message: always (always visible), stage (visible only in current stage), never (never visible), conditional (visible based on condition) */
+                visibility: "always" | "stage" | "never" | "conditional";
+                /** Condition for visibility, evaluated against conversation variables */
+                condition?: string;
+              };
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** ID of the classifier that performed the selection */
+              classifierId: string;
+              /** The user input that triggered the selection */
+              input: string;
+              /** Identifier of selected sample copy, or null if none was selected */
+              sampleCopy: string | null;
               metadata?: Record<string, any>;
             };
+        /** ID of the stage that was active when the event occurred */
+        stageId: string | null;
         /**
          * Timestamp when the event occurred
          * @format date-time
@@ -4797,7 +5397,13 @@ export class Api<
       /** Detailed description of provider purpose and use case */
       description?: string;
       /** Provider category: asr, tts, llm, or embeddings */
-      providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+      providerType:
+        | "asr"
+        | "tts"
+        | "llm"
+        | "embeddings"
+        | "storage"
+        | "channel";
       /** Specific provider implementation (e.g., openai, anthropic, azure, elevenlabs) */
       apiType: string;
       /** Provider-specific configuration object (varies by providerType and apiType) */
@@ -4869,7 +5475,10 @@ export class Api<
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
-        | LocalStorageConfig;
+        | LocalStorageConfig
+        | TwilioMessagingChannelConfig
+        | TwilioVoiceChannelConfig
+        | WhatsAppChannelConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -4886,7 +5495,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -4958,7 +5573,10 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5041,7 +5659,13 @@ export class Api<
           /** Description of provider purpose and use case */
           description: string | null;
           /** Provider category (asr, tts, llm, embeddings) */
-          providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+          providerType:
+            | "asr"
+            | "tts"
+            | "llm"
+            | "embeddings"
+            | "storage"
+            | "channel";
           /** Specific provider implementation */
           apiType: string;
           /** Provider-specific configuration object */
@@ -5113,7 +5737,10 @@ export class Api<
             | S3StorageConfig
             | AzureBlobStorageConfig
             | GcsStorageConfig
-            | LocalStorageConfig;
+            | LocalStorageConfig
+            | TwilioMessagingChannelConfig
+            | TwilioVoiceChannelConfig
+            | WhatsAppChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -5178,7 +5805,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -5250,7 +5883,10 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5302,7 +5938,13 @@ export class Api<
       /** Updated description of provider purpose */
       description?: string | null;
       /** Updated provider category */
-      providerType?: "asr" | "tts" | "llm" | "embeddings" | "storage";
+      providerType?:
+        | "asr"
+        | "tts"
+        | "llm"
+        | "embeddings"
+        | "storage"
+        | "channel";
       /** Updated specific provider implementation */
       apiType?: string;
       /** Updated provider-specific configuration */
@@ -5374,7 +6016,10 @@ export class Api<
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
-        | LocalStorageConfig;
+        | LocalStorageConfig
+        | TwilioMessagingChannelConfig
+        | TwilioVoiceChannelConfig
+        | WhatsAppChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -5389,7 +6034,13 @@ export class Api<
         /** Description of provider purpose and use case */
         description: string | null;
         /** Provider category (asr, tts, llm, embeddings) */
-        providerType: "asr" | "tts" | "llm" | "embeddings" | "storage";
+        providerType:
+          | "asr"
+          | "tts"
+          | "llm"
+          | "embeddings"
+          | "storage"
+          | "channel";
         /** Specific provider implementation */
         apiType: string;
         /** Provider-specific configuration object */
@@ -5461,7 +6112,10 @@ export class Api<
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
-          | LocalStorageConfig;
+          | LocalStorageConfig
+          | TwilioMessagingChannelConfig
+          | TwilioVoiceChannelConfig
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5621,6 +6275,17 @@ export class Api<
         }[];
         /** Moderation providers */
         moderation: ModerationProviderInfo[];
+        /** Communication channel providers */
+        channel: {
+          /** Provider API type */
+          apiType: string;
+          /** Human-readable provider name */
+          displayName: string;
+          /** Additional information */
+          description?: string;
+          /** List of supported features */
+          features?: string[];
+        }[];
       },
       any
     >({
@@ -5851,6 +6516,40 @@ export class Api<
       void
     >({
       path: `/api/provider-catalog/${type}/${apiType}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns all communication channel types supported by this backend instance, including their capabilities and supported audio formats.
+   *
+   * @tags Channel Catalog
+   * @name ChannelCatalogList
+   * @summary List all supported channels
+   * @request GET:/api/channel-catalog
+   * @secure
+   */
+  channelCatalogList = (params: RequestParams = {}) =>
+    this.request<ChannelCatalogResponse, any>({
+      path: `/api/channel-catalog`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns details and capabilities for a single channel type.
+   *
+   * @tags Channel Catalog
+   * @name ChannelCatalogDetail
+   * @summary Get a channel by type
+   * @request GET:/api/channel-catalog/{type}
+   * @secure
+   */
+  channelCatalogDetail = (type: string, params: RequestParams = {}) =>
+    this.request<ChannelInfo, void>({
+      path: `/api/channel-catalog/${type}`,
       method: "GET",
       secure: true,
       format: "json",
@@ -6822,6 +7521,852 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new sample copy with a set of variant answers and classifier trigger configuration
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesCreate
+   * @summary Create a new sample copy
+   * @request POST:/api/projects/{projectId}/sample-copies
+   * @secure
+   */
+  projectsSampleCopiesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the sample copy (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the sample copy, used as identifier throughout the system
+       * @minLength 1
+       */
+      name: string;
+      /** Optional array of stage IDs this sample copy applies to */
+      stages?: string[];
+      /** Optional array of agent IDs this sample copy applies to */
+      agents?: string[];
+      /**
+       * Trigger string used by the classifier to activate this sample copy
+       * @minLength 1
+       */
+      promptTrigger: string;
+      /** ID of the classifier to use; if not set the default classifier will be used */
+      classifierOverrideId?: string | null;
+      /**
+       * Array of variant answers to select from
+       * @minItems 1
+       */
+      content: string[];
+      /**
+       * Number of samples to select from the content array
+       * @min 1
+       * @default 1
+       */
+      amount?: number;
+      /**
+       * Method used to select samples: random selection or sequential round-robin
+       * @default "random"
+       */
+      samplingMethod?: "random" | "round_robin";
+      /**
+       * Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects
+       * @default "regular"
+       */
+      mode?: "regular" | "forced";
+      /** ID of the copy decorator to apply to selected content; if not set no decoration is applied */
+      decoratorId?: string | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of sample copies with optional filtering and sorting
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesList
+   * @summary List sample copies
+   * @request GET:/api/projects/{projectId}/sample-copies
+   * @secure
+   */
+  projectsSampleCopiesList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of sample copies in the current page */
+        items: {
+          /** Unique identifier for the sample copy */
+          id: string;
+          /** ID of the project this sample copy belongs to */
+          projectId: string;
+          /** Display name of the sample copy */
+          name: string;
+          /** Array of stage IDs this sample copy applies to */
+          stages: string[] | null;
+          /** Array of agent IDs this sample copy applies to */
+          agents: string[] | null;
+          /** Trigger string used by the classifier */
+          promptTrigger: string;
+          /** ID of the classifier override, or null if using the default */
+          classifierOverrideId: string | null;
+          /** Array of variant answers */
+          content: string[];
+          /** Number of samples to select */
+          amount: number;
+          /** Method used to select samples */
+          samplingMethod: "random" | "round_robin";
+          /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+          mode: "regular" | "forced";
+          /** ID of the copy decorator applied to selected content, or null if none */
+          decoratorId: string | null;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the sample copy was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the sample copy was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
+        }[];
+        /**
+         * Total number of sample copies matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single sample copy by its unique identifier
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesDetail
+   * @summary Get sample copy by ID
+   * @request GET:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing sample copy with optimistic locking
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesUpdate
+   * @summary Update sample copy
+   * @request PUT:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated array of stage IDs */
+      stages?: string[] | null;
+      /** Updated array of agent IDs */
+      agents?: string[] | null;
+      /**
+       * Updated classifier trigger string
+       * @minLength 1
+       */
+      promptTrigger?: string;
+      /** Updated classifier override ID */
+      classifierOverrideId?: string | null;
+      /**
+       * Updated array of variant answers
+       * @minItems 1
+       */
+      content?: string[];
+      /**
+       * Updated number of samples to select
+       * @min 1
+       */
+      amount?: number;
+      /** Updated sampling method */
+      samplingMethod?: "random" | "round_robin";
+      /** Updated mode: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+      mode?: "regular" | "forced";
+      /** Updated copy decorator ID; set to null to remove the decorator */
+      decoratorId?: string | null;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a sample copy with optimistic locking
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesDelete
+   * @summary Delete sample copy
+   * @request DELETE:/api/projects/{projectId}/sample-copies/{id}
+   * @secure
+   */
+  projectsSampleCopiesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/sample-copies/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific sample copy
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesAuditLogsList
+   * @summary Get sample copy audit logs
+   * @request GET:/api/projects/{projectId}/sample-copies/{id}/audit-logs
+   * @secure
+   */
+  projectsSampleCopiesAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/sample-copies/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing sample copy with a new ID and optional name override
+   *
+   * @tags Sample Copies
+   * @name ProjectsSampleCopiesCloneCreate
+   * @summary Clone sample copy
+   * @request POST:/api/projects/{projectId}/sample-copies/{id}/clone
+   * @secure
+   */
+  projectsSampleCopiesCloneCreate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned sample copy (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned sample copy (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the sample copy */
+        id: string;
+        /** ID of the project this sample copy belongs to */
+        projectId: string;
+        /** Display name of the sample copy */
+        name: string;
+        /** Array of stage IDs this sample copy applies to */
+        stages: string[] | null;
+        /** Array of agent IDs this sample copy applies to */
+        agents: string[] | null;
+        /** Trigger string used by the classifier */
+        promptTrigger: string;
+        /** ID of the classifier override, or null if using the default */
+        classifierOverrideId: string | null;
+        /** Array of variant answers */
+        content: string[];
+        /** Number of samples to select */
+        amount: number;
+        /** Method used to select samples */
+        samplingMethod: "random" | "round_robin";
+        /** Mode of the sample copy: regular works as normal, forced enforces the prescripted response and ignores other response-related effects */
+        mode: "regular" | "forced";
+        /** ID of the copy decorator applied to selected content, or null if none */
+        decoratorId: string | null;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the sample copy was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the sample copy was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/sample-copies/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new copy decorator with a name and template string
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsCreate
+   * @summary Create a new copy decorator
+   * @request POST:/api/projects/{projectId}/copy-decorators
+   * @secure
+   */
+  projectsCopyDecoratorsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the copy decorator (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Human-readable display name of the copy decorator
+       * @minLength 1
+       */
+      name: string;
+      /**
+       * Template string used to decorate selected sample copy content
+       * @minLength 1
+       */
+      template: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of copy decorators with optional filtering and sorting
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsList
+   * @summary List copy decorators
+   * @request GET:/api/projects/{projectId}/copy-decorators
+   * @secure
+   */
+  projectsCopyDecoratorsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of copy decorators in the current page */
+        items: {
+          /** Unique identifier for the copy decorator */
+          id: string;
+          /** ID of the project this copy decorator belongs to */
+          projectId: string;
+          /** Human-readable display name of the copy decorator */
+          name: string;
+          /** Template string used to decorate sample copy content */
+          template: string;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the copy decorator was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the copy decorator was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+          /** Whether this entity belongs to an archived project */
+          archived?: boolean;
+        }[];
+        /**
+         * Total number of copy decorators matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single copy decorator by its unique identifier
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsDetail
+   * @summary Get copy decorator by ID
+   * @request GET:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing copy decorator with optimistic locking
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsUpdate
+   * @summary Update copy decorator
+   * @request PUT:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /**
+       * Updated template string
+       * @minLength 1
+       */
+      template?: string;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the copy decorator */
+        id: string;
+        /** ID of the project this copy decorator belongs to */
+        projectId: string;
+        /** Human-readable display name of the copy decorator */
+        name: string;
+        /** Template string used to decorate sample copy content */
+        template: string;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the copy decorator was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the copy decorator was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+        /** Whether this entity belongs to an archived project */
+        archived?: boolean;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a copy decorator with optimistic locking
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsDelete
+   * @summary Delete copy decorator
+   * @request DELETE:/api/projects/{projectId}/copy-decorators/{id}
+   * @secure
+   */
+  projectsCopyDecoratorsDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/copy-decorators/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific copy decorator
+   *
+   * @tags Copy Decorators
+   * @name ProjectsCopyDecoratorsAuditLogsList
+   * @summary Get copy decorator audit logs
+   * @request GET:/api/projects/{projectId}/copy-decorators/{id}/audit-logs
+   * @secure
+   */
+  projectsCopyDecoratorsAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/copy-decorators/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**
@@ -8666,59 +10211,7 @@ export class Api<
   projectsToolsUpdate = (
     projectId: string,
     id: string,
-    data: {
-      /**
-       * Updated display name
-       * @minLength 1
-       */
-      name?: string;
-      /** Updated description */
-      description?: string | null;
-      /**
-       * Updated Handlebars prompt template (smart_function)
-       * @minLength 1
-       */
-      prompt?: string;
-      /** Updated LLM provider ID (smart_function) */
-      llmProviderId?: string | null;
-      /** Updated LLM provider-specific settings (smart_function) */
-      llmSettings?:
-        | OpenAILlmSettings
-        | OpenAILegacyLlmSettings
-        | AnthropicLlmSettings
-        | GeminiLlmSettings;
-      /** Updated input format (smart_function) */
-      inputType?: "text" | "image" | "multi-modal";
-      /** Updated output format (smart_function) */
-      outputType?: "text" | "image" | "multi-modal";
-      /**
-       * Updated target URL (webhook)
-       * @format uri
-       */
-      url?: string;
-      /** Updated HTTP method (webhook) */
-      webhookMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-      /** Updated HTTP headers (webhook) */
-      webhookHeaders?: Record<string, string>;
-      /** Updated request body template (webhook) */
-      webhookBody?: string | null;
-      /**
-       * Updated JavaScript code (script)
-       * @minLength 1
-       */
-      code?: string;
-      /** Updated parameters for the tool */
-      parameters?: ToolParameter[];
-      /** Updated tags */
-      tags?: string[];
-      /** Updated metadata */
-      metadata?: Record<string, any>;
-      /**
-       * Current version number for optimistic locking
-       * @min 1
-       */
-      version: number;
-    },
+    data: UpdateToolRequest,
     params: RequestParams = {},
   ) =>
     this.request<
@@ -8960,6 +10453,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time
@@ -9038,6 +10535,10 @@ export class Api<
           projectId: string;
           /** User profile data as key-value pairs */
           profile: Record<string, any>;
+          /** Whether the user is banned from starting conversations */
+          banned: boolean;
+          /** Reason the user was banned */
+          banReason?: string | null;
           /**
            * Timestamp when the user was created
            * @format date-time
@@ -9101,6 +10602,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time
@@ -9137,6 +10642,10 @@ export class Api<
     data: {
       /** Updated profile data (merges with existing profile) */
       profile?: Record<string, any>;
+      /** Whether the user is banned from starting conversations */
+      banned?: boolean;
+      /** Reason for banning the user (null to clear) */
+      banReason?: string | null;
     },
     params: RequestParams = {},
   ) =>
@@ -9148,6 +10657,10 @@ export class Api<
         projectId: string;
         /** User profile data as key-value pairs */
         profile: Record<string, any>;
+        /** Whether the user is banned from starting conversations */
+        banned: boolean;
+        /** Reason the user was banned */
+        banReason?: string | null;
         /**
          * Timestamp when the user was created
          * @format date-time
@@ -9231,6 +10744,8 @@ export class Api<
       name: string;
       /** Additional metadata for the API key */
       metadata?: Record<string, any>;
+      /** Security settings controlling which channels and features this key permits. If absent, all channels and features are allowed. */
+      keySettings?: ApiKeySettings;
     },
     params: RequestParams = {},
   ) =>
@@ -9252,6 +10767,30 @@ export class Api<
         isActive: boolean;
         /** Additional metadata */
         metadata?: Record<string, any>;
+        /** Security settings controlling which channels and features this key permits */
+        keySettings?: {
+          /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+            | "whatsapp"
+          )[];
+          /** Permitted feature capabilities. If absent, all features are allowed. */
+          allowedFeatures?: (
+            | "conversation_control"
+            | "voice_input"
+            | "text_input"
+            | "voice_output"
+            | "text_output"
+            | "vars_access"
+            | "stage_control"
+            | "run_action"
+            | "call_tool"
+            | "events"
+          )[];
+        } | null;
         /** Version number for optimistic locking */
         version: number;
         /** ISO timestamp of creation */
@@ -9336,6 +10875,30 @@ export class Api<
           isActive: boolean;
           /** Additional metadata */
           metadata?: Record<string, any>;
+          /** Security settings controlling which channels and features this key permits */
+          keySettings?: {
+            /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+            allowedChannels?: (
+              | "websocket"
+              | "webrtc"
+              | "twilio_voice"
+              | "twilio_messaging"
+              | "whatsapp"
+            )[];
+            /** Permitted feature capabilities. If absent, all features are allowed. */
+            allowedFeatures?: (
+              | "conversation_control"
+              | "voice_input"
+              | "text_input"
+              | "voice_output"
+              | "text_output"
+              | "vars_access"
+              | "stage_control"
+              | "run_action"
+              | "call_tool"
+              | "events"
+            )[];
+          } | null;
           /** Version number for optimistic locking */
           version: number;
           /** ISO timestamp of creation */
@@ -9389,6 +10952,30 @@ export class Api<
         isActive: boolean;
         /** Additional metadata */
         metadata?: Record<string, any>;
+        /** Security settings controlling which channels and features this key permits */
+        keySettings?: {
+          /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+            | "whatsapp"
+          )[];
+          /** Permitted feature capabilities. If absent, all features are allowed. */
+          allowedFeatures?: (
+            | "conversation_control"
+            | "voice_input"
+            | "text_input"
+            | "voice_output"
+            | "text_output"
+            | "vars_access"
+            | "stage_control"
+            | "run_action"
+            | "call_tool"
+            | "events"
+          )[];
+        } | null;
         /** Version number for optimistic locking */
         version: number;
         /** ISO timestamp of creation */
@@ -9429,6 +11016,8 @@ export class Api<
       isActive?: boolean;
       /** Updated metadata for the API key */
       metadata?: Record<string, any>;
+      /** Updated security settings. If absent, existing settings are preserved. */
+      keySettings?: ApiKeySettings;
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -9452,6 +11041,30 @@ export class Api<
         isActive: boolean;
         /** Additional metadata */
         metadata?: Record<string, any>;
+        /** Security settings controlling which channels and features this key permits */
+        keySettings?: {
+          /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+          allowedChannels?: (
+            | "websocket"
+            | "webrtc"
+            | "twilio_voice"
+            | "twilio_messaging"
+            | "whatsapp"
+          )[];
+          /** Permitted feature capabilities. If absent, all features are allowed. */
+          allowedFeatures?: (
+            | "conversation_control"
+            | "voice_input"
+            | "text_input"
+            | "voice_output"
+            | "text_output"
+            | "vars_access"
+            | "stage_control"
+            | "run_action"
+            | "call_tool"
+            | "events"
+          )[];
+        } | null;
         /** Version number for optimistic locking */
         version: number;
         /** ISO timestamp of creation */
@@ -9561,6 +11174,30 @@ export class Api<
           isActive: boolean;
           /** Additional metadata */
           metadata?: Record<string, any>;
+          /** Security settings controlling which channels and features this key permits */
+          keySettings?: {
+            /** Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed. */
+            allowedChannels?: (
+              | "websocket"
+              | "webrtc"
+              | "twilio_voice"
+              | "twilio_messaging"
+              | "whatsapp"
+            )[];
+            /** Permitted feature capabilities. If absent, all features are allowed. */
+            allowedFeatures?: (
+              | "conversation_control"
+              | "voice_input"
+              | "text_input"
+              | "voice_output"
+              | "text_output"
+              | "vars_access"
+              | "stage_control"
+              | "run_action"
+              | "call_tool"
+              | "events"
+            )[];
+          } | null;
           /** Version number for optimistic locking */
           version: number;
           /** ISO timestamp of creation */
@@ -9721,6 +11358,35 @@ export class Api<
       method: "POST",
       body: data,
       secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). Before creating the offer the client must open two named DataChannels: "control" (ordered: true) for all JSON messages (same protocol as WebSocket) and "audio" (ordered: false, maxRetransmits: 0) for binary audio frames. Audio frame format: [uint16 LE: turnId byte length] [turnId UTF-8 bytes] [raw PCM audio]. Once the DataChannels are open, authenticate by sending an "auth" JSON message over the control channel.
+   *
+   * @tags WebRTC
+   * @name WebrtcOfferCreate
+   * @summary Exchange SDP offer/answer for WebRTC session
+   * @request POST:/api/webrtc/offer
+   */
+  webrtcOfferCreate = (
+    data: {
+      /** SDP offer string generated by the client RTCPeerConnection */
+      sdpOffer: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** SDP answer with all ICE candidates embedded (gather-and-return, no trickle ICE) */
+        sdpAnswer: string;
+      },
+      void
+    >({
+      path: `/api/webrtc/offer`,
+      method: "POST",
+      body: data,
       type: ContentType.Json,
       format: "json",
       ...params,

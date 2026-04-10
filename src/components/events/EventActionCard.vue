@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  Zap,
+  Layers,
+  FileText,
+  Wand2,
+  ScrollText,
+  Braces,
+  Bug,
+  ChevronRight,
+  ChevronDown,
+} from 'lucide-vue-next'
+import type { NormalizedEvent } from './eventHelpers'
+import { hasSystemPrompt, hasRawResponse, hasFillerPrompt, hasCurrentVariables, resolveName } from './eventHelpers'
+
+const props = defineProps<{
+  event: NormalizedEvent
+  showBugReport?: boolean
+  entityNames?: {
+    stages?: Record<string, string>
+  }
+}>()
+
+const emit = defineEmits<{
+  (e: 'open-prompt', prompt: string): void
+  (e: 'open-filler-prompt', prompt: string): void
+  (e: 'open-raw-response', rawResponse: string): void
+  (e: 'open-variables', variables: Record<string, any>): void
+  (e: 'open-bug-report', event: NormalizedEvent): void
+}>()
+
+const expanded = ref(false)
+</script>
+
+<template>
+  <div class="grid grid-cols-[auto_auto_1fr] gap-x-2">
+    <button @click.stop="expanded = !expanded" class="place-self-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+      <ChevronDown v-if="expanded" class="w-4 h-4" />
+      <ChevronRight v-else class="w-4 h-4" />
+    </button>
+    <Zap class="place-self-center w-5 h-5 text-purple-600" />
+    <div style="display:contents">
+      <div class="min-w-0 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <button @click="expanded = !expanded" class="font-semibold text-purple-900 dark:text-purple-100 shrink-0 text-left">Action</button>
+          <span v-if="!expanded" class="text-xs font-medium text-purple-700 dark:text-purple-300 min-w-0 truncate">{{ event.eventData.actionName }}</span>
+          <span class="text-xs text-gray-400 shrink-0">{{ event.timestamp }}</span>
+        </div>
+        <div class="flex items-center gap-1 shrink-0" @click.stop>
+          <button
+            v-if="hasSystemPrompt(event.eventData.metadata)"
+            @click="emit('open-prompt', event.eventData.metadata!.systemPrompt as string)"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View system prompt">
+            <FileText class="w-4 h-4" />
+          </button>
+          <button
+            v-if="hasFillerPrompt(event.eventData.metadata)"
+            @click="emit('open-filler-prompt', event.eventData.metadata!.fillerPrompt as string)"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View filler prompt">
+            <Wand2 class="w-4 h-4" />
+          </button>
+          <button
+            v-if="hasRawResponse(event.eventData.metadata)"
+            @click="emit('open-raw-response', event.eventData.metadata!.rawResponse as string)"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View raw response">
+            <ScrollText class="w-4 h-4" />
+          </button>
+          <button
+            v-if="event.eventData.result != null"
+            @click="emit('open-raw-response', JSON.stringify(event.eventData.result, null, 2))"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View result">
+            <Layers class="w-4 h-4" />
+          </button>
+          <button
+            v-if="hasCurrentVariables(event.eventData.metadata)"
+            @click="emit('open-variables', event.eventData.metadata!.currentVariables as Record<string, any>)"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="View stage variables">
+            <Braces class="w-4 h-4" />
+          </button>
+          <button
+            v-if="showBugReport"
+            @click="emit('open-bug-report', event)"
+            class="btn-icon p-1 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            title="Report bug">
+            <Bug class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div v-show="expanded" class="col-start-3 mt-2 space-y-2">
+        <div>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Action Name:</span>
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ event.eventData.actionName }}</div>
+        </div>
+        <div v-if="event.eventData.stageId">
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Stage:</span>
+          <div class="text-sm text-gray-900 dark:text-gray-200">{{ resolveName(event.eventData.stageId, entityNames?.stages) }}</div>
+          <div v-if="entityNames?.stages?.[event.eventData.stageId]" class="text-xs font-mono text-gray-400 dark:text-gray-500">{{ event.eventData.stageId }}</div>
+        </div>
+        <div v-if="event.eventData.effects && event.eventData.effects.length > 0">
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Effects ({{ event.eventData.effects.length }}):</span>
+          <div class="mt-1 space-y-2">
+            <div v-for="(effect, idx) in event.eventData.effects" :key="idx"
+              class="bg-white bg-opacity-60 rounded p-2.5 dark:bg-gray-900 dark:bg-opacity-60">
+              <div class="text-sm font-semibold text-purple-900 mb-2 dark:text-purple-100">
+                {{ effect.type || 'Effect' }} {{ (idx as number) + 1 }}
+              </div>
+              <div class="space-y-1">
+                <div v-for="(value, key) in effect" :key="key"
+                  class="md:flex items-start gap-2 text-xs">
+                  <span class="text-gray-600 font-medium min-w-25 shrink-0 dark:text-gray-400">{{ key }}: </span>
+                  <span class="text-gray-900 wrap-break-word font-mono dark:text-gray-200">{{
+                    typeof value === 'object' ? JSON.stringify(value) : String(value)
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="event.eventData.metadata && Object.keys(event.eventData.metadata).length > 0">
+          <details class="group">
+            <summary class="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 select-none dark:text-gray-400 dark:hover:text-gray-200">
+              Metadata ({{ Object.keys(event.eventData.metadata).length }})
+            </summary>
+            <div class="mt-1 bg-white bg-opacity-60 rounded p-2 font-mono text-xs overflow-x-auto dark:bg-gray-900 dark:bg-opacity-60">
+              <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.metadata, null, 2) }}</pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

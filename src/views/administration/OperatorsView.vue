@@ -2,7 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOperatorsStore } from '@/stores'
-import { formatEnum, usePagination, useTableSort, useSearch } from '@/composables'
+import { formatEnum, formatDate, usePagination, useTableSort, useSearch } from '@/composables'
 import { User, Search, X, Plus } from 'lucide-vue-next'
 import type { OperatorResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -73,10 +73,6 @@ async function deleteOperator(operator: OperatorResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 </script>
 

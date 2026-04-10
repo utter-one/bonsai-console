@@ -29,12 +29,12 @@
       <div class="flex md:flex-row flex-col md:items-center justify-between">
         <div>
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Playground</h1>
+            <h1 class="page-title">Playground</h1>
             <div class="ml-2 w-3 h-3 rounded-full"
               :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
             <div class="text-gray-900 text-sm dark:text-gray-500 ml-2">{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</div>
           </div>
-          <p class="text-sm text-gray-600 mt-1 dark:text-gray-400">Test and debug conversation flows in real-time</p>
+          <p class="page-subtitle">Test and debug conversation flows in real-time</p>
         </div>
 
         <!-- Controls -->
@@ -74,6 +74,16 @@
                   :disabled="wsIsConnected"
                   :width="'full'"
                 />
+              </div>
+              <!-- Channel -->
+              <div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+                  Channel
+                </div>
+                <select v-model="connectionType" class="form-select w-full text-sm" :disabled="wsIsConnected">
+                  <option value="websocket">WebSocket</option>
+                  <option value="webrtc">WebRTC (lower audio latency)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -315,6 +325,7 @@
                 v-else-if="event.wsEvent"
                 :event="toNormalizedWsEvent(event, index)"
                 :show-bug-report="false"
+                :entity-names="entityNames"
                 @open-prompt="openPromptPreview"
                 @open-filler-prompt="openFillerPromptPreview"
                 @open-raw-response="openRawResponsePreview"
@@ -334,22 +345,35 @@
             :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']">
             <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
             <div class="flex gap-2 items-center">
-              <button v-if="recording?.recordingState !== 'recording'"
+              <button v-if="!isServerVadMode && recording?.recordingState !== 'recording'"
                 class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
                 @click="startVoiceRecording" title="Start voice recording">
                 <Mic :size="20" />
                 <span class="hidden md:block">Speak</span>
               </button>
-              <button v-else class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
+              <button v-else-if="!isServerVadMode" class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
                 @click="stopVoiceRecording" title="Stop voice recording">
                 <Square :size="20" />
                 <span class="hidden md:block">Stop</span>
               </button>
 
+              <!-- VAD mode: streaming indicator with integrated VU meter -->
+              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap" title="Server VAD mode (Experimental)">
+                <Mic :size="16" />
+                <span class="hidden md:block">Listening</span>
+                <div class="flex items-end gap-px h-4">
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+                </div>
+              </div>
+
               <!-- Settings Button -->
               <button @click="showAudioSettingsModal = true"
                 class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]" title="Audio settings">
-                <Settings :size="20" />
+                <Settings2 :width="20" :height="20" />
               </button>
 
               <!-- Audio Enhancement Indicators -->
@@ -366,7 +390,7 @@
               </div>
 
               <!-- Audio Level Indicator -->
-              <div v-if="recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
+              <div v-if="!isServerVadMode && recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
                 <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                   <div class="h-full bg-blue-500 transition-all duration-100"
                     :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"></div>
@@ -377,9 +401,9 @@
           </div>
 
           <!-- Text Input -->
-          <div class="flex gap-2 flex-1 w-full items-end">
-            <div class="flex-1 w-full flex flex-col">
-              <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
+          <div class="flex flex-col gap-2 flex-1 w-full">
+            <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Message</label>
+            <div class="flex w-full gap-2 items-end">
               <textarea v-model="messageInput"
                @focus="isInputFocused = true"
                 @blur="handleInputBlur"
@@ -390,15 +414,15 @@
                 @keydown.enter.exact.prevent="sendMessage" 
                 style="min-height: 42px; max-height: 120px;" 
                 />
+
+              <!-- Send Button -->
+              <button class="btn-primary items-center justify-center transition-all duration-300 ease-in-out w-14 px-0 w-auto"
+                :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
+                @click="sendMessage">
+                <Send :size="20" />
+              </button>
             </div>
 
-            <!-- Send Button -->
-            <button class="btn-primary h-10 items-center justify-center transition-all duration-300 ease-in-out"
-              :class="[isInputFocused ? 'w-14 px-0' : 'w-14 px-0', 'md:w-auto md:px-3 md:mt-10']"
-              :disabled="!canSendMessage || !messageInput.trim() || recording?.recordingState === 'recording'"
-              @click="sendMessage">
-              <Send :size="20" />
-            </button>
             </div>
         </div>
 
@@ -450,6 +474,7 @@
     <IssueEditModal
       v-if="showBugReportModal"
       :issue="null"
+      :error="bugReportError"
       :prefill-data="bugReportPrefillData"
       @close="closeBugReportModal"
       @save="handleBugReportSave" />
@@ -459,13 +484,14 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore } from '@/stores'
+import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
+import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
+import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, Settings2, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
@@ -475,9 +501,11 @@ import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard, { type NormalizedEvent } from '@/components/ConversationEventCard.vue'
-import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest } from '@/api/types'
+import ConversationEventCard from '@/components/ConversationEventCard.vue'
+import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
+import { parseApiError } from '@/utils/errors'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
+import type { NormalizedEvent } from '../components/events/eventHelpers'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -540,6 +568,7 @@ interface PlaygroundPreferences {
   showConversationEvents: boolean
   conversationMode: ConversationMode
   timezone: string
+  connectionType?: 'websocket' | 'webrtc'
 }
 
 interface PlaygroundPreferencesStorage {
@@ -619,6 +648,7 @@ function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
     showConversationEvents: true,
     conversationMode: 'full-voice', // Default to full voice
     timezone: '',
+    connectionType: 'websocket',
   }
 }
 
@@ -643,15 +673,26 @@ const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
 const issuesStore = useIssuesStore()
+const stagesStore = useStagesStore()
+const classifiersStore = useClassifiersStore()
+const contextTransformersStore = useContextTransformersStore()
 
 // Project selection - use route params as source of truth
 const projectId = computed(() => route.params.projectId as string || '')
 const hasProject = computed(() => !!projectId.value)
 
+const entityNames = computed(() => ({
+  stages: Object.fromEntries(stagesStore.items.map(s => [s.id, s.name])),
+  classifiers: Object.fromEntries(classifiersStore.items.map(c => [c.id, c.name])),
+  transformers: Object.fromEntries(contextTransformersStore.items.map(t => [t.id, t.name])),
+}))
+
 // Sync route projectId with store on mount and route changes
 onMounted(() => {
   if (projectId.value) {
     projectSelectionStore.setSelectedProjectId(projectId.value)
+    // Re-fetch project to get latest voice settings (user may have changed them while away)
+    projectSelectionStore.refreshSelectedProject()
   }
 
   // Close preset menu when clicking outside
@@ -698,7 +739,10 @@ watch(projectId, async (newProjectId, oldProjectId) => {
   if (newProjectId) {
     await Promise.all([
       globalActionsStore.fetchAll(newProjectId),
-      apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } })
+      apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } }),
+      stagesStore.fetchAll(newProjectId, { limit: 1000 }),
+      classifiersStore.fetchAll(newProjectId, { limit: 1000 }),
+      contextTransformersStore.fetchAll(newProjectId, { limit: 1000 }),
     ])
 
     // Check if resuming from query params
@@ -716,6 +760,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       showConversationEvents.value = prefs.showConversationEvents
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
+      connectionType.value = prefs.connectionType ?? 'websocket'
 
       // Clear query params from URL
       router.replace({ 
@@ -734,6 +779,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       showConversationEvents.value = prefs.showConversationEvents
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
+      connectionType.value = prefs.connectionType ?? 'websocket'
 
       // Auto-select first active API key if saved preference doesn't match any key in this project
       const firstActiveKey = activeApiKeys.value[0]
@@ -776,6 +822,7 @@ const isResuming = ref(false)
 // Conversation mode and preferences
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
+const connectionType = ref<'websocket' | 'webrtc'>('websocket')
 const showPresetMenu = ref(false)
 const showSettingsMenu = ref(false)
 const showSystemEvents = ref(false)
@@ -784,15 +831,16 @@ const showConversationEvents = ref(true)
 // Note: Preferences loading is now handled in the main projectId watch above to avoid conflicts with resume flow
 
 // Save preferences when they change
-watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone], () => {
+watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone, connectionType], () => {
   if (projectId.value) {
     const prefs: PlaygroundPreferences = {
       lastApiKeyId: selectedApiKeyId.value,
-      lastStageId: null, // Will be implemented when stage is selected
+      lastStageId: null,
       showSystemEvents: showSystemEvents.value,
       showConversationEvents: showConversationEvents.value,
       conversationMode: selectedConversationMode.value,
       timezone: selectedTimezone.value,
+      connectionType: connectionType.value,
     }
     savePlaygroundPreferences(projectId.value, prefs)
   }
@@ -802,28 +850,6 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
 const currentSessionSettings = computed(() => {
   const preset = conversationPresets.find(p => p.id === selectedConversationMode.value)
   return preset?.sessionSettings
-})
-
-// Filter presets based on project voice capabilities
-const availablePresets = computed(() => {
-  const settings = wsClient.value?.projectSettings.value
-  if (!settings) {
-    // If not connected yet, show all presets
-    return conversationPresets.map(preset => ({ preset, disabled: false, reason: null }))
-  }
-
-  return conversationPresets.map(preset => {
-    const needsVoiceInput = preset.sessionSettings.sendVoiceInput
-    const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
-
-    if (needsVoiceInput && !settings.acceptVoice) {
-      return { preset, disabled: true, reason: 'Project does not support voice input' }
-    }
-    if (needsVoiceOutput && !settings.generateVoice) {
-      return { preset, disabled: true, reason: 'Project does not support voice output' }
-    }
-    return { preset, disabled: false, reason: null }
-  })
 })
 
 // Conversation event log
@@ -1078,6 +1104,7 @@ function openBugReport(event: ConversationEvent) {
     eventIndex: eventIndex >= 0 ? eventIndex : undefined,
     stageId: currentStage.value?.id || undefined
   }
+  bugReportError.value = null
   showBugReportModal.value = true
 }
 
@@ -1096,7 +1123,7 @@ async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest
       timestamp: new Date()
     })
   } catch (error) {
-    console.error('Failed to create issue:', error)
+    bugReportError.value = parseApiError(error)
     addEvent({
       type: 'Error',
       message: 'Failed to create bug report',
@@ -1110,7 +1137,7 @@ const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_
 /**
  * Handle conversation event from WebSocket
  */
-function handleConversationEvent(event: WSConversationEvent) {
+async function handleConversationEvent(event: WSConversationEvent) {
   // Handle terminal events - conversation ended server-side
   if (TERMINAL_CONVERSATION_EVENTS.has(event.eventType)) {
     // Add the event to history first
@@ -1126,21 +1153,37 @@ function handleConversationEvent(event: WSConversationEvent) {
       wsClient.value.isInConversation.value = false
     }
     recording.value?.stopRecording()
-    disconnectWebSocket()
+    // If endConversation() is already in flight, skip disconnecting here — the terminal
+    // event arrived before the end_conversation_response. Let endConversation() handle
+    // cleanup so it doesn't get an unexpected "WebSocket connection closed" rejection.
+    if (!isConversationEnding.value) {
+      await disconnectWebSocket()
+    }
     return
   }
 
   // Handle message events - update existing events with final metadata
   if (isMessageEvent(event)) {
-    // Find existing User or AI event by matching the text
-    const existingEvent = conversationEvents.value.find(e => 
-      (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
-      (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
-    )
+    // For AI messages, first try to match by outputTurnId (handles filler response case where
+    // the final event text differs from what was accumulated via transcript chunks)
+    let existingEvent: ConversationEvent | undefined
+    if (event.eventData.role === 'assistant' && event.outputTurnId) {
+      existingEvent = conversationEvents.value.find(e =>
+        e.type === 'AI' && e.outputTurnId === event.outputTurnId
+      )
+    }
+    // Fall back to text matching (for user messages or when no outputTurnId match)
+    if (!existingEvent) {
+      existingEvent = conversationEvents.value.find(e =>
+        (e.type === 'User' && event.eventData.role === 'user' && e.message.trim() === event.eventData.text.trim()) ||
+        (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
+      )
+    }
 
     if (existingEvent) {
       // Update existing event with message event data (includes metadata with systemPrompt)
       existingEvent.wsEvent = event
+      existingEvent.message = event.eventData.text
       existingEvent.isRealTime = false
     } else {
       // No existing event found - create new one (shouldn't normally happen but safe fallback)
@@ -1192,7 +1235,7 @@ function handleConversationEventUpdate(event: WSConversationEventUpdate) {
 }
 
 // WebSocket client setup
-const wsClient = shallowRef<ReturnType<typeof useWebSocketClient> | null>(null)
+const wsClient = shallowRef<ReturnType<typeof useWebSocketClient> | ReturnType<typeof useWebRtcClient> | null>(null)
 const isWsConnecting = ref(false)
 const isWsDisconnecting = ref(false)
 const isConversationStarting = ref(false)
@@ -1206,10 +1249,78 @@ const wsIsConnected = computed(() => wsClient.value?.isConnected.value || false)
 const wsSessionId = computed(() => wsClient.value?.sessionId.value || null)
 const isConversationActive = computed(() => wsClient.value?.isInConversation.value || false)
 
+// Voice capability flags — derived from project data (available immediately) with WS settings as override
+const projectAcceptsVoice = computed(() => {
+  const wsSettings = wsClient.value?.projectSettings.value
+  if (wsSettings) return wsSettings.acceptVoice
+  return projectSelectionStore.selectedProject?.acceptVoice ?? false
+})
+
+const projectGeneratesVoice = computed(() => {
+  const wsSettings = wsClient.value?.projectSettings.value
+  if (wsSettings) return wsSettings.generateVoice
+  return projectSelectionStore.selectedProject?.generateVoice ?? false
+})
+
+// Filter presets based on project voice capabilities
+const availablePresets = computed(() => {
+  // If no project is loaded yet, show all
+  if (!projectSelectionStore.selectedProject) {
+    return conversationPresets.map(preset => ({ preset, disabled: false, reason: null }))
+  }
+
+  return conversationPresets.map(preset => {
+    const needsVoiceInput = preset.sessionSettings.sendVoiceInput
+    const needsVoiceOutput = preset.sessionSettings.receiveVoiceOutput
+
+    if (needsVoiceInput && !projectAcceptsVoice.value) {
+      return { preset, disabled: true, reason: 'Project does not support voice input' }
+    }
+    if (needsVoiceOutput && !projectGeneratesVoice.value) {
+      return { preset, disabled: true, reason: 'Project does not support voice output' }
+    }
+    return { preset, disabled: false, reason: null }
+  })
+})
+
+// Auto-switch conversation mode when the selected mode becomes unavailable
+watch(availablePresets, (presets) => {
+  const currentPreset = presets.find(p => p.preset.id === selectedConversationMode.value)
+  if (currentPreset?.disabled) {
+    const lastAvailable = [...presets].reverse().find(p => !p.disabled)
+    if (lastAvailable) {
+      selectedConversationMode.value = lastAvailable.preset.id
+    }
+  }
+}, { immediate: true })
+
 // Sync conversation active state with the store so MainLayout can block project changes
 watch(isConversationActive, (active) => {
   playgroundStore.setConversationActive(active)
 })
+
+// Auto-start/stop audio streaming in VAD mode when conversation starts/ends
+// We watch the combination of active+notStarting so we trigger after isConversationStarting resets
+watch(
+  () => isConversationActive.value && !isConversationStarting.value,
+  async (readyAndActive, wasReadyAndActive) => {
+    if (!isServerVadMode.value) return
+    if (!projectAcceptsVoice.value) return
+    if (!currentSessionSettings.value?.sendVoiceInput) return
+    if (readyAndActive && !wasReadyAndActive) {
+      // Conversation just became fully active — start streaming
+      await nextTick()
+      if (recording.value && recording.value.recordingState === 'idle') {
+        await startVoiceRecording()
+      }
+    } else if (!isConversationActive.value) {
+      // Conversation ended — stop streaming
+      if (recording.value?.recordingState === 'recording') {
+        recording.value.stopRecording()
+      }
+    }
+  }
+)
 
 const canConnectWebSocket = computed(() => {
   return !!selectedApiKey.value?.key && !wsIsConnected.value && !isWsConnecting.value && !isWsDisconnecting.value
@@ -1245,6 +1356,7 @@ const canSendMessage = computed(() => {
 
 const canRecordVoice = computed(() => {
   return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
+    && (currentSessionSettings.value?.sendVoiceInput ?? false)
 })
 
 // Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
@@ -1259,6 +1371,7 @@ function parseSampleRate(audioFormat?: string): number {
 
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
 
 // Initialize/update recording when project settings change
 watch(() => wsClient.value?.projectSettings.value, (settings) => {
@@ -1284,21 +1397,45 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     echoCancellation: audioSettings.value.echoCancellation,
     noiseSuppression: audioSettings.value.noiseSuppression,
     autoGainControl: audioSettings.value.autoGainControl,
-    onChunk: async (base64Audio: string) => {
-      if (!wsClient.value) return
-
-      try {
-        // Stream audio chunk to backend
-        await wsClient.value.sendVoiceChunk(base64Audio)
-      } catch (error) {
-        console.error('Failed to send voice chunk:', error)
-        addEvent({
-          type: 'Error',
-          message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-          timestamp: new Date()
-        })
-      }
-    },
+    ...(connectionType.value === 'webrtc'
+      ? {
+          onRawChunk: (buffer: ArrayBuffer) => {
+            const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
+            if (!client) return
+            try {
+              client.sendVoiceChunkRaw(buffer)
+            } catch (error) {
+              console.error('Failed to send voice chunk:', error)
+              addEvent({
+                type: 'Error',
+                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                timestamp: new Date()
+              })
+            }
+          },
+        }
+      : {
+          onChunk: async (base64Audio: string) => {
+            const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+            if (!client) return
+            if (isConversationEnding.value || !isConversationActive.value) return
+            try {
+              if (isServerVadMode.value) {
+                await client.sendVadVoiceChunk(base64Audio)
+              } else {
+                await client.sendVoiceChunk(base64Audio)
+              }
+            } catch (error) {
+              if (isConversationEnding.value || !isConversationActive.value) return
+              console.error('Failed to send voice chunk:', error)
+              addEvent({
+                type: 'Error',
+                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                timestamp: new Date()
+              })
+            }
+          },
+        }),
     onError: (error: Error) => {
       addEvent({
         type: 'Error',
@@ -1315,22 +1452,27 @@ async function startVoiceRecording() {
   stopAllAudioPlayback()
 
   try {
-    // Start voice input phase on backend and get inputTurnId
-    const inputTurnId = await wsClient.value.startVoiceInput()
+    if (isServerVadMode.value) {
+      // Server VAD mode: skip start_user_voice_input — server manages turn boundaries
+      ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
+    } else {
+      // Standard mode: start voice input phase on backend and get inputTurnId
+      const inputTurnId = await wsClient.value.startVoiceInput()
 
-    // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
-    const event: ConversationEvent = {
-      type: 'User',
-      message: '',
-      timestamp: new Date(),
-      inputTurnId: inputTurnId,
-      isRealTime: true,
-      transcriptChunks: []
+      // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
+      const event: ConversationEvent = {
+        type: 'User',
+        message: '',
+        timestamp: new Date(),
+        inputTurnId: inputTurnId,
+        isRealTime: true,
+        transcriptChunks: []
+      }
+      conversationEvents.value.push(event)
+
+      // Auto-scroll to show the new event
+      nextTick(() => scrollHistoryToBottom())
     }
-    conversationEvents.value.push(event)
-
-    // Auto-scroll to show the new event
-    nextTick(() => scrollHistoryToBottom())
 
     // Start recording from microphone
     await recording.value.startRecording()
@@ -1350,14 +1492,16 @@ async function stopVoiceRecording() {
     // Stop recording (will process remaining chunks)
     recording.value.stopRecording()
 
-    // Mark the last event not real-time anymore (in case onChunk is still processing)
-    const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
-    if (lastEvent) {
-      lastEvent.isRealTime = false
-    }
+    if (!isServerVadMode.value) {
+      // Mark the last event not real-time anymore (in case onChunk is still processing)
+      const lastEvent = conversationEvents.value[conversationEvents.value.length - 1]
+      if (lastEvent) {
+        lastEvent.isRealTime = false
+      }
 
-    // End voice input phase on backend
-    await wsClient.value.endVoiceInput()
+      // End voice input phase on backend
+      await wsClient.value.endVoiceInput()
+    }
   } catch (error) {
     addEvent({
       type: 'Error',
@@ -1391,19 +1535,45 @@ function handleAudioSettingsSave(settings: AudioSettings) {
       echoCancellation: settings.echoCancellation,
       noiseSuppression: settings.noiseSuppression,
       autoGainControl: settings.autoGainControl,
-      onChunk: async (base64Audio: string) => {
-        if (!wsClient.value) return
-        try {
-          await wsClient.value.sendVoiceChunk(base64Audio)
-        } catch (error) {
-          console.error('Failed to send voice chunk:', error)
-          addEvent({
-            type: 'Error',
-            message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-            timestamp: new Date()
-          })
-        }
-      },
+      ...(connectionType.value === 'webrtc'
+        ? {
+            onRawChunk: (buffer: ArrayBuffer) => {
+              const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
+              if (!client) return
+              try {
+                client.sendVoiceChunkRaw(buffer)
+              } catch (error) {
+                console.error('Failed to send voice chunk:', error)
+                addEvent({
+                  type: 'Error',
+                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                  timestamp: new Date()
+                })
+              }
+            },
+          }
+        : {
+            onChunk: async (base64Audio: string) => {
+              const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+              if (!client) return
+              if (isConversationEnding.value || !isConversationActive.value) return
+              try {
+                if (isServerVadMode.value) {
+                  await client.sendVadVoiceChunk(base64Audio)
+                } else {
+                  await client.sendVoiceChunk(base64Audio)
+                }
+              } catch (error) {
+                if (isConversationEnding.value || !isConversationActive.value) return
+                console.error('Failed to send voice chunk:', error)
+                addEvent({
+                  type: 'Error',
+                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+                  timestamp: new Date()
+                })
+              }
+            },
+          }),
       onError: (error: Error) => {
         addEvent({
           type: 'Error',
@@ -1416,6 +1586,10 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 }
 
 async function connectWebSocket() {
+  if (connectionType.value === 'webrtc') {
+    return connectWebRTC()
+  }
+
   if (!canConnectWebSocket.value) return
 
   const apiKey = selectedApiKey.value?.key
@@ -1558,6 +1732,133 @@ async function connectWebSocket() {
   }
 }
 
+async function connectWebRTC() {
+  if (!canConnectWebSocket.value) return
+
+  const apiKey = selectedApiKey.value?.key
+  if (!apiKey) return
+
+  try {
+    isWsConnecting.value = true
+
+    addEvent({
+      type: 'System',
+      message: 'Connecting via WebRTC...',
+      timestamp: new Date()
+    })
+
+    const client = useWebRtcClient(apiKey, {
+      sessionSettings: currentSessionSettings.value,
+      onConnect: () => {
+        addEvent({
+          type: 'System',
+          message: 'Connected via WebRTC',
+          timestamp: new Date()
+        })
+      },
+      onDisconnect: () => {
+        addEvent({
+          type: 'System',
+          message: 'Disconnected from WebRTC',
+          timestamp: new Date()
+        })
+      },
+      onError: (error) => {
+        addEvent({
+          type: 'Error',
+          message: error.error,
+          timestamp: new Date()
+        })
+      },
+      onUserTranscribedChunk: (msg: UserTranscribedChunk) => {
+        updateUserTranscript(msg)
+      },
+      onAiOutputStart: (msg: StartAiGenerationOutput) => {
+        let event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
+
+        if (!event) {
+          event = {
+            type: 'AI',
+            message: '',
+            timestamp: new Date(),
+            outputTurnId: msg.outputTurnId
+          }
+          conversationEvents.value.push(event)
+        }
+
+        if (msg.expectVoice) {
+          event.voiceOutputId = msg.outputTurnId
+          const player = useAudioPlayback()
+          activeVoiceOutputs.value.set(msg.outputTurnId, {
+            player: player as any,
+            transcript: null
+          })
+        }
+
+        nextTick(() => scrollHistoryToBottom())
+      },
+      onAiAudioFrame: (turnId: string, audioData: ArrayBuffer) => {
+        const voiceOutput = activeVoiceOutputs.value.get(turnId)
+        if (!voiceOutput) {
+          console.warn('Received WebRTC audio frame for unknown output turn:', turnId)
+          return
+        }
+        // Use the project's ASR sample rate as a proxy; defaults to 16000 for PCM
+        const sampleRate = parseSampleRate(client.projectSettings.value?.asrConfig?.settings?.audioFormat)
+        voiceOutput.player.addRawChunk(audioData, sampleRate)
+      },
+      onAiOutputEnd: (msg: EndAiGenerationOutput) => {
+        const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)
+        if (voiceOutput) {
+          voiceOutput.transcript = msg.fullText?.trim() || null
+        }
+
+        const event = conversationEvents.value.find(e => e.outputTurnId === msg.outputTurnId && e.type === 'AI')
+        if (event && msg.fullText) {
+          event.message = msg.fullText.trim()
+          event.isRealTime = false
+          nextTick(() => scrollHistoryToBottom())
+        }
+      },
+      onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
+        updateAiTranscript(msg)
+      },
+      onConversationEvent: (event: WSConversationEvent) => {
+        handleConversationEvent(event)
+      },
+      onConversationEventUpdate: (event: WSConversationEventUpdate) => {
+        handleConversationEventUpdate(event)
+      }
+    })
+
+    wsClient.value = client
+    await client.connect()
+
+    if (wsSessionId.value) {
+      addEvent({
+        type: 'System',
+        message: 'WebRTC session established',
+        timestamp: new Date(),
+        details: `Session ID: ${wsSessionId.value}`
+      })
+    }
+
+    if (resumeConversationId.value && !isResuming.value) {
+      await resumeConversation(resumeConversationId.value)
+    }
+  } catch (error) {
+    addEvent({
+      type: 'Error',
+      message: `Failed to connect via WebRTC: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    })
+    wsClient.value?.disconnect()
+    wsClient.value = null
+  } finally {
+    isWsConnecting.value = false
+  }
+}
+
 async function disconnectWebSocket() {
   if (!wsClient.value) return
   if (isWsDisconnecting.value) return
@@ -1603,6 +1904,7 @@ const showVariablesPreviewModal = ref(false)
 const selectedVariables = ref<Record<string, any>>({})
 const showBugReportModal = ref(false)
 const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
+const bugReportError = ref<ParsedError | null>(null)
 const currentConversationId = ref<string | null>(null)
 
 // Audio settings
@@ -1990,6 +2292,9 @@ async function endConversation() {
 
   try {
     isConversationEnding.value = true
+    if (recording.value?.recordingState === 'recording') {
+      recording.value.stopRecording()
+    }
     addEvent({
       type: 'System',
       message: 'Ending conversation...',
@@ -2008,6 +2313,21 @@ async function endConversation() {
     // Auto-disconnect WebSocket
     await disconnectWebSocket()
   } catch (error) {
+    // If the WS connection closed during our end request it means the server-side
+    // conversation_end event arrived first and triggered cleanup — the conversation
+    // did actually end, so treat this as a success rather than an error.
+    if (!wsIsConnected.value) {
+      currentStage.value = null
+      addEvent({
+        type: 'System',
+        message: 'Conversation ended successfully',
+        timestamp: new Date()
+      })
+      if (wsClient.value) {
+        await disconnectWebSocket()
+      }
+      return
+    }
     addEvent({
       type: 'Error',
       message: `Failed to end conversation: ${error instanceof Error ? error.message : String(error)}`,

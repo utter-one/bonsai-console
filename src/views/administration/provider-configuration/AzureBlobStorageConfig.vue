@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ProviderConfig } from './providerPresets'
+import type { ParsedError } from '@/api/types'
+import FormField from '@/components/FormField.vue'
 
+defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
 </script>
 
@@ -8,10 +11,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Azure Blob Storage Configuration</h3>
 
-    <div class="form-group">
-      <label class="form-label">
-        Storage Account Name <span class="required">*</span>
-      </label>
+    <FormField label="Storage Account Name" required :error="error" path="accountName" class="w-full" help="Your Azure Storage account name">
       <input
         v-model="config.accountName"
         type="text"
@@ -19,13 +19,9 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="mystorageaccount"
         class="form-input-mono"
       />
-      <p class="form-help-text">Your Azure Storage account name</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Storage Account Key <span class="required">*</span>
-      </label>
+    <FormField label="Storage Account Key" required :error="error" path="accountKey" class="w-full" help="Your Azure Storage account key">
       <input
         v-model="config.accountKey"
         type="password"
@@ -33,20 +29,15 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         placeholder="..."
         class="form-input-mono"
       />
-      <p class="form-help-text">Your Azure Storage account key</p>
-    </div>
+    </FormField>
 
-    <div class="form-group">
-      <label class="form-label">
-        Custom Endpoint <span class="text-gray-500">(optional)</span>
-      </label>
+    <FormField label="Custom Endpoint" class="w-full" help="Optional custom endpoint for Azure Blob Storage">
       <input
         v-model="config.endpoint"
         type="url"
         placeholder="https://mystorageaccount.blob.core.windows.net"
         class="form-input-mono"
       />
-      <p class="form-help-text">Optional custom endpoint for Azure Blob Storage</p>
-    </div>
+    </FormField>
   </div>
 </template>

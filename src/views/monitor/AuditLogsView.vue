@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, formatEnum, formatDate } from '@/composables'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -19,7 +20,6 @@ const dateTimeRange = ref<DateTimeRange>(null)
 
 // Action filter state
 const actionFilter = ref<'all' | 'CREATE' | 'UPDATE' | 'DELETE'>('all')
-const showActionDropdown = ref(false)
 
 const actionFilterOptions = [
   { value: 'all', label: 'All Actions' },
@@ -28,17 +28,31 @@ const actionFilterOptions = [
   { value: 'DELETE', label: 'Delete' },
 ] as const
 
-// Project scope filter state
-const projectScopeFilter = ref<'selected' | 'all'>('selected')
-const showProjectScopeDropdown = ref(false)
+// Entity type filter state
+const entityTypeFilter = ref<string>('all')
 
-const projectScopeFilterOptions = [
-  { value: 'selected', label: 'Selected Project' },
-  { value: 'all', label: 'All Projects' },
+const entityTypeFilterOptions = [
+  { value: 'all', label: 'All Entity Types' },
+  { value: 'agent', label: 'Agent' },
+  { value: 'api_key', label: 'API Key' },
+  { value: 'classifier', label: 'Classifier' },
+  { value: 'context_transformer', label: 'Context Transformer' },
+  { value: 'copy_decorator', label: 'Copy Decorator' },
+  { value: 'environment', label: 'Environment' },
+  { value: 'global_action', label: 'Global Action' },
+  { value: 'guardrail', label: 'Guardrail' },
+  { value: 'knowledge_category', label: 'Knowledge Category' },
+  { value: 'knowledge_item', label: 'Knowledge Item' },
+  { value: 'operator', label: 'Operator' },
+  { value: 'project', label: 'Project' },
+  { value: 'provider', label: 'Provider' },
+  { value: 'sample_copy', label: 'Sample Copy' },
+  { value: 'stage', label: 'Stage' },
+  { value: 'tool', label: 'Tool' },
 ] as const
 
-const currentProjectScopeLabel = computed(() => {
-  return projectScopeFilterOptions.find(opt => opt.value === projectScopeFilter.value)?.label || 'Selected Project'
+const currentEntityTypeFilterLabel = computed(() => {
+  return entityTypeFilterOptions.find(opt => opt.value === entityTypeFilter.value)?.label || 'All Entity Types'
 })
 
 // Mobile Filter State
@@ -60,7 +74,7 @@ const currentActionFilterLabel = computed(() => {
 })
 
 const hasActiveFilters = computed(() => {
-  return dateTimeRange.value !== null || actionFilter.value !== 'all' || projectScopeFilter.value !== 'selected'
+  return dateTimeRange.value !== null || actionFilter.value !== 'all' || entityTypeFilter.value !== 'all'
 })
 
 const filteredLogs = computed(() => auditLogsStore.logs)
@@ -82,8 +96,8 @@ watch(actionFilter, () => {
   loadAuditLogs()
 })
 
-// Watch for project scope changes
-watch(projectScopeFilter, () => {
+// Watch for entity type filter changes
+watch(entityTypeFilter, () => {
   pagination.reset()
   loadAuditLogs()
 })
@@ -98,30 +112,9 @@ watch(() => projectSelectionStore.selectedProjectId, () => {
 // Lifecycle
 onMounted(async () => {
   await loadAuditLogs()
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
 })
 
 // Methods
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  const actionDropdown = document.querySelector('.action-filter-dropdown')
-  const actionButton = document.querySelector('.action-filter-button')
-  const projectScopeDropdown = document.querySelector('.project-scope-filter-dropdown')
-  const projectScopeButton = document.querySelector('.project-scope-filter-button')
-
-  if (actionDropdown && !actionDropdown.contains(target) && !actionButton?.contains(target)) {
-    showActionDropdown.value = false
-  }
-
-  if (projectScopeDropdown && !projectScopeDropdown.contains(target) && !projectScopeButton?.contains(target)) {
-    showProjectScopeDropdown.value = false
-  }
-}
-
 async function loadAuditLogs() {
   try {
     const filters: any = {}
@@ -137,8 +130,14 @@ async function loadAuditLogs() {
       }
     }
 
-    // Add project filter if a project is selected and scope is not "all"
-    if (projectSelectionStore.selectedProjectId && projectScopeFilter.value === 'selected') {
+    if (entityTypeFilter.value !== 'all') {
+      filters.entityType = {
+        op: 'eq',
+        value: entityTypeFilter.value
+      }
+    }
+
+    if (projectSelectionStore.selectedProjectId) {
       filters.projectId = {
         op: 'eq',
         value: projectSelectionStore.selectedProjectId
@@ -158,9 +157,20 @@ function viewLog(log: AuditLogResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
+
+function getEntityName(log: AuditLogResponse): string {
+  const name = (log.newEntity as any)?.name ?? (log.oldEntity as any)?.name
+  return name ?? `[${log.entityId}]`
+}
+
+function getEntityVersion(log: AuditLogResponse): string {
+  const oldV = (log.oldEntity as any)?.version
+  const newV = (log.newEntity as any)?.version
+  if (log.action === 'UPDATE' && oldV != null && newV != null) {
+    return oldV !== newV ? `v${oldV} → v${newV}` : `v${newV}`
+  }
+  const v = newV ?? oldV
+  return v != null ? `v${v}` : '—'
 }
 
 function getActionBadgeClass(action: string): string {
@@ -172,12 +182,10 @@ function getActionBadgeClass(action: string): string {
 
 function selectActionFilter(value: typeof actionFilter.value) {
   actionFilter.value = value
-  showActionDropdown.value = false
 }
 
-function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
-  projectScopeFilter.value = value
-  showProjectScopeDropdown.value = false
+function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
+  entityTypeFilter.value = value
 }
 </script>
 
@@ -200,48 +208,40 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
           <DateTimeRangePicker v-model="dateTimeRange" placeholder="All time" />
 
           <!-- Action Filter -->
-          <div class="relative">
-            <button
-              @click="showActionDropdown = !showActionDropdown"
-              class="action-filter-button filter-btn !shadow-none">
+          <FloatingDropdown align="left" trigger-class="filter-btn !shadow-none">
+            <template #trigger>
               <span>{{ currentActionFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
-            </button>
-
-            <!-- Action Dropdown -->
-            <div v-if="showActionDropdown" class="action-filter-dropdown filter-dropdown-panel min-w-[180px]">
+            </template>
+            <template #default="{ close }">
               <button
                 v-for="option in actionFilterOptions"
                 :key="option.value"
-                @click="selectActionFilter(option.value)"
+                @click="selectActionFilter(option.value); close()"
                 class="filter-dropdown-item"
                 :class="{ 'filter-dropdown-item-active': actionFilter === option.value }">
                 {{ option.label }}
               </button>
-            </div>
-          </div>
+            </template>
+          </FloatingDropdown>
 
-          <!-- Project Scope Filter (only when a project is selected) -->
-          <div v-if="projectSelectionStore.selectedProjectId" class="relative">
-            <button
-              @click="showProjectScopeDropdown = !showProjectScopeDropdown"
-              class="project-scope-filter-button filter-btn !shadow-none">
-              <span>{{ currentProjectScopeLabel }}</span>
+          <!-- Entity Type Filter -->
+          <FloatingDropdown align="left" trigger-class="filter-btn !shadow-none">
+            <template #trigger>
+              <span>{{ currentEntityTypeFilterLabel }}</span>
               <ChevronDown class="w-4 h-4 ml-2" />
-            </button>
-
-            <!-- Project Scope Dropdown -->
-            <div v-if="showProjectScopeDropdown" class="project-scope-filter-dropdown filter-dropdown-panel min-w-[200px]">
+            </template>
+            <template #default="{ close }">
               <button
-                v-for="option in projectScopeFilterOptions"
+                v-for="option in entityTypeFilterOptions"
                 :key="option.value"
-                @click="selectProjectScopeFilter(option.value)"
+                @click="selectEntityTypeFilter(option.value); close()"
                 class="filter-dropdown-item"
-                :class="{ 'filter-dropdown-item-active': projectScopeFilter === option.value }">
+                :class="{ 'filter-dropdown-item-active': entityTypeFilter === option.value }">
                 {{ option.label }}
               </button>
-            </div>
-          </div>
+            </template>
+          </FloatingDropdown>
         </div>
 
         <!-- Search Bar (Always Visible) -->
@@ -321,19 +321,19 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
                 </div>
               </div>
 
-              <!-- Project Scope Filter (only when a project is selected) -->
-              <div v-if="projectSelectionStore.selectedProjectId" class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Project Scope</label>
+              <!-- Entity Type Filter -->
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entity Type</label>
                 <div class="flex flex-col gap-1">
                   <button 
-                    v-for="option in projectScopeFilterOptions" 
+                    v-for="option in entityTypeFilterOptions" 
                     :key="option.value" 
-                    @click="projectScopeFilter = option.value"
+                    @click="entityTypeFilter = option.value"
                     class="flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left"
-                    :class="projectScopeFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
+                    :class="entityTypeFilter === option.value ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-400' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
                   >
                     {{ option.label }}
-                    <span v-if="projectScopeFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
+                    <span v-if="entityTypeFilter === option.value" class="w-2 h-2 rounded-full bg-primary-500"></span>
                   </button>
                 </div>
               </div>
@@ -341,7 +341,7 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
 
             <div class="mt-auto pt-6 flex gap-3">
               <button 
-                @click="() => { actionFilter = 'all'; projectScopeFilter = 'selected' }"
+                @click="() => { actionFilter = 'all'; entityTypeFilter = 'all' }"
                 class="btn-secondary flex-1 justify-center"
               >
                 Reset
@@ -385,7 +385,8 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
                 <th class="table-header-cell">Created At</th>
                 <th class="table-header-cell">Action</th>
                 <th class="table-header-cell">Entity Type</th>
-                <th class="table-header-cell">Entity ID</th>
+                <th class="table-header-cell">Entity</th>
+                <th class="table-header-cell">Version</th>
                 <th class="table-header-cell">User ID</th>
               </tr>
             </thead>
@@ -398,8 +399,9 @@ function selectProjectScopeFilter(value: typeof projectScopeFilter.value) {
                     {{ log.action }}
                   </span>
                 </td>
-                <td class="table-cell">{{ log.entityType }}</td>
-                <td class="table-cell font-mono text-sm">{{ log.entityId }}</td>
+                <td class="table-cell text-gray-500 dark:text-gray-400">{{ formatEnum(log.entityType) }}</td>
+                <td class="table-cell font-semibold text-gray-900 dark:text-white">{{ getEntityName(log) }}</td>
+                <td class="table-cell text-sm text-gray-500 dark:text-gray-400">{{ getEntityVersion(log) }}</td>
                 <td class="table-cell font-mono text-sm">{{ log.userId }}</td>
               </tr>
             </tbody>

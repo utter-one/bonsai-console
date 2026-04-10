@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
@@ -101,10 +101,6 @@ function openPlayground(projectId: string) {
   router.push({ name: 'playground', params: { projectId } })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 // Import/Export
 const importFileInput = ref<HTMLInputElement | null>(null)
