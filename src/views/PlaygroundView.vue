@@ -37,130 +37,33 @@
           <p class="page-subtitle">Test and debug conversation flows in real-time</p>
         </div>
 
-        <!-- Controls -->
-        <div class="flex flex-row items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
-          <!-- Settings Dropdown (API Key + Timezone) -->
-          <div class="relative inline-flex">
-            <button class="btn-secondary flex items-center gap-2"
-              @click="showSettingsMenu = !showSettingsMenu"
-              :disabled="wsIsConnected || apiKeysLoading"
-              title="Connection settings">
-              <Settings :size="18" />
-              <ChevronDown :size="14" class="text-gray-500" />
-            </button>
-
-            <div v-if="showSettingsMenu"
-              class="absolute top-full mt-1 right-0 z-20 bg-white border border-gray-200 rounded-lg shadow-lg w-64 p-3 space-y-3 dark:bg-gray-800 dark:border-gray-700"
-              @click.stop>
-              <!-- API Key -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                  <Key :size="12" />API Key
-                </div>
-                <select v-model="selectedApiKeyId" class="form-select w-full text-sm" :disabled="wsIsConnected || apiKeysLoading">
-                  <option :value="null">Select API Key...</option>
-                  <option v-for="key in activeApiKeys" :key="key.id" :value="key.id">{{ key.name }}</option>
-                </select>
-              </div>
-              <!-- Timezone -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                  Timezone
-                </div>
-                <TimezoneSelector
-                  v-model="selectedTimezone"
-                  placeholder="Project Default"
-                  :show-icon="true"
-                  :disabled="wsIsConnected"
-                  :width="'full'"
-                />
-              </div>
-              <!-- Channel -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                  Channel
-                </div>
-                <select v-model="connectionType" class="form-select w-full text-sm" :disabled="wsIsConnected">
-                  <option value="websocket">WebSocket</option>
-                  <option value="webrtc">WebRTC (lower audio latency)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
-
-          <!-- Conversation Controls -->
-          <div v-if="!isConversationActive" class="relative inline-flex">
-            <!-- Main Action Button -->
-            <button class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
-              @click="startConversation" :disabled="!canStartConversation">
-              <Play :size="18" />
-              <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}</span>
-            </button>
-
-            <!-- Dropdown Toggle -->
-            <button @click="showPresetMenu = !showPresetMenu" class="btn-primary-hardleft border-primary-600"
-              :disabled="!canStartConversation"
-              :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`">
-              <ChevronDown :size="18" />
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div v-if="showPresetMenu"
-              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1 dark:bg-gray-800 dark:border-gray-700"
-              @click.stop>
-              <button v-for="{ preset, disabled, reason } in availablePresets" :key="preset.id"
-                @click="handlePresetSelect(preset.id)" :disabled="disabled"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed relative"
-                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1">
-                    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      {{ preset.name }}
-                      <span v-if="preset.id === selectedConversationMode"
-                        class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
-                    <div v-if="disabled && reason" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ reason }}</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-          <button v-else class="btn-danger flex items-center gap-2 whitespace-nowrap" @click="endConversation"
-            :disabled="!canEndConversation">
-            <Square :size="18" />
-            <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End Conversation' }}</span>
-          </button>
-
-          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
-
-          <!-- Advanced Controls -->
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
-            @click="showRunActionDialog = true">
-            <Zap :size="18" />
-            <span class="hidden md:inline">Run Action</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
-            @click="showJumpToStageDialog = true">
-            <SkipForward :size="18" />
-            <span class="hidden md:inline">Jump to Stage</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
-            @click="showCallToolDialog = true">
-            <Wrench :size="18" />
-            <span class="hidden md:inline">Call Tool</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canSetVariable"
-            @click="showSetVariableDialog = true">
-            <Braces :size="18" />
-            <span class="hidden md:inline">Set Variable</span>
-          </button>
-        </div>
+        <PlaygroundConnectionPanel
+          :is-connected="wsIsConnected"
+          :is-conversation-active="isConversationActive"
+          :is-conversation-starting="isConversationStarting"
+          :is-conversation-ending="isConversationEnding"
+          :can-start-conversation="canStartConversation"
+          :can-end-conversation="canEndConversation"
+          :can-run-action="canRunAction"
+          :can-jump-to-stage="canJumpToStage"
+          :can-call-tool="canCallTool"
+          :can-set-variable="canSetVariable"
+          :api-keys="activeApiKeys"
+          :api-keys-loading="apiKeysLoading"
+          v-model:selected-api-key-id="selectedApiKeyId"
+          v-model:selected-timezone="selectedTimezone"
+          v-model:connection-type="connectionType"
+          :selected-conversation-mode="selectedConversationMode"
+          :available-presets="availablePresets"
+          :conversation-presets="conversationPresets"
+          @start-conversation="startConversation"
+          @end-conversation="endConversation"
+          @preset-select="handlePresetSelect"
+          @run-action="showRunActionDialog = true"
+          @jump-to-stage="showJumpToStageDialog = true"
+          @call-tool="showCallToolDialog = true"
+          @set-variable="showSetVariableDialog = true"
+        />
       </div>
     </div>
 
@@ -182,64 +85,17 @@
         class="fixed md:relative bottom-0 left-0 right-0 flex-shrink-0 bg-white md:rounded-lg md:border border-t border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700 ">
         <div class="flex flex-row items-end md:items-start gap-0 md:gap-3">
           <!-- Voice Recording -->
-          <div class="flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden"
-            :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']">
-            <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
-            <div class="flex gap-2 items-center">
-              <button v-if="!isServerVadMode && recording?.recordingState !== 'recording'"
-                class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
-                @click="startVoiceRecording" title="Start voice recording">
-                <Mic :size="20" />
-                <span class="hidden md:block">Speak</span>
-              </button>
-              <button v-else-if="!isServerVadMode" class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
-                @click="stopVoiceRecording" title="Stop voice recording">
-                <Square :size="20" />
-                <span class="hidden md:block">Stop</span>
-              </button>
-
-              <!-- VAD mode: streaming indicator with integrated VU meter -->
-              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap" title="Server VAD mode (Experimental)">
-                <Mic :size="16" />
-                <span class="hidden md:block">Listening</span>
-                <div class="flex items-end gap-px h-4">
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-                </div>
-              </div>
-
-              <!-- Settings Button -->
-              <button @click="showAudioSettingsModal = true"
-                class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]" title="Audio settings">
-                <Settings2 :width="20" :height="20" />
-              </button>
-
-              <!-- Audio Enhancement Indicators -->
-              <div class="flex flex-col gap-0.5 justify-center">
-                <Waves :size="12" :class="audioSettings.echoCancellation ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'" >
-                  <title>{{ `Echo Cancellation: ${audioSettings.echoCancellation ? 'Enabled' : 'Disabled'}` }}</title>
-                </Waves>
-                <Filter :size="12" :class="audioSettings.noiseSuppression ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-                  <title>{{ `Noise Suppression: ${audioSettings.noiseSuppression ? 'Enabled' : 'Disabled'}` }}</title>
-                </Filter>
-                <Gauge :size="12" :class="audioSettings.autoGainControl ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-                  <title>{{ `Auto Gain Control: ${audioSettings.autoGainControl ? 'Enabled' : 'Disabled'}` }}</title>
-                </Gauge>
-              </div>
-
-              <!-- Audio Level Indicator -->
-              <div v-if="!isServerVadMode && recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
-                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                  <div class="h-full bg-blue-500 transition-all duration-100"
-                    :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"></div>
-                </div>
-              </div>
-            </div>
-            <p v-if="recording?.errorMessage" class="text-xs text-red-600 whitespace-nowrap overflow-hidden text-ellipsis">{{ recording.errorMessage }}</p>
-          </div>
+          <PlaygroundAudioPanel
+            :is-server-vad-mode="isServerVadMode"
+            :can-record-voice="canRecordVoice"
+            :recording="recording"
+            :audio-settings="audioSettings"
+            :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+            :is-input-focused="isInputFocused"
+            @start-recording="startVoiceRecording"
+            @stop-recording="stopVoiceRecording"
+            @settings-save="handleAudioSettingsSave"
+          />
 
           <!-- Text Input -->
           <div class="flex flex-col gap-2 flex-1 w-full">
@@ -286,9 +142,6 @@
     <SetVariableModal v-if="showSetVariableDialog" :current-stage="currentStage"
       @close="showSetVariableDialog = false" @set="handleSetVariable" />
 
-    <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
-      :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
-      @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
   </div>
 </template>
 
@@ -297,18 +150,18 @@ import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
-import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, Settings, Settings2, ChevronDown, Wrench, Key, Mic, Waves, Filter, Gauge } from 'lucide-vue-next'
+import { AlertCircle, Send } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import SetVariableModal from '@/components/modals/SetVariableModal.vue'
-import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
 import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue'
+import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
+import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
 import type { StageResponse, ConversationEventResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
 
@@ -498,20 +351,6 @@ onMounted(() => {
     // Re-fetch project to get latest voice settings (user may have changed them while away)
     projectSelectionStore.refreshSelectedProject()
   }
-
-  // Close preset menu when clicking outside
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (!target.closest('.relative')) {
-      showPresetMenu.value = false
-      showSettingsMenu.value = false
-    }
-  }
-  document.addEventListener('click', handleClickOutside)
-
-  return () => {
-    document.removeEventListener('click', handleClickOutside)
-  }
 })
 
 onBeforeRouteLeave(() => {
@@ -626,8 +465,6 @@ const isResuming = ref(false)
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
 const connectionType = ref<'websocket' | 'webrtc'>('websocket')
-const showPresetMenu = ref(false)
-const showSettingsMenu = ref(false)
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
@@ -1195,7 +1032,6 @@ async function stopVoiceRecording() {
 function handleAudioSettingsSave(settings: AudioSettings) {
   audioSettings.value = settings
   saveAudioSettings(settings)
-  showAudioSettingsModal.value = false
 
   addEvent({
     type: 'System',
@@ -1574,7 +1410,6 @@ const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
 const showSetVariableDialog = ref(false)
-const showAudioSettingsModal = ref(false)
 const currentConversationId = ref<string | null>(null)
 
 // Audio settings
@@ -1583,7 +1418,6 @@ const audioSettings = ref<AudioSettings>(loadAudioSettings())
 // Conversation mode selection
 function handlePresetSelect(mode: ConversationMode) {
   selectedConversationMode.value = mode
-  showPresetMenu.value = false
 
   addEvent({
     type: 'System',
