@@ -4,7 +4,7 @@ import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { Save, Check, Plus, Trash2, Clipboard, ClipboardPaste } from 'lucide-vue-next'
 import TabContent from '@/components/TabContent.vue'
-import StageVariablesTab from '@/components/StageVariablesTab.vue'
+import MemoryVariablesTab from '@/components/MemoryVariablesTab.vue'
 import type { ProjectResponse, ParameterValue } from '@/api/types'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
@@ -18,7 +18,7 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const showSuccess = ref(false)
-const variablesTabRef = ref<InstanceType<typeof StageVariablesTab> | null>(null)
+const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null)
 const currentProject = ref<ProjectResponse | null>(null)
 const activeTab = ref<'userProfile' | 'constants'>('userProfile')
 
@@ -301,7 +301,7 @@ async function pasteConstants() {
                 </p>
               </div>
 
-              <StageVariablesTab
+              <MemoryVariablesTab
                 ref="variablesTabRef"
                 v-model="form.userProfileVariableDescriptors"
                 :is-loading="isLoading"

@@ -19,7 +19,7 @@ import TagsEditor from '@/components/TagsEditor.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
-import StageVariablesTab from '@/components/StageVariablesTab.vue'
+import MemoryVariablesTab from '@/components/MemoryVariablesTab.vue'
 import StageActionsPanel from '@/components/StageActionsPanel.vue'
 import StageLifecycleActionsSection from '@/components/StageLifecycleActionsSection.vue'
 
@@ -351,7 +351,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   if (error.value?.details?.some(d => d.path[0] === 'llmSettings')) error.value = null
 }
 
-const variablesTabRef = ref<InstanceType<typeof StageVariablesTab> | null>(null)
+const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null)
 </script>
 
 <template>
@@ -599,7 +599,7 @@ const variablesTabRef = ref<InstanceType<typeof StageVariablesTab> | null>(null)
 
           <!-- Memory Tab -->
           <TabContent v-model="activeTab" tab="memory">
-            <StageVariablesTab
+            <MemoryVariablesTab
               ref="variablesTabRef"
               v-model="form.variableDescriptors"
               :is-loading="isLoading"
