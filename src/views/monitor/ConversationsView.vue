@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
-import { usePagination } from '@/composables'
+import { usePagination, formatDate } from '@/composables'
 import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -231,10 +231,6 @@ function formatStatusLabel(status: string): string {
     .join(' ')
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 async function refreshData() {
   await loadProjectData()

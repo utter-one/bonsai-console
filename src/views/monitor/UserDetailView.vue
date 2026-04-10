@@ -3,6 +3,7 @@ import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
+import { formatDate } from '@/composables'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -149,10 +150,6 @@ function viewConversation(conversation: ConversationResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function formatStatusLabel(status: string): string {
   return status

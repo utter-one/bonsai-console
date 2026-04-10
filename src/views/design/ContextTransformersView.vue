@@ -3,7 +3,7 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import { Microchip, Search, X, Plus } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -76,10 +76,6 @@ async function deleteTransformer(transformer: ContextTransformerResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 
 

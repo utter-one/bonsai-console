@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { Eye, RotateCcw, RotateCw, ArrowLeft, RefreshCw, ArrowLeftRight } from 'lucide-vue-next'
+import { formatDate } from '@/composables'
 import type { AuditLogResponse } from '@/api/types'
 import DiffView from '@/components/DiffView.vue'
 
@@ -116,10 +117,6 @@ async function recoverEntity(entity: Record<string, any> | null) {
   }
 }
 
-function formatDate(dateString: string | null): string {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleString()
-}
 
 function actionBadgeClass(action: string): string {
   if (action === 'CREATE') return 'badge-success'

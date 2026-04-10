@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch, formatEnum } from '@/composables'
+import { usePagination, useSearch, formatEnum, formatDate } from '@/composables'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -157,10 +157,6 @@ function viewLog(log: AuditLogResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function getEntityName(log: AuditLogResponse): string {
   const name = (log.newEntity as any)?.name ?? (log.oldEntity as any)?.name

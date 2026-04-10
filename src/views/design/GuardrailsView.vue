@@ -5,7 +5,7 @@ import FormField from '@/components/FormField.vue'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -229,10 +229,6 @@ async function deleteGuardrail(guardrail: GuardrailResponse) {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function createGuardrail() {
   if (projectIsArchived.value) return

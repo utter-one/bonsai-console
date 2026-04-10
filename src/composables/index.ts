@@ -24,6 +24,11 @@ export function formatEnum(enumId: string): string {
   return enumId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
+export function formatDate(date: string | null | undefined): string {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleString()
+}
+
 /**
  * Composable for handling API operations with loading and error states
  */
