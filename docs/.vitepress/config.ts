@@ -93,7 +93,8 @@ export default defineConfig({
     socialLinks: [],
 
     footer: {
-      message: 'Bonsai Console Help',
+      message: 'Released under the Apache-2.0 License.',
+      copyright: 'Copyright © HearMe (utter.one) & contributors',
     },
 
     search: {
