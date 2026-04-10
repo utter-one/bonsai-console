@@ -164,6 +164,7 @@ import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
+import { formatDate } from '../../composables'
 
 const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp'] as const
 type AllowedChannel = typeof ALL_CHANNELS[number]
@@ -367,11 +368,6 @@ function handleSubmit() {
   }
   console.log('Submitting API key data:', data)
   emit('save', data)
-}
-
-function formatDate(dateString: string | null) {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleString()
 }
 
 async function copyToClipboard() {
