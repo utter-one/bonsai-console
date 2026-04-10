@@ -1,5 +1,69 @@
 # Changelog
 
+## [v0.3.0] – 2026-04-10
+
+### New Features
+- **Server-side VAD** – full end-to-end implementation of server-side Voice Activity Detection: streaming controls with auto-start/stop, integrated VU meter, VAD mode audio streaming, and a project-level VAD settings modal (#265, #266, #267, #268)
+- **Sample Copies** – new Sample Copies section in Design: spreadsheet-like editing with multi-select cells, column width persistence, copy decorator support, enforcement mode, and save-on-demand for both copies and decorators (#272, #278, #279)
+- **Analytics Explorer** – new `ExploreView` for ad-hoc data exploration with dimension/metric pickers, drill-down, chart visualisation, two-phase aggregation (`normalizeBy`), relative time range, and saved queries with create/rename/share/unshare support (#281, #282, #283, #285, #287)
+- **Token usage analytics** – token usage tracking view with trend chart; improved latency analysis view; both views updated with `DateTimeRangePicker` (#280, #288)
+- **Project cost management** – project-level token cost limits with per-model entries, `CostLimitEntryModal` with validation, and sortable cost table in the project edit view (#290)
+- **Moderation execution modes** – new moderation execution mode options in the Moderation section; `ConfigureModerationActionModal` for managing moderation responses with visibility change effect support (#291, #292, #294)
+- **Twilio channels** – Twilio provider support for messaging and voice channels (#297)
+- **API key permissions** – expanded API key editor with channel and feature security settings, input/output feature validation, and a sortable table layout for keys (#263)
+- **User banning** – operators can now ban users directly from the Users view; new `ban user` action effect added (#256)
+- **Execution plan in conversation timeline** – new execution plan event type with detailed structure, Gantt chart rendering, and entity name resolution for stages, classifiers, and transformers (#261)
+- **Detailed timing metrics** – stage transition and prompt rendering times now shown in the conversation timeline (#258)
+- **Conversation events pagination** – timeline in the conversation detail view is now paginated for long conversations (#269)
+- **Audit log enhancements** – entity type filter added; audit log entries now show human-readable entity names and version numbers (#273, #275)
+- **Dashboard improvements** – issue counts and aborted conversation statistics added to the dashboard (#260)
+- **WebRTC client** – preliminary `BonsaiWebRTCClient` for audio streaming via WebRTC
+- **Profile edit API validation** – API validation errors are now surfaced properly in the operator profile edit flow (#304)
+- **Auth permissions** – authentication store extended with permissions handling and updated operator profile structure (#295)
+- **Documentation Dockerfile** – separate `Dockerfile-docs` for building and serving the documentation site (#309)
+
+### Improvements
+- Unified data validation and error handling across all entity editors — errors from the API are now consistently parsed and displayed in form fields (#296, #303)
+- `FloatingDropdown` component now used throughout the application, replacing ad-hoc custom filter dropdowns
+- `BaseModal` and `TabNavigator` components introduced and rolled out across modals and tabbed views
+- Provider type filter no longer shows embeddings and storage options (#298)
+- `StageEditView` memory, actions, and lifecycle tabs extracted into dedicated sub-components (#308)
+- Tool type-specific tabs extracted into separate component files (#307)
+- ASR settings extracted into separate components; ASR configuration moved to a modal in `ProjectEditView` (#266, #268)
+- `formatDate` utility centralised in composables; removed duplicate definitions across views (#310)
+- `MemoryVariablesTab` component (formerly `StageVariablesTab`) is now reused in `GlobalMemoryView` (#310)
+- Repeating composables extracted: click-outside, copy/paste variables, and media upload (#282)
+- Conversation event cards split into event-specific components for maintainability
+- Sample copies table switches from fixed-width to dynamic column widths
+
+### Bug Fixes
+- Fixed double AI response box appearing in the playground when a filler response is configured (#306)
+- Fixed operator ID field rejecting email address format (#305)
+- Fixed full voice mode being auto-selected when it is unavailable (#302)
+- Fixed LLM provider settings not resetting when cancelling a provider change (#301)
+- Fixed LLM provider settings not clearing when switching to a different provider (#284)
+- Fixed stage action modal tabs dismissing the modal instead of switching tabs (#276)
+- Fixed custom dropdown being obscured by other UI elements (#270)
+- Fixed API key settings not being saved; updated layout of the API key edit modal
+- Fixed SVG marker references for Chromium compatibility in the execution plan view (#262)
+- Fixed undefined execution plan colours causing rendering errors (#261)
+- Fixed voice audio chunks being sent after a conversation ends or becomes inactive
+- Fixed double disconnect event when ending a conversation from the UI
+- Fixed VAD-related errors occurring when text input mode is selected (#289)
+- Fixed various data validation and error display inconsistencies across editors (#303)
+
+### Style
+- Sample copies table header and row styles updated for improved readability
+- `btn-icon` padding adjusted
+- `color-scheme` CSS property set for proper light/dark mode base styles
+
+### Documentation
+- Added Sample Copies section documentation (#272)
+- Updated analytics documentation to cover token usage and custom data exploration
+- Added server-side VAD configuration and settings documentation in the Projects section
+
+---
+
 ## [v0.2.0] – 2026-03-20
 
 ### New Features
