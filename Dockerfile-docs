@@ -10,7 +10,7 @@ RUN npm run docs:build
 
 FROM nginx:alpine
 
-COPY --from=builder /app/docs/.vitepress/dist /usr/share/nginx/html
+COPY --from=builder /app/dist/help /usr/share/nginx/html
 
 EXPOSE 80
 
