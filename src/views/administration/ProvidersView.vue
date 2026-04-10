@@ -2,7 +2,7 @@
 import { onMounted, computed, watch, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
-import { usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
@@ -112,10 +112,6 @@ function editProvider(provider: ProviderResponse) {
   })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function getProviderTypeBadgeClass(type: string) {
   switch (type) {

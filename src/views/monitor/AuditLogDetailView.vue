@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, User, FileText, Hash } from 'lucide-vue-next'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import apiClient from '@/api/client'
+import { formatDate } from '@/composables'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 
 const route = useRoute()
@@ -53,10 +54,6 @@ function goBack() {
   router.push({ name: 'monitor.auditLogs' })
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function getActionBadgeClass(action: string): string {
   if (action.toLowerCase().includes('create')) return 'badge-success'

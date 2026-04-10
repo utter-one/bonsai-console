@@ -12,6 +12,8 @@ const model = defineModel<FieldDescriptor[]>({ required: true })
 const props = defineProps<{
   isLoading: boolean
   error: ParsedError | null
+  description?: string
+  emptyLabel?: string
 }>()
 
 const {
@@ -61,6 +63,40 @@ function handleVariablesPaste(indices: number[]) {
 }
 
 const expandedNodes = ref<Set<string>>(new Set())
+const variableErrorPaths = ref<Map<string, string>>(new Map())
+
+function validateVariablesRecursive(
+  descriptors: Array<{ name: string; objectSchema?: any[] }>,
+  pathPrefix: string,
+  errorPaths: Map<string, string>
+): void {
+  const nameCounts = new Map<string, number[]>()
+  for (let i = 0; i < descriptors.length; i++) {
+    const name = descriptors[i]!.name?.trim() || ''
+    if (!nameCounts.has(name)) nameCounts.set(name, [])
+    nameCounts.get(name)!.push(i)
+  }
+  for (let i = 0; i < descriptors.length; i++) {
+    const d = descriptors[i]!
+    const pathKey = pathPrefix ? `${pathPrefix}-${i}` : `${i}`
+    const name = d.name?.trim() || ''
+    if (!name) {
+      errorPaths.set(pathKey, 'Name is required.')
+    } else if (nameCounts.get(name)!.length > 1) {
+      errorPaths.set(pathKey, 'Duplicate name.')
+    }
+    if (d.objectSchema && d.objectSchema.length > 0) {
+      validateVariablesRecursive(d.objectSchema, pathKey, errorPaths)
+    }
+  }
+}
+
+function validate(): boolean {
+  const errorPaths = new Map<string, string>()
+  validateVariablesRecursive(model.value, '', errorPaths)
+  variableErrorPaths.value = errorPaths
+  return errorPaths.size === 0
+}
 
 function getDescriptorByPath(path: number[]): any {
   let current: any = { objectSchema: model.value }
@@ -144,6 +180,7 @@ function toggleNode(path: number[]) {
     expandedNodes.value.add(key)
   }
 }
+defineExpose({ validate })
 </script>
 
 <template>
@@ -151,7 +188,7 @@ function toggleNode(path: number[]) {
     <div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory Variables</h3>
       <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-        Click field names to edit, change types inline
+        {{ description ?? 'Click field names to edit, change types inline' }}
       </p>
     </div>
     <div class="flex gap-2">
@@ -189,7 +226,7 @@ function toggleNode(path: number[]) {
 
   <FormField :error="error" path="variableDescriptors" class="w-full">
     <div v-if="model.length === 0" class="text-center py-12 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-      <p class="text-gray-500 dark:text-gray-400 mb-4">No variable descriptors defined yet</p>
+      <p class="text-gray-500 dark:text-gray-400 mb-4">{{ emptyLabel ?? 'No variable descriptors defined yet' }}</p>
       <p class="text-sm text-gray-400 dark:text-gray-500">
         Click "Add Variable" to define your first variable
       </p>
@@ -202,6 +239,7 @@ function toggleNode(path: number[]) {
             :descriptor="descriptor"
             :path="[index]"
             :expanded-nodes="expandedNodes"
+            :error-paths="variableErrorPaths"
             @toggle="toggleNode"
             @update-name="updateVariableName"
             @update-type="updateVariableType"

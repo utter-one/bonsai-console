@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, formatDate } from '@/composables'
 import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
@@ -83,10 +83,6 @@ async function loadIssues() {
   }
 }
 
-function formatDate(date: string | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleString()
-}
 
 function truncateText(text: string, maxLength: number = 50): string {
   if (text.length <= maxLength) return text

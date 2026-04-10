@@ -5,6 +5,7 @@ import FormField from '@/components/FormField.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
+import TabContent from '@/components/TabContent.vue'
 import MultiSelectCell from '@/components/MultiSelectCell.vue'
 import {
   useSampleCopiesStore,
@@ -655,7 +656,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
           </div>
 
           <!-- Sample Copies Tab -->
-          <div v-show="activeTab === 'copies'" class="tab-content">
+          <TabContent v-model="activeTab" tab="copies">
 
             <div class="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -987,10 +988,10 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 </tbody>
               </table>
             </div>
-          </div>
+          </TabContent>
 
           <!-- Copy Decorators Tab -->
-          <div v-show="activeTab === 'settings'" class="tab-content">
+          <TabContent v-model="activeTab" tab="settings">
             <div class="flex items-start justify-between mb-6">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Copy Decorators</h3>
@@ -1082,7 +1083,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 </tbody>
               </table>
             </div>
-          </div>
+          </TabContent>
 
         </div>
       </div>

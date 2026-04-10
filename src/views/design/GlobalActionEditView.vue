@@ -76,25 +76,19 @@ const isSpecialAction = computed(() => (globalActionId.value || '').startsWith('
 
 const specialActionDisplayName = computed(() => SPECIAL_ACTION_NAMES[globalActionId.value || ''] ?? null)
 
-const projectClassifiers = computed(() => 
-  classifiersStore.items.filter(() => true)
-)
-
-const projectStages = computed(() => 
-  stagesStore.items.filter(() => true)
-)
-
-const projectTools = computed(() => 
-  toolsStore.items.filter(() => true)
-)
+const projectClassifiers = computed(() => classifiersStore.items)
+const projectStages = computed(() => stagesStore.items)
+const projectTools = computed(() => toolsStore.items)
 
 // Lifecycle
 onMounted(async () => {
   // Load classifiers and stages for dropdowns
-  await classifiersStore.fetchAll(projectId.value)
-  await stagesStore.fetchAll(projectId.value)
-  await toolsStore.fetchAll(projectId.value)
-  await projectsStore.fetchById(projectId.value)
+  await Promise.all([
+    classifiersStore.fetchAll(projectId.value),
+    stagesStore.fetchAll(projectId.value),
+    toolsStore.fetchAll(projectId.value),
+    projectsStore.fetchById(projectId.value),
+  ])
   
   if (isEditMode.value) {
     await loadGlobalAction()

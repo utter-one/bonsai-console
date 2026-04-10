@@ -22,7 +22,7 @@ import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
-import { useTabNavigation } from '@/composables/useTabNavigation'
+import { useTabNavigation, formatDate } from '@/composables'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
@@ -559,10 +559,6 @@ async function handleDeleteProject() {
   }
 }
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString()
-}
 
 function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: boolean }) {
   form.value.asrConfig.settings = data.settings
