@@ -1,10 +1,12 @@
 import { defineConfig } from 'vitepress'
 
+const isDocsDockerBuild = process.env.DOCS_DOCKER_BUILD === 'true'
+
 export default defineConfig({
   title: 'Bonsai Console Help',
   description: 'Documentation and help for the Bonsai Console admin panel',
-  base: '/help/',
-  outDir: '../dist/help',
+  base: isDocsDockerBuild ? '/' : '/help/',
+  outDir: isDocsDockerBuild ? '../dist' : '../dist/help',
 
   themeConfig: {
     nav: [
