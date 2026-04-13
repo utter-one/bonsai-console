@@ -37,368 +37,65 @@
           <p class="page-subtitle">Test and debug conversation flows in real-time</p>
         </div>
 
-        <!-- Controls -->
-        <div class="flex flex-row items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
-          <!-- Settings Dropdown (API Key + Timezone) -->
-          <div class="relative inline-flex">
-            <button class="btn-secondary flex items-center gap-2"
-              @click="showSettingsMenu = !showSettingsMenu"
-              :disabled="wsIsConnected || apiKeysLoading"
-              title="Connection settings">
-              <Settings :size="18" />
-              <ChevronDown :size="14" class="text-gray-500" />
-            </button>
-
-            <div v-if="showSettingsMenu"
-              class="absolute top-full mt-1 right-0 z-20 bg-white border border-gray-200 rounded-lg shadow-lg w-64 p-3 space-y-3 dark:bg-gray-800 dark:border-gray-700"
-              @click.stop>
-              <!-- API Key -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                  <Key :size="12" />API Key
-                </div>
-                <select v-model="selectedApiKeyId" class="form-select w-full text-sm" :disabled="wsIsConnected || apiKeysLoading">
-                  <option :value="null">Select API Key...</option>
-                  <option v-for="key in activeApiKeys" :key="key.id" :value="key.id">{{ key.name }}</option>
-                </select>
-              </div>
-              <!-- Timezone -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                  Timezone
-                </div>
-                <TimezoneSelector
-                  v-model="selectedTimezone"
-                  placeholder="Project Default"
-                  :show-icon="true"
-                  :disabled="wsIsConnected"
-                  :width="'full'"
-                />
-              </div>
-              <!-- Channel -->
-              <div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                  Channel
-                </div>
-                <select v-model="connectionType" class="form-select w-full text-sm" :disabled="wsIsConnected">
-                  <option value="websocket">WebSocket</option>
-                  <option value="webrtc">WebRTC (lower audio latency)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
-
-          <!-- Conversation Controls -->
-          <div v-if="!isConversationActive" class="relative inline-flex">
-            <!-- Main Action Button -->
-            <button class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
-              @click="startConversation" :disabled="!canStartConversation">
-              <Play :size="18" />
-              <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}</span>
-            </button>
-
-            <!-- Dropdown Toggle -->
-            <button @click="showPresetMenu = !showPresetMenu" class="btn-primary-hardleft border-primary-600"
-              :disabled="!canStartConversation"
-              :title="`Current mode: ${conversationPresets.find(p => p.id === selectedConversationMode)?.name || 'Unknown'}`">
-              <ChevronDown :size="18" />
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div v-if="showPresetMenu"
-              class="absolute top-full mt-1 left-0 z-10 bg-white border border-gray-200 rounded-md shadow-lg min-w-[280px] py-1 dark:bg-gray-800 dark:border-gray-700"
-              @click.stop>
-              <button v-for="{ preset, disabled, reason } in availablePresets" :key="preset.id"
-                @click="handlePresetSelect(preset.id)" :disabled="disabled"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed relative"
-                :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1">
-                    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      {{ preset.name }}
-                      <span v-if="preset.id === selectedConversationMode"
-                        class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
-                    <div v-if="disabled && reason" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ reason }}</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-          <button v-else class="btn-danger flex items-center gap-2 whitespace-nowrap" @click="endConversation"
-            :disabled="!canEndConversation">
-            <Square :size="18" />
-            <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End Conversation' }}</span>
-          </button>
-
-          <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
-
-          <!-- Advanced Controls -->
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canRunAction"
-            @click="showRunActionDialog = true">
-            <Zap :size="18" />
-            <span class="hidden md:inline">Run Action</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canJumpToStage"
-            @click="showJumpToStageDialog = true">
-            <SkipForward :size="18" />
-            <span class="hidden md:inline">Jump to Stage</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canCallTool"
-            @click="showCallToolDialog = true">
-            <Wrench :size="18" />
-            <span class="hidden md:inline">Call Tool</span>
-          </button>
-
-          <button class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap" :disabled="!canSetVariable"
-            @click="showSetVariableDialog = true">
-            <Braces :size="18" />
-            <span class="hidden md:inline">Set Variable</span>
-          </button>
-        </div>
+        <PlaygroundConnectionPanel
+          :is-connected="wsIsConnected"
+          :is-conversation-active="isConversationActive"
+          :is-conversation-starting="isConversationStarting"
+          :is-conversation-ending="isConversationEnding"
+          :can-start-conversation="canStartConversation"
+          :can-end-conversation="canEndConversation"
+          :can-run-action="canRunAction"
+          :can-jump-to-stage="canJumpToStage"
+          :can-call-tool="canCallTool"
+          :can-set-variable="canSetVariable"
+          :api-keys="activeApiKeys"
+          :api-keys-loading="apiKeysLoading"
+          v-model:selected-api-key-id="selectedApiKeyId"
+          v-model:selected-timezone="selectedTimezone"
+          v-model:connection-type="connectionType"
+          :selected-conversation-mode="selectedConversationMode"
+          :available-presets="availablePresets"
+          :conversation-presets="conversationPresets"
+          @start-conversation="startConversation"
+          @end-conversation="endConversation"
+          @preset-select="handlePresetSelect"
+          @run-action="showRunActionDialog = true"
+          @jump-to-stage="showJumpToStageDialog = true"
+          @call-tool="showCallToolDialog = true"
+          @set-variable="showSetVariableDialog = true"
+        />
       </div>
     </div>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-h-0 pt-4 gap-4 overflow-hidden pb-15 md:pb-0">
       <!-- History Panel (Main Area) -->
-      <div
-        class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
-        <div
-          class="bg-gray-50 border-b border-gray-200 px-4 py-3 md:flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
-          <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>
-          <div class="flex items-center md:gap-4 mt-2 md:mt-0">
-            <label class="flex items-center  md:gap-2 text-xs text-gray-600 cursor-pointer dark:text-gray-400">
-              <input type="checkbox" v-model="showConversationEvents" class="form-checkbox" />
-              <span>Show conversation events</span>
-            </label>
-          </div>
-        </div>
-        <div ref="historyContainer" class="flex-1 overflow-y-auto p-4">
-          <!-- No conversation state -->
-          <div v-if="conversationEvents.length === 0"
-            class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
-            <div class="text-center">
-              <p class="text-lg font-medium">No active conversation</p>
-              <p class="text-sm mt-1">Start a conversation to see events appear here</p>
-            </div>
-          </div>
-
-          <!-- Conversation events -->
-          <div v-else class="space-y-3">
-            <div v-for="(event, index) in filteredConversationEvents" :key="index">
-              <!-- Regular User/AI/System/Error events -->
-              <div v-if="event.type !== 'ConversationEvent'" class="p-3 rounded-lg border" :class="{
-                'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
-                'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
-                'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600 ml-8': event.type === 'System',
-                'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
-              }">
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="{
-                    'bg-blue-500 text-white': event.type === 'User',
-                    'bg-green-500 text-white': event.type === 'AI',
-                    'bg-gray-500 text-white': event.type === 'System',
-                    'bg-red-500 text-white': event.type === 'Error'
-                  }">
-                    <User v-if="event.type === 'User'" :size="16" />
-                    <Bot v-else-if="event.type === 'AI'" :size="16" />
-                    <AlertCircle v-else-if="event.type === 'Error'" :size="16" />
-                    <Info v-else :size="16" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between gap-2 mb-1">
-                      <div class="flex items-center gap-2">
-                        <span class="font-semibold text-sm">{{ event.type }}</span>
-                        <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
-                      </div>
-                      <div class="flex items-center gap-1">
-                        <button
-                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasSystemPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openPromptPreview(event.wsEvent.eventData.metadata!.systemPrompt as string)"
-                          class="btn-icon p-1"
-                          :class="{
-                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
-                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
-                          }"
-                          title="View system prompt">
-                          <FileText class="w-4 h-4" />
-                        </button>
-                        <button
-                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasFillerPrompt(event.wsEvent.eventData.metadata)"
-                          @click="openFillerPromptPreview(event.wsEvent.eventData.metadata!.fillerPrompt as string)"
-                          class="btn-icon p-1"
-                          :class="{
-                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
-                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
-                          }"
-                          title="View filler prompt">
-                          <Wand2 class="w-4 h-4" />
-                        </button>
-                        <button
-                          v-if="event.wsEvent && isMessageEvent(event.wsEvent) && hasCurrentVariables(event.wsEvent.eventData.metadata)"
-                          @click="openVariablesPreview(event.wsEvent.eventData.metadata!.currentVariables as Record<string, any>)"
-                          class="btn-icon p-1"
-                          :class="{
-                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
-                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI'
-                          }"
-                          title="View stage variables">
-                          <Braces class="w-4 h-4" />
-                        </button>
-                        <button
-                          @click="openBugReport(event)"
-                          class="btn-icon p-1"
-                          :class="{
-                            'hover:bg-blue-100 dark:hover:bg-blue-900/30': event.type === 'User',
-                            'hover:bg-green-100 dark:hover:bg-green-900/30': event.type === 'AI',
-                            'hover:bg-gray-100 dark:hover:bg-gray-900/30': event.type === 'System',
-                            'hover:bg-red-100 dark:hover:bg-red-900/30': event.type === 'Error'
-                          }"
-                          title="Report bug">
-                          <Bug class="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div class="text-sm">
-                      <!-- Voice message with audio player -->
-                      <template v-if="event.voiceOutputId">
-                        <AudioPlayer v-if="getVoiceOutput(event.voiceOutputId)"
-                          :state="getVoiceOutput(event.voiceOutputId)!.player.state"
-                          :is-ready="getVoiceOutput(event.voiceOutputId)!.player.isReady"
-                          :progress="getVoiceOutput(event.voiceOutputId)!.player.progress"
-                          :transcript="getVoiceOutput(event.voiceOutputId)!.transcript || event.message || undefined"
-                          @play="getVoiceOutput(event.voiceOutputId)!.player.play()"
-                          @pause="getVoiceOutput(event.voiceOutputId)!.player.pause()"
-                          @stop="getVoiceOutput(event.voiceOutputId)!.player.stop()"
-                          @volume-change="(v) => { if (event.voiceOutputId) getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }" />
-                        <!-- Show real-time text below audio player if transcription is in progress -->
-                        <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
-                          <span class="whitespace-pre-wrap">{{ event.message }}</span>
-                          <span class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                            title="Real-time transcription in progress"></span>
-                        </div>
-                      </template>
-
-                      <!-- Regular text message -->
-                      <template v-else>
-                        <div class="relative">
-                          <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
-                          <!-- Real-time indicator -->
-                          <span v-if="event.isRealTime"
-                            class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse" :class="{
-                              'text-blue-500': event.type === 'User',
-                              'text-green-500': event.type === 'AI'
-                            }" title="Real-time transcription in progress"></span>
-                        </div>
-                        <div v-if="event.details" class="mt-2 text-xs text-gray-600 font-mono dark:text-gray-400">
-                          {{ event.details }}
-                        </div>
-                      </template>
-                    </div>
-                    <div v-if="event.type === 'User' && event.wsEvent?.eventData?.metadata && (event.wsEvent.eventData.metadata.moderationDurationMs != null || event.wsEvent.eventData.metadata.processingDurationMs != null || event.wsEvent.eventData.metadata.actionsDurationMs != null || event.wsEvent.eventData.metadata.fillerDurationMs != null)"
-                      class="mt-2 pt-2 border-t border-blue-200 flex flex-wrap gap-1.5 dark:border-blue-900">
-                      <span v-if="event.wsEvent.eventData.metadata.moderationDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Moderation</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.moderationDurationMs) }}</span></span>
-                      <span v-if="event.wsEvent.eventData.metadata.processingDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Processing</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.processingDurationMs) }}</span></span>
-                      <span v-if="event.wsEvent.eventData.metadata.actionsDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Actions</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.actionsDurationMs) }}</span></span>
-                      <span v-if="event.wsEvent.eventData.metadata.fillerDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Filler</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.wsEvent.eventData.metadata.fillerDurationMs) }}</span></span>
-                    </div>
-                    <div v-if="event.type === 'AI' && hasAssistantTiming(event.wsEvent?.eventData?.metadata)"
-                      class="mt-2 pt-2 border-t border-green-200 flex flex-wrap gap-1.5 dark:border-green-900">
-                      <span v-if="event.wsEvent?.eventData?.metadata?.totalTurnDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">Total</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.totalTurnDurationMs) }}</span></span>
-                      <span v-if="event.wsEvent?.eventData?.metadata?.llmDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">LLM</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.llmDurationMs) }}</span></span>
-                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstTokenMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstTokenMs) }}</span></span>
-                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstTokenFromTurnStartMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT (turn)</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
-                      <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstAudioMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">First audio</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstAudioMs) }}</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Conversation Events (styled like ConversationDetailView) -->
-              <ConversationEventCard
-                v-else-if="event.wsEvent"
-                :event="toNormalizedWsEvent(event, index)"
-                :show-bug-report="false"
-                :entity-names="entityNames"
-                @open-prompt="openPromptPreview"
-                @open-filler-prompt="openFillerPromptPreview"
-                @open-raw-response="openRawResponsePreview"
-                @open-variables="openVariablesPreview"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <PlaygroundEventFeed
+        :events="conversationEvents"
+        :entity-names="entityNames"
+        :project-id="projectId"
+        :session-id="currentConversationId ?? undefined"
+        :stage-id="currentStage?.id ?? undefined"
+        :show-system-events="showSystemEvents"
+        v-model:show-conversation-events="showConversationEvents"
+        :get-voice-output="getVoiceOutput"
+      />
       <!-- Input Panel -->
       <div
         class="fixed md:relative bottom-0 left-0 right-0 flex-shrink-0 bg-white md:rounded-lg md:border border-t border-gray-200 shadow-sm p-4 dark:bg-gray-800 dark:border-gray-700 ">
         <div class="flex flex-row items-end md:items-start gap-0 md:gap-3">
           <!-- Voice Recording -->
-          <div class="flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden"
-            :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']">
-            <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
-            <div class="flex gap-2 items-center">
-              <button v-if="!isServerVadMode && recording?.recordingState !== 'recording'"
-                class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap" :disabled="!canRecordVoice"
-                @click="startVoiceRecording" title="Start voice recording">
-                <Mic :size="20" />
-                <span class="hidden md:block">Speak</span>
-              </button>
-              <button v-else-if="!isServerVadMode" class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
-                @click="stopVoiceRecording" title="Stop voice recording">
-                <Square :size="20" />
-                <span class="hidden md:block">Stop</span>
-              </button>
-
-              <!-- VAD mode: streaming indicator with integrated VU meter -->
-              <div v-if="isServerVadMode && recording?.recordingState === 'recording'" class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap" title="Server VAD mode (Experimental)">
-                <Mic :size="16" />
-                <span class="hidden md:block">Listening</span>
-                <div class="flex items-end gap-px h-4">
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-                  <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-                </div>
-              </div>
-
-              <!-- Settings Button -->
-              <button @click="showAudioSettingsModal = true"
-                class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]" title="Audio settings">
-                <Settings2 :width="20" :height="20" />
-              </button>
-
-              <!-- Audio Enhancement Indicators -->
-              <div class="flex flex-col gap-0.5 justify-center">
-                <Waves :size="12" :class="audioSettings.echoCancellation ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'" >
-                  <title>{{ `Echo Cancellation: ${audioSettings.echoCancellation ? 'Enabled' : 'Disabled'}` }}</title>
-                </Waves>
-                <Filter :size="12" :class="audioSettings.noiseSuppression ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-                  <title>{{ `Noise Suppression: ${audioSettings.noiseSuppression ? 'Enabled' : 'Disabled'}` }}</title>
-                </Filter>
-                <Gauge :size="12" :class="audioSettings.autoGainControl ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-                  <title>{{ `Auto Gain Control: ${audioSettings.autoGainControl ? 'Enabled' : 'Disabled'}` }}</title>
-                </Gauge>
-              </div>
-
-              <!-- Audio Level Indicator -->
-              <div v-if="!isServerVadMode && recording?.recordingState === 'recording'" class="flex items-center gap-1" title="Audio level">
-                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                  <div class="h-full bg-blue-500 transition-all duration-100"
-                    :style="{ width: `${(recording?.audioLevel ?? 0) * 100}%` }"></div>
-                </div>
-              </div>
-            </div>
-            <p v-if="recording?.errorMessage" class="text-xs text-red-600 whitespace-nowrap overflow-hidden text-ellipsis">{{ recording.errorMessage }}</p>
-          </div>
+          <PlaygroundAudioPanel
+            :is-server-vad-mode="isServerVadMode"
+            :can-record-voice="canRecordVoice"
+            :recording="recording"
+            :audio-settings="audioSettings"
+            :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+            :is-input-focused="isInputFocused"
+            @start-recording="startVoiceRecording"
+            @stop-recording="stopVoiceRecording"
+            @settings-save="handleAudioSettingsSave"
+          />
 
           <!-- Text Input -->
           <div class="flex flex-col gap-2 flex-1 w-full">
@@ -445,67 +142,28 @@
     <SetVariableModal v-if="showSetVariableDialog" :current-stage="currentStage"
       @close="showSetVariableDialog = false" @set="handleSetVariable" />
 
-    <AudioSettingsModal v-if="showAudioSettingsModal" :current-settings="audioSettings"
-      :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
-      @close="showAudioSettingsModal = false" @save="handleAudioSettingsSave" />
-
-    <PromptPreviewModal
-      v-if="showPromptPreviewModal"
-      :prompt="selectedPrompt"
-      @close="showPromptPreviewModal = false" />
-
-    <PromptPreviewModal
-      v-if="showFillerPromptPreviewModal"
-      :prompt="selectedFillerPrompt"
-      title="Filler Prompt"
-      @close="showFillerPromptPreviewModal = false" />
-    
-    <PromptPreviewModal
-      v-if="showRawResponsePreviewModal"
-      :prompt="selectedRawResponse"
-      title="Raw Response"
-      @close="showRawResponsePreviewModal = false" />
-    
-    <VariablesPreviewModal
-      v-if="showVariablesPreviewModal"
-      :variables="selectedVariables"
-      @close="showVariablesPreviewModal = false" />
-    
-    <IssueEditModal
-      v-if="showBugReportModal"
-      :issue="null"
-      :error="bugReportError"
-      :prefill-data="bugReportPrefillData"
-      @close="closeBugReportModal"
-      @save="handleBugReportSave" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useIssuesStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
+import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
-import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { Play, Square, Send, Zap, SkipForward, User, Bot, AlertCircle, Info, Mic, Settings, Settings2, ChevronDown, Wrench, FileText, Wand2, Key, Braces, Bug, Waves, Filter, Gauge } from 'lucide-vue-next'
+import { AlertCircle, Send } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import SetVariableModal from '@/components/modals/SetVariableModal.vue'
-import AudioPlayer from '@/components/AudioPlayer.vue'
-import AudioSettingsModal from '@/components/modals/AudioSettingsModal.vue'
-import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
-import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
-import IssueEditModal from '@/components/modals/IssueEditModal.vue'
-import ConversationEventCard from '@/components/ConversationEventCard.vue'
-import type { StageResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
-import { parseApiError } from '@/utils/errors'
+import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue'
+import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
+import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
+import type { StageResponse, ConversationEventResponse } from '@/api/types'
 import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
-import type { NormalizedEvent } from '../components/events/eventHelpers'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -672,7 +330,6 @@ const apiKeysStore = useApiKeysStore()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
-const issuesStore = useIssuesStore()
 const stagesStore = useStagesStore()
 const classifiersStore = useClassifiersStore()
 const contextTransformersStore = useContextTransformersStore()
@@ -693,20 +350,6 @@ onMounted(() => {
     projectSelectionStore.setSelectedProjectId(projectId.value)
     // Re-fetch project to get latest voice settings (user may have changed them while away)
     projectSelectionStore.refreshSelectedProject()
-  }
-
-  // Close preset menu when clicking outside
-  const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (!target.closest('.relative')) {
-      showPresetMenu.value = false
-      showSettingsMenu.value = false
-    }
-  }
-  document.addEventListener('click', handleClickOutside)
-
-  return () => {
-    document.removeEventListener('click', handleClickOutside)
   }
 })
 
@@ -733,7 +376,6 @@ watch(projectId, async (newProjectId, oldProjectId) => {
     showJumpToStageDialog.value = false
     showCallToolDialog.value = false
     showSetVariableDialog.value = false
-    showBugReportModal.value = false
   }
 
   if (newProjectId) {
@@ -823,8 +465,6 @@ const isResuming = ref(false)
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
 const connectionType = ref<'websocket' | 'webrtc'>('websocket')
-const showPresetMenu = ref(false)
-const showSettingsMenu = ref(false)
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
@@ -872,44 +512,6 @@ function formatEventType(eventType: string): string {
   return eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function formatMs(ms: any): string | null {
-  if (ms == null) return null
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(2)}s`
-}
-
-function hasAssistantTiming(metadata: Record<string, any> | undefined): boolean {
-  if (!metadata) return false
-  return ['llmDurationMs', 'timeToFirstTokenMs', 'timeToFirstTokenFromTurnStartMs', 'timeToFirstAudioMs', 'totalTurnDurationMs']
-    .some(key => metadata[key] != null)
-}
-
-function toNormalizedWsEvent(event: ConversationEvent, index: number): NormalizedEvent {
-  const wsEvent = event.wsEvent!
-  return {
-    id: String(index),
-    eventType: wsEvent.eventType as NormalizedEvent['eventType'],
-    eventData: wsEvent.eventData,
-    timestamp: formatTime(event.timestamp),
-  }
-}
-const historyContainer = ref<HTMLElement | null>(null)
-
-// Filter events based on showSystemEvents and showConversationEvents toggles
-const filteredConversationEvents = computed(() => {
-  let filtered = conversationEvents.value
-  
-  if (!showSystemEvents.value) {
-    filtered = filtered.filter(event => event.type !== 'System')
-  }
-  
-  if (!showConversationEvents.value) {
-    filtered = filtered.filter(event => event.type !== 'ConversationEvent')
-  }
-  
-  return filtered
-})
-
 // Voice output tracking
 const activeVoiceOutputs = ref<Map<string, { player: ReturnType<typeof useAudioPlayback>; transcript: string | null }>>(new Map())
 
@@ -920,23 +522,10 @@ function getVoiceOutput(voiceOutputId: string) {
   return activeVoiceOutputs.value.get(voiceOutputId)
 }
 
-function scrollHistoryToBottom() {
-  const el = historyContainer.value
-  if (!el) return
-  el.scrollTop = el.scrollHeight
-}
+function scrollHistoryToBottom() {}
 
 function addEvent(event: ConversationEvent) {
   conversationEvents.value.push(event)
-  // Auto-scroll to bottom
-  nextTick(() => {
-    scrollHistoryToBottom()
-    requestAnimationFrame(() => scrollHistoryToBottom())
-  })
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 /**
@@ -1054,82 +643,11 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
   // Auto-scroll to bottom
   nextTick(() => scrollHistoryToBottom())
 }
-
-// Type guard used for User/AI message cards in the playground
 function isMessageEvent(event: WSConversationEvent | WSConversationEventUpdate): event is (WSConversationEvent | WSConversationEventUpdate) & {
   eventType: 'message'
   eventData: { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
 } {
   return event.eventType === 'message'
-}
-
-function openPromptPreview(prompt: string) {
-  selectedPrompt.value = prompt
-  showPromptPreviewModal.value = true
-}
-
-function openFillerPromptPreview(prompt: string) {
-  selectedFillerPrompt.value = prompt
-  showFillerPromptPreviewModal.value = true
-}
-
-function openRawResponsePreview(rawResponse: string) {
-  selectedRawResponse.value = rawResponse
-  showRawResponsePreviewModal.value = true
-}
-
-function hasSystemPrompt(metadata: Record<string, any> | undefined): boolean {
-  return !!(metadata && metadata.systemPrompt && typeof metadata.systemPrompt === 'string')
-}
-
-function hasFillerPrompt(metadata: Record<string, any> | undefined): boolean {
-  return !!(metadata && metadata.fillerPrompt && typeof metadata.fillerPrompt === 'string')
-}
-
-function openVariablesPreview(variables: Record<string, any>) {
-  selectedVariables.value = variables
-  showVariablesPreviewModal.value = true
-}
-
-function hasCurrentVariables(metadata: Record<string, any> | undefined): boolean {
-  return !!(metadata && metadata.currentVariables && typeof metadata.currentVariables === 'object')
-}
-
-function openBugReport(event: ConversationEvent) {
-  console.log('All Events:', conversationEvents.value)
-  const eventIndex = conversationEvents.value.filter(e=>e.type != 'System').indexOf(event)
-  bugReportPrefillData.value = {
-    projectId: projectId.value,
-    sessionId: currentConversationId.value || undefined,
-    eventIndex: eventIndex >= 0 ? eventIndex : undefined,
-    stageId: currentStage.value?.id || undefined
-  }
-  bugReportError.value = null
-  showBugReportModal.value = true
-}
-
-function closeBugReportModal() {
-  showBugReportModal.value = false
-  bugReportPrefillData.value = undefined
-}
-
-async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest) {
-  try {
-    await issuesStore.create(data as CreateIssueRequest)
-    closeBugReportModal()
-    addEvent({
-      type: 'System',
-      message: 'Bug report created successfully',
-      timestamp: new Date()
-    })
-  } catch (error) {
-    bugReportError.value = parseApiError(error)
-    addEvent({
-      type: 'Error',
-      message: 'Failed to create bug report',
-      timestamp: new Date()
-    })
-  }
 }
 
 const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_aborted', 'conversation_failed'] as ConversationEventResponse['eventType'][])
@@ -1514,7 +1032,6 @@ async function stopVoiceRecording() {
 function handleAudioSettingsSave(settings: AudioSettings) {
   audioSettings.value = settings
   saveAudioSettings(settings)
-  showAudioSettingsModal.value = false
 
   addEvent({
     type: 'System',
@@ -1893,18 +1410,6 @@ const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
 const showSetVariableDialog = ref(false)
-const showAudioSettingsModal = ref(false)
-const showPromptPreviewModal = ref(false)
-const selectedPrompt = ref('')
-const showFillerPromptPreviewModal = ref(false)
-const selectedFillerPrompt = ref('')
-const showRawResponsePreviewModal = ref(false)
-const selectedRawResponse = ref('')
-const showVariablesPreviewModal = ref(false)
-const selectedVariables = ref<Record<string, any>>({})
-const showBugReportModal = ref(false)
-const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
-const bugReportError = ref<ParsedError | null>(null)
 const currentConversationId = ref<string | null>(null)
 
 // Audio settings
@@ -1913,7 +1418,6 @@ const audioSettings = ref<AudioSettings>(loadAudioSettings())
 // Conversation mode selection
 function handlePresetSelect(mode: ConversationMode) {
   selectedConversationMode.value = mode
-  showPresetMenu.value = false
 
   addEvent({
     type: 'System',
