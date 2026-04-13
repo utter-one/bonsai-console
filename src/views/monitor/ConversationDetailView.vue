@@ -16,6 +16,7 @@ import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import { usePagination, useConversationPreviews } from '@/composables'
+import { formatStatusLabel } from '@/utils/conversationStatus'
 import PaginationControls from '@/components/PaginationControls.vue'
 import type { NormalizedEvent } from '../../components/events/eventHelpers'
 
@@ -140,13 +141,6 @@ async function scrollToHighlightedEvent() {
 function formatTime(date: string | null) {
   if (!date) return 'N/A'
   return new Date(date).toLocaleTimeString()
-}
-
-function formatStatusLabel(status: string): string {
-  return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
 }
 
 function handleOpenBugReport(_event: ConversationEventResponse, index?: number) {
