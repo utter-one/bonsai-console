@@ -119,7 +119,7 @@ export interface WebSocketClientConfig {
 /** Options for starting a conversation */
 export interface StartConversationOptions {
   userId: string
-  stageId: string
+  stageId?: string
   agentId?: string
   timezone?: string
 }

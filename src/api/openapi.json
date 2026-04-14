@@ -3405,6 +3405,11 @@
               }
             ]
           },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Acts as the project-level default starting stage."
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "minimum": 0,
@@ -3759,6 +3764,11 @@
             },
             "description": "Updated sample copy configuration. Set to null to clear."
           },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated ID of the stage to start new conversations at when no stageId is provided at conversation start time. Set to null to remove the default starting stage."
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
@@ -3973,6 +3983,11 @@
             },
             "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
           },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
@@ -4021,6 +4036,7 @@
           "autoCreateUsers",
           "userProfileVariableDescriptors",
           "defaultGuardrailClassifierId",
+          "startingStageId",
           "conversationTimeoutSeconds",
           "version",
           "createdAt",
@@ -4233,6 +4249,11 @@
                   },
                   "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                 },
+                "startingStageId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                },
                 "conversationTimeoutSeconds": {
                   "type": "integer",
                   "nullable": true,
@@ -4281,6 +4302,7 @@
                 "autoCreateUsers",
                 "userProfileVariableDescriptors",
                 "defaultGuardrailClassifierId",
+                "startingStageId",
                 "conversationTimeoutSeconds",
                 "version",
                 "createdAt",
@@ -19098,6 +19120,11 @@
                       }
                     ]
                   },
+                  "startingStageId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Acts as the project-level default starting stage."
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "minimum": 0,
@@ -19315,6 +19342,11 @@
                       },
                       "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -19363,6 +19395,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "startingStageId",
                     "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
@@ -19742,6 +19775,11 @@
                             },
                             "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                           },
+                          "startingStageId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                          },
                           "conversationTimeoutSeconds": {
                             "type": "integer",
                             "nullable": true,
@@ -19790,6 +19828,7 @@
                           "autoCreateUsers",
                           "userProfileVariableDescriptors",
                           "defaultGuardrailClassifierId",
+                          "startingStageId",
                           "conversationTimeoutSeconds",
                           "version",
                           "createdAt",
@@ -20039,6 +20078,11 @@
                       },
                       "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -20087,6 +20131,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "startingStageId",
                     "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
@@ -20328,6 +20373,11 @@
                     },
                     "description": "Updated sample copy configuration. Set to null to clear."
                   },
+                  "startingStageId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated ID of the stage to start new conversations at when no stageId is provided at conversation start time. Set to null to remove the default starting stage."
+                  },
                   "conversationTimeoutSeconds": {
                     "type": "integer",
                     "nullable": true,
@@ -20550,6 +20600,11 @@
                       },
                       "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -20598,6 +20653,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "startingStageId",
                     "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
@@ -20889,6 +20945,11 @@
                       },
                       "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -20937,6 +20998,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "startingStageId",
                     "conversationTimeoutSeconds",
                     "version",
                     "createdAt",
@@ -21198,6 +21260,11 @@
                       },
                       "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers."
                     },
+                    "startingStageId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set."
+                    },
                     "conversationTimeoutSeconds": {
                       "type": "integer",
                       "nullable": true,
@@ -21246,6 +21313,7 @@
                     "autoCreateUsers",
                     "userProfileVariableDescriptors",
                     "defaultGuardrailClassifierId",
+                    "startingStageId",
                     "conversationTimeoutSeconds",
                     "version",
                     "createdAt",

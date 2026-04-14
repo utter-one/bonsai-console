@@ -809,6 +809,8 @@ export class Api<
       defaultGuardrailClassifierId?: string | null;
       /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
       sampleCopyConfig?: SampleCopyConfig;
+      /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Acts as the project-level default starting stage. */
+      startingStageId?: string | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -890,6 +892,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1043,6 +1047,8 @@ export class Api<
             /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
             defaultClassifierId?: string;
           } | null;
+          /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+          startingStageId: string | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
           /** The version number of the project */
@@ -1160,6 +1166,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1278,6 +1286,8 @@ export class Api<
         /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
         defaultClassifierId?: string;
       } | null;
+      /** Updated ID of the stage to start new conversations at when no stageId is provided at conversation start time. Set to null to remove the default starting stage. */
+      startingStageId?: string | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -1361,6 +1371,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1499,6 +1511,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1621,6 +1635,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */

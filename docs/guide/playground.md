@@ -27,6 +27,8 @@ Your selected mode is remembered per project, so you don't have to pick it every
 ## Starting and Ending Conversations
 
 1. Click **Start Conversation**. A dialog will ask you to select a **starting stage** (the entry point for the conversation).
+   - If the project has a [Default Starting Stage](../administration/projects#default-starting-stage) configured, the dialog pre-selects **Use default starting stage** — you can click **Start** without picking a stage manually.
+   - Uncheck the option to choose a different stage from the list instead.
 2. Once connected, a green indicator appears next to the title confirming the WebSocket connection is live.
 3. Chat by typing in the message box (press **Ctrl + Enter** to send) or by using the **Speak** button for voice input.
 4. When you're done, click **End Conversation** to disconnect cleanly.
