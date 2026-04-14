@@ -170,17 +170,22 @@ export class BonsaiWebRTCClient {
           }
         }
 
-        // Create a persistent MediaStream and notify the handler immediately so the
-        // caller can attach it to an <audio> element before any tracks arrive.
-        // Tracks are added to this stream as they come in via ontrack.
+        // Pre-create a MediaStream as fallback for cases where event.streams is empty.
         this.remoteStream = new MediaStream()
-        this.config.handlers.onRemoteStream?.(this.remoteStream)
 
         this.pc.ontrack = (event) => {
-          const tracks = event.streams[0]
-            ? event.streams[0].getTracks()
-            : [event.track]
-          tracks.forEach((track) => this.remoteStream!.addTrack(track))
+          // Prefer the stream sent by the server; fall back to our own wrapper.
+          if (event.streams.length > 0 && event.streams[0]) {
+            event.streams[0].getTracks().forEach((track) => {
+              if (!this.remoteStream!.getTracks().includes(track)) {
+                this.remoteStream!.addTrack(track)
+              }
+            })
+          } else {
+            this.remoteStream!.addTrack(event.track)
+          }
+          // Notify the caller each time a track arrives so it can call play() if needed.
+          this.config.handlers.onRemoteStream?.(this.remoteStream!)
         }
 
         // Acquire the microphone track and add it BEFORE generating the SDP offer

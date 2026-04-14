@@ -1258,7 +1258,10 @@ async function connectWebRTC() {
       sessionSettings: currentSessionSettings.value,
       onRemoteStream: (stream: MediaStream) => {
         if (webrtcRemoteAudio.value) {
-          webrtcRemoteAudio.value.srcObject = stream
+          if (webrtcRemoteAudio.value.srcObject !== stream) {
+            webrtcRemoteAudio.value.srcObject = stream
+          }
+          webrtcRemoteAudio.value.play().catch(() => {})
         }
       },
       onConnect: () => {
