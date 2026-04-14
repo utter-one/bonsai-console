@@ -109,7 +109,7 @@
                       @volume-change="(v: number) => { if (event.voiceOutputId) props.getVoiceOutput(event.voiceOutputId)?.player.setVolume(v) }" />
                     <!-- Show real-time text below audio player if transcription is in progress -->
                     <div v-if="event.isRealTime && event.message" class="mt-2 text-sm text-gray-700">
-                      <span class="whitespace-pre-wrap">{{ event.message }}</span>
+                      <span class="prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.message)" />
                       <span class="inline-block ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
                         title="Real-time transcription in progress"></span>
                     </div>
@@ -118,7 +118,7 @@
                   <!-- Regular text message -->
                   <template v-else>
                     <div class="relative">
-                      <p v-if="event.message" class="whitespace-pre-wrap dark:text-gray-200">{{ event.message }}</p>
+                      <div v-if="event.message" class="prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.message)" />
                       <!-- Real-time indicator -->
                       <span v-if="event.isRealTime"
                         class="inline-block ml-1 w-2 h-2 bg-current rounded-full animate-pulse" :class="{
@@ -199,6 +199,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { User, Bot, AlertCircle, Info, FileText, Wand2, Braces, Bug } from 'lucide-vue-next'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
@@ -208,6 +210,11 @@ import ConversationEventCard from '@/components/ConversationEventCard.vue'
 import { useConversationPreviews } from '@/composables'
 import type { ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
 import type { NormalizedEvent } from '@/components/events/eventHelpers'
+
+function renderMarkdown(content: string): string {
+  const raw = marked.parse(content) as string
+  return DOMPurify.sanitize(raw)
+}
 
 interface PlaygroundConversationEvent {
   type: 'User' | 'AI' | 'System' | 'Error' | 'ConversationEvent'
