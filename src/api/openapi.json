@@ -838,6 +838,43 @@
           "model"
         ]
       },
+      "OllamaLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name as pulled locally (e.g., llama3.2, gemma3, qwen3:8b)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
       "LlmSettings": {
         "anyOf": [
           {
@@ -851,6 +888,9 @@
           },
           {
             "$ref": "#/components/schemas/GeminiLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/OllamaLlmSettings"
           },
           {
             "nullable": true
@@ -1836,6 +1876,9 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
                 "nullable": true
@@ -4425,6 +4468,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
                     "nullable": true
@@ -7993,6 +8039,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -8165,6 +8214,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OllamaLlmSettings"
                     },
                     {
                       "nullable": true
@@ -8495,6 +8547,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -8597,6 +8652,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OllamaLlmSettings"
                     },
                     {
                       "nullable": true
@@ -8879,6 +8937,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -8990,6 +9051,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OllamaLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9146,6 +9210,9 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
                 "nullable": true
@@ -9424,6 +9491,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9684,6 +9754,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9862,6 +9935,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OllamaLlmSettings"
                     },
                     {
                       "nullable": true
@@ -11117,6 +11193,20 @@
               {
                 "type": "object",
                 "properties": {
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
                   "apiKey": {
                     "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
@@ -11502,6 +11592,20 @@
               {
                 "type": "object",
                 "properties": {
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
                   "apiKey": {
                     "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
@@ -11813,6 +11917,20 @@
                 "required": [
                   "apiKey"
                 ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                  }
+                },
                 "additionalProperties": false
               },
               {
@@ -12151,6 +12269,20 @@
                       "required": [
                         "apiKey"
                       ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                        },
+                        "apiKey": {
+                          "type": "string",
+                          "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                        }
+                      },
                       "additionalProperties": false
                     },
                     {
@@ -15702,6 +15834,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -15979,6 +16114,9 @@
                     "$ref": "#/components/schemas/GeminiLlmSettings"
                   },
                   {
+                    "$ref": "#/components/schemas/OllamaLlmSettings"
+                  },
+                  {
                     "nullable": true
                   }
                 ],
@@ -16067,6 +16205,9 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
                 "nullable": true
@@ -16223,6 +16364,9 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -16322,6 +16466,9 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
                 "nullable": true
@@ -16426,6 +16573,9 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
                 "nullable": true
@@ -22452,6 +22602,9 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -22709,6 +22862,9 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OllamaLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -22878,6 +23034,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -23082,6 +23241,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -23357,6 +23519,9 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -23560,6 +23725,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -23828,6 +23996,9 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OllamaLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -24006,6 +24177,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -24226,6 +24400,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -24508,6 +24685,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29472,6 +29652,9 @@
                             "$ref": "#/components/schemas/GeminiLlmSettings"
                           },
                           {
+                            "$ref": "#/components/schemas/OllamaLlmSettings"
+                          },
+                          {
                             "nullable": true
                           }
                         ],
@@ -30047,6 +30230,20 @@
                       {
                         "type": "object",
                         "properties": {
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                          },
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
                           "apiKey": {
                             "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
@@ -30358,6 +30555,20 @@
                           "required": [
                             "apiKey"
                           ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                            },
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                            }
+                          },
                           "additionalProperties": false
                         },
                         {
@@ -30854,6 +31065,20 @@
                               {
                                 "type": "object",
                                 "properties": {
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                                  },
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                                  }
+                                },
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
                                   "apiKey": {
                                     "type": "string",
                                     "description": "API key for authenticating with ElevenLabs"
@@ -31248,6 +31473,20 @@
                         {
                           "type": "object",
                           "properties": {
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                            },
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
                             "apiKey": {
                               "type": "string",
                               "description": "API key for authenticating with ElevenLabs"
@@ -31613,6 +31852,20 @@
                       {
                         "type": "object",
                         "properties": {
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                          },
+                          "apiKey": {
+                            "type": "string",
+                            "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
                           "apiKey": {
                             "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
@@ -31918,6 +32171,20 @@
                           "required": [
                             "apiKey"
                           ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud)"
+                            },
+                            "apiKey": {
+                              "type": "string",
+                              "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
+                            }
+                          },
                           "additionalProperties": false
                         },
                         {
@@ -39270,6 +39537,9 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -39597,6 +39867,9 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OllamaLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -39837,6 +40110,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -40173,6 +40449,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -40521,6 +40800,9 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -40749,6 +41031,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -41084,6 +41369,9 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OllamaLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -41332,6 +41620,9 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -41575,6 +41866,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
@@ -41927,6 +42221,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
                           "nullable": true
