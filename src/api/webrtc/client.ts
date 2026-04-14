@@ -101,6 +101,7 @@ export class BonsaiWebRTCClient {
   private pc: RTCPeerConnection | null = null
   private controlChannel: RTCDataChannel | null = null
   private micStream: MediaStream | null = null
+  private remoteStream: MediaStream | null = null
   private sessionId: string | null = null
   private conversationId: string | null = null
   private projectSettings: ProjectSettings | null = null
@@ -169,12 +170,17 @@ export class BonsaiWebRTCClient {
           }
         }
 
-        // Receive the server's outbound audio track (AI voice output).
+        // Create a persistent MediaStream and notify the handler immediately so the
+        // caller can attach it to an <audio> element before any tracks arrive.
+        // Tracks are added to this stream as they come in via ontrack.
+        this.remoteStream = new MediaStream()
+        this.config.handlers.onRemoteStream?.(this.remoteStream)
+
         this.pc.ontrack = (event) => {
-          const stream = event.streams[0]
-          if (stream) {
-            this.config.handlers.onRemoteStream?.(stream)
-          }
+          const tracks = event.streams[0]
+            ? event.streams[0].getTracks()
+            : [event.track]
+          tracks.forEach((track) => this.remoteStream!.addTrack(track))
         }
 
         // Acquire the microphone track and add it BEFORE generating the SDP offer
@@ -541,6 +547,10 @@ export class BonsaiWebRTCClient {
     if (this.micStream) {
       this.micStream.getTracks().forEach((track) => track.stop())
       this.micStream = null
+    }
+    if (this.remoteStream) {
+      this.remoteStream.getTracks().forEach((track) => track.stop())
+      this.remoteStream = null
     }
     if (this.pc) {
       try { this.pc.close() } catch { /* ignore */ }

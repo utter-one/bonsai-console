@@ -874,8 +874,11 @@ const canSendMessage = computed(() => {
 })
 
 const canRecordVoice = computed(() => {
-  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
+  const baseConditions = wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
     && (currentSessionSettings.value?.sendVoiceInput ?? false)
+  // In WebRTC mode the mic audio flows via the native RTP track — no recording composable needed
+  if (connectionType.value === 'webrtc') return baseConditions
+  return baseConditions && recording.value?.recordingState === 'idle'
 })
 
 // Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
@@ -955,8 +958,8 @@ async function startVoiceRecording() {
   stopAllAudioPlayback()
 
   try {
-    if (isServerVadMode.value) {
-      // Server VAD mode: skip start_user_voice_input — server manages turn boundaries
+    if (isServerVadMode.value && connectionType.value !== 'webrtc') {
+      // Server VAD mode (WebSocket only): skip start_user_voice_input — server manages turn boundaries
       ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
     } else {
       // Standard mode: start voice input phase on backend and get inputTurnId
