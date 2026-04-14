@@ -3,7 +3,7 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { formatEnum, formatDate, usePagination, useTableSort, useSearch } from '@/composables'
+import { formatDate, usePagination, useTableSort, useSearch } from '@/composables'
 import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -156,12 +156,6 @@ async function deleteStage(stage: StageResponse) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('enterBehavior')">
-                  <div class="flex items-center gap-1">
-                    Enter Behavior
-                    <component :is="getSortIcon('enterBehavior')" class="w-4 h-4" :class="sortKey === 'enterBehavior' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell">Features</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -179,9 +173,6 @@ async function deleteStage(stage: StageResponse) {
                   @click="editStage(stage)">
                   {{ stage.name }}
                   <span v-if="stage.archived" class="badge badge-error ml-2">Archived</span>
-                </td>
-                <td class="table-cell">
-                  <span class="badge-secondary whitespace-nowrap">{{ formatEnum(stage.enterBehavior) }}</span>
                 </td>
                 <td class="table-cell">
                   <div class="flex gap-2 items-center">
