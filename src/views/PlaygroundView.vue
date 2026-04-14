@@ -1667,7 +1667,8 @@ function convertApiEventToDisplayEvent(apiEvent: ConversationEventResponse): Con
   }
 }
 
-async function handleJumpToStage(stage: StageResponse) {
+async function handleJumpToStage(stage: StageResponse | null) {
+  if (!stage) return
   if (!wsClient.value || !wsClient.value.client.value) {
     addEvent({
       type: 'Error',
