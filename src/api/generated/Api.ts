@@ -49,6 +49,7 @@ import {
   MigrationJob,
   MigrationPreview,
   ModerationProviderInfo,
+  OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
@@ -2270,7 +2271,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2366,7 +2368,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2447,7 +2450,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2538,7 +2542,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2662,7 +2667,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2761,7 +2767,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -2859,7 +2866,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -2942,7 +2950,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3037,7 +3046,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3163,7 +3173,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -5177,7 +5188,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -5427,6 +5439,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+            baseUrl?: string;
+            /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+            apiKey?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -5523,6 +5541,12 @@ export class Api<
           | {
               /** Google API key */
               apiKey: string;
+            }
+          | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -5689,6 +5713,12 @@ export class Api<
                 apiKey: string;
               }
             | {
+                /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+                baseUrl?: string;
+                /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+                apiKey?: string;
+              }
+            | {
                 /** API key for authenticating with ElevenLabs */
                 apiKey: string;
               }
@@ -5835,6 +5865,12 @@ export class Api<
               apiKey: string;
             }
           | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
+            }
+          | {
               /** API key for authenticating with ElevenLabs */
               apiKey: string;
             }
@@ -5968,6 +6004,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+            baseUrl?: string;
+            /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+            apiKey?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -6062,6 +6104,12 @@ export class Api<
           | {
               /** Google API key */
               apiKey: string;
+            }
+          | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -9362,7 +9410,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9478,7 +9527,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -9579,7 +9629,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9713,7 +9764,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9857,7 +9909,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9942,7 +9995,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10056,7 +10110,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10155,7 +10210,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10235,7 +10291,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10377,7 +10434,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */

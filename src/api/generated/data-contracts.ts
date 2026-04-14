@@ -606,12 +606,45 @@ export interface XAILlmSettings {
   timeout?: number;
 }
 
+export interface OllamaLlmSettings {
+  /**
+   * Model name as pulled locally (e.g., llama3.2, gemma3, qwen3:8b)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
   | OpenAILegacyLlmSettings
   | AnthropicLlmSettings
-  | GeminiLlmSettings;
+  | GeminiLlmSettings
+  | OllamaLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1144,7 +1177,8 @@ export interface FillerSettings {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -2263,7 +2297,8 @@ export interface UpdateAgentRequest {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -3774,7 +3809,8 @@ export interface StageResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -3835,7 +3871,8 @@ export interface StageListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -3986,7 +4023,8 @@ export interface ClassifierResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4027,7 +4065,8 @@ export interface ClassifierListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -4164,7 +4203,8 @@ export interface ContextTransformerResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -4207,7 +4247,8 @@ export interface ContextTransformerListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -4286,7 +4327,8 @@ export interface CreateSmartFunctionTool {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -4403,7 +4445,8 @@ export interface UpdateSmartFunctionTool {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -4500,7 +4543,8 @@ export interface ToolResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -4559,7 +4603,8 @@ export interface ToolListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -5139,6 +5184,12 @@ export interface CreateProviderRequest {
         apiKey: string;
       }
     | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5265,6 +5316,12 @@ export interface UpdateProviderRequest {
         apiKey: string;
       }
     | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5360,6 +5417,12 @@ export interface ProviderResponse {
     | {
         /** Google API key */
         apiKey: string;
+      }
+    | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
       }
     | {
         /** API key for authenticating with ElevenLabs */
@@ -5464,6 +5527,12 @@ export interface ProviderListResponse {
       | {
           /** Google API key */
           apiKey: string;
+        }
+      | {
+          /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+          baseUrl?: string;
+          /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+          apiKey?: string;
         }
       | {
           /** API key for authenticating with ElevenLabs */
@@ -6892,7 +6961,8 @@ export interface FillerSettingsExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -6991,7 +7061,8 @@ export interface AgentExchangeV1 {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -7024,7 +7095,8 @@ export interface StageExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -7075,7 +7147,8 @@ export interface ClassifierExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -7108,7 +7181,8 @@ export interface ContextTransformerExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -7144,7 +7218,8 @@ export interface ToolExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
