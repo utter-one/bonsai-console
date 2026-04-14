@@ -128,6 +128,7 @@
 
     <!-- Modals -->
     <StageSelectionModal v-if="showStartConversationModal" :project-id="projectId" title="Start Conversation"
+      :default-stage-id="projectSelectionStore.selectedProject?.startingStageId"
       @close="showStartConversationModal = false" @select="handleStartConversation" />
 
     <StageSelectionModal v-if="showJumpToStageDialog" :project-id="projectId" title="Jump to Stage"
@@ -1495,7 +1496,7 @@ async function ensureUserExists(): Promise<string> {
   }
 }
 
-async function handleStartConversation(stage: StageResponse) {
+async function handleStartConversation(stage: StageResponse | null) {
   if (!wsClient.value) return
   if (isConversationStarting.value || isConversationEnding.value) return
 
@@ -1509,7 +1510,7 @@ async function handleStartConversation(stage: StageResponse) {
 
     addEvent({
       type: 'System',
-      message: `Starting conversation with stage: ${stage.name}`,
+      message: stage ? `Starting conversation with stage: ${stage.name}` : 'Starting conversation with default starting stage',
       timestamp: new Date()
     })
 
@@ -1518,8 +1519,8 @@ async function handleStartConversation(stage: StageResponse) {
 
     const convId = await wsClient.value.startConversation({
       userId: userId,
-      stageId: stage.id,
-      agentId: stage.agentId,
+      stageId: stage?.id,
+      agentId: stage?.agentId,
       timezone: selectedTimezone.value || undefined,
     })
 
