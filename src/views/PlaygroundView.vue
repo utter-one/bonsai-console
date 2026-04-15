@@ -89,6 +89,7 @@
             :is-server-vad-mode="isServerVadMode"
             :can-record-voice="canRecordVoice"
             :recording="recording"
+            :is-voice-input-active="isVoiceInputActive"
             :audio-settings="audioSettings"
             :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
             :is-input-focused="isInputFocused"
@@ -829,7 +830,10 @@ watch(
     if (readyAndActive && !wasReadyAndActive) {
       // Conversation just became fully active — start streaming
       await nextTick()
-      if (recording.value && recording.value.recordingState === 'idle') {
+      // In WebRTC mode the mic already flows via the RTP track; no recording composable needed
+      if (connectionType.value === 'webrtc') {
+        await startVoiceRecording()
+      } else if (recording.value && recording.value.recordingState === 'idle') {
         await startVoiceRecording()
       }
     } else if (!isConversationActive.value) {
@@ -874,8 +878,11 @@ const canSendMessage = computed(() => {
 })
 
 const canRecordVoice = computed(() => {
-  return wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value && recording.value?.recordingState === 'idle'
+  const baseConditions = wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
     && (currentSessionSettings.value?.sendVoiceInput ?? false)
+  // In WebRTC mode the mic audio flows via the native RTP track — no recording composable needed
+  if (connectionType.value === 'webrtc') return baseConditions && !isVoiceInputActive.value
+  return baseConditions && recording.value?.recordingState === 'idle'
 })
 
 // Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
@@ -890,6 +897,7 @@ function parseSampleRate(audioFormat?: string): number {
 
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+const isVoiceInputActive = ref(false)
 const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
 
 // Initialize/update recording when project settings change
@@ -916,45 +924,28 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     echoCancellation: audioSettings.value.echoCancellation,
     noiseSuppression: audioSettings.value.noiseSuppression,
     autoGainControl: audioSettings.value.autoGainControl,
-    ...(connectionType.value === 'webrtc'
-      ? {
-          onRawChunk: (buffer: ArrayBuffer) => {
-            const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
-            if (!client) return
-            try {
-              client.sendVoiceChunkRaw(buffer)
-            } catch (error) {
-              console.error('Failed to send voice chunk:', error)
-              addEvent({
-                type: 'Error',
-                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-                timestamp: new Date()
-              })
-            }
-          },
+    ...(connectionType.value !== 'webrtc' ? {
+      onChunk: async (base64Audio: string) => {
+        const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+        if (!client) return
+        if (isConversationEnding.value || !isConversationActive.value) return
+        try {
+          if (isServerVadMode.value) {
+            await client.sendVadVoiceChunk(base64Audio)
+          } else {
+            await client.sendVoiceChunk(base64Audio)
+          }
+        } catch (error) {
+          if (isConversationEnding.value || !isConversationActive.value) return
+          console.error('Failed to send voice chunk:', error)
+          addEvent({
+            type: 'Error',
+            message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date()
+          })
         }
-      : {
-          onChunk: async (base64Audio: string) => {
-            const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
-            if (!client) return
-            if (isConversationEnding.value || !isConversationActive.value) return
-            try {
-              if (isServerVadMode.value) {
-                await client.sendVadVoiceChunk(base64Audio)
-              } else {
-                await client.sendVoiceChunk(base64Audio)
-              }
-            } catch (error) {
-              if (isConversationEnding.value || !isConversationActive.value) return
-              console.error('Failed to send voice chunk:', error)
-              addEvent({
-                type: 'Error',
-                message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-                timestamp: new Date()
-              })
-            }
-          },
-        }),
+      },
+    } : {}),
     onError: (error: Error) => {
       addEvent({
         type: 'Error',
@@ -966,17 +957,23 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
 }, { immediate: true })
 
 async function startVoiceRecording() {
-  if (!canRecordVoice.value || !wsClient.value || !recording.value) return
+  if (!canRecordVoice.value || !wsClient.value) return
+  if (connectionType.value !== 'webrtc' && !recording.value) return
 
   stopAllAudioPlayback()
 
   try {
-    if (isServerVadMode.value) {
-      // Server VAD mode: skip start_user_voice_input — server manages turn boundaries
+    if (isServerVadMode.value && connectionType.value === 'webrtc') {
+      // WebRTC + server VAD: audio already flows via the RTP track continuously;
+      // the server auto-detects turn boundaries — nothing to do on the client side.
+      return
+    } else if (isServerVadMode.value) {
+      // WebSocket server VAD: reset streaming state — server manages turn boundaries
       ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
     } else {
       // Standard mode: start voice input phase on backend and get inputTurnId
       const inputTurnId = await wsClient.value.startVoiceInput()
+      isVoiceInputActive.value = true
 
       // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
       const event: ConversationEvent = {
@@ -993,8 +990,10 @@ async function startVoiceRecording() {
       nextTick(() => scrollHistoryToBottom())
     }
 
-    // Start recording from microphone
-    await recording.value.startRecording()
+    // For WebSocket: start recording; for WebRTC the mic audio flows via the RTP track
+    if (connectionType.value !== 'webrtc' && recording.value) {
+      await recording.value.startRecording()
+    }
   } catch (error) {
     addEvent({
       type: 'Error',
@@ -1005,11 +1004,14 @@ async function startVoiceRecording() {
 }
 
 async function stopVoiceRecording() {
-  if (!wsClient.value || !recording.value) return
+  if (!wsClient.value) return
+  if (connectionType.value !== 'webrtc' && !recording.value) return
 
   try {
-    // Stop recording (will process remaining chunks)
-    recording.value.stopRecording()
+    // For WebSocket: stop recording (will process remaining chunks)
+    if (connectionType.value !== 'webrtc' && recording.value) {
+      recording.value.stopRecording()
+    }
 
     if (!isServerVadMode.value) {
       // Mark the last event not real-time anymore (in case onChunk is still processing)
@@ -1020,6 +1022,7 @@ async function stopVoiceRecording() {
 
       // End voice input phase on backend
       await wsClient.value.endVoiceInput()
+      isVoiceInputActive.value = false
     }
   } catch (error) {
     addEvent({
@@ -1053,45 +1056,28 @@ function handleAudioSettingsSave(settings: AudioSettings) {
       echoCancellation: settings.echoCancellation,
       noiseSuppression: settings.noiseSuppression,
       autoGainControl: settings.autoGainControl,
-      ...(connectionType.value === 'webrtc'
-        ? {
-            onRawChunk: (buffer: ArrayBuffer) => {
-              const client = wsClient.value as ReturnType<typeof useWebRtcClient> | null
-              if (!client) return
-              try {
-                client.sendVoiceChunkRaw(buffer)
-              } catch (error) {
-                console.error('Failed to send voice chunk:', error)
-                addEvent({
-                  type: 'Error',
-                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-                  timestamp: new Date()
-                })
-              }
-            },
+      ...(connectionType.value !== 'webrtc' ? {
+        onChunk: async (base64Audio: string) => {
+          const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+          if (!client) return
+          if (isConversationEnding.value || !isConversationActive.value) return
+          try {
+            if (isServerVadMode.value) {
+              await client.sendVadVoiceChunk(base64Audio)
+            } else {
+              await client.sendVoiceChunk(base64Audio)
+            }
+          } catch (error) {
+            if (isConversationEnding.value || !isConversationActive.value) return
+            console.error('Failed to send voice chunk:', error)
+            addEvent({
+              type: 'Error',
+              message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
+              timestamp: new Date()
+            })
           }
-        : {
-            onChunk: async (base64Audio: string) => {
-              const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
-              if (!client) return
-              if (isConversationEnding.value || !isConversationActive.value) return
-              try {
-                if (isServerVadMode.value) {
-                  await client.sendVadVoiceChunk(base64Audio)
-                } else {
-                  await client.sendVoiceChunk(base64Audio)
-                }
-              } catch (error) {
-                if (isConversationEnding.value || !isConversationActive.value) return
-                console.error('Failed to send voice chunk:', error)
-                addEvent({
-                  type: 'Error',
-                  message: `Failed to send audio: ${error instanceof Error ? error.message : String(error)}`,
-                  timestamp: new Date()
-                })
-              }
-            },
-          }),
+        },
+      } : {}),
       onError: (error: Error) => {
         addEvent({
           type: 'Error',
@@ -1250,6 +1236,8 @@ async function connectWebSocket() {
   }
 }
 
+const webrtcRemoteAudio = ref<HTMLAudioElement | null>(null)
+
 async function connectWebRTC() {
   if (!canConnectWebSocket.value) return
 
@@ -1265,8 +1253,28 @@ async function connectWebRTC() {
       timestamp: new Date()
     })
 
+    // Prepare the audio element that will receive the server's outbound audio track.
+    if (!webrtcRemoteAudio.value) {
+      webrtcRemoteAudio.value = new Audio()
+      webrtcRemoteAudio.value.autoplay = true
+    }
+
     const client = useWebRtcClient(apiKey, {
+      microphoneConstraints: {
+        echoCancellation: audioSettings.value.echoCancellation,
+        noiseSuppression: audioSettings.value.noiseSuppression,
+        autoGainControl: audioSettings.value.autoGainControl,
+        ...(audioSettings.value.deviceId ? { deviceId: audioSettings.value.deviceId } : {}),
+      },
       sessionSettings: currentSessionSettings.value,
+      onRemoteStream: (stream: MediaStream) => {
+        if (webrtcRemoteAudio.value) {
+          if (webrtcRemoteAudio.value.srcObject !== stream) {
+            webrtcRemoteAudio.value.srcObject = stream
+          }
+          webrtcRemoteAudio.value.play().catch(() => {})
+        }
+      },
       onConnect: () => {
         addEvent({
           type: 'System',
@@ -1280,6 +1288,10 @@ async function connectWebRTC() {
           message: 'Disconnected from WebRTC',
           timestamp: new Date()
         })
+        if (webrtcRemoteAudio.value) {
+          webrtcRemoteAudio.value.srcObject = null
+          webrtcRemoteAudio.value = null
+        }
       },
       onError: (error) => {
         addEvent({
@@ -1304,26 +1316,7 @@ async function connectWebRTC() {
           conversationEvents.value.push(event)
         }
 
-        if (msg.expectVoice) {
-          event.voiceOutputId = msg.outputTurnId
-          const player = useAudioPlayback()
-          activeVoiceOutputs.value.set(msg.outputTurnId, {
-            player: player as any,
-            transcript: null
-          })
-        }
-
         nextTick(() => scrollHistoryToBottom())
-      },
-      onAiAudioFrame: (turnId: string, audioData: ArrayBuffer) => {
-        const voiceOutput = activeVoiceOutputs.value.get(turnId)
-        if (!voiceOutput) {
-          console.warn('Received WebRTC audio frame for unknown output turn:', turnId)
-          return
-        }
-        // Use the project's ASR sample rate as a proxy; defaults to 16000 for PCM
-        const sampleRate = parseSampleRate(client.projectSettings.value?.asrConfig?.settings?.audioFormat)
-        voiceOutput.player.addRawChunk(audioData, sampleRate)
       },
       onAiOutputEnd: (msg: EndAiGenerationOutput) => {
         const voiceOutput = activeVoiceOutputs.value.get(msg.outputTurnId)

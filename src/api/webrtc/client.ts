@@ -65,8 +65,8 @@ type ControlMessage =
 export interface WebRTCEventHandlers {
   onUserTranscribedChunk?: (message: UserTranscribedChunk) => void
   onAiOutputStart?: (message: StartAiGenerationOutput) => void
-  /** Called when a binary audio frame arrives from the AI on the audio DataChannel */
-  onAiAudioFrame?: (turnId: string, audioData: ArrayBuffer) => void
+  /** Called when the server's outbound audio track arrives — attach its stream to an <audio> element */
+  onRemoteStream?: (stream: MediaStream) => void
   onAiOutputEnd?: (message: EndAiGenerationOutput) => void
   onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
   onConversationEvent?: (message: ConversationEvent) => void
@@ -88,6 +88,8 @@ export interface WebRTCClientConfig {
     receiveTranscriptionUpdates: boolean
     receiveEvents?: boolean
   }
+  /** Constraints passed to getUserMedia for the microphone track. Defaults to true. */
+  microphoneConstraints?: MediaTrackConstraints | boolean
   timeout?: number
   debug?: boolean
 }
@@ -98,7 +100,8 @@ export type { StartConversationOptions } from '../websocket/client'
 export class BonsaiWebRTCClient {
   private pc: RTCPeerConnection | null = null
   private controlChannel: RTCDataChannel | null = null
-  private audioChannel: RTCDataChannel | null = null
+  private micStream: MediaStream | null = null
+  private remoteStream: MediaStream | null = null
   private sessionId: string | null = null
   private conversationId: string | null = null
   private projectSettings: ProjectSettings | null = null
@@ -108,7 +111,7 @@ export class BonsaiWebRTCClient {
     reject: (error: Error) => void
     timeout: ReturnType<typeof setTimeout>
   }>()
-  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings'>> & Pick<WebRTCClientConfig, 'sessionSettings'>
+  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>> & Pick<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>
 
   constructor(config: WebRTCClientConfig) {
     this.config = {
@@ -126,16 +129,10 @@ export class BonsaiWebRTCClient {
           iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         })
 
+        // Create the control DataChannel BEFORE generating the offer.
         this.controlChannel = this.pc.createDataChannel('control', { ordered: true })
-        this.audioChannel = this.pc.createDataChannel('audio', {
-          ordered: false,
-          maxRetransmits: 0,
-        })
 
-        let controlOpen = false
-        let audioOpen = false
-
-        const onBothOpen = async () => {
+        const onControlOpen = async () => {
           this.config.handlers.onConnect?.()
           try {
             await this.authenticate()
@@ -146,12 +143,7 @@ export class BonsaiWebRTCClient {
         }
 
         this.controlChannel.onopen = () => {
-          controlOpen = true
-          if (audioOpen) onBothOpen()
-        }
-        this.audioChannel.onopen = () => {
-          audioOpen = true
-          if (controlOpen) onBothOpen()
+          onControlOpen()
         }
 
         this.controlChannel.onmessage = (event) => {
@@ -161,24 +153,6 @@ export class BonsaiWebRTCClient {
           } catch (error) {
             this.log('Error parsing control message:', error)
           }
-        }
-
-        this.audioChannel.onmessage = (event: MessageEvent) => {
-          const raw = event.data
-          const toBuffer: Promise<ArrayBuffer> =
-            raw instanceof ArrayBuffer
-              ? Promise.resolve(raw)
-              : (raw as Blob).arrayBuffer()
-
-          toBuffer.then((buf) => {
-            if (buf.byteLength < 2) return
-            const view = new DataView(buf)
-            const turnIdLength = view.getUint16(0, true)
-            if (buf.byteLength < 2 + turnIdLength) return
-            const turnId = new TextDecoder().decode(new Uint8Array(buf, 2, turnIdLength))
-            const audioData = buf.slice(2 + turnIdLength)
-            this.config.handlers.onAiAudioFrame?.(turnId, audioData)
-          })
         }
 
         this.controlChannel.onclose = () => {
@@ -196,7 +170,33 @@ export class BonsaiWebRTCClient {
           }
         }
 
-        this.pc.createOffer().then(async (offer) => {
+        // Pre-create a MediaStream as fallback for cases where event.streams is empty.
+        this.remoteStream = new MediaStream()
+
+        this.pc.ontrack = (event) => {
+          // Prefer the stream sent by the server; fall back to our own wrapper.
+          if (event.streams.length > 0 && event.streams[0]) {
+            event.streams[0].getTracks().forEach((track) => {
+              if (!this.remoteStream!.getTracks().includes(track)) {
+                this.remoteStream!.addTrack(track)
+              }
+            })
+          } else {
+            this.remoteStream!.addTrack(event.track)
+          }
+          // Notify the caller each time a track arrives so it can call play() if needed.
+          this.config.handlers.onRemoteStream?.(this.remoteStream!)
+        }
+
+        // Acquire the microphone track and add it BEFORE generating the SDP offer
+        // so it is included in the SDP and the server can answer with its own audio track.
+        navigator.mediaDevices.getUserMedia({
+          audio: this.config.microphoneConstraints ?? true,
+        }).then(async (stream) => {
+          this.micStream = stream
+          stream.getAudioTracks().forEach((track) => this.pc!.addTrack(track, stream))
+
+          const offer = await this.pc!.createOffer()
           await this.pc!.setLocalDescription(offer)
 
           const signalingUrl = `${this.config.apiBaseUrl}api/webrtc/offer`
@@ -214,7 +214,7 @@ export class BonsaiWebRTCClient {
 
           const { sdpAnswer } = await response.json() as { sdpAnswer: string }
           await this.pc!.setRemoteDescription({ type: 'answer', sdp: sdpAnswer })
-          this.log('Remote description set, waiting for DataChannels to open...')
+          this.log('Remote description set, waiting for control DataChannel to open...')
         }).catch(reject)
       } catch (error) {
         reject(error)
@@ -324,22 +324,6 @@ export class BonsaiWebRTCClient {
       }
       throw new Error(response.error || 'Failed to start voice input')
     })
-  }
-
-  /**
-   * Send a raw PCM audio chunk over the audio DataChannel.
-   * The buffer must be Int16 LE PCM matching the project's ASR sample rate.
-   * @param audioBuffer - Raw Int16 LE PCM bytes
-   */
-  sendVoiceChunkRaw(audioBuffer: ArrayBuffer): void {
-    if (!this.currentInputTurnId) {
-      throw new Error('No active voice input turn. Call startVoiceInput() first.')
-    }
-    if (!this.audioChannel || this.audioChannel.readyState !== 'open') {
-      throw new Error('Audio DataChannel is not open')
-    }
-    const frame = this.encodeAudioFrame(this.currentInputTurnId, audioBuffer)
-    this.audioChannel.send(frame)
   }
 
   async endVoiceInput(): Promise<void> {
@@ -467,15 +451,6 @@ export class BonsaiWebRTCClient {
   isAuthenticated(): boolean { return this.pc !== null && this.sessionId !== null }
   hasActiveConversation(): boolean { return this.conversationId !== null }
 
-  private encodeAudioFrame(turnId: string, audioBuffer: ArrayBuffer): ArrayBuffer {
-    const turnIdBytes = new TextEncoder().encode(turnId)
-    const out = new Uint8Array(2 + turnIdBytes.length + audioBuffer.byteLength)
-    new DataView(out.buffer).setUint16(0, turnIdBytes.length, true)
-    out.set(turnIdBytes, 2)
-    out.set(new Uint8Array(audioBuffer), 2 + turnIdBytes.length)
-    return out.buffer
-  }
-
   private sendRequest<T>(message: any, handler: (response: T) => any): Promise<any> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -574,9 +549,13 @@ export class BonsaiWebRTCClient {
       try { this.controlChannel.close() } catch { /* ignore */ }
       this.controlChannel = null
     }
-    if (this.audioChannel) {
-      try { this.audioChannel.close() } catch { /* ignore */ }
-      this.audioChannel = null
+    if (this.micStream) {
+      this.micStream.getTracks().forEach((track) => track.stop())
+      this.micStream = null
+    }
+    if (this.remoteStream) {
+      this.remoteStream.getTracks().forEach((track) => track.stop())
+      this.remoteStream = null
     }
     if (this.pc) {
       try { this.pc.close() } catch { /* ignore */ }

@@ -262,7 +262,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         <div class="md:mr-12">
           <div class="flex items-center gap-2">
             <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8" />
-            <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai Console</h1>
+            <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai&nbsp;Console</h1>
           </div>
         </div>
 
