@@ -34,6 +34,8 @@ import {
   ExportBundle,
   FieldDescriptor,
   FillerSettings,
+  FunnelQuery,
+  FunnelQueryResponse,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
@@ -61,6 +63,7 @@ import {
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
+  SavedFunnelQuery,
   SavedSliceQuery,
   ServerVadConfig,
   SliceQuery,
@@ -2223,6 +2226,155 @@ export class Api<
       ...params,
     });
   /**
+   * @description Executes a user-centric funnel query that cascades qualifying users through ordered event steps. Returns per-step user counts and conversion rates.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsQueryCreate
+   * @summary Run a funnel query
+   * @request POST:/api/projects/{projectId}/analytics/funnels/query
+   * @secure
+   */
+  projectsAnalyticsFunnelsQueryCreate = (
+    projectId: string,
+    data: FunnelQuery,
+    params: RequestParams = {},
+  ) =>
+    this.request<FunnelQueryResponse, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/query`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the operator's own saved funnel queries plus all shared queries within the project, sorted by updatedAt descending.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesList
+   * @summary List saved funnel queries
+   * @request GET:/api/projects/{projectId}/analytics/funnels/saved-queries
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery[], any>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Saves a named funnel query configuration for later reuse. The name must be unique within the project.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesCreate
+   * @summary Create a saved funnel query
+   * @request POST:/api/projects/{projectId}/analytics/funnels/saved-queries
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique name for this saved funnel query within the project
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      /** The full funnel query configuration to save */
+      query: FunnelQuery;
+      /**
+       * Whether this query is visible to all operators in the project
+       * @default false
+       */
+      isShared?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing saved funnel query with optimistic locking. Only the owning operator or a super_admin may update.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesUpdate
+   * @summary Update a saved funnel query
+   * @request PUT:/api/projects/{projectId}/analytics/funnels/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated name for this saved funnel query
+       * @minLength 1
+       * @maxLength 255
+       */
+      name?: string;
+      /** Updated funnel query configuration */
+      query?: FunnelQuery;
+      /** Updated sharing flag */
+      isShared?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a saved funnel query with optimistic locking. Only the owning operator or a super_admin may delete.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesDelete
+   * @summary Delete a saved funnel query
+   * @request DELETE:/api/projects/{projectId}/analytics/funnels/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
    * @description Creates a new classifier with specified name, prompt, and configuration
    *
    * @tags Classifiers
@@ -3633,6 +3785,8 @@ export class Api<
             | {
                 /** Name of the action that triggered this variable update */
                 sourceActionName: string;
+                /** Names of the variables that were changed by this update */
+                changedVariableNames: string[];
                 /** Snapshot of all conversation variables after the update */
                 variables: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
@@ -3640,6 +3794,8 @@ export class Api<
             | {
                 /** Name of the action that triggered this profile update */
                 sourceActionName: string;
+                /** Names of the profile fields that were changed by this update */
+                changedProfileNames: string[];
                 /** Updated user profile data */
                 profile: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
@@ -3906,6 +4062,8 @@ export class Api<
           | {
               /** Name of the action that triggered this variable update */
               sourceActionName: string;
+              /** Names of the variables that were changed by this update */
+              changedVariableNames: string[];
               /** Snapshot of all conversation variables after the update */
               variables: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
@@ -3913,6 +4071,8 @@ export class Api<
           | {
               /** Name of the action that triggered this profile update */
               sourceActionName: string;
+              /** Names of the profile fields that were changed by this update */
+              changedProfileNames: string[];
               /** Updated user profile data */
               profile: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
