@@ -6775,6 +6775,13 @@
                     "type": "string",
                     "description": "Name of the action that triggered this variable update"
                   },
+                  "changedVariableNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Names of the variables that were changed by this update"
+                  },
                   "variables": {
                     "type": "object",
                     "additionalProperties": {
@@ -6791,6 +6798,7 @@
                 },
                 "required": [
                   "sourceActionName",
+                  "changedVariableNames",
                   "variables"
                 ]
               },
@@ -6800,6 +6808,13 @@
                   "sourceActionName": {
                     "type": "string",
                     "description": "Name of the action that triggered this profile update"
+                  },
+                  "changedProfileNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Names of the profile fields that were changed by this update"
                   },
                   "profile": {
                     "type": "object",
@@ -6817,6 +6832,7 @@
                 },
                 "required": [
                   "sourceActionName",
+                  "changedProfileNames",
                   "profile"
                 ]
               },
@@ -7541,6 +7557,13 @@
                           "type": "string",
                           "description": "Name of the action that triggered this variable update"
                         },
+                        "changedVariableNames": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Names of the variables that were changed by this update"
+                        },
                         "variables": {
                           "type": "object",
                           "additionalProperties": {
@@ -7557,6 +7580,7 @@
                       },
                       "required": [
                         "sourceActionName",
+                        "changedVariableNames",
                         "variables"
                       ]
                     },
@@ -7566,6 +7590,13 @@
                         "sourceActionName": {
                           "type": "string",
                           "description": "Name of the action that triggered this profile update"
+                        },
+                        "changedProfileNames": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Names of the profile fields that were changed by this update"
                         },
                         "profile": {
                           "type": "object",
@@ -7583,6 +7614,7 @@
                       },
                       "required": [
                         "sourceActionName",
+                        "changedProfileNames",
                         "profile"
                       ]
                     },
@@ -14334,6 +14366,203 @@
           "unit"
         ],
         "description": "Relative time range (e.g. { amount: 7, unit: \"days\" }). Mutually exclusive with from/to — takes precedence if all three are provided."
+      },
+      "FunnelStep": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "enter_stage",
+              "end_stage",
+              "action_fire",
+              "variable_changed",
+              "user_profile_changed",
+              "session_started",
+              "tool_response"
+            ],
+            "description": "Event type that defines this funnel step"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Event-specific filter parameters; see FunnelStep documentation for required keys per eventType"
+          }
+        },
+        "required": [
+          "eventType",
+          "params"
+        ]
+      },
+      "FunnelQuery": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelStep"
+            },
+            "maxItems": 15,
+            "description": "Ordered list of funnel steps; minimum 2, maximum 15"
+          },
+          "relativeTime": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelativeTime"
+              },
+              {
+                "description": "Relative look-back window (mutually exclusive with from/to)"
+              }
+            ]
+          },
+          "from": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Time window start, inclusive (ISO 8601; mutually exclusive with relativeTime)"
+          },
+          "to": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Time window end, inclusive (ISO 8601; mutually exclusive with relativeTime)"
+          }
+        },
+        "required": [
+          "steps"
+        ]
+      },
+      "FunnelStepResult": {
+        "type": "object",
+        "properties": {
+          "stepNumber": {
+            "type": "integer",
+            "description": "1-based index of this step in the input steps array"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label generated by the server"
+          },
+          "userCount": {
+            "type": "integer",
+            "description": "Absolute count of unique users who reached this step"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "userCount / usersAtStart × 100; always 100.0 for step 1"
+          },
+          "dropoffCount": {
+            "type": "integer",
+            "description": "Users lost relative to the previous step; 0 for step 1"
+          },
+          "dropoffPercentage": {
+            "type": "number",
+            "description": "dropoffCount / usersAtStart × 100; 0.0 for step 1"
+          }
+        },
+        "required": [
+          "stepNumber",
+          "label",
+          "userCount",
+          "percentage",
+          "dropoffCount",
+          "dropoffPercentage"
+        ]
+      },
+      "FunnelQueryResponse": {
+        "type": "object",
+        "properties": {
+          "totalConversionRate": {
+            "type": "number",
+            "description": "Percentage of step-1 users who reached the last step (0.0–100.0)"
+          },
+          "usersAtStart": {
+            "type": "integer",
+            "description": "Absolute count of unique users who matched step 1"
+          },
+          "usersAtEnd": {
+            "type": "integer",
+            "description": "Absolute count of unique users who matched the last step"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelStepResult"
+            },
+            "description": "One result entry per input step, in order"
+          }
+        },
+        "required": [
+          "totalConversionRate",
+          "usersAtStart",
+          "usersAtEnd",
+          "steps"
+        ]
+      },
+      "SavedFunnelQuery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the saved funnel query"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the saved funnel query"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project this query belongs to"
+          },
+          "operatorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Operator who created this query, or null if the operator has been deleted"
+          },
+          "query": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FunnelQuery"
+              },
+              {
+                "description": "The saved funnel query configuration"
+              }
+            ]
+          },
+          "isShared": {
+            "type": "boolean",
+            "description": "Whether this query is visible to all operators in the project"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the query was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the query was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "projectId",
+          "operatorId",
+          "query",
+          "isShared",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "ChannelCapabilities": {
         "type": "object",
@@ -22547,6 +22776,328 @@
         }
       }
     },
+    "/api/projects/{projectId}/analytics/funnels/query": {
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Run a funnel query",
+        "description": "Executes a user-centric funnel query that cascades qualifying users through ordered event steps. Returns per-step user counts and conversion rates.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FunnelQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Funnel query executed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FunnelQueryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or step parameters"
+          },
+          "403": {
+            "description": "Operator is not a member of the project"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/funnels/saved-queries": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "List saved funnel queries",
+        "description": "Returns the operator's own saved funnel queries plus all shared queries within the project, sorted by updatedAt descending.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved funnel queries retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedFunnelQuery"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Create a saved funnel query",
+        "description": "Saves a named funnel query configuration for later reuse. The name must be unique within the project.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Unique name for this saved funnel query within the project"
+                  },
+                  "query": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/FunnelQuery"
+                      },
+                      {
+                        "description": "The full funnel query configuration to save"
+                      }
+                    ]
+                  },
+                  "isShared": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this query is visible to all operators in the project"
+                  }
+                },
+                "required": [
+                  "name",
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saved funnel query created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedFunnelQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or query validation failure"
+          },
+          "409": {
+            "description": "A funnel query with this name already exists in the project"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/analytics/funnels/saved-queries/{id}": {
+      "put": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Update a saved funnel query",
+        "description": "Updates an existing saved funnel query with optimistic locking. Only the owning operator or a super_admin may update.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Project identifier"
+            },
+            "required": true,
+            "description": "Project identifier",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Saved funnel query identifier"
+            },
+            "required": true,
+            "description": "Saved funnel query identifier",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Updated name for this saved funnel query"
+                  },
+                  "query": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/FunnelQuery"
+                      },
+                      {
+                        "description": "Updated funnel query configuration"
+                      }
+                    ]
+                  },
+                  "isShared": {
+                    "type": "boolean",
+                    "description": "Updated sharing flag"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved funnel query updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedFunnelQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Not the owner of this query"
+          },
+          "404": {
+            "description": "Saved funnel query not found"
+          },
+          "409": {
+            "description": "Version conflict or name already exists"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Delete a saved funnel query",
+        "description": "Deletes a saved funnel query with optimistic locking. Only the owning operator or a super_admin may delete.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Project identifier"
+            },
+            "required": true,
+            "description": "Project identifier",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Saved funnel query identifier"
+            },
+            "required": true,
+            "description": "Saved funnel query identifier",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Saved funnel query deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Not the owner of this query"
+          },
+          "404": {
+            "description": "Saved funnel query not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/classifiers": {
       "post": {
         "tags": [
@@ -26016,6 +26567,13 @@
                                     "type": "string",
                                     "description": "Name of the action that triggered this variable update"
                                   },
+                                  "changedVariableNames": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "Names of the variables that were changed by this update"
+                                  },
                                   "variables": {
                                     "type": "object",
                                     "additionalProperties": {
@@ -26032,6 +26590,7 @@
                                 },
                                 "required": [
                                   "sourceActionName",
+                                  "changedVariableNames",
                                   "variables"
                                 ]
                               },
@@ -26041,6 +26600,13 @@
                                   "sourceActionName": {
                                     "type": "string",
                                     "description": "Name of the action that triggered this profile update"
+                                  },
+                                  "changedProfileNames": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "Names of the profile fields that were changed by this update"
                                   },
                                   "profile": {
                                     "type": "object",
@@ -26058,6 +26624,7 @@
                                 },
                                 "required": [
                                   "sourceActionName",
+                                  "changedProfileNames",
                                   "profile"
                                 ]
                               },
@@ -26862,6 +27429,13 @@
                               "type": "string",
                               "description": "Name of the action that triggered this variable update"
                             },
+                            "changedVariableNames": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Names of the variables that were changed by this update"
+                            },
                             "variables": {
                               "type": "object",
                               "additionalProperties": {
@@ -26878,6 +27452,7 @@
                           },
                           "required": [
                             "sourceActionName",
+                            "changedVariableNames",
                             "variables"
                           ]
                         },
@@ -26887,6 +27462,13 @@
                             "sourceActionName": {
                               "type": "string",
                               "description": "Name of the action that triggered this profile update"
+                            },
+                            "changedProfileNames": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Names of the profile fields that were changed by this update"
                             },
                             "profile": {
                               "type": "object",
@@ -26904,6 +27486,7 @@
                           },
                           "required": [
                             "sourceActionName",
+                            "changedProfileNames",
                             "profile"
                           ]
                         },

@@ -1050,6 +1050,10 @@ export interface ConversationEvent {
          */
         sourceActionName: string;
         /**
+         * Names of the variables that were changed by this update
+         */
+        changedVariableNames: string[];
+        /**
          * Snapshot of all conversation variables after the update
          */
         variables: {
@@ -1062,6 +1066,10 @@ export interface ConversationEvent {
          * Name of the action that triggered this profile update
          */
         sourceActionName: string;
+        /**
+         * Names of the profile fields that were changed by this update
+         */
+        changedProfileNames: string[];
         /**
          * Updated user profile data
          */
@@ -1349,6 +1357,10 @@ export interface ConversationEventUpdate {
          */
         sourceActionName: string;
         /**
+         * Names of the variables that were changed by this update
+         */
+        changedVariableNames: string[];
+        /**
          * Snapshot of all conversation variables after the update
          */
         variables: {
@@ -1361,6 +1373,10 @@ export interface ConversationEventUpdate {
          * Name of the action that triggered this profile update
          */
         sourceActionName: string;
+        /**
+         * Names of the profile fields that were changed by this update
+         */
+        changedProfileNames: string[];
         /**
          * Updated user profile data
          */
