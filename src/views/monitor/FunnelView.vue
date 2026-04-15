@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
-import { useAnalyticsStore, useProjectSelectionStore, useAuthStore, useStagesStore, useGlobalActionsStore, useProjectsStore, useToolsStore } from '@/stores'
+import { useAnalyticsStore, useProjectSelectionStore, useAuthStore, useStagesStore, useGlobalActionsStore, useGuardrailsStore, useProjectsStore, useToolsStore } from '@/stores'
 import { Plus, X, Play, ChevronDown, Bookmark, BookmarkCheck, RefreshCw, Check, CalendarDays } from 'lucide-vue-next'
 import type { FunnelStep, FunnelQuery, SavedFunnelQuery, RelativeTime } from '@/api/generated/data-contracts'
 import FunnelChart from '@/components/FunnelChart.vue'
@@ -11,6 +11,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const authStore = useAuthStore()
 const stagesStore = useStagesStore()
 const globalActionsStore = useGlobalActionsStore()
+const guardrailsStore = useGuardrailsStore()
 const projectsStore = useProjectsStore()
 const toolsStore = useToolsStore()
 
@@ -316,6 +317,7 @@ async function loadProjectData(id: string) {
     analyticsStore.fetchSavedFunnelQueries(id),
     stagesStore.fetchAll(id, { limit: 500 }),
     globalActionsStore.fetchAll(id, { limit: 500 }),
+    guardrailsStore.fetchAll(id, { limit: 500 }),
     projectsStore.fetchById(id),
     toolsStore.fetchAll(id, { limit: 500 }),
   ])
@@ -382,6 +384,12 @@ const actionGroups = computed(() => {
     groupName: 'Global',
     actions: globalActionsStore.items.map(a => ({ label: a.name, value: a.name })),
   })
+  if (guardrailsStore.items.length > 0) {
+    groups.push({
+      groupName: 'Guardrails',
+      actions: guardrailsStore.items.map(g => ({ label: g.name, value: g.name })),
+    })
+  }
   stagesStore.items
     .filter(s => Object.keys(s.actions).length > 0)
     .forEach(s => groups.push({
