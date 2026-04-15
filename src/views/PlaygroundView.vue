@@ -89,6 +89,7 @@
             :is-server-vad-mode="isServerVadMode"
             :can-record-voice="canRecordVoice"
             :recording="recording"
+            :is-voice-input-active="isVoiceInputActive"
             :audio-settings="audioSettings"
             :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
             :is-input-focused="isInputFocused"
@@ -880,7 +881,7 @@ const canRecordVoice = computed(() => {
   const baseConditions = wsIsConnected.value && isConversationActive.value && !isConversationStarting.value && !isConversationEnding.value && !isSendingMessage.value
     && (currentSessionSettings.value?.sendVoiceInput ?? false)
   // In WebRTC mode the mic audio flows via the native RTP track — no recording composable needed
-  if (connectionType.value === 'webrtc') return baseConditions
+  if (connectionType.value === 'webrtc') return baseConditions && !isVoiceInputActive.value
   return baseConditions && recording.value?.recordingState === 'idle'
 })
 
@@ -896,6 +897,7 @@ function parseSampleRate(audioFormat?: string): number {
 
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
+const isVoiceInputActive = ref(false)
 const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
 
 // Initialize/update recording when project settings change
@@ -971,6 +973,7 @@ async function startVoiceRecording() {
     } else {
       // Standard mode: start voice input phase on backend and get inputTurnId
       const inputTurnId = await wsClient.value.startVoiceInput()
+      isVoiceInputActive.value = true
 
       // Pre-create user event box with inputTurnId (empty message, will be filled by chunks)
       const event: ConversationEvent = {
@@ -1019,6 +1022,7 @@ async function stopVoiceRecording() {
 
       // End voice input phase on backend
       await wsClient.value.endVoiceInput()
+      isVoiceInputActive.value = false
     }
   } catch (error) {
     addEvent({

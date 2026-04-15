@@ -7,7 +7,7 @@
     <div class="flex gap-2 items-center">
       <!-- Record button (standard mode) -->
       <button
-        v-if="!isServerVadMode && recording?.recordingState !== 'recording'"
+        v-if="!isServerVadMode && !isVoiceInputActive && recording?.recordingState !== 'recording'"
         class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap"
         :disabled="!canRecordVoice"
         @click="emit('start-recording')"
@@ -19,7 +19,7 @@
 
       <!-- Stop button (standard mode) -->
       <button
-        v-else-if="!isServerVadMode"
+        v-else-if="!isServerVadMode && (isVoiceInputActive || recording?.recordingState === 'recording')"
         class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
         @click="emit('stop-recording')"
         title="Stop voice recording"
@@ -120,6 +120,7 @@ const props = defineProps<{
   isServerVadMode: boolean
   canRecordVoice: boolean
   recording: RecordingState | null
+  isVoiceInputActive: boolean
   audioSettings: AudioSettings
   sampleRate: number
   isInputFocused: boolean
