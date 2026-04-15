@@ -15,6 +15,8 @@ import type {
   FunnelQuery,
   FunnelQueryResponse,
   SavedFunnelQuery,
+  FunnelStep,
+  RelativeTime,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -288,6 +290,43 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     savedFunnelQueries.value = savedFunnelQueries.value.filter(q => q.id !== id)
   }
 
+  const funnelDraft = ref<{
+    steps: FunnelStep[]
+    timeRangeMode: 'relative' | 'absolute'
+    relativeTimeAmount: number
+    relativeTimeUnit: RelativeTime['unit']
+    absoluteFrom: string
+    absoluteTo: string
+    activeQuery: SavedFunnelQuery | null
+    projectId: string
+  } | null>(null)
+
+  function saveFunnelDraft(draft: typeof funnelDraft.value) {
+    funnelDraft.value = draft
+  }
+
+  const exploreDraft = ref<{
+    selectedSource: string
+    selectedDimensions: string[]
+    selectedNormalizeBy: string
+    selectedMetrics: { spec: string; label: string }[]
+    filterInterval: string
+    dimensionFilters: { dimensionId: string; value: string }[]
+    queryLimit: number
+    timeRangeMode: 'relative' | 'absolute' | 'all'
+    relativeTimeAmount: number
+    relativeTimeUnit: RelativeTime['unit']
+    absoluteFrom: string
+    absoluteTo: string
+    activeQuery: SavedSliceQuery | null
+    chartSettings: unknown
+    projectId: string
+  } | null>(null)
+
+  function saveExploreDraft(draft: typeof exploreDraft.value) {
+    exploreDraft.value = draft
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -337,5 +376,9 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     createSavedFunnelQuery,
     updateSavedFunnelQuery,
     deleteSavedFunnelQuery,
+    funnelDraft,
+    saveFunnelDraft,
+    exploreDraft,
+    saveExploreDraft,
   }
 })

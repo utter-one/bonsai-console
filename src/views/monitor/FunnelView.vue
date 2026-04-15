@@ -53,7 +53,7 @@ function isStepValid(step: FunnelStep): boolean {
     case 'action_fire': return !!params.actionName?.trim()
     case 'variable_changed': return !!params.variableName?.trim()
     case 'user_profile_changed': return !!params.profileName?.trim()
-    case 'session_started': return !!params.minSessions?.trim() && Number.isInteger(Number(params.minSessions)) && Number(params.minSessions) > 0
+    case 'session_started': return params.minSessions != null && params.minSessions !== '' && Number.isInteger(Number(params.minSessions)) && Number(params.minSessions) > 0
     case 'tool_response': return !!params.toolName?.trim() && !!params.response?.trim()
     default: return false
   }
@@ -322,6 +322,16 @@ async function loadProjectData(id: string) {
 }
 
 onMounted(async () => {
+  const draft = analyticsStore.funnelDraft
+  if (draft && draft.projectId === projectId.value) {
+    steps.value = draft.steps
+    timeRangeMode.value = draft.timeRangeMode
+    relativeTimeAmount.value = draft.relativeTimeAmount
+    relativeTimeUnit.value = draft.relativeTimeUnit
+    absoluteFrom.value = draft.absoluteFrom
+    absoluteTo.value = draft.absoluteTo
+    activeQuery.value = draft.activeQuery
+  }
   if (projectId.value) {
     await loadProjectData(projectId.value)
   }
@@ -330,12 +340,34 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMousedown)
+  if (projectId.value) {
+    analyticsStore.saveFunnelDraft({
+      steps: steps.value.map(s => ({ ...s, params: { ...s.params } })),
+      timeRangeMode: timeRangeMode.value,
+      relativeTimeAmount: relativeTimeAmount.value,
+      relativeTimeUnit: relativeTimeUnit.value,
+      absoluteFrom: absoluteFrom.value,
+      absoluteTo: absoluteTo.value,
+      activeQuery: activeQuery.value,
+      projectId: projectId.value,
+    })
+  }
 })
 
 watch(projectId, async (newId) => {
   if (newId) {
     activeQuery.value = null
     analyticsStore.clearFunnelResult()
+    analyticsStore.saveFunnelDraft(null)
+    steps.value = [
+      { eventType: 'enter_stage', params: {} },
+      { eventType: 'enter_stage', params: {} },
+    ]
+    timeRangeMode.value = 'relative'
+    relativeTimeAmount.value = 7
+    relativeTimeUnit.value = 'days'
+    absoluteFrom.value = ''
+    absoluteTo.value = ''
     await loadProjectData(newId)
   }
 })
@@ -345,17 +377,21 @@ const result = computed(() => analyticsStore.funnelResult)
 const stageOptions = computed(() => stagesStore.items.map(s => s.name))
 
 const actionGroups = computed(() => {
-  const globals = globalActionsStore.items.map(a => a.name)
-  const byStage = stagesStore.items
+  const groups: { groupName: string; actions: { label: string; value: string }[] }[] = []
+  groups.push({
+    groupName: 'Global',
+    actions: globalActionsStore.items.map(a => ({ label: a.name, value: a.name })),
+  })
+  stagesStore.items
     .filter(s => Object.keys(s.actions).length > 0)
-    .map(s => ({
-      stageName: s.name,
+    .forEach(s => groups.push({
+      groupName: s.name,
       actions: Object.values(s.actions).map(a => ({
         label: a.name,
         value: a.name,
       })),
     }))
-  return { globals, byStage }
+  return groups
 })
 
 const variableGroups = computed(() =>
@@ -742,20 +778,10 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
                   <ChevronDown class="w-3.5 h-3.5 opacity-60 shrink-0" />
                 </template>
                 <template #default="{ close }">
-                  <div v-if="actionGroups.globals.length > 0">
-                    <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Global</div>
-                    <button
-                      v-for="name in actionGroups.globals"
-                      :key="name"
-                      type="button"
-                      @click="step.params.actionName = name; close()"
-                      class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >{{ name }}</button>
-                  </div>
-                  <template v-if="actionGroups.byStage.length > 0">
-                    <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
-                    <template v-for="group in actionGroups.byStage" :key="group.stageName">
-                      <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{{ group.stageName }}</div>
+                  <template v-if="actionGroups.length > 0">
+                    <template v-for="(group, gi) in actionGroups" :key="group.groupName">
+                      <div v-if="gi > 0" class="border-t border-gray-100 dark:border-gray-700 my-1" />
+                      <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{{ group.groupName }}</div>
                       <button
                         v-for="action in group.actions"
                         :key="action.value"
@@ -765,7 +791,7 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
                       >{{ action.label }}</button>
                     </template>
                   </template>
-                  <div v-if="actionGroups.globals.length === 0 && actionGroups.byStage.length === 0" class="px-3 py-2 text-sm text-gray-400 dark:text-gray-500">
+                  <div v-if="actionGroups.length === 0" class="px-3 py-2 text-sm text-gray-400 dark:text-gray-500">
                     No actions available
                   </div>
                 </template>
@@ -836,9 +862,11 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
 
             <template v-else-if="step.eventType === 'session_started'">
               <input
-                v-model="step.params.minSessions"
-                type="number"
-                min="1"
+                :value="step.params.minSessions"
+                @input="step.params.minSessions = String(($event.target as HTMLInputElement).value)"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
                 class="form-input text-sm"
                 placeholder="Min. sessions"
               />
