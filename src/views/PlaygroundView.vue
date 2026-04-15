@@ -829,7 +829,10 @@ watch(
     if (readyAndActive && !wasReadyAndActive) {
       // Conversation just became fully active — start streaming
       await nextTick()
-      if (recording.value && recording.value.recordingState === 'idle') {
+      // In WebRTC mode the mic already flows via the RTP track; no recording composable needed
+      if (connectionType.value === 'webrtc') {
+        await startVoiceRecording()
+      } else if (recording.value && recording.value.recordingState === 'idle') {
         await startVoiceRecording()
       }
     } else if (!isConversationActive.value) {
@@ -958,8 +961,12 @@ async function startVoiceRecording() {
   stopAllAudioPlayback()
 
   try {
-    if (isServerVadMode.value && connectionType.value !== 'webrtc') {
-      // Server VAD mode (WebSocket only): skip start_user_voice_input — server manages turn boundaries
+    if (isServerVadMode.value && connectionType.value === 'webrtc') {
+      // WebRTC + server VAD: audio already flows via the RTP track continuously;
+      // the server auto-detects turn boundaries — nothing to do on the client side.
+      return
+    } else if (isServerVadMode.value) {
+      // WebSocket server VAD: reset streaming state — server manages turn boundaries
       ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
     } else {
       // Standard mode: start voice input phase on backend and get inputTurnId
