@@ -267,20 +267,21 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         </div>
 
         <!-- Main Navigation -->
-        <nav class="flex gap-1 flex-1 md:flex hidden">
+        <nav class="gap-1 flex-1 md:flex hidden">
           <button
             v-for="section in sections"
             :key="section.id"
             :class="[
-              'flex items-center gap-2 px-4 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
+              'flex items-center gap-2 px-3 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
               currentSection === section.id 
                 ? 'bg-blue-50 text-primary-500 dark:bg-gray-700 dark:text-primary-400' 
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
             ]"
+            :title="section.label"
             @click="navigateToSection(section.id)"
           >
             <component :is="section.icon" class="flex-shrink-0" :size="18" />
-            <span>{{ section.label }}</span>
+            <span class="xl:inline hidden">{{ section.label }}</span>
           </button>
         </nav>
 
@@ -297,7 +298,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
               type="button"
               :disabled="isProjectSelectorDisabled"
               :class="[
-                'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
+                'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[160px] max-w-[260px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
                 isProjectSelectorDisabled
                   ? 'cursor-not-allowed opacity-60'
                   : 'cursor-pointer hover:border-primary-500 dark:hover:border-primary-400'

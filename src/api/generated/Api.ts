@@ -11597,7 +11597,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). Before creating the offer the client must open two named DataChannels: "control" (ordered: true) for all JSON messages (same protocol as WebSocket) and "audio" (ordered: false, maxRetransmits: 0) for binary audio frames. Audio frame format: [uint16 LE: turnId byte length] [turnId UTF-8 bytes] [raw PCM audio]. Once the DataChannels are open, authenticate by sending an "auth" JSON message over the control channel.
+   * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). The client must add a microphone audio track and open a "control" DataChannel (ordered: true) before creating the offer. The server adds an outbound audio track to the answer for AI voice output. Once the control DataChannel is open, authenticate by sending an "auth" JSON message over it. All JSON messages use the same protocol as WebSocket. Voice audio flows over native RTP/SRTP media tracks.
    *
    * @tags WebRTC
    * @name WebrtcOfferCreate
