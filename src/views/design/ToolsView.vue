@@ -3,7 +3,8 @@ import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToolsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Hammer, Search, X, Plus, Sparkles, Globe, Code2 } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -224,7 +225,7 @@ function getTypeIcon(type: string) {
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(tool.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="tool.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editTool(tool)" class="btn-secondary btn-sm">

@@ -2,7 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
-import { usePagination, formatDate } from '@/composables'
+import { usePagination } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
 import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
@@ -433,7 +434,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 </td>
                 <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
                 <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
-                <td class="table-cell-muted">{{ formatDate(conversation.createdAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="conversation.createdAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button 

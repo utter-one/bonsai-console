@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
@@ -289,8 +290,8 @@ async function exportProject(project: ProjectResponse) {
                     <span v-if="project.archivedAt" class="badge badge-error ml-2">Archived</span>
                   </div>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(project.createdAt) }}</td>
-                <td class="table-cell-muted">{{ formatDate(project.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="project.createdAt" /></td>
+                <td class="table-cell-muted"><RelativeDate :date="project.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editProject(project)" class="btn-secondary btn-sm">Edit</button>

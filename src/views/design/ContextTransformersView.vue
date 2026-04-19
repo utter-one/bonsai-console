@@ -3,7 +3,8 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Microchip, Search, X, Plus } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -176,7 +177,7 @@ function editTransformer(transformer: ContextTransformerResponse) {
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(transformer.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="transformer.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editTransformer(transformer)" class="btn-secondary btn-sm">

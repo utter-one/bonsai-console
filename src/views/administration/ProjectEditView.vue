@@ -22,7 +22,8 @@ import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
-import { useTabNavigation, formatDate } from '@/composables'
+import { useTabNavigation } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
@@ -1253,8 +1254,8 @@ function buildCostManagementConfig(): CostManagementConfig {
                         :disabled="isArchived"
                       />
                     </td>
-                    <td class="table-cell-muted">{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</td>
-                    <td class="table-cell-muted">{{ formatDate(apiKey.createdAt) }}</td>
+                    <td class="table-cell-muted"><RelativeDate v-if="apiKey.lastUsedAt" :date="apiKey.lastUsedAt" /><span v-else>Never</span></td>
+                    <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                     <td class="table-cell-right">
                       <div class="flex justify-end gap-2">
                         <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">

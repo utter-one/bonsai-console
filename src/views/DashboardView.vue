@@ -7,6 +7,7 @@ import {
   useProjectSelectionStore,
 } from '@/stores'
 import { formatEnum } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import apiClient from '@/api/client'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
@@ -180,18 +181,6 @@ function formatCount(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
   if (n >= 1_000) return (n / 1_000).toFixed(2).replace(/\.?0+$/, '') + 'k'
   return String(n)
-}
-
-function formatRelativeTime(dateStr: string | null): string {
-  if (!dateStr) return '—'
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
 }
 
 function getEntityName(log: any): string {
@@ -455,7 +444,7 @@ function getActionBadgeClass(action: string): string {
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span v-if="log.userId" class="text-xs font-mono text-gray-400 dark:text-gray-500 truncate" :title="log.userId">{{ log.userId }}</span>
-            <span class="text-xs text-gray-400 dark:text-gray-500">{{ formatRelativeTime(log.createdAt) }}</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500"><RelativeDate :date="log.createdAt" /></span>
           </div>
         </div>
       </div>

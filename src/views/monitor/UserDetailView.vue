@@ -3,7 +3,7 @@ import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
-import { formatDate } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -351,11 +351,11 @@ async function unbanUser() {
                         </div>
                         <div>
                           <span class="text-gray-600 dark:text-gray-400">Created:</span>
-                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.createdAt) }}</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200"><RelativeDate :date="conversation.createdAt" /></span>
                         </div>
                         <div>
                           <span class="text-gray-600 dark:text-gray-400">Updated:</span>
-                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.updatedAt) }}</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200"><RelativeDate :date="conversation.updatedAt" /></span>
                         </div>
                       </div>
                       <div v-if="conversation.statusDetails" class="mt-2 text-sm text-gray-600 dark:text-gray-400">

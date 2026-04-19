@@ -3,7 +3,8 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAgentsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Drama, Search, X, Plus } from 'lucide-vue-next'
 import type { AgentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -174,7 +175,7 @@ async function deleteAgent(agent: AgentResponse) {
                 </div>
                 <span v-else class="text-gray-400">—</span>
               </td>
-              <td class="table-cell-muted">{{ formatDate(agent.updatedAt) }}</td>
+              <td class="table-cell-muted"><RelativeDate :date="agent.updatedAt" /></td>
               <td class="table-cell-right">
                 <div class="flex-end">
                   <button @click="editAgent(agent)" class="btn-secondary btn-sm">
