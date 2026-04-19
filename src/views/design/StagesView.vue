@@ -3,7 +3,8 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { formatDate, usePagination, useTableSort, useSearch } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -200,7 +201,7 @@ async function deleteStage(stage: StageResponse) {
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(stage.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="stage.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editStage(stage)" class="btn-secondary btn-sm">

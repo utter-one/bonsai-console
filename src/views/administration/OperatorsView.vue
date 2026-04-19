@@ -2,7 +2,8 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOperatorsStore } from '@/stores'
-import { formatEnum, formatDate, usePagination, useTableSort, useSearch } from '@/composables'
+import { formatEnum, usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { User, Search, X, Plus } from 'lucide-vue-next'
 import type { OperatorResponse } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -172,8 +173,8 @@ async function deleteOperator(operator: OperatorResponse) {
                   </span>
                 </div>
               </td>
-              <td class="table-cell-muted">{{ formatDate(operator.createdAt) }}</td>
-              <td class="table-cell-muted">{{ formatDate(operator.updatedAt) }}</td>
+              <td class="table-cell-muted"><RelativeDate :date="operator.createdAt" /></td>
+              <td class="table-cell-muted"><RelativeDate :date="operator.updatedAt" /></td>
               <td class="table-cell-right">
                 <div class="flex-end">
                   <button @click="editOperator(operator)" class="btn-secondary btn-sm">
