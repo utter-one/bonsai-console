@@ -52,11 +52,11 @@
               <div class="text-sm space-y-1">
                 <div class="flex justify-between">
                   <span class="text-gray-600 dark:text-gray-400">Created:</span>
-                  <span>{{ formatDate(apiKey.createdAt) }}</span>
+                  <span><RelativeDate :date="apiKey.createdAt" /></span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600 dark:text-gray-400">Last Used:</span>
-                  <span>{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</span>
+                  <span><RelativeDate v-if="apiKey.lastUsedAt" :date="apiKey.lastUsedAt" /><span v-else>Never</span></span>
                 </div>
               </div>
             </div>
@@ -164,7 +164,7 @@ import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
-import { formatDate } from '../../composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 
 const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp'] as const
 type AllowedChannel = typeof ALL_CHANNELS[number]
