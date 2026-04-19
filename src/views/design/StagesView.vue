@@ -176,10 +176,22 @@ async function deleteStage(stage: StageResponse) {
                 </td>
                 <td class="table-cell">
                   <div class="flex gap-2 items-center">
-                    <BookOpen v-if="stage.useKnowledge" class="w-4 h-4" title="Knowledge" />
-                    <Zap v-if="stage.useGlobalActions" class="w-4 h-4" title="Global Actions" />
-                    <Target v-if="stage.defaultClassifierId" class="w-4 h-4" title="Classifier" />
-                    <Microchip v-if="stage.transformerIds?.length" class="w-4 h-4" :title="`${stage.transformerIds.length} Context Transformer(s)`" />
+                    <span v-if="stage.useKnowledge" class="feature-badge">
+                      <BookOpen class="w-4 h-4" />
+                      <span class="feature-tooltip">Knowledge Base</span>
+                    </span>
+                    <span v-if="stage.useGlobalActions" class="feature-badge">
+                      <Zap class="w-4 h-4" />
+                      <span class="feature-tooltip">Global Actions</span>
+                    </span>
+                    <span v-if="stage.defaultClassifierId" class="feature-badge">
+                      <Target class="w-4 h-4" />
+                      <span class="feature-tooltip">Classifier</span>
+                    </span>
+                    <span v-if="stage.transformerIds?.length" class="feature-badge">
+                      <Microchip class="w-4 h-4" />
+                      <span class="feature-tooltip">{{ stage.transformerIds.length }} Context Transformer{{ stage.transformerIds.length === 1 ? '' : 's' }}</span>
+                    </span>
                   </div>
                 </td>
                 <td class="table-cell">
@@ -215,5 +227,43 @@ async function deleteStage(stage: StageResponse) {
 </template>
 
 <style scoped>
-/* Additional custom styles if needed */
+.feature-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.feature-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f9fafb;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 5px;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.feature-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.feature-badge:hover .feature-tooltip {
+  display: block;
+}
 </style>
