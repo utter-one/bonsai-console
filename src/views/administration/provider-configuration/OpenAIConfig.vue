@@ -4,6 +4,7 @@ import { providerPresets } from './providerPresets'
 import type { ProviderConfig, ProviderPreset } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
+import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 const props = defineProps<{
   apiType: string
@@ -37,9 +38,8 @@ function resetBaseUrl() {
   <div>
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">OpenAI Configuration</h3>
     <FormField label="API Key" required :error="error" path="apiKey" class="w-full" help="Your OpenAI API key">
-      <input
+      <SecretPasswordInput
         v-model="config.apiKey"
-        type="password"
         required
         placeholder="sk-..."
         class="form-input-mono"

@@ -2,6 +2,7 @@
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
+import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
@@ -22,9 +23,8 @@ const config = defineModel<ProviderConfig>('config', { required: true })
     </FormField>
 
     <FormField label="Access Token" required :error="error" path="accessToken" class="w-full" help="Permanent Meta access token used as Bearer auth for outbound Graph API calls">
-      <input
+      <SecretPasswordInput
         v-model="config.accessToken"
-        type="password"
         required
         placeholder="..."
         class="form-input-mono"
@@ -32,9 +32,8 @@ const config = defineModel<ProviderConfig>('config', { required: true })
     </FormField>
 
     <FormField label="App Secret" required :error="error" path="appSecret" class="w-full" help="Meta app secret used to validate incoming webhook signatures via HMAC-SHA256">
-      <input
+      <SecretPasswordInput
         v-model="config.appSecret"
-        type="password"
         required
         placeholder="..."
         class="form-input-mono"

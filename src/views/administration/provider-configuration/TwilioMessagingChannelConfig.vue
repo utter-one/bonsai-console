@@ -2,6 +2,7 @@
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
+import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
@@ -24,7 +25,6 @@ const config = defineModel<ProviderConfig>('config', { required: true })
     <FormField label="Auth Token" required :error="error" path="authToken" class="w-full" help="Your Twilio Auth Token used for request signature validation and REST API authentication">
       <input
         v-model="config.authToken"
-        type="password"
         required
         placeholder="..."
         class="form-input-mono"

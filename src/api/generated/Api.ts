@@ -65,6 +65,8 @@ import {
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
+  SecretListResponse,
+  SecretValueResponse,
   ServerVadConfig,
   SliceQuery,
   SliceQueryResponse,
@@ -11594,6 +11596,56 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Lists all secrets in the store. Secret values are never returned. Also returns orphan refs — secrets that exist in the store but are not referenced by any provider config or environment.
+   *
+   * @tags Secrets
+   * @name SecretsList
+   * @summary List all secrets
+   * @request GET:/api/secrets
+   * @secure
+   */
+  secretsList = (params: RequestParams = {}) =>
+    this.request<SecretListResponse, any>({
+      path: `/api/secrets`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the decrypted plaintext value of a secret. Restricted to super_admin only. Use only in emergency situations.
+   *
+   * @tags Secrets
+   * @name SecretsValueList
+   * @summary Reveal secret value
+   * @request GET:/api/secrets/{id}/value
+   * @secure
+   */
+  secretsValueList = (id: string, params: RequestParams = {}) =>
+    this.request<SecretValueResponse, void>({
+      path: `/api/secrets/${id}/value`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a secret by its ID. Returns 409 if the secret is still referenced by a provider config or environment.
+   *
+   * @tags Secrets
+   * @name SecretsDelete
+   * @summary Delete a secret
+   * @request DELETE:/api/secrets/{id}
+   * @secure
+   */
+  secretsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/secrets/${id}`,
+      method: "DELETE",
+      secure: true,
       ...params,
     });
   /**
