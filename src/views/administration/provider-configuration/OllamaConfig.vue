@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
+import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
@@ -43,9 +44,8 @@ function resetBaseUrl() {
     </FormField>
 
     <FormField label="API Key" class="w-full" help="Required for Ollama Cloud (ollama.com). Leave empty for local Ollama instances.">
-      <input
+      <SecretPasswordInput
         v-model="config.apiKey"
-        type="password"
         placeholder="ollama-..."
         class="form-input-mono"
       />

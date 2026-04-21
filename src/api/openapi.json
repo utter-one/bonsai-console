@@ -17305,6 +17305,73 @@
         ],
         "description": "Summary of a completed project import operation"
       },
+      "SecretResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique secret identifier (e.g. sec_xxxx)"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Full secret reference string in @sec:name:id format"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO 8601 creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO 8601 last-updated timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "ref",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SecretListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecretResponse"
+            },
+            "description": "List of secret entries"
+          },
+          "orphans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Secret refs that exist in the store but are not referenced by any provider config or environment"
+          }
+        },
+        "required": [
+          "items",
+          "orphans"
+        ]
+      },
+      "SecretValueResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Secret identifier"
+          },
+          "value": {
+            "type": "string",
+            "description": "Decrypted plaintext secret value"
+          }
+        },
+        "required": [
+          "id",
+          "value"
+        ]
+      },
       "LatencyStatsResponse": {
         "type": "object",
         "properties": {
@@ -45385,6 +45452,98 @@
           },
           "403": {
             "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/secrets": {
+      "get": {
+        "tags": [
+          "Secrets"
+        ],
+        "summary": "List all secrets",
+        "description": "Lists all secrets in the store. Secret values are never returned. Also returns orphan refs — secrets that exist in the store but are not referenced by any provider config or environment.",
+        "responses": {
+          "200": {
+            "description": "Secrets listed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/secrets/{id}/value": {
+      "get": {
+        "tags": [
+          "Secrets"
+        ],
+        "summary": "Reveal secret value",
+        "description": "Returns the decrypted plaintext value of a secret. Restricted to super_admin only. Use only in emergency situations.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Secret ID (the id segment of @sec:name:id)"
+            },
+            "required": true,
+            "description": "Secret ID (the id segment of @sec:name:id)",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret value revealed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretValueResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Secret not found"
+          }
+        }
+      }
+    },
+    "/api/secrets/{id}": {
+      "delete": {
+        "tags": [
+          "Secrets"
+        ],
+        "summary": "Delete a secret",
+        "description": "Deletes a secret by its ID. Returns 409 if the secret is still referenced by a provider config or environment.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Secret ID (the id segment of @sec:name:id)"
+            },
+            "required": true,
+            "description": "Secret ID (the id segment of @sec:name:id)",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Secret deleted successfully"
+          },
+          "404": {
+            "description": "Secret not found"
+          },
+          "409": {
+            "description": "Secret is still in use and cannot be deleted"
           }
         }
       }

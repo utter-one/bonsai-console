@@ -7487,6 +7487,31 @@ export interface ProjectExchangeImportResult {
   providerResolution: ProviderHintResolution[];
 }
 
+export interface SecretResponse {
+  /** Unique secret identifier (e.g. sec_xxxx) */
+  id: string;
+  /** Full secret reference string in @sec:name:id format */
+  ref: string;
+  /** ISO 8601 creation timestamp */
+  createdAt: string;
+  /** ISO 8601 last-updated timestamp */
+  updatedAt: string;
+}
+
+export interface SecretListResponse {
+  /** List of secret entries */
+  items: SecretResponse[];
+  /** Secret refs that exist in the store but are not referenced by any provider config or environment */
+  orphans: string[];
+}
+
+export interface SecretValueResponse {
+  /** Secret identifier */
+  id: string;
+  /** Decrypted plaintext secret value */
+  value: string;
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;

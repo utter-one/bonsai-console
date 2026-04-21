@@ -130,7 +130,9 @@ These settings are configured where the provider is referenced (e.g., on the sta
 
 ## Security
 
-Provider configurations contain sensitive data (API keys, connection strings). Only operators with the appropriate permissions can view or modify provider settings.
+Provider configurations contain sensitive data (API keys, tokens, connection strings). These fields are **encrypted at rest** — they are never stored in plain text.
+
+When viewing an existing provider, sensitive fields are masked by default. Operators with the **super admin** role can reveal the current value of a masked field using the reveal button next to it.
 
 ## Tips
 
