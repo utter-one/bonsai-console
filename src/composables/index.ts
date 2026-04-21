@@ -33,7 +33,7 @@ export function formatDate(date: string | null | undefined): string {
 
 export function formatRelativeTime(date: string | null | undefined): string {
   if (!date) return 'N/A'
-  return formatDistanceToNow(new Date(date), { addSuffix: true }).replace('about ', '').replace('less than a minute', 'just now')
+  return formatDistanceToNow(new Date(date), { addSuffix: true }).replace('about ', '').replace('less than a minute ago', 'just now')
 }
 
 /**
