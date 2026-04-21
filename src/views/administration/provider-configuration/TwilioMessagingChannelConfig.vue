@@ -2,7 +2,6 @@
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
-import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
