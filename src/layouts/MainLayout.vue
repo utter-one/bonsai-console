@@ -620,7 +620,8 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
     >
       <div class="flex items-center justify-between gap-4 px-6 py-2.5 max-w-[1920px] mx-auto">
         <p class="text-sm text-amber-800 dark:text-amber-300">
-          A new version is available &mdash; refresh to get the latest updates.
+          <span class="font-semibold">A new version of Bonsai Console is available.</span>
+          Please refresh now &mdash; continuing without refreshing may cause buttons and actions to stop working.
         </p>
         <button
           type="button"
