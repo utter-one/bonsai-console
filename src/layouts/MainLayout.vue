@@ -23,6 +23,10 @@ const layoutStore = useLayoutStore()
 const { helpUrl } = useContextualHelp()
 const { updateAvailable } = useVersionPoller()
 
+function reloadPage() {
+  window.location.reload()
+}
+
 const currentSection = computed(() => {
   const path = route.path
   if (path.startsWith('/design')) return 'design'
@@ -621,7 +625,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         <button
           type="button"
           class="flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-md bg-amber-200 text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700 transition-colors"
-          @click="() => window.location.reload()"
+          @click="reloadPage()"
         >
           Refresh now
         </button>
