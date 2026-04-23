@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore, useLayoutStore } from '@/stores'
-import { formatEnum, useContextualHelp } from '@/composables'
+import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
 import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
@@ -21,6 +21,11 @@ const playgroundStore = usePlaygroundStore()
 const layoutStore = useLayoutStore()
 
 const { helpUrl } = useContextualHelp()
+const { updateAvailable } = useVersionPoller()
+
+function reloadPage() {
+  window.location.reload()
+}
 
 const currentSection = computed(() => {
   const path = route.path
@@ -607,6 +612,25 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Update Available Banner -->
+    <div
+      v-if="updateAvailable"
+      class="bg-amber-50 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-700"
+    >
+      <div class="flex items-center justify-between gap-4 px-6 py-2.5 max-w-[1920px] mx-auto">
+        <p class="text-sm text-amber-800 dark:text-amber-300">
+          A new version is available &mdash; refresh to get the latest updates.
+        </p>
+        <button
+          type="button"
+          class="flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-md bg-amber-200 text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700 transition-colors"
+          @click="reloadPage()"
+        >
+          Refresh now
+        </button>
+      </div>
+    </div>
 
     <!-- Main Content Area -->
     <main class="flex-1 min-h-0 p-6 max-w-[1920px] w-full mx-auto flex flex-col">
