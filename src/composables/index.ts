@@ -17,6 +17,7 @@ export * from './useAudioPlayback'
 export * from './useAudioRecording'
 export * from './useAudioDevices'
 export * from './useConversationPreviews'
+export * from './useVersionPoller'
 
 /**
  * Format role name to human-readable format
