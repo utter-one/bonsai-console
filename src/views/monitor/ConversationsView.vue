@@ -5,13 +5,16 @@ import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useSt
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown, PhoneIncoming, PhoneOutgoing } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, PhoneIncoming, PhoneOutgoing, PhoneCall } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
+import TwilioVoiceCallModal from '@/components/modals/TwilioVoiceCallModal.vue'
+import TwilioMessagingModal from '@/components/modals/TwilioMessagingModal.vue'
+import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
@@ -45,6 +48,11 @@ const endingStageFilter = ref<string | null>(null)
 
 // Direction filter
 const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
+
+// Outgoing conversation modals
+const showVoiceCallModal = ref(false)
+const showMessagingModal = ref(false)
+const showWhatsAppModal = ref(false)
 
 const directionFilterOptions = [
   { value: 'all' as const, label: 'All Directions' },
@@ -267,10 +275,42 @@ async function handleResumeConversation(conversation: ConversationResponse) {
           <h1 class="page-title">Conversations</h1>
           <p class="page-subtitle">Monitor active and past conversations</p>
         </div>
-        <button @click="refreshData" class="btn-secondary" :disabled="conversationsStore.isLoading">
-          <RefreshCw class="inline-block mr-2 w-4 h-4" :class="{ 'animate-spin': conversationsStore.isLoading }" />
-          Refresh
-        </button>
+        <div class="flex items-center gap-2">
+          <button @click="refreshData" class="btn-secondary" :disabled="conversationsStore.isLoading">
+            <RefreshCw class="inline-block mr-2 w-4 h-4" :class="{ 'animate-spin': conversationsStore.isLoading }" />
+            Refresh
+          </button>
+          <FloatingDropdown align="right" min-width="200px" trigger-class="btn-alt flex items-center gap-1">
+            <template #trigger>
+              <PhoneCall class="w-4 h-4" />
+              Initiate
+              <ChevronDown class="w-4 h-4" />
+            </template>
+            <template #default="{ close }">
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                @click="showVoiceCallModal = true; close()"
+              >
+                Voice Call (Twilio)
+              </button>
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                @click="showMessagingModal = true; close()"
+              >
+                SMS (Twilio)
+              </button>
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                @click="showWhatsAppModal = true; close()"
+              >
+                WhatsApp
+              </button>
+            </template>
+          </FloatingDropdown>
+        </div>
       </div>
 
       <!-- Filter Bar -->
@@ -521,5 +561,21 @@ async function handleResumeConversation(conversation: ConversationResponse) {
         />
       </div>
     </div>
+
+    <TwilioVoiceCallModal
+      v-if="showVoiceCallModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showVoiceCallModal = false; loadConversations()"
+    />
+    <TwilioMessagingModal
+      v-if="showMessagingModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showMessagingModal = false; loadConversations()"
+    />
+    <WhatsAppSendModal
+      v-if="showWhatsAppModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showWhatsAppModal = false; loadConversations()"
+    />
   </MonitorSectionLayout>
 </template>
