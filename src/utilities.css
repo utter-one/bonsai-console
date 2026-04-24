@@ -285,6 +285,14 @@
   @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800;
 }
 
+.badge-active {
+  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[rgb(220,252,231)] text-[rgb(22,101,52)];
+}
+
+.badge-error {
+  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[rgb(254,226,226)] text-[rgb(153,27,27)];
+}
+
 .badge-secondary {
   @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300;
 }
@@ -798,4 +806,44 @@
   font-size: 0.7rem;
   color: #9ca3af;
   font-style: italic;
+}
+
+/* Relative date with tooltip */
+.relative-date {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+}
+
+.relative-date-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background-color: #1f2937;
+  color: #f9fafb;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.15s ease;
+}
+
+.relative-date-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.relative-date:hover .relative-date-tooltip {
+  visibility: visible;
+  opacity: 1;
 }

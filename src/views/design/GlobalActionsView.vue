@@ -3,7 +3,8 @@ import { onMounted, onUnmounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Zap, Search, X, Plus, ChevronDown, ShieldAlert } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -309,7 +310,7 @@ onUnmounted(() => {
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(action.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="action.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editGlobalAction(action)" class="btn-secondary btn-sm">

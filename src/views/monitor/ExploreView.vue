@@ -475,6 +475,23 @@ async function deleteActiveQuery() {
 }
 
 onMounted(async () => {
+  const draft = analyticsStore.exploreDraft
+  if (draft && draft.projectId === projectId.value) {
+    selectedSource.value = draft.selectedSource
+    selectedDimensions.value = draft.selectedDimensions
+    selectedNormalizeBy.value = draft.selectedNormalizeBy
+    selectedMetrics.value = draft.selectedMetrics
+    filterInterval.value = draft.filterInterval as typeof filterInterval.value
+    dimensionFilters.value = draft.dimensionFilters
+    queryLimit.value = draft.queryLimit
+    timeRangeMode.value = draft.timeRangeMode
+    relativeTimeAmount.value = draft.relativeTimeAmount
+    relativeTimeUnit.value = draft.relativeTimeUnit
+    absoluteFrom.value = draft.absoluteFrom
+    absoluteTo.value = draft.absoluteTo
+    activeQuery.value = draft.activeQuery
+    chartSettings.value = draft.chartSettings as ChartSettings | undefined
+  }
   if (projectId.value) {
     await Promise.all([
       analyticsStore.fetchSourceCatalog(projectId.value),
@@ -486,11 +503,45 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMousedown)
+  if (projectId.value) {
+    analyticsStore.saveExploreDraft({
+      selectedSource: selectedSource.value,
+      selectedDimensions: [...selectedDimensions.value],
+      selectedNormalizeBy: selectedNormalizeBy.value,
+      selectedMetrics: selectedMetrics.value.map(m => ({ ...m })),
+      filterInterval: filterInterval.value,
+      dimensionFilters: dimensionFilters.value.map(f => ({ ...f })),
+      queryLimit: queryLimit.value,
+      timeRangeMode: timeRangeMode.value,
+      relativeTimeAmount: relativeTimeAmount.value,
+      relativeTimeUnit: relativeTimeUnit.value,
+      absoluteFrom: absoluteFrom.value,
+      absoluteTo: absoluteTo.value,
+      activeQuery: activeQuery.value,
+      chartSettings: chartSettings.value,
+      projectId: projectId.value,
+    })
+  }
 })
 
 watch(projectId, async (newId) => {
   if (newId) {
     activeQuery.value = null
+    analyticsStore.clearResult()
+    analyticsStore.saveExploreDraft(null)
+    selectedSource.value = 'turns'
+    selectedDimensions.value = []
+    selectedNormalizeBy.value = ''
+    selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
+    dimensionFilters.value = []
+    queryLimit.value = 1000
+    filterInterval.value = 'day'
+    timeRangeMode.value = 'relative'
+    relativeTimeAmount.value = 7
+    relativeTimeUnit.value = 'days'
+    absoluteFrom.value = ''
+    absoluteTo.value = ''
+    chartSettings.value = undefined
     await Promise.all([
       analyticsStore.fetchSourceCatalog(newId),
       analyticsStore.fetchSavedQueries(newId),

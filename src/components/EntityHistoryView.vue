@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { Eye, RotateCcw, RotateCw, ArrowLeft, RefreshCw, ArrowLeftRight } from 'lucide-vue-next'
-import { formatDate } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import type { AuditLogResponse } from '@/api/types'
 import DiffView from '@/components/DiffView.vue'
 
@@ -231,7 +231,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
           </thead>
           <tbody class="table-body">
             <tr v-for="log in logs" :key="log.id" class="table-row">
-              <td class="table-cell whitespace-nowrap">{{ formatDate(log.createdAt) }}</td>
+              <td class="table-cell whitespace-nowrap"><RelativeDate :date="log.createdAt" /></td>
               <td class="table-cell font-mono text-xs">{{ log.userId ?? 'System' }}</td>
               <td class="table-cell">
                 <span :class="['badge', actionBadgeClass(log.action)]">{{ log.action }}</span>
@@ -281,7 +281,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
         </button>
         <div>
           <span :class="['badge', actionBadgeClass(selectedLog.action)]">{{ selectedLog.action }}</span>
-          <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{ formatDate(selectedLog.createdAt) }}</span>
+          <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"><RelativeDate :date="selectedLog.createdAt" /></span>
           <span class="ml-2 text-xs text-gray-400 dark:text-gray-500 font-mono">{{ selectedLog.userId ?? 'System' }}</span>
         </div>
       </div>
@@ -361,7 +361,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
         </button>
         <div>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Current vs Selected Version</span>
-          <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{ formatDate(selectedLog.createdAt) }}</span>
+          <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"><RelativeDate :date="selectedLog.createdAt" /></span>
           <span class="ml-2 text-xs text-gray-400 dark:text-gray-500 font-mono">{{ selectedLog.userId ?? 'System' }}</span>
         </div>
       </div>

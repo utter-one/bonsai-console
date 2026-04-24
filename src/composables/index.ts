@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores'
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-vue-next'
+import { formatDistanceToNow } from 'date-fns'
 
 export * from './useActionForm'
 export * from './useTabNavigation'
@@ -15,6 +16,8 @@ export * from './useWebSocketClient'
 export * from './useAudioPlayback'
 export * from './useAudioRecording'
 export * from './useAudioDevices'
+export * from './useConversationPreviews'
+export * from './useVersionPoller'
 
 /**
  * Format role name to human-readable format
@@ -27,6 +30,11 @@ export function formatEnum(enumId: string): string {
 export function formatDate(date: string | null | undefined): string {
   if (!date) return 'N/A'
   return new Date(date).toLocaleString()
+}
+
+export function formatRelativeTime(date: string | null | undefined): string {
+  if (!date) return 'N/A'
+  return formatDistanceToNow(new Date(date), { addSuffix: true }).replace('about ', '').replace('less than a minute ago', 'just now')
 }
 
 /**

@@ -1,5 +1,31 @@
 # Changelog
 
+## [v0.4.0] – 2026-04-24
+
+### New Features
+- **Analytics Funnels** – new funnel analysis view in Analytics; step-based funnel construction using action fire events (including guardrail events); draft saving for both funnels and explorer views (#326, #327, #329)
+- **Ollama LLM provider** – Ollama added as a supported LLM provider with a configuration interface and API settings (#321)
+- **Secrets management** – new UI for revealing masked secret values in provider configurations; `RevealSecretModal` component with secure reveal flow (#336)
+- **Markdown in playground** – message events in the playground now render as Markdown using `marked` and DOMPurify for safe HTML output (#324, #325)
+- **Version update notifications** – new `useVersionPoller` composable periodically checks for a newer app version and shows an in-app notification when one is available (#337, #338)
+- **Starting stage in conversations** – `startingStageId` surfaced through API data contracts; jump-to-stage handles null stage gracefully (#322)
+- **Relative timestamps** – new `RelativeDate` component renders dates as human-readable relative times (e.g. "2 hours ago"); rolled out across list and detail views (#333, #334, #335)
+
+### Improvements
+- **WebRTC audio channel** – voice recording in WebRTC mode now uses the native media channel; improved remote audio stream handling and playback quality (#328)
+- **Stages list simplified** – "Enter Behavior" column removed from the stages table; stage rows now show additional action-type icons for a denser overview (#323)
+- **Stage feature tooltips** – stage feature icon badges now display descriptive tooltips for improved discoverability (#332)
+- **Playground components extracted** – `PlaygroundAudioPanel`, `PlaygroundConnectionPanel`, and `PlaygroundEventFeed` split out of `PlaygroundView`; conversation status badge and label evaluation extracted to utility functions; shared preview-modal logic moved to a composable (#316)
+- **Navigation layout** – top navigation bar styles improved with better auto-sizing for varying project name lengths (#331)
+
+### Bug Fixes
+- Fixed null-stage crash in the jump-to-stage handler (#322)
+
+### Documentation
+- Updated Providers documentation to clarify sensitive data handling and secret value masking (#336)
+
+---
+
 ## [v0.3.0] – 2026-04-10
 
 ### New Features

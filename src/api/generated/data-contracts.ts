@@ -606,12 +606,45 @@ export interface XAILlmSettings {
   timeout?: number;
 }
 
+export interface OllamaLlmSettings {
+  /**
+   * Model name as pulled locally (e.g., llama3.2, gemma3, qwen3:8b)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+  /**
+   * Request timeout in milliseconds
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
   | OpenAILegacyLlmSettings
   | AnthropicLlmSettings
-  | GeminiLlmSettings;
+  | GeminiLlmSettings
+  | OllamaLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1144,7 +1177,8 @@ export interface FillerSettings {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -1850,6 +1884,8 @@ export interface CreateProjectRequest {
   defaultGuardrailClassifierId?: string | null;
   /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
   sampleCopyConfig?: SampleCopyConfig;
+  /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Acts as the project-level default starting stage. */
+  startingStageId?: string | null;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -1983,6 +2019,8 @@ export interface UpdateProjectRequest {
     /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
     defaultClassifierId?: string;
   } | null;
+  /** Updated ID of the stage to start new conversations at when no stageId is provided at conversation start time. Set to null to remove the default starting stage. */
+  startingStageId?: string | null;
   /**
    * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
    * @min 0
@@ -2064,6 +2102,8 @@ export interface ProjectResponse {
     /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
     defaultClassifierId?: string;
   } | null;
+  /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+  startingStageId: string | null;
   /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
   conversationTimeoutSeconds: number | null;
   /** The version number of the project */
@@ -2161,6 +2201,8 @@ export interface ProjectListResponse {
       /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
       defaultClassifierId?: string;
     } | null;
+    /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+    startingStageId: string | null;
     /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
     conversationTimeoutSeconds: number | null;
     /** The version number of the project */
@@ -2263,7 +2305,8 @@ export interface UpdateAgentRequest {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -3308,6 +3351,8 @@ export interface ConversationEventResponse {
     | {
         /** Name of the action that triggered this variable update */
         sourceActionName: string;
+        /** Names of the variables that were changed by this update */
+        changedVariableNames: string[];
         /** Snapshot of all conversation variables after the update */
         variables: Record<string, ParameterValue>;
         metadata?: Record<string, any>;
@@ -3315,6 +3360,8 @@ export interface ConversationEventResponse {
     | {
         /** Name of the action that triggered this profile update */
         sourceActionName: string;
+        /** Names of the profile fields that were changed by this update */
+        changedProfileNames: string[];
         /** Updated user profile data */
         profile: Record<string, ParameterValue>;
         metadata?: Record<string, any>;
@@ -3540,6 +3587,8 @@ export interface ConversationEventListResponse {
       | {
           /** Name of the action that triggered this variable update */
           sourceActionName: string;
+          /** Names of the variables that were changed by this update */
+          changedVariableNames: string[];
           /** Snapshot of all conversation variables after the update */
           variables: Record<string, ParameterValue>;
           metadata?: Record<string, any>;
@@ -3547,6 +3596,8 @@ export interface ConversationEventListResponse {
       | {
           /** Name of the action that triggered this profile update */
           sourceActionName: string;
+          /** Names of the profile fields that were changed by this update */
+          changedProfileNames: string[];
           /** Updated user profile data */
           profile: Record<string, ParameterValue>;
           metadata?: Record<string, any>;
@@ -3774,7 +3825,8 @@ export interface StageResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -3835,7 +3887,8 @@ export interface StageListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -3986,7 +4039,8 @@ export interface ClassifierResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4027,7 +4081,8 @@ export interface ClassifierListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -4164,7 +4219,8 @@ export interface ContextTransformerResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -4207,7 +4263,8 @@ export interface ContextTransformerListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -4286,7 +4343,8 @@ export interface CreateSmartFunctionTool {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -4403,7 +4461,8 @@ export interface UpdateSmartFunctionTool {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -4500,7 +4559,8 @@ export interface ToolResponse {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -4559,7 +4619,8 @@ export interface ToolListResponse {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -5139,6 +5200,12 @@ export interface CreateProviderRequest {
         apiKey: string;
       }
     | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5265,6 +5332,12 @@ export interface UpdateProviderRequest {
         apiKey: string;
       }
     | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5360,6 +5433,12 @@ export interface ProviderResponse {
     | {
         /** Google API key */
         apiKey: string;
+      }
+    | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
       }
     | {
         /** API key for authenticating with ElevenLabs */
@@ -5464,6 +5543,12 @@ export interface ProviderListResponse {
       | {
           /** Google API key */
           apiKey: string;
+        }
+      | {
+          /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+          baseUrl?: string;
+          /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+          apiKey?: string;
         }
       | {
           /** API key for authenticating with ElevenLabs */
@@ -6272,6 +6357,93 @@ export interface RelativeTime {
   unit: "hours" | "days" | "weeks" | "months";
 }
 
+export interface FunnelStep {
+  /** Event type that defines this funnel step */
+  eventType:
+    | "enter_stage"
+    | "end_stage"
+    | "action_fire"
+    | "variable_changed"
+    | "user_profile_changed"
+    | "session_started"
+    | "tool_response";
+  /** Event-specific filter parameters; see FunnelStep documentation for required keys per eventType */
+  params: Record<string, string>;
+}
+
+export interface FunnelQuery {
+  /**
+   * Ordered list of funnel steps; minimum 2, maximum 15
+   * @maxItems 15
+   */
+  steps: FunnelStep[];
+  /** Relative look-back window (mutually exclusive with from/to) */
+  relativeTime?: RelativeTime;
+  /**
+   * Time window start, inclusive (ISO 8601; mutually exclusive with relativeTime)
+   * @format date-time
+   */
+  from?: string | null;
+  /**
+   * Time window end, inclusive (ISO 8601; mutually exclusive with relativeTime)
+   * @format date-time
+   */
+  to?: string | null;
+}
+
+export interface FunnelStepResult {
+  /** 1-based index of this step in the input steps array */
+  stepNumber: number;
+  /** Human-readable label generated by the server */
+  label: string;
+  /** Absolute count of unique users who reached this step */
+  userCount: number;
+  /** userCount / usersAtStart × 100; always 100.0 for step 1 */
+  percentage: number;
+  /** Users lost relative to the previous step; 0 for step 1 */
+  dropoffCount: number;
+  /** dropoffCount / usersAtStart × 100; 0.0 for step 1 */
+  dropoffPercentage: number;
+}
+
+export interface FunnelQueryResponse {
+  /** Percentage of step-1 users who reached the last step (0.0–100.0) */
+  totalConversionRate: number;
+  /** Absolute count of unique users who matched step 1 */
+  usersAtStart: number;
+  /** Absolute count of unique users who matched the last step */
+  usersAtEnd: number;
+  /** One result entry per input step, in order */
+  steps: FunnelStepResult[];
+}
+
+export interface SavedFunnelQuery {
+  /** Unique identifier of the saved funnel query */
+  id: string;
+  /** Name of the saved funnel query */
+  name: string;
+  /** Project this query belongs to */
+  projectId: string;
+  /** Operator who created this query, or null if the operator has been deleted */
+  operatorId: string | null;
+  /** The saved funnel query configuration */
+  query: FunnelQuery;
+  /** Whether this query is visible to all operators in the project */
+  isShared: boolean;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the query was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the query was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
 export interface ChannelCapabilities {
   /** Whether the channel supports receiving audio from the user */
   supportsVoiceInput: boolean;
@@ -6892,7 +7064,8 @@ export interface FillerSettingsExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -6991,7 +7164,8 @@ export interface AgentExchangeV1 {
       | OpenAILlmSettings
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
-      | GeminiLlmSettings;
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -7024,7 +7198,8 @@ export interface StageExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -7075,7 +7250,8 @@ export interface ClassifierExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -7108,7 +7284,8 @@ export interface ContextTransformerExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -7144,7 +7321,8 @@ export interface ToolExchangeV1 {
     | OpenAILlmSettings
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
-    | GeminiLlmSettings;
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
@@ -7307,6 +7485,31 @@ export interface ProjectExchangeImportResult {
   };
   /** Resolution report for every unique provider hint found in the bundle. Each entry shows what the hint requested and which local provider it mapped to. Entries with resolved=false indicate provider fields that were set to null — the affected entities will need their provider re-configured manually. */
   providerResolution: ProviderHintResolution[];
+}
+
+export interface SecretResponse {
+  /** Unique secret identifier (e.g. sec_xxxx) */
+  id: string;
+  /** Full secret reference string in @sec:name:id format */
+  ref: string;
+  /** ISO 8601 creation timestamp */
+  createdAt: string;
+  /** ISO 8601 last-updated timestamp */
+  updatedAt: string;
+}
+
+export interface SecretListResponse {
+  /** List of secret entries */
+  items: SecretResponse[];
+  /** Secret refs that exist in the store but are not referenced by any provider config or environment */
+  orphans: string[];
+}
+
+export interface SecretValueResponse {
+  /** Secret identifier */
+  id: string;
+  /** Decrypted plaintext secret value */
+  value: string;
 }
 
 export interface LatencyStatsResponse {

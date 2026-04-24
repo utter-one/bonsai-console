@@ -717,9 +717,9 @@ export interface StartConversationRequest {
    */
   agentId?: string;
   /**
-   * Stage ID to initiate the conversation at a specific stage
+   * Stage ID to initiate the conversation at a specific stage. When omitted, falls back to the project-level default starting stage.
    */
-  stageId: string;
+  stageId?: string;
   /**
    * IANA timezone identifier for this conversation (e.g. America/New_York, Europe/Warsaw). Overrides user profile and project timezone settings. Defaults to UTC when not provided by any source.
    */
@@ -1050,6 +1050,10 @@ export interface ConversationEvent {
          */
         sourceActionName: string;
         /**
+         * Names of the variables that were changed by this update
+         */
+        changedVariableNames: string[];
+        /**
          * Snapshot of all conversation variables after the update
          */
         variables: {
@@ -1062,6 +1066,10 @@ export interface ConversationEvent {
          * Name of the action that triggered this profile update
          */
         sourceActionName: string;
+        /**
+         * Names of the profile fields that were changed by this update
+         */
+        changedProfileNames: string[];
         /**
          * Updated user profile data
          */
@@ -1349,6 +1357,10 @@ export interface ConversationEventUpdate {
          */
         sourceActionName: string;
         /**
+         * Names of the variables that were changed by this update
+         */
+        changedVariableNames: string[];
+        /**
          * Snapshot of all conversation variables after the update
          */
         variables: {
@@ -1361,6 +1373,10 @@ export interface ConversationEventUpdate {
          * Name of the action that triggered this profile update
          */
         sourceActionName: string;
+        /**
+         * Names of the profile fields that were changed by this update
+         */
+        changedProfileNames: string[];
         /**
          * Updated user profile data
          */

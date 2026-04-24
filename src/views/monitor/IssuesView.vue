@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
-import { usePagination, useSearch, formatDate } from '@/composables'
+import { usePagination, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
@@ -285,7 +286,7 @@ async function handleRecoverSuccess() {
                   <span :class="getSeverityClass(issue.severity)">{{ issue.severity }}</span>
                 </td>
                 <td class="table-cell">{{ issue.category }}</td>
-                <td class="table-cell-muted">{{ formatDate(issue.createdAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>
                 <td class="table-cell">
                   <div class="flex-end">
                     <button @click.stop="openEditModal(issue)" class="btn-secondary btn-sm">

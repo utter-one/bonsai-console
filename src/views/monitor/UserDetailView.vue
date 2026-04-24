@@ -3,7 +3,8 @@ import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
 import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
-import { formatDate } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
+import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -150,28 +151,6 @@ function viewConversation(conversation: ConversationResponse) {
   })
 }
 
-
-function formatStatusLabel(status: string): string {
-  return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
-
-function getStatusBadgeClass(status: string): string {
-  switch (status.toLowerCase()) {
-    case 'active':
-      return 'badge-active'
-    case 'completed':
-      return 'badge-success'
-    case 'failed':
-      return 'badge-error'
-    case 'aborted':
-      return 'badge-warning'
-    default:
-      return 'badge-secondary'
-  }
-}
 
 const metadataFields = computed(() => {
   if (!user.value) return []
@@ -372,11 +351,11 @@ async function unbanUser() {
                         </div>
                         <div>
                           <span class="text-gray-600 dark:text-gray-400">Created:</span>
-                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.createdAt) }}</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200"><RelativeDate :date="conversation.createdAt" /></span>
                         </div>
                         <div>
                           <span class="text-gray-600 dark:text-gray-400">Updated:</span>
-                          <span class="ml-1 text-gray-900 dark:text-gray-200">{{ formatDate(conversation.updatedAt) }}</span>
+                          <span class="ml-1 text-gray-900 dark:text-gray-200"><RelativeDate :date="conversation.updatedAt" /></span>
                         </div>
                       </div>
                       <div v-if="conversation.statusDetails" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -466,43 +445,3 @@ async function unbanUser() {
     </div>
   </MonitorSectionLayout>
 </template>
-
-<style scoped>
-.tab-button-danger {
-  color: rgb(185 28 28);
-}
-
-.tab-button-danger:hover {
-  color: rgb(153 27 27);
-}
-
-.tab-button-danger-active {
-  color: rgb(185 28 28);
-  border-bottom-color: rgb(185 28 28);
-}
-
-.badge-active {
-  background-color: rgb(220 252 231);
-  color: rgb(22 101 52);
-}
-
-.badge-success {
-  background-color: rgb(219 234 254);
-  color: rgb(30 64 175);
-}
-
-.badge-warning {
-  background-color: rgb(254 249 195);
-  color: rgb(133 77 14);
-}
-
-.badge-error {
-  background-color: rgb(254 226 226);
-  color: rgb(153 27 27);
-}
-
-.badge-secondary {
-  background-color: rgb(243 244 246);
-  color: rgb(31 41 55);
-}
-</style>

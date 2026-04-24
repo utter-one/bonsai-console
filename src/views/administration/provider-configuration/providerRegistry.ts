@@ -6,6 +6,7 @@ import FireworksConfig from './FireworksConfig.vue'
 import TogetherConfig from './TogetherConfig.vue'
 import AnthropicConfig from './AnthropicConfig.vue'
 import GeminiConfig from './GeminiConfig.vue'
+import OllamaConfig from './OllamaConfig.vue'
 import ElevenLabsConfig from './ElevenLabsConfig.vue'
 import DeepgramConfig from './DeepgramConfig.vue'
 import CartesiaConfig from './CartesiaConfig.vue'
@@ -89,6 +90,18 @@ const registry: Record<string, ProviderEntry> = {
   'anthropic:*': apiKeyBaseUrl(AnthropicConfig),
 
   'gemini:*': apiKeyOnly(GeminiConfig),
+
+  'ollama:*': {
+    component: OllamaConfig,
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = {}
+      if (c.baseUrl) cfg.baseUrl = c.baseUrl
+      if (c.apiKey) cfg.apiKey = c.apiKey
+      return cfg
+    },
+    validate() { return null },
+  },
+
   'elevenlabs:*': apiKeyOnly(ElevenLabsConfig),
   'deepgram:*': apiKeyOnly(DeepgramConfig),
   'cartesia:*': apiKeyOnly(CartesiaConfig),

@@ -3,8 +3,9 @@ import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { formatEnum, formatDate, usePagination, useTableSort, useSearch } from '@/composables'
-import { Route, Search, X, Plus } from 'lucide-vue-next'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
+import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -156,12 +157,6 @@ async function deleteStage(stage: StageResponse) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell-sortable" @click="toggleSort('enterBehavior')">
-                  <div class="flex items-center gap-1">
-                    Enter Behavior
-                    <component :is="getSortIcon('enterBehavior')" class="w-4 h-4" :class="sortKey === 'enterBehavior' ? 'text-primary-600' : 'text-gray-400'" />
-                  </div>
-                </th>
                 <th class="table-header-cell">Features</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -181,17 +176,22 @@ async function deleteStage(stage: StageResponse) {
                   <span v-if="stage.archived" class="badge badge-error ml-2">Archived</span>
                 </td>
                 <td class="table-cell">
-                  <span class="badge-secondary whitespace-nowrap">{{ formatEnum(stage.enterBehavior) }}</span>
-                </td>
-                <td class="table-cell">
-                  <div class="flex gap-1 flex-wrap">
-                    <span v-if="stage.useKnowledge" class="badge-info">Knowledge</span>
-                    <span v-if="stage.useGlobalActions" class="badge-info">Global Actions</span>
-                    <span v-if="stage.defaultClassifierId" class="badge-info whitespace-nowrap">
-                      Classifier
+                  <div class="flex gap-2 items-center">
+                    <span v-if="stage.useKnowledge" class="feature-badge">
+                      <BookOpen class="w-4 h-4" />
+                      <span class="feature-tooltip">Knowledge Base</span>
                     </span>
-                    <span v-if="stage.transformerIds?.length" class="badge-info whitespace-nowrap">
-                      {{ stage.transformerIds.length }} Transformer(s)
+                    <span v-if="stage.useGlobalActions" class="feature-badge">
+                      <Zap class="w-4 h-4" />
+                      <span class="feature-tooltip">Global Actions</span>
+                    </span>
+                    <span v-if="stage.defaultClassifierId" class="feature-badge">
+                      <Target class="w-4 h-4" />
+                      <span class="feature-tooltip">Classifier</span>
+                    </span>
+                    <span v-if="stage.transformerIds?.length" class="feature-badge">
+                      <Microchip class="w-4 h-4" />
+                      <span class="feature-tooltip">{{ stage.transformerIds.length }} Context Transformer{{ stage.transformerIds.length === 1 ? '' : 's' }}</span>
                     </span>
                   </div>
                 </td>
@@ -201,7 +201,7 @@ async function deleteStage(stage: StageResponse) {
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(stage.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="stage.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editStage(stage)" class="btn-secondary btn-sm">
@@ -228,5 +228,43 @@ async function deleteStage(stage: StageResponse) {
 </template>
 
 <style scoped>
-/* Additional custom styles if needed */
+.feature-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.feature-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f9fafb;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 5px;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.feature-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.feature-badge:hover .feature-tooltip {
+  display: block;
+}
 </style>

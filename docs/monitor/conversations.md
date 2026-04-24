@@ -80,7 +80,7 @@ Below each bar, individual phase durations are listed alongside **TTFT** (time t
 
 ### Metadata
 
-Read-only system fields: conversation ID, project ID, user ID, stage ID, status, and timestamps.
+Read-only system fields: conversation ID, project ID, user ID, starting stage ID, current stage ID, status, and timestamps.
 
 ## Lifecycle
 

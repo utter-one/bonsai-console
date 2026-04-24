@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import {
   MessageSquare,
   FileText,
@@ -24,6 +26,11 @@ const emit = defineEmits<{
   (e: 'open-variables', variables: Record<string, any>): void
   (e: 'open-bug-report', event: NormalizedEvent): void
 }>()
+
+function renderMarkdown(content: string): string {
+  const raw = marked.parse(content) as string
+  return DOMPurify.sanitize(raw)
+}
 </script>
 
 <template>
@@ -77,7 +84,7 @@ const emit = defineEmits<{
           </button>
         </div>
       </div>
-      <div class="text-gray-900 whitespace-pre-wrap dark:text-gray-100">{{ event.eventData.text }}</div>
+      <div class="text-gray-900 dark:text-gray-100 prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.eventData.text)" />
       <div v-if="event.eventData.role === 'user' && (event.eventData.metadata?.processingDurationMs != null || event.eventData.metadata?.actionsDurationMs != null || event.eventData.metadata?.fillerDurationMs != null || event.eventData.metadata?.moderationDurationMs != null)"
         class="mt-2 pt-2 border-t border-blue-200 flex flex-wrap gap-1.5 dark:border-blue-900">
         <span v-if="event.eventData.metadata?.moderationDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Moderation</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.moderationDurationMs) }}</span></span>
@@ -109,7 +116,7 @@ const emit = defineEmits<{
       <div v-if="event.eventData.originalText && event.eventData.originalText !== event.eventData.text"
         class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
         <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Original:</span>
-        <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap dark:text-gray-300">{{ event.eventData.originalText }}</div>
+        <div class="text-sm text-gray-700 mt-1 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.eventData.originalText!)" />
       </div>
       <div v-if="event.eventData.visibility" class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600 flex items-center gap-1.5">
         <Eye class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 shrink-0" />

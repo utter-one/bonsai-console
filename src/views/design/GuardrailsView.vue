@@ -5,7 +5,8 @@ import FormField from '@/components/FormField.vue'
 import { useGuardrailsStore, useProjectSelectionStore, useProjectsStore, useClassifiersStore, useProvidersStore, useProviderCatalogStore } from '@/stores'
 import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -404,7 +405,7 @@ function navigateToModerationAction() {
                     </div>
                     <span v-else class="text-gray-400">—</span>
                   </td>
-                  <td class="table-cell-muted">{{ formatDate(guardrail.updatedAt) }}</td>
+                  <td class="table-cell-muted"><RelativeDate :date="guardrail.updatedAt" /></td>
                   <td class="table-cell-right">
                     <div class="flex-end">
                       <button @click="editGuardrail(guardrail)" class="btn-secondary btn-sm">

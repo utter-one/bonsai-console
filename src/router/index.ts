@@ -215,6 +215,11 @@ const routes: RouteRecordRaw[] = [
                 name: 'monitor.analytics.explore',
                 component: () => import('@/views/monitor/ExploreView.vue'),
               },
+              {
+                path: 'funnels',
+                name: 'monitor.analytics.funnels',
+                component: () => import('@/views/monitor/FunnelView.vue'),
+              },
             ],
           },
           {

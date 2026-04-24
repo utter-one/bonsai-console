@@ -57,6 +57,13 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
           >
             Explorer
           </router-link>
+          <router-link
+            :to="{ name: 'monitor.analytics.funnels' }"
+            class="tab-button"
+            :class="{ 'tab-button-active': route.name === 'monitor.analytics.funnels' }"
+          >
+            Funnels
+          </router-link>
         </nav>
 
         <RouterView />
