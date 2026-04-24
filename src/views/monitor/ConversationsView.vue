@@ -5,7 +5,7 @@ import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useSt
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, PhoneIncoming, PhoneOutgoing } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
@@ -42,6 +42,15 @@ const startingStageFilter = ref<string | null>(null)
 
 // Ending stage filter
 const endingStageFilter = ref<string | null>(null)
+
+// Direction filter
+const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
+
+const directionFilterOptions = [
+  { value: 'all' as const, label: 'All Directions' },
+  { value: 'incoming' as const, label: 'Incoming' },
+  { value: 'outgoing' as const, label: 'Outgoing' },
+]
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -90,6 +99,10 @@ const currentEndingStageLabel = computed(() => {
   return stageMap.value.get(endingStageFilter.value) ?? endingStageFilter.value
 })
 
+const currentDirectionFilterLabel = computed(() => {
+  return directionFilterOptions.find(opt => opt.value === directionFilter.value)?.label || 'All Directions'
+})
+
 const filteredConversations = computed(() => {
   return conversationsStore.conversations
 })
@@ -100,12 +113,14 @@ watch(statusFilter, () => { pagination.reset(); loadConversations() })
 watch(userFilter, () => { pagination.reset(); loadConversations() })
 watch(startingStageFilter, () => { pagination.reset(); loadConversations() })
 watch(endingStageFilter, () => { pagination.reset(); loadConversations() })
+watch(directionFilter, () => { pagination.reset(); loadConversations() })
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
   userFilter.value = null
   startingStageFilter.value = null
   endingStageFilter.value = null
+  directionFilter.value = 'all'
   pagination.reset()
   loadProjectData()
 })
@@ -142,6 +157,10 @@ async function loadConversations() {
 
     if (endingStageFilter.value) {
       filters.endingStageId = { op: 'eq', value: endingStageFilter.value }
+    }
+
+    if (directionFilter.value !== 'all') {
+      filters.direction = { op: 'eq', value: directionFilter.value }
     }
 
     await conversationsStore.fetchAll(
@@ -378,6 +397,30 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             </button>
           </template>
         </FloatingDropdown>
+
+        <!-- Direction Filter -->
+        <FloatingDropdown
+          align="left"
+          min-width="160px"
+          :trigger-class="directionFilter !== 'all' ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentDirectionFilterLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              v-for="option in directionFilterOptions"
+              :key="option.value"
+              type="button"
+              @click="directionFilter = option.value; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': directionFilter === option.value }"
+            >
+              {{ option.label }}
+            </button>
+          </template>
+        </FloatingDropdown>
       </div>
 
       <!-- Loading State -->
@@ -415,7 +458,19 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             <tbody class="table-body">
               <tr v-for="conversation in filteredConversations" :key="conversation.id" class="table-row">
                 <td class="table-clickable-cell" @click="viewConversation(conversation)">
-                  <span class="font-mono text-sm" :title="conversation.id">{{ shortenConversationId(conversation.id) }}</span>
+                  <span class="inline-flex items-center gap-1.5 font-mono text-sm" :title="conversation.id">
+                    {{ shortenConversationId(conversation.id) }}
+                    <PhoneIncoming
+                      v-if="conversation.direction === 'incoming'"
+                      class="w-3.5 h-3.5 text-blue-500 shrink-0"
+                      title="Incoming – user-initiated"
+                    />
+                    <PhoneOutgoing
+                      v-else-if="conversation.direction === 'outgoing'"
+                      class="w-3.5 h-3.5 text-violet-500 shrink-0"
+                      title="Outgoing – Bonsai-initiated"
+                    />
+                  </span>
                 </td>
                 <td class="table-cell">
                   <div class="flex items-center gap-2">

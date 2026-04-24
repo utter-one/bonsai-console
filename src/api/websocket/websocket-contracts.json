@@ -871,6 +871,18 @@
           "type": "string",
           "description": "IANA timezone identifier for this conversation (e.g. America/New_York, Europe/Warsaw). Overrides user profile and project timezone settings. Defaults to UTC when not provided by any source."
         },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "incoming",
+            "outgoing"
+          ],
+          "description": "Direction of the conversation. Defaults to incoming when not specified."
+        },
+        "existingConversationId": {
+          "type": "string",
+          "description": "When set, the handler attaches to this pre-created conversation instead of creating a new one. Used for outgoing call flows where the conversation record is created at call initiation time."
+        },
         "requestId": {
           "type": "string",
           "description": "Unique identifier for request correlation and tracking"

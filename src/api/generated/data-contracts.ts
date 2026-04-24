@@ -3104,6 +3104,8 @@ export interface ConversationResponse {
   status: string;
   /** Optional details about the current status */
   statusDetails: string | null;
+  /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+  direction: "incoming" | "outgoing";
   /** Additional metadata associated with the conversation */
   metadata: Record<string, any>;
   /**
@@ -3143,6 +3145,8 @@ export interface ConversationListResponse {
     status: string;
     /** Optional details about the current status */
     statusDetails: string | null;
+    /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+    direction: "incoming" | "outgoing";
     /** Additional metadata associated with the conversation */
     metadata: Record<string, any>;
     /**
@@ -5280,6 +5284,8 @@ export interface TwilioVoiceChannelConfig {
   authToken: string;
   /** Twilio phone number in E.164 format (e.g. +15551234567) */
   phoneNumber: string;
+  /** Twilio Application SID (starts with AP) whose voice webhook URL is called when an outgoing call connects. Required for outgoing calls; unused for incoming-only deployments. */
+  applicationSid?: string;
 }
 
 export interface WhatsAppChannelConfig {
@@ -6303,7 +6309,10 @@ export interface SliceQuery {
     | "transformations"
     | "moderation"
     | "stage_visits"
-    | "llm_calls";
+    | "llm_calls"
+    | "actions"
+    | "variables"
+    | "user_profile";
   /**
    * Dimension IDs to group results by (max 5)
    * @maxItems 5
