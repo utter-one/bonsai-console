@@ -5,7 +5,7 @@ import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useSt
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown, PhoneIncoming, PhoneOutgoing, PhoneCall } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
@@ -282,7 +282,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
           </button>
           <FloatingDropdown align="right" min-width="200px" trigger-class="btn-alt flex items-center gap-1">
             <template #trigger>
-              <PhoneCall class="w-4 h-4" />
+              <ArrowUpRight class="w-4 h-4" />
               Initiate
               <ChevronDown class="w-4 h-4" />
             </template>
@@ -500,12 +500,12 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 <td class="table-clickable-cell" @click="viewConversation(conversation)">
                   <span class="inline-flex items-center gap-1.5 font-mono text-sm" :title="conversation.id">
                     {{ shortenConversationId(conversation.id) }}
-                    <PhoneIncoming
+                    <ArrowDownLeft
                       v-if="conversation.direction === 'incoming'"
                       class="w-3.5 h-3.5 text-blue-500 shrink-0"
                       title="Incoming – user-initiated"
                     />
-                    <PhoneOutgoing
+                    <ArrowUpRight
                       v-else-if="conversation.direction === 'outgoing'"
                       class="w-3.5 h-3.5 text-violet-500 shrink-0"
                       title="Outgoing – Bonsai-initiated"

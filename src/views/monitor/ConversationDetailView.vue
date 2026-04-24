@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Play, PhoneIncoming, PhoneOutgoing } from 'lucide-vue-next'
+import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -397,12 +397,12 @@ function fmtMs(value: number | null | undefined): string {
             <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
             <p class="flex items-center gap-1.5 text-sm text-gray-600 font-mono dark:text-gray-400">
               {{ conversationId }}
-              <PhoneIncoming
+              <ArrowDownLeft
                 v-if="conversation?.direction === 'incoming'"
                 class="w-3.5 h-3.5 text-blue-500 shrink-0"
                 title="Incoming – user-initiated"
               />
-              <PhoneOutgoing
+              <ArrowUpRight
                 v-else-if="conversation?.direction === 'outgoing'"
                 class="w-3.5 h-3.5 text-violet-500 shrink-0"
                 title="Outgoing – Bonsai-initiated"
