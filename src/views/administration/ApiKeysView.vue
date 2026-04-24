@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useAllApiKeysStore, useProjectsStore } from '@/stores'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Key, Search, X, Plus } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
@@ -303,8 +304,8 @@ function getProjectName(projectId: string): string {
                     :title="apiKey.archived ? 'Cannot change — project is archived' : (apiKey.isActive ? 'Click to deactivate' : 'Click to activate')"
                   />
                 </td>
-                <td class="table-cell-muted">{{ formatDate(apiKey.lastUsedAt) }}</td>
-                <td class="table-cell-muted">{{ formatDate(apiKey.createdAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="apiKey.lastUsedAt" /></td>
+                <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="openEditModal(apiKey)" class="btn-secondary btn-sm">

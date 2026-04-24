@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore, useLayoutStore } from '@/stores'
-import { formatEnum, useContextualHelp } from '@/composables'
+import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
 import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
@@ -21,6 +21,11 @@ const playgroundStore = usePlaygroundStore()
 const layoutStore = useLayoutStore()
 
 const { helpUrl } = useContextualHelp()
+const { updateAvailable } = useVersionPoller()
+
+function reloadPage() {
+  window.location.reload()
+}
 
 const currentSection = computed(() => {
   const path = route.path
@@ -262,25 +267,26 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         <div class="md:mr-12">
           <div class="flex items-center gap-2">
             <img :src="logoUrl" alt="Bonsai Console" class="h-8 w-8" />
-            <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai Console</h1>
+            <h1 class="m-0 text-xl font-semibold text-gray-900 dark:text-white">Bonsai&nbsp;Console</h1>
           </div>
         </div>
 
         <!-- Main Navigation -->
-        <nav class="flex gap-1 flex-1 md:flex hidden">
+        <nav class="gap-1 flex-1 md:flex hidden">
           <button
             v-for="section in sections"
             :key="section.id"
             :class="[
-              'flex items-center gap-2 px-4 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
+              'flex items-center gap-2 px-3 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
               currentSection === section.id 
                 ? 'bg-blue-50 text-primary-500 dark:bg-gray-700 dark:text-primary-400' 
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
             ]"
+            :title="section.label"
             @click="navigateToSection(section.id)"
           >
             <component :is="section.icon" class="flex-shrink-0" :size="18" />
-            <span>{{ section.label }}</span>
+            <span class="xl:inline hidden">{{ section.label }}</span>
           </button>
         </nav>
 
@@ -297,7 +303,7 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
               type="button"
               :disabled="isProjectSelectorDisabled"
               :class="[
-                'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
+                'flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm min-w-[160px] max-w-[260px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 w-full',
                 isProjectSelectorDisabled
                   ? 'cursor-not-allowed opacity-60'
                   : 'cursor-pointer hover:border-primary-500 dark:hover:border-primary-400'
@@ -606,6 +612,26 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Update Available Banner -->
+    <div
+      v-if="updateAvailable"
+      class="bg-amber-50 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-700"
+    >
+      <div class="flex items-center justify-between gap-4 px-6 py-2.5 max-w-[1920px] mx-auto">
+        <p class="text-sm text-amber-800 dark:text-amber-300">
+          <span class="font-semibold">A new version of Bonsai Console is available.</span>
+          Please refresh now &mdash; continuing without refreshing may cause buttons and actions to stop working.
+        </p>
+        <button
+          type="button"
+          class="flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-md bg-amber-200 text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700 transition-colors"
+          @click="reloadPage()"
+        >
+          Refresh now
+        </button>
+      </div>
+    </div>
 
     <!-- Main Content Area -->
     <main class="flex-1 min-h-0 p-6 max-w-[1920px] w-full mx-auto flex flex-col">

@@ -24,7 +24,8 @@ These power the AI's "brain" — text generation, intent classification, data ex
 | **Fireworks AI** | Fireworks AI | Fast inference for open-source models. |
 | **Perplexity AI** | Perplexity | Models with built-in web search. |
 | **Cohere** | Cohere | Command R+ and other Cohere models. |
-| **OpenAI-compatible** | Any | Generic OpenAI-compatible API endpoint. Use for self-hosted models (vLLM, Ollama, LM Studio) or any provider not listed above. |
+| **Ollama** | Ollama | Local model inference via Ollama. Dedicated configuration interface with built-in model catalog and connection settings. |
+| **OpenAI-compatible** | Any | Generic OpenAI-compatible API endpoint. Use for self-hosted models (vLLM, LM Studio) or any provider not listed above. |
 
 **Used by:** Stages (response generation), Classifiers (intent detection), Context Transformers (data extraction), Tools (function execution).
 
@@ -130,7 +131,9 @@ These settings are configured where the provider is referenced (e.g., on the sta
 
 ## Security
 
-Provider configurations contain sensitive data (API keys, connection strings). Only operators with the appropriate permissions can view or modify provider settings.
+Provider configurations contain sensitive data (API keys, tokens, connection strings). These fields are **encrypted at rest** — they are never stored in plain text.
+
+When viewing an existing provider, sensitive fields are masked by default. Operators with the **super admin** role can reveal the current value of a masked field using the reveal button next to it.
 
 ## Tips
 

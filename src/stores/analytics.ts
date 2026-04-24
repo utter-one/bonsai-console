@@ -12,6 +12,11 @@ import type {
   SliceQueryResponse,
   SavedSliceQuery,
   SliceQuery,
+  FunnelQuery,
+  FunnelQueryResponse,
+  SavedFunnelQuery,
+  FunnelStep,
+  RelativeTime,
 } from '@/api/generated/data-contracts'
 
 type LatencyFilterQuery = {
@@ -223,6 +228,105 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     savedQueries.value = savedQueries.value.filter(q => q.id !== id)
   }
 
+  const funnelResult = ref<FunnelQueryResponse | null>(null)
+  const isLoadingFunnel = ref(false)
+  const funnelError = ref<string | null>(null)
+  const savedFunnelQueries = ref<SavedFunnelQuery[]>([])
+  const isLoadingSavedFunnelQueries = ref(false)
+
+  async function runFunnelQuery(projectId: string, data: FunnelQuery) {
+    isLoadingFunnel.value = true
+    funnelError.value = null
+    funnelResult.value = null
+    try {
+      funnelResult.value = await apiClient.projectsAnalyticsFunnelsQueryCreate(projectId, data)
+    } catch (err: any) {
+      const data = err.response?.data
+      if (data?.message) {
+        funnelError.value = data.message
+      } else if (data?.error) {
+        funnelError.value = data.error
+      } else if (typeof data === 'string' && data) {
+        funnelError.value = data
+      } else {
+        funnelError.value = `Funnel query failed (HTTP ${err.response?.status ?? 'unknown'})`
+      }
+      throw err
+    } finally {
+      isLoadingFunnel.value = false
+    }
+  }
+
+  function clearFunnelResult() {
+    funnelResult.value = null
+    funnelError.value = null
+  }
+
+  async function fetchSavedFunnelQueries(projectId: string) {
+    isLoadingSavedFunnelQueries.value = true
+    try {
+      savedFunnelQueries.value = await apiClient.projectsAnalyticsFunnelsSavedQueriesList(projectId)
+    } catch (err: any) {
+      throw err
+    } finally {
+      isLoadingSavedFunnelQueries.value = false
+    }
+  }
+
+  async function createSavedFunnelQuery(projectId: string, data: { name: string; query: FunnelQuery; isShared?: boolean }) {
+    const created = await apiClient.projectsAnalyticsFunnelsSavedQueriesCreate(projectId, data)
+    savedFunnelQueries.value = [...savedFunnelQueries.value, created]
+    return created
+  }
+
+  async function updateSavedFunnelQuery(projectId: string, id: string, data: { name?: string; query?: FunnelQuery; isShared?: boolean; version: number }) {
+    const updated = await apiClient.projectsAnalyticsFunnelsSavedQueriesUpdate(projectId, id, data)
+    savedFunnelQueries.value = savedFunnelQueries.value.map(q => q.id === id ? updated : q)
+    return updated
+  }
+
+  async function deleteSavedFunnelQuery(projectId: string, id: string, version: number) {
+    await apiClient.projectsAnalyticsFunnelsSavedQueriesDelete(projectId, id, { version })
+    savedFunnelQueries.value = savedFunnelQueries.value.filter(q => q.id !== id)
+  }
+
+  const funnelDraft = ref<{
+    steps: FunnelStep[]
+    timeRangeMode: 'relative' | 'absolute'
+    relativeTimeAmount: number
+    relativeTimeUnit: RelativeTime['unit']
+    absoluteFrom: string
+    absoluteTo: string
+    activeQuery: SavedFunnelQuery | null
+    projectId: string
+  } | null>(null)
+
+  function saveFunnelDraft(draft: typeof funnelDraft.value) {
+    funnelDraft.value = draft
+  }
+
+  const exploreDraft = ref<{
+    selectedSource: string
+    selectedDimensions: string[]
+    selectedNormalizeBy: string
+    selectedMetrics: { spec: string; label: string }[]
+    filterInterval: string
+    dimensionFilters: { dimensionId: string; value: string }[]
+    queryLimit: number
+    timeRangeMode: 'relative' | 'absolute' | 'all'
+    relativeTimeAmount: number
+    relativeTimeUnit: RelativeTime['unit']
+    absoluteFrom: string
+    absoluteTo: string
+    activeQuery: SavedSliceQuery | null
+    chartSettings: unknown
+    projectId: string
+  } | null>(null)
+
+  function saveExploreDraft(draft: typeof exploreDraft.value) {
+    exploreDraft.value = draft
+  }
+
   return {
     latencyStats,
     latencyPercentiles,
@@ -261,5 +365,20 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     createSavedQuery,
     updateSavedQuery,
     deleteSavedQuery,
+    funnelResult,
+    isLoadingFunnel,
+    funnelError,
+    savedFunnelQueries,
+    isLoadingSavedFunnelQueries,
+    runFunnelQuery,
+    clearFunnelResult,
+    fetchSavedFunnelQueries,
+    createSavedFunnelQuery,
+    updateSavedFunnelQuery,
+    deleteSavedFunnelQuery,
+    funnelDraft,
+    saveFunnelDraft,
+    exploreDraft,
+    saveExploreDraft,
   }
 })

@@ -2,7 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
@@ -185,7 +186,7 @@ function closeMigrateModal() {
                 <td class="table-cell-mono">{{ env.id }}</td>
                 <td class="table-cell-mono">{{ env.url }}</td>
                 <td class="table-cell">{{ env.login }}</td>
-                <td class="table-cell-muted">{{ formatDate(env.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="env.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="openMigrateModal(env)" class="btn-secondary btn-sm" title="Pull data from this environment">

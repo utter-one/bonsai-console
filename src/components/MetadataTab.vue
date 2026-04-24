@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDate } from '../composables';
+import RelativeDate from './RelativeDate.vue'
 
 // Define the metadata item structure
 interface MetadataField {
@@ -22,11 +22,12 @@ function formatValue(field: MetadataField): string {
     return 'N/A'
   }
 
-  if (field.format === 'date') {
-    return formatDate(field.value as string)
-  }
-
   return String(field.value)
+}
+
+// Helper function to determine if field should be rendered as RelativeDate
+function isDateField(field: MetadataField): boolean {
+  return field.format === 'date' && field.value !== null && field.value !== undefined && field.value !== ''
 }
 
 // Helper function to get value class
@@ -48,7 +49,10 @@ function getValueClass(field: MetadataField): string {
         class="metadata-item"
       >
         <span class="metadata-label">{{ field.label }}</span>
-        <span :class="getValueClass(field)">{{ formatValue(field) }}</span>
+        <span :class="getValueClass(field)">
+          <RelativeDate v-if="isDateField(field)" :date="field.value as string" />
+          <template v-else>{{ formatValue(field) }}</template>
+        </span>
       </div>
     </div>
   </div>

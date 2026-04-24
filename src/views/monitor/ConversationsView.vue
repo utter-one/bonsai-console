@@ -2,7 +2,9 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
-import { usePagination, formatDate } from '@/composables'
+import { usePagination } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
+import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
 import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -183,10 +185,6 @@ function getStageName(id: string | null | undefined): string {
   return stageMap.value.get(id) ?? id.slice(-6)
 }
 
-function shortenConversationId(id: string): string {
-  return `conv_...${id.slice(-6)}`
-}
-
 function viewConversation(conversation: ConversationResponse) {
   router.push({
     name: 'monitor.conversationDetail',
@@ -204,33 +202,6 @@ async function deleteConversation(conversation: ConversationResponse) {
     alert(error.response?.data?.message || 'Failed to delete conversation')
   }
 }
-
-function getStatusBadgeClass(status: string): string {
-  switch (status) {
-    case 'awaiting_user_input':
-    case 'receiving_user_voice':
-    case 'processing_user_input':
-    case 'generating_response':
-      return 'badge-active'
-    case 'finished':
-      return 'badge-success'
-    case 'aborted':
-      return 'badge-warning'
-    case 'failed':
-      return 'badge-error'
-    case 'initialized':
-    default:
-      return 'badge-secondary'
-  }
-}
-
-function formatStatusLabel(status: string): string {
-  return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
-
 
 async function refreshData() {
   await loadProjectData()
@@ -463,7 +434,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 </td>
                 <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
                 <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
-                <td class="table-cell-muted">{{ formatDate(conversation.createdAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="conversation.createdAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button 
@@ -497,38 +468,3 @@ async function handleResumeConversation(conversation: ConversationResponse) {
     </div>
   </MonitorSectionLayout>
 </template>
-
-<style scoped>
-.badge-active {
-  background-color: rgb(220 252 231);
-  color: rgb(22 101 52);
-}
-
-.badge-success {
-  background-color: rgb(219 234 254);
-  color: rgb(30 64 175);
-}
-
-.badge-warning {
-  background-color: rgb(254 249 195);
-  color: rgb(133 77 14);
-}
-
-.badge-error {
-  background-color: rgb(254 226 226);
-  color: rgb(153 27 27);
-}
-
-.badge-secondary {
-  background-color: rgb(243 244 246);
-  color: rgb(31 41 55);
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-</style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
+import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
@@ -22,7 +22,8 @@ import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
-import { useTabNavigation, formatDate } from '@/composables'
+import { useTabNavigation } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import AsrSettingsModal from '@/components/modals/AsrSettingsModal.vue'
 import ServerVadSettingsModal from '@/components/modals/ServerVadSettingsModal.vue'
 
@@ -31,6 +32,7 @@ const router = useRouter()
 const projectsStore = useProjectsStore()
 const apiKeysStore = useApiKeysStore()
 const providersStore = useProvidersStore()
+const stagesStore = useStagesStore()
 
 // State
 const isLoading = ref(false)
@@ -66,6 +68,7 @@ const form = ref({
   primaryColor: null as string | null,
   version: undefined as number | undefined,
   costLimitEntries: [] as CostLimitEntry[],
+  startingStageId: null as string | null,
 })
 
 const showApiKeyModal = ref(false)
@@ -227,6 +230,10 @@ const metadataFields = computed(() => {
   ]
 })
 
+const sortedStages = computed(() =>
+  [...stagesStore.items].sort((a, b) => a.name.localeCompare(b.name))
+)
+
 // Lifecycle
 onMounted(async () => {
   await providersStore.fetchAll()
@@ -366,12 +373,16 @@ async function loadProject() {
         costLimitEntries: currentProject.value.costManagementConfig
           ? configToCostLimitEntries(currentProject.value.costManagementConfig)
           : [],
+        startingStageId: currentProject.value.startingStageId ?? null,
       }
 
       // Load model display names for configured entries
       for (const entry of form.value.costLimitEntries) {
         ensureModelsLoaded(entry.providerId)
       }
+
+      // Load stages for starting stage selector
+      await stagesStore.fetchAll(projectId.value!)
 
       // Load API keys for edit mode
       await loadApiKeys()
@@ -465,6 +476,7 @@ async function handleSubmit() {
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         metadata,
         costManagementConfig: buildCostManagementConfig(),
+        startingStageId: form.value.startingStageId,
       })
       
       // Update currentProject with the response to get the new version
@@ -491,6 +503,7 @@ async function handleSubmit() {
         conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
         costManagementConfig: buildCostManagementConfig(),
+        ...(form.value.startingStageId && { startingStageId: form.value.startingStageId }),
       })
 
       // Set currentProject to the newly created project
@@ -836,6 +849,19 @@ function buildCostManagementConfig(): CostManagementConfig {
               class="form-input max-w-64"
               :disabled="isLoading"
             />
+          </FormField>
+
+          <FormField v-if="isEditMode" label="Default Starting Stage" :error="error" path="startingStageId" class="min-w-60 max-w-96" help="Stage to start new conversations at when no stage is specified. Leave empty to require explicit stage selection.">
+            <select
+              v-model="form.startingStageId"
+              class="form-select max-w-96"
+              :disabled="isLoading"
+            >
+              <option :value="null">None (require explicit selection)</option>
+              <option v-for="stage in sortedStages" :key="stage.id" :value="stage.id">
+                {{ stage.name }}
+              </option>
+            </select>
           </FormField>
 
           <!-- Project Color Picker -->
@@ -1228,8 +1254,8 @@ function buildCostManagementConfig(): CostManagementConfig {
                         :disabled="isArchived"
                       />
                     </td>
-                    <td class="table-cell-muted">{{ apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never' }}</td>
-                    <td class="table-cell-muted">{{ formatDate(apiKey.createdAt) }}</td>
+                    <td class="table-cell-muted"><RelativeDate v-if="apiKey.lastUsedAt" :date="apiKey.lastUsedAt" /><span v-else>Never</span></td>
+                    <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                     <td class="table-cell-right">
                       <div class="flex justify-end gap-2">
                         <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">

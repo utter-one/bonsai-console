@@ -34,6 +34,8 @@ import {
   ExportBundle,
   FieldDescriptor,
   FillerSettings,
+  FunnelQuery,
+  FunnelQueryResponse,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
@@ -49,6 +51,7 @@ import {
   MigrationJob,
   MigrationPreview,
   ModerationProviderInfo,
+  OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
@@ -60,7 +63,10 @@ import {
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
+  SavedFunnelQuery,
   SavedSliceQuery,
+  SecretListResponse,
+  SecretValueResponse,
   ServerVadConfig,
   SliceQuery,
   SliceQueryResponse,
@@ -808,6 +814,8 @@ export class Api<
       defaultGuardrailClassifierId?: string | null;
       /** Sample copy configuration including the default classifier used to evaluate prompt triggers. */
       sampleCopyConfig?: SampleCopyConfig;
+      /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Acts as the project-level default starting stage. */
+      startingStageId?: string | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -889,6 +897,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1042,6 +1052,8 @@ export class Api<
             /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
             defaultClassifierId?: string;
           } | null;
+          /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+          startingStageId: string | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
           /** The version number of the project */
@@ -1159,6 +1171,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1277,6 +1291,8 @@ export class Api<
         /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
         defaultClassifierId?: string;
       } | null;
+      /** Updated ID of the stage to start new conversations at when no stageId is provided at conversation start time. Set to null to remove the default starting stage. */
+      startingStageId?: string | null;
       /**
        * Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted.
        * @min 0
@@ -1360,6 +1376,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1498,6 +1516,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -1620,6 +1640,8 @@ export class Api<
           /** ID of the classifier used to evaluate sample copy prompt triggers for all stages in this project. Individual sample copies can override this with classifierOverrideId. */
           defaultClassifierId?: string;
         } | null;
+        /** ID of the stage to start new conversations at when no stageId is provided at conversation start time. Null means no default is set. */
+        startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
         /** The version number of the project */
@@ -2206,6 +2228,155 @@ export class Api<
       ...params,
     });
   /**
+   * @description Executes a user-centric funnel query that cascades qualifying users through ordered event steps. Returns per-step user counts and conversion rates.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsQueryCreate
+   * @summary Run a funnel query
+   * @request POST:/api/projects/{projectId}/analytics/funnels/query
+   * @secure
+   */
+  projectsAnalyticsFunnelsQueryCreate = (
+    projectId: string,
+    data: FunnelQuery,
+    params: RequestParams = {},
+  ) =>
+    this.request<FunnelQueryResponse, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/query`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the operator's own saved funnel queries plus all shared queries within the project, sorted by updatedAt descending.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesList
+   * @summary List saved funnel queries
+   * @request GET:/api/projects/{projectId}/analytics/funnels/saved-queries
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesList = (
+    projectId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery[], any>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Saves a named funnel query configuration for later reuse. The name must be unique within the project.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesCreate
+   * @summary Create a saved funnel query
+   * @request POST:/api/projects/{projectId}/analytics/funnels/saved-queries
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique name for this saved funnel query within the project
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      /** The full funnel query configuration to save */
+      query: FunnelQuery;
+      /**
+       * Whether this query is visible to all operators in the project
+       * @default false
+       */
+      isShared?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing saved funnel query with optimistic locking. Only the owning operator or a super_admin may update.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesUpdate
+   * @summary Update a saved funnel query
+   * @request PUT:/api/projects/{projectId}/analytics/funnels/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated name for this saved funnel query
+       * @minLength 1
+       * @maxLength 255
+       */
+      name?: string;
+      /** Updated funnel query configuration */
+      query?: FunnelQuery;
+      /** Updated sharing flag */
+      isShared?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SavedFunnelQuery, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a saved funnel query with optimistic locking. Only the owning operator or a super_admin may delete.
+   *
+   * @tags Analytics
+   * @name ProjectsAnalyticsFunnelsSavedQueriesDelete
+   * @summary Delete a saved funnel query
+   * @request DELETE:/api/projects/{projectId}/analytics/funnels/saved-queries/{id}
+   * @secure
+   */
+  projectsAnalyticsFunnelsSavedQueriesDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/analytics/funnels/saved-queries/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
    * @description Creates a new classifier with specified name, prompt, and configuration
    *
    * @tags Classifiers
@@ -2270,7 +2441,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2366,7 +2538,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2447,7 +2620,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2538,7 +2712,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2662,7 +2837,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2761,7 +2937,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -2859,7 +3036,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -2942,7 +3120,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3037,7 +3216,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3163,7 +3343,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3606,6 +3787,8 @@ export class Api<
             | {
                 /** Name of the action that triggered this variable update */
                 sourceActionName: string;
+                /** Names of the variables that were changed by this update */
+                changedVariableNames: string[];
                 /** Snapshot of all conversation variables after the update */
                 variables: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
@@ -3613,6 +3796,8 @@ export class Api<
             | {
                 /** Name of the action that triggered this profile update */
                 sourceActionName: string;
+                /** Names of the profile fields that were changed by this update */
+                changedProfileNames: string[];
                 /** Updated user profile data */
                 profile: Record<string, ParameterValue>;
                 metadata?: Record<string, any>;
@@ -3879,6 +4064,8 @@ export class Api<
           | {
               /** Name of the action that triggered this variable update */
               sourceActionName: string;
+              /** Names of the variables that were changed by this update */
+              changedVariableNames: string[];
               /** Snapshot of all conversation variables after the update */
               variables: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
@@ -3886,6 +4073,8 @@ export class Api<
           | {
               /** Name of the action that triggered this profile update */
               sourceActionName: string;
+              /** Names of the profile fields that were changed by this update */
+              changedProfileNames: string[];
               /** Updated user profile data */
               profile: Record<string, ParameterValue>;
               metadata?: Record<string, any>;
@@ -5177,7 +5366,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -5427,6 +5617,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+            baseUrl?: string;
+            /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+            apiKey?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -5523,6 +5719,12 @@ export class Api<
           | {
               /** Google API key */
               apiKey: string;
+            }
+          | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -5689,6 +5891,12 @@ export class Api<
                 apiKey: string;
               }
             | {
+                /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+                baseUrl?: string;
+                /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+                apiKey?: string;
+              }
+            | {
                 /** API key for authenticating with ElevenLabs */
                 apiKey: string;
               }
@@ -5835,6 +6043,12 @@ export class Api<
               apiKey: string;
             }
           | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
+            }
+          | {
               /** API key for authenticating with ElevenLabs */
               apiKey: string;
             }
@@ -5968,6 +6182,12 @@ export class Api<
             apiKey: string;
           }
         | {
+            /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+            baseUrl?: string;
+            /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+            apiKey?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -6062,6 +6282,12 @@ export class Api<
           | {
               /** Google API key */
               apiKey: string;
+            }
+          | {
+              /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+              baseUrl?: string;
+              /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+              apiKey?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -9362,7 +9588,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9478,7 +9705,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -9579,7 +9807,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9713,7 +9942,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9857,7 +10087,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9942,7 +10173,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10056,7 +10288,8 @@ export class Api<
             | OpenAILlmSettings
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
-            | GeminiLlmSettings;
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10155,7 +10388,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10235,7 +10469,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10377,7 +10612,8 @@ export class Api<
           | OpenAILlmSettings
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
-          | GeminiLlmSettings;
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11363,7 +11599,57 @@ export class Api<
       ...params,
     });
   /**
-   * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). Before creating the offer the client must open two named DataChannels: "control" (ordered: true) for all JSON messages (same protocol as WebSocket) and "audio" (ordered: false, maxRetransmits: 0) for binary audio frames. Audio frame format: [uint16 LE: turnId byte length] [turnId UTF-8 bytes] [raw PCM audio]. Once the DataChannels are open, authenticate by sending an "auth" JSON message over the control channel.
+   * @description Lists all secrets in the store. Secret values are never returned. Also returns orphan refs — secrets that exist in the store but are not referenced by any provider config or environment.
+   *
+   * @tags Secrets
+   * @name SecretsList
+   * @summary List all secrets
+   * @request GET:/api/secrets
+   * @secure
+   */
+  secretsList = (params: RequestParams = {}) =>
+    this.request<SecretListResponse, any>({
+      path: `/api/secrets`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns the decrypted plaintext value of a secret. Restricted to super_admin only. Use only in emergency situations.
+   *
+   * @tags Secrets
+   * @name SecretsValueList
+   * @summary Reveal secret value
+   * @request GET:/api/secrets/{id}/value
+   * @secure
+   */
+  secretsValueList = (id: string, params: RequestParams = {}) =>
+    this.request<SecretValueResponse, void>({
+      path: `/api/secrets/${id}/value`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a secret by its ID. Returns 409 if the secret is still referenced by a provider config or environment.
+   *
+   * @tags Secrets
+   * @name SecretsDelete
+   * @summary Delete a secret
+   * @request DELETE:/api/secrets/{id}
+   * @secure
+   */
+  secretsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/secrets/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). The client must add a microphone audio track and open a "control" DataChannel (ordered: true) before creating the offer. The server adds an outbound audio track to the answer for AI voice output. Once the control DataChannel is open, authenticate by sending an "auth" JSON message over it. All JSON messages use the same protocol as WebSocket. Voice audio flows over native RTP/SRTP media tracks.
    *
    * @tags WebRTC
    * @name WebrtcOfferCreate

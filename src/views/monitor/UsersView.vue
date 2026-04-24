@@ -2,7 +2,8 @@
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUsersStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch, formatDate } from '@/composables'
+import { usePagination, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -145,8 +146,8 @@ function getProfileDisplay(profile: Record<string, any>): string {
                     <span v-if="user.archived" class="badge-secondary">Archived</span>
                   </div>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(user.createdAt) }}</td>
-                <td class="table-cell-muted">{{ formatDate(user.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="user.createdAt" /></td>
+                <td class="table-cell-muted"><RelativeDate :date="user.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="viewUser(user)" class="btn-secondary btn-sm">

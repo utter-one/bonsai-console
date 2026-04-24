@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, User, FileText, Hash } from 'lucide-vue-next'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import apiClient from '@/api/client'
-import { formatDate } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 
 const route = useRoute()
@@ -140,7 +140,7 @@ const changes = computed(() => {
                 <Calendar :size="16" class="text-gray-400" />
                 <span>Timestamp</span>
               </div>
-              <div class="metadata-value">{{ formatDate(auditLog.createdAt) }}</div>
+              <div class="metadata-value"><RelativeDate :date="auditLog.createdAt" /></div>
             </div>
 
             <div class="metadata-item">

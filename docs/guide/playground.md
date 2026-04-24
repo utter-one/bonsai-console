@@ -27,6 +27,8 @@ Your selected mode is remembered per project, so you don't have to pick it every
 ## Starting and Ending Conversations
 
 1. Click **Start Conversation**. A dialog will ask you to select a **starting stage** (the entry point for the conversation).
+   - If the project has a [Default Starting Stage](../administration/projects#default-starting-stage) configured, the dialog pre-selects **Use default starting stage** — you can click **Start** without picking a stage manually.
+   - Uncheck the option to choose a different stage from the list instead.
 2. Once connected, a green indicator appears next to the title confirming the WebSocket connection is live.
 3. Chat by typing in the message box (press **Ctrl + Enter** to send) or by using the **Speak** button for voice input.
 4. When you're done, click **End Conversation** to disconnect cleanly.
@@ -47,7 +49,7 @@ While a conversation is running, the toolbar gives you several debugging shortcu
 The main panel shows everything that happens during the conversation in real time:
 
 - **User messages** (blue) — what you said or typed.
-- **AI messages** (green) — the AI's responses, including real-time streaming indicators.
+- **AI messages** (green) — the AI's responses, including real-time streaming indicators. Message content is rendered as **Markdown**, so bold text, lists, and code blocks from the AI will display with full formatting.
 - **System events** (grey, indented) — behind-the-scenes events like classifications, context transformations, action executions, stage transitions, and tool calls. Toggle their visibility with the **Show system events** checkbox.
 - **Conversation events** — higher-level lifecycle events. Toggle with **Show conversation events**.
 

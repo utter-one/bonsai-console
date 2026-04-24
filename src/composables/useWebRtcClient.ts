@@ -4,6 +4,7 @@ import { BonsaiWebRTCClient, type WebRTCEventHandlers, type StartConversationOpt
 export function useWebRtcClient(
   apiKey: string,
   options?: WebRTCEventHandlers & {
+    microphoneConstraints?: MediaTrackConstraints | boolean
     sessionSettings?: {
       sendVoiceInput: boolean
       sendTextInput: boolean
@@ -29,6 +30,7 @@ export function useWebRtcClient(
       client.value = new BonsaiWebRTCClient({
         apiBaseUrl,
         apiKey,
+        microphoneConstraints: options?.microphoneConstraints,
         sessionSettings: options?.sessionSettings,
         handlers: {
           ...options,
@@ -118,15 +120,6 @@ export function useWebRtcClient(
     }
   }
 
-  /**
-   * Send a raw PCM Int16 LE audio buffer over the WebRTC audio DataChannel.
-   * Preferred over sendVoiceChunk for WebRTC — avoids base64 encoding overhead.
-   */
-  function sendVoiceChunkRaw(audioBuffer: ArrayBuffer): void {
-    if (!client.value) throw new Error('Client not connected')
-    client.value.sendVoiceChunkRaw(audioBuffer)
-  }
-
   async function endVoiceInput() {
     if (!client.value) throw new Error('Client not connected')
     try {
@@ -169,7 +162,6 @@ export function useWebRtcClient(
     endConversation,
     sendTextInput,
     startVoiceInput,
-    sendVoiceChunkRaw,
     endVoiceInput,
   }
 }

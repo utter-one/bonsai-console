@@ -2,7 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuditLogsStore, useProjectSelectionStore } from '@/stores'
-import { usePagination, useSearch, formatEnum, formatDate } from '@/composables'
+import { usePagination, useSearch, formatEnum } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
@@ -392,7 +393,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
             </thead>
             <tbody class="table-body">
               <tr v-for="log in filteredLogs" :key="log.id" class="table-row" @click="viewLog(log)">
-                <td class="table-clickable-cell">{{ formatDate(log.createdAt) }}</td>
+                <td class="table-clickable-cell"><RelativeDate :date="log.createdAt" /></td>
                 <td class="table-cell">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                     :class="getActionBadgeClass(log.action)">

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useIssuesStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import { ArrowLeft, Play } from 'lucide-vue-next'
-import type { ConversationResponse, ConversationEventResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
-import { parseApiError } from '@/utils/errors'
+import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -16,7 +15,8 @@ import ConversationEventCard from '@/components/ConversationEventCard.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
-import { usePagination } from '@/composables'
+import { usePagination, useConversationPreviews } from '@/composables'
+import { formatStatusLabel } from '@/utils/conversationStatus'
 import PaginationControls from '@/components/PaginationControls.vue'
 import type { NormalizedEvent } from '../../components/events/eventHelpers'
 
@@ -26,7 +26,6 @@ const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
-const issuesStore = useIssuesStore()
 const analyticsStore = useAnalyticsStore()
 const stagesStore = useStagesStore()
 const classifiersStore = useClassifiersStore()
@@ -45,17 +44,15 @@ const highlightEventIndex = computed(() => {
   return v !== undefined ? Number(v) : null
 })
 const eventRefs = ref<(HTMLElement | null)[]>([])
-const showPromptPreviewModal = ref(false)
-const selectedPrompt = ref('')
-const showFillerPromptPreviewModal = ref(false)
-const selectedFillerPrompt = ref('')
-const showRawResponsePreviewModal = ref(false)
-const selectedRawResponse = ref('')
-const showVariablesPreviewModal = ref(false)
-const selectedVariables = ref<Record<string, any>>({})
-const showBugReportModal = ref(false)
-const bugReportPrefillData = ref<{ projectId?: string; sessionId?: string; eventIndex?: number; stageId?: string } | undefined>(undefined)
-const bugReportError = ref<ParsedError | null>(null)
+const {
+  showPromptPreviewModal, selectedPrompt,
+  showFillerPromptPreviewModal, selectedFillerPrompt,
+  showRawResponsePreviewModal, selectedRawResponse,
+  showVariablesPreviewModal, selectedVariables,
+  showBugReportModal, bugReportPrefillData, bugReportError,
+  openPromptPreview, openFillerPromptPreview, openRawResponsePreview,
+  openVariablesPreview, openBugReport, closeBugReportModal, handleBugReportSave,
+} = useConversationPreviews()
 
 function toNormalizedEvent(event: ConversationEventResponse): NormalizedEvent {
   return {
@@ -146,56 +143,13 @@ function formatTime(date: string | null) {
   return new Date(date).toLocaleTimeString()
 }
 
-function formatStatusLabel(status: string): string {
-  return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
-
-function openPromptPreview(prompt: string) {
-  selectedPrompt.value = prompt
-  showPromptPreviewModal.value = true
-}
-
-function openFillerPromptPreview(prompt: string) {
-  selectedFillerPrompt.value = prompt
-  showFillerPromptPreviewModal.value = true
-}
-
-function openRawResponsePreview(rawResponse: string) {
-  selectedRawResponse.value = rawResponse
-  showRawResponsePreviewModal.value = true
-}
-
-function openVariablesPreview(variables: Record<string, any>) {
-  selectedVariables.value = variables
-  showVariablesPreviewModal.value = true
-}
-
-function openBugReport(_event: ConversationEventResponse, index?: number) {
-  bugReportPrefillData.value = {
+function handleOpenBugReport(_event: ConversationEventResponse, index?: number) {
+  openBugReport({
     projectId: projectId.value,
     sessionId: conversationId.value,
     eventIndex: index,
-    stageId: conversation.value?.stageId || undefined
-  }
-  bugReportError.value = null
-  showBugReportModal.value = true
-}
-
-function closeBugReportModal() {
-  showBugReportModal.value = false
-  bugReportPrefillData.value = undefined
-}
-
-async function handleBugReportSave(data: CreateIssueRequest | UpdateIssueRequest) {
-  try {
-    await issuesStore.create(data as CreateIssueRequest)
-    closeBugReportModal()
-  } catch (error) {
-    bugReportError.value = parseApiError(error)
-  }
+    stageId: conversation.value?.stageId || undefined,
+  })
 }
 
 function isResumable(status: string | undefined): boolean {
@@ -494,7 +448,7 @@ function fmtMs(value: number | null | undefined): string {
                   @open-filler-prompt="openFillerPromptPreview"
                   @open-raw-response="openRawResponsePreview"
                   @open-variables="openVariablesPreview"
-                  @open-bug-report="openBugReport(event, eventsPagination.offset.value + index)"
+                  @open-bug-report="handleOpenBugReport(event, eventsPagination.offset.value + index)"
                 />
               </div>
             </div>

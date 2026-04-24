@@ -4,7 +4,7 @@
 Analytics features are experimental and may change in future releases.
 :::
 
-The Analytics section provides performance and usage insights for your project's conversations, organised into three tabs: **Latency Analysis**, **Token Usage**, and **Explorer**.
+The Analytics section provides performance and usage insights for your project's conversations, organised into four tabs: **Latency Analysis**, **Token Usage**, **Explorer**, and **Funnels**.
 
 ## Latency Analysis
 
@@ -218,3 +218,40 @@ Once you have built a query you want to reuse, save it using the button on the r
 A saved query can only be updated, renamed, shared, or deleted by:
 - The operator who created it, or
 - A `super_admin`.
+
+---
+
+## Funnels
+
+The **Funnels** tab lets you visualise how conversations progress through a sequence of events — and where drop-off happens. Use it to measure completion rates across key milestones in your conversation flow.
+
+### How Funnels Work
+
+A funnel is a sequence of **steps**. Each step matches a specific event that must occur in a conversation. The funnel measures what percentage of conversations that completed step *N* also completed step *N+1*.
+
+Events are matched in order. A conversation counts as having reached a step only if it also reached every preceding step.
+
+### Building a Funnel
+
+Click **+ Add step** to add each step in sequence. For each step, choose an **event type**:
+
+| Event type | Description |
+|---|---|
+| **Action fired** | A specific action was executed. Select the action from the dropdown. |
+| **Guardrail fired** | A specific guardrail check triggered. Select the guardrail from the dropdown. |
+
+You can add as many steps as needed. Steps can be removed individually with the **×** button on each row.
+
+### Running a Funnel
+
+Once you have added at least two steps, click **Run** (▶) to execute the funnel query. Results appear below as a bar chart showing the count and percentage of conversations that reached each step.
+
+### Saved Funnels
+
+Funnels can be saved and reused, following the same pattern as Explorer saved queries:
+
+- Use the **Query** picker button on the left to browse and load saved funnels, or select **New funnel** to start fresh.
+- **Save as…** appears when no funnel is loaded (or you are viewing one you don't own). Enter a name and optionally share it with all project operators.
+- When you own the active funnel, a split **Save** button appears. The **▾** chevron opens a menu with **Save as new copy…**, **Rename…**, **Share / Unshare**, and **Delete**.
+
+Saved funnels are scoped to the project and subject to the same ownership and `super_admin` permissions as Explorer queries.

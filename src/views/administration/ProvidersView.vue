@@ -2,7 +2,8 @@
 import { onMounted, computed, watch, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
-import { usePagination, useTableSort, useSearch, formatDate } from '@/composables'
+import { usePagination, useTableSort, useSearch } from '@/composables'
+import RelativeDate from '@/components/RelativeDate.vue'
 import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
@@ -311,7 +312,7 @@ function getApiTypeBadgeStyle(apiType: string) {
                     :style="getApiTypeBadgeStyle(provider.apiType)"
                   >{{ getApiTypeLabel(provider.apiType) }}</span>
                 </td>
-                <td class="table-cell-muted">{{ formatDate(provider.updatedAt) }}</td>
+                <td class="table-cell-muted"><RelativeDate :date="provider.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button @click="editProvider(provider)" class="btn-secondary btn-sm">
