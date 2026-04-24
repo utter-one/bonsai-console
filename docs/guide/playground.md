@@ -49,7 +49,7 @@ While a conversation is running, the toolbar gives you several debugging shortcu
 The main panel shows everything that happens during the conversation in real time:
 
 - **User messages** (blue) — what you said or typed.
-- **AI messages** (green) — the AI's responses, including real-time streaming indicators.
+- **AI messages** (green) — the AI's responses, including real-time streaming indicators. Message content is rendered as **Markdown**, so bold text, lists, and code blocks from the AI will display with full formatting.
 - **System events** (grey, indented) — behind-the-scenes events like classifications, context transformations, action executions, stage transitions, and tool calls. Toggle their visibility with the **Show system events** checkbox.
 - **Conversation events** — higher-level lifecycle events. Toggle with **Show conversation events**.
 
