@@ -24,7 +24,8 @@ These power the AI's "brain" — text generation, intent classification, data ex
 | **Fireworks AI** | Fireworks AI | Fast inference for open-source models. |
 | **Perplexity AI** | Perplexity | Models with built-in web search. |
 | **Cohere** | Cohere | Command R+ and other Cohere models. |
-| **OpenAI-compatible** | Any | Generic OpenAI-compatible API endpoint. Use for self-hosted models (vLLM, Ollama, LM Studio) or any provider not listed above. |
+| **Ollama** | Ollama | Local model inference via Ollama. Dedicated configuration interface with built-in model catalog and connection settings. |
+| **OpenAI-compatible** | Any | Generic OpenAI-compatible API endpoint. Use for self-hosted models (vLLM, LM Studio) or any provider not listed above. |
 
 **Used by:** Stages (response generation), Classifiers (intent detection), Context Transformers (data extraction), Tools (function execution).
 
