@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Play } from 'lucide-vue-next'
+import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -191,6 +191,7 @@ const metadataFields = computed(() => {
     { label: 'Stage ID', value: conversation.value.stageId, format: 'mono' as const },
     { label: 'Status', value: formatStatusLabel(conversation.value.status) },
     { label: 'Status Details', value: conversation.value.statusDetails },
+    { label: 'Direction', value: conversation.value.direction === 'incoming' ? 'Incoming' : conversation.value.direction === 'outgoing' ? 'Outgoing' : null },
     { label: 'Created', value: conversation.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: conversation.value.updatedAt, format: 'date' as const },
     { label: 'Starting Stage ID', value: conversation.value.startingStageId, format: 'mono' as const },
@@ -394,7 +395,19 @@ function fmtMs(value: number | null | undefined): string {
           </button>
           <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
-            <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ conversationId }}</p>
+            <p class="flex items-center gap-1.5 text-sm text-gray-600 font-mono dark:text-gray-400">
+              {{ conversationId }}
+              <ArrowDownLeft
+                v-if="conversation?.direction === 'incoming'"
+                class="w-3.5 h-3.5 text-blue-500 shrink-0"
+                title="Incoming – user-initiated"
+              />
+              <ArrowUpRight
+                v-else-if="conversation?.direction === 'outgoing'"
+                class="w-3.5 h-3.5 text-violet-500 shrink-0"
+                title="Outgoing – Bonsai-initiated"
+              />
+            </p>
           </div>
           <span v-if="isArchived" class="badge-secondary ml-2 self-center">Archived</span>
         </div>

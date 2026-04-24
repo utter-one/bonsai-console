@@ -725,6 +725,14 @@ export interface StartConversationRequest {
    */
   timezone?: string;
   /**
+   * Direction of the conversation. Defaults to incoming when not specified.
+   */
+  direction?: 'incoming' | 'outgoing';
+  /**
+   * When set, the handler attaches to this pre-created conversation instead of creating a new one. Used for outgoing call flows where the conversation record is created at call initiation time.
+   */
+  existingConversationId?: string;
+  /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;

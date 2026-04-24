@@ -6041,6 +6041,14 @@
             "nullable": true,
             "description": "Optional details about the current status"
           },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "incoming",
+              "outgoing"
+            ],
+            "description": "Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated)"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -6077,6 +6085,7 @@
           "stageVars",
           "status",
           "statusDetails",
+          "direction",
           "metadata",
           "createdAt",
           "updatedAt"
@@ -6140,6 +6149,14 @@
                   "nullable": true,
                   "description": "Optional details about the current status"
                 },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "incoming",
+                    "outgoing"
+                  ],
+                  "description": "Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated)"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -6176,6 +6193,7 @@
                 "stageVars",
                 "status",
                 "statusDetails",
+                "direction",
                 "metadata",
                 "createdAt",
                 "updatedAt"
@@ -11497,6 +11515,10 @@
           "phoneNumber": {
             "type": "string",
             "description": "Twilio phone number in E.164 format (e.g. +15551234567)"
+          },
+          "applicationSid": {
+            "type": "string",
+            "description": "Twilio Application SID (starts with AP) whose voice webhook URL is called when an outgoing call connects. Required for outgoing calls; unused for incoming-only deployments."
           }
         },
         "required": [
@@ -14265,7 +14287,10 @@
               "transformations",
               "moderation",
               "stage_visits",
-              "llm_calls"
+              "llm_calls",
+              "actions",
+              "variables",
+              "user_profile"
             ],
             "description": "Analytics source to query"
           },
@@ -22402,7 +22427,10 @@
                 "transformations",
                 "moderation",
                 "stage_visits",
-                "llm_calls"
+                "llm_calls",
+                "actions",
+                "variables",
+                "user_profile"
               ],
               "description": "Analytics source to query"
             },
@@ -25532,6 +25560,14 @@
                       "nullable": true,
                       "description": "Optional details about the current status"
                     },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "incoming",
+                        "outgoing"
+                      ],
+                      "description": "Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated)"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -25568,6 +25604,7 @@
                     "stageVars",
                     "status",
                     "statusDetails",
+                    "direction",
                     "metadata",
                     "createdAt",
                     "updatedAt"
@@ -25821,6 +25858,14 @@
                             "nullable": true,
                             "description": "Optional details about the current status"
                           },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "incoming",
+                              "outgoing"
+                            ],
+                            "description": "Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated)"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -25857,6 +25902,7 @@
                           "stageVars",
                           "status",
                           "statusDetails",
+                          "direction",
                           "metadata",
                           "createdAt",
                           "updatedAt"
@@ -45599,6 +45645,415 @@
           },
           "500": {
             "description": "Failed to create peer connection or generate ICE answer"
+          }
+        }
+      }
+    },
+    "/api/twilio/voice/call": {
+      "post": {
+        "tags": [
+          "Twilio Voice"
+        ],
+        "summary": "Initiate an outgoing Twilio Voice call",
+        "description": "Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the Twilio Voice channel provider record"
+            },
+            "required": true,
+            "description": "ID of the Twilio Voice channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Destination phone number in E.164 format (e.g. +15551234567)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Call initiated and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "callSid": {
+                      "type": "string",
+                      "description": "Twilio Call SID of the initiated outbound call"
+                    },
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record for this call attempt"
+                    }
+                  },
+                  "required": [
+                    "callSid",
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit twilio_voice channel"
+          },
+          "422": {
+            "description": "applicationSid not configured or no default stage available"
+          },
+          "502": {
+            "description": "Twilio REST call creation failed"
+          }
+        }
+      }
+    },
+    "/api/twilio/messaging/send": {
+      "post": {
+        "tags": [
+          "Twilio Messaging"
+        ],
+        "summary": "Initiate an outgoing Twilio Messaging conversation",
+        "description": "Sends an outbound SMS message to the specified phone number and pre-creates a conversation record. Future inbound replies from the recipient will be attached to the same virtual session.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the Twilio Messaging channel provider record"
+            },
+            "required": true,
+            "description": "ID of the Twilio Messaging channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Destination phone number in E.164 format (e.g. +15551234567)"
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Text content of the opening message to send"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  }
+                },
+                "required": [
+                  "to",
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messageSid": {
+                      "type": "string",
+                      "description": "Twilio Message SID of the sent outbound message"
+                    },
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "messageSid",
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit twilio_messaging channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "Twilio REST message creation failed"
+          }
+        }
+      }
+    },
+    "/api/whatsapp/send": {
+      "post": {
+        "tags": [
+          "WhatsApp"
+        ],
+        "summary": "Initiate an outgoing WhatsApp conversation",
+        "description": "Sends an approved WhatsApp template message to the specified phone number and pre-creates a conversation record. WhatsApp requires an approved template for business-initiated conversations. Future inbound replies will be attached to the same virtual session.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the WhatsApp channel provider record"
+            },
+            "required": true,
+            "description": "ID of the WhatsApp channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Destination WhatsApp phone number in E.164 format (e.g. +15551234567)"
+                  },
+                  "templateName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name of the approved WhatsApp message template to use"
+                  },
+                  "templateParams": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Positional parameter values to substitute into the template body ({{1}}, {{2}}, …)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  }
+                },
+                "required": [
+                  "to",
+                  "templateName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template message sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messageId": {
+                      "type": "string",
+                      "description": "Meta message ID of the sent template message"
+                    },
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "messageId",
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit whatsapp channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "Meta Graph API call failed"
           }
         }
       }

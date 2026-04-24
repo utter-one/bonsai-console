@@ -131,6 +131,48 @@ export const useConversationsStore = defineStore('conversations', () => {
     }
   }
 
+  async function initiateVoiceCall(params: {
+    apiKey: string
+    channelProviderId: string
+    to: string
+    stageId?: string
+  }): Promise<string> {
+    const response = await apiClient.twilioVoiceCallCreate(
+      { apiKey: params.apiKey, channelProviderId: params.channelProviderId },
+      { to: params.to, stageId: params.stageId },
+    ) as any
+    return response.conversationId
+  }
+
+  async function initiateMessaging(params: {
+    apiKey: string
+    channelProviderId: string
+    to: string
+    body: string
+    stageId?: string
+  }): Promise<string> {
+    const response = await apiClient.twilioMessagingSendCreate(
+      { apiKey: params.apiKey, channelProviderId: params.channelProviderId },
+      { to: params.to, body: params.body, stageId: params.stageId },
+    ) as any
+    return response.conversationId
+  }
+
+  async function initiateWhatsApp(params: {
+    apiKey: string
+    channelProviderId: string
+    to: string
+    templateName: string
+    templateParams?: string[]
+    stageId?: string
+  }): Promise<string> {
+    const response = await apiClient.whatsappSendCreate(
+      { apiKey: params.apiKey, channelProviderId: params.channelProviderId },
+      { to: params.to, templateName: params.templateName, templateParams: params.templateParams, stageId: params.stageId },
+    ) as any
+    return response.conversationId
+  }
+
   return {
     conversations,
     currentConversation,
@@ -146,5 +188,8 @@ export const useConversationsStore = defineStore('conversations', () => {
     fetchEvents,
     fetchEventById,
     fetchAuditLogs,
+    initiateVoiceCall,
+    initiateMessaging,
+    initiateWhatsApp,
   }
 })

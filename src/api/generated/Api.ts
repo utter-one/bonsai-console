@@ -2046,7 +2046,10 @@ export class Api<
         | "transformations"
         | "moderation"
         | "stage_visits"
-        | "llm_calls";
+        | "llm_calls"
+        | "actions"
+        | "variables"
+        | "user_profile";
       /**
        * Dimension IDs to group results by (max 5)
        * @maxItems 5
@@ -3410,6 +3413,8 @@ export class Api<
         status: string;
         /** Optional details about the current status */
         statusDetails: string | null;
+        /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+        direction: "incoming" | "outgoing";
         /** Additional metadata associated with the conversation */
         metadata: Record<string, any>;
         /**
@@ -3522,6 +3527,8 @@ export class Api<
           status: string;
           /** Optional details about the current status */
           statusDetails: string | null;
+          /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+          direction: "incoming" | "outgoing";
           /** Additional metadata associated with the conversation */
           metadata: Record<string, any>;
           /**
@@ -11672,6 +11679,198 @@ export class Api<
     >({
       path: `/api/webrtc/offer`,
       method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook.
+   *
+   * @tags Twilio Voice
+   * @name TwilioVoiceCallCreate
+   * @summary Initiate an outgoing Twilio Voice call
+   * @request POST:/api/twilio/voice/call
+   */
+  twilioVoiceCallCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Twilio Voice channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Twilio Call SID of the initiated outbound call */
+        callSid: string;
+        /** ID of the pre-created conversation record for this call attempt */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/twilio/voice/call`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Sends an outbound SMS message to the specified phone number and pre-creates a conversation record. Future inbound replies from the recipient will be attached to the same virtual session.
+   *
+   * @tags Twilio Messaging
+   * @name TwilioMessagingSendCreate
+   * @summary Initiate an outgoing Twilio Messaging conversation
+   * @request POST:/api/twilio/messaging/send
+   */
+  twilioMessagingSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Twilio Messaging channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /**
+       * Text content of the opening message to send
+       * @minLength 1
+       */
+      body: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Twilio Message SID of the sent outbound message */
+        messageSid: string;
+        /** ID of the pre-created conversation record */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/twilio/messaging/send`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Sends an approved WhatsApp template message to the specified phone number and pre-creates a conversation record. WhatsApp requires an approved template for business-initiated conversations. Future inbound replies will be attached to the same virtual session.
+   *
+   * @tags WhatsApp
+   * @name WhatsappSendCreate
+   * @summary Initiate an outgoing WhatsApp conversation
+   * @request POST:/api/whatsapp/send
+   */
+  whatsappSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the WhatsApp channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination WhatsApp phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /**
+       * Name of the approved WhatsApp message template to use
+       * @minLength 1
+       */
+      templateName: string;
+      /** Positional parameter values to substitute into the template body ({{1}}, {{2}}, …) */
+      templateParams?: string[];
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Meta message ID of the sent template message */
+        messageId: string;
+        /** ID of the pre-created conversation record */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/whatsapp/send`,
+      method: "POST",
+      query: query,
       body: data,
       type: ContentType.Json,
       format: "json",
