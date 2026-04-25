@@ -23,7 +23,6 @@ const form = ref({
   channelProviderId: '',
   apiKeyId: '',
   to: '',
-  body: '',
   stageId: '',
 })
 
@@ -51,7 +50,7 @@ onMounted(async () => {
 })
 
 const isValid = computed(() =>
-  form.value.channelProviderId && form.value.apiKeyId && selectedApiKey.value?.key && form.value.to && form.value.body
+  form.value.channelProviderId && form.value.apiKeyId && selectedApiKey.value?.key && form.value.to
 )
 
 async function handleSubmit() {
@@ -62,7 +61,6 @@ async function handleSubmit() {
       apiKey: selectedApiKey.value!.key!,
       channelProviderId: form.value.channelProviderId,
       to: form.value.to,
-      body: form.value.body,
       stageId: form.value.stageId || undefined,
     })
     emit('close')
@@ -76,9 +74,9 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <BaseModal title="Send SMS" size="md" @close="$emit('close')">
+  <BaseModal title="Start SMS Conversation" size="md" @close="$emit('close')">
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-      Send an outgoing SMS via Twilio Messaging. A conversation record is created and future replies from the recipient will be attached to it.
+      Start an outgoing SMS conversation via Twilio Messaging. The AI will automatically generate and send the opening message. Future replies from the recipient will be attached to the same conversation.
     </p>
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
@@ -100,10 +98,6 @@ async function handleSubmit() {
         <input v-model="form.to" type="text" class="form-input" placeholder="+15551234567" />
       </FormField>
 
-      <FormField label="Opening Message" path="body" :error="null" required class="w-full" help="Text content of the first message to send">
-        <textarea v-model="form.body" class="form-textarea" rows="3" placeholder="Hello! How can I help you today?" />
-      </FormField>
-
       <FormField label="Starting Stage" path="stageId" :error="null" class="w-full" help="Overrides the project-level default">
         <select v-model="form.stageId" class="form-select">
           <option value="">Project default</option>
@@ -118,7 +112,7 @@ async function handleSubmit() {
       <div class="modal-footer">
         <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
         <button type="button" class="btn-primary" :disabled="!isValid || isSubmitting" @click="handleSubmit">
-          {{ isSubmitting ? 'Sending...' : 'Send Message' }}
+          {{ isSubmitting ? 'Starting...' : 'Start Conversation' }}
         </button>
       </div>
     </template>

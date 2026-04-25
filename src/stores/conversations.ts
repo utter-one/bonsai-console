@@ -148,12 +148,11 @@ export const useConversationsStore = defineStore('conversations', () => {
     apiKey: string
     channelProviderId: string
     to: string
-    body: string
     stageId?: string
   }): Promise<string> {
     const response = await apiClient.twilioMessagingSendCreate(
       { apiKey: params.apiKey, channelProviderId: params.channelProviderId },
-      { to: params.to, body: params.body, stageId: params.stageId },
+      { to: params.to, stageId: params.stageId },
     ) as any
     return response.conversationId
   }
