@@ -54,7 +54,7 @@ function navigateTo(routeName: string) {
             v-for="item in menuItems"
             :key="item.name"
             :class="[
-              'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+              'w-full flex items-center gap-3 px-3 py-2.5 border-none text-left text-sm font-medium rounded-md cursor-pointer transition-all',
               route.matched.some(r => r.name === item.name)
                 ? 'bg-primary-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400'
                 : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'

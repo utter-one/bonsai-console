@@ -277,9 +277,9 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
             v-for="section in sections"
             :key="section.id"
             :class="[
-              'flex items-center gap-2 px-3 py-2 border-none bg-transparent cursor-pointer rounded-md text-sm font-medium transition-all',
+              'flex items-center gap-2 px-3 py-2 border-none cursor-pointer rounded-md text-sm font-medium transition-all',
               currentSection === section.id 
-                ? 'bg-blue-50 text-primary-500 dark:bg-gray-700 dark:text-primary-400' 
+                ? 'bg-primary-50 text-primary-500 dark:bg-gray-700 dark:text-primary-400' 
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
             ]"
             :title="section.label"
