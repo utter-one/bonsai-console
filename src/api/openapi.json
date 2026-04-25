@@ -45785,7 +45785,7 @@
           "Twilio Messaging"
         ],
         "summary": "Initiate an outgoing Twilio Messaging conversation",
-        "description": "Sends an outbound SMS message to the specified phone number and pre-creates a conversation record. Future inbound replies from the recipient will be attached to the same virtual session.",
+        "description": "Starts a conversation for the specified recipient. The AI generates and sends the opening message automatically. Future inbound replies from the recipient will be attached to the same virtual session.",
         "security": [],
         "parameters": [
           {
@@ -45843,11 +45843,6 @@
                     "minLength": 1,
                     "description": "Destination phone number in E.164 format (e.g. +15551234567)"
                   },
-                  "body": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Text content of the opening message to send"
-                  },
                   "stageId": {
                     "type": "string",
                     "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
@@ -45865,8 +45860,7 @@
                   }
                 },
                 "required": [
-                  "to",
-                  "body"
+                  "to"
                 ]
               }
             }
@@ -45874,23 +45868,18 @@
         },
         "responses": {
           "201": {
-            "description": "Message sent and conversation pre-created",
+            "description": "Conversation started and opening message sent by AI",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "messageSid": {
-                      "type": "string",
-                      "description": "Twilio Message SID of the sent outbound message"
-                    },
                     "conversationId": {
                       "type": "string",
-                      "description": "ID of the pre-created conversation record"
+                      "description": "ID of the conversation record created for this outgoing conversation"
                     }
                   },
                   "required": [
-                    "messageSid",
                     "conversationId"
                   ]
                 }
@@ -45908,9 +45897,6 @@
           },
           "422": {
             "description": "No default stage available"
-          },
-          "502": {
-            "description": "Twilio REST message creation failed"
           }
         }
       }

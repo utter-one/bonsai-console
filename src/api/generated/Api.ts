@@ -11745,7 +11745,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Sends an outbound SMS message to the specified phone number and pre-creates a conversation record. Future inbound replies from the recipient will be attached to the same virtual session.
+   * @description Starts a conversation for the specified recipient. The AI generates and sends the opening message automatically. Future inbound replies from the recipient will be attached to the same virtual session.
    *
    * @tags Twilio Messaging
    * @name TwilioMessagingSendCreate
@@ -11778,11 +11778,6 @@ export class Api<
        * @minLength 1
        */
       to: string;
-      /**
-       * Text content of the opening message to send
-       * @minLength 1
-       */
-      body: string;
       /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
       stageId?: string;
       /** Optional agent ID override for this conversation */
@@ -11794,9 +11789,7 @@ export class Api<
   ) =>
     this.request<
       {
-        /** Twilio Message SID of the sent outbound message */
-        messageSid: string;
-        /** ID of the pre-created conversation record */
+        /** ID of the conversation record created for this outgoing conversation */
         conversationId: string;
       },
       void
