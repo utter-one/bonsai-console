@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore, useProvidersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
@@ -22,6 +22,7 @@ const projectSelectionStore = useProjectSelectionStore()
 const apiKeysStore = useApiKeysStore()
 const stagesStore = useStagesStore()
 const usersStore = useUsersStore()
+const providersStore = useProvidersStore()
 
 const stageMap = computed(() => {
   const map = new Map<string, string>()
@@ -53,6 +54,11 @@ const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
 const showVoiceCallModal = ref(false)
 const showMessagingModal = ref(false)
 const showWhatsAppModal = ref(false)
+
+const hasVoiceProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_voice'))
+const hasMessagingProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_messaging'))
+const hasWhatsAppProviders = computed(() => providersStore.items.some(p => p.apiType === 'whatsapp'))
+const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value)
 
 const directionFilterOptions = [
   { value: 'all' as const, label: 'All Directions' },
@@ -140,7 +146,7 @@ onMounted(async () => {
 
 // Methods
 async function loadProjectData() {
-  await Promise.all([loadConversations(), loadStages(), loadUsers()])
+  await Promise.all([loadConversations(), loadStages(), loadUsers(), loadChannelProviders()])
 }
 
 async function loadConversations() {
@@ -180,6 +186,14 @@ async function loadConversations() {
     )
   } catch (error) {
     console.error('Failed to load conversations:', error)
+  }
+}
+
+async function loadChannelProviders() {
+  try {
+    await providersStore.fetchAll({ filters: { providerType: 'channel' } })
+  } catch {
+    // silently ignore
   }
 }
 
@@ -280,7 +294,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             <RefreshCw class="inline-block mr-2 w-4 h-4" :class="{ 'animate-spin': conversationsStore.isLoading }" />
             Refresh
           </button>
-          <FloatingDropdown align="right" min-width="200px" trigger-class="btn-alt flex items-center gap-1">
+          <FloatingDropdown align="right" min-width="200px" :trigger-class="hasAnyChannelProvider ? 'btn-alt flex items-center gap-1' : 'btn-alt flex items-center gap-1 opacity-50 pointer-events-none'" :title="hasAnyChannelProvider ? undefined : 'No channel providers configured'">
             <template #trigger>
               <ArrowUpRight class="w-4 h-4" />
               Initiate
@@ -290,6 +304,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <button
                 type="button"
                 class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasVoiceProviders }"
+                :title="!hasVoiceProviders ? 'No Twilio Voice providers configured' : undefined"
                 @click="showVoiceCallModal = true; close()"
               >
                 Voice Call (Twilio)
@@ -297,6 +313,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <button
                 type="button"
                 class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasMessagingProviders }"
+                :title="!hasMessagingProviders ? 'No Twilio Messaging providers configured' : undefined"
                 @click="showMessagingModal = true; close()"
               >
                 SMS (Twilio)
@@ -304,6 +322,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               <button
                 type="button"
                 class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasWhatsAppProviders }"
+                :title="!hasWhatsAppProviders ? 'No WhatsApp providers configured' : undefined"
                 @click="showWhatsAppModal = true; close()"
               >
                 WhatsApp
