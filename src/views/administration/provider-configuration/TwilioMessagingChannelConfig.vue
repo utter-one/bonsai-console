@@ -2,6 +2,7 @@
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
+import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
@@ -12,9 +13,8 @@ const config = defineModel<ProviderConfig>('config', { required: true })
     <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Twilio Messaging Configuration</h3>
 
     <FormField label="Account SID" required :error="error" path="accountSid" class="w-full" help="Your Twilio Account SID (starts with AC)">
-      <input
+      <SecretPasswordInput
         v-model="config.accountSid"
-        type="text"
         required
         placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         class="form-input-mono"
@@ -22,7 +22,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
     </FormField>
 
     <FormField label="Auth Token" required :error="error" path="authToken" class="w-full" help="Your Twilio Auth Token used for request signature validation and REST API authentication">
-      <input
+      <SecretPasswordInput
         v-model="config.authToken"
         required
         placeholder="..."

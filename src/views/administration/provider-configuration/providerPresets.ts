@@ -15,6 +15,7 @@ export interface ProviderConfig {
   // Channel config fields
   accountSid: string
   authToken: string
+  applicationSid: string
   fromNumber: string
   phoneNumber: string
   // WhatsApp channel config fields
