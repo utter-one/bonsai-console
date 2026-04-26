@@ -53,6 +53,7 @@ const form = ref({
     // Channel config fields
     accountSid: '',
     authToken: '',
+    applicationSid: '',
     fromNumber: '',
     phoneNumber: '',
     // WhatsApp channel config fields
@@ -202,6 +203,7 @@ async function loadProvider() {
           // Channel config fields
           accountSid: config.accountSid || '',
           authToken: config.authToken || '',
+          applicationSid: config.applicationSid || '',
           fromNumber: config.fromNumber || '',
           phoneNumber: config.phoneNumber || '',
           // WhatsApp channel config fields

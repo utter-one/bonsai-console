@@ -11,6 +11,7 @@ import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import TwilioVoiceCallModal from '@/components/modals/TwilioVoiceCallModal.vue'
 import TwilioMessagingModal from '@/components/modals/TwilioMessagingModal.vue'
@@ -19,6 +20,8 @@ import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal.vue'
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
+
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const apiKeysStore = useApiKeysStore()
 const stagesStore = useStagesStore()
 const usersStore = useUsersStore()
@@ -282,7 +285,8 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 
 <template>
   <MonitorSectionLayout>
-    <div class="container-constrained">
+    <NoProjectSelected v-if="!projectId" />
+    <div v-else class="container-constrained">
       <!-- Header -->
       <div class="page-header">
         <div>
