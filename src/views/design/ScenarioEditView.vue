@@ -550,6 +550,11 @@ function goBack() {
                 :load-history="() => scenariosStore.fetchAuditLogs(projectId, currentScenario!.id)"
                 :current-version="currentScenario.version"
                 :current-object="currentScenario"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => scenariosStore.update(projectId, currentScenario!.id, data)"
+                :create-fn="(data) => scenariosStore.create(projectId, data)"
+                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
               />
             </TabContent>
 

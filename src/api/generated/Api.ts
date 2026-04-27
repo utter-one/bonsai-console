@@ -12086,6 +12086,26 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves audit logs for a specific tester
+   *
+   * @tags Testers
+   * @name ProjectsTestersAuditLogsList
+   * @summary Get tester audit logs
+   * @request GET:/api/projects/{projectId}/testers/{id}/audit-logs
+   * @secure
+   */
+  projectsTestersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/testers/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
    * @description Creates a new test scenario defining the conversation flow, data extraction, and success criteria
    *
    * @tags Scenarios
@@ -12529,6 +12549,26 @@ export class Api<
       body: data,
       secure: true,
       type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific scenario
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosAuditLogsList
+   * @summary Get scenario audit logs
+   * @request GET:/api/projects/{projectId}/scenarios/{id}/audit-logs
+   * @secure
+   */
+  projectsScenariosAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenarios/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
       ...params,
     });
   /**
