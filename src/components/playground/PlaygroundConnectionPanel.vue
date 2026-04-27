@@ -71,7 +71,7 @@
         :disabled="!canStartConversation"
       >
         <Play :size="18" />
-        <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start Conversation' }}</span>
+        <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start' }}</span>
       </button>
 
       <!-- Preset Dropdown Toggle (FloatingDropdown replaces manual showPresetMenu) -->
@@ -117,7 +117,7 @@
       :disabled="!canEndConversation"
     >
       <Square :size="18" />
-      <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End Conversation' }}</span>
+      <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End' }}</span>
     </button>
 
     <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
