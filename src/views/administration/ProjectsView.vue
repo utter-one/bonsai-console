@@ -99,7 +99,7 @@ function selectProject(projectId: string) {
 }
 
 function openPlayground(projectId: string) {
-  router.push({ name: 'playground', params: { projectId } })
+  router.push({ name: 'testing.playground', params: { projectId } })
 }
 
 

@@ -7,10 +7,11 @@ import AppVersion from '@/components/AppVersion.vue'
 import type { Component } from 'vue'
 
 interface MenuItem {
-  name: string
-  label: string
+  name?: string
+  label?: string
   icon?: Component
   experimental?: boolean
+  divider?: boolean
 }
 
 interface Props {
@@ -50,23 +51,25 @@ function navigateTo(routeName: string) {
           <h2 class="m-0 text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h2>
         </div>
         <nav class="p-2">
-          <button
-            v-for="item in menuItems"
-            :key="item.name"
-            :class="[
-              'w-full flex items-center gap-3 px-3 py-2.5 border-none text-left text-sm font-medium rounded-md cursor-pointer transition-all',
-              route.matched.some(r => r.name === item.name)
-                ? 'bg-primary-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400'
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-            ]"
-            @click="navigateTo(item.name)"
-          >
-            <component v-if="item.icon" :is="item.icon" :size="18" class="flex-shrink-0" />
-            <span>{{ item.label }}</span>
-            <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-              <FlaskConical class="w-3 h-3" />
-            </span>
-          </button>
+          <template v-for="(item, idx) in menuItems" :key="item.name || idx">
+            <hr v-if="item.divider" class="my-2 border-gray-200 dark:border-gray-700" />
+            <button
+              v-else
+              :class="[
+                'w-full flex items-center gap-3 px-3 py-2.5 border-none text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+                route.matched.some(r => r.name === item.name)
+                  ? 'bg-primary-50 text-primary-500 dark:bg-primary-900/20 dark:text-primary-400'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              ]"
+              @click="navigateTo(item.name!)"
+            >
+              <component v-if="item.icon" :is="item.icon" :size="18" class="flex-shrink-0" />
+              <span>{{ item.label }}</span>
+              <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+                <FlaskConical class="w-3 h-3" />
+              </span>
+            </button>
+          </template>
         </nav>
       </div>
       <AppVersion />

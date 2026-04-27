@@ -73,19 +73,19 @@ async function deleteTester(tester: TesterResponse) {
 
 function createTester() {
   if (projectIsArchived.value) return
-  router.push({ name: 'design.testers.create', params: { projectId: projectId.value } })
+  router.push({ name: 'testing.testers.create', params: { projectId: projectId.value } })
 }
 
 function editTester(tester: TesterResponse) {
   router.push({
-    name: 'design.testers.edit',
+    name: 'testing.testers.edit',
     params: { projectId: projectId.value, testerId: tester.id },
   })
 }
 </script>
 
 <template>
-  <div>
+  <div class="container-constrained">
     <!-- Section header -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>

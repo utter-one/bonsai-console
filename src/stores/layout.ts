@@ -7,6 +7,7 @@ export interface MenuItem {
     label: string
     icon?: Component
     experimental?: boolean
+    divider?: boolean
 }
 
 export const useLayoutStore = defineStore('layout', () => {

@@ -194,7 +194,7 @@ async function handleSubmit() {
       const created = await testersStore.create(projectId.value, createData)
       currentTester.value = created
       await router.push({
-        name: 'design.testers.edit',
+        name: 'testing.testers.edit',
         params: { projectId: projectId.value, testerId: created.id },
       })
     }
@@ -210,7 +210,7 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.push({ name: 'design.testing', params: { projectId: projectId.value } })
+  router.push({ name: 'testing.testers', params: { projectId: projectId.value } })
 }
 
 function handleLLMSettingsSave(settings: Record<string, any>) {

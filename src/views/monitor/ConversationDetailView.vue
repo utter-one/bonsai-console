@@ -172,7 +172,7 @@ async function handleResumeConversation() {
     // Auto-select the first available key for this project
     const key = activeKeys[0]!
     router.push({
-      name: 'playground',
+      name: 'testing.playground',
       params: { projectId: projectId.value },
       query: { conversationId: conversation.value.id, apiKeyId: key.id }
     })

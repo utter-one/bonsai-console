@@ -273,7 +273,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 
     const key = activeKeys[0]!
     router.push({
-      name: 'playground',
+      name: 'testing.playground',
       params: { projectId },
       query: { conversationId: conversation.id, apiKeyId: key.id }
     })

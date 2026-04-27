@@ -73,19 +73,19 @@ async function deleteScenario(scenario: ScenarioResponse) {
 
 function createScenario() {
   if (projectIsArchived.value) return
-  router.push({ name: 'design.scenarios.create', params: { projectId: projectId.value } })
+  router.push({ name: 'testing.scenarios.create', params: { projectId: projectId.value } })
 }
 
 function editScenario(scenario: ScenarioResponse) {
   router.push({
-    name: 'design.scenarios.edit',
+    name: 'testing.scenarios.edit',
     params: { projectId: projectId.value, scenarioId: scenario.id },
   })
 }
 </script>
 
 <template>
-  <div>
+  <div class="container-constrained">
     <!-- Section header -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>

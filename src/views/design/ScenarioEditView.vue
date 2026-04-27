@@ -170,7 +170,7 @@ async function handleSubmit() {
       const created = await scenariosStore.create(projectId.value, createData)
       currentScenario.value = created
       await router.push({
-        name: 'design.scenarios.edit',
+        name: 'testing.scenarios.edit',
         params: { projectId: projectId.value, scenarioId: created.id },
       })
     }
@@ -186,7 +186,7 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.push({ name: 'design.testing', params: { projectId: projectId.value } })
+  router.push({ name: 'testing.scenarios', params: { projectId: projectId.value } })
 }
 </script>
 
