@@ -17504,6 +17504,11 @@
             "minLength": 1,
             "description": "Prompt that defines the tester persona behaviour during a conversation"
           },
+          "hangUpPrompt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario); must return true to continue or false to hang up"
+          },
           "llmProviderId": {
             "type": "string",
             "minLength": 1,
@@ -17564,6 +17569,11 @@
             "type": "string",
             "minLength": 1,
             "description": "Updated persona prompt"
+          },
+          "hangUpPrompt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated hang-up decision mini-prompt"
           },
           "llmProviderId": {
             "type": "string",
@@ -17648,6 +17658,11 @@
             "type": "string",
             "description": "Prompt that defines the tester persona behaviour"
           },
+          "hangUpPrompt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
+          },
           "llmProviderId": {
             "type": "string",
             "nullable": true,
@@ -17722,6 +17737,7 @@
           "name",
           "description",
           "prompt",
+          "hangUpPrompt",
           "llmProviderId",
           "userProfile",
           "tags",
@@ -17759,6 +17775,11 @@
                 "prompt": {
                   "type": "string",
                   "description": "Prompt that defines the tester persona behaviour"
+                },
+                "hangUpPrompt": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
                 },
                 "llmProviderId": {
                   "type": "string",
@@ -17834,6 +17855,7 @@
                 "name",
                 "description",
                 "prompt",
+                "hangUpPrompt",
                 "llmProviderId",
                 "userProfile",
                 "tags",
@@ -47125,6 +47147,11 @@
                     "minLength": 1,
                     "description": "Prompt that defines the tester persona behaviour during a conversation"
                   },
+                  "hangUpPrompt": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario); must return true to continue or false to hang up"
+                  },
                   "llmProviderId": {
                     "type": "string",
                     "minLength": 1,
@@ -47200,6 +47227,11 @@
                       "type": "string",
                       "description": "Prompt that defines the tester persona behaviour"
                     },
+                    "hangUpPrompt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
+                    },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
@@ -47274,6 +47306,7 @@
                     "name",
                     "description",
                     "prompt",
+                    "hangUpPrompt",
                     "llmProviderId",
                     "userProfile",
                     "tags",
@@ -47462,6 +47495,11 @@
                             "type": "string",
                             "description": "Prompt that defines the tester persona behaviour"
                           },
+                          "hangUpPrompt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
+                          },
                           "llmProviderId": {
                             "type": "string",
                             "nullable": true,
@@ -47536,6 +47574,7 @@
                           "name",
                           "description",
                           "prompt",
+                          "hangUpPrompt",
                           "llmProviderId",
                           "userProfile",
                           "tags",
@@ -47638,6 +47677,11 @@
                       "type": "string",
                       "description": "Prompt that defines the tester persona behaviour"
                     },
+                    "hangUpPrompt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
+                    },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
@@ -47712,6 +47756,7 @@
                     "name",
                     "description",
                     "prompt",
+                    "hangUpPrompt",
                     "llmProviderId",
                     "userProfile",
                     "tags",
@@ -47778,6 +47823,11 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Updated persona prompt"
+                  },
+                  "hangUpPrompt": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated hang-up decision mini-prompt"
                   },
                   "llmProviderId": {
                     "type": "string",
@@ -47857,6 +47907,11 @@
                       "type": "string",
                       "description": "Prompt that defines the tester persona behaviour"
                     },
+                    "hangUpPrompt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Mini-prompt evaluated at each turn to decide whether the tester should hang up"
+                    },
                     "llmProviderId": {
                       "type": "string",
                       "nullable": true,
@@ -47931,6 +47986,7 @@
                     "name",
                     "description",
                     "prompt",
+                    "hangUpPrompt",
                     "llmProviderId",
                     "userProfile",
                     "tags",

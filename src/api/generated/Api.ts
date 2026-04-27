@@ -11702,6 +11702,8 @@ export class Api<
        * @minLength 1
        */
       prompt: string;
+      /** Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario); must return true to continue or false to hang up */
+      hangUpPrompt?: string | null;
       /**
        * ID of the LLM provider to use for this tester
        * @minLength 1
@@ -11733,6 +11735,8 @@ export class Api<
         description: string | null;
         /** Prompt that defines the tester persona behaviour */
         prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
         /** ID of the LLM provider */
         llmProviderId: string | null;
         /** LLM provider-specific settings */
@@ -11830,6 +11834,8 @@ export class Api<
           description: string | null;
           /** Prompt that defines the tester persona behaviour */
           prompt: string;
+          /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+          hangUpPrompt: string | null;
           /** ID of the LLM provider */
           llmProviderId: string | null;
           /** LLM provider-specific settings */
@@ -11912,6 +11918,8 @@ export class Api<
         description: string | null;
         /** Prompt that defines the tester persona behaviour */
         prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
         /** ID of the LLM provider */
         llmProviderId: string | null;
         /** LLM provider-specific settings */
@@ -11973,6 +11981,8 @@ export class Api<
        * @minLength 1
        */
       prompt?: string;
+      /** Updated hang-up decision mini-prompt */
+      hangUpPrompt?: string | null;
       /**
        * Updated LLM provider ID
        * @minLength 1
@@ -12006,6 +12016,8 @@ export class Api<
         description: string | null;
         /** Prompt that defines the tester persona behaviour */
         prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
         /** ID of the LLM provider */
         llmProviderId: string | null;
         /** LLM provider-specific settings */
