@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useProjectSelectionStore } from '@/stores'
 import SectionLayout from './SectionLayout.vue'
-import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, ShieldCheck, MessageSquareQuote } from 'lucide-vue-next'
+import { Drama, Route, Target, Microchip, Hammer, Zap, BookOpen, MemoryStick, ShieldCheck, MessageSquareQuote, FlaskConical } from 'lucide-vue-next'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
 const projectSelectionStore = useProjectSelectionStore()
@@ -20,6 +20,7 @@ const menuItems = [
   { name: 'design.sampleCopies', label: 'Sample Copy', icon: MessageSquareQuote },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },
   { name: 'design.tools', label: 'Tools', icon: Hammer },
+  { name: 'design.testing', label: 'Testing', icon: FlaskConical },
 ]
 </script>
 

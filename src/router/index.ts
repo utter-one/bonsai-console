@@ -155,6 +155,21 @@ const routes: RouteRecordRaw[] = [
             name: 'design.sampleCopies',
             component: () => import('@/views/design/SampleCopiesView.vue'),
           },
+          {
+            path: 'projects/:projectId/testing',
+            name: 'design.testing',
+            component: () => import('@/views/design/TestingView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers',
+            name: 'design.testers',
+            redirect: (to) => ({ name: 'design.testing', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios',
+            name: 'design.scenarios',
+            redirect: (to) => ({ name: 'design.testing', params: to.params }),
+          },
         ],
       },
       // Playground Section
