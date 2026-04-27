@@ -40,7 +40,7 @@ const canRun = computed(() =>
 const usedTesterIds = computed(() => testerEntries.value.map(e => e.testerId).filter(Boolean))
 
 function availableTestersFor(index: number): TesterResponse[] {
-  const selectedId = testerEntries.value[index].testerId
+  const selectedId = testerEntries.value[index]?.testerId ?? ''
   return testers.value.filter(t => !usedTesterIds.value.includes(t.id) || t.id === selectedId)
 }
 

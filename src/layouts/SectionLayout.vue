@@ -7,8 +7,8 @@ import AppVersion from '@/components/AppVersion.vue'
 import type { Component } from 'vue'
 
 interface MenuItem {
-  name?: string
-  label?: string
+  name: string
+  label: string
   icon?: Component
   experimental?: boolean
   divider?: boolean
