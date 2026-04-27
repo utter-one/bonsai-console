@@ -34,7 +34,7 @@
               :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
             <div class="text-gray-900 text-sm dark:text-gray-500 ml-2">{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</div>
           </div>
-          <p class="page-subtitle">Test and debug conversation flows in real-time</p>
+          <p class="page-subtitle">Test and debug flows in real-time</p>
         </div>
 
         <PlaygroundConnectionPanel

@@ -155,13 +155,96 @@ const routes: RouteRecordRaw[] = [
             name: 'design.sampleCopies',
             component: () => import('@/views/design/SampleCopiesView.vue'),
           },
+          {
+            path: 'projects/:projectId/testing',
+            name: 'design.testing',
+            redirect: (to) => ({ name: 'testing.scenarios', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers',
+            name: 'design.testers',
+            redirect: (to) => ({ name: 'testing.testers', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers/new',
+            name: 'design.testers.create',
+            redirect: (to) => ({ name: 'testing.testers.create', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers/:testerId',
+            name: 'design.testers.edit',
+            redirect: (to) => ({ name: 'testing.testers.edit', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios',
+            name: 'design.scenarios',
+            redirect: (to) => ({ name: 'testing.scenarios', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios/new',
+            name: 'design.scenarios.create',
+            redirect: (to) => ({ name: 'testing.scenarios.create', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios/:scenarioId',
+            name: 'design.scenarios.edit',
+            redirect: (to) => ({ name: 'testing.scenarios.edit', params: to.params }),
+          },
         ],
       },
-      // Playground Section
+      // Testing Section
+      {
+        path: 'testing',
+        name: 'testing',
+        component: () => import('@/views/testing/TestingView.vue'),
+        redirect: { name: 'testing.playground' },
+        children: [
+          {
+            path: 'playground/:projectId?',
+            name: 'testing.playground',
+            component: () => import('@/views/PlaygroundView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers',
+            name: 'testing.testers',
+            component: () => import('@/views/testing/TestersListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers/new',
+            name: 'testing.testers.create',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers/:testerId',
+            name: 'testing.testers.edit',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios',
+            name: 'testing.scenarios',
+            component: () => import('@/views/testing/ScenariosListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/test-runs',
+            name: 'testing.testRuns',
+            component: () => import('@/views/testing/TestRunsListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios/new',
+            name: 'testing.scenarios.create',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios/:scenarioId',
+            name: 'testing.scenarios.edit',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
+          },
+        ],
+      },
+      // Playground redirect (backward compat)
       {
         path: 'playground/:projectId?',
-        name: 'playground',
-        component: () => import('@/views/PlaygroundView.vue'),
+        redirect: (to) => ({ name: 'testing.playground', params: to.params }),
       },
       // Monitor Section
       {

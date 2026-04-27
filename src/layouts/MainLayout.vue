@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore, useLayoutStore } from '@/stores'
 import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
-import { FlaskConical, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
+import { FlaskConical, TestTube2, Home, DraftingCompass, Activity, Settings, Menu, X, LogOut, User, HelpCircle, Sparkles } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import AboutModal from '@/components/modals/AboutModal.vue'
@@ -32,7 +32,7 @@ const currentSection = computed(() => {
   if (path.startsWith('/design')) return 'design'
   if (path.startsWith('/monitor')) return 'monitor'
   if (path.startsWith('/administration')) return 'administration'
-  if (path.startsWith('/playground')) return 'playground'
+  if (path.startsWith('/testing')) return 'testing'
   return 'dashboard'
 })
 
@@ -65,7 +65,9 @@ const isInEditOrDetailView = computed(() => {
     !!route.params.transformerId ||
     !!route.params.conversationId ||
     !!route.params.userId ||
-    !!route.params.auditLogId
+    !!route.params.auditLogId ||
+    !!route.params.testerId ||
+    !!route.params.scenarioId
   
   // Also check if route name contains 'edit', 'create', or 'detail'
   const isEditCreateOrDetail = 
@@ -139,35 +141,39 @@ watch(() => route.params.projectId, (newProjectId) => {
   }
 })
 
-// Watch project selector changes (only design nav here; playground handled separately)
+// Watch project selector changes
 watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
   if (newProjectId && currentSection.value === 'design') {
-    // Only auto-navigate if we're in the design section
     if (route.name && String(route.name).startsWith('design.')) {
-      // If we're already in a design view, navigate to the same view with the new project
       router.push({ name: route.name, params: { ...route.params, projectId: newProjectId } })
     } else {
-      // Otherwise navigate to stages view of the selected project
       router.push({ name: 'design.stages', params: { projectId: newProjectId } })
+    }
+  }
+  if (newProjectId && currentSection.value === 'testing') {
+    if (route.name && String(route.name).startsWith('testing.')) {
+      router.push({ name: route.name as string, params: { ...route.params, projectId: newProjectId } })
+    } else {
+      router.push({ name: 'testing.playground', params: { projectId: newProjectId } })
     }
   }
 })
 
-// watch the full project object so we know its archived status before routing playground
+// watch the full project object so we know its archived status before routing testing playground
 watch(() => projectSelectionStore.selectedProject, (proj) => {
   if (!proj) return
-  if (currentSection.value === 'playground') {
+  if (currentSection.value === 'testing' && route.name === 'testing.playground') {
     if (proj.archivedAt) {
       router.push({ name: 'dashboard' })
     } else if (route.params.projectId !== proj.id) {
-      router.push({ name: 'playground', params: { projectId: proj.id } })
+      router.push({ name: 'testing.playground', params: { projectId: proj.id } })
     }
   }
 })
 
 // watch computed archived flag as a fallback
 watch(projectIsArchived, (archived) => {
-  if (archived && currentSection.value === 'playground') {
+  if (archived && currentSection.value === 'testing' && route.name === 'testing.playground') {
     router.push({ name: 'dashboard' })
   }
 })
@@ -184,18 +190,12 @@ function navigateToSection(section: string) {
        // Cannot go to design without a project usually, but let's default to design root if it exists, or prompting
        router.push({ name: 'design' })
     }
-  } else if (section === 'playground') {
-     // block playground navigation if the project is archived
-     if (projectIsArchived.value) {
-       return
-     }
-     if (selectedProjectId.value) {
-        // Navigate to playground with the selected project
-        router.push({ name: 'playground', params: { projectId: selectedProjectId.value } })
-     } else {
-        // Navigate to playground root (no project)
-        router.push({ name: 'playground' })
-     }
+  } else if (section === 'testing') {
+    if (selectedProjectId.value) {
+      router.push({ name: 'testing.playground', params: { projectId: selectedProjectId.value } })
+    } else {
+      router.push({ name: 'testing.playground' })
+    }
   } else {
     router.push({ name: section })
   }
@@ -230,24 +230,13 @@ const projectPrimaryColorHex = computed(() => {
   return getProjectColorHex(projectSelectionStore.selectedProject?.metadata?.primaryColor)
 })
 
-// Sections for navigation. playground should be hidden when an archived project is selected
-const sections = computed((): Array<{ id: string; label: string; icon: Component }> => {
-  const list = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'design', label: 'Design', icon: DraftingCompass },
-  ]
-
-  // only show playground if project is not archived
-  if (!projectIsArchived.value) {
-    list.push({ id: 'playground', label: 'Playground', icon: FlaskConical })
-  }
-
-  list.push(
-    { id: 'monitor', label: 'Monitor', icon: Activity },
-    { id: 'administration', label: 'Administration', icon: Settings }
-  )
-  return list
-})
+const sections = computed((): Array<{ id: string; label: string; icon: Component }> => [
+  { id: 'dashboard', label: 'Dashboard', icon: Home },
+  { id: 'design', label: 'Design', icon: DraftingCompass },
+  { id: 'testing', label: 'Testing', icon: TestTube2 },
+  { id: 'monitor', label: 'Monitor', icon: Activity },
+  { id: 'administration', label: 'Administration', icon: Settings },
+])
 </script>
 
 <template>
@@ -545,23 +534,25 @@ const sections = computed((): Array<{ id: string; label: string; icon: Component
 
               <!-- Sidebar Items (Sub-menu) -->
               <div v-if="currentSection === section.id && layoutStore.sidebarItems.length > 0" class="pl-4 mt-1 flex flex-col gap-1 border-l-2 border-gray-100 ml-4 mb-2 dark:border-gray-700">
-                <button
-                  v-for="item in layoutStore.sidebarItems"
-                  :key="item.name"
-                  :class="[
-                    'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
-                    route.name === item.name
-                      ? 'text-primary-600 font-semibold dark:text-primary-400'
-                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                  ]"
-                  @click="() => { router.push({ name: item.name }); showMobileMenu = false; }"
-                >
-                  <component v-if="item.icon" :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
-                  <span>{{ item.label }}</span>
-                  <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
-                    <FlaskConical class="w-3 h-3" />
-                  </span>
-                </button>
+                <template v-for="(item, idx) in layoutStore.sidebarItems" :key="item.name || idx">
+                  <div v-if="item.divider" class="h-px bg-gray-200 my-1 dark:bg-gray-700" />
+                  <button
+                    v-else
+                    :class="[
+                      'w-full flex items-center gap-3 px-3 py-2.5 border-none bg-transparent text-left text-sm font-medium rounded-md cursor-pointer transition-all',
+                      route.name === item.name
+                        ? 'text-primary-600 font-semibold dark:text-primary-400'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                    ]"
+                    @click="() => { router.push({ name: item.name }); showMobileMenu = false; }"
+                  >
+                    <component v-if="item.icon" :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
+                    <span>{{ item.label }}</span>
+                    <span v-if="item.experimental" class="inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
+                      <FlaskConical class="w-3 h-3" />
+                    </span>
+                  </button>
+                </template>
               </div>
             </div>
           </nav>
