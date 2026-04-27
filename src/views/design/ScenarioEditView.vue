@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useScenariosStore, useStagesStore, useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
-import { ArrowLeft, Save, Check, X } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, X, Plus, Trash2 } from 'lucide-vue-next'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import type { ApiErrorDetail, ScenarioResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
@@ -41,9 +41,22 @@ const form = ref({
   endingStageIds: [] as string[],
   personaCanHangUp: false,
   contextTransformerId: '',
+  dataExtraction: [] as Array<{ stageId: string; varName: string; expectedValue: string }>,
+  dataPostProcessingPairs: [] as Array<{ key: string; value: string }>,
   tags: [] as string[],
   metadata: {} as Record<string, any>,
 })
+
+function serializeValue(v: any): string {
+  if (v === undefined || v === null) return ''
+  if (typeof v === 'string') return v
+  return JSON.stringify(v)
+}
+
+function parseValue(v: string): any {
+  if (v === '') return undefined
+  try { return JSON.parse(v) } catch { return v }
+}
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const scenarioId = computed(() => route.params.scenarioId as string | undefined)
@@ -63,6 +76,11 @@ const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
 const stages = computed(() => stagesStore.items)
 const contextTransformers = computed(() => contextTransformersStore.items)
+
+function variableNamesForStage(stageId: string): string[] {
+  const stage = stages.value.find(s => s.id === stageId)
+  return stage?.variableDescriptors?.map(v => v.name) ?? []
+}
 
 const metadataFields = computed(() => {
   if (!currentScenario.value) return []
@@ -102,6 +120,15 @@ async function loadScenario() {
         endingStageIds: currentScenario.value.endingStageIds || [],
         personaCanHangUp: currentScenario.value.personaCanHangUp,
         contextTransformerId: currentScenario.value.contextTransformerId || '',
+        dataExtraction: (currentScenario.value.dataExtraction || []).map(e => ({
+          stageId: e.stageId,
+          varName: e.varName,
+          expectedValue: serializeValue(e.expectedValue),
+        })),
+        dataPostProcessingPairs: Object.entries(currentScenario.value.dataPostProcessingExpected || {}).map(([key, value]) => ({
+          key,
+          value: serializeValue(value),
+        })),
         tags: currentScenario.value.tags || [],
         metadata: currentScenario.value.metadata || {},
       }
@@ -148,6 +175,14 @@ async function handleSubmit() {
         endingStageIds: form.value.endingStageIds.filter(Boolean),
         personaCanHangUp: form.value.personaCanHangUp,
         contextTransformerId: form.value.contextTransformerId || null,
+        dataExtraction: form.value.dataExtraction.filter(e => e.stageId || e.varName).map(e => ({
+          stageId: e.stageId,
+          varName: e.varName,
+          ...(e.expectedValue !== '' ? { expectedValue: parseValue(e.expectedValue) } : {}),
+        })),
+        dataPostProcessingExpected: Object.fromEntries(
+          form.value.dataPostProcessingPairs.filter(p => p.key).map(p => [p.key, parseValue(p.value)])
+        ),
         tags: form.value.tags,
         metadata: form.value.metadata,
       })
@@ -166,6 +201,16 @@ async function handleSubmit() {
       if (form.value.description) createData.description = form.value.description
       if (form.value.tags.length > 0) createData.tags = form.value.tags
       if (form.value.contextTransformerId) createData.contextTransformerId = form.value.contextTransformerId
+      const filteredExtraction = form.value.dataExtraction.filter(e => e.stageId || e.varName).map(e => ({
+        stageId: e.stageId,
+        varName: e.varName,
+        ...(e.expectedValue !== '' ? { expectedValue: parseValue(e.expectedValue) } : {}),
+      }))
+      if (filteredExtraction.length > 0) createData.dataExtraction = filteredExtraction
+      const filteredPostProcessing = Object.fromEntries(
+        form.value.dataPostProcessingPairs.filter(p => p.key).map(p => [p.key, parseValue(p.value)])
+      )
+      if (Object.keys(filteredPostProcessing).length > 0) createData.dataPostProcessingExpected = filteredPostProcessing
 
       const created = await scenariosStore.create(projectId.value, createData)
       currentScenario.value = created
@@ -363,6 +408,130 @@ function goBack() {
                     {{ transformer.name }}
                   </option>
                 </select>
+              </FormField>
+
+              <FormField label="Data Extraction" :error="error" path="dataExtraction" class="w-full" help="Variables to extract from conversation stages and their expected values">
+                <div class="space-y-2">
+                  <div v-if="form.dataExtraction.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] gap-2 px-1">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Stage</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Variable Name</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Expected Value <span class="font-normal">(optional)</span></span>
+                    <span></span>
+                  </div>
+                  <div
+                    v-for="(entry, index) in form.dataExtraction"
+                    :key="index"
+                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center"
+                  >
+                    <select
+                      v-model="entry.stageId"
+                      class="form-select-auto"
+                      :disabled="isLoading"
+                      @change="entry.varName = ''"
+                    >
+                      <option value="">Select stage</option>
+                      <option v-for="stage in stages" :key="stage.id" :value="stage.id">
+                        {{ stage.name }}
+                      </option>
+                    </select>
+                    <select
+                      v-if="entry.stageId && variableNamesForStage(entry.stageId).length > 0"
+                      v-model="entry.varName"
+                      class="form-select-auto"
+                      :disabled="isLoading"
+                    >
+                      <option value="">Select variable</option>
+                      <option v-for="name in variableNamesForStage(entry.stageId)" :key="name" :value="name">
+                        {{ name }}
+                      </option>
+                    </select>
+                    <input
+                      v-else
+                      v-model="entry.varName"
+                      type="text"
+                      placeholder="Variable name"
+                      class="form-input"
+                      :disabled="isLoading || !entry.stageId"
+                    />
+                    <input
+                      v-model="entry.expectedValue"
+                      type="text"
+                      placeholder="Expected value (JSON or text)"
+                      class="form-input"
+                      :disabled="isLoading"
+                    />
+                    <button
+                      type="button"
+                      @click="form.dataExtraction.splice(index, 1)"
+                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700 justify-self-start md:justify-self-auto"
+                      :disabled="isLoading"
+                      title="Remove entry"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p v-if="form.dataExtraction.length === 0" class="text-sm text-gray-400 dark:text-gray-500 italic">
+                    No extraction entries defined.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="form.dataExtraction.push({ stageId: '', varName: '', expectedValue: '' })"
+                  class="btn-secondary mt-3 text-sm"
+                  :disabled="isLoading"
+                >
+                  <Plus class="inline-block w-4 h-4 mr-1" /> Add Entry
+                </button>
+              </FormField>
+
+              <FormField label="Post-Processing Expected" :error="error" path="dataPostProcessingExpected" class="w-full" help="Expected key-value pairs in the post-processed extraction results">
+                <div class="space-y-2">
+                  <div v-if="form.dataPostProcessingPairs.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_auto] gap-2 px-1">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Key</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Expected Value</span>
+                    <span></span>
+                  </div>
+                  <div
+                    v-for="(pair, index) in form.dataPostProcessingPairs"
+                    :key="index"
+                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-center"
+                  >
+                    <input
+                      v-model="pair.key"
+                      type="text"
+                      placeholder="Key"
+                      class="form-input"
+                      :disabled="isLoading"
+                    />
+                    <input
+                      v-model="pair.value"
+                      type="text"
+                      placeholder="Expected value (JSON or text)"
+                      class="form-input"
+                      :disabled="isLoading"
+                    />
+                    <button
+                      type="button"
+                      @click="form.dataPostProcessingPairs.splice(index, 1)"
+                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700 justify-self-start md:justify-self-auto"
+                      :disabled="isLoading"
+                      title="Remove pair"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p v-if="form.dataPostProcessingPairs.length === 0" class="text-sm text-gray-400 dark:text-gray-500 italic">
+                    No expected values defined.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="form.dataPostProcessingPairs.push({ key: '', value: '' })"
+                  class="btn-secondary mt-3 text-sm"
+                  :disabled="isLoading"
+                >
+                  <Plus class="inline-block w-4 h-4 mr-1" /> Add Pair
+                </button>
               </FormField>
             </TabContent>
 

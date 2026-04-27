@@ -2,7 +2,7 @@
 import { computed, watchEffect, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectSelectionStore, useLayoutStore } from '@/stores'
-import { FlaskConical, Bot, ClipboardList } from 'lucide-vue-next'
+import { FlaskConical, Bot, ClipboardList, PlayCircle } from 'lucide-vue-next'
 import AppVersion from '@/components/AppVersion.vue'
 
 const route = useRoute()
@@ -20,6 +20,7 @@ watchEffect(() => {
     { name: '__divider__', label: '', divider: true },
     { name: 'testing.testers', label: 'Testers', icon: Bot },
     { name: 'testing.scenarios', label: 'Scenarios', icon: ClipboardList },
+    { name: 'testing.testRuns', label: 'Test Runs', icon: PlayCircle },
   ], ownerId)
 })
 
@@ -94,6 +95,19 @@ const disabledClass = 'opacity-40 cursor-not-allowed text-gray-700 dark:text-gra
           >
             <ClipboardList :size="18" class="flex-shrink-0" />
             <span>Scenarios</span>
+          </button>
+
+          <button
+            :class="[
+              'w-full flex items-center gap-3 px-3 py-2.5 border-none text-left text-sm font-medium rounded-md transition-all',
+              !projectId ? disabledClass : isActive('testing.testRuns') ? activeClass : inactiveClass,
+              !projectId ? '' : 'cursor-pointer',
+            ]"
+            :disabled="!projectId"
+            @click="navigateTo('testing.testRuns')"
+          >
+            <PlayCircle :size="18" class="flex-shrink-0" />
+            <span>Test Runs</span>
           </button>
         </nav>
       </div>
