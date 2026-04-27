@@ -166,9 +166,29 @@ const routes: RouteRecordRaw[] = [
             redirect: (to) => ({ name: 'design.testing', params: to.params }),
           },
           {
+            path: 'projects/:projectId/testers/new',
+            name: 'design.testers.create',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers/:testerId',
+            name: 'design.testers.edit',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
             path: 'projects/:projectId/scenarios',
             name: 'design.scenarios',
             redirect: (to) => ({ name: 'design.testing', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios/new',
+            name: 'design.scenarios.create',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios/:scenarioId',
+            name: 'design.scenarios.edit',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
           },
         ],
       },
