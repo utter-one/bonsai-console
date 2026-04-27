@@ -444,6 +444,11 @@ function removeProfileEntry(index: number) {
                 :load-history="() => testersStore.fetchAuditLogs(projectId, currentTester!.id)"
                 :current-version="currentTester.version"
                 :current-object="currentTester"
+                :active="activeTab === 'history'"
+                :update-fn="(data) => testersStore.update(projectId, currentTester!.id, data)"
+                :create-fn="(data) => testersStore.create(projectId, data)"
+                :ignore-fields="['createdAt', 'archived', 'updatedAt', 'version']"
+                @recover-success="() => router.go(0)"
               />
             </TabContent>
 

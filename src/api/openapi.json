@@ -48071,6 +48071,46 @@
         }
       }
     },
+    "/api/projects/{projectId}/testers/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "Get tester audit logs",
+        "description": "Retrieves audit logs for a specific tester",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Tester ID"
+            },
+            "required": true,
+            "description": "Tester ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Tester not found"
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/scenarios": {
       "post": {
         "tags": [
@@ -49068,6 +49108,46 @@
           },
           "409": {
             "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenarios/{id}/audit-logs": {
+      "get": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "Get scenario audit logs",
+        "description": "Retrieves audit logs for a specific scenario",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario ID"
+            },
+            "required": true,
+            "description": "Scenario ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs retrieved successfully"
+          },
+          "404": {
+            "description": "Scenario not found"
           }
         }
       }
