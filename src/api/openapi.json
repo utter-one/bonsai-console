@@ -15567,6 +15567,20 @@
               "type": "string"
             },
             "description": "Specific API key IDs to include."
+          },
+          "testerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific tester IDs to include."
+          },
+          "scenarioIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific scenario IDs to include."
           }
         },
         "description": "Entity selection used for this pull"
@@ -15654,6 +15668,20 @@
               "$ref": "#/components/schemas/EntityStub"
             },
             "description": "API key stubs that would be included"
+          },
+          "testers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Tester stubs that would be included"
+          },
+          "scenarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Scenario stubs that would be included"
           }
         },
         "required": [
@@ -15668,7 +15696,9 @@
           "knowledgeCategories",
           "knowledgeItems",
           "stages",
-          "apiKeys"
+          "apiKeys",
+          "testers",
+          "scenarios"
         ]
       },
       "ExportBundle": {
@@ -15806,6 +15836,26 @@
               }
             },
             "description": "API key records — depend on projects"
+          },
+          "testers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Tester records — depend on projects"
+          },
+          "scenarios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Scenario records — depend on projects"
           }
         },
         "required": [
@@ -15822,7 +15872,9 @@
           "knowledgeCategories",
           "knowledgeItems",
           "stages",
-          "apiKeys"
+          "apiKeys",
+          "testers",
+          "scenarios"
         ]
       },
       "ProviderHint": {
@@ -17395,6 +17447,1318 @@
         "required": [
           "id",
           "value"
+        ]
+      },
+      "DataExtractionEntry": {
+        "type": "object",
+        "properties": {
+          "stageId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the stage whose variable should be extracted"
+          },
+          "varName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the stage variable to extract"
+          },
+          "expectedValue": {
+            "nullable": true,
+            "description": "Expected value of the variable — defines a successful outcome when provided"
+          }
+        },
+        "required": [
+          "stageId",
+          "varName"
+        ]
+      },
+      "ScenarioRunStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "in_progress",
+          "passed",
+          "failed"
+        ]
+      },
+      "CreateTesterRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the tester (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the tester persona"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tester persona and its behaviour"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt that defines the tester persona behaviour during a conversation"
+          },
+          "llmProviderId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the LLM provider to use for this tester"
+          },
+          "llmSettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmSettings"
+              },
+              {
+                "description": "LLM provider-specific settings for this tester"
+              }
+            ]
+          },
+          "userProfile": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Key-value user profile data passed when the tester starts a conversation"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this tester"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional tester-specific metadata"
+          }
+        },
+        "required": [
+          "name",
+          "prompt"
+        ]
+      },
+      "UpdateTesterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated description"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated persona prompt"
+          },
+          "llmProviderId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated LLM provider ID"
+          },
+          "llmSettings": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LlmSettings"
+              },
+              {
+                "description": "Updated LLM provider-specific settings"
+              }
+            ]
+          },
+          "userProfile": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated user profile data"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated metadata"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteTesterRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "TesterResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the tester"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this tester belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tester persona"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the tester persona"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Prompt that defines the tester persona behaviour"
+          },
+          "llmProviderId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the LLM provider"
+          },
+          "llmSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/AnthropicLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "LLM provider-specific settings"
+          },
+          "userProfile": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Key-value user profile data"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering this tester"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the tester was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the tester was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "prompt",
+          "llmProviderId",
+          "userProfile",
+          "tags",
+          "metadata",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TesterListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the tester"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this tester belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Display name of the tester persona"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Detailed description of the tester persona"
+                },
+                "prompt": {
+                  "type": "string",
+                  "description": "Prompt that defines the tester persona behaviour"
+                },
+                "llmProviderId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the LLM provider"
+                },
+                "llmSettings": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OpenAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "nullable": true
+                    }
+                  ],
+                  "description": "LLM provider-specific settings"
+                },
+                "userProfile": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Key-value user profile data"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering this tester"
+                },
+                "metadata": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional metadata"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the tester was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the tester was last updated"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "name",
+                "description",
+                "prompt",
+                "llmProviderId",
+                "userProfile",
+                "tags",
+                "metadata",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of testers in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of testers matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "CreateScenarioRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier for the scenario (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the scenario"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the scenario purpose and expected flow"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Language code of the conversation (e.g. en-US)"
+          },
+          "startingStageId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the stage where the conversation begins"
+          },
+          "maxTurns": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum number of conversation turns before the scenario is terminated"
+          },
+          "endingStageIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Stage IDs that signal a successful conversation ending"
+          },
+          "personaCanHangUp": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the tester persona is allowed to hang up the conversation"
+          },
+          "dataExtraction": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataExtractionEntry"
+            },
+            "description": "Stage variables to extract at the end of the run and their expected values"
+          },
+          "contextTransformerId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the context transformer used to post-process extracted data"
+          },
+          "dataPostProcessingExpected": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Expected values after post-processing — defines additional success criteria"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for categorizing and filtering this scenario"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional scenario-specific metadata"
+          }
+        },
+        "required": [
+          "name",
+          "language",
+          "startingStageId",
+          "maxTurns"
+        ]
+      },
+      "UpdateScenarioRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated description"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated language code"
+          },
+          "startingStageId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated starting stage ID"
+          },
+          "maxTurns": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Updated maximum turn count"
+          },
+          "endingStageIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated ending stage IDs"
+          },
+          "personaCanHangUp": {
+            "type": "boolean",
+            "description": "Updated hang-up flag"
+          },
+          "dataExtraction": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataExtractionEntry"
+            },
+            "description": "Updated data extraction configuration"
+          },
+          "contextTransformerId": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "description": "Updated context transformer ID"
+          },
+          "dataPostProcessingExpected": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated post-processing expected values"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Updated metadata"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteScenarioRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "ScenarioResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the scenario"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this scenario belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the scenario"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the scenario"
+          },
+          "language": {
+            "type": "string",
+            "description": "Language code of the conversation"
+          },
+          "startingStageId": {
+            "type": "string",
+            "description": "ID of the stage where the conversation begins"
+          },
+          "maxTurns": {
+            "type": "integer",
+            "description": "Maximum number of conversation turns"
+          },
+          "endingStageIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stage IDs that signal a successful ending"
+          },
+          "personaCanHangUp": {
+            "type": "boolean",
+            "description": "Whether the tester persona is allowed to hang up"
+          },
+          "dataExtraction": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/DataExtractionEntry"
+            },
+            "description": "Data extraction configuration"
+          },
+          "contextTransformerId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the context transformer for post-processing"
+          },
+          "dataPostProcessingExpected": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Expected values after post-processing"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for categorizing and filtering"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the scenario was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the scenario was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "language",
+          "startingStageId",
+          "maxTurns",
+          "endingStageIds",
+          "personaCanHangUp",
+          "dataExtraction",
+          "contextTransformerId",
+          "dataPostProcessingExpected",
+          "tags",
+          "metadata",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ScenarioListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the scenario"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this scenario belongs to"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Display name of the scenario"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Detailed description of the scenario"
+                },
+                "language": {
+                  "type": "string",
+                  "description": "Language code of the conversation"
+                },
+                "startingStageId": {
+                  "type": "string",
+                  "description": "ID of the stage where the conversation begins"
+                },
+                "maxTurns": {
+                  "type": "integer",
+                  "description": "Maximum number of conversation turns"
+                },
+                "endingStageIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Stage IDs that signal a successful ending"
+                },
+                "personaCanHangUp": {
+                  "type": "boolean",
+                  "description": "Whether the tester persona is allowed to hang up"
+                },
+                "dataExtraction": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "$ref": "#/components/schemas/DataExtractionEntry"
+                  },
+                  "description": "Data extraction configuration"
+                },
+                "contextTransformerId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the context transformer for post-processing"
+                },
+                "dataPostProcessingExpected": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Expected values after post-processing"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags for categorizing and filtering"
+                },
+                "metadata": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional metadata"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the scenario was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the scenario was last updated"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "name",
+                "description",
+                "language",
+                "startingStageId",
+                "maxTurns",
+                "endingStageIds",
+                "personaCanHangUp",
+                "dataExtraction",
+                "contextTransformerId",
+                "dataPostProcessingExpected",
+                "tags",
+                "metadata",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of scenarios in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of scenarios matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "CreateScenarioRunRequest": {
+        "type": "object",
+        "properties": {
+          "scenarioId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the scenario to run"
+          },
+          "testerIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "IDs of the tester personas to use in this run"
+          },
+          "totalConversations": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Total number of conversations to execute in this run"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for this run"
+          }
+        },
+        "required": [
+          "scenarioId",
+          "testerIds",
+          "totalConversations"
+        ]
+      },
+      "ScenarioRunResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the scenario run"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this run belongs to"
+          },
+          "scenarioId": {
+            "type": "string",
+            "description": "ID of the scenario being run"
+          },
+          "testerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "IDs of the tester personas used in this run"
+          },
+          "totalConversations": {
+            "type": "integer",
+            "description": "Total number of conversations to execute"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScenarioRunStatus"
+              },
+              {
+                "description": "Current status of the scenario run"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the run was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the run was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "scenarioId",
+          "testerIds",
+          "totalConversations",
+          "status",
+          "metadata",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ScenarioRunListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the scenario run"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this run belongs to"
+                },
+                "scenarioId": {
+                  "type": "string",
+                  "description": "ID of the scenario being run"
+                },
+                "testerIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "IDs of the tester personas used in this run"
+                },
+                "totalConversations": {
+                  "type": "integer",
+                  "description": "Total number of conversations to execute"
+                },
+                "status": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ScenarioRunStatus"
+                    },
+                    {
+                      "description": "Current status of the scenario run"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional metadata"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the run was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the run was last updated"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "scenarioId",
+                "testerIds",
+                "totalConversations",
+                "status",
+                "metadata",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of scenario runs in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of scenario runs matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "ScenarioConversationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the scenario conversation"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "ID of the project this conversation belongs to"
+          },
+          "scenarioRunId": {
+            "type": "string",
+            "description": "ID of the scenario run this conversation belongs to"
+          },
+          "scenarioId": {
+            "type": "string",
+            "description": "ID of the scenario being tested"
+          },
+          "testerId": {
+            "type": "string",
+            "description": "ID of the tester persona used in this conversation"
+          },
+          "conversationId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the underlying conversation used to run this scenario conversation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "in_progress",
+              "passed",
+              "failed"
+            ],
+            "description": "Current execution status of this conversation"
+          },
+          "dataExtractionResults": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Extracted stage variable values at the end of the conversation"
+          },
+          "dataTransformationResults": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Post-processed data transformation results"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the scenario conversation was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the scenario conversation was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "scenarioRunId",
+          "scenarioId",
+          "testerId",
+          "conversationId",
+          "status",
+          "dataExtractionResults",
+          "dataTransformationResults",
+          "metadata",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ScenarioConversationListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the scenario conversation"
+                },
+                "projectId": {
+                  "type": "string",
+                  "description": "ID of the project this conversation belongs to"
+                },
+                "scenarioRunId": {
+                  "type": "string",
+                  "description": "ID of the scenario run this conversation belongs to"
+                },
+                "scenarioId": {
+                  "type": "string",
+                  "description": "ID of the scenario being tested"
+                },
+                "testerId": {
+                  "type": "string",
+                  "description": "ID of the tester persona used in this conversation"
+                },
+                "conversationId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "ID of the underlying conversation used to run this scenario conversation"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "in_progress",
+                    "passed",
+                    "failed"
+                  ],
+                  "description": "Current execution status of this conversation"
+                },
+                "dataExtractionResults": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Extracted stage variable values at the end of the conversation"
+                },
+                "dataTransformationResults": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Post-processed data transformation results"
+                },
+                "metadata": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional metadata"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the scenario conversation was created"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the scenario conversation was last updated"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "scenarioRunId",
+                "scenarioId",
+                "testerId",
+                "conversationId",
+                "status",
+                "dataExtractionResults",
+                "dataTransformationResults",
+                "metadata",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of scenario conversations in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of scenario conversations matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
         ]
       },
       "LatencyStatsResponse": {
@@ -34933,6 +36297,46 @@
             "description": "Specific API key IDs to export.",
             "name": "apiKeyIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific tester IDs to export."
+            },
+            "required": false,
+            "description": "Specific tester IDs to export.",
+            "name": "testerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific scenario IDs to export."
+            },
+            "required": false,
+            "description": "Specific scenario IDs to export.",
+            "name": "scenarioIds",
+            "in": "query"
           }
         ],
         "responses": {
@@ -35052,6 +36456,20 @@
                           "type": "string"
                         },
                         "description": "Specific API key IDs to include."
+                      },
+                      "testerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific tester IDs to include."
+                      },
+                      "scenarioIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific scenario IDs to include."
                       }
                     },
                     "default": {},
@@ -45181,6 +46599,46 @@
             "description": "Specific API key IDs to export.",
             "name": "apiKeyIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific tester IDs to export."
+            },
+            "required": false,
+            "description": "Specific tester IDs to export.",
+            "name": "testerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific scenario IDs to export."
+            },
+            "required": false,
+            "description": "Specific scenario IDs to export.",
+            "name": "scenarioIds",
+            "in": "query"
           }
         ],
         "responses": {
@@ -45407,6 +46865,46 @@
             "description": "Specific API key IDs to export.",
             "name": "apiKeyIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific tester IDs to export."
+            },
+            "required": false,
+            "description": "Specific tester IDs to export.",
+            "name": "testerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific scenario IDs to export."
+            },
+            "required": false,
+            "description": "Specific scenario IDs to export.",
+            "name": "scenarioIds",
+            "in": "query"
           }
         ],
         "responses": {
@@ -45594,6 +47092,2865 @@
         }
       }
     },
+    "/api/projects/{projectId}/testers": {
+      "post": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "Create a new tester",
+        "description": "Creates a new tester persona for use in scenario testing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the tester (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the tester persona"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Detailed description of the tester persona and its behaviour"
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Prompt that defines the tester persona behaviour during a conversation"
+                  },
+                  "llmProviderId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the LLM provider to use for this tester"
+                  },
+                  "llmSettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/LlmSettings"
+                      },
+                      {
+                        "description": "LLM provider-specific settings for this tester"
+                      }
+                    ]
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Key-value user profile data passed when the tester starts a conversation"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this tester"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional tester-specific metadata"
+                  }
+                },
+                "required": [
+                  "name",
+                  "prompt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tester created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the tester"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this tester belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the tester persona"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the tester persona"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt that defines the tester persona behaviour"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "userProfile": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Key-value user profile data"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tester"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "userProfile",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "List testers",
+        "description": "Retrieves a paginated list of testers with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of testers retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the tester"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this tester belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name of the tester persona"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Detailed description of the tester persona"
+                          },
+                          "prompt": {
+                            "type": "string",
+                            "description": "Prompt that defines the tester persona behaviour"
+                          },
+                          "llmProviderId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the LLM provider"
+                          },
+                          "llmSettings": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/components/schemas/OpenAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/AnthropicLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/GeminiLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OllamaLlmSettings"
+                              },
+                              {
+                                "nullable": true
+                              }
+                            ],
+                            "description": "LLM provider-specific settings"
+                          },
+                          "userProfile": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Key-value user profile data"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering this tester"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the tester was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the tester was last updated"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "description",
+                          "prompt",
+                          "llmProviderId",
+                          "userProfile",
+                          "tags",
+                          "metadata",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of testers in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of testers matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/testers/{id}": {
+      "get": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "Get tester by ID",
+        "description": "Retrieves a single tester by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Tester ID"
+            },
+            "required": true,
+            "description": "Tester ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tester retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the tester"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this tester belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the tester persona"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the tester persona"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt that defines the tester persona behaviour"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "userProfile": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Key-value user profile data"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tester"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "userProfile",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tester not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "Update tester",
+        "description": "Updates an existing tester with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Tester ID"
+            },
+            "required": true,
+            "description": "Tester ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated description"
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated persona prompt"
+                  },
+                  "llmProviderId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated LLM provider ID"
+                  },
+                  "llmSettings": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/LlmSettings"
+                      },
+                      {
+                        "description": "Updated LLM provider-specific settings"
+                      }
+                    ]
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated user profile data"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated metadata"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tester updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the tester"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this tester belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the tester persona"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the tester persona"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt that defines the tester persona behaviour"
+                    },
+                    "llmProviderId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the LLM provider"
+                    },
+                    "llmSettings": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/OpenAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenAILegacyLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/AnthropicLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ],
+                      "description": "LLM provider-specific settings"
+                    },
+                    "userProfile": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Key-value user profile data"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering this tester"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the tester was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "prompt",
+                    "llmProviderId",
+                    "userProfile",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Tester not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Testers"
+        ],
+        "summary": "Delete tester",
+        "description": "Deletes a tester with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Tester ID"
+            },
+            "required": true,
+            "description": "Tester ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Tester deleted successfully"
+          },
+          "404": {
+            "description": "Tester not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenarios": {
+      "post": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "Create a new scenario",
+        "description": "Creates a new test scenario defining the conversation flow, data extraction, and success criteria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier for the scenario (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the scenario"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Detailed description of the scenario purpose and expected flow"
+                  },
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Language code of the conversation (e.g. en-US)"
+                  },
+                  "startingStageId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the stage where the conversation begins"
+                  },
+                  "maxTurns": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Maximum number of conversation turns before the scenario is terminated"
+                  },
+                  "endingStageIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Stage IDs that signal a successful conversation ending"
+                  },
+                  "personaCanHangUp": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether the tester persona is allowed to hang up the conversation"
+                  },
+                  "dataExtraction": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/DataExtractionEntry"
+                    },
+                    "description": "Stage variables to extract at the end of the run and their expected values"
+                  },
+                  "contextTransformerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the context transformer used to post-process extracted data"
+                  },
+                  "dataPostProcessingExpected": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Expected values after post-processing — defines additional success criteria"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for categorizing and filtering this scenario"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional scenario-specific metadata"
+                  }
+                },
+                "required": [
+                  "name",
+                  "language",
+                  "startingStageId",
+                  "maxTurns"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Scenario created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this scenario belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the scenario"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the scenario"
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "Language code of the conversation"
+                    },
+                    "startingStageId": {
+                      "type": "string",
+                      "description": "ID of the stage where the conversation begins"
+                    },
+                    "maxTurns": {
+                      "type": "integer",
+                      "description": "Maximum number of conversation turns"
+                    },
+                    "endingStageIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Stage IDs that signal a successful ending"
+                    },
+                    "personaCanHangUp": {
+                      "type": "boolean",
+                      "description": "Whether the tester persona is allowed to hang up"
+                    },
+                    "dataExtraction": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/DataExtractionEntry"
+                      },
+                      "description": "Data extraction configuration"
+                    },
+                    "contextTransformerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the context transformer for post-processing"
+                    },
+                    "dataPostProcessingExpected": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Expected values after post-processing"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "language",
+                    "startingStageId",
+                    "maxTurns",
+                    "endingStageIds",
+                    "personaCanHangUp",
+                    "dataExtraction",
+                    "contextTransformerId",
+                    "dataPostProcessingExpected",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "List scenarios",
+        "description": "Retrieves a paginated list of scenarios with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scenarios retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the scenario"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this scenario belongs to"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name of the scenario"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Detailed description of the scenario"
+                          },
+                          "language": {
+                            "type": "string",
+                            "description": "Language code of the conversation"
+                          },
+                          "startingStageId": {
+                            "type": "string",
+                            "description": "ID of the stage where the conversation begins"
+                          },
+                          "maxTurns": {
+                            "type": "integer",
+                            "description": "Maximum number of conversation turns"
+                          },
+                          "endingStageIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Stage IDs that signal a successful ending"
+                          },
+                          "personaCanHangUp": {
+                            "type": "boolean",
+                            "description": "Whether the tester persona is allowed to hang up"
+                          },
+                          "dataExtraction": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "$ref": "#/components/schemas/DataExtractionEntry"
+                            },
+                            "description": "Data extraction configuration"
+                          },
+                          "contextTransformerId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the context transformer for post-processing"
+                          },
+                          "dataPostProcessingExpected": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Expected values after post-processing"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags for categorizing and filtering"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the scenario was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the scenario was last updated"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "name",
+                          "description",
+                          "language",
+                          "startingStageId",
+                          "maxTurns",
+                          "endingStageIds",
+                          "personaCanHangUp",
+                          "dataExtraction",
+                          "contextTransformerId",
+                          "dataPostProcessingExpected",
+                          "tags",
+                          "metadata",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of scenarios in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of scenarios matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenarios/{id}": {
+      "get": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "Get scenario by ID",
+        "description": "Retrieves a single scenario by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario ID"
+            },
+            "required": true,
+            "description": "Scenario ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scenario retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this scenario belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the scenario"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the scenario"
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "Language code of the conversation"
+                    },
+                    "startingStageId": {
+                      "type": "string",
+                      "description": "ID of the stage where the conversation begins"
+                    },
+                    "maxTurns": {
+                      "type": "integer",
+                      "description": "Maximum number of conversation turns"
+                    },
+                    "endingStageIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Stage IDs that signal a successful ending"
+                    },
+                    "personaCanHangUp": {
+                      "type": "boolean",
+                      "description": "Whether the tester persona is allowed to hang up"
+                    },
+                    "dataExtraction": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/DataExtractionEntry"
+                      },
+                      "description": "Data extraction configuration"
+                    },
+                    "contextTransformerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the context transformer for post-processing"
+                    },
+                    "dataPostProcessingExpected": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Expected values after post-processing"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "language",
+                    "startingStageId",
+                    "maxTurns",
+                    "endingStageIds",
+                    "personaCanHangUp",
+                    "dataExtraction",
+                    "contextTransformerId",
+                    "dataPostProcessingExpected",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scenario not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "Update scenario",
+        "description": "Updates an existing scenario with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario ID"
+            },
+            "required": true,
+            "description": "Scenario ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated description"
+                  },
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated language code"
+                  },
+                  "startingStageId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated starting stage ID"
+                  },
+                  "maxTurns": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Updated maximum turn count"
+                  },
+                  "endingStageIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated ending stage IDs"
+                  },
+                  "personaCanHangUp": {
+                    "type": "boolean",
+                    "description": "Updated hang-up flag"
+                  },
+                  "dataExtraction": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/DataExtractionEntry"
+                    },
+                    "description": "Updated data extraction configuration"
+                  },
+                  "contextTransformerId": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "description": "Updated context transformer ID"
+                  },
+                  "dataPostProcessingExpected": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated post-processing expected values"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Updated metadata"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scenario updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this scenario belongs to"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name of the scenario"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Detailed description of the scenario"
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "Language code of the conversation"
+                    },
+                    "startingStageId": {
+                      "type": "string",
+                      "description": "ID of the stage where the conversation begins"
+                    },
+                    "maxTurns": {
+                      "type": "integer",
+                      "description": "Maximum number of conversation turns"
+                    },
+                    "endingStageIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Stage IDs that signal a successful ending"
+                    },
+                    "personaCanHangUp": {
+                      "type": "boolean",
+                      "description": "Whether the tester persona is allowed to hang up"
+                    },
+                    "dataExtraction": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/DataExtractionEntry"
+                      },
+                      "description": "Data extraction configuration"
+                    },
+                    "contextTransformerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the context transformer for post-processing"
+                    },
+                    "dataPostProcessingExpected": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Expected values after post-processing"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags for categorizing and filtering"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "name",
+                    "description",
+                    "language",
+                    "startingStageId",
+                    "maxTurns",
+                    "endingStageIds",
+                    "personaCanHangUp",
+                    "dataExtraction",
+                    "contextTransformerId",
+                    "dataPostProcessingExpected",
+                    "tags",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Scenario not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Scenarios"
+        ],
+        "summary": "Delete scenario",
+        "description": "Deletes a scenario with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario ID"
+            },
+            "required": true,
+            "description": "Scenario ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Scenario deleted successfully"
+          },
+          "404": {
+            "description": "Scenario not found"
+          },
+          "409": {
+            "description": "Version conflict - entity was modified"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenario-runs": {
+      "post": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Create a new scenario run",
+        "description": "Creates a new scenario run instance with status queued, ready to be picked up by the testing engine",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scenarioId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the scenario to run"
+                  },
+                  "testerIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "IDs of the tester personas to use in this run"
+                  },
+                  "totalConversations": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Total number of conversations to execute in this run"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional metadata for this run"
+                  }
+                },
+                "required": [
+                  "scenarioId",
+                  "testerIds",
+                  "totalConversations"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Scenario run created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario run"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this run belongs to"
+                    },
+                    "scenarioId": {
+                      "type": "string",
+                      "description": "ID of the scenario being run"
+                    },
+                    "testerIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "IDs of the tester personas used in this run"
+                    },
+                    "totalConversations": {
+                      "type": "integer",
+                      "description": "Total number of conversations to execute"
+                    },
+                    "status": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ScenarioRunStatus"
+                        },
+                        {
+                          "description": "Current status of the scenario run"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "scenarioId",
+                    "testerIds",
+                    "totalConversations",
+                    "status",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "List scenario runs",
+        "description": "Retrieves a paginated list of scenario runs with optional filtering and sorting",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scenario runs retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the scenario run"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this run belongs to"
+                          },
+                          "scenarioId": {
+                            "type": "string",
+                            "description": "ID of the scenario being run"
+                          },
+                          "testerIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "IDs of the tester personas used in this run"
+                          },
+                          "totalConversations": {
+                            "type": "integer",
+                            "description": "Total number of conversations to execute"
+                          },
+                          "status": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/ScenarioRunStatus"
+                              },
+                              {
+                                "description": "Current status of the scenario run"
+                              }
+                            ]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the run was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the run was last updated"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "scenarioId",
+                          "testerIds",
+                          "totalConversations",
+                          "status",
+                          "metadata",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of scenario runs in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of scenario runs matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenario-runs/{id}": {
+      "get": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Get scenario run by ID",
+        "description": "Retrieves a single scenario run by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario Run ID"
+            },
+            "required": true,
+            "description": "Scenario Run ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scenario run retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario run"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this run belongs to"
+                    },
+                    "scenarioId": {
+                      "type": "string",
+                      "description": "ID of the scenario being run"
+                    },
+                    "testerIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "IDs of the tester personas used in this run"
+                    },
+                    "totalConversations": {
+                      "type": "integer",
+                      "description": "Total number of conversations to execute"
+                    },
+                    "status": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ScenarioRunStatus"
+                        },
+                        {
+                          "description": "Current status of the scenario run"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "scenarioId",
+                    "testerIds",
+                    "totalConversations",
+                    "status",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scenario run not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenario-conversations": {
+      "get": {
+        "tags": [
+          "Scenario Conversations"
+        ],
+        "summary": "List scenario conversations",
+        "description": "Retrieves a paginated list of scenario conversations. Use the scenarioRunId query parameter to filter by run.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter conversations by scenario run ID"
+            },
+            "required": false,
+            "description": "Filter conversations by scenario run ID",
+            "name": "scenarioRunId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scenario conversations retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the scenario conversation"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "description": "ID of the project this conversation belongs to"
+                          },
+                          "scenarioRunId": {
+                            "type": "string",
+                            "description": "ID of the scenario run this conversation belongs to"
+                          },
+                          "scenarioId": {
+                            "type": "string",
+                            "description": "ID of the scenario being tested"
+                          },
+                          "testerId": {
+                            "type": "string",
+                            "description": "ID of the tester persona used in this conversation"
+                          },
+                          "conversationId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "ID of the underlying conversation used to run this scenario conversation"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "queued",
+                              "in_progress",
+                              "passed",
+                              "failed"
+                            ],
+                            "description": "Current execution status of this conversation"
+                          },
+                          "dataExtractionResults": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Extracted stage variable values at the end of the conversation"
+                          },
+                          "dataTransformationResults": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Post-processed data transformation results"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional metadata"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the scenario conversation was created"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the scenario conversation was last updated"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "scenarioRunId",
+                          "scenarioId",
+                          "testerId",
+                          "conversationId",
+                          "status",
+                          "dataExtractionResults",
+                          "dataTransformationResults",
+                          "metadata",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of scenario conversations in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of scenario conversations matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenario-conversations/{id}": {
+      "get": {
+        "tags": [
+          "Scenario Conversations"
+        ],
+        "summary": "Get scenario conversation by ID",
+        "description": "Retrieves a single scenario conversation by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario Conversation ID"
+            },
+            "required": true,
+            "description": "Scenario Conversation ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scenario conversation retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario conversation"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this conversation belongs to"
+                    },
+                    "scenarioRunId": {
+                      "type": "string",
+                      "description": "ID of the scenario run this conversation belongs to"
+                    },
+                    "scenarioId": {
+                      "type": "string",
+                      "description": "ID of the scenario being tested"
+                    },
+                    "testerId": {
+                      "type": "string",
+                      "description": "ID of the tester persona used in this conversation"
+                    },
+                    "conversationId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "ID of the underlying conversation used to run this scenario conversation"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "queued",
+                        "in_progress",
+                        "passed",
+                        "failed"
+                      ],
+                      "description": "Current execution status of this conversation"
+                    },
+                    "dataExtractionResults": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Extracted stage variable values at the end of the conversation"
+                    },
+                    "dataTransformationResults": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Post-processed data transformation results"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario conversation was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the scenario conversation was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "scenarioRunId",
+                    "scenarioId",
+                    "testerId",
+                    "conversationId",
+                    "status",
+                    "dataExtractionResults",
+                    "dataTransformationResults",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scenario conversation not found"
+          }
+        }
+      }
+    },
     "/api/webrtc/offer": {
       "post": {
         "tags": [
@@ -45655,7 +50012,7 @@
           "Twilio Voice"
         ],
         "summary": "Initiate an outgoing Twilio Voice call",
-        "description": "Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook.",
+        "description": "Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook. The voice webhook URL is passed directly as the `url` parameter unless the provider has an `applicationSid` configured.",
         "security": [],
         "parameters": [
           {
@@ -45771,7 +50128,7 @@
             "description": "API key does not permit twilio_voice channel"
           },
           "422": {
-            "description": "applicationSid not configured or no default stage available"
+            "description": "No default stage available"
           },
           "502": {
             "description": "Twilio REST call creation failed"

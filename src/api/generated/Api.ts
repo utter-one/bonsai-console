@@ -26,6 +26,7 @@ import {
   ConversationTimelineResponse,
   CostManagementConfig,
   CreateToolRequest,
+  DataExtractionEntry,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   Effect,
@@ -65,6 +66,7 @@ import {
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
+  ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
   ServerVadConfig,
@@ -7147,6 +7149,10 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -7195,6 +7201,10 @@ export class Api<
         providerIds?: string[];
         /** Specific API key IDs to include. */
         apiKeyIds?: string[];
+        /** Specific tester IDs to include. */
+        testerIds?: string[];
+        /** Specific scenario IDs to include. */
+        scenarioIds?: string[];
       };
       /**
        * If true, bypass schema hash mismatch check
@@ -11513,6 +11523,10 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -11555,6 +11569,10 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -11656,6 +11674,1247 @@ export class Api<
       ...params,
     });
   /**
+   * @description Creates a new tester persona for use in scenario testing
+   *
+   * @tags Testers
+   * @name ProjectsTestersCreate
+   * @summary Create a new tester
+   * @request POST:/api/projects/{projectId}/testers
+   * @secure
+   */
+  projectsTestersCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the tester (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the tester persona
+       * @minLength 1
+       */
+      name: string;
+      /** Detailed description of the tester persona and its behaviour */
+      description?: string | null;
+      /**
+       * Prompt that defines the tester persona behaviour during a conversation
+       * @minLength 1
+       */
+      prompt: string;
+      /**
+       * ID of the LLM provider to use for this tester
+       * @minLength 1
+       */
+      llmProviderId?: string;
+      /** LLM provider-specific settings for this tester */
+      llmSettings?: LlmSettings;
+      /** Key-value user profile data passed when the tester starts a conversation */
+      userProfile?: Record<string, any>;
+      /**
+       * Tags for categorizing and filtering this tester
+       * @default []
+       */
+      tags?: string[];
+      /** Additional tester-specific metadata */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of testers with optional filtering and sorting
+   *
+   * @tags Testers
+   * @name ProjectsTestersList
+   * @summary List testers
+   * @request GET:/api/projects/{projectId}/testers
+   * @secure
+   */
+  projectsTestersList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of testers in the current page */
+        items: {
+          /** Unique identifier for the tester */
+          id: string;
+          /** ID of the project this tester belongs to */
+          projectId: string;
+          /** Display name of the tester persona */
+          name: string;
+          /** Detailed description of the tester persona */
+          description: string | null;
+          /** Prompt that defines the tester persona behaviour */
+          prompt: string;
+          /** ID of the LLM provider */
+          llmProviderId: string | null;
+          /** LLM provider-specific settings */
+          llmSettings?:
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings
+            | OllamaLlmSettings;
+          /** Key-value user profile data */
+          userProfile: Record<string, any>;
+          /** Tags for categorizing and filtering this tester */
+          tags: string[];
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the tester was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the tester was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of testers matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/testers`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single tester by its unique identifier
+   *
+   * @tags Testers
+   * @name ProjectsTestersDetail
+   * @summary Get tester by ID
+   * @request GET:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing tester with optimistic locking
+   *
+   * @tags Testers
+   * @name ProjectsTestersUpdate
+   * @summary Update tester
+   * @request PUT:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated persona prompt
+       * @minLength 1
+       */
+      prompt?: string;
+      /**
+       * Updated LLM provider ID
+       * @minLength 1
+       */
+      llmProviderId?: string;
+      /** Updated LLM provider-specific settings */
+      llmSettings?: LlmSettings;
+      /** Updated user profile data */
+      userProfile?: Record<string, any>;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated metadata */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a tester with optimistic locking
+   *
+   * @tags Testers
+   * @name ProjectsTestersDelete
+   * @summary Delete tester
+   * @request DELETE:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a new test scenario defining the conversation flow, data extraction, and success criteria
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosCreate
+   * @summary Create a new scenario
+   * @request POST:/api/projects/{projectId}/scenarios
+   * @secure
+   */
+  projectsScenariosCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the scenario (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the scenario
+       * @minLength 1
+       */
+      name: string;
+      /** Detailed description of the scenario purpose and expected flow */
+      description?: string | null;
+      /**
+       * Language code of the conversation (e.g. en-US)
+       * @minLength 1
+       */
+      language: string;
+      /**
+       * ID of the stage where the conversation begins
+       * @minLength 1
+       */
+      startingStageId: string;
+      /**
+       * Maximum number of conversation turns before the scenario is terminated
+       * @min 1
+       */
+      maxTurns: number;
+      /**
+       * Stage IDs that signal a successful conversation ending
+       * @default []
+       */
+      endingStageIds?: string[];
+      /**
+       * Whether the tester persona is allowed to hang up the conversation
+       * @default false
+       */
+      personaCanHangUp?: boolean;
+      /** Stage variables to extract at the end of the run and their expected values */
+      dataExtraction?: DataExtractionEntry[];
+      /**
+       * ID of the context transformer used to post-process extracted data
+       * @minLength 1
+       */
+      contextTransformerId?: string;
+      /** Expected values after post-processing — defines additional success criteria */
+      dataPostProcessingExpected?: Record<string, any>;
+      /**
+       * Tags for categorizing and filtering this scenario
+       * @default []
+       */
+      tags?: string[];
+      /** Additional scenario-specific metadata */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing */
+        dataPostProcessingExpected: Record<string, any>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenarios with optional filtering and sorting
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosList
+   * @summary List scenarios
+   * @request GET:/api/projects/{projectId}/scenarios
+   * @secure
+   */
+  projectsScenariosList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenarios in the current page */
+        items: {
+          /** Unique identifier for the scenario */
+          id: string;
+          /** ID of the project this scenario belongs to */
+          projectId: string;
+          /** Display name of the scenario */
+          name: string;
+          /** Detailed description of the scenario */
+          description: string | null;
+          /** Language code of the conversation */
+          language: string;
+          /** ID of the stage where the conversation begins */
+          startingStageId: string;
+          /** Maximum number of conversation turns */
+          maxTurns: number;
+          /** Stage IDs that signal a successful ending */
+          endingStageIds: string[];
+          /** Whether the tester persona is allowed to hang up */
+          personaCanHangUp: boolean;
+          /** Data extraction configuration */
+          dataExtraction: DataExtractionEntry[] | null;
+          /** ID of the context transformer for post-processing */
+          contextTransformerId: string | null;
+          /** Expected values after post-processing */
+          dataPostProcessingExpected: Record<string, any>;
+          /** Tags for categorizing and filtering */
+          tags: string[];
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the scenario was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the scenario was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenarios matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenarios`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario by its unique identifier
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosDetail
+   * @summary Get scenario by ID
+   * @request GET:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing */
+        dataPostProcessingExpected: Record<string, any>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing scenario with optimistic locking
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosUpdate
+   * @summary Update scenario
+   * @request PUT:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated language code
+       * @minLength 1
+       */
+      language?: string;
+      /**
+       * Updated starting stage ID
+       * @minLength 1
+       */
+      startingStageId?: string;
+      /**
+       * Updated maximum turn count
+       * @min 1
+       */
+      maxTurns?: number;
+      /** Updated ending stage IDs */
+      endingStageIds?: string[];
+      /** Updated hang-up flag */
+      personaCanHangUp?: boolean;
+      /** Updated data extraction configuration */
+      dataExtraction?: DataExtractionEntry[];
+      /**
+       * Updated context transformer ID
+       * @minLength 1
+       */
+      contextTransformerId?: string | null;
+      /** Updated post-processing expected values */
+      dataPostProcessingExpected?: Record<string, any>;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated metadata */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing */
+        dataPostProcessingExpected: Record<string, any>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a scenario with optimistic locking
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosDelete
+   * @summary Delete scenario
+   * @request DELETE:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a new scenario run instance with status queued, ready to be picked up by the testing engine
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsCreate
+   * @summary Create a new scenario run
+   * @request POST:/api/projects/{projectId}/scenario-runs
+   * @secure
+   */
+  projectsScenarioRunsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * ID of the scenario to run
+       * @minLength 1
+       */
+      scenarioId: string;
+      /**
+       * IDs of the tester personas to use in this run
+       * @minItems 1
+       */
+      testerIds: string[];
+      /**
+       * Total number of conversations to execute in this run
+       * @min 1
+       */
+      totalConversations: number;
+      /** Additional metadata for this run */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** IDs of the tester personas used in this run */
+        testerIds: string[];
+        /** Total number of conversations to execute */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenario runs with optional filtering and sorting
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsList
+   * @summary List scenario runs
+   * @request GET:/api/projects/{projectId}/scenario-runs
+   * @secure
+   */
+  projectsScenarioRunsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenario runs in the current page */
+        items: {
+          /** Unique identifier for the scenario run */
+          id: string;
+          /** ID of the project this run belongs to */
+          projectId: string;
+          /** ID of the scenario being run */
+          scenarioId: string;
+          /** IDs of the tester personas used in this run */
+          testerIds: string[];
+          /** Total number of conversations to execute */
+          totalConversations: number;
+          /** Current status of the scenario run */
+          status: ScenarioRunStatus;
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the run was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the run was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenario runs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenario-runs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario run by its unique identifier
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsDetail
+   * @summary Get scenario run by ID
+   * @request GET:/api/projects/{projectId}/scenario-runs/{id}
+   * @secure
+   */
+  projectsScenarioRunsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** IDs of the tester personas used in this run */
+        testerIds: string[];
+        /** Total number of conversations to execute */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenario conversations. Use the scenarioRunId query parameter to filter by run.
+   *
+   * @tags Scenario Conversations
+   * @name ProjectsScenarioConversationsList
+   * @summary List scenario conversations
+   * @request GET:/api/projects/{projectId}/scenario-conversations
+   * @secure
+   */
+  projectsScenarioConversationsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter conversations by scenario run ID */
+      scenarioRunId?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenario conversations in the current page */
+        items: {
+          /** Unique identifier for the scenario conversation */
+          id: string;
+          /** ID of the project this conversation belongs to */
+          projectId: string;
+          /** ID of the scenario run this conversation belongs to */
+          scenarioRunId: string;
+          /** ID of the scenario being tested */
+          scenarioId: string;
+          /** ID of the tester persona used in this conversation */
+          testerId: string;
+          /** ID of the underlying conversation used to run this scenario conversation */
+          conversationId: string | null;
+          /** Current execution status of this conversation */
+          status: "queued" | "in_progress" | "passed" | "failed";
+          /** Extracted stage variable values at the end of the conversation */
+          dataExtractionResults: Record<string, any>;
+          /** Post-processed data transformation results */
+          dataTransformationResults: Record<string, any>;
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the scenario conversation was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the scenario conversation was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenario conversations matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenario-conversations`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario conversation by its unique identifier
+   *
+   * @tags Scenario Conversations
+   * @name ProjectsScenarioConversationsDetail
+   * @summary Get scenario conversation by ID
+   * @request GET:/api/projects/{projectId}/scenario-conversations/{id}
+   * @secure
+   */
+  projectsScenarioConversationsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario conversation */
+        id: string;
+        /** ID of the project this conversation belongs to */
+        projectId: string;
+        /** ID of the scenario run this conversation belongs to */
+        scenarioRunId: string;
+        /** ID of the scenario being tested */
+        scenarioId: string;
+        /** ID of the tester persona used in this conversation */
+        testerId: string;
+        /** ID of the underlying conversation used to run this scenario conversation */
+        conversationId: string | null;
+        /** Current execution status of this conversation */
+        status: "queued" | "in_progress" | "passed" | "failed";
+        /** Extracted stage variable values at the end of the conversation */
+        dataExtractionResults: Record<string, any>;
+        /** Post-processed data transformation results */
+        dataTransformationResults: Record<string, any>;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario conversation was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario conversation was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-conversations/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). The client must add a microphone audio track and open a "control" DataChannel (ordered: true) before creating the offer. The server adds an outbound audio track to the answer for AI voice output. Once the control DataChannel is open, authenticate by sending an "auth" JSON message over it. All JSON messages use the same protocol as WebSocket. Voice audio flows over native RTP/SRTP media tracks.
    *
    * @tags WebRTC
@@ -11685,7 +12944,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook.
+   * @description Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook. The voice webhook URL is passed directly as the `url` parameter unless the provider has an `applicationSid` configured.
    *
    * @tags Twilio Voice
    * @name TwilioVoiceCallCreate

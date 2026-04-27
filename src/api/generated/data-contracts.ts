@@ -10,6 +10,13 @@
  * ---------------------------------------------------------------
  */
 
+export enum ScenarioRunStatus {
+  Queued = "queued",
+  InProgress = "in_progress",
+  Passed = "passed",
+  Failed = "failed",
+}
+
 /** Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript) */
 export enum ToolType {
   SmartFunction = "smart_function",
@@ -6906,6 +6913,10 @@ export interface MigrationSelection {
   providerIds?: string[];
   /** Specific API key IDs to include. */
   apiKeyIds?: string[];
+  /** Specific tester IDs to include. */
+  testerIds?: string[];
+  /** Specific scenario IDs to include. */
+  scenarioIds?: string[];
 }
 
 export interface MigrationPreview {
@@ -6933,6 +6944,10 @@ export interface MigrationPreview {
   stages: EntityStub[];
   /** API key stubs that would be included */
   apiKeys: EntityStub[];
+  /** Tester stubs that would be included */
+  testers: EntityStub[];
+  /** Scenario stubs that would be included */
+  scenarios: EntityStub[];
 }
 
 export interface ExportBundle {
@@ -6969,6 +6984,10 @@ export interface ExportBundle {
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
+  /** Tester records — depend on projects */
+  testers: Record<string, any>[];
+  /** Scenario records — depend on projects */
+  scenarios: Record<string, any>[];
 }
 
 /** Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID */
@@ -7519,6 +7538,607 @@ export interface SecretValueResponse {
   id: string;
   /** Decrypted plaintext secret value */
   value: string;
+}
+
+export interface DataExtractionEntry {
+  /**
+   * ID of the stage whose variable should be extracted
+   * @minLength 1
+   */
+  stageId: string;
+  /**
+   * Name of the stage variable to extract
+   * @minLength 1
+   */
+  varName: string;
+  /** Expected value of the variable — defines a successful outcome when provided */
+  expectedValue?: any;
+}
+
+export interface CreateTesterRequest {
+  /**
+   * Unique identifier for the tester (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tester persona
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tester persona and its behaviour */
+  description?: string | null;
+  /**
+   * Prompt that defines the tester persona behaviour during a conversation
+   * @minLength 1
+   */
+  prompt: string;
+  /**
+   * ID of the LLM provider to use for this tester
+   * @minLength 1
+   */
+  llmProviderId?: string;
+  /** LLM provider-specific settings for this tester */
+  llmSettings?: LlmSettings;
+  /** Key-value user profile data passed when the tester starts a conversation */
+  userProfile?: Record<string, any>;
+  /**
+   * Tags for categorizing and filtering this tester
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tester-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateTesterRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated persona prompt
+   * @minLength 1
+   */
+  prompt?: string;
+  /**
+   * Updated LLM provider ID
+   * @minLength 1
+   */
+  llmProviderId?: string;
+  /** Updated LLM provider-specific settings */
+  llmSettings?: LlmSettings;
+  /** Updated user profile data */
+  userProfile?: Record<string, any>;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated metadata */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteTesterRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface TesterResponse {
+  /** Unique identifier for the tester */
+  id: string;
+  /** ID of the project this tester belongs to */
+  projectId: string;
+  /** Display name of the tester persona */
+  name: string;
+  /** Detailed description of the tester persona */
+  description: string | null;
+  /** Prompt that defines the tester persona behaviour */
+  prompt: string;
+  /** ID of the LLM provider */
+  llmProviderId: string | null;
+  /** LLM provider-specific settings */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings
+    | OllamaLlmSettings;
+  /** Key-value user profile data */
+  userProfile: Record<string, any>;
+  /** Tags for categorizing and filtering this tester */
+  tags: string[];
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the tester was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the tester was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface TesterListResponse {
+  /** Array of testers in the current page */
+  items: {
+    /** Unique identifier for the tester */
+    id: string;
+    /** ID of the project this tester belongs to */
+    projectId: string;
+    /** Display name of the tester persona */
+    name: string;
+    /** Detailed description of the tester persona */
+    description: string | null;
+    /** Prompt that defines the tester persona behaviour */
+    prompt: string;
+    /** ID of the LLM provider */
+    llmProviderId: string | null;
+    /** LLM provider-specific settings */
+    llmSettings?:
+      | OpenAILlmSettings
+      | OpenAILegacyLlmSettings
+      | AnthropicLlmSettings
+      | GeminiLlmSettings
+      | OllamaLlmSettings;
+    /** Key-value user profile data */
+    userProfile: Record<string, any>;
+    /** Tags for categorizing and filtering this tester */
+    tags: string[];
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the tester was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the tester was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of testers matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateScenarioRequest {
+  /**
+   * Unique identifier for the scenario (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the scenario
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the scenario purpose and expected flow */
+  description?: string | null;
+  /**
+   * Language code of the conversation (e.g. en-US)
+   * @minLength 1
+   */
+  language: string;
+  /**
+   * ID of the stage where the conversation begins
+   * @minLength 1
+   */
+  startingStageId: string;
+  /**
+   * Maximum number of conversation turns before the scenario is terminated
+   * @min 1
+   */
+  maxTurns: number;
+  /**
+   * Stage IDs that signal a successful conversation ending
+   * @default []
+   */
+  endingStageIds?: string[];
+  /**
+   * Whether the tester persona is allowed to hang up the conversation
+   * @default false
+   */
+  personaCanHangUp?: boolean;
+  /** Stage variables to extract at the end of the run and their expected values */
+  dataExtraction?: DataExtractionEntry[];
+  /**
+   * ID of the context transformer used to post-process extracted data
+   * @minLength 1
+   */
+  contextTransformerId?: string;
+  /** Expected values after post-processing — defines additional success criteria */
+  dataPostProcessingExpected?: Record<string, any>;
+  /**
+   * Tags for categorizing and filtering this scenario
+   * @default []
+   */
+  tags?: string[];
+  /** Additional scenario-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateScenarioRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated language code
+   * @minLength 1
+   */
+  language?: string;
+  /**
+   * Updated starting stage ID
+   * @minLength 1
+   */
+  startingStageId?: string;
+  /**
+   * Updated maximum turn count
+   * @min 1
+   */
+  maxTurns?: number;
+  /** Updated ending stage IDs */
+  endingStageIds?: string[];
+  /** Updated hang-up flag */
+  personaCanHangUp?: boolean;
+  /** Updated data extraction configuration */
+  dataExtraction?: DataExtractionEntry[];
+  /**
+   * Updated context transformer ID
+   * @minLength 1
+   */
+  contextTransformerId?: string | null;
+  /** Updated post-processing expected values */
+  dataPostProcessingExpected?: Record<string, any>;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated metadata */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteScenarioRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface ScenarioResponse {
+  /** Unique identifier for the scenario */
+  id: string;
+  /** ID of the project this scenario belongs to */
+  projectId: string;
+  /** Display name of the scenario */
+  name: string;
+  /** Detailed description of the scenario */
+  description: string | null;
+  /** Language code of the conversation */
+  language: string;
+  /** ID of the stage where the conversation begins */
+  startingStageId: string;
+  /** Maximum number of conversation turns */
+  maxTurns: number;
+  /** Stage IDs that signal a successful ending */
+  endingStageIds: string[];
+  /** Whether the tester persona is allowed to hang up */
+  personaCanHangUp: boolean;
+  /** Data extraction configuration */
+  dataExtraction: DataExtractionEntry[] | null;
+  /** ID of the context transformer for post-processing */
+  contextTransformerId: string | null;
+  /** Expected values after post-processing */
+  dataPostProcessingExpected: Record<string, any>;
+  /** Tags for categorizing and filtering */
+  tags: string[];
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the scenario was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the scenario was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioListResponse {
+  /** Array of scenarios in the current page */
+  items: {
+    /** Unique identifier for the scenario */
+    id: string;
+    /** ID of the project this scenario belongs to */
+    projectId: string;
+    /** Display name of the scenario */
+    name: string;
+    /** Detailed description of the scenario */
+    description: string | null;
+    /** Language code of the conversation */
+    language: string;
+    /** ID of the stage where the conversation begins */
+    startingStageId: string;
+    /** Maximum number of conversation turns */
+    maxTurns: number;
+    /** Stage IDs that signal a successful ending */
+    endingStageIds: string[];
+    /** Whether the tester persona is allowed to hang up */
+    personaCanHangUp: boolean;
+    /** Data extraction configuration */
+    dataExtraction: DataExtractionEntry[] | null;
+    /** ID of the context transformer for post-processing */
+    contextTransformerId: string | null;
+    /** Expected values after post-processing */
+    dataPostProcessingExpected: Record<string, any>;
+    /** Tags for categorizing and filtering */
+    tags: string[];
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the scenario was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the scenario was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenarios matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateScenarioRunRequest {
+  /**
+   * ID of the scenario to run
+   * @minLength 1
+   */
+  scenarioId: string;
+  /**
+   * IDs of the tester personas to use in this run
+   * @minItems 1
+   */
+  testerIds: string[];
+  /**
+   * Total number of conversations to execute in this run
+   * @min 1
+   */
+  totalConversations: number;
+  /** Additional metadata for this run */
+  metadata?: Record<string, any>;
+}
+
+export interface ScenarioRunResponse {
+  /** Unique identifier for the scenario run */
+  id: string;
+  /** ID of the project this run belongs to */
+  projectId: string;
+  /** ID of the scenario being run */
+  scenarioId: string;
+  /** IDs of the tester personas used in this run */
+  testerIds: string[];
+  /** Total number of conversations to execute */
+  totalConversations: number;
+  /** Current status of the scenario run */
+  status: ScenarioRunStatus;
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the run was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the run was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioRunListResponse {
+  /** Array of scenario runs in the current page */
+  items: {
+    /** Unique identifier for the scenario run */
+    id: string;
+    /** ID of the project this run belongs to */
+    projectId: string;
+    /** ID of the scenario being run */
+    scenarioId: string;
+    /** IDs of the tester personas used in this run */
+    testerIds: string[];
+    /** Total number of conversations to execute */
+    totalConversations: number;
+    /** Current status of the scenario run */
+    status: ScenarioRunStatus;
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the run was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the run was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenario runs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface ScenarioConversationResponse {
+  /** Unique identifier for the scenario conversation */
+  id: string;
+  /** ID of the project this conversation belongs to */
+  projectId: string;
+  /** ID of the scenario run this conversation belongs to */
+  scenarioRunId: string;
+  /** ID of the scenario being tested */
+  scenarioId: string;
+  /** ID of the tester persona used in this conversation */
+  testerId: string;
+  /** ID of the underlying conversation used to run this scenario conversation */
+  conversationId: string | null;
+  /** Current execution status of this conversation */
+  status: "queued" | "in_progress" | "passed" | "failed";
+  /** Extracted stage variable values at the end of the conversation */
+  dataExtractionResults: Record<string, any>;
+  /** Post-processed data transformation results */
+  dataTransformationResults: Record<string, any>;
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the scenario conversation was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the scenario conversation was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioConversationListResponse {
+  /** Array of scenario conversations in the current page */
+  items: {
+    /** Unique identifier for the scenario conversation */
+    id: string;
+    /** ID of the project this conversation belongs to */
+    projectId: string;
+    /** ID of the scenario run this conversation belongs to */
+    scenarioRunId: string;
+    /** ID of the scenario being tested */
+    scenarioId: string;
+    /** ID of the tester persona used in this conversation */
+    testerId: string;
+    /** ID of the underlying conversation used to run this scenario conversation */
+    conversationId: string | null;
+    /** Current execution status of this conversation */
+    status: "queued" | "in_progress" | "passed" | "failed";
+    /** Extracted stage variable values at the end of the conversation */
+    dataExtractionResults: Record<string, any>;
+    /** Post-processed data transformation results */
+    dataTransformationResults: Record<string, any>;
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the scenario conversation was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the scenario conversation was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenario conversations matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
 }
 
 export interface LatencyStatsResponse {
