@@ -15,6 +15,7 @@ export enum ScenarioRunStatus {
   InProgress = "in_progress",
   Passed = "passed",
   Failed = "failed",
+  Cancelled = "cancelled",
 }
 
 /** Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript) */
@@ -6008,6 +6009,7 @@ export interface ApiKeySettings {
     | "twilio_voice"
     | "twilio_messaging"
     | "whatsapp"
+    | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
   allowedFeatures?: (
@@ -6085,6 +6087,7 @@ export interface ApiKeyResponse {
       | "twilio_voice"
       | "twilio_messaging"
       | "whatsapp"
+      | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
     allowedFeatures?: (
@@ -6138,6 +6141,7 @@ export interface ApiKeyListResponse {
         | "twilio_voice"
         | "twilio_messaging"
         | "whatsapp"
+        | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
       allowedFeatures?: (
@@ -7965,16 +7969,8 @@ export interface CreateScenarioRunRequest {
    * @minLength 1
    */
   scenarioId: string;
-  /**
-   * IDs of the tester personas to use in this run
-   * @minItems 1
-   */
-  testerIds: string[];
-  /**
-   * Total number of conversations to execute in this run
-   * @min 1
-   */
-  totalConversations: number;
+  /** Map of tester persona ID to number of conversations to run for that tester */
+  testers: Record<string, number>;
   /** Additional metadata for this run */
   metadata?: Record<string, any>;
 }
@@ -7986,9 +7982,9 @@ export interface ScenarioRunResponse {
   projectId: string;
   /** ID of the scenario being run */
   scenarioId: string;
-  /** IDs of the tester personas used in this run */
-  testerIds: string[];
-  /** Total number of conversations to execute */
+  /** Map of tester persona ID to number of conversations assigned to that tester */
+  testers: Record<string, number>;
+  /** Computed total number of conversations across all testers */
   totalConversations: number;
   /** Current status of the scenario run */
   status: ScenarioRunStatus;
@@ -8017,9 +8013,9 @@ export interface ScenarioRunListResponse {
     projectId: string;
     /** ID of the scenario being run */
     scenarioId: string;
-    /** IDs of the tester personas used in this run */
-    testerIds: string[];
-    /** Total number of conversations to execute */
+    /** Map of tester persona ID to number of conversations assigned to that tester */
+    testers: Record<string, number>;
+    /** Computed total number of conversations across all testers */
     totalConversations: number;
     /** Current status of the scenario run */
     status: ScenarioRunStatus;
@@ -8072,7 +8068,7 @@ export interface ScenarioConversationResponse {
   /** ID of the underlying conversation used to run this scenario conversation */
   conversationId: string | null;
   /** Current execution status of this conversation */
-  status: "queued" | "in_progress" | "passed" | "failed";
+  status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
   /** Extracted stage variable values at the end of the conversation */
   dataExtractionResults: Record<string, any>;
   /** Post-processed data transformation results */
@@ -8109,7 +8105,7 @@ export interface ScenarioConversationListResponse {
     /** ID of the underlying conversation used to run this scenario conversation */
     conversationId: string | null;
     /** Current execution status of this conversation */
-    status: "queued" | "in_progress" | "passed" | "failed";
+    status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
     /** Extracted stage variable values at the end of the conversation */
     dataExtractionResults: Record<string, any>;
     /** Post-processed data transformation results */

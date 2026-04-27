@@ -5,7 +5,7 @@ import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { PlayCircle, Plus } from 'lucide-vue-next'
+import { PlayCircle, Plus, XCircle, Trash2 } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
@@ -55,6 +55,7 @@ function statusBadgeClass(run: ScenarioRunResponse): string {
     case ScenarioRunStatus.InProgress: return 'badge-info'
     case ScenarioRunStatus.Passed: return 'badge-success'
     case ScenarioRunStatus.Failed: return 'badge-error'
+    case ScenarioRunStatus.Cancelled: return 'badge-warning'
     default: return 'badge-secondary'
   }
 }
@@ -65,11 +66,46 @@ function statusLabel(run: ScenarioRunResponse): string {
     case ScenarioRunStatus.InProgress: return 'In Progress'
     case ScenarioRunStatus.Passed: return 'Passed'
     case ScenarioRunStatus.Failed: return 'Failed'
+    case ScenarioRunStatus.Cancelled: return 'Cancelled'
     default: return run.status
   }
 }
 
 const showRunModal = ref(false)
+const actionLoadingId = ref<string | null>(null)
+
+function isTerminal(run: ScenarioRunResponse): boolean {
+  return run.status === ScenarioRunStatus.Passed ||
+    run.status === ScenarioRunStatus.Failed ||
+    run.status === ScenarioRunStatus.Cancelled
+}
+
+function canCancel(run: ScenarioRunResponse): boolean {
+  return run.status === ScenarioRunStatus.Queued || run.status === ScenarioRunStatus.InProgress
+}
+
+async function cancelRun(run: ScenarioRunResponse) {
+  actionLoadingId.value = run.id
+  try {
+    await scenarioRunsStore.cancel(projectId.value, run.id)
+  } finally {
+    actionLoadingId.value = null
+  }
+}
+
+async function deleteRun(run: ScenarioRunResponse) {
+  actionLoadingId.value = run.id
+  try {
+    await scenarioRunsStore.remove(projectId.value, run.id)
+  } finally {
+    actionLoadingId.value = null
+  }
+}
+
+async function onRunStarted() {
+  showRunModal.value = false
+  await loadRuns()
+}
 </script>
 
 <template>
@@ -92,7 +128,7 @@ const showRunModal = ref(false)
       v-if="showRunModal"
       :project-id="projectId"
       @close="showRunModal = false"
-      @run="showRunModal = false"
+      @run="onRunStarted"
     />
 
     <!-- Loading state -->
@@ -128,18 +164,43 @@ const showRunModal = ref(false)
                   <component :is="getSortIcon('createdAt')" class="w-4 h-4" :class="sortKey === 'createdAt' ? 'text-primary-600' : 'text-gray-400'" />
                 </div>
               </th>
+              <th class="table-header-cell"></th>
             </tr>
           </thead>
           <tbody class="table-body">
             <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row">
               <td class="table-cell font-mono text-xs">{{ run.scenarioId }}</td>
-              <td class="table-cell-muted">{{ run.testerIds.length }}</td>
+              <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
               <td class="table-cell-muted">{{ run.totalConversations }}</td>
               <td class="table-cell">
                 <span :class="statusBadgeClass(run)">{{ statusLabel(run) }}</span>
               </td>
               <td class="table-cell-muted">
                 <RelativeDate :date="run.createdAt" />
+              </td>
+              <td class="table-cell">
+                <div class="flex items-center gap-1">
+                  <button
+                    v-if="canCancel(run)"
+                    type="button"
+                    class="btn-icon text-gray-400 hover:text-yellow-500"
+                    title="Cancel run"
+                    :disabled="actionLoadingId === run.id"
+                    @click="cancelRun(run)"
+                  >
+                    <XCircle class="w-4 h-4" />
+                  </button>
+                  <button
+                    v-if="isTerminal(run)"
+                    type="button"
+                    class="btn-icon text-gray-400 hover:text-red-500"
+                    title="Delete run"
+                    :disabled="actionLoadingId === run.id"
+                    @click="deleteRun(run)"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

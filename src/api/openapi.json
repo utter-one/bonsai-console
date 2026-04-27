@@ -13564,7 +13564,8 @@
                 "webrtc",
                 "twilio_voice",
                 "twilio_messaging",
-                "whatsapp"
+                "whatsapp",
+                "testing"
               ]
             },
             "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13724,7 +13725,8 @@
                     "webrtc",
                     "twilio_voice",
                     "twilio_messaging",
-                    "whatsapp"
+                    "whatsapp",
+                    "testing"
                   ]
                 },
                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -13836,7 +13838,8 @@
                           "webrtc",
                           "twilio_voice",
                           "twilio_messaging",
-                          "whatsapp"
+                          "whatsapp",
+                          "testing"
                         ]
                       },
                       "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -17478,7 +17481,8 @@
           "queued",
           "in_progress",
           "passed",
-          "failed"
+          "failed",
+          "cancelled"
         ]
       },
       "CreateTesterRequest": {
@@ -18351,19 +18355,13 @@
             "minLength": 1,
             "description": "ID of the scenario to run"
           },
-          "testerIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
+          "testers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1
             },
-            "minItems": 1,
-            "description": "IDs of the tester personas to use in this run"
-          },
-          "totalConversations": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Total number of conversations to execute in this run"
+            "description": "Map of tester persona ID to number of conversations to run for that tester"
           },
           "metadata": {
             "type": "object",
@@ -18375,8 +18373,7 @@
         },
         "required": [
           "scenarioId",
-          "testerIds",
-          "totalConversations"
+          "testers"
         ]
       },
       "ScenarioRunResponse": {
@@ -18394,16 +18391,16 @@
             "type": "string",
             "description": "ID of the scenario being run"
           },
-          "testerIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
+          "testers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
             },
-            "description": "IDs of the tester personas used in this run"
+            "description": "Map of tester persona ID to number of conversations assigned to that tester"
           },
           "totalConversations": {
             "type": "integer",
-            "description": "Total number of conversations to execute"
+            "description": "Computed total number of conversations across all testers"
           },
           "status": {
             "allOf": [
@@ -18444,7 +18441,7 @@
           "id",
           "projectId",
           "scenarioId",
-          "testerIds",
+          "testers",
           "totalConversations",
           "status",
           "metadata",
@@ -18473,16 +18470,16 @@
                   "type": "string",
                   "description": "ID of the scenario being run"
                 },
-                "testerIds": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
+                "testers": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
                   },
-                  "description": "IDs of the tester personas used in this run"
+                  "description": "Map of tester persona ID to number of conversations assigned to that tester"
                 },
                 "totalConversations": {
                   "type": "integer",
-                  "description": "Total number of conversations to execute"
+                  "description": "Computed total number of conversations across all testers"
                 },
                 "status": {
                   "allOf": [
@@ -18523,7 +18520,7 @@
                 "id",
                 "projectId",
                 "scenarioId",
-                "testerIds",
+                "testers",
                 "totalConversations",
                 "status",
                 "metadata",
@@ -18594,7 +18591,8 @@
               "queued",
               "in_progress",
               "passed",
-              "failed"
+              "failed",
+              "cancelled"
             ],
             "description": "Current execution status of this conversation"
           },
@@ -18694,7 +18692,8 @@
                     "queued",
                     "in_progress",
                     "passed",
-                    "failed"
+                    "failed",
+                    "cancelled"
                   ],
                   "description": "Current execution status of this conversation"
                 },
@@ -45334,7 +45333,8 @@
                               "webrtc",
                               "twilio_voice",
                               "twilio_messaging",
-                              "whatsapp"
+                              "whatsapp",
+                              "testing"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -45599,7 +45599,8 @@
                                     "webrtc",
                                     "twilio_voice",
                                     "twilio_messaging",
-                                    "whatsapp"
+                                    "whatsapp",
+                                    "testing"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -45759,7 +45760,8 @@
                               "webrtc",
                               "twilio_voice",
                               "twilio_messaging",
-                              "whatsapp"
+                              "whatsapp",
+                              "testing"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -45953,7 +45955,8 @@
                               "webrtc",
                               "twilio_voice",
                               "twilio_messaging",
-                              "whatsapp"
+                              "whatsapp",
+                              "testing"
                             ]
                           },
                           "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -46279,7 +46282,8 @@
                                     "webrtc",
                                     "twilio_voice",
                                     "twilio_messaging",
-                                    "whatsapp"
+                                    "whatsapp",
+                                    "testing"
                                   ]
                                 },
                                 "description": "Permitted transport channels. If absent, all channels (websocket, webrtc) are allowed."
@@ -49170,19 +49174,13 @@
                     "minLength": 1,
                     "description": "ID of the scenario to run"
                   },
-                  "testerIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
+                  "testers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1
                     },
-                    "minItems": 1,
-                    "description": "IDs of the tester personas to use in this run"
-                  },
-                  "totalConversations": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "description": "Total number of conversations to execute in this run"
+                    "description": "Map of tester persona ID to number of conversations to run for that tester"
                   },
                   "metadata": {
                     "type": "object",
@@ -49194,8 +49192,7 @@
                 },
                 "required": [
                   "scenarioId",
-                  "testerIds",
-                  "totalConversations"
+                  "testers"
                 ]
               }
             }
@@ -49221,16 +49218,16 @@
                       "type": "string",
                       "description": "ID of the scenario being run"
                     },
-                    "testerIds": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "testers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
                       },
-                      "description": "IDs of the tester personas used in this run"
+                      "description": "Map of tester persona ID to number of conversations assigned to that tester"
                     },
                     "totalConversations": {
                       "type": "integer",
-                      "description": "Total number of conversations to execute"
+                      "description": "Computed total number of conversations across all testers"
                     },
                     "status": {
                       "allOf": [
@@ -49271,7 +49268,7 @@
                     "id",
                     "projectId",
                     "scenarioId",
-                    "testerIds",
+                    "testers",
                     "totalConversations",
                     "status",
                     "metadata",
@@ -49450,16 +49447,16 @@
                             "type": "string",
                             "description": "ID of the scenario being run"
                           },
-                          "testerIds": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
+                          "testers": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "integer"
                             },
-                            "description": "IDs of the tester personas used in this run"
+                            "description": "Map of tester persona ID to number of conversations assigned to that tester"
                           },
                           "totalConversations": {
                             "type": "integer",
-                            "description": "Total number of conversations to execute"
+                            "description": "Computed total number of conversations across all testers"
                           },
                           "status": {
                             "allOf": [
@@ -49500,7 +49497,7 @@
                           "id",
                           "projectId",
                           "scenarioId",
-                          "testerIds",
+                          "testers",
                           "totalConversations",
                           "status",
                           "metadata",
@@ -49593,16 +49590,16 @@
                       "type": "string",
                       "description": "ID of the scenario being run"
                     },
-                    "testerIds": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "testers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
                       },
-                      "description": "IDs of the tester personas used in this run"
+                      "description": "Map of tester persona ID to number of conversations assigned to that tester"
                     },
                     "totalConversations": {
                       "type": "integer",
-                      "description": "Total number of conversations to execute"
+                      "description": "Computed total number of conversations across all testers"
                     },
                     "status": {
                       "allOf": [
@@ -49643,7 +49640,7 @@
                     "id",
                     "projectId",
                     "scenarioId",
-                    "testerIds",
+                    "testers",
                     "totalConversations",
                     "status",
                     "metadata",
@@ -49657,6 +49654,247 @@
           },
           "404": {
             "description": "Scenario run not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Delete a scenario run",
+        "description": "Permanently deletes a scenario run and all its associated conversations. Only runs in terminal states (passed, failed, cancelled) can be deleted.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario Run ID"
+            },
+            "required": true,
+            "description": "Scenario Run ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Scenario run deleted successfully"
+          },
+          "404": {
+            "description": "Scenario run not found"
+          },
+          "409": {
+            "description": "Scenario run is not in a terminal state. Cancel it first."
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/scenario-runs/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Cancel a scenario run",
+        "description": "Cancels a scenario run that is currently queued or in progress. Already-running conversation slots will complete but no new slots will start.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Scenario Run ID"
+            },
+            "required": true,
+            "description": "Scenario Run ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scenario run cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the scenario run"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "description": "ID of the project this run belongs to"
+                    },
+                    "scenarioId": {
+                      "type": "string",
+                      "description": "ID of the scenario being run"
+                    },
+                    "testers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      },
+                      "description": "Map of tester persona ID to number of conversations assigned to that tester"
+                    },
+                    "totalConversations": {
+                      "type": "integer",
+                      "description": "Computed total number of conversations across all testers"
+                    },
+                    "status": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ScenarioRunStatus"
+                        },
+                        {
+                          "description": "Current status of the scenario run"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional metadata"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was created"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Timestamp when the run was last updated"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "scenarioId",
+                    "testers",
+                    "totalConversations",
+                    "status",
+                    "metadata",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scenario run not found"
+          },
+          "409": {
+            "description": "Scenario run is in a terminal state and cannot be cancelled"
+          }
+        }
+      }
+    },
+    "/api/scenario-runs/scheduler": {
+      "get": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Get scheduler status",
+        "description": "Returns whether the scenario run scheduler (circuit breaker) is currently enabled",
+        "responses": {
+          "200": {
+            "description": "Scheduler status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether the scenario run scheduler is currently enabled"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Scenario Runs"
+        ],
+        "summary": "Update scheduler status",
+        "description": "Enables or disables the scenario run scheduler circuit breaker. Disabling stops new executions from starting; in-flight runs complete normally.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Set to true to enable the scheduler, false to disable it"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scheduler status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether the scenario run scheduler is currently enabled"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
           }
         }
       }
@@ -49853,7 +50091,8 @@
                               "queued",
                               "in_progress",
                               "passed",
-                              "failed"
+                              "failed",
+                              "cancelled"
                             ],
                             "description": "Current execution status of this conversation"
                           },
@@ -50017,7 +50256,8 @@
                         "queued",
                         "in_progress",
                         "passed",
-                        "failed"
+                        "failed",
+                        "cancelled"
                       ],
                       "description": "Current execution status of this conversation"
                     },
