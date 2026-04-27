@@ -48,6 +48,7 @@ const form = ref({
   name: '',
   description: '',
   prompt: '',
+  hangUpPrompt: '',
   llmProviderId: '',
   llmSettings: null as LlmSettings | null,
   tags: [] as string[],
@@ -116,6 +117,7 @@ async function loadTester() {
         name: currentTester.value.name,
         description: currentTester.value.description || '',
         prompt: currentTester.value.prompt,
+        hangUpPrompt: currentTester.value.hangUpPrompt || '',
         llmProviderId: currentTester.value.llmProviderId || '',
         llmSettings: currentTester.value.llmSettings || null,
         tags: currentTester.value.tags || [],
@@ -170,6 +172,7 @@ async function handleSubmit() {
         name: form.value.name,
         description: form.value.description || null,
         prompt: form.value.prompt,
+        hangUpPrompt: form.value.hangUpPrompt || null,
         llmProviderId: form.value.llmProviderId || undefined,
         llmSettings: form.value.llmSettings || undefined,
         userProfile: buildUserProfile(),
@@ -185,6 +188,7 @@ async function handleSubmit() {
       }
       if (form.value.id) createData.id = form.value.id
       if (form.value.description) createData.description = form.value.description
+      if (form.value.hangUpPrompt) createData.hangUpPrompt = form.value.hangUpPrompt
       if (form.value.tags.length > 0) createData.tags = form.value.tags
       if (form.value.llmProviderId) createData.llmProviderId = form.value.llmProviderId
       if (form.value.llmSettings) createData.llmSettings = form.value.llmSettings
@@ -346,6 +350,17 @@ function removeProfileEntry(index: number) {
                   placeholder="You are a friendly user testing a conversational AI system..."
                   aria-label="Tester persona prompt"
                   min-height="28rem"
+                />
+              </FormField>
+
+              <FormField label="Hang-Up Prompt" :error="error" path="hangUpPrompt" class="w-full" help="Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario). Must return true to continue or false to hang up.">
+                <PromptEditor
+                  v-model="form.hangUpPrompt"
+                  :disabled="isLoading || isReadOnly"
+                  show-toolbar
+                  placeholder="Return true to continue the conversation, or false to hang up..."
+                  aria-label="Hang-up decision prompt"
+                  min-height="12rem"
                 />
               </FormField>
             </TabContent>
