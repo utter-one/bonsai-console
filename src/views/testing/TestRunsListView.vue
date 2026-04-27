@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref } from 'vue'
 import { useScenarioRunsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { PlayCircle } from 'lucide-vue-next'
+import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
+import { PlayCircle, Plus } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
@@ -67,6 +68,8 @@ function statusLabel(run: ScenarioRunResponse): string {
     default: return run.status
   }
 }
+
+const showRunModal = ref(false)
 </script>
 
 <template>
@@ -79,7 +82,18 @@ function statusLabel(run: ScenarioRunResponse): string {
           View the history of scenario test runs executed against your project.
         </p>
       </div>
+      <button class="btn-primary flex items-center gap-2" @click="showRunModal = true">
+        <Plus class="w-4 h-4" />
+        Run Scenarios
+      </button>
     </div>
+
+    <RunScenariosModal
+      v-if="showRunModal"
+      :project-id="projectId"
+      @close="showRunModal = false"
+      @run="showRunModal = false"
+    />
 
     <!-- Loading state -->
     <div v-if="scenarioRunsStore.isLoading" class="loading-state">
