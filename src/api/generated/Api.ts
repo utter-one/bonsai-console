@@ -11029,6 +11029,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11137,6 +11138,7 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
@@ -11214,6 +11216,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11303,6 +11306,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11436,6 +11440,7 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
@@ -12588,16 +12593,8 @@ export class Api<
        * @minLength 1
        */
       scenarioId: string;
-      /**
-       * IDs of the tester personas to use in this run
-       * @minItems 1
-       */
-      testerIds: string[];
-      /**
-       * Total number of conversations to execute in this run
-       * @min 1
-       */
-      totalConversations: number;
+      /** Map of tester persona ID to number of conversations to run for that tester */
+      testers: Record<string, number>;
       /** Additional metadata for this run */
       metadata?: Record<string, any>;
     },
@@ -12611,9 +12608,9 @@ export class Api<
         projectId: string;
         /** ID of the scenario being run */
         scenarioId: string;
-        /** IDs of the tester personas used in this run */
-        testerIds: string[];
-        /** Total number of conversations to execute */
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
         totalConversations: number;
         /** Current status of the scenario run */
         status: ScenarioRunStatus;
@@ -12697,9 +12694,9 @@ export class Api<
           projectId: string;
           /** ID of the scenario being run */
           scenarioId: string;
-          /** IDs of the tester personas used in this run */
-          testerIds: string[];
-          /** Total number of conversations to execute */
+          /** Map of tester persona ID to number of conversations assigned to that tester */
+          testers: Record<string, number>;
+          /** Computed total number of conversations across all testers */
           totalConversations: number;
           /** Current status of the scenario run */
           status: ScenarioRunStatus;
@@ -12768,9 +12765,9 @@ export class Api<
         projectId: string;
         /** ID of the scenario being run */
         scenarioId: string;
-        /** IDs of the tester personas used in this run */
-        testerIds: string[];
-        /** Total number of conversations to execute */
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
         totalConversations: number;
         /** Current status of the scenario run */
         status: ScenarioRunStatus;
@@ -12794,6 +12791,131 @@ export class Api<
       path: `/api/projects/${projectId}/scenario-runs/${id}`,
       method: "GET",
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Permanently deletes a scenario run and all its associated conversations. Only runs in terminal states (passed, failed, cancelled) can be deleted.
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsDelete
+   * @summary Delete a scenario run
+   * @request DELETE:/api/projects/{projectId}/scenario-runs/{id}
+   * @secure
+   */
+  projectsScenarioRunsDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenario-runs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Cancels a scenario run that is currently queued or in progress. Already-running conversation slots will complete but no new slots will start.
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsCancelCreate
+   * @summary Cancel a scenario run
+   * @request POST:/api/projects/{projectId}/scenario-runs/{id}/cancel
+   * @secure
+   */
+  projectsScenarioRunsCancelCreate = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs/${id}/cancel`,
+      method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns whether the scenario run scheduler (circuit breaker) is currently enabled
+   *
+   * @tags Scenario Runs
+   * @name ScenarioRunsSchedulerList
+   * @summary Get scheduler status
+   * @request GET:/api/scenario-runs/scheduler
+   * @secure
+   */
+  scenarioRunsSchedulerList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Whether the scenario run scheduler is currently enabled */
+        enabled: boolean;
+      },
+      any
+    >({
+      path: `/api/scenario-runs/scheduler`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Enables or disables the scenario run scheduler circuit breaker. Disabling stops new executions from starting; in-flight runs complete normally.
+   *
+   * @tags Scenario Runs
+   * @name ScenarioRunsSchedulerUpdate
+   * @summary Update scheduler status
+   * @request PUT:/api/scenario-runs/scheduler
+   * @secure
+   */
+  scenarioRunsSchedulerUpdate = (
+    data: {
+      /** Set to true to enable the scheduler, false to disable it */
+      enabled: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the scenario run scheduler is currently enabled */
+        enabled: boolean;
+      },
+      void
+    >({
+      path: `/api/scenario-runs/scheduler`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });
@@ -12861,7 +12983,7 @@ export class Api<
           /** ID of the underlying conversation used to run this scenario conversation */
           conversationId: string | null;
           /** Current execution status of this conversation */
-          status: "queued" | "in_progress" | "passed" | "failed";
+          status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
           /** Extracted stage variable values at the end of the conversation */
           dataExtractionResults: Record<string, any>;
           /** Post-processed data transformation results */
@@ -12938,7 +13060,7 @@ export class Api<
         /** ID of the underlying conversation used to run this scenario conversation */
         conversationId: string | null;
         /** Current execution status of this conversation */
-        status: "queued" | "in_progress" | "passed" | "failed";
+        status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
         /** Extracted stage variable values at the end of the conversation */
         dataExtractionResults: Record<string, any>;
         /** Post-processed data transformation results */

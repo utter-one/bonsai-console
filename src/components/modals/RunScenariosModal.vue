@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import FormField from '@/components/FormField.vue'
 import { Plus, Trash2 } from 'lucide-vue-next'
-import { useScenariosStore, useTestersStore } from '@/stores'
+import { useScenariosStore, useTestersStore, useScenarioRunsStore } from '@/stores'
 import type { ScenarioResponse, TesterResponse } from '@/api/types'
 
 const props = defineProps<{
@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'run', payload: { scenarioId: string; testerIds: string[]; totalConversations: number }): void
+  (e: 'run'): void
 }>()
 
 interface TesterEntry {
@@ -22,6 +22,7 @@ interface TesterEntry {
 
 const scenariosStore = useScenariosStore()
 const testersStore = useTestersStore()
+const scenarioRunsStore = useScenarioRunsStore()
 
 const scenarios = ref<ScenarioResponse[]>([])
 const testers = ref<TesterResponse[]>([])
@@ -30,6 +31,8 @@ const isLoadingTesters = ref(false)
 
 const scenarioId = ref('')
 const testerEntries = ref<TesterEntry[]>([{ testerId: '', conversations: 1 }])
+const isRunning = ref(false)
+const runError = ref<string | null>(null)
 
 const canRun = computed(() =>
   !!scenarioId.value &&
@@ -52,11 +55,22 @@ function removeTesterEntry(index: number) {
   testerEntries.value.splice(index, 1)
 }
 
-function handleRun() {
+async function handleRun() {
   if (!canRun.value) return
-  const testerIds = testerEntries.value.map(e => e.testerId)
-  const totalConversations = testerEntries.value.reduce((sum, e) => sum + e.conversations, 0)
-  emit('run', { scenarioId: scenarioId.value, testerIds, totalConversations })
+  const testers: Record<string, number> = {}
+  for (const entry of testerEntries.value) {
+    testers[entry.testerId] = entry.conversations
+  }
+  isRunning.value = true
+  runError.value = null
+  try {
+    await scenarioRunsStore.create(props.projectId, { scenarioId: scenarioId.value, testers })
+    emit('run')
+  } catch (err: any) {
+    runError.value = err.response?.data?.message || 'Failed to start run'
+  } finally {
+    isRunning.value = false
+  }
 }
 
 onMounted(async () => {
@@ -162,9 +176,14 @@ onMounted(async () => {
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
-        <button type="button" class="btn-primary" :disabled="!canRun" @click="handleRun">Run</button>
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div v-if="runError" class="alert-error mb-3">{{ runError }}</div>
+        <div class="flex justify-end gap-3">
+          <button type="button" class="btn-secondary" :disabled="isRunning" @click="$emit('close')">Cancel</button>
+          <button type="button" class="btn-primary" :disabled="!canRun || isRunning" @click="handleRun">
+            {{ isRunning ? 'Starting…' : 'Run' }}
+          </button>
+        </div>
       </div>
     </template>
   </BaseModal>
