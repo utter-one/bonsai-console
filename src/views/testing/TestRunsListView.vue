@@ -5,7 +5,7 @@ import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { PlayCircle, Plus, XCircle, Trash2 } from 'lucide-vue-next'
+import { PlayCircle, Plus, XCircle, Trash2, RefreshCw } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
@@ -141,10 +141,16 @@ async function onRunStarted() {
           View the history of scenario test runs executed against your project.
         </p>
       </div>
-      <button class="btn-primary flex items-center gap-2" @click="showRunModal = true">
-        <Plus class="w-4 h-4" />
-        Run Scenarios
-      </button>
+      <div class="flex items-center gap-2">
+        <button class="btn-secondary flex items-center gap-2" :disabled="scenarioRunsStore.isLoading" @click="loadRuns()">
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': scenarioRunsStore.isLoading }" />
+          Refresh
+        </button>
+        <button class="btn-primary flex items-center gap-2" @click="showRunModal = true">
+          <Plus class="w-4 h-4" />
+          Run Scenarios
+        </button>
+      </div>
     </div>
 
     <RunScenariosModal
