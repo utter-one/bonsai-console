@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref } from 'vue'
-import { useScenarioRunsStore, useProjectSelectionStore } from '@/stores'
+import { useScenarioRunsStore, useScenariosStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -10,9 +10,22 @@ import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
 const scenarioRunsStore = useScenarioRunsStore()
+const scenariosStore = useScenariosStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+
+const scenarioNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const s of scenariosStore.items) {
+    map[s.id] = s.name
+  }
+  return map
+})
+
+function scenarioName(id: string): string {
+  return scenarioNameMap.value[id] ?? id
+}
 
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-test-runs')
 
@@ -28,12 +41,21 @@ watch([sortKey, sortOrder], () => {
 
 watch(projectId, () => {
   pagination.reset()
+  loadScenarios()
   loadRuns()
 })
 
 onMounted(async () => {
-  await loadRuns()
+  await Promise.all([loadScenarios(), loadRuns()])
 })
+
+async function loadScenarios() {
+  try {
+    await scenariosStore.fetchAll(projectId.value, { limit: 1000 })
+  } catch (error) {
+    console.error('Failed to load scenarios:', error)
+  }
+}
 
 async function loadRuns() {
   try {
@@ -169,7 +191,7 @@ async function onRunStarted() {
           </thead>
           <tbody class="table-body">
             <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row">
-              <td class="table-cell font-mono text-xs">{{ run.scenarioId }}</td>
+              <td class="table-cell">{{ scenarioName(run.scenarioId) }}</td>
               <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
               <td class="table-cell-muted">{{ run.totalConversations }}</td>
               <td class="table-cell">

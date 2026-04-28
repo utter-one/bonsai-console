@@ -134,7 +134,7 @@ onMounted(async () => {
             :key="index"
             class="flex items-center gap-2"
           >
-            <select v-model="entry.testerId" class="form-select flex-1">
+            <select v-model="entry.testerId" class="form-select flex-1 min-w-0">
               <option value="" disabled>Select a tester</option>
               <option
                 v-for="t in availableTestersFor(index)"
@@ -148,7 +148,7 @@ onMounted(async () => {
               v-model.number="entry.conversations"
               type="number"
               min="1"
-              class="form-input w-28 text-right"
+              class="form-input !w-20 shrink-0 text-right"
               placeholder="Count"
               title="Number of conversations"
             />
