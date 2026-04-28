@@ -5,7 +5,7 @@ import { parseApiError } from '@/utils/errors'
 
 export interface BugReportPrefill {
   projectId?: string
-  sessionId?: string
+  conversationId?: string
   eventIndex?: number
   stageId?: string
 }
