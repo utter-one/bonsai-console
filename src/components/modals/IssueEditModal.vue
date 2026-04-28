@@ -21,7 +21,7 @@
               <select 
                 v-model="form.projectId" 
                 class="form-select"
-                :disabled="!!issue || (!!prefillData?.projectId && !!prefillData?.sessionId)"
+                :disabled="!!issue || (!!prefillData?.projectId && !!prefillData?.conversationId)"
               >
                 <option value="" disabled>Select a project</option>
                 <option v-for="project in projectOptions" :key="project.value" :value="project.value" :disabled="project.archived">
@@ -34,7 +34,7 @@
               <select
                 v-model="form.stage"
                 class="form-select"
-                :disabled="!form.projectId || (!!prefillData?.stageId && !!prefillData?.sessionId)"
+                :disabled="!form.projectId || (!!prefillData?.stageId && !!prefillData?.conversationId)"
               >
                 <option value="">Select stage</option>
                 <option v-for="stage in stageOptions" :key="stage.id" :value="stage.id">
@@ -46,14 +46,14 @@
             <FormField label="Conversation ID" class="w-full">
               <div class="relative">
                 <input
-                  v-model="form.sessionId"
+                  v-model="form.conversationId"
                   type="text"
-                  placeholder="Session/Conversation ID"
+                  placeholder="Conversation ID"
                   class="form-input"
-                  :class="{ 'input-with-action': form.sessionId }"
+                  :class="{ 'input-with-action': form.conversationId }"
                 />
                 <a
-                  v-if="form.sessionId && issue"
+                  v-if="form.conversationId && issue"
                   href="#"
                   @click.prevent="navigateToConversation"
                   class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 hover:text-blue-600"
@@ -195,7 +195,7 @@ import FormField from '@/components/FormField.vue'
 
 interface PrefillData {
   projectId?: string
-  sessionId?: string
+  conversationId?: string
   eventIndex?: number
   stageId?: string
 }
@@ -233,7 +233,7 @@ watch(() => props.issue, () => {
 })
 
 function navigateToConversation() {
-  if (!form.value.sessionId) return
+  if (!form.value.conversationId) return
   emit('close')
   const query: Record<string, string> = {}
   if (form.value.eventIndex !== null) {
@@ -241,7 +241,7 @@ function navigateToConversation() {
   }
   router.push({
     name: 'monitor.conversationDetail',
-    params: { conversationId: form.value.sessionId },
+    params: { conversationId: form.value.conversationId },
     query,
   })
 }
@@ -256,7 +256,7 @@ const form = ref({
   environment: '',
   buildVersion: versionStore.versionData?.version ?? '',
   stage: '',
-  sessionId: '',
+  conversationId: '',
   eventIndex: null as number | null,
   userId: '',
   severity: '',
@@ -311,7 +311,7 @@ watch(
         environment: issue.environment,
         buildVersion: issue.buildVersion,
         stage: issue.stage || '',
-        sessionId: issue.sessionId || '',
+        conversationId: issue.conversationId || '',
         eventIndex: issue.eventIndex,
         userId: issue.userId || '',
         severity: issue.severity,
@@ -327,7 +327,7 @@ watch(
         environment: '',
         buildVersion: versionStore.versionData?.version ?? '',
         stage: props.prefillData?.stageId || '',
-        sessionId: props.prefillData?.sessionId || '',
+        conversationId: props.prefillData?.conversationId || '',
         eventIndex: props.prefillData?.eventIndex ?? null,
         userId: '',
         severity: '',
@@ -348,7 +348,7 @@ const handleSubmit = () => {
       environment: form.value.environment || undefined,
       buildVersion: form.value.buildVersion || undefined,
       stage: form.value.stage || undefined,
-      sessionId: form.value.sessionId || undefined,
+      conversationId: form.value.conversationId || undefined,
       eventIndex: form.value.eventIndex ?? undefined,
       userId: form.value.userId || undefined,
       severity: form.value.severity,
@@ -365,7 +365,7 @@ const handleSubmit = () => {
       environment: form.value.environment,
       buildVersion: form.value.buildVersion,
       stage: form.value.stage || undefined,
-      sessionId: form.value.sessionId || undefined,
+      conversationId: form.value.conversationId || undefined,
       eventIndex: form.value.eventIndex ?? undefined,
       userId: form.value.userId || undefined,
       severity: form.value.severity,

@@ -9092,8 +9092,8 @@ export class Api<
       buildVersion: string;
       /** Stage identifier for tracking purposes */
       stage?: string;
-      /** Reference to related conversation session ID */
-      sessionId?: string;
+      /** Reference to related conversation ID */
+      conversationId?: string;
       /** Index of event in session where issue occurred */
       eventIndex?: number;
       /** User ID who reported or encountered the issue */
@@ -9143,8 +9143,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
@@ -9240,8 +9240,8 @@ export class Api<
           buildVersion: string;
           /** Stage identifier */
           stage: string | null;
-          /** Related conversation session ID */
-          sessionId: string | null;
+          /** Related conversation ID */
+          conversationId: string | null;
           /** Event index in session */
           eventIndex: number | null;
           /** User ID who reported the issue */
@@ -9319,8 +9319,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
@@ -9377,8 +9377,8 @@ export class Api<
       buildVersion?: string;
       /** Stage identifier */
       stage?: string;
-      /** Related conversation session ID */
-      sessionId?: string;
+      /** Related conversation ID */
+      conversationId?: string;
       /** Event index in session */
       eventIndex?: number;
       /** User ID who reported the issue */
@@ -9425,8 +9425,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
