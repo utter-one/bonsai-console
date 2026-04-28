@@ -5651,9 +5651,9 @@
             "type": "string",
             "description": "Stage identifier for tracking purposes"
           },
-          "sessionId": {
+          "conversationId": {
             "type": "string",
-            "description": "Reference to related conversation session ID"
+            "description": "Reference to related conversation ID"
           },
           "eventIndex": {
             "type": "integer",
@@ -5721,9 +5721,9 @@
             "type": "string",
             "description": "Stage identifier"
           },
-          "sessionId": {
+          "conversationId": {
             "type": "string",
-            "description": "Related conversation session ID"
+            "description": "Related conversation ID"
           },
           "eventIndex": {
             "type": "integer",
@@ -5789,10 +5789,10 @@
             "nullable": true,
             "description": "Stage identifier"
           },
-          "sessionId": {
+          "conversationId": {
             "type": "string",
             "nullable": true,
-            "description": "Related conversation session ID"
+            "description": "Related conversation ID"
           },
           "eventIndex": {
             "type": "integer",
@@ -5847,7 +5847,7 @@
           "environment",
           "buildVersion",
           "stage",
-          "sessionId",
+          "conversationId",
           "eventIndex",
           "userId",
           "severity",
@@ -5889,10 +5889,10 @@
                   "nullable": true,
                   "description": "Stage identifier"
                 },
-                "sessionId": {
+                "conversationId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Related conversation session ID"
+                  "description": "Related conversation ID"
                 },
                 "eventIndex": {
                   "type": "integer",
@@ -5947,7 +5947,7 @@
                 "environment",
                 "buildVersion",
                 "stage",
-                "sessionId",
+                "conversationId",
                 "eventIndex",
                 "userId",
                 "severity",
@@ -40733,9 +40733,9 @@
                     "type": "string",
                     "description": "Stage identifier for tracking purposes"
                   },
-                  "sessionId": {
+                  "conversationId": {
                     "type": "string",
-                    "description": "Reference to related conversation session ID"
+                    "description": "Reference to related conversation ID"
                   },
                   "eventIndex": {
                     "type": "integer",
@@ -40819,10 +40819,10 @@
                       "nullable": true,
                       "description": "Stage identifier"
                     },
-                    "sessionId": {
+                    "conversationId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Related conversation session ID"
+                      "description": "Related conversation ID"
                     },
                     "eventIndex": {
                       "type": "integer",
@@ -40877,7 +40877,7 @@
                     "environment",
                     "buildVersion",
                     "stage",
-                    "sessionId",
+                    "conversationId",
                     "eventIndex",
                     "userId",
                     "severity",
@@ -41069,10 +41069,10 @@
                             "nullable": true,
                             "description": "Stage identifier"
                           },
-                          "sessionId": {
+                          "conversationId": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Related conversation session ID"
+                            "description": "Related conversation ID"
                           },
                           "eventIndex": {
                             "type": "integer",
@@ -41127,7 +41127,7 @@
                           "environment",
                           "buildVersion",
                           "stage",
-                          "sessionId",
+                          "conversationId",
                           "eventIndex",
                           "userId",
                           "severity",
@@ -41225,10 +41225,10 @@
                       "nullable": true,
                       "description": "Stage identifier"
                     },
-                    "sessionId": {
+                    "conversationId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Related conversation session ID"
+                      "description": "Related conversation ID"
                     },
                     "eventIndex": {
                       "type": "integer",
@@ -41283,7 +41283,7 @@
                     "environment",
                     "buildVersion",
                     "stage",
-                    "sessionId",
+                    "conversationId",
                     "eventIndex",
                     "userId",
                     "severity",
@@ -41341,9 +41341,9 @@
                     "type": "string",
                     "description": "Stage identifier"
                   },
-                  "sessionId": {
+                  "conversationId": {
                     "type": "string",
-                    "description": "Related conversation session ID"
+                    "description": "Related conversation ID"
                   },
                   "eventIndex": {
                     "type": "integer",
@@ -41417,10 +41417,10 @@
                       "nullable": true,
                       "description": "Stage identifier"
                     },
-                    "sessionId": {
+                    "conversationId": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Related conversation session ID"
+                      "description": "Related conversation ID"
                     },
                     "eventIndex": {
                       "type": "integer",
@@ -41475,7 +41475,7 @@
                     "environment",
                     "buildVersion",
                     "stage",
-                    "sessionId",
+                    "conversationId",
                     "eventIndex",
                     "userId",
                     "severity",

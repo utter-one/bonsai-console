@@ -146,7 +146,7 @@ function formatTime(date: string | null) {
 function handleOpenBugReport(_event: ConversationEventResponse, index?: number) {
   openBugReport({
     projectId: projectId.value,
-    sessionId: conversationId.value,
+    conversationId: conversationId.value,
     eventIndex: index,
     stageId: conversation.value?.stageId || undefined,
   })

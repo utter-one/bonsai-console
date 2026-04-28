@@ -289,7 +289,7 @@ function handleOpenBugReport(event: PlaygroundConversationEvent) {
   const eventIndex = props.events.filter(e => e.type !== 'System').indexOf(event)
   openBugReport({
     projectId: props.projectId,
-    sessionId: props.sessionId,
+    conversationId: props.sessionId,
     eventIndex: eventIndex >= 0 ? eventIndex : undefined,
     stageId: props.stageId,
   })
