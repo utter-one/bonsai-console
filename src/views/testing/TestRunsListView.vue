@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useScenarioRunsStore, useScenariosStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -12,6 +13,7 @@ import type { ScenarioRunResponse } from '@/api/types'
 const scenarioRunsStore = useScenarioRunsStore()
 const scenariosStore = useScenariosStore()
 const projectSelectionStore = useProjectSelectionStore()
+const router = useRouter()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
@@ -125,6 +127,10 @@ async function deleteRun(run: ScenarioRunResponse) {
   }
 }
 
+function openRun(run: ScenarioRunResponse) {
+  router.push({ name: 'testing.testRuns.detail', params: { projectId: projectId.value, runId: run.id } })
+}
+
 async function onRunStarted() {
   showRunModal.value = false
   await loadRuns()
@@ -197,7 +203,7 @@ async function onRunStarted() {
             </tr>
           </thead>
           <tbody class="table-body">
-            <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row">
+            <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row cursor-pointer" @click="openRun(run)">
               <td class="table-cell">{{ scenarioName(run.scenarioId) }}</td>
               <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
               <td class="table-cell-muted">{{ run.totalConversations }}</td>
@@ -215,7 +221,7 @@ async function onRunStarted() {
                     class="btn-icon text-gray-400 hover:text-yellow-500"
                     title="Cancel run"
                     :disabled="actionLoadingId === run.id"
-                    @click="cancelRun(run)"
+                    @click.stop="cancelRun(run)"
                   >
                     <XCircle class="w-4 h-4" />
                   </button>
@@ -225,7 +231,7 @@ async function onRunStarted() {
                     class="btn-icon text-gray-400 hover:text-red-500"
                     title="Delete run"
                     :disabled="actionLoadingId === run.id"
-                    @click="deleteRun(run)"
+                    @click.stop="deleteRun(run)"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>

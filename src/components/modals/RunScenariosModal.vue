@@ -8,6 +8,7 @@ import type { ScenarioResponse, TesterResponse } from '@/api/types'
 
 const props = defineProps<{
   projectId: string
+  initialScenarioId?: string
 }>()
 
 const emit = defineEmits<{
@@ -74,6 +75,7 @@ async function handleRun() {
 }
 
 onMounted(async () => {
+  if (props.initialScenarioId) scenarioId.value = props.initialScenarioId
   isLoadingScenarios.value = true
   isLoadingTesters.value = true
   try {
