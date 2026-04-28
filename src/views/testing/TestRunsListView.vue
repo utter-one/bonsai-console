@@ -1,18 +1,33 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref } from 'vue'
-import { useScenarioRunsStore, useProjectSelectionStore } from '@/stores'
+import { useRouter } from 'vue-router'
+import { useScenarioRunsStore, useScenariosStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { PlayCircle, Plus, XCircle, Trash2 } from 'lucide-vue-next'
+import { PlayCircle, Plus, XCircle, Trash2, RefreshCw } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
 const scenarioRunsStore = useScenarioRunsStore()
+const scenariosStore = useScenariosStore()
 const projectSelectionStore = useProjectSelectionStore()
+const router = useRouter()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
+
+const scenarioNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const s of scenariosStore.items) {
+    map[s.id] = s.name
+  }
+  return map
+})
+
+function scenarioName(id: string): string {
+  return scenarioNameMap.value[id] ?? id
+}
 
 const { sortKey, sortOrder, toggleSort, getOrderBy, getSortIcon } = useTableSort('sort-test-runs')
 
@@ -28,12 +43,21 @@ watch([sortKey, sortOrder], () => {
 
 watch(projectId, () => {
   pagination.reset()
+  loadScenarios()
   loadRuns()
 })
 
 onMounted(async () => {
-  await loadRuns()
+  await Promise.all([loadScenarios(), loadRuns()])
 })
+
+async function loadScenarios() {
+  try {
+    await scenariosStore.fetchAll(projectId.value, { limit: 1000 })
+  } catch (error) {
+    console.error('Failed to load scenarios:', error)
+  }
+}
 
 async function loadRuns() {
   try {
@@ -94,12 +118,17 @@ async function cancelRun(run: ScenarioRunResponse) {
 }
 
 async function deleteRun(run: ScenarioRunResponse) {
+  if (!confirm(`Delete this test run?\n\nThis action cannot be undone.`)) return
   actionLoadingId.value = run.id
   try {
     await scenarioRunsStore.remove(projectId.value, run.id)
   } finally {
     actionLoadingId.value = null
   }
+}
+
+function openRun(run: ScenarioRunResponse) {
+  router.push({ name: 'testing.testRuns.detail', params: { projectId: projectId.value, runId: run.id } })
 }
 
 async function onRunStarted() {
@@ -118,10 +147,16 @@ async function onRunStarted() {
           View the history of scenario test runs executed against your project.
         </p>
       </div>
-      <button class="btn-primary flex items-center gap-2" @click="showRunModal = true">
-        <Plus class="w-4 h-4" />
-        Run Scenarios
-      </button>
+      <div class="flex items-center gap-2">
+        <button class="btn-secondary flex items-center gap-2" :disabled="scenarioRunsStore.isLoading" @click="loadRuns()">
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': scenarioRunsStore.isLoading }" />
+          Refresh
+        </button>
+        <button class="btn-primary flex items-center gap-2" @click="showRunModal = true">
+          <Plus class="w-4 h-4" />
+          Run Scenarios
+        </button>
+      </div>
     </div>
 
     <RunScenariosModal
@@ -168,12 +203,12 @@ async function onRunStarted() {
             </tr>
           </thead>
           <tbody class="table-body">
-            <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row">
-              <td class="table-cell font-mono text-xs">{{ run.scenarioId }}</td>
+            <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row cursor-pointer" @click="openRun(run)">
+              <td class="table-cell">{{ scenarioName(run.scenarioId) }}</td>
               <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
               <td class="table-cell-muted">{{ run.totalConversations }}</td>
               <td class="table-cell">
-                <span :class="statusBadgeClass(run)">{{ statusLabel(run) }}</span>
+                <span :class="statusBadgeClass(run)" :title="run.statusDetails || undefined">{{ statusLabel(run) }}</span>
               </td>
               <td class="table-cell-muted">
                 <RelativeDate :date="run.createdAt" />
@@ -186,7 +221,7 @@ async function onRunStarted() {
                     class="btn-icon text-gray-400 hover:text-yellow-500"
                     title="Cancel run"
                     :disabled="actionLoadingId === run.id"
-                    @click="cancelRun(run)"
+                    @click.stop="cancelRun(run)"
                   >
                     <XCircle class="w-4 h-4" />
                   </button>
@@ -196,7 +231,7 @@ async function onRunStarted() {
                     class="btn-icon text-gray-400 hover:text-red-500"
                     title="Delete run"
                     :disabled="actionLoadingId === run.id"
-                    @click="deleteRun(run)"
+                    @click.stop="deleteRun(run)"
                   >
                     <Trash2 class="w-4 h-4" />
                   </button>

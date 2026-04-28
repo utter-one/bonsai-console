@@ -7783,6 +7783,8 @@ export interface CreateScenarioRequest {
    * @default false
    */
   personaCanHangUp?: boolean;
+  /** Opening message sent by the tester when the first stage awaits user input, instead of calling the LLM. Defaults to "[Conversation begins.]" when not set. */
+  conversationOpener?: string;
   /** Stage variables to extract at the end of the run and their expected values */
   dataExtraction?: DataExtractionEntry[];
   /**
@@ -7828,6 +7830,8 @@ export interface UpdateScenarioRequest {
   endingStageIds?: string[];
   /** Updated hang-up flag */
   personaCanHangUp?: boolean;
+  /** Updated conversation opener message */
+  conversationOpener?: string | null;
   /** Updated data extraction configuration */
   dataExtraction?: DataExtractionEntry[];
   /**
@@ -7875,6 +7879,8 @@ export interface ScenarioResponse {
   endingStageIds: string[];
   /** Whether the tester persona is allowed to hang up */
   personaCanHangUp: boolean;
+  /** Opening message sent by the tester when the first stage awaits user input */
+  conversationOpener: string | null;
   /** Data extraction configuration */
   dataExtraction: DataExtractionEntry[] | null;
   /** ID of the context transformer for post-processing */
@@ -7920,6 +7926,8 @@ export interface ScenarioListResponse {
     endingStageIds: string[];
     /** Whether the tester persona is allowed to hang up */
     personaCanHangUp: boolean;
+    /** Opening message sent by the tester when the first stage awaits user input */
+    conversationOpener: string | null;
     /** Data extraction configuration */
     dataExtraction: DataExtractionEntry[] | null;
     /** ID of the context transformer for post-processing */
@@ -7988,6 +7996,8 @@ export interface ScenarioRunResponse {
   totalConversations: number;
   /** Current status of the scenario run */
   status: ScenarioRunStatus;
+  /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+  statusDetails: string | null;
   /** Additional metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -8019,6 +8029,8 @@ export interface ScenarioRunListResponse {
     totalConversations: number;
     /** Current status of the scenario run */
     status: ScenarioRunStatus;
+    /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+    statusDetails: string | null;
     /** Additional metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */

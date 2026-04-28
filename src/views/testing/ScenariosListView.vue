@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScenariosStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { ClipboardList, Search, X, Plus } from 'lucide-vue-next'
+import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
+import { ClipboardList, Search, X, Plus, Play } from 'lucide-vue-next'
 import type { ScenarioResponse } from '@/api/types'
 
 const router = useRouter()
@@ -81,6 +82,19 @@ function editScenario(scenario: ScenarioResponse) {
     name: 'testing.scenarios.edit',
     params: { projectId: projectId.value, scenarioId: scenario.id },
   })
+}
+
+const showRunModal = ref(false)
+const runModalScenarioId = ref<string | undefined>(undefined)
+
+function runScenario(scenario: ScenarioResponse) {
+  runModalScenarioId.value = scenario.id
+  showRunModal.value = true
+}
+
+function onRunStarted() {
+  showRunModal.value = false
+  router.push({ name: 'testing.testRuns', params: { projectId: projectId.value } })
 }
 </script>
 
@@ -174,6 +188,9 @@ function editScenario(scenario: ScenarioResponse) {
               </td>
               <td class="table-cell-right">
                 <div class="flex-end">
+                  <button @click="runScenario(scenario)" class="btn-alt btn-sm" :disabled="projectIsArchived" title="Run scenario">
+                    <Play class="w-3.5 h-3.5 inline-block mr-1" />Run
+                  </button>
                   <button @click="editScenario(scenario)" class="btn-secondary btn-sm">
                     {{ projectIsArchived ? 'View' : 'Edit' }}
                   </button>
@@ -194,4 +211,12 @@ function editScenario(scenario: ScenarioResponse) {
       />
     </div>
   </div>
+
+  <RunScenariosModal
+    v-if="showRunModal"
+    :project-id="projectId"
+    :initial-scenario-id="runModalScenarioId"
+    @close="showRunModal = false"
+    @run="onRunStarted"
+  />
 </template>

@@ -230,6 +230,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/testing/TestRunsListView.vue'),
           },
           {
+            path: 'projects/:projectId/test-runs/:runId',
+            name: 'testing.testRuns.detail',
+            component: () => import('@/views/testing/TestRunDetailView.vue'),
+          },
+          {
             path: 'projects/:projectId/scenarios/new',
             name: 'testing.scenarios.create',
             component: () => import('@/views/design/ScenarioEditView.vue'),
