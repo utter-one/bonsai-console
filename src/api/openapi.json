@@ -17943,6 +17943,10 @@
             "default": false,
             "description": "Whether the tester persona is allowed to hang up the conversation"
           },
+          "conversationOpener": {
+            "type": "string",
+            "description": "Opening message sent by the tester when the first stage awaits user input, instead of calling the LLM. Defaults to \"[Conversation begins.]\" when not set."
+          },
           "dataExtraction": {
             "type": "array",
             "items": {
@@ -18023,6 +18027,11 @@
           "personaCanHangUp": {
             "type": "boolean",
             "description": "Updated hang-up flag"
+          },
+          "conversationOpener": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated conversation opener message"
           },
           "dataExtraction": {
             "type": "array",
@@ -18125,6 +18134,11 @@
             "type": "boolean",
             "description": "Whether the tester persona is allowed to hang up"
           },
+          "conversationOpener": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opening message sent by the tester when the first stage awaits user input"
+          },
           "dataExtraction": {
             "type": "array",
             "nullable": true,
@@ -18188,6 +18202,7 @@
           "maxTurns",
           "endingStageIds",
           "personaCanHangUp",
+          "conversationOpener",
           "dataExtraction",
           "contextTransformerId",
           "dataPostProcessingExpected",
@@ -18245,6 +18260,11 @@
                 "personaCanHangUp": {
                   "type": "boolean",
                   "description": "Whether the tester persona is allowed to hang up"
+                },
+                "conversationOpener": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Opening message sent by the tester when the first stage awaits user input"
                 },
                 "dataExtraction": {
                   "type": "array",
@@ -18309,6 +18329,7 @@
                 "maxTurns",
                 "endingStageIds",
                 "personaCanHangUp",
+                "conversationOpener",
                 "dataExtraction",
                 "contextTransformerId",
                 "dataPostProcessingExpected",
@@ -48183,6 +48204,10 @@
                     "default": false,
                     "description": "Whether the tester persona is allowed to hang up the conversation"
                   },
+                  "conversationOpener": {
+                    "type": "string",
+                    "description": "Opening message sent by the tester when the first stage awaits user input, instead of calling the LLM. Defaults to \"[Conversation begins.]\" when not set."
+                  },
                   "dataExtraction": {
                     "type": "array",
                     "items": {
@@ -48276,6 +48301,11 @@
                       "type": "boolean",
                       "description": "Whether the tester persona is allowed to hang up"
                     },
+                    "conversationOpener": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Opening message sent by the tester when the first stage awaits user input"
+                    },
                     "dataExtraction": {
                       "type": "array",
                       "nullable": true,
@@ -48339,6 +48369,7 @@
                     "maxTurns",
                     "endingStageIds",
                     "personaCanHangUp",
+                    "conversationOpener",
                     "dataExtraction",
                     "contextTransformerId",
                     "dataPostProcessingExpected",
@@ -48547,6 +48578,11 @@
                             "type": "boolean",
                             "description": "Whether the tester persona is allowed to hang up"
                           },
+                          "conversationOpener": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Opening message sent by the tester when the first stage awaits user input"
+                          },
                           "dataExtraction": {
                             "type": "array",
                             "nullable": true,
@@ -48610,6 +48646,7 @@
                           "maxTurns",
                           "endingStageIds",
                           "personaCanHangUp",
+                          "conversationOpener",
                           "dataExtraction",
                           "contextTransformerId",
                           "dataPostProcessingExpected",
@@ -48732,6 +48769,11 @@
                       "type": "boolean",
                       "description": "Whether the tester persona is allowed to hang up"
                     },
+                    "conversationOpener": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Opening message sent by the tester when the first stage awaits user input"
+                    },
                     "dataExtraction": {
                       "type": "array",
                       "nullable": true,
@@ -48795,6 +48837,7 @@
                     "maxTurns",
                     "endingStageIds",
                     "personaCanHangUp",
+                    "conversationOpener",
                     "dataExtraction",
                     "contextTransformerId",
                     "dataPostProcessingExpected",
@@ -48883,6 +48926,11 @@
                   "personaCanHangUp": {
                     "type": "boolean",
                     "description": "Updated hang-up flag"
+                  },
+                  "conversationOpener": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated conversation opener message"
                   },
                   "dataExtraction": {
                     "type": "array",
@@ -48980,6 +49028,11 @@
                       "type": "boolean",
                       "description": "Whether the tester persona is allowed to hang up"
                     },
+                    "conversationOpener": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Opening message sent by the tester when the first stage awaits user input"
+                    },
                     "dataExtraction": {
                       "type": "array",
                       "nullable": true,
@@ -49043,6 +49096,7 @@
                     "maxTurns",
                     "endingStageIds",
                     "personaCanHangUp",
+                    "conversationOpener",
                     "dataExtraction",
                     "contextTransformerId",
                     "dataPostProcessingExpected",

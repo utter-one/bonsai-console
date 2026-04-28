@@ -40,6 +40,7 @@ const form = ref({
   maxTurns: 20,
   endingStageIds: [] as string[],
   personaCanHangUp: false,
+  conversationOpener: '',
   contextTransformerId: '',
   dataExtraction: [] as Array<{ stageId: string; varName: string; expectedValue: string }>,
   dataPostProcessingPairs: [] as Array<{ key: string; value: string }>,
@@ -119,6 +120,7 @@ async function loadScenario() {
         maxTurns: currentScenario.value.maxTurns,
         endingStageIds: currentScenario.value.endingStageIds || [],
         personaCanHangUp: currentScenario.value.personaCanHangUp,
+        conversationOpener: currentScenario.value.conversationOpener || '',
         contextTransformerId: currentScenario.value.contextTransformerId || '',
         dataExtraction: (currentScenario.value.dataExtraction || []).map(e => ({
           stageId: e.stageId,
@@ -174,6 +176,7 @@ async function handleSubmit() {
         maxTurns: form.value.maxTurns,
         endingStageIds: form.value.endingStageIds.filter(Boolean),
         personaCanHangUp: form.value.personaCanHangUp,
+        conversationOpener: form.value.conversationOpener || null,
         contextTransformerId: form.value.contextTransformerId || null,
         dataExtraction: form.value.dataExtraction.filter(e => e.stageId || e.varName).map(e => ({
           stageId: e.stageId,
@@ -199,6 +202,7 @@ async function handleSubmit() {
       }
       if (form.value.id) createData.id = form.value.id
       if (form.value.description) createData.description = form.value.description
+      if (form.value.conversationOpener) createData.conversationOpener = form.value.conversationOpener
       if (form.value.tags.length > 0) createData.tags = form.value.tags
       if (form.value.contextTransformerId) createData.contextTransformerId = form.value.contextTransformerId
       const filteredExtraction = form.value.dataExtraction.filter(e => e.stageId || e.varName).map(e => ({
@@ -392,6 +396,16 @@ function goBack() {
                   <input v-model="form.personaCanHangUp" type="checkbox" class="form-checkbox" :disabled="isLoading" />
                   <span class="text-sm text-gray-700 dark:text-gray-300">Persona can decide to hang up independently</span>
                 </label>
+              </FormField>
+
+              <FormField label="Conversation Opener" :error="error" path="conversationOpener" class="w-full" help="Opening message sent by the tester when the first stage awaits input. Defaults to &quot;[Conversation begins.]&quot; when not set.">
+                <input
+                  v-model="form.conversationOpener"
+                  type="text"
+                  placeholder="[Conversation begins.]"
+                  class="form-input"
+                  :disabled="isLoading"
+                />
               </FormField>
             </TabContent>
 
