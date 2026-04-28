@@ -7988,6 +7988,8 @@ export interface ScenarioRunResponse {
   totalConversations: number;
   /** Current status of the scenario run */
   status: ScenarioRunStatus;
+  /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+  statusDetails: string | null;
   /** Additional metadata */
   metadata: Record<string, any>;
   /** Version number for optimistic locking */
@@ -8019,6 +8021,8 @@ export interface ScenarioRunListResponse {
     totalConversations: number;
     /** Current status of the scenario run */
     status: ScenarioRunStatus;
+    /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+    statusDetails: string | null;
     /** Additional metadata */
     metadata: Record<string, any>;
     /** Version number for optimistic locking */

@@ -116,6 +116,7 @@ async function cancelRun(run: ScenarioRunResponse) {
 }
 
 async function deleteRun(run: ScenarioRunResponse) {
+  if (!confirm(`Delete this test run?\n\nThis action cannot be undone.`)) return
   actionLoadingId.value = run.id
   try {
     await scenarioRunsStore.remove(projectId.value, run.id)
@@ -195,7 +196,7 @@ async function onRunStarted() {
               <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
               <td class="table-cell-muted">{{ run.totalConversations }}</td>
               <td class="table-cell">
-                <span :class="statusBadgeClass(run)">{{ statusLabel(run) }}</span>
+                <span :class="statusBadgeClass(run)" :title="run.statusDetails || undefined">{{ statusLabel(run) }}</span>
               </td>
               <td class="table-cell-muted">
                 <RelativeDate :date="run.createdAt" />

@@ -18412,6 +18412,11 @@
               }
             ]
           },
+          "statusDetails": {
+            "type": "string",
+            "nullable": true,
+            "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -18444,6 +18449,7 @@
           "testers",
           "totalConversations",
           "status",
+          "statusDetails",
           "metadata",
           "version",
           "createdAt",
@@ -18491,6 +18497,11 @@
                     }
                   ]
                 },
+                "statusDetails": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -18523,6 +18534,7 @@
                 "testers",
                 "totalConversations",
                 "status",
+                "statusDetails",
                 "metadata",
                 "version",
                 "createdAt",
@@ -49239,6 +49251,11 @@
                         }
                       ]
                     },
+                    "statusDetails": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -49271,6 +49288,7 @@
                     "testers",
                     "totalConversations",
                     "status",
+                    "statusDetails",
                     "metadata",
                     "version",
                     "createdAt",
@@ -49468,6 +49486,11 @@
                               }
                             ]
                           },
+                          "statusDetails": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -49500,6 +49523,7 @@
                           "testers",
                           "totalConversations",
                           "status",
+                          "statusDetails",
                           "metadata",
                           "version",
                           "createdAt",
@@ -49611,6 +49635,11 @@
                         }
                       ]
                     },
+                    "statusDetails": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -49643,6 +49672,7 @@
                     "testers",
                     "totalConversations",
                     "status",
+                    "statusDetails",
                     "metadata",
                     "version",
                     "createdAt",
@@ -49770,6 +49800,11 @@
                         }
                       ]
                     },
+                    "statusDetails": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -49802,6 +49837,7 @@
                     "testers",
                     "totalConversations",
                     "status",
+                    "statusDetails",
                     "metadata",
                     "version",
                     "createdAt",
