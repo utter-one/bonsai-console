@@ -76,6 +76,7 @@ import {
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
+  TelegramChannelConfig,
   TokenUsageStatsResponse,
   TokenUsageTrendResponse,
   ToolParameter,
@@ -5683,7 +5684,8 @@ export class Api<
         | LocalStorageConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig;
+        | WhatsAppChannelConfig
+        | TelegramChannelConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5787,7 +5789,8 @@ export class Api<
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | TelegramChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5957,7 +5960,8 @@ export class Api<
             | LocalStorageConfig
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
-            | WhatsAppChannelConfig;
+            | WhatsAppChannelConfig
+            | TelegramChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6109,7 +6113,8 @@ export class Api<
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | TelegramChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6248,7 +6253,8 @@ export class Api<
         | LocalStorageConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig;
+        | WhatsAppChannelConfig
+        | TelegramChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -6350,7 +6356,8 @@ export class Api<
           | LocalStorageConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | TelegramChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */

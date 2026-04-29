@@ -60,7 +60,9 @@ const form = ref({
     phoneNumberId: '',
     accessToken: '',
     appSecret: '',
-    verifyToken: ''
+    verifyToken: '',
+    // Telegram channel config fields
+    botToken: ''
   },
   createdBy: ''
 })
@@ -210,7 +212,9 @@ async function loadProvider() {
           phoneNumberId: config.phoneNumberId || '',
           accessToken: config.accessToken || '',
           appSecret: config.appSecret || '',
-          verifyToken: config.verifyToken || ''
+          verifyToken: config.verifyToken || '',
+          // Telegram channel config fields
+          botToken: config.botToken || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }
