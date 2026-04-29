@@ -11479,7 +11479,11 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
+
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
           },
@@ -11577,6 +11581,19 @@
           "accessToken",
           "appSecret",
           "verifyToken"
+        ],
+        "additionalProperties": false
+      },
+      "TelegramChannelConfig": {
+        "type": "object",
+        "properties": {
+          "botToken": {
+            "type": "string",
+            "description": "Telegram Bot API token obtained from @BotFather"
+          }
+        },
+        "required": [
+          "botToken"
         ],
         "additionalProperties": false
       },
@@ -11882,7 +11899,11 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
+
             ],
             "description": "Updated provider-specific configuration"
           },
@@ -12212,7 +12233,11 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
+
             ],
             "description": "Provider-specific configuration object"
           },
@@ -12564,7 +12589,11 @@
                     },
                     {
                       "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                    }
+                    },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                   ],
                   "description": "Provider-specific configuration object"
                 },
@@ -32626,7 +32655,11 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                      }
+                      },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
                   },
@@ -32956,7 +32989,11 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        }
+                        },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                       ],
                       "description": "Provider-specific configuration object"
                     },
@@ -33461,7 +33498,11 @@
                               },
                               {
                                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                              }
+                              },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                             ],
                             "description": "Provider-specific configuration object"
                           },
@@ -33869,7 +33910,11 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        }
+                        },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                       ],
                       "description": "Provider-specific configuration object"
                     },
@@ -34248,7 +34293,11 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                      }
+                      },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                     ],
                     "description": "Updated provider-specific configuration"
                   },
@@ -34572,7 +34621,11 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        }
+                        },
+              {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              }
+
                       ],
                       "description": "Provider-specific configuration object"
                     },

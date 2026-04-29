@@ -5275,7 +5275,8 @@ export interface CreateProviderRequest {
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | TelegramChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5311,6 +5312,11 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
+}
+
+export interface TelegramChannelConfig {
+  /** Telegram Bot API token obtained from @BotFather */
+  botToken: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5409,7 +5415,8 @@ export interface UpdateProviderRequest {
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | TelegramChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -5512,7 +5519,8 @@ export interface ProviderResponse {
     | LocalStorageConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | TelegramChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -5622,7 +5630,8 @@ export interface ProviderListResponse {
       | LocalStorageConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
-      | WhatsAppChannelConfig;
+      | WhatsAppChannelConfig
+      | TelegramChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */

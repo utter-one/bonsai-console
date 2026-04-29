@@ -23,6 +23,8 @@ export interface ProviderConfig {
   accessToken: string
   appSecret: string
   verifyToken: string
+  // Telegram channel config fields
+  botToken: string
 }
 
 export interface ProviderPreset {
