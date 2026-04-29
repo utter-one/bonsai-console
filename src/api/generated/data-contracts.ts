@@ -356,6 +356,12 @@ export interface GroqLlmSettings {
    * @exclusiveMin true
    */
   timeout?: number;
+  /** Controls how reasoning is presented in the response. "parsed" separates reasoning into a dedicated message.reasoning field, "raw" includes reasoning within <think> tags in the main text content, "hidden" returns only the final answer without reasoning. Not supported for GPT-OSS models — use includeReasoning instead. Mutually exclusive with includeReasoning. */
+  reasoningFormat?: "parsed" | "raw" | "hidden";
+  /** Controls the level of reasoning effort. For Qwen 3 32B: "none" disables reasoning, "default" enables it. For GPT-OSS 20B and 120B: "low", "medium", or "high" controls the number of reasoning tokens used. */
+  reasoningEffort?: "none" | "default" | "low" | "medium" | "high";
+  /** Whether to include reasoning in the response. Only supported by GPT-OSS models (openai/gpt-oss-20b, openai/gpt-oss-120b). Mutually exclusive with reasoningFormat. */
+  includeReasoning?: boolean;
 }
 
 export interface MistralLlmSettings {
