@@ -5682,10 +5682,10 @@ export class Api<
         | AzureBlobStorageConfig
         | GcsStorageConfig
         | LocalStorageConfig
+        | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig
-        | TelegramChannelConfig;
+        | WhatsAppChannelConfig;
       /** Operator user ID who created the provider */
       createdBy?: string;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5787,10 +5787,10 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig
-          | TelegramChannelConfig;
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -5958,10 +5958,10 @@ export class Api<
             | AzureBlobStorageConfig
             | GcsStorageConfig
             | LocalStorageConfig
+            | TelegramChannelConfig
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
-            | WhatsAppChannelConfig
-            | TelegramChannelConfig;
+            | WhatsAppChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6111,10 +6111,10 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig
-          | TelegramChannelConfig;
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6251,10 +6251,10 @@ export class Api<
         | AzureBlobStorageConfig
         | GcsStorageConfig
         | LocalStorageConfig
+        | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig
-        | TelegramChannelConfig;
+        | WhatsAppChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -6354,10 +6354,10 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig
-          | TelegramChannelConfig;
+          | WhatsAppChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -11036,6 +11036,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11145,6 +11146,7 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "telegram"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11223,6 +11225,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11313,6 +11316,7 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11447,6 +11451,7 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "telegram"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -13327,6 +13332,42 @@ export class Api<
       body: data,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Webhook endpoint for receiving inbound text messages from Telegram users. The webhook URL must be registered with the Bot API via the `setupWebhook` endpoint.
+   *
+   * @tags Telegram
+   * @name TelegramWebhookCreate
+   * @summary Receive incoming Telegram messages
+   * @request POST:/api/telegram/webhook
+   */
+  telegramWebhookCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Telegram channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/telegram/webhook`,
+      method: "POST",
+      query: query,
       ...params,
     });
 }

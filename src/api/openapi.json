@@ -11472,6 +11472,9 @@
                 "$ref": "#/components/schemas/LocalStorageConfig"
               },
               {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              },
+              {
                 "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
               },
               {
@@ -11479,11 +11482,7 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
-              },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
-
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
           },
@@ -11505,6 +11504,19 @@
           "apiType",
           "config"
         ]
+      },
+      "TelegramChannelConfig": {
+        "type": "object",
+        "properties": {
+          "botToken": {
+            "type": "string",
+            "description": "Telegram Bot Token obtained from @BotFather"
+          }
+        },
+        "required": [
+          "botToken"
+        ],
+        "additionalProperties": false
       },
       "TwilioMessagingChannelConfig": {
         "type": "object",
@@ -11581,19 +11593,6 @@
           "accessToken",
           "appSecret",
           "verifyToken"
-        ],
-        "additionalProperties": false
-      },
-      "TelegramChannelConfig": {
-        "type": "object",
-        "properties": {
-          "botToken": {
-            "type": "string",
-            "description": "Telegram Bot API token obtained from @BotFather"
-          }
-        },
-        "required": [
-          "botToken"
         ],
         "additionalProperties": false
       },
@@ -11892,6 +11891,9 @@
                 "$ref": "#/components/schemas/LocalStorageConfig"
               },
               {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              },
+              {
                 "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
               },
               {
@@ -11899,11 +11901,7 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
-              },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
-
             ],
             "description": "Updated provider-specific configuration"
           },
@@ -12226,6 +12224,9 @@
                 "$ref": "#/components/schemas/LocalStorageConfig"
               },
               {
+                "$ref": "#/components/schemas/TelegramChannelConfig"
+              },
+              {
                 "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
               },
               {
@@ -12233,11 +12234,7 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
-              },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
               }
-
             ],
             "description": "Provider-specific configuration object"
           },
@@ -12582,6 +12579,9 @@
                       "$ref": "#/components/schemas/LocalStorageConfig"
                     },
                     {
+                      "$ref": "#/components/schemas/TelegramChannelConfig"
+                    },
+                    {
                       "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                     },
                     {
@@ -12589,11 +12589,7 @@
                     },
                     {
                       "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                    },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                    }
                   ],
                   "description": "Provider-specific configuration object"
                 },
@@ -13618,6 +13614,7 @@
                 "twilio_voice",
                 "twilio_messaging",
                 "whatsapp",
+                "telegram",
                 "testing"
               ]
             },
@@ -13779,6 +13776,7 @@
                     "twilio_voice",
                     "twilio_messaging",
                     "whatsapp",
+                    "telegram",
                     "testing"
                   ]
                 },
@@ -13892,6 +13890,7 @@
                           "twilio_voice",
                           "twilio_messaging",
                           "whatsapp",
+                          "telegram",
                           "testing"
                         ]
                       },
@@ -32648,6 +32647,9 @@
                         "$ref": "#/components/schemas/LocalStorageConfig"
                       },
                       {
+                        "$ref": "#/components/schemas/TelegramChannelConfig"
+                      },
+                      {
                         "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                       },
                       {
@@ -32655,11 +32657,7 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                      },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                      }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
                   },
@@ -32982,6 +32980,9 @@
                           "$ref": "#/components/schemas/LocalStorageConfig"
                         },
                         {
+                          "$ref": "#/components/schemas/TelegramChannelConfig"
+                        },
+                        {
                           "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                         },
                         {
@@ -32989,11 +32990,7 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                        }
                       ],
                       "description": "Provider-specific configuration object"
                     },
@@ -33491,6 +33488,9 @@
                                 "$ref": "#/components/schemas/LocalStorageConfig"
                               },
                               {
+                                "$ref": "#/components/schemas/TelegramChannelConfig"
+                              },
+                              {
                                 "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                               },
                               {
@@ -33498,11 +33498,7 @@
                               },
                               {
                                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                              },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                              }
                             ],
                             "description": "Provider-specific configuration object"
                           },
@@ -33903,6 +33899,9 @@
                           "$ref": "#/components/schemas/LocalStorageConfig"
                         },
                         {
+                          "$ref": "#/components/schemas/TelegramChannelConfig"
+                        },
+                        {
                           "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                         },
                         {
@@ -33910,11 +33909,7 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                        }
                       ],
                       "description": "Provider-specific configuration object"
                     },
@@ -34286,6 +34281,9 @@
                         "$ref": "#/components/schemas/LocalStorageConfig"
                       },
                       {
+                        "$ref": "#/components/schemas/TelegramChannelConfig"
+                      },
+                      {
                         "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                       },
                       {
@@ -34293,11 +34291,7 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                      },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                      }
                     ],
                     "description": "Updated provider-specific configuration"
                   },
@@ -34614,6 +34608,9 @@
                           "$ref": "#/components/schemas/LocalStorageConfig"
                         },
                         {
+                          "$ref": "#/components/schemas/TelegramChannelConfig"
+                        },
+                        {
                           "$ref": "#/components/schemas/TwilioMessagingChannelConfig"
                         },
                         {
@@ -34621,11 +34618,7 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
-                        },
-              {
-                "$ref": "#/components/schemas/TelegramChannelConfig"
-              }
-
+                        }
                       ],
                       "description": "Provider-specific configuration object"
                     },
@@ -45444,6 +45437,7 @@
                               "twilio_voice",
                               "twilio_messaging",
                               "whatsapp",
+                              "telegram",
                               "testing"
                             ]
                           },
@@ -45710,6 +45704,7 @@
                                     "twilio_voice",
                                     "twilio_messaging",
                                     "whatsapp",
+                                    "telegram",
                                     "testing"
                                   ]
                                 },
@@ -45871,6 +45866,7 @@
                               "twilio_voice",
                               "twilio_messaging",
                               "whatsapp",
+                              "telegram",
                               "testing"
                             ]
                           },
@@ -46066,6 +46062,7 @@
                               "twilio_voice",
                               "twilio_messaging",
                               "whatsapp",
+                              "telegram",
                               "testing"
                             ]
                           },
@@ -46393,6 +46390,7 @@
                                     "twilio_voice",
                                     "twilio_messaging",
                                     "whatsapp",
+                                    "telegram",
                                     "testing"
                                   ]
                                 },
@@ -50940,6 +50938,75 @@
           },
           "502": {
             "description": "Meta Graph API call failed"
+          }
+        }
+      }
+    },
+    "/api/telegram/webhook": {
+      "post": {
+        "tags": [
+          "Telegram"
+        ],
+        "summary": "Receive incoming Telegram messages",
+        "description": "Webhook endpoint for receiving inbound text messages from Telegram users. The webhook URL must be registered with the Bot API via the `setupWebhook` endpoint.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the Telegram channel provider record"
+            },
+            "required": true,
+            "description": "ID of the Telegram channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message received and processed"
+          },
+          "400": {
+            "description": "Missing or invalid query parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit telegram channel"
           }
         }
       }
