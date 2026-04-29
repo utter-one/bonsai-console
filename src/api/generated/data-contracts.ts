@@ -5273,14 +5273,19 @@ export interface CreateProviderRequest {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig
-    | TelegramChannelConfig;
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
+}
+
+export interface TelegramChannelConfig {
+  /** Telegram Bot Token obtained from @BotFather */
+  botToken: string;
 }
 
 export interface TwilioMessagingChannelConfig {
@@ -5312,11 +5317,6 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
-}
-
-export interface TelegramChannelConfig {
-  /** Telegram Bot API token obtained from @BotFather */
-  botToken: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5413,10 +5413,10 @@ export interface UpdateProviderRequest {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig
-    | TelegramChannelConfig;
+    | WhatsAppChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -5517,10 +5517,10 @@ export interface ProviderResponse {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig
-    | TelegramChannelConfig;
+    | WhatsAppChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -5628,10 +5628,10 @@ export interface ProviderListResponse {
       | AzureBlobStorageConfig
       | GcsStorageConfig
       | LocalStorageConfig
+      | TelegramChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
-      | WhatsAppChannelConfig
-      | TelegramChannelConfig;
+      | WhatsAppChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -6024,6 +6024,7 @@ export interface ApiKeySettings {
     | "twilio_voice"
     | "twilio_messaging"
     | "whatsapp"
+    | "telegram"
     | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6102,6 +6103,7 @@ export interface ApiKeyResponse {
       | "twilio_voice"
       | "twilio_messaging"
       | "whatsapp"
+      | "telegram"
       | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6156,6 +6158,7 @@ export interface ApiKeyListResponse {
         | "twilio_voice"
         | "twilio_messaging"
         | "whatsapp"
+        | "telegram"
         | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
