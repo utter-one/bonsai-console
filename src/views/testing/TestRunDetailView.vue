@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectSelectionStore } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -29,6 +29,64 @@ const scenario = ref<ScenarioResponse | null>(null)
 const conversations = ref<ScenarioConversationResponse[]>([])
 const testerMap = ref<Record<string, string>>({})
 const conversationStatusMap = ref<Record<string, string>>({})
+
+let intervalId: ReturnType<typeof setInterval> | null = null
+
+function stopPolling() {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+    intervalId = null
+  }
+}
+
+async function pollRun() {
+  try {
+    const runData = await (apiClient as any).projectsScenarioRunsDetail(projectId.value, runId.value)
+    run.value = runData as ScenarioRunResponse
+
+    const convsData = await (apiClient as any).projectsScenarioConversationsList(projectId.value, {
+      scenarioRunId: runId.value,
+      limit: 1000,
+    })
+    const items = (convsData as { items: ScenarioConversationResponse[] }).items
+    conversations.value = items
+
+    const conversationIds = items
+      .map(c => c.conversationId)
+      .filter((id): id is string => id != null)
+    if (conversationIds.length > 0) {
+      const underlyingConvs = await (apiClient as any).projectsConversationsList(projectId.value, {
+        limit: conversationIds.length,
+        filters: { id: conversationIds },
+      })
+      conversationStatusMap.value = Object.fromEntries((underlyingConvs as { items: { id: string; status: string }[] }).items.map(c => [c.id, c.status]))
+    }
+
+    const r = runData as ScenarioRunResponse
+    const isTerminal = r.status === ScenarioRunStatus.Passed ||
+      r.status === ScenarioRunStatus.Failed ||
+      r.status === ScenarioRunStatus.Cancelled
+    if (isTerminal) {
+      stopPolling()
+    }
+  } catch {
+    // Silently ignore polling errors
+  }
+}
+
+watch(run, (newRun) => {
+  if (!newRun) return
+  const isTerminal = newRun.status === ScenarioRunStatus.Passed ||
+    newRun.status === ScenarioRunStatus.Failed ||
+    newRun.status === ScenarioRunStatus.Cancelled
+  if (!isTerminal && !intervalId) {
+    intervalId = setInterval(pollRun, 5000)
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'pass-fail', label: 'Pass / Fail' },
@@ -230,33 +288,25 @@ function openConversation(conv: ScenarioConversationResponse) {
             <span v-if="run" :class="runStatusBadgeClass(run.status)" :title="run.statusDetails || undefined">
               {{ formatEnum(run.status) }}
             </span>
+            <RefreshCw v-if="run && (run.status === ScenarioRunStatus.Queued || run.status === ScenarioRunStatus.InProgress)" class="w-4 h-4 text-gray-400 animate-spin" />
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ runId }}</p>
           <p v-if="scenario" class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
             Scenario: <span class="font-medium text-gray-800 dark:text-gray-200">{{ scenario.name }}</span>
           </p>
+          <div v-if="run" class="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>Conversations: <span class="font-medium text-gray-800 dark:text-gray-200">{{ run.totalConversations }}</span></span>
+            <span>Testers: <span class="font-medium text-gray-800 dark:text-gray-200">{{ Object.keys(run.testers).length }}</span></span>
+            <span v-if="run.createdAt">Started: <RelativeDate :date="run.createdAt" /></span>
+            <span v-if="passStats">Pass rate:
+              <span :class="passStats.pct >= 100 ? 'text-green-600 dark:text-green-400' : passStats.pct > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold">
+                {{ passStats.pct }}%
+              </span>
+              <span class="text-gray-400 ml-1">({{ passStats.passed }}/{{ passStats.total }})</span>
+            </span>
+          </div>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="btn-secondary flex items-center gap-2" :disabled="isLoading" @click="loadAll">
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
-          Refresh
-        </button>
-      </div>
-    </div>
-
-    <!-- Run stats bar -->
-    <div v-if="run" class="hidden md:flex items-center gap-6 px-8 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm text-gray-600 dark:text-gray-400">
-      <span>Conversations: <span class="font-medium text-gray-800 dark:text-gray-200">{{ run.totalConversations }}</span></span>
-      <span>Testers: <span class="font-medium text-gray-800 dark:text-gray-200">{{ Object.keys(run.testers).length }}</span></span>
-      <span v-if="run.createdAt">Started: <RelativeDate :date="run.createdAt" /></span>
-      <span v-if="passStats" class="ml-auto">
-        Pass rate:
-        <span :class="passStats.pct >= 100 ? 'text-green-600 dark:text-green-400' : passStats.pct > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold">
-          {{ passStats.pct }}%
-        </span>
-        <span class="text-gray-400 ml-1">({{ passStats.passed }}/{{ passStats.total }})</span>
-      </span>
     </div>
 
     <!-- Tabs -->
