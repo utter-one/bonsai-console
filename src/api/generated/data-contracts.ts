@@ -1198,6 +1198,12 @@ export interface FillerSettings {
    * @minLength 1
    */
   prompt: string;
+  /**
+   * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+   * @min 0
+   * @default 0
+   */
+  historyMessageCount?: number;
 }
 
 export interface RequestTypeLimits {
@@ -2326,6 +2332,12 @@ export interface UpdateAgentRequest {
      * @minLength 1
      */
     prompt: string;
+    /**
+     * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+     * @min 0
+     * @default 0
+     */
+    historyMessageCount?: number;
   } | null;
   /**
    * Current version number for optimistic locking
@@ -7121,6 +7133,12 @@ export interface FillerSettingsExchangeV1 {
    * @minLength 1
    */
   prompt: string;
+  /**
+   * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+   * @min 0
+   * @default 0
+   */
+  historyMessageCount?: number;
 }
 
 /** Project entity in the exchange format */
@@ -7221,6 +7239,12 @@ export interface AgentExchangeV1 {
      * @minLength 1
      */
     prompt: string;
+    /**
+     * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+     * @min 0
+     * @default 0
+     */
+    historyMessageCount?: number;
   } | null;
 }
 

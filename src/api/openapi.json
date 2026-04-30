@@ -1914,6 +1914,12 @@
             "type": "string",
             "minLength": 1,
             "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
+          },
+          "historyMessageCount": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
           }
         },
         "required": [
@@ -4528,6 +4534,12 @@
                 "type": "string",
                 "minLength": 1,
                 "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
+              },
+              "historyMessageCount": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
               }
             },
             "required": [
@@ -16229,6 +16241,12 @@
             "type": "string",
             "minLength": 1,
             "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+          },
+          "historyMessageCount": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
           }
         },
         "required": [
@@ -16509,6 +16527,12 @@
                 "type": "string",
                 "minLength": 1,
                 "description": "Prompt instructing the LLM to produce a short neutral filler sentence"
+              },
+              "historyMessageCount": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
               }
             },
             "required": [
@@ -31898,6 +31922,12 @@
                         "type": "string",
                         "minLength": 1,
                         "description": "Prompt instructing the LLM to produce a short neutral filler sentence (e.g. \"Generate a single short neutral sentence to fill silence while processing, like \"Hmm, let me think about that.\"\")"
+                      },
+                      "historyMessageCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0,
+                        "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
                       }
                     },
                     "required": [
