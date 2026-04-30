@@ -49,6 +49,7 @@ const form = ref<{
   fillerLlmProviderId: string
   fillerLlmSettings: LlmSettings | null
   fillerPrompt: string
+  fillerHistoryMessageCount: number
 }>({
   id: '',
   name: '',
@@ -60,7 +61,8 @@ const form = ref<{
   metadata: {},
   fillerLlmProviderId: '',
   fillerLlmSettings: null,
-  fillerPrompt: ''
+  fillerPrompt: '',
+  fillerHistoryMessageCount: 0
 })
 
 // Computed
@@ -329,7 +331,8 @@ async function loadAgent() {
         metadata: currentAgent.value.metadata || {},
         fillerLlmProviderId: currentAgent.value.fillerSettings?.llmProviderId || '',
         fillerLlmSettings: currentAgent.value.fillerSettings?.llmSettings || null,
-        fillerPrompt: currentAgent.value.fillerSettings?.prompt || ''
+        fillerPrompt: currentAgent.value.fillerSettings?.prompt || '',
+        fillerHistoryMessageCount: currentAgent.value.fillerSettings?.historyMessageCount ?? 0
       }
     }
   } catch (err: any) {
@@ -387,7 +390,8 @@ async function handleSubmit() {
         ? {
             llmProviderId: form.value.fillerLlmProviderId,
             ...(form.value.fillerLlmSettings ? { llmSettings: form.value.fillerLlmSettings } : {}),
-            prompt: form.value.fillerPrompt
+            prompt: form.value.fillerPrompt,
+            historyMessageCount: form.value.fillerHistoryMessageCount
           }
         : undefined
 
@@ -751,6 +755,16 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               <LLMModelBadge :settings="form.fillerLlmSettings" />
             </div>
           </CompositeFormField>
+
+          <FormField label="History Message Count" :error="error" path="fillerHistoryMessageCount" help="Number of recent conversation messages to include in the filler LLM call context (0 = no history)">
+            <input
+              v-model.number="form.fillerHistoryMessageCount"
+              type="number"
+              min="0"
+              class="w-32 form-input-mono"
+              :disabled="isLoading || !form.fillerLlmProviderId"
+            />
+          </FormField>
 
           <FormField label="Filler Prompt" required :error="error" path="fillerPrompt" class="w-full" help="Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request">
             <PromptEditor
