@@ -8,6 +8,7 @@ import TabContent from '@/components/TabContent.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
 import apiClient from '@/api/client'
+import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { ScenarioRunResponse, ScenarioResponse, ScenarioConversationResponse, TesterResponse } from '@/api/types'
 import { ScenarioRunStatus } from '@/api/types'
 
@@ -26,10 +27,11 @@ const run = ref<ScenarioRunResponse | null>(null)
 const scenario = ref<ScenarioResponse | null>(null)
 const conversations = ref<ScenarioConversationResponse[]>([])
 const testerMap = ref<Record<string, string>>({})
+const conversationStatusMap = ref<Record<string, string>>({})
 
 const tabs = computed<TabDefinition[]>(() => [
-  { key: 'results', label: 'Results Table' },
   { key: 'pass-fail', label: 'Pass / Fail' },
+  { key: 'results', label: 'Results Table' },
   { key: 'conversations', label: 'Conversations' },
 ])
 
@@ -55,6 +57,17 @@ async function loadAll() {
     ])
     scenario.value = scenarioData
     conversations.value = convsData.items
+
+    const conversationIds = convsData.items
+      .map(c => c.conversationId)
+      .filter((id): id is string => id != null)
+    if (conversationIds.length > 0) {
+      const underlyingConvs = await (apiClient as any).projectsConversationsList(projectId.value, {
+        limit: conversationIds.length,
+        filters: { id: conversationIds },
+      }) as { items: { id: string; status: string }[] }
+      conversationStatusMap.value = Object.fromEntries(underlyingConvs.items.map(c => [c.id, c.status]))
+    }
   } catch (err: any) {
     loadError.value = err.response?.data?.message || 'Failed to load run details'
   } finally {
@@ -165,28 +178,6 @@ function runStatusBadgeClass(status: ScenarioRunStatus): string {
   }
 }
 
-function convStatusBadgeClass(status: string): string {
-  switch (status) {
-    case 'queued': return 'badge-secondary'
-    case 'in_progress': return 'badge-info'
-    case 'passed': return 'badge-success'
-    case 'failed': return 'badge-error'
-    case 'cancelled': return 'badge-warning'
-    default: return 'badge-secondary'
-  }
-}
-
-function convStatusLabel(status: string): string {
-  switch (status) {
-    case 'queued': return 'Queued'
-    case 'in_progress': return 'In Progress'
-    case 'passed': return 'Passed'
-    case 'failed': return 'Failed'
-    case 'cancelled': return 'Cancelled'
-    default: return status
-  }
-}
-
 function convOverallStatus(conv: ScenarioConversationResponse): 'Passed' | 'Failed' {
   if (conv.status === 'queued' || conv.status === 'in_progress') return 'Failed'
   return checkedFields.value.every(f => isPassing(conv, f)) ? 'Passed' : 'Failed'
@@ -194,6 +185,28 @@ function convOverallStatus(conv: ScenarioConversationResponse): 'Passed' | 'Fail
 
 function convOverallStatusBadgeClass(status: 'Passed' | 'Failed'): string {
   return status === 'Passed' ? 'badge-success' : 'badge-error'
+}
+
+function convLifecycleStatusLabel(status: string): string {
+  switch (status) {
+    case 'queued':
+    case 'in_progress': return 'In Progress'
+    case 'passed': return 'Completed'
+    case 'failed': return 'Failed'
+    case 'cancelled': return 'Aborted'
+    default: return status
+  }
+}
+
+function convLifecycleStatusBadgeClass(status: string): string {
+  switch (status) {
+    case 'queued':
+    case 'in_progress': return 'badge-info'
+    case 'passed': return 'badge-success'
+    case 'failed': return 'badge-error'
+    case 'cancelled': return 'badge-warning'
+    default: return 'badge-secondary'
+  }
 }
 
 function openConversation(conv: ScenarioConversationResponse) {
@@ -321,7 +334,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                   <tr v-for="conv in conversations" :key="conv.id" class="table-row">
                     <td class="table-cell-muted whitespace-nowrap">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
                     <td class="table-cell whitespace-nowrap">
-                      <span :class="convStatusBadgeClass(conv.status)">{{ convStatusLabel(conv.status) }}</span>
+                      <span :class="convLifecycleStatusBadgeClass(conv.status)">{{ convLifecycleStatusLabel(conv.status) }}</span>
                     </td>
                     <td
                       v-for="col in extractionColumns"
@@ -475,7 +488,8 @@ function openConversation(conv: ScenarioConversationResponse) {
                     <td class="table-cell-muted w-10">{{ idx + 1 }}</td>
                     <td class="table-cell">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
                     <td class="table-cell">
-                      <span :class="convStatusBadgeClass(conv.status)">{{ convStatusLabel(conv.status) }}</span>
+                      <span v-if="conv.conversationId" :class="getStatusBadgeClass(conversationStatusMap[conv.conversationId] || '')">{{ formatStatusLabel(conversationStatusMap[conv.conversationId] || '') }}</span>
+                      <span v-else :class="convLifecycleStatusBadgeClass(conv.status)">{{ convLifecycleStatusLabel(conv.status) }}</span>
                     </td>
                     <td class="table-cell-muted">
                       <RelativeDate v-if="conv.updatedAt" :date="conv.updatedAt" />
