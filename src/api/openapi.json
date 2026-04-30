@@ -914,6 +914,33 @@
             "$ref": "#/components/schemas/GeminiLlmSettings"
           },
           {
+            "$ref": "#/components/schemas/GroqLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/MistralLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/DeepSeekLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/OpenRouterLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/TogetherAILlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/FireworksAILlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/PerplexityLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/CohereLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/XAILlmSettings"
+          },
+          {
             "$ref": "#/components/schemas/OllamaLlmSettings"
           },
           {
@@ -1900,6 +1927,33 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -4520,6 +4574,33 @@
                   },
                   {
                     "$ref": "#/components/schemas/GeminiLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GroqLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MistralLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TogetherAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FireworksAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PerplexityLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CohereLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/XAILlmSettings"
                   },
                   {
                     "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -8147,6 +8228,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -8322,6 +8430,33 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroqLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MistralLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TogetherAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FireworksAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PerplexityLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CohereLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/XAILlmSettings"
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -8655,6 +8790,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -8760,6 +8922,33 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroqLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MistralLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TogetherAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FireworksAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PerplexityLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CohereLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/XAILlmSettings"
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -9045,6 +9234,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -9159,6 +9375,33 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroqLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MistralLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TogetherAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FireworksAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PerplexityLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CohereLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/XAILlmSettings"
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -9318,6 +9561,33 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -9599,6 +9869,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -9862,6 +10159,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -10043,6 +10367,33 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroqLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MistralLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TogetherAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FireworksAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PerplexityLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CohereLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/XAILlmSettings"
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -16229,6 +16580,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -16515,6 +16893,33 @@
                     "$ref": "#/components/schemas/GeminiLlmSettings"
                   },
                   {
+                    "$ref": "#/components/schemas/GroqLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MistralLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TogetherAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FireworksAILlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PerplexityLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CohereLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/XAILlmSettings"
+                  },
+                  {
                     "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
@@ -16612,6 +17017,33 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -16771,6 +17203,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -16873,6 +17332,33 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -16980,6 +17466,33 @@
               },
               {
                 "$ref": "#/components/schemas/GeminiLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -17763,6 +18276,33 @@
                 "$ref": "#/components/schemas/GeminiLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/GroqLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/MistralLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/TogetherAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/FireworksAILlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/PerplexityLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/CohereLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/XAILlmSettings"
+              },
+              {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
@@ -17879,6 +18419,33 @@
                     },
                     {
                       "$ref": "#/components/schemas/GeminiLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroqLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MistralLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TogetherAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FireworksAILlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PerplexityLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CohereLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/XAILlmSettings"
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -24810,6 +25377,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -25070,6 +25664,33 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/GroqLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/MistralLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TogetherAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/FireworksAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/PerplexityLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/CohereLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/XAILlmSettings"
+                              },
+                              {
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
@@ -25242,6 +25863,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -25449,6 +26097,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -25727,6 +26402,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -25933,6 +26635,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -26204,6 +26933,33 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/GroqLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/MistralLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TogetherAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/FireworksAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/PerplexityLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/CohereLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/XAILlmSettings"
+                              },
+                              {
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
@@ -26385,6 +27141,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -26608,6 +27391,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -26893,6 +27703,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -31908,6 +32745,33 @@
                           },
                           {
                             "$ref": "#/components/schemas/GeminiLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GroqLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/MistralLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/TogetherAILlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/FireworksAILlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/PerplexityLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/CohereLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/XAILlmSettings"
                           },
                           {
                             "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -41873,6 +42737,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -42203,6 +43094,33 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/GroqLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/MistralLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TogetherAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/FireworksAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/PerplexityLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/CohereLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/XAILlmSettings"
+                              },
+                              {
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
@@ -42446,6 +43364,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -42785,6 +43730,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -43136,6 +44108,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -43367,6 +44366,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -43705,6 +44731,33 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/GroqLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/MistralLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TogetherAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/FireworksAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/PerplexityLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/CohereLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/XAILlmSettings"
+                              },
+                              {
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
@@ -43956,6 +45009,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -44202,6 +45282,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -44557,6 +45664,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -47394,6 +48528,33 @@
                           "$ref": "#/components/schemas/GeminiLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
+                        },
+                        {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
@@ -47662,6 +48823,33 @@
                                 "$ref": "#/components/schemas/GeminiLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/GroqLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/MistralLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/TogetherAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/FireworksAILlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/PerplexityLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/CohereLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/XAILlmSettings"
+                              },
+                              {
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
@@ -47842,6 +49030,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
@@ -48072,6 +49287,33 @@
                         },
                         {
                           "$ref": "#/components/schemas/GeminiLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GroqLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MistralLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/DeepSeekLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OpenRouterLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TogetherAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FireworksAILlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/PerplexityLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CohereLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/XAILlmSettings"
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"

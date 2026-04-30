@@ -658,6 +658,15 @@ export type LlmSettings =
   | OpenAILegacyLlmSettings
   | AnthropicLlmSettings
   | GeminiLlmSettings
+  | GroqLlmSettings
+  | MistralLlmSettings
+  | DeepSeekLlmSettings
+  | OpenRouterLlmSettings
+  | TogetherAILlmSettings
+  | FireworksAILlmSettings
+  | PerplexityLlmSettings
+  | CohereLlmSettings
+  | XAILlmSettings
   | OllamaLlmSettings;
 
 export interface ElevenLabsTtsSettings {
@@ -1192,6 +1201,15 @@ export interface FillerSettings {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
@@ -2326,6 +2344,15 @@ export interface UpdateAgentRequest {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
@@ -3856,6 +3883,15 @@ export interface StageResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** ID of the associated agent */
   agentId: string;
@@ -3918,6 +3954,15 @@ export interface StageListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** ID of the associated agent */
     agentId: string;
@@ -4070,6 +4115,15 @@ export interface ClassifierResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
@@ -4112,6 +4166,15 @@ export interface ClassifierListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
@@ -4250,6 +4313,15 @@ export interface ContextTransformerResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
@@ -4294,6 +4366,15 @@ export interface ContextTransformerListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
@@ -4374,6 +4455,15 @@ export interface CreateSmartFunctionTool {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
@@ -4492,6 +4582,15 @@ export interface UpdateSmartFunctionTool {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
@@ -4590,6 +4689,15 @@ export interface ToolResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
@@ -4650,6 +4758,15 @@ export interface ToolListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
@@ -7127,6 +7244,15 @@ export interface FillerSettingsExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
@@ -7233,6 +7359,15 @@ export interface AgentExchangeV1 {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
@@ -7273,6 +7408,15 @@ export interface StageExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
@@ -7325,6 +7469,15 @@ export interface ClassifierExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
@@ -7359,6 +7512,15 @@ export interface ContextTransformerExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
@@ -7396,6 +7558,15 @@ export interface ToolExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
@@ -7703,6 +7874,15 @@ export interface TesterResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Key-value user profile data */
   userProfile: Record<string, any>;
@@ -7747,6 +7927,15 @@ export interface TesterListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Key-value user profile data */
     userProfile: Record<string, any>;

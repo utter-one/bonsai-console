@@ -23,23 +23,27 @@ import {
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
+  CohereLlmSettings,
   ConversationTimelineResponse,
   CostManagementConfig,
   CreateToolRequest,
   DataExtractionEntry,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
+  DeepSeekLlmSettings,
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
   ExportBundle,
   FieldDescriptor,
   FillerSettings,
+  FireworksAILlmSettings,
   FunnelQuery,
   FunnelQueryResponse,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
+  GroqLlmSettings,
   LanguageInfo,
   LatencyPercentilesResponse,
   LatencyStatsResponse,
@@ -51,12 +55,15 @@ import {
   LocalStorageSettings,
   MigrationJob,
   MigrationPreview,
+  MistralLlmSettings,
   ModerationProviderInfo,
   OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
+  OpenRouterLlmSettings,
   ParameterValue,
+  PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProviderModelLimits,
@@ -77,6 +84,7 @@ import {
   StageAction,
   StageActionParameter,
   TelegramChannelConfig,
+  TogetherAILlmSettings,
   TokenUsageStatsResponse,
   TokenUsageTrendResponse,
   ToolParameter,
@@ -86,6 +94,7 @@ import {
   UpdateToolRequest,
   VoiceInfo,
   WhatsAppChannelConfig,
+  XAILlmSettings,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
@@ -2448,6 +2457,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2545,6 +2563,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
@@ -2627,6 +2654,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2719,6 +2755,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2844,6 +2889,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2944,6 +2998,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3043,6 +3106,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
@@ -3127,6 +3199,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3223,6 +3304,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3350,6 +3440,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -5377,6 +5476,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
@@ -9619,6 +9727,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -9736,6 +9853,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** ID of the associated agent */
           agentId: string;
@@ -9838,6 +9964,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -9973,6 +10108,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -10118,6 +10262,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -10204,6 +10357,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10319,6 +10481,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
@@ -10419,6 +10590,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10500,6 +10680,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10643,6 +10832,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -11768,6 +11966,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
@@ -11867,6 +12074,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Key-value user profile data */
           userProfile: Record<string, any>;
@@ -11951,6 +12167,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
@@ -12049,6 +12274,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
