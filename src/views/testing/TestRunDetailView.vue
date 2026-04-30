@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectSelectionStore } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -29,6 +29,64 @@ const scenario = ref<ScenarioResponse | null>(null)
 const conversations = ref<ScenarioConversationResponse[]>([])
 const testerMap = ref<Record<string, string>>({})
 const conversationStatusMap = ref<Record<string, string>>({})
+
+let intervalId: ReturnType<typeof setInterval> | null = null
+
+function stopPolling() {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+    intervalId = null
+  }
+}
+
+async function pollRun() {
+  try {
+    const runData = await (apiClient as any).projectsScenarioRunsDetail(projectId.value, runId.value)
+    run.value = runData as ScenarioRunResponse
+
+    const convsData = await (apiClient as any).projectsScenarioConversationsList(projectId.value, {
+      scenarioRunId: runId.value,
+      limit: 1000,
+    })
+    const items = (convsData as { items: ScenarioConversationResponse[] }).items
+    conversations.value = items
+
+    const conversationIds = items
+      .map(c => c.conversationId)
+      .filter((id): id is string => id != null)
+    if (conversationIds.length > 0) {
+      const underlyingConvs = await (apiClient as any).projectsConversationsList(projectId.value, {
+        limit: conversationIds.length,
+        filters: { id: conversationIds },
+      })
+      conversationStatusMap.value = Object.fromEntries((underlyingConvs as { items: { id: string; status: string }[] }).items.map(c => [c.id, c.status]))
+    }
+
+    const r = runData as ScenarioRunResponse
+    const isTerminal = r.status === ScenarioRunStatus.Passed ||
+      r.status === ScenarioRunStatus.Failed ||
+      r.status === ScenarioRunStatus.Cancelled
+    if (isTerminal) {
+      stopPolling()
+    }
+  } catch {
+    // Silently ignore polling errors
+  }
+}
+
+watch(run, (newRun) => {
+  if (!newRun) return
+  const isTerminal = newRun.status === ScenarioRunStatus.Passed ||
+    newRun.status === ScenarioRunStatus.Failed ||
+    newRun.status === ScenarioRunStatus.Cancelled
+  if (!isTerminal && !intervalId) {
+    intervalId = setInterval(pollRun, 5000)
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'pass-fail', label: 'Pass / Fail' },
