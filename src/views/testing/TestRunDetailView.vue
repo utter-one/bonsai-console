@@ -187,6 +187,15 @@ function convStatusLabel(status: string): string {
   }
 }
 
+function convOverallStatus(conv: ScenarioConversationResponse): 'Passed' | 'Failed' {
+  if (conv.status === 'queued' || conv.status === 'in_progress') return 'Failed'
+  return checkedFields.value.every(f => isPassing(conv, f)) ? 'Passed' : 'Failed'
+}
+
+function convOverallStatusBadgeClass(status: 'Passed' | 'Failed'): string {
+  return status === 'Passed' ? 'badge-success' : 'badge-error'
+}
+
 function openConversation(conv: ScenarioConversationResponse) {
   if (!conv.conversationId) return
   router.push({ name: 'monitor.conversationDetail', params: { conversationId: conv.conversationId } })
@@ -373,7 +382,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                   <thead class="table-header">
                     <tr>
                       <th class="table-header-cell whitespace-nowrap">Tester</th>
-                      <th class="table-header-cell whitespace-nowrap">Conv. Status</th>
+                      <th class="table-header-cell whitespace-nowrap">Status</th>
                       <th
                         v-for="field in checkedFields"
                         :key="field.label"
@@ -387,7 +396,10 @@ function openConversation(conv: ScenarioConversationResponse) {
                     <tr v-for="conv in conversations" :key="conv.id" class="table-row">
                       <td class="table-cell-muted whitespace-nowrap">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
                       <td class="table-cell whitespace-nowrap">
-                        <span :class="convStatusBadgeClass(conv.status)">{{ convStatusLabel(conv.status) }}</span>
+                        <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">
+                          <Clock class="w-4 h-4 text-gray-400 inline-block" />
+                        </template>
+                        <span v-else :class="convOverallStatusBadgeClass(convOverallStatus(conv))">{{ convOverallStatus(conv) }}</span>
                       </td>
                       <td
                         v-for="field in checkedFields"
