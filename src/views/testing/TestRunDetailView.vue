@@ -235,6 +235,17 @@ function openConversation(conv: ScenarioConversationResponse) {
           <p v-if="scenario" class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
             Scenario: <span class="font-medium text-gray-800 dark:text-gray-200">{{ scenario.name }}</span>
           </p>
+          <div v-if="run" class="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>Conversations: <span class="font-medium text-gray-800 dark:text-gray-200">{{ run.totalConversations }}</span></span>
+            <span>Testers: <span class="font-medium text-gray-800 dark:text-gray-200">{{ Object.keys(run.testers).length }}</span></span>
+            <span v-if="run.createdAt">Started: <RelativeDate :date="run.createdAt" /></span>
+            <span v-if="passStats">Pass rate:
+              <span :class="passStats.pct >= 100 ? 'text-green-600 dark:text-green-400' : passStats.pct > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold">
+                {{ passStats.pct }}%
+              </span>
+              <span class="text-gray-400 ml-1">({{ passStats.passed }}/{{ passStats.total }})</span>
+            </span>
+          </div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -243,20 +254,6 @@ function openConversation(conv: ScenarioConversationResponse) {
           Refresh
         </button>
       </div>
-    </div>
-
-    <!-- Run stats bar -->
-    <div v-if="run" class="hidden md:flex items-center gap-6 px-8 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm text-gray-600 dark:text-gray-400">
-      <span>Conversations: <span class="font-medium text-gray-800 dark:text-gray-200">{{ run.totalConversations }}</span></span>
-      <span>Testers: <span class="font-medium text-gray-800 dark:text-gray-200">{{ Object.keys(run.testers).length }}</span></span>
-      <span v-if="run.createdAt">Started: <RelativeDate :date="run.createdAt" /></span>
-      <span v-if="passStats" class="ml-auto">
-        Pass rate:
-        <span :class="passStats.pct >= 100 ? 'text-green-600 dark:text-green-400' : passStats.pct > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold">
-          {{ passStats.pct }}%
-        </span>
-        <span class="text-gray-400 ml-1">({{ passStats.passed }}/{{ passStats.total }})</span>
-      </span>
     </div>
 
     <!-- Tabs -->
