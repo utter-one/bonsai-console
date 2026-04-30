@@ -29,4 +29,6 @@ docs/.vitepress/cache
 *.sw?
 
 .notes
+
 .opencode/*
+opencode.json
