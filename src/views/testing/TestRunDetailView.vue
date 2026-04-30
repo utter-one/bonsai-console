@@ -8,6 +8,7 @@ import TabContent from '@/components/TabContent.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
 import apiClient from '@/api/client'
+import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { ScenarioRunResponse, ScenarioResponse, ScenarioConversationResponse, TesterResponse } from '@/api/types'
 import { ScenarioRunStatus } from '@/api/types'
@@ -227,7 +228,7 @@ function openConversation(conv: ScenarioConversationResponse) {
           <div class="flex items-center gap-3 mb-1">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Test Run</h1>
             <span v-if="run" :class="runStatusBadgeClass(run.status)" :title="run.statusDetails || undefined">
-              {{ run.status }}
+              {{ formatEnum(run.status) }}
             </span>
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ runId }}</p>
