@@ -18057,6 +18057,24 @@
           "expectedValue": {
             "nullable": true,
             "description": "Expected value of the variable — defines a successful outcome when provided"
+          },
+          "expectedMode": {
+            "type": "string",
+            "enum": [
+              "exists",
+              "not_exists",
+              "eq",
+              "contains",
+              "includes",
+              "matches",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "in",
+              "nin"
+            ],
+            "description": "Comparison mode for this value. Default is \"eq\" (strict equality)"
           }
         },
         "required": [
@@ -18605,9 +18623,9 @@
           "dataPostProcessingExpected": {
             "type": "object",
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ExpectedValueEntry"
             },
-            "description": "Expected values after post-processing — defines additional success criteria"
+            "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
           },
           "tags": {
             "type": "array",
@@ -18631,6 +18649,33 @@
           "startingStageId",
           "maxTurns"
         ]
+      },
+      "ExpectedValueEntry": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "nullable": true,
+            "description": "Expected value to compare against"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "exists",
+              "not_exists",
+              "eq",
+              "contains",
+              "includes",
+              "matches",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "in",
+              "nin"
+            ],
+            "description": "Comparison mode. Default is \"eq\" (strict equality)"
+          }
+        }
       },
       "UpdateScenarioRequest": {
         "type": "object",
@@ -18693,9 +18738,9 @@
             "type": "object",
             "nullable": true,
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ExpectedValueEntry"
             },
-            "description": "Updated post-processing expected values"
+            "description": "Updated post-processing expected values — each entry has an optional value and comparison mode (default \"eq\")"
           },
           "tags": {
             "type": "array",
@@ -18799,9 +18844,9 @@
             "type": "object",
             "nullable": true,
             "additionalProperties": {
-              "nullable": true
+              "$ref": "#/components/schemas/ExpectedValueEntry"
             },
-            "description": "Expected values after post-processing"
+            "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
           },
           "tags": {
             "type": "array",
@@ -18926,9 +18971,9 @@
                   "type": "object",
                   "nullable": true,
                   "additionalProperties": {
-                    "nullable": true
+                    "$ref": "#/components/schemas/ExpectedValueEntry"
                   },
-                  "description": "Expected values after post-processing"
+                  "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                 },
                 "tags": {
                   "type": "array",
@@ -49570,9 +49615,9 @@
                   "dataPostProcessingExpected": {
                     "type": "object",
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ExpectedValueEntry"
                     },
-                    "description": "Expected values after post-processing — defines additional success criteria"
+                    "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                   },
                   "tags": {
                     "type": "array",
@@ -49670,9 +49715,9 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ExpectedValueEntry"
                       },
-                      "description": "Expected values after post-processing"
+                      "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                     },
                     "tags": {
                       "type": "array",
@@ -49947,9 +49992,9 @@
                             "type": "object",
                             "nullable": true,
                             "additionalProperties": {
-                              "nullable": true
+                              "$ref": "#/components/schemas/ExpectedValueEntry"
                             },
-                            "description": "Expected values after post-processing"
+                            "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                           },
                           "tags": {
                             "type": "array",
@@ -50138,9 +50183,9 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ExpectedValueEntry"
                       },
-                      "description": "Expected values after post-processing"
+                      "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                     },
                     "tags": {
                       "type": "array",
@@ -50296,9 +50341,9 @@
                     "type": "object",
                     "nullable": true,
                     "additionalProperties": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ExpectedValueEntry"
                     },
-                    "description": "Updated post-processing expected values"
+                    "description": "Updated post-processing expected values — each entry has an optional value and comparison mode (default \"eq\")"
                   },
                   "tags": {
                     "type": "array",
@@ -50397,9 +50442,9 @@
                       "type": "object",
                       "nullable": true,
                       "additionalProperties": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/ExpectedValueEntry"
                       },
-                      "description": "Expected values after post-processing"
+                      "description": "Expected values after post-processing — each entry has an optional value and comparison mode (default \"eq\")"
                     },
                     "tags": {
                       "type": "array",
