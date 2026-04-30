@@ -6,7 +6,7 @@ import RelativeDate from '@/components/RelativeDate.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
-import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
+import { ArrowLeft, Download, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
 import apiClient from '@/api/client'
 import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
@@ -305,12 +305,6 @@ function openConversation(conv: ScenarioConversationResponse) {
             </span>
           </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="btn-secondary flex items-center gap-2" :disabled="isLoading" @click="loadAll">
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
-          Refresh
-        </button>
       </div>
     </div>
 
