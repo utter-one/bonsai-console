@@ -6,7 +6,7 @@ import RelativeDate from '@/components/RelativeDate.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
-import { ArrowLeft, Download, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
+import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
 import apiClient from '@/api/client'
 import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
@@ -288,6 +288,7 @@ function openConversation(conv: ScenarioConversationResponse) {
             <span v-if="run" :class="runStatusBadgeClass(run.status)" :title="run.statusDetails || undefined">
               {{ formatEnum(run.status) }}
             </span>
+            <RefreshCw v-if="run && (run.status === ScenarioRunStatus.Queued || run.status === ScenarioRunStatus.InProgress)" class="w-4 h-4 text-gray-400 animate-spin" />
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ runId }}</p>
           <p v-if="scenario" class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
