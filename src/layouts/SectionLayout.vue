@@ -52,7 +52,12 @@ function navigateTo(routeName: string) {
         </div>
         <nav class="p-2">
           <template v-for="(item, idx) in menuItems" :key="item.name || idx">
-            <hr v-if="item.divider" class="my-2 border-gray-200 dark:border-gray-700" />
+            <hr v-if="item.divider && !item.label" class="my-2 border-gray-200 dark:border-gray-700" />
+            <div v-else-if="item.divider" class="my-2 px-3 text-xs uppercase font-medium text-gray-500 dark:text-gray-400 flex flex-row items-center gap-2">
+              <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
+              {{ item.label }}
+              <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
+            </div>
             <button
               v-else
               :class="[
