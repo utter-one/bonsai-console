@@ -34,6 +34,7 @@ import {
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
+  ExpectedValueEntry,
   ExportBundle,
   FieldDescriptor,
   FillerSettings,
@@ -12420,8 +12421,8 @@ export class Api<
        * @minLength 1
        */
       contextTransformerId?: string;
-      /** Expected values after post-processing — defines additional success criteria */
-      dataPostProcessingExpected?: Record<string, any>;
+      /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+      dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
       /**
        * Tags for categorizing and filtering this scenario
        * @default []
@@ -12458,8 +12459,8 @@ export class Api<
         dataExtraction: DataExtractionEntry[] | null;
         /** ID of the context transformer for post-processing */
         contextTransformerId: string | null;
-        /** Expected values after post-processing */
-        dataPostProcessingExpected: Record<string, any>;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
         /** Tags for categorizing and filtering */
         tags: string[];
         /** Additional metadata */
@@ -12560,8 +12561,8 @@ export class Api<
           dataExtraction: DataExtractionEntry[] | null;
           /** ID of the context transformer for post-processing */
           contextTransformerId: string | null;
-          /** Expected values after post-processing */
-          dataPostProcessingExpected: Record<string, any>;
+          /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+          dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
           /** Tags for categorizing and filtering */
           tags: string[];
           /** Additional metadata */
@@ -12647,8 +12648,8 @@ export class Api<
         dataExtraction: DataExtractionEntry[] | null;
         /** ID of the context transformer for post-processing */
         contextTransformerId: string | null;
-        /** Expected values after post-processing */
-        dataPostProcessingExpected: Record<string, any>;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
         /** Tags for categorizing and filtering */
         tags: string[];
         /** Additional metadata */
@@ -12722,8 +12723,8 @@ export class Api<
        * @minLength 1
        */
       contextTransformerId?: string | null;
-      /** Updated post-processing expected values */
-      dataPostProcessingExpected?: Record<string, any>;
+      /** Updated post-processing expected values — each entry has an optional value and comparison mode (default "eq") */
+      dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -12762,8 +12763,8 @@ export class Api<
         dataExtraction: DataExtractionEntry[] | null;
         /** ID of the context transformer for post-processing */
         contextTransformerId: string | null;
-        /** Expected values after post-processing */
-        dataPostProcessingExpected: Record<string, any>;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
         /** Tags for categorizing and filtering */
         tags: string[];
         /** Additional metadata */

@@ -7770,6 +7770,20 @@ export interface DataExtractionEntry {
   varName: string;
   /** Expected value of the variable — defines a successful outcome when provided */
   expectedValue?: any;
+  /** Comparison mode for this value. Default is "eq" (strict equality) */
+  expectedMode?:
+    | "exists"
+    | "not_exists"
+    | "eq"
+    | "contains"
+    | "includes"
+    | "matches"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "in"
+    | "nin";
 }
 
 export interface CreateTesterRequest {
@@ -8023,8 +8037,8 @@ export interface CreateScenarioRequest {
    * @minLength 1
    */
   contextTransformerId?: string;
-  /** Expected values after post-processing — defines additional success criteria */
-  dataPostProcessingExpected?: Record<string, any>;
+  /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
   /**
    * Tags for categorizing and filtering this scenario
    * @default []
@@ -8032,6 +8046,25 @@ export interface CreateScenarioRequest {
   tags?: string[];
   /** Additional scenario-specific metadata */
   metadata?: Record<string, any>;
+}
+
+export interface ExpectedValueEntry {
+  /** Expected value to compare against */
+  value?: any;
+  /** Comparison mode. Default is "eq" (strict equality) */
+  mode?:
+    | "exists"
+    | "not_exists"
+    | "eq"
+    | "contains"
+    | "includes"
+    | "matches"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "in"
+    | "nin";
 }
 
 export interface UpdateScenarioRequest {
@@ -8070,8 +8103,8 @@ export interface UpdateScenarioRequest {
    * @minLength 1
    */
   contextTransformerId?: string | null;
-  /** Updated post-processing expected values */
-  dataPostProcessingExpected?: Record<string, any>;
+  /** Updated post-processing expected values — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
   /** Updated tags */
   tags?: string[];
   /** Updated metadata */
@@ -8116,8 +8149,8 @@ export interface ScenarioResponse {
   dataExtraction: DataExtractionEntry[] | null;
   /** ID of the context transformer for post-processing */
   contextTransformerId: string | null;
-  /** Expected values after post-processing */
-  dataPostProcessingExpected: Record<string, any>;
+  /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
   /** Tags for categorizing and filtering */
   tags: string[];
   /** Additional metadata */
@@ -8163,8 +8196,8 @@ export interface ScenarioListResponse {
     dataExtraction: DataExtractionEntry[] | null;
     /** ID of the context transformer for post-processing */
     contextTransformerId: string | null;
-    /** Expected values after post-processing */
-    dataPostProcessingExpected: Record<string, any>;
+    /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+    dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
     /** Tags for categorizing and filtering */
     tags: string[];
     /** Additional metadata */

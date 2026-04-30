@@ -42,11 +42,28 @@ const form = ref({
   personaCanHangUp: false,
   conversationOpener: '',
   contextTransformerId: '',
-  dataExtraction: [] as Array<{ stageId: string; varName: string; expectedValue: string }>,
-  dataPostProcessingPairs: [] as Array<{ key: string; value: string }>,
+  dataExtraction: [] as Array<{ stageId: string; varName: string; expectedValue: string; expectedMode: 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin' }>,
+  dataPostProcessingPairs: [] as Array<{ key: string; value: string; mode: 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin' }>,
   tags: [] as string[],
   metadata: {} as Record<string, any>,
 })
+
+const COMPARISON_MODES = [
+  { value: 'exists', label: 'Exists' },
+  { value: 'not_exists', label: 'Not Exists' },
+  { value: 'eq', label: 'Equals' },
+  { value: 'contains', label: 'Contains' },
+  { value: 'includes', label: 'Includes' },
+  { value: 'matches', label: 'Matches (regex)' },
+  { value: 'gt', label: 'Greater Than' },
+  { value: 'gte', label: 'Greater Than or Equal' },
+  { value: 'lt', label: 'Less Than' },
+  { value: 'lte', label: 'Less Than or Equal' },
+  { value: 'in', label: 'In (array)' },
+  { value: 'nin', label: 'Not In (array)' },
+] as const
+
+const MODES_WITHOUT_VALUE = new Set(['exists', 'not_exists'])
 
 function serializeValue(v: any): string {
   if (v === undefined || v === null) return ''
@@ -57,6 +74,10 @@ function serializeValue(v: any): string {
 function parseValue(v: string): any {
   if (v === '') return undefined
   try { return JSON.parse(v) } catch { return v }
+}
+
+function modeRequiresValue(mode: string): boolean {
+  return !MODES_WITHOUT_VALUE.has(mode)
 }
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -126,10 +147,12 @@ async function loadScenario() {
           stageId: e.stageId,
           varName: e.varName,
           expectedValue: serializeValue(e.expectedValue),
+          expectedMode: e.expectedMode || 'eq',
         })),
         dataPostProcessingPairs: Object.entries(currentScenario.value.dataPostProcessingExpected || {}).map(([key, value]) => ({
           key,
-          value: serializeValue(value),
+          value: serializeValue(typeof value === 'object' && value !== null ? value.value : value),
+          mode: typeof value === 'object' && value !== null ? (value.mode || 'eq') : 'eq',
         })),
         tags: currentScenario.value.tags || [],
         metadata: currentScenario.value.metadata || {},
@@ -182,9 +205,16 @@ async function handleSubmit() {
           stageId: e.stageId,
           varName: e.varName,
           ...(e.expectedValue !== '' ? { expectedValue: parseValue(e.expectedValue) } : {}),
+          expectedMode: e.expectedMode as 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin',
         })),
         dataPostProcessingExpected: Object.fromEntries(
-          form.value.dataPostProcessingPairs.filter(p => p.key).map(p => [p.key, parseValue(p.value)])
+          form.value.dataPostProcessingPairs.filter(p => p.key).map(p => {
+            const entry: { value?: any; mode: 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin' } = {
+              mode: p.mode as 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin',
+            }
+            if (p.value !== '') entry.value = parseValue(p.value)
+            return [p.key, entry]
+          })
         ),
         tags: form.value.tags,
         metadata: form.value.metadata,
@@ -209,10 +239,17 @@ async function handleSubmit() {
         stageId: e.stageId,
         varName: e.varName,
         ...(e.expectedValue !== '' ? { expectedValue: parseValue(e.expectedValue) } : {}),
+        expectedMode: e.expectedMode as 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin',
       }))
       if (filteredExtraction.length > 0) createData.dataExtraction = filteredExtraction
       const filteredPostProcessing = Object.fromEntries(
-        form.value.dataPostProcessingPairs.filter(p => p.key).map(p => [p.key, parseValue(p.value)])
+        form.value.dataPostProcessingPairs.filter(p => p.key).map(p => {
+          const entry: { value?: any; mode: 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin' } = {
+            mode: p.mode as 'exists' | 'not_exists' | 'eq' | 'contains' | 'includes' | 'matches' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'nin',
+          }
+          if (p.value !== '') entry.value = parseValue(p.value)
+          return [p.key, entry]
+        })
       )
       if (Object.keys(filteredPostProcessing).length > 0) createData.dataPostProcessingExpected = filteredPostProcessing
 
@@ -426,16 +463,17 @@ function goBack() {
 
               <FormField label="Data Extraction" :error="error" path="dataExtraction" class="w-full" help="Variables to extract from conversation stages and their expected values">
                 <div class="space-y-2">
-                  <div v-if="form.dataExtraction.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] gap-2 px-1">
+                  <div v-if="form.dataExtraction.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 px-1">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Stage</span>
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Variable Name</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Comparison Mode</span>
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Expected Value <span class="font-normal">(optional)</span></span>
                     <span></span>
                   </div>
                   <div
                     v-for="(entry, index) in form.dataExtraction"
                     :key="index"
-                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center"
+                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-center"
                   >
                     <select
                       v-model="entry.stageId"
@@ -467,12 +505,22 @@ function goBack() {
                       class="form-input"
                       :disabled="isLoading || !entry.stageId"
                     />
+                    <select
+                      v-model="entry.expectedMode"
+                      class="form-select-auto"
+                      :disabled="isLoading"
+                      @change="entry.expectedValue = modeRequiresValue(entry.expectedMode) ? entry.expectedValue : ''"
+                    >
+                      <option v-for="m in COMPARISON_MODES" :key="m.value" :value="m.value">
+                        {{ m.label }}
+                      </option>
+                    </select>
                     <input
                       v-model="entry.expectedValue"
                       type="text"
                       placeholder="Expected value (JSON or text)"
                       class="form-input"
-                      :disabled="isLoading"
+                      :disabled="isLoading || !modeRequiresValue(entry.expectedMode)"
                     />
                     <button
                       type="button"
@@ -490,7 +538,7 @@ function goBack() {
                 </div>
                 <button
                   type="button"
-                  @click="form.dataExtraction.push({ stageId: '', varName: '', expectedValue: '' })"
+                  @click="form.dataExtraction.push({ stageId: '', varName: '', expectedValue: '', expectedMode: 'eq' })"
                   class="btn-secondary mt-3 text-sm"
                   :disabled="isLoading"
                 >
@@ -500,15 +548,16 @@ function goBack() {
 
               <FormField label="Post-Processing Expected" :error="error" path="dataPostProcessingExpected" class="w-full" help="Expected key-value pairs in the post-processed extraction results">
                 <div class="space-y-2">
-                  <div v-if="form.dataPostProcessingPairs.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_auto] gap-2 px-1">
+                  <div v-if="form.dataPostProcessingPairs.length > 0" class="hidden md:grid grid-cols-[1fr_1fr_1fr_auto] gap-2 px-1">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Key</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Comparison Mode</span>
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Expected Value</span>
                     <span></span>
                   </div>
                   <div
                     v-for="(pair, index) in form.dataPostProcessingPairs"
                     :key="index"
-                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-center"
+                    class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center"
                   >
                     <input
                       v-model="pair.key"
@@ -517,12 +566,22 @@ function goBack() {
                       class="form-input"
                       :disabled="isLoading"
                     />
+                    <select
+                      v-model="pair.mode"
+                      class="form-select-auto"
+                      :disabled="isLoading"
+                      @change="pair.value = modeRequiresValue(pair.mode) ? pair.value : ''"
+                    >
+                      <option v-for="m in COMPARISON_MODES" :key="m.value" :value="m.value">
+                        {{ m.label }}
+                      </option>
+                    </select>
                     <input
                       v-model="pair.value"
                       type="text"
                       placeholder="Expected value (JSON or text)"
                       class="form-input"
-                      :disabled="isLoading"
+                      :disabled="isLoading || !modeRequiresValue(pair.mode)"
                     />
                     <button
                       type="button"
@@ -540,7 +599,7 @@ function goBack() {
                 </div>
                 <button
                   type="button"
-                  @click="form.dataPostProcessingPairs.push({ key: '', value: '' })"
+                  @click="form.dataPostProcessingPairs.push({ key: '', value: '', mode: 'eq' })"
                   class="btn-secondary mt-3 text-sm"
                   :disabled="isLoading"
                 >
