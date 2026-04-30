@@ -22,7 +22,7 @@ const runId = computed(() => route.params.runId as string)
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
-const activeTab = ref<'results' | 'pass-fail' | 'conversations'>('results')
+const activeTab = ref<'results' | 'pass-fail' | 'conversations'>('pass-fail')
 
 const run = ref<ScenarioRunResponse | null>(null)
 const scenario = ref<ScenarioResponse | null>(null)
@@ -279,7 +279,7 @@ function openConversation(conv: ScenarioConversationResponse) {
 
       <!-- Results Table Tab -->
       <TabContent v-model="activeTab" tab="results">
-        <div class="p-6">
+        <div class="px-2">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-base font-semibold text-gray-900 dark:text-white">Results Table</h2>
@@ -360,7 +360,7 @@ function openConversation(conv: ScenarioConversationResponse) {
 
       <!-- Pass / Fail Tab -->
       <TabContent v-model="activeTab" tab="pass-fail">
-        <div class="p-6">
+        <div class="px-2">
           <div class="mb-4">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Pass / Fail</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -455,7 +455,7 @@ function openConversation(conv: ScenarioConversationResponse) {
 
       <!-- Conversations Tab -->
       <TabContent v-model="activeTab" tab="conversations">
-        <div class="p-6">
+        <div class="px-2">
           <div class="mb-4">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Conversations</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400">Conversations generated in this run. Click to open the full transcript.</p>
