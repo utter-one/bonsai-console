@@ -7068,6 +7068,16 @@ export interface MigrationSelection {
   testerIds?: string[];
   /** Specific scenario IDs to include. */
   scenarioIds?: string[];
+  /** Specific guardrail IDs to include. */
+  guardrailIds?: string[];
+  /** Specific copy decorator IDs to include. */
+  copyDecoratorIds?: string[];
+  /** Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers. */
+  sampleCopyIds?: string[];
+  /** Specific saved slice query IDs to include. */
+  savedSliceQueryIds?: string[];
+  /** Specific saved funnel query IDs to include. */
+  savedFunnelQueryIds?: string[];
 }
 
 export interface MigrationPreview {
@@ -7091,6 +7101,16 @@ export interface MigrationPreview {
   knowledgeCategories: EntityStub[];
   /** Knowledge item stubs that would be included — name is the question text */
   knowledgeItems: EntityStub[];
+  /** Guardrail stubs that would be included */
+  guardrails: EntityStub[];
+  /** Copy decorator stubs that would be included */
+  copyDecorators: EntityStub[];
+  /** Sample copy stubs that would be included */
+  sampleCopies: EntityStub[];
+  /** Saved slice query stubs that would be included */
+  savedSliceQueries: EntityStub[];
+  /** Saved funnel query stubs that would be included */
+  savedFunnelQueries: EntityStub[];
   /** Stage stubs that would be included */
   stages: EntityStub[];
   /** API key stubs that would be included */
@@ -7131,6 +7151,16 @@ export interface ExportBundle {
   knowledgeCategories: Record<string, any>[];
   /** Knowledge item records — depend on knowledgeCategories */
   knowledgeItems: Record<string, any>[];
+  /** Copy decorator template records — depend on projects */
+  copyDecorators: Record<string, any>[];
+  /** Sample copy records — depend on projects and copyDecorators */
+  sampleCopies: Record<string, any>[];
+  /** Saved slice query records — depend on projects */
+  savedSliceQueries: Record<string, any>[];
+  /** Saved funnel query records — depend on projects */
+  savedFunnelQueries: Record<string, any>[];
+  /** Guardrail records — depend on projects */
+  guardrails: Record<string, any>[];
   /** Stage records — depend on projects, agents, and classifiers */
   stages: Record<string, any>[];
   /** API key records — depend on projects */

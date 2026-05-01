@@ -7275,6 +7275,16 @@ export class Api<
       testerIds?: string | string[];
       /** Specific scenario IDs to export. */
       scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -7327,6 +7337,16 @@ export class Api<
         testerIds?: string[];
         /** Specific scenario IDs to include. */
         scenarioIds?: string[];
+        /** Specific guardrail IDs to include. */
+        guardrailIds?: string[];
+        /** Specific copy decorator IDs to include. */
+        copyDecoratorIds?: string[];
+        /** Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers. */
+        sampleCopyIds?: string[];
+        /** Specific saved slice query IDs to include. */
+        savedSliceQueryIds?: string[];
+        /** Specific saved funnel query IDs to include. */
+        savedFunnelQueryIds?: string[];
       };
       /**
        * If true, bypass schema hash mismatch check
@@ -11749,6 +11769,16 @@ export class Api<
       testerIds?: string | string[];
       /** Specific scenario IDs to export. */
       scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -11795,6 +11825,16 @@ export class Api<
       testerIds?: string | string[];
       /** Specific scenario IDs to export. */
       scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>

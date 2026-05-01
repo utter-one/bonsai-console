@@ -36,6 +36,13 @@ const ENTITY_GROUPS: EntityGroup[] = [
   { label: 'Knowledge Categories',  previewKey: 'knowledgeCategories',  selectionKey: 'knowledgeCategoryIds', projectScoped: true, description: 'Pulls all child knowledge items' },
   { label: 'Providers',             previewKey: 'providers',            selectionKey: 'providerIds' },
   { label: 'API Keys',              previewKey: 'apiKeys',              selectionKey: 'apiKeyIds' },
+  { label: 'Testers',               previewKey: 'testers',              selectionKey: 'testerIds',          projectScoped: true, description: 'Pulls in referenced project' },
+  { label: 'Scenarios',             previewKey: 'scenarios',            selectionKey: 'scenarioIds',        projectScoped: true, description: 'Pulls in referenced project' },
+  { label: 'Guardrails',            previewKey: 'guardrails',           selectionKey: 'guardrailIds',       projectScoped: true },
+  { label: 'Copy Decorators',       previewKey: 'copyDecorators',       selectionKey: 'copyDecoratorIds',   projectScoped: true, description: 'Pulls in referenced copy decorators' },
+  { label: 'Sample Copies',         previewKey: 'sampleCopies',         selectionKey: 'sampleCopyIds',      projectScoped: true, description: 'Transitively pulls in referenced copyDecorators and classifiers' },
+  { label: 'Saved Slice Queries',   previewKey: 'savedSliceQueries',    selectionKey: 'savedSliceQueryIds', projectScoped: true },
+  { label: 'Saved Funnel Queries',  previewKey: 'savedFunnelQueries',   selectionKey: 'savedFunnelQueryIds',projectScoped: true },
 ]
 
 // Steps 
@@ -92,7 +99,8 @@ function onProjectFilterChange() {
 
 function getGroupStubs(group: EntityGroup): EntityStub[] {
   if (!preview.value) return []
-  const all = preview.value[group.previewKey] as EntityStub[]
+  const all = preview.value[group.previewKey] as EntityStub[] | undefined
+  if (!all) return []
   if (selectedProjectFilter.value === 'all') return all
   if (group.previewKey === 'projects') return all.filter(s => s.id === selectedProjectFilter.value)
   if (group.projectScoped) return all.filter(s => s.projectId === selectedProjectFilter.value)
@@ -152,7 +160,10 @@ const totalSelectedCount = computed(() => {
 
 const nonEmptyGroups = computed(() => {
   if (!preview.value) return []
-  return ENTITY_GROUPS.filter(g => (preview.value![g.previewKey] as EntityStub[]).length > 0)
+  return ENTITY_GROUPS.filter(g => {
+    const stubs = preview.value![g.previewKey] as EntityStub[] | undefined
+    return stubs ? stubs.length > 0 : false
+  })
 })
 
 const customSelectionValid = computed(() => totalSelectedCount.value > 0)
