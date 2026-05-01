@@ -2093,6 +2093,8 @@ export class Api<
       to?: string | null;
       /** Filter to a single conversation */
       conversationId?: string;
+      /** Filter analytics to conversations used by this scenario run */
+      scenarioRunId?: string;
       /** Additional equality filters: key = dimension ID, value = exact match value */
       filters?: Record<string, string>;
       /**
@@ -2254,12 +2256,22 @@ export class Api<
    */
   projectsAnalyticsFunnelsQueryCreate = (
     projectId: string,
+    query: {
+      /**
+       * Project identifier
+       * @minLength 1
+       */
+      projectId: string;
+      /** Filter funnels to conversations used by this scenario run */
+      scenarioRunId?: string;
+    },
     data: FunnelQuery,
     params: RequestParams = {},
   ) =>
     this.request<FunnelQueryResponse, void>({
       path: `/api/projects/${projectId}/analytics/funnels/query`,
       method: "POST",
+      query: query,
       body: data,
       secure: true,
       type: ContentType.Json,

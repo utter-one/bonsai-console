@@ -10,6 +10,8 @@ import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCirc
 import apiClient from '@/api/client'
 import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
+import AnalyticsExplorer from '@/components/analytics/AnalyticsExplorer.vue'
+import AnalyticsFunnels from '@/components/analytics/AnalyticsFunnels.vue'
 import type { ScenarioRunResponse, ScenarioResponse, ScenarioConversationResponse, TesterResponse } from '@/api/types'
 import { ScenarioRunStatus } from '@/api/types'
 
@@ -22,7 +24,7 @@ const runId = computed(() => route.params.runId as string)
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
-const activeTab = ref<'results' | 'pass-fail' | 'conversations'>('pass-fail')
+const activeTab = ref<'results' | 'pass-fail' | 'conversations' | 'explorer' | 'funnels'>('pass-fail')
 
 const run = ref<ScenarioRunResponse | null>(null)
 const scenario = ref<ScenarioResponse | null>(null)
@@ -92,6 +94,8 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'pass-fail', label: 'Pass / Fail' },
   { key: 'results', label: 'Results Table' },
   { key: 'conversations', label: 'Conversations' },
+  { key: 'explorer', label: 'Explorer' },
+  { key: 'funnels', label: 'Funnels' },
 ])
 
 onMounted(() => loadAll())
@@ -560,6 +564,16 @@ function openConversation(conv: ScenarioConversationResponse) {
             </div>
           </div>
         </div>
+      </TabContent>
+
+      <!-- Explorer Tab -->
+      <TabContent v-model="activeTab" tab="explorer">
+        <AnalyticsExplorer :project-id="projectId" :scenario-run-id="runId" />
+      </TabContent>
+
+      <!-- Funnels Tab -->
+      <TabContent v-model="activeTab" tab="funnels">
+        <AnalyticsFunnels :project-id="projectId" :scenario-run-id="runId" />
       </TabContent>
 
     </div>
