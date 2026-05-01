@@ -14763,6 +14763,10 @@
             "type": "string",
             "description": "Filter to a single conversation"
           },
+          "scenarioRunId": {
+            "type": "string",
+            "description": "Filter analytics to conversations used by this scenario run"
+          },
           "filters": {
             "type": "object",
             "additionalProperties": {
@@ -24776,6 +24780,16 @@
           },
           {
             "schema": {
+              "type": "string",
+              "description": "Filter analytics to conversations used by this scenario run"
+            },
+            "required": false,
+            "description": "Filter analytics to conversations used by this scenario run",
+            "name": "scenarioRunId",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "object",
               "additionalProperties": {
                 "type": "string"
@@ -25125,6 +25139,27 @@
             "description": "Project ID",
             "name": "projectId",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project identifier"
+            },
+            "required": true,
+            "description": "Project identifier",
+            "name": "projectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter funnels to conversations used by this scenario run"
+            },
+            "required": false,
+            "description": "Filter funnels to conversations used by this scenario run",
+            "name": "scenarioRunId",
+            "in": "query"
           }
         ],
         "requestBody": {

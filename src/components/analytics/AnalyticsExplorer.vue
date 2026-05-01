@@ -8,7 +8,7 @@ import { fmtMetric as fmtMetricUtil, formatBucket } from '@/utils/analyticsForma
 import ExploreChart from '@/components/ExploreChart.vue'
 import type { ChartSettings } from '@/components/ExploreChart.vue'
 
-const props = defineProps<{ projectId: string }>()
+const props = defineProps<{ projectId: string; scenarioRunId?: string }>()
 
 const analyticsStore = useAnalyticsStore()
 const authStore = useAuthStore()
@@ -268,7 +268,7 @@ function buildCurrentSliceQuery(): SliceQuery {
 async function runQuery() {
   if (!props.projectId) return
   if (selectedMetrics.value.length === 0) return
-  await analyticsStore.runQuery(props.projectId, buildCurrentSliceQuery())
+  await analyticsStore.runQuery(props.projectId, buildCurrentSliceQuery(), props.scenarioRunId)
 }
 
 function resolveMetricLabel(spec: string): string {

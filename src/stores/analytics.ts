@@ -166,12 +166,16 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   const isLoadingQuery = ref(false)
   const queryError = ref<string | null>(null)
 
-  async function runQuery(projectId: string, params: Parameters<typeof apiClient.projectsAnalyticsQueryList>[1]) {
+  async function runQuery(projectId: string, params: Parameters<typeof apiClient.projectsAnalyticsQueryList>[1], scenarioRunId?: string) {
     isLoadingQuery.value = true
     queryError.value = null
     sliceResult.value = null
     try {
-      sliceResult.value = await apiClient.projectsAnalyticsQueryList(projectId, params)
+      const query = { ...params }
+      if (scenarioRunId) {
+        (query as any).scenarioRunId = scenarioRunId
+      }
+      sliceResult.value = await apiClient.projectsAnalyticsQueryList(projectId, query)
     } catch (err: any) {
       const data = err.response?.data
       if (data?.message) {
@@ -234,12 +238,16 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   const savedFunnelQueries = ref<SavedFunnelQuery[]>([])
   const isLoadingSavedFunnelQueries = ref(false)
 
-  async function runFunnelQuery(projectId: string, data: FunnelQuery) {
+  async function runFunnelQuery(projectId: string, data: FunnelQuery, scenarioRunId?: string) {
     isLoadingFunnel.value = true
     funnelError.value = null
     funnelResult.value = null
     try {
-      funnelResult.value = await apiClient.projectsAnalyticsFunnelsQueryCreate(projectId, data)
+      const query: { projectId: string; scenarioRunId?: string } = { projectId }
+      if (scenarioRunId) {
+        query.scenarioRunId = scenarioRunId
+      }
+      funnelResult.value = await apiClient.projectsAnalyticsFunnelsQueryCreate(projectId, query, data)
     } catch (err: any) {
       const data = err.response?.data
       if (data?.message) {

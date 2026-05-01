@@ -6501,6 +6501,8 @@ export interface SliceQuery {
   to?: string | null;
   /** Filter to a single conversation */
   conversationId?: string;
+  /** Filter analytics to conversations used by this scenario run */
+  scenarioRunId?: string;
   /** Additional equality filters: key = dimension ID, value = exact match value */
   filters?: Record<string, string>;
   /**

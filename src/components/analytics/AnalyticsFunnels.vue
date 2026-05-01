@@ -6,7 +6,7 @@ import type { FunnelStep, FunnelQuery, SavedFunnelQuery, RelativeTime } from '@/
 import FunnelChart from '@/components/FunnelChart.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 
-const props = defineProps<{ projectId: string }>()
+const props = defineProps<{ projectId: string; scenarioRunId?: string }>()
 
 const analyticsStore = useAnalyticsStore()
 const authStore = useAuthStore()
@@ -155,7 +155,7 @@ function buildFunnelQuery(): FunnelQuery {
 
 async function runFunnel() {
   if (!props.projectId || !canRun.value) return
-  await analyticsStore.runFunnelQuery(props.projectId, buildFunnelQuery())
+  await analyticsStore.runFunnelQuery(props.projectId, buildFunnelQuery(), props.scenarioRunId)
 }
 
 function loadQuery(q: SavedFunnelQuery) {
